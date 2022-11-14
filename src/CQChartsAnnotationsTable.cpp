@@ -126,9 +126,16 @@ CQChartsAnnotationsControl(QWidget *parent) :
   controlLayout->addStretch(1);
 }
 
+CQChartsView *
+CQChartsAnnotationsControl::
+view() const
+{
+  return view_.data();
+}
+
 void
 CQChartsAnnotationsControl::
-setView(CQChartsView *view)
+setView(View *view)
 {
   if (view_)
     disconnect(view_, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
@@ -150,7 +157,7 @@ plot() const
 
 void
 CQChartsAnnotationsControl::
-setPlot(CQChartsPlot *plot)
+setPlot(Plot *plot)
 {
   if (plot_)
     disconnect(plot_, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
@@ -200,7 +207,7 @@ writeAnnotationSlot()
 
   //---
 
-  CQChartsView::Plots plots;
+  View::Plots plots;
 
   view_->getPlots(plots);
 
@@ -282,9 +289,16 @@ CQChartsViewAnnotationsControl(QWidget *parent) :
   viewControlGroupLayout->addStretch(1);
 }
 
+CQChartsView *
+CQChartsViewAnnotationsControl::
+view() const
+{
+  return view_.data();
+}
+
 void
 CQChartsViewAnnotationsControl::
-setView(CQChartsView *view)
+setView(View *view)
 {
   if (view != view_) {
     if (view_)
@@ -517,7 +531,7 @@ plot() const
 
 void
 CQChartsPlotAnnotationsControl::
-setPlot(CQChartsPlot *plot)
+setPlot(Plot *plot)
 {
   if (plot != plot_) {
     if (plot_)
@@ -680,7 +694,7 @@ getSelectedPlotAnnotation() const
 //---
 
 CQChartsAnnotationsTable::
-CQChartsAnnotationsTable(CQChartsView *view, CQChartsPlot *plot) :
+CQChartsAnnotationsTable(View *view, Plot *plot) :
  view_(view), plot_(plot)
 {
   horizontalHeader()->setStretchLastSection(true);
@@ -701,6 +715,22 @@ CQChartsAnnotationsTable::
 ~CQChartsAnnotationsTable()
 {
   delete delegate_;
+}
+
+void
+CQChartsAnnotationsTable::
+setView(View *view)
+{
+  view_ = view;
+  plot_ = PlotP();
+}
+
+void
+CQChartsAnnotationsTable::
+setPlot(Plot *plot)
+{
+  plot_ = plot;
+  view_ = ViewP();
 }
 
 void
@@ -773,9 +803,16 @@ CQChartsViewAnnotationsTable()
   setObjectName("viewAnnotationsTable");
 }
 
+CQChartsView *
+CQChartsViewAnnotationsTable::
+view() const
+{
+  return view_.data();
+}
+
 void
 CQChartsViewAnnotationsTable::
-setView(CQChartsView *view)
+setView(View *view)
 {
   if (view != view_) {
     view_ = view;
@@ -829,7 +866,7 @@ plot() const
 
 void
 CQChartsPlotAnnotationsTable::
-setPlot(CQChartsPlot *plot)
+setPlot(Plot *plot)
 {
   if (plot != plot_) {
     plot_ = plot;

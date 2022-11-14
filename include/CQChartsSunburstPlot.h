@@ -49,11 +49,11 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsSunburstPlot;
-  using Node = CQChartsSunburstNode;
+  using SunburstPlot = CQChartsSunburstPlot;
+  using Node         = CQChartsSunburstNode;
 
  public:
-  CQChartsSunburstNodeObj(const Plot *plot, const BBox &rect, Node *node);
+  CQChartsSunburstNodeObj(const SunburstPlot *plot, const BBox &rect, Node *node);
 
   QString typeName() const override { return "node"; }
 
@@ -77,9 +77,9 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
   void calcTextPenBrush(PenBrush &tPenBrush, bool updateState) const;
 
  private:
-  const Plot* plot_ { nullptr }; //!< parent plot
-  Node*       node_ { nullptr }; //!< associated node
-  int         ind_  { 0 };       //!< ind
+  const SunburstPlot* sunburstPlot_ { nullptr }; //!< parent plot
+  Node*               node_         { nullptr }; //!< associated node
+  int                 ind_          { 0 };       //!< ind
 };
 
 //---
@@ -104,19 +104,19 @@ class CQChartsSunburstNode {
     NAME
   };
 
-  using Plot     = CQChartsSunburstPlot;
-  using HierNode = CQChartsSunburstHierNode;
-  using NodeObj  = CQChartsSunburstNodeObj;
-  using Angle    = CQChartsAngle;
-  using Color    = CQChartsColor;
-  using ColorInd = CQChartsUtil::ColorInd;
+  using SunburstPlot = CQChartsSunburstPlot;
+  using HierNode     = CQChartsSunburstHierNode;
+  using NodeObj      = CQChartsSunburstNodeObj;
+  using Angle        = CQChartsAngle;
+  using Color        = CQChartsColor;
+  using ColorInd     = CQChartsUtil::ColorInd;
 
  public:
-  CQChartsSunburstNode(const Plot *plot, HierNode *parent, const QString &name="");
+  CQChartsSunburstNode(const SunburstPlot *plot, HierNode *parent, const QString &name="");
 
   virtual ~CQChartsSunburstNode() { }
 
-  const Plot *plot() const { return plot_; }
+  const SunburstPlot *sunburstPlot() const { return sunburstPlot_; }
 
   HierNode *parent() const { return parent_; }
 
@@ -168,26 +168,26 @@ class CQChartsSunburstNode {
 
   //bool pointInside(double x, double y);
 
-  virtual QColor interpColor(const Plot *plot, const Color &c,
+  virtual QColor interpColor(const SunburstPlot *plot, const Color &c,
                              const ColorInd &colorInd, int n) const;
 
  protected:
-  const Plot* plot_    { nullptr }; //!< parent plot
-  HierNode*   parent_  { nullptr }; //!< parent hier node
-  uint        id_      { 0 };       //!< node id
-  QString     name_;                //!< node name
-  double      size_    { 0.0 };     //!< node size
-  QModelIndex ind_;                 //!< node index
-  double      r_       { 0.0 };     //!< node radius
-  Angle       a_;                   //!< node angle
-  double      dr_      { 0.0 };     //!< node delta radius
-  Angle       da_;                  //!< node delta angle
-  int         colorId_ { -1 };      //!< node color index
-  Color       color_   { };         //!< node explicit color
-  bool        filler_  { false };   //!< is filler
-  bool        placed_  { false };   //!< is place
-  NodeObj*    obj_     { nullptr }; //!< associated object
-  QString     groupName_;           //!< group name
+  const SunburstPlot* sunburstPlot_ { nullptr }; //!< parent plot
+  HierNode*           parent_       { nullptr }; //!< parent hier node
+  uint                id_           { 0 };       //!< node id
+  QString             name_;                     //!< node name
+  double              size_         { 0.0 };     //!< node size
+  QModelIndex         ind_;                      //!< node index
+  double              r_            { 0.0 };     //!< node radius
+  Angle               a_;                        //!< node angle
+  double              dr_           { 0.0 };     //!< node delta radius
+  Angle               da_;                       //!< node delta angle
+  int                 colorId_      { -1 };      //!< node color index
+  Color               color_        { };         //!< node explicit color
+  bool                filler_       { false };   //!< is filler
+  bool                placed_       { false };   //!< is place
+  NodeObj*            obj_          { nullptr }; //!< associated object
+  QString             groupName_;                //!< group name
 };
 
 //---
@@ -221,14 +221,15 @@ struct CQChartsSunburstNodeCountCmp {
  */
 class CQChartsSunburstHierNode : public CQChartsSunburstNode {
  public:
-  using Plot     = CQChartsSunburstPlot;
-  using Node     = CQChartsSunburstNode;
-  using Nodes    = std::vector<Node *>;
-  using HierNode = CQChartsSunburstHierNode;
-  using Children = std::vector<HierNode *>;
+  using SunburstPlot = CQChartsSunburstPlot;
+  using Node         = CQChartsSunburstNode;
+  using Nodes        = std::vector<Node *>;
+  using HierNode     = CQChartsSunburstHierNode;
+  using Children     = std::vector<HierNode *>;
 
  public:
-  CQChartsSunburstHierNode(const Plot *plot, HierNode *parent=nullptr, const QString &name="");
+  CQChartsSunburstHierNode(const SunburstPlot *plot, HierNode *parent=nullptr,
+                           const QString &name="");
 
  ~CQChartsSunburstHierNode();
 
@@ -273,7 +274,7 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
 
   void removeNode(Node *node);
 
-  QColor interpColor(const Plot *plot, const Color &c,
+  QColor interpColor(const SunburstPlot *plot, const Color &c,
                      const ColorInd &colorInd, int n) const override;
 
  private:
@@ -290,7 +291,7 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
  */
 class CQChartsSunburstRootNode : public CQChartsSunburstHierNode {
  public:
-  CQChartsSunburstRootNode(const Plot *plot, const QString &name="") :
+  CQChartsSunburstRootNode(const SunburstPlot *plot, const QString &name="") :
    CQChartsSunburstHierNode(plot, 0, name) {
   }
 
@@ -605,7 +606,7 @@ class CQChartsSunburstPlotCustomControls : public CQChartsHierPlotCustomControls
 
   void addWidgets() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -619,7 +620,7 @@ class CQChartsSunburstPlotCustomControls : public CQChartsHierPlotCustomControls
   void setColorValue(const CQChartsColor &c) override;
 
  protected:
-  CQChartsSunburstPlot* plot_ { nullptr };
+  CQChartsSunburstPlot* sunburstPlot_ { nullptr };
 };
 
 #endif

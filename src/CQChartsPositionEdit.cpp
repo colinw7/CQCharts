@@ -2,6 +2,8 @@
 #include <CQChartsGeomPointEdit.h>
 #include <CQChartsUnitsEdit.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsView.h>
+#include <CQChartsPlot.h>
 
 #include <CQPropertyView.h>
 #include <CQUtil.h>

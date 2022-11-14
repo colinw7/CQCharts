@@ -383,9 +383,9 @@ createObjs(PlotObjs &objs) const
 
   class RowVisitor : public CQModelVisitor {
    public:
-    RowVisitor(const CQChartsCorrelationPlot *plot, PlotObjs &objs) :
-     plot_(plot), objs_(objs) {
-      nc_ = plot_->numColumns();
+    RowVisitor(const CQChartsCorrelationPlot *correlationPlot, PlotObjs &objs) :
+     correlationPlot_(correlationPlot), objs_(objs) {
+      nc_ = correlationPlot_->numColumns();
     }
 
     State visit(const QAbstractItemModel *model, const VisitData &data) override {
@@ -402,14 +402,14 @@ createObjs(PlotObjs &objs) const
 
         double x = col*dx_;
 
-        plot_->addCellObj(data.row, col, x, y, dx_, dy_, value, ind, objs_);
+        correlationPlot_->addCellObj(data.row, col, x, y, dx_, dy_, value, ind, objs_);
       }
 
       return State::OK;
     }
 
    private:
-    const CQChartsCorrelationPlot* plot_ { nullptr };
+    const CQChartsCorrelationPlot* correlationPlot_ { nullptr };
     PlotObjs&                      objs_;
     int                            nc_   { 0 };
     double                         dx_   { 1.0 };
@@ -861,10 +861,10 @@ createCustomControls()
 //------
 
 CQChartsCorrelationCellObj::
-CQChartsCorrelationCellObj(const CQChartsCorrelationPlot *plot, const BBox &rect,
+CQChartsCorrelationCellObj(const CQChartsCorrelationPlot *correlationPlot, const BBox &rect,
                            int row, int col, double value, const QModelIndex &ind) :
- CQChartsPlotObj(const_cast<CQChartsCorrelationPlot *>(plot), rect),
- plot_(plot), row_(row), col_(col), value_(value)
+ CQChartsPlotObj(const_cast<CQChartsCorrelationPlot *>(correlationPlot), rect),
+ correlationPlot_(correlationPlot), row_(row), col_(col), value_(value)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -891,9 +891,9 @@ calcTipId() const
   bool ok;
 
   if (row_ != col_) {
-    auto xname = CQChartsModelUtil::modelHHeaderString(plot_->correlationModel(),
+    auto xname = CQChartsModelUtil::modelHHeaderString(correlationPlot_->correlationModel(),
                    CQChartsColumn(row_), Qt::DisplayRole, ok);
-    auto yname = CQChartsModelUtil::modelHHeaderString(plot_->correlationModel(),
+    auto yname = CQChartsModelUtil::modelHHeaderString(correlationPlot_->correlationModel(),
                    CQChartsColumn(col_), Qt::DisplayRole, ok);
 
     if (xname.length())
@@ -905,13 +905,13 @@ calcTipId() const
     tableTip.addTableRow("Value", value());
   }
   else {
-    auto xname = CQChartsModelUtil::modelHHeaderString(plot_->correlationModel(),
+    auto xname = CQChartsModelUtil::modelHHeaderString(correlationPlot_->correlationModel(),
                    CQChartsColumn(row_), Qt::DisplayRole, ok);
 
     if (xname.length())
       tableTip.addTableRow("Name", xname);
 
-    const auto &minMax = plot_->baseModel()->minMax(row_);
+    const auto &minMax = correlationPlot_->baseModel()->minMax(row_);
 
     tableTip.addTableRow("Min", minMax.min());
     tableTip.addTableRow("Max", minMax.max());
@@ -937,14 +937,15 @@ CQChartsGeom::Size
 CQChartsCorrelationCellObj::
 calcTextSize() const
 {
-  if (! plot_->isCellLabels())
+  if (! correlationPlot_->isCellLabels())
     return Size();
 
-  auto font = plot_->view()->plotFont(plot_, plot_->cellLabelTextFont());
+  auto font = correlationPlot_->view()->plotFont(correlationPlot_,
+                correlationPlot_->cellLabelTextFont());
 
   auto valueStr = CQChartsUtil::formatReal(value());
 
-  auto textOptions = plot_->cellLabelTextOptions();
+  auto textOptions = correlationPlot_->cellLabelTextOptions();
 
   textOptions.align  = Qt::AlignHCenter | Qt::AlignVCenter; // TODO: allow config
   textOptions.scaled = false; // TODO: allow config
@@ -975,12 +976,12 @@ draw(PaintDevice *device) const
 
   // diagonal
   if (row_ == col_) {
-    auto type = plot_->diagonalType();
+    auto type = correlationPlot_->diagonalType();
 
     if      (type == CQChartsCorrelationPlot::DiagonalType::NAME) {
       bool ok;
 
-      auto xname = CQChartsModelUtil::modelHHeaderString(plot_->correlationModel(),
+      auto xname = CQChartsModelUtil::modelHHeaderString(correlationPlot_->correlationModel(),
                      CQChartsColumn(row_), Qt::DisplayRole, ok);
 
       if (xname.length())
@@ -989,7 +990,7 @@ draw(PaintDevice *device) const
       skipLabel = true;
     }
     else if (type == CQChartsCorrelationPlot::DiagonalType::MIN_MAX) {
-      const auto &minMax = plot_->baseModel()->minMax(row_);
+      const auto &minMax = correlationPlot_->baseModel()->minMax(row_);
 
       double x1 = rect().getXMin();
       double x2 = rect().getXMax();
@@ -1008,7 +1009,7 @@ draw(PaintDevice *device) const
 
       bool ok;
 
-      auto xname = CQChartsModelUtil::modelHHeaderString(plot_->correlationModel(),
+      auto xname = CQChartsModelUtil::modelHHeaderString(correlationPlot_->correlationModel(),
                      CQChartsColumn(row_), Qt::DisplayRole, ok);
 
       if (xname.length())
@@ -1019,7 +1020,7 @@ draw(PaintDevice *device) const
       skipLabel = true;
     }
     else if (type == CQChartsCorrelationPlot::DiagonalType::DENSITY) {
-      const auto *density = plot_->baseModel()->density(row_);
+      const auto *density = correlationPlot_->baseModel()->density(row_);
 
       double s  = rect().getMinSize()/2.0;
       auto   rc = rect().getCenter();
@@ -1047,7 +1048,8 @@ draw(PaintDevice *device) const
   else {
     bool isLower = (row_ > col_);
 
-    auto type = (isLower ? plot_->lowerDiagonalType() : plot_->upperDiagonalType());
+    auto type = (isLower ? correlationPlot_->lowerDiagonalType() :
+                           correlationPlot_->upperDiagonalType());
 
     if      (type == CQChartsCorrelationPlot::OffDiagonalType::PIE) {
       Angle a1, a2;
@@ -1064,7 +1066,7 @@ draw(PaintDevice *device) const
 
       auto penBrush1 = penBrush;
 
-      plot_->setBrush(penBrush1, BrushData(false));
+      correlationPlot_->setBrush(penBrush1, BrushData(false));
 
       CQChartsDrawUtil::setPenBrush(device, penBrush1);
 
@@ -1090,7 +1092,7 @@ draw(PaintDevice *device) const
 
       fillPattern.setScale(4.0);
 
-      plot_->setPenBrush(penBrush,
+      correlationPlot_->setPenBrush(penBrush,
         PenData  (true, lc, Alpha()),
         BrushData(true, lc, Alpha(), fillPattern));
 
@@ -1099,13 +1101,13 @@ draw(PaintDevice *device) const
       device->drawRect(rect());
     }
     else if (type == CQChartsCorrelationPlot::OffDiagonalType::ELLIPSE) {
-      const auto &rminMax = plot_->baseModel()->minMax(row_);
-      const auto &cminMax = plot_->baseModel()->minMax(col_);
-      const auto &bestFit = plot_->baseModel()->bestFit(row_, col_);
+      const auto &rminMax = correlationPlot_->baseModel()->minMax(row_);
+      const auto &cminMax = correlationPlot_->baseModel()->minMax(col_);
+      const auto &bestFit = correlationPlot_->baseModel()->bestFit(row_, col_);
 
       double xdev, ydev;
 
-      plot_->baseModel()->devData(row_, col_, xdev, ydev);
+      correlationPlot_->baseModel()->devData(row_, col_, xdev, ydev);
 
       double rmin = rminMax.min();
       double rmax = rminMax.max();
@@ -1149,9 +1151,9 @@ draw(PaintDevice *device) const
       device->strokePath(path, penBrush.pen);
     }
     else if (type == CQChartsCorrelationPlot::OffDiagonalType::POINTS) {
-      const auto &rminMax = plot_->baseModel()->minMax(row_);
-      const auto &cminMax = plot_->baseModel()->minMax(col_);
-      const auto &points  = plot_->baseModel()->points(row_, col_);
+      const auto &rminMax = correlationPlot_->baseModel()->minMax(row_);
+      const auto &cminMax = correlationPlot_->baseModel()->minMax(col_);
+      const auto &points  = correlationPlot_->baseModel()->points(row_, col_);
 
       double rmin = rminMax.min();
       double rmax = rminMax.max();
@@ -1190,7 +1192,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  if (plot_->isCellLabels() && ! skipLabel) {
+  if (correlationPlot_->isCellLabels() && ! skipLabel) {
     auto valueStr = CQChartsUtil::formatReal(value());
 
     drawCellLabel(device, valueStr, updateState);
@@ -1221,34 +1223,34 @@ drawCellLabel(PaintDevice *device, const QString &str, const BBox &rect,
   //---
 
   // set font
-  auto font = plot_->cellLabelTextFont();
+  auto font = correlationPlot_->cellLabelTextFont();
 
   if (fontInc != 0.0)
     font.incFontSize(fontInc);
 
-  plot_->setPainterFont(device, font);
+  correlationPlot_->setPainterFont(device, font);
 
   //---
 
   // set pen
   PenBrush tPenBrush;
 
-  auto tc = plot_->interpCellLabelTextColor(ic);
+  auto tc = correlationPlot_->interpCellLabelTextColor(ic);
 
-  plot_->setPen(tPenBrush, PenData(true, tc, plot_->cellLabelTextAlpha()));
+  correlationPlot_->setPen(tPenBrush, PenData(true, tc, correlationPlot_->cellLabelTextAlpha()));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, tPenBrush);
+    correlationPlot_->updateObjPenBrushState(this, tPenBrush);
 
   device->setPen(tPenBrush.pen);
 
   //---
 
-  auto textOptions = plot_->cellLabelTextOptions(device);
+  auto textOptions = correlationPlot_->cellLabelTextOptions(device);
 
-  textOptions.scale = plot_->labelScale(); // TODO: optional
+  textOptions.scale = correlationPlot_->labelScale(); // TODO: optional
 
-  textOptions = plot_->adjustTextOptions(textOptions);
+  textOptions = correlationPlot_->adjustTextOptions(textOptions);
 
   CQChartsDrawUtil::drawTextInBox(device, rect, str, textOptions);
 }
@@ -1265,13 +1267,14 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   // set pen and brush
-  auto fc = plot_->interpCellFillColor  (ic);
-  auto bc = plot_->interpCellStrokeColor(ic);
+  auto fc = correlationPlot_->interpCellFillColor  (ic);
+  auto bc = correlationPlot_->interpCellStrokeColor(ic);
 
-  plot_->setPenBrush(penBrush, plot_->cellPenData(bc), plot_->cellBrushData(fc));
+  correlationPlot_->setPenBrush(penBrush, correlationPlot_->cellPenData(bc),
+                                correlationPlot_->cellBrushData(fc));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    correlationPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 void
@@ -1355,15 +1358,15 @@ void
 CQChartsCorrelationPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && correlationPlot_)
+    disconnect(correlationPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsCorrelationPlot *>(plot);
+  correlationPlot_ = dynamic_cast<CQChartsCorrelationPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (correlationPlot_)
+    connect(correlationPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
@@ -1374,9 +1377,9 @@ updateWidgets()
 
   //---
 
-  diagonalTypeCombo_     ->setCurrentValue(static_cast<int>(plot_->diagonalType()));
-  upperDiagonalTypeCombo_->setCurrentValue(static_cast<int>(plot_->upperDiagonalType()));
-  lowerDiagonalTypeCombo_->setCurrentValue(static_cast<int>(plot_->lowerDiagonalType()));
+  diagonalTypeCombo_     ->setCurrentValue(static_cast<int>(correlationPlot_->diagonalType()));
+  upperDiagonalTypeCombo_->setCurrentValue(static_cast<int>(correlationPlot_->upperDiagonalType()));
+  lowerDiagonalTypeCombo_->setCurrentValue(static_cast<int>(correlationPlot_->lowerDiagonalType()));
 
   CQChartsPlotCustomControls::updateWidgets();
 
@@ -1389,8 +1392,8 @@ void
 CQChartsCorrelationPlotCustomControls::
 diagonalTypeSlot()
 {
-  plot_->setDiagonalType(static_cast<CQChartsCorrelationPlot::DiagonalType>(
-                          diagonalTypeCombo_->currentValue()));
+  correlationPlot_->setDiagonalType(static_cast<CQChartsCorrelationPlot::DiagonalType>(
+                                      diagonalTypeCombo_->currentValue()));
 
   updateWidgets();
 }
@@ -1399,8 +1402,8 @@ void
 CQChartsCorrelationPlotCustomControls::
 upperDiagonalTypeSlot()
 {
-  plot_->setUpperDiagonalType(static_cast<CQChartsCorrelationPlot::OffDiagonalType>(
-                               upperDiagonalTypeCombo_->currentValue()));
+  correlationPlot_->setUpperDiagonalType(static_cast<CQChartsCorrelationPlot::OffDiagonalType>(
+                                           upperDiagonalTypeCombo_->currentValue()));
 
   updateWidgets();
 }
@@ -1409,8 +1412,8 @@ void
 CQChartsCorrelationPlotCustomControls::
 lowerDiagonalTypeSlot()
 {
-  plot_->setLowerDiagonalType(static_cast<CQChartsCorrelationPlot::OffDiagonalType>(
-                              lowerDiagonalTypeCombo_->currentValue()));
+  correlationPlot_->setLowerDiagonalType(static_cast<CQChartsCorrelationPlot::OffDiagonalType>(
+                                           lowerDiagonalTypeCombo_->currentValue()));
 
   updateWidgets();
 }

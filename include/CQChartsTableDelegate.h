@@ -100,9 +100,9 @@ class CQChartsTableDelegate : public QItemDelegate {
  private:
   using ColumnDataMap = std::map<int, ColumnData>;
 
-  Table*              table_ { nullptr };
-  Tree*               tree_  { nullptr };
-  ModelView*          view_  { nullptr };
+  Table*              table_     { nullptr };
+  Tree*               tree_      { nullptr };
+  ModelView*          modelView_ { nullptr };
   ColumnDataMap       columnDataMap_;
   mutable QModelIndex currentIndex_;
   mutable std::mutex  mutex_;

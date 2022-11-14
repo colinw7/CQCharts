@@ -99,15 +99,15 @@ void
 CQChartsGroupPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(groupCustomDataChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && groupPlot_)
+    disconnect(groupPlot_, SIGNAL(groupCustomDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsGroupPlot *>(plot);
+  groupPlot_ = dynamic_cast<CQChartsGroupPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(groupCustomDataChanged()), this, SLOT(updateWidgets()));
+  if (groupPlot_)
+    connect(groupPlot_, SIGNAL(groupCustomDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
@@ -119,19 +119,19 @@ updateWidgets()
   //---
 
   if (groupColumnCombo_) {
-    groupColumnCombo_->setModelColumn(plot_->getModelData(), plot_->groupColumn());
+    groupColumnCombo_->setModelColumn(groupPlot_->getModelData(), groupPlot_->groupColumn());
 
     //---
 
-    auto *details = plot_->columnDetails(plot_->groupColumn());
+    auto *details = groupPlot_->columnDetails(groupPlot_->groupColumn());
 
-    bool isUnique   = plot_->isExactBucketValue();
+    bool isUnique   = groupPlot_->isExactBucketValue();
     bool isString   = (details && details->type() == CQBaseModelType::STRING);
     bool isNumeric  = (details && details->isNumeric());
     bool isIntegral = (details && details->type() == CQBaseModelType::INTEGER);
-    bool isFixed    = (plot_->bucketType() == CQBucketer::Type::REAL_RANGE);
-    bool isAuto     = (plot_->bucketType() == CQBucketer::Type::REAL_AUTO);
-    bool isStops    = (plot_->bucketType() == CQBucketer::Type::FIXED_STOPS);
+    bool isFixed    = (groupPlot_->bucketType() == CQBucketer::Type::REAL_RANGE);
+    bool isAuto     = (groupPlot_->bucketType() == CQBucketer::Type::REAL_AUTO);
+    bool isStops    = (groupPlot_->bucketType() == CQBucketer::Type::FIXED_STOPS);
 
     if      (! isUnique && isFixed) fixedBucketRadio_ ->setChecked(true);
     else if (! isUnique && isAuto ) rangeBucketRadio_ ->setChecked(true);
@@ -147,17 +147,17 @@ updateWidgets()
       auto minValue = (details ? details->minValue() : 0.0);
       auto maxValue = (details ? details->maxValue() : 1.0);
 
-      bucketRange_->setSliderMinMax(plot_->minBucketValue(), plot_->maxBucketValue());
+      bucketRange_->setSliderMinMax(groupPlot_->minBucketValue(), groupPlot_->maxBucketValue());
       bucketRange_->setDecimalPlaces(isIntegral ? 0 : 3);
     }
 
-    startBucketEdit_->setValue(plot_->startBucketValue());
-    deltaBucketEdit_->setValue(plot_->deltaBucketValue());
-    numBucketsEdit_ ->setValue(plot_->numAutoBuckets());
-    bucketStopsEdit_->setText(plot_->bucketStops().toString());
+    startBucketEdit_->setValue(groupPlot_->startBucketValue());
+    deltaBucketEdit_->setValue(groupPlot_->deltaBucketValue());
+    numBucketsEdit_ ->setValue(groupPlot_->numAutoBuckets());
+    bucketStopsEdit_->setText(groupPlot_->bucketStops().toString());
     uniqueCount_    ->setValue(details ? details->numUnique() : 0);
-    rangeLabel_     ->setText(QString("%1-%2").arg(plot_->minBucketValue()).
-                                               arg(plot_->maxBucketValue()));
+    rangeLabel_     ->setText(QString("%1-%2").arg(groupPlot_->minBucketValue()).
+                                               arg(groupPlot_->maxBucketValue()));
 
     setFrameWidgetVisible(bucketRange_    , details && ! isUnique && isAuto);
     setFrameWidgetVisible(startBucketEdit_, details && ! isUnique && isFixed);
@@ -209,11 +209,11 @@ groupColumnSlot()
 {
   connectSlots(false);
 
-  plot_->setGroupColumn(groupColumnCombo_->getColumn());
+  groupPlot_->setGroupColumn(groupColumnCombo_->getColumn());
 
-  plot_->initGroupBucketer();
+  groupPlot_->initGroupBucketer();
 
-  bucketRange_->setRangeMinMax(plot_->minBucketValue(), plot_->maxBucketValue());
+  bucketRange_->setRangeMinMax(groupPlot_->minBucketValue(), groupPlot_->maxBucketValue());
 
   updateWidgets();
 
@@ -226,25 +226,25 @@ bucketRadioGroupSlot(QAbstractButton *button)
 {
   connectSlots(false);
 
-  plot_->setUpdatesEnabled(false);
+  groupPlot_->setUpdatesEnabled(false);
 
   if      (button == fixedBucketRadio_) {
-    plot_->setExactBucketValue(false);
-    plot_->setBucketType(CQBucketer::Type::REAL_RANGE);
+    groupPlot_->setExactBucketValue(false);
+    groupPlot_->setBucketType(CQBucketer::Type::REAL_RANGE);
   }
   else if (button == rangeBucketRadio_) {
-    plot_->setExactBucketValue(false);
-    plot_->setBucketType(CQBucketer::Type::REAL_AUTO);
+    groupPlot_->setExactBucketValue(false);
+    groupPlot_->setBucketType(CQBucketer::Type::REAL_AUTO);
   }
   else if (button == stopsBucketRadio_) {
-    plot_->setExactBucketValue(false);
-    plot_->setBucketType(CQBucketer::Type::FIXED_STOPS);
+    groupPlot_->setExactBucketValue(false);
+    groupPlot_->setBucketType(CQBucketer::Type::FIXED_STOPS);
   }
   else if (button == uniqueBucketRadio_) {
-    plot_->setExactBucketValue(true);
+    groupPlot_->setExactBucketValue(true);
   }
 
-  plot_->setUpdatesEnabled(true);
+  groupPlot_->setUpdatesEnabled(true);
 
   connectSlots(true);
 }
@@ -255,12 +255,12 @@ bucketRangeSlot()
 {
   connectSlots(false);
 
-  plot_->setUpdatesEnabled(false);
+  groupPlot_->setUpdatesEnabled(false);
 
-  plot_->setMinBucketValue(bucketRange_->sliderMin());
-  plot_->setMaxBucketValue(bucketRange_->sliderMax());
+  groupPlot_->setMinBucketValue(bucketRange_->sliderMin());
+  groupPlot_->setMaxBucketValue(bucketRange_->sliderMax());
 
-  plot_->setUpdatesEnabled(true);
+  groupPlot_->setUpdatesEnabled(true);
 
   connectSlots(true);
 }
@@ -269,26 +269,26 @@ void
 CQChartsGroupPlotCustomControls::
 startBucketSlot()
 {
-  plot_->setStartBucketValue(startBucketEdit_->value());
+  groupPlot_->setStartBucketValue(startBucketEdit_->value());
 }
 
 void
 CQChartsGroupPlotCustomControls::
 deltaBucketSlot()
 {
-  plot_->setDeltaBucketValue(deltaBucketEdit_->value());
+  groupPlot_->setDeltaBucketValue(deltaBucketEdit_->value());
 }
 
 void
 CQChartsGroupPlotCustomControls::
 numBucketsSlot()
 {
-  plot_->setNumAutoBuckets(numBucketsEdit_->value());
+  groupPlot_->setNumAutoBuckets(numBucketsEdit_->value());
 }
 
 void
 CQChartsGroupPlotCustomControls::
 bucketStopsSlot()
 {
-  plot_->setBucketStops(CQChartsReals(bucketStopsEdit_->text()));
+  groupPlot_->setBucketStops(CQChartsReals(bucketStopsEdit_->text()));
 }

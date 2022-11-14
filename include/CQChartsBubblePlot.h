@@ -63,7 +63,7 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
   }
 
  public:
-  using Plot          = CQChartsBubblePlot;
+  using BubblePlot    = CQChartsBubblePlot;
   using Node          = CQChartsBubbleNode;
   using HierNode      = CQChartsBubbleHierNode;
   using Color         = CQChartsColor;
@@ -71,14 +71,14 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
   using QModelIndices = std::vector<QModelIndex>;
 
  public:
-  CQChartsBubbleNode(const Plot *plot, HierNode *parent, const QString &name,
+  CQChartsBubbleNode(const BubblePlot *plot, HierNode *parent, const QString &name,
                      double size, const QModelIndex &ind);
 
   virtual ~CQChartsBubbleNode();
 
   void initRadius();
 
-  const Plot *plot() const { return plot_; }
+  const BubblePlot *bubblePlot() const { return bubblePlot_; }
 
   HierNode *parent() const { return parent_; }
 
@@ -158,21 +158,21 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
   //---
 
   //! interp color
-  virtual QColor interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd,
+  virtual QColor interpColor(const BubblePlot *plot, const Color &c, const ColorInd &colorInd,
                              int n) const;
 
  protected:
-  const Plot*   plot_    { nullptr }; //!< parent plot
-  HierNode*     parent_  { nullptr }; //!< parent hier node
-  uint          id_      { 0 };       //!< node id
-  QString       name_;                //!< node name
-  double        size_    { 0.0 };     //!< node size
-  int           colorId_ { -1 };      //!< node color index
-  Color         color_;               //!< node explicit color
-  QModelIndices inds_;                //!< data model indices
-  int           depth_   { 0 };       //!< node depth
-  bool          filler_  { false };   //!< is filler
-  bool          placed_  { false };   //!< is placed
+  const BubblePlot* bubblePlot_ { nullptr }; //!< parent plot
+  HierNode*         parent_     { nullptr }; //!< parent hier node
+  uint              id_         { 0 };       //!< node id
+  QString           name_;                   //!< node name
+  double            size_       { 0.0 };     //!< node size
+  int               colorId_    { -1 };      //!< node color index
+  Color             color_;                  //!< node explicit color
+  QModelIndices     inds_;                   //!< data model indices
+  int               depth_      { 0 };       //!< node depth
+  bool              filler_     { false };   //!< is filler
+  bool              placed_     { false };   //!< is placed
 };
 
 //---
@@ -206,15 +206,15 @@ struct CQChartsBubbleNodeCmp {
  */
 class CQChartsBubbleHierNode : public CQChartsBubbleNode {
  public:
-  using Plot     = CQChartsBubblePlot;
-  using HierNode = CQChartsBubbleHierNode;
-  using Node     = CQChartsBubbleNode;
-  using Nodes    = std::vector<Node*>;
-  using Children = std::vector<HierNode*>;
-  using Pack     = CQChartsCirclePack<Node>;
+  using BubblePlot = CQChartsBubblePlot;
+  using HierNode   = CQChartsBubbleHierNode;
+  using Node       = CQChartsBubbleNode;
+  using Nodes      = std::vector<Node*>;
+  using Children   = std::vector<HierNode*>;
+  using Pack       = CQChartsCirclePack<Node>;
 
  public:
-  CQChartsBubbleHierNode(const Plot *plot, HierNode *parent, const QString &name,
+  CQChartsBubbleHierNode(const BubblePlot *plot, HierNode *parent, const QString &name,
                          const QModelIndex &ind=QModelIndex());
 
  ~CQChartsBubbleHierNode();
@@ -266,7 +266,7 @@ class CQChartsBubbleHierNode : public CQChartsBubbleNode {
   void setPosition(double x, double y) override;
 
   //! interp color
-  QColor interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd,
+  QColor interpColor(const BubblePlot *plot, const Color &c, const ColorInd &colorInd,
                      int n) const override;
 
  protected:
@@ -291,14 +291,14 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
   Q_PROPERTY(double  size READ hierSize)
 
  public:
-  using Plot    = CQChartsBubblePlot;
-  using Node    = CQChartsBubbleNode;
-  using HierObj = CQChartsBubbleHierObj;
-  using Angle   = CQChartsAngle;
-  using Units   = CQChartsUnits::Type;
+  using BubblePlot = CQChartsBubblePlot;
+  using Node       = CQChartsBubbleNode;
+  using HierObj    = CQChartsBubbleHierObj;
+  using Angle      = CQChartsAngle;
+  using Units      = CQChartsUnits::Type;
 
  public:
-  CQChartsBubbleNodeObj(const Plot *plot, Node *node, HierObj *hierObj,
+  CQChartsBubbleNodeObj(const BubblePlot *plot, Node *node, HierObj *hierObj,
                         const BBox &rect, const ColorInd &is);
 
   QString typeName() const override { return "bubble"; }
@@ -352,10 +352,10 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
 
  protected:
-  const Plot* plot_    { nullptr }; //!< parent plot
-  Node*       node_    { nullptr }; //!< associated node
-  HierObj*    hierObj_ { nullptr }; //!< parent hier obj
-  int         ind_     { 0 };       //!< ind
+  const BubblePlot* bubblePlot_ { nullptr }; //!< parent plot
+  Node*             node_       { nullptr }; //!< associated node
+  HierObj*          hierObj_    { nullptr }; //!< parent hier obj
+  int               ind_        { 0 };       //!< ind
 };
 
 //---
@@ -366,12 +366,12 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
  */
 class CQChartsBubbleHierObj : public CQChartsBubbleNodeObj {
  public:
-  using Plot     = CQChartsBubblePlot;
-  using HierNode = CQChartsBubbleHierNode;
-  using HierObj  = CQChartsBubbleHierObj;
+  using BubblePlot = CQChartsBubblePlot;
+  using HierNode   = CQChartsBubbleHierNode;
+  using HierObj    = CQChartsBubbleHierObj;
 
  public:
-  CQChartsBubbleHierObj(const Plot *plot, HierNode *hier, HierObj *hierObj,
+  CQChartsBubbleHierObj(const BubblePlot *plot, HierNode *hier, HierObj *hierObj,
                         const BBox &rect, const ColorInd &is);
 
   HierNode *hierNode() const { return hier_; }
@@ -722,7 +722,7 @@ class CQChartsBubblePlotCustomControls : public CQChartsGroupPlotCustomControls 
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -740,7 +740,7 @@ class CQChartsBubblePlotCustomControls : public CQChartsGroupPlotCustomControls 
   void setColorValue(const CQChartsColor &c) override;
 
  protected:
-  CQChartsBubblePlot* plot_ { nullptr };
+  CQChartsBubblePlot* bubblePlot_ { nullptr };
 };
 
 #endif

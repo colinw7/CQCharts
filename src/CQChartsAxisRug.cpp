@@ -12,6 +12,13 @@ CQChartsAxisRug(CQChartsPlot *plot, const Qt::Orientation &direction) :
   setSymbolSize(Length::pixel(5));
 }
 
+CQChartsPlot *
+CQChartsAxisRug::
+plot() const
+{
+  return plot_.data();
+}
+
 void
 CQChartsAxisRug::
 setSide(const Side &s)

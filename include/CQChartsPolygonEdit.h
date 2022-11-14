@@ -22,8 +22,8 @@ class CQChartsPolygonLineEdit : public CQChartsLineEditBase {
   const CQChartsPolygon &polygon() const;
   void setPolygon(const CQChartsPolygon &pos);
 
-  const CQChartsPlot *plot() const;
-  void setPlot(CQChartsPlot *plot) override;
+  Plot *plot() const;
+  void setPlot(Plot *plot) override;
 
   void updateMenu() override;
 
@@ -75,11 +75,10 @@ class CQChartsPolygonEdit : public CQChartsEditBase {
   const CQChartsPolygon &polygon() const;
   void setPolygon(const CQChartsPolygon &pos);
 
+  void setPlot(Plot *plot) override;
+
   const Units &units() const;
   void setUnits(const Units &units);
-
-  const CQChartsPlot *plot() const { return plot_; }
-  void setPlot(CQChartsPlot *plot) override;
 
   int numPoints() const;
 
@@ -113,7 +112,6 @@ class CQChartsPolygonEdit : public CQChartsEditBase {
   using PointEdits = std::vector<CQChartsGeomPointEdit *>;
 
   CQChartsPolygon                 polygon_;                  //!< polygon
-  CQChartsPlot*                   plot_         { nullptr }; //!< associated plot
   CQChartsUnitsEdit*              unitsEdit_    { nullptr }; //!< units edit
   QFrame*                         controlFrame_ { nullptr }; //!< control frame
   QScrollArea*                    scrollArea_   { nullptr }; //!< scroll area

@@ -1163,20 +1163,21 @@ initLinkConnectionObjs() const
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsForceDirectedPlot *plot) :
-     plot_(plot) {
-      separator_ = plot_->calcSeparator();
+    RowVisitor(const CQChartsForceDirectedPlot *forceDirectedPlot) :
+     forceDirectedPlot_(forceDirectedPlot) {
+      separator_ = forceDirectedPlot_->calcSeparator();
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       // Get group value
       long group = -1;
 
-      if (plot_->groupColumn().isValid()) {
-        ModelIndex groupModelInd(plot_, data.row, plot_->groupColumn(), data.parent);
+      if (forceDirectedPlot_->groupColumn().isValid()) {
+        ModelIndex groupModelInd(forceDirectedPlot_, data.row,
+                                 forceDirectedPlot_->groupColumn(), data.parent);
 
         bool ok1;
-        group = plot_->modelInteger(groupModelInd, ok1);
+        group = forceDirectedPlot_->modelInteger(groupModelInd, ok1);
 
         if (! ok1)
           return addDataError(groupModelInd, "Non-integer group value");
@@ -1187,19 +1188,21 @@ initLinkConnectionObjs() const
       //---
 
       // link objs
-      if      (plot_->linkColumn().isValid() && plot_->valueColumn().isValid()) {
+      if      (forceDirectedPlot_->linkColumn().isValid() &&
+               forceDirectedPlot_->valueColumn().isValid()) {
         int    srcId  { -1 };
         int    destId { -1 };
         double value  { 0.0 };
 
-        if (! plot_->getNameConnections(igroup, data, srcId, destId, value, separator_))
+        if (! forceDirectedPlot_->getNameConnections(igroup, data, srcId, destId,
+                                                     value, separator_))
           return State::SKIP;
 
         addConnection(srcId, destId, value);
       }
       // connection objs
-      else if (plot_->connectionsColumn().isValid()) {
-        if (! plot_->getRowConnections(igroup, data))
+      else if (forceDirectedPlot_->connectionsColumn().isValid()) {
+        if (! forceDirectedPlot_->getRowConnections(igroup, data))
           return State::SKIP;
       }
       else {
@@ -1210,7 +1213,8 @@ initLinkConnectionObjs() const
     }
 
     void addConnection(int srcId, int destId, double value) {
-      auto &srcConnectionsData = const_cast<ConnectionsData &>(plot_->getConnections(srcId));
+      auto &srcConnectionsData =
+        const_cast<ConnectionsData &>(forceDirectedPlot_->getConnections(srcId));
 
       Connection connection;
 
@@ -1224,13 +1228,13 @@ initLinkConnectionObjs() const
 
    private:
     State addDataError(const ModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsForceDirectedPlot *>(plot_)->addDataError(ind , msg);
+      const_cast<CQChartsForceDirectedPlot *>(forceDirectedPlot_)->addDataError(ind , msg);
       return State::SKIP;
     }
 
    private:
-    const CQChartsForceDirectedPlot* plot_      { nullptr };
-    QString                          separator_ { "/" };
+    const CQChartsForceDirectedPlot* forceDirectedPlot_ { nullptr };
+    QString                          separator_         { "/" };
   };
 
   RowVisitor visitor(this);
@@ -3052,7 +3056,7 @@ void
 CQChartsForceDirectedPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<CQChartsForceDirectedPlot *>(plot);
+  forceDirectedPlot_ = dynamic_cast<CQChartsForceDirectedPlot *>(plot);
 
   CQChartsConnectionPlotCustomControls::setPlot(plot);
 }
@@ -3065,7 +3069,7 @@ updateWidgets()
 
   //---
 
-  runningCheck_->setChecked(plot_->isAnimating());
+  runningCheck_->setChecked(forceDirectedPlot_->isAnimating());
 
   CQChartsConnectionPlotCustomControls::updateWidgets();
 
@@ -3078,28 +3082,28 @@ void
 CQChartsForceDirectedPlotCustomControls::
 runningSlot(int state)
 {
-  if (plot_)
-    plot_->setAnimating(state);
+  if (forceDirectedPlot_)
+    forceDirectedPlot_->setAnimating(state);
 }
 
 void
 CQChartsForceDirectedPlotCustomControls::
 stepSlot()
 {
-  if (plot_)
-    plot_->execAnimateStep();
+  if (forceDirectedPlot_)
+    forceDirectedPlot_->execAnimateStep();
 }
 
 CQChartsColor
 CQChartsForceDirectedPlotCustomControls::
 getColorValue()
 {
-  return plot_->nodeFillColor();
+  return forceDirectedPlot_->nodeFillColor();
 }
 
 void
 CQChartsForceDirectedPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setNodeFillColor(c);
+  forceDirectedPlot_->setNodeFillColor(c);
 }

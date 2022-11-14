@@ -121,6 +121,13 @@ CQChartsViewPropertiesWidget(CQChartsView *view)
   setView(view);
 }
 
+CQChartsView *
+CQChartsViewPropertiesWidget::
+view() const
+{
+  return view_.data();
+}
+
 void
 CQChartsViewPropertiesWidget::
 setView(CQChartsView *view)

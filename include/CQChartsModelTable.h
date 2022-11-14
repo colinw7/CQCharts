@@ -14,13 +14,16 @@ class CQChartsModelTableControl : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
  public:
+  using View = CQChartsView;
+
+ public:
   CQChartsModelTableControl(CQCharts *charts=nullptr);
 
   CQCharts *charts() const { return charts_; }
   void setCharts(CQCharts *charts) override;
 
-  CQChartsView *view() const { return view_; }
-  void setView(CQChartsView *view) override;
+  View *view() const;
+  void setView(View *view) override;
 
  private:
   void updateState();
@@ -35,8 +38,10 @@ class CQChartsModelTableControl : public QFrame, public CQChartsWidgetIFace {
   void createPlotModelSlot();
 
  private:
+  using ViewP = QPointer<View>;
+
   CQCharts*           charts_     { nullptr };
-  CQChartsView*       view_       { nullptr };
+  ViewP               view_;
   CQChartsModelTable* modelTable_ { nullptr };
 
   QPushButton *saveButton_   { nullptr };

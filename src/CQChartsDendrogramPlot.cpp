@@ -484,23 +484,24 @@ placeModel() const
   // add name values
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsDendrogramPlot *plot, Edges &edges) :
-     plot_(plot), edges_(edges) {
+    RowVisitor(const CQChartsDendrogramPlot *dendrogramPlot, Edges &edges) :
+     dendrogramPlot_(dendrogramPlot), edges_(edges) {
     }
 
     State hierVisit(const QAbstractItemModel *model, const VisitData &data) override {
-      if (plot_->nameColumn().isValid()) {
-        auto nameModelInd = ModelIndex(plot_, data.row, plot_->nameColumn(), data.parent);
+      if (dendrogramPlot_->nameColumn().isValid()) {
+        auto nameModelInd = ModelIndex(dendrogramPlot_, data.row, dendrogramPlot_->nameColumn(),
+                                       data.parent);
 
         bool ok1;
-        auto nameStr = plot_->modelString(nameModelInd, ok1);
+        auto nameStr = dendrogramPlot_->modelString(nameModelInd, ok1);
 
         auto path = CQChartsModelUtil::parentPath(model, data.parent);
 
         if (ok1 && path.length())
           nameStr = path + "/" + nameStr;
 
-        plot_->addHierName(nameStr, nameModelInd);
+        dendrogramPlot_->addHierName(nameStr, nameModelInd);
       }
 
       return State::OK;
@@ -512,25 +513,27 @@ placeModel() const
       ModelIndex       nameModelInd;
 
       // get name
-      if      (plot_->nameColumn().isValid()) {
-        nameModelInd = ModelIndex(plot_, data.row, plot_->nameColumn(), data.parent);
+      if      (dendrogramPlot_->nameColumn().isValid()) {
+        nameModelInd = ModelIndex(dendrogramPlot_, data.row, dendrogramPlot_->nameColumn(),
+                                  data.parent);
 
       //auto nameInd  = modelIndex(nameModelInd);
       //auto nameInd1 = normalizeIndex(nameInd);
 
         bool ok1;
-        nameStr = plot_->modelString(nameModelInd, ok1);
+        nameStr = dendrogramPlot_->modelString(nameModelInd, ok1);
 
         auto path = CQChartsModelUtil::parentPath(model, data.parent);
 
         if (ok1 && path.length())
           nameStr = path + "/" + nameStr;
       }
-      else if (plot_->linkColumn().isValid()) {
-        ModelIndex linkModelInd(plot_, data.row, plot_->linkColumn(), data.parent);
+      else if (dendrogramPlot_->linkColumn().isValid()) {
+        ModelIndex linkModelInd(dendrogramPlot_, data.row, dendrogramPlot_->linkColumn(),
+                                data.parent);
 
         bool ok1;
-        auto linkStr = plot_->modelString(linkModelInd, ok1);
+        auto linkStr = dendrogramPlot_->modelString(linkModelInd, ok1);
 
         namePair = CQChartsNamePair(linkStr, "/");
       }
@@ -540,10 +543,11 @@ placeModel() const
       // get value
       OptReal value;
 
-      ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
+      ModelIndex valueModelInd(dendrogramPlot_, data.row, dendrogramPlot_->valueColumn(),
+                               data.parent);
 
       bool ok2;
-      double rvalue = plot_->modelReal(valueModelInd, ok2);
+      double rvalue = dendrogramPlot_->modelReal(valueModelInd, ok2);
 
       if (ok2) {
         if (CMathUtil::isNaN(rvalue))
@@ -552,7 +556,7 @@ placeModel() const
         value = OptReal(rvalue);
       }
       else {
-        if (! plot_->isSkipBad())
+        if (! dendrogramPlot_->isSkipBad())
           return addDataError(valueModelInd, "Invalid Value");
       }
 
@@ -561,14 +565,15 @@ placeModel() const
       // get color
       OptReal colorValue;
 
-      if (plot_->colorColumn().isValid()) {
-        ModelIndex colorModelInd(plot_, data.row, plot_->colorColumn(), data.parent);
+      if (dendrogramPlot_->colorColumn().isValid()) {
+        ModelIndex colorModelInd(dendrogramPlot_, data.row, dendrogramPlot_->colorColumn(),
+                                 data.parent);
 
         bool ok3;
-        double color = plot_->modelReal(colorModelInd, ok3);
+        double color = dendrogramPlot_->modelReal(colorModelInd, ok3);
 
         if (! ok3) {
-          if (! plot_->isSkipBad())
+          if (! dendrogramPlot_->isSkipBad())
             return addDataError(valueModelInd, "Invalid Color");
 
           color = 0.0;
@@ -583,14 +588,15 @@ placeModel() const
       // get size
       OptReal sizeValue;
 
-      if (plot_->sizeColumn().isValid()) {
-        ModelIndex sizeModelInd(plot_, data.row, plot_->sizeColumn(), data.parent);
+      if (dendrogramPlot_->sizeColumn().isValid()) {
+        ModelIndex sizeModelInd(dendrogramPlot_, data.row, dendrogramPlot_->sizeColumn(),
+                                data.parent);
 
         bool ok3;
-        double size = plot_->modelReal(sizeModelInd, ok3);
+        double size = dendrogramPlot_->modelReal(sizeModelInd, ok3);
 
         if (! ok3) {
-          if (! plot_->isSkipBad())
+          if (! dendrogramPlot_->isSkipBad())
             return addDataError(valueModelInd, "Invalid Size");
 
           size = 0.0;
@@ -602,7 +608,8 @@ placeModel() const
 
       //---
 
-      plot_->addNameValue(nameStr, namePair, value, nameModelInd, colorValue, sizeValue, edges_);
+      dendrogramPlot_->addNameValue(nameStr, namePair, value, nameModelInd,
+                                    colorValue, sizeValue, edges_);
 
       //--
 
@@ -611,12 +618,12 @@ placeModel() const
 
    private:
     State addDataError(const ModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsDendrogramPlot *>(plot_)->addDataError(ind , msg);
+      const_cast<CQChartsDendrogramPlot *>(dendrogramPlot_)->addDataError(ind , msg);
       return State::SKIP;
     }
 
    private:
-    const CQChartsDendrogramPlot*  plot_ { nullptr };
+    const CQChartsDendrogramPlot*  dendrogramPlot_ { nullptr };
     CQChartsDendrogramPlot::Edges& edges_;
   };
 
@@ -1566,8 +1573,9 @@ createCustomControls()
 //------
 
 CQChartsDendrogramNodeObj::
-CQChartsDendrogramNodeObj(const CQChartsDendrogramPlot *plot, Node *node, const BBox &rect) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect), plot_(plot), node_(node), name_(node->name())
+CQChartsDendrogramNodeObj(const DendrogramPlot *dendrogramPlot, Node *node, const BBox &rect) :
+ CQChartsPlotObj(const_cast<DendrogramPlot *>(dendrogramPlot), rect),
+ dendrogramPlot_(dendrogramPlot), node_(node), name_(node->name())
 {
   setValue(node->size());
   setOpen (node->isOpen());
@@ -1642,11 +1650,11 @@ inside(const Point &p) const
 {
   auto rect = displayRect();
 
-  auto pbbox = plot_->windowToPixel(rect);
+  auto pbbox = dendrogramPlot_->windowToPixel(rect);
 
   pbbox.expand(2);
 
-  auto pp = plot_->windowToPixel(p);
+  auto pp = dendrogramPlot_->windowToPixel(p);
 
   return pbbox.inside(pp);
 }
@@ -1807,7 +1815,8 @@ drawText(PaintDevice *device) const
 {
   bool is_hier = this->isHier();
 
-  bool textVisible = (is_hier ? plot_->isHierTextVisible() : plot_->isLeafTextVisible());
+  bool textVisible = (is_hier ? dendrogramPlot_->isHierTextVisible() :
+                                dendrogramPlot_->isLeafTextVisible());
   if (! textVisible) return;
 
   //---
@@ -1886,7 +1895,7 @@ calcTextPos(Point &p, const QFont &font, Angle &angle, Qt::Alignment &align, boo
 
   Point pp;
 
-  if (plot()->placeType() != Plot::PlaceType::CIRCULAR) {
+  if (plot()->placeType() != DendrogramPlot::PlaceType::CIRCULAR) {
     if (isRoot()) {
       pp = pbbox.getCenter();
 
@@ -2025,7 +2034,7 @@ drawEdge(PaintDevice *device, const NodeObj *child, const OptReal &value) const
   // draw edge
   double x1, y1, x4, y4;
 
-  if (plot()->placeType() != Plot::PlaceType::CIRCULAR) {
+  if (plot()->placeType() != DendrogramPlot::PlaceType::CIRCULAR) {
     if (plot()->orientation() == Qt::Horizontal) {
       x1 = pbbox1.getXMax(); y1 = pbbox1.getYMid();
       x4 = pbbox2.getXMin(); y4 = pbbox2.getYMid();
@@ -2043,14 +2052,14 @@ drawEdge(PaintDevice *device, const NodeObj *child, const OptReal &value) const
   auto p1 = plot()->pixelToWindow(Point(x1, y1));
   auto p4 = plot()->pixelToWindow(Point(x4, y4));
 
-  auto lw = plot_->lengthPlotWidth(plot_->edgeWidth());
+  auto lw = dendrogramPlot_->lengthPlotWidth(dendrogramPlot_->edgeWidth());
 
-  if (plot_->isEdgeScaled()) {
+  if (dendrogramPlot_->isEdgeScaled()) {
     if (value.isSet())
       lw *= value.real()/childTotal();
   }
 
-  if (plot()->placeType() != Plot::PlaceType::CIRCULAR) {
+  if (plot()->placeType() != DendrogramPlot::PlaceType::CIRCULAR) {
     auto angle1 = Angle::fromOrientation(plot()->orientation());
     auto angle2 = angle1.flippedX();
 
@@ -2075,7 +2084,7 @@ displayRect() const
 {
   auto rect1 = rect();
 
-  auto symbolSize = plot_->pixelToWindowWidth(calcSymbolSize());
+  auto symbolSize = dendrogramPlot_->pixelToWindowWidth(calcSymbolSize());
 
   auto f = std::min(symbolSize/rect1.getWidth(), symbolSize/rect1.getHeight());
 
@@ -2182,15 +2191,15 @@ void
 CQChartsDendrogramPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && dendrogramPlot_)
+    disconnect(dendrogramPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsDendrogramPlot *>(plot);
+  dendrogramPlot_ = dynamic_cast<CQChartsDendrogramPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (dendrogramPlot_)
+    connect(dendrogramPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
@@ -2205,7 +2214,8 @@ updateWidgets()
 
   //---
 
-  if (orientationCombo_) orientationCombo_->setCurrentValue(static_cast<int>(plot_->orientation()));
+  if (orientationCombo_)
+    orientationCombo_->setCurrentValue(static_cast<int>(dendrogramPlot_->orientation()));
 
   //---
 
@@ -2226,5 +2236,6 @@ void
 CQChartsDendrogramPlotCustomControls::
 orientationSlot()
 {
-  plot_->setOrientation(static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
+  dendrogramPlot_->setOrientation(
+    static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
 }

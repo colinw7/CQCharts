@@ -610,26 +610,26 @@ loadModel() const
 {
   class RowVisitor : public ModelVisitor {
    public:
-    using Plot = CQChartsBubblePlot;
+    using BubblePlot = CQChartsBubblePlot;
 
    public:
-    RowVisitor(const Plot *plot) :
-     plot_(plot) {
+    RowVisitor(const BubblePlot *bubblePlot) :
+     bubblePlot_(bubblePlot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      if (! plot_->visitRow(data, groupInds_))
+      if (! bubblePlot_->visitRow(data, groupInds_))
         return State::SKIP;
 
       return State::OK;
     }
 
     void termVisit() override {
-      plot_->termVisit(groupInds_);
+      bubblePlot_->termVisit(groupInds_);
     }
 
    private:
-    const Plot*            plot_ { nullptr };
+    const BubblePlot*      bubblePlot_ { nullptr };
     mutable GroupModelInds groupInds_;
   };
 
@@ -1035,7 +1035,7 @@ createCustomControls()
 //------
 
 CQChartsBubbleHierObj::
-CQChartsBubbleHierObj(const Plot *plot, HierNode *hier, HierObj *hierObj,
+CQChartsBubbleHierObj(const BubblePlot *plot, HierNode *hier, HierObj *hierObj,
                       const BBox &rect, const ColorInd &is) :
  CQChartsBubbleNodeObj(plot, hier, hierObj, rect, is), hier_(hier)
 {
@@ -1073,8 +1073,8 @@ void
 CQChartsBubbleHierObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->nameColumn ());
-  addColumnSelectIndex(inds, plot_->valueColumn());
+  addColumnSelectIndex(inds, bubblePlot_->nameColumn ());
+  addColumnSelectIndex(inds, bubblePlot_->valueColumn());
 }
 
 void
@@ -1116,22 +1116,23 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // calc stroke and brush
   auto colorInd = calcColorInd();
 
-  auto bc = plot_->interpStrokeColor(colorInd);
-  auto fc = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
+  auto bc = bubblePlot_->interpStrokeColor(colorInd);
+  auto fc = hier_->interpColor(bubblePlot_, bubblePlot_->fillColor(),
+                               colorInd, bubblePlot_->numColorIds());
 
-  plot_->setPenBrush(penBrush, plot_->penData(bc), plot_->brushData(fc));
+  bubblePlot_->setPenBrush(penBrush, bubblePlot_->penData(bc), bubblePlot_->brushData(fc));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    bubblePlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
 
 CQChartsBubbleNodeObj::
-CQChartsBubbleNodeObj(const Plot *plot, Node *node, HierObj *hierObj,
+CQChartsBubbleNodeObj(const BubblePlot *bubblePlot, Node *node, HierObj *hierObj,
                       const BBox &rect, const ColorInd &is) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ColorInd(), ColorInd()),
- plot_(plot), node_(node), hierObj_(hierObj)
+ CQChartsPlotObj(const_cast<BubblePlot *>(bubblePlot), rect, is, ColorInd(), ColorInd()),
+ bubblePlot_(bubblePlot), node_(node), hierObj_(hierObj)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -1165,14 +1166,14 @@ calcTipId() const
   tableTip.addTableRow("Name", node_->hierName());
   tableTip.addTableRow("Size", node_->hierSize());
 
-  if (plot_->colorColumn().isValid()) {
-    auto ind1 = plot_->unnormalizeIndex(node_->ind());
+  if (bubblePlot_->colorColumn().isValid()) {
+    auto ind1 = bubblePlot_->unnormalizeIndex(node_->ind());
 
-    ModelIndex colorModelInd(plot(), ind1.row(), plot_->colorColumn(), ind1.parent());
+    ModelIndex colorModelInd(plot(), ind1.row(), bubblePlot_->colorColumn(), ind1.parent());
 
     bool ok;
 
-    auto colorStr = plot_->modelString(colorModelInd, ok);
+    auto colorStr = bubblePlot_->modelString(colorModelInd, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }
@@ -1202,8 +1203,8 @@ void
 CQChartsBubbleNodeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->nameColumn ());
-  addColumnSelectIndex(inds, plot_->valueColumn());
+  addColumnSelectIndex(inds, bubblePlot_->nameColumn ());
+  addColumnSelectIndex(inds, bubblePlot_->valueColumn());
 }
 
 void
@@ -1257,7 +1258,7 @@ draw(PaintDevice *device) const
   if (isCirclePoint)
     return;
 
-  if (plot_->isTextVisible())
+  if (bubblePlot_->isTextVisible())
     drawText(device, bbox, penBrush.brush.color(), updateState);
 }
 
@@ -1272,25 +1273,25 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
 
   strs.push_back(name);
 
-  if (plot_->isValueLabel() && ! node_->isFiller()) {
+  if (bubblePlot_->isValueLabel() && ! node_->isFiller()) {
     strs.push_back(QString::number(node_->size()));
   }
 
   //---
 
   // calc text pen
-  plot_->charts()->setContrastColor(brushColor);
+  bubblePlot_->charts()->setContrastColor(brushColor);
 
   auto colorInd = calcColorInd();
 
   PenBrush tPenBrush;
 
-  auto tc = plot_->interpTextColor(colorInd);
+  auto tc = bubblePlot_->interpTextColor(colorInd);
 
-  plot_->setPen(tPenBrush, PenData(true, tc, plot_->textAlpha()));
+  bubblePlot_->setPen(tPenBrush, PenData(true, tc, bubblePlot_->textAlpha()));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, tPenBrush);
+    bubblePlot_->updateObjPenBrushState(this, tPenBrush);
 
   //---
 
@@ -1299,14 +1300,14 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
   //---
 
   // set font
-  auto clipLength = plot_->lengthPixelWidth(plot_->textClipLength());
-  auto clipElide  = plot_->textClipElide();
+  auto clipLength = bubblePlot_->lengthPixelWidth(bubblePlot_->textClipLength());
+  auto clipElide  = bubblePlot_->textClipElide();
 
-  plot_->setPainterFont(device, plot_->textFont());
+  bubblePlot_->setPainterFont(device, bubblePlot_->textFont());
 
   QStringList strs1;
 
-  if (plot_->isTextScaled()) {
+  if (bubblePlot_->isTextScaled()) {
     // calc text size
     QFontMetricsF fm(device->font());
 
@@ -1326,7 +1327,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
     //---
 
     // calc scale factor
-    auto pbbox = plot_->windowToPixel(bbox);
+    auto pbbox = bubblePlot_->windowToPixel(bbox);
 
     double sx = (tw > 0 ? pbbox.getWidth ()/tw : 1.0);
     double sy = (th > 0 ? pbbox.getHeight()/th : 1.0);
@@ -1350,42 +1351,43 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
   //---
 
   // calc text position
-  auto pc = plot_->windowToPixel(Point(node_->x(), node_->y()));
+  auto pc = bubblePlot_->windowToPixel(Point(node_->x(), node_->y()));
 
   //---
 
   // draw label
-  double xm = plot_->pixelToWindowWidth (3);
-  double ym = plot_->pixelToWindowHeight(3);
+  double xm = bubblePlot_->pixelToWindowWidth (3);
+  double ym = bubblePlot_->pixelToWindowHeight(3);
 
   device->setClipRect(bbox.adjusted(xm, ym, -xm, -ym));
 
   // angle and align not supported (always 0 and centered)
   // text is pre-scaled if needed (formatted and html not supported as changes scale calc)
-  auto textOptions = plot_->textOptions();
+  auto textOptions = bubblePlot_->textOptions();
 
   textOptions.angle      = Angle();
   textOptions.align      = Qt::AlignHCenter | Qt::AlignVCenter;
   textOptions.clipLength = 0.0;
   textOptions.scaled     = false;
 
-  textOptions = plot_->adjustTextOptions(textOptions);
+  textOptions = bubblePlot_->adjustTextOptions(textOptions);
 
   device->setPen(tPenBrush.pen);
 
-  CQChartsDrawUtil::drawTextsAtPoint(device, plot_->pixelToWindow(pc), strs1, textOptions);
+  CQChartsDrawUtil::drawTextsAtPoint(device, bubblePlot_->pixelToWindow(pc), strs1, textOptions);
 
 #if 0
   if      (strs1.size() == 1) {
-    CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(pc), strs1[0], textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(device, bubblePlot_->pixelToWindow(pc),
+                                      strs1[0], textOptions);
   }
   else if (strs1.size() == 2) {
     QFontMetricsF fm(device->font());
 
     double th = fm.height();
 
-    auto tp1 = plot_->pixelToWindow(Point(pc.x, pc.y - th/2));
-    auto tp2 = plot_->pixelToWindow(Point(pc.x, pc.y + th/2));
+    auto tp1 = bubblePlot_->pixelToWindow(Point(pc.x, pc.y - th/2));
+    auto tp2 = bubblePlot_->pixelToWindow(Point(pc.x, pc.y + th/2));
 
     CQChartsDrawUtil::drawTextAtPoint(device, tp1, strs1[0], textOptions);
     CQChartsDrawUtil::drawTextAtPoint(device, tp2, strs1[1], textOptions);
@@ -1395,7 +1397,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
   }
 #endif
 
-  plot_->charts()->resetContrastColor();
+  bubblePlot_->charts()->resetContrastColor();
 
   //---
 
@@ -1406,7 +1408,7 @@ bool
 CQChartsBubbleNodeObj::
 isMinArea() const
 {
-  auto &minArea = plot_->minArea();
+  auto &minArea = bubblePlot_->minArea();
 
   if (! minArea.isValid())
     return false;
@@ -1417,8 +1419,8 @@ isMinArea() const
     return (minArea.value() > CQChartsUtil::circleArea(r));
   }
   else if (minArea.units() == Units::PIXEL) {
-    auto pw = plot_->windowToPixelWidth (r);
-    auto ph = plot_->windowToPixelHeight(r);
+    auto pw = bubblePlot_->windowToPixelWidth (r);
+    auto ph = bubblePlot_->windowToPixelHeight(r);
 
     return (minArea.value() > CQChartsUtil::ellipseArea(pw, ph));
   }
@@ -1446,29 +1448,32 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // calc stroke and brush
   auto colorInd = calcColorInd();
 
-  auto bc = plot_->interpStrokeColor(colorInd);
-  auto fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
+  auto bc = bubblePlot_->interpStrokeColor(colorInd);
+  auto fc = node_->interpColor(bubblePlot_, bubblePlot_->fillColor(),
+                               colorInd, bubblePlot_->numColorIds());
 
   bool isCirclePoint = this->isCirclePoint();
 
   if (isCirclePoint) {
-    if      (plot_->isFilled())
-      plot_->setPenBrush(penBrush, PenData(true, fc, plot_->fillAlpha()), plot_->brushData(fc));
-    else if (plot_->isStroked())
-      plot_->setPenBrush(penBrush, plot_->penData(bc), BrushData(true, bc, plot_->strokeAlpha()));
+    if      (bubblePlot_->isFilled())
+      bubblePlot_->setPenBrush(penBrush,
+        PenData(true, fc, bubblePlot_->fillAlpha()), bubblePlot_->brushData(fc));
+    else if (bubblePlot_->isStroked())
+      bubblePlot_->setPenBrush(penBrush,
+        bubblePlot_->penData(bc), BrushData(true, bc, bubblePlot_->strokeAlpha()));
   }
   else {
-    plot_->setPenBrush(penBrush, plot_->penData(bc), plot_->brushData(fc));
+    bubblePlot_->setPenBrush(penBrush, bubblePlot_->penData(bc), bubblePlot_->brushData(fc));
   }
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    bubblePlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
 
 CQChartsBubbleHierNode::
-CQChartsBubbleHierNode(const Plot *plot, HierNode *parent, const QString &name,
+CQChartsBubbleHierNode(const BubblePlot *plot, HierNode *parent, const QString &name,
                        const QModelIndex &ind) :
  CQChartsBubbleNode(plot, parent, name, 0.0, ind)
 {
@@ -1528,9 +1533,9 @@ packNodes()
     packNodes.push_back(node);
 
   // sort nodes
-  if (plot_->isSorted())
+  if (bubblePlot_->isSorted())
     std::sort(packNodes.begin(), packNodes.end(),
-              CQChartsBubbleNodeCmp(plot_->isSortReverse()));
+              CQChartsBubbleNodeCmp(bubblePlot_->isSortReverse()));
 
   // pack nodes
   for (auto &packNode : packNodes)
@@ -1600,7 +1605,7 @@ setPosition(double x, double y)
 
 QColor
 CQChartsBubbleHierNode::
-interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) const
+interpColor(const BubblePlot *plot, const Color &c, const ColorInd &colorInd, int n) const
 {
   using Colors = std::vector<QColor>;
 
@@ -1621,9 +1626,9 @@ interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) c
 //------
 
 CQChartsBubbleNode::
-CQChartsBubbleNode(const Plot *plot, HierNode *parent, const QString &name,
+CQChartsBubbleNode(const BubblePlot *bubblePlot, HierNode *parent, const QString &name,
                    double size, const QModelIndex &ind) :
- plot_(plot), parent_(parent), id_(nextId()), name_(name), size_(size)
+ bubblePlot_(bubblePlot), parent_(parent), id_(nextId()), name_(name), size_(size)
 {
   inds_.push_back(ind);
 
@@ -1646,7 +1651,7 @@ QString
 CQChartsBubbleNode::
 hierName() const
 {
-  if (parent() && parent() != plot()->root())
+  if (parent() && parent() != bubblePlot()->root())
     return parent()->hierName() + "/" + name();
   else
     return name();
@@ -1663,11 +1668,11 @@ setPosition(double x, double y)
 
 QColor
 CQChartsBubbleNode::
-interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) const
+interpColor(const BubblePlot *plot, const Color &c, const ColorInd &colorInd, int n) const
 {
   if      (color().isValid())
     return plot->interpColor(color(), ColorInd());
-  else if (colorId() >= 0 && plot_->isColorById())
+  else if (colorId() >= 0 && bubblePlot_->isColorById())
     return plot->interpColor(c, ColorInd(colorId(), n));
   else
     return plot->interpColor(c, colorInd);
@@ -1729,7 +1734,7 @@ void
 CQChartsBubblePlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<CQChartsBubblePlot *>(plot);
+  bubblePlot_ = dynamic_cast<CQChartsBubblePlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
 }
@@ -1753,12 +1758,12 @@ CQChartsColor
 CQChartsBubblePlotCustomControls::
 getColorValue()
 {
-  return plot_->fillColor();
+  return bubblePlot_->fillColor();
 }
 
 void
 CQChartsBubblePlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setFillColor(c);
+  bubblePlot_->setFillColor(c);
 }

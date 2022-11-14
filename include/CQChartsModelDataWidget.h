@@ -62,7 +62,7 @@ class CQChartsModelDataWidget : public QFrame, public CQChartsWidgetIFace {
   bool       proxy_     { true };
 
 #ifdef CQCHARTS_MODEL_VIEW
-  CQChartsModelView*          view_          { nullptr };
+  CQChartsModelView*          modelView_     { nullptr };
 #else
   QStackedWidget*             stack_         { nullptr };
   CQChartsTree*               tree_          { nullptr };

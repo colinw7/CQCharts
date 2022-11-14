@@ -326,11 +326,11 @@ addReplaceSearch(const QString &text, bool add)
 
     class RowVisitor : public CQChartsModelVisitor {
      public:
-      RowVisitor(CQChartsModelView *view, const QString &text, int column, Rows &rows) :
-       view_(view), regexp_(text), column_(column), rows_(rows) {
+      RowVisitor(CQChartsModelView *modelView, const QString &text, int column, Rows &rows) :
+       modelView_(modelView), regexp_(text), column_(column), rows_(rows) {
       }
 
-      CQChartsModelView *view() const { return view_; }
+      CQChartsModelView *view() const { return modelView_; }
 
       State visit(const QAbstractItemModel *model, const VisitData &data) override {
         auto ind = model->index(data.row, column_, data.parent);
@@ -347,9 +347,9 @@ addReplaceSearch(const QString &text, bool add)
       }
 
      private:
-      CQChartsModelView* view_   { nullptr };
+      CQChartsModelView* modelView_ { nullptr };
       CQChartsRegExp     regexp_;
-      int                column_ { 0 };
+      int                column_    { 0 };
       Rows&              rows_;
     };
 
@@ -374,12 +374,12 @@ addReplaceSearch(const QString &text, bool add)
 
     class RowVisitor : public CQChartsModelVisitor {
      public:
-      RowVisitor(CQChartsModelView *view, CQChartsModelExprMatch *match, const Matches &matches,
-                 int column, Rows &rows) :
-       view_(view), match_(match), matches_(matches), column_(column), rows_(rows) {
+      RowVisitor(CQChartsModelView *modelView, CQChartsModelExprMatch *match,
+                 const Matches &matches, int column, Rows &rows) :
+       modelView_(modelView), match_(match), matches_(matches), column_(column), rows_(rows) {
       }
 
-      CQChartsModelView *view() const { return view_; }
+      CQChartsModelView *view() const { return modelView_; }
 
       State visit(const QAbstractItemModel *model, const VisitData &data) override {
         auto ind = model->index(data.row, column_, data.parent);
@@ -404,10 +404,10 @@ addReplaceSearch(const QString &text, bool add)
       }
 
      private:
-      CQChartsModelView*      view_   { nullptr };
-      CQChartsModelExprMatch* match_  { nullptr };
+      CQChartsModelView*      modelView_ { nullptr };
+      CQChartsModelExprMatch* match_     { nullptr };
       const Matches&          matches_;
-      int                     column_ { 0 };
+      int                     column_    { 0 };
       Rows&                   rows_;
     };
 

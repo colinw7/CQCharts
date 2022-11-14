@@ -7,6 +7,8 @@
 
 #include <CQTableWidget.h>
 
+#include <QPainter>
+
 class CQChartsViewLayerTable;
 class CQChartsPlotLayerTable;
 class CQChartsView;
@@ -16,21 +18,28 @@ class CQChartsLayerTableControl : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
  public:
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsLayerTableControl(QWidget *parent=nullptr);
 
-  CQChartsView *view() const { return view_; }
-  void setView(CQChartsView *view);
+  View *view() const;
+  void setView(View *view);
 
-  CQChartsPlot *plot() const { return plot_; }
-  void setPlot(CQChartsPlot *plot);
+  Plot *plot() const;
+  void setPlot(Plot *plot);
 
  private Q_SLOTS:
   void viewLayerImageSlot();
   void plotLayerImageSlot();
 
  private:
-  CQChartsView*           view_           { nullptr };
-  CQChartsPlot*           plot_           { nullptr };
+  using ViewP = QPointer<View>;
+  using PlotP = QPointer<Plot>;
+
+  ViewP                   view_;
+  PlotP                   plot_;
   CQChartsViewLayerTable* viewLayerTable_ { nullptr };
   CQChartsPlotLayerTable* plotLayerTable_ { nullptr };
 };
@@ -41,23 +50,28 @@ class CQChartsViewLayerTable : public CQTableWidget, public CQChartsWidgetIFace 
   Q_OBJECT
 
  public:
+  using View = CQChartsView;
+
+ public:
   CQChartsViewLayerTable();
 
-  CQChartsView *view() const { return view_; }
-  void setView(CQChartsView *view) override;
+  View *view() const;
+  void setView(View *view) override;
 
-  QImage *selectedImage(CQChartsView *view) const;
+  QImage *selectedImage(View *view) const;
 
   void initLayers();
 
-  void updateLayers(CQChartsView *view);
+  void updateLayers(View *view);
 
  private Q_SLOTS:
   void selectionChangeSlot();
   void clickedSlot(int row, int column);
 
  private:
-  CQChartsView *view_ { nullptr };
+  using ViewP = QPointer<View>;
+
+  ViewP view_;
 };
 
 //---
@@ -66,25 +80,30 @@ class CQChartsPlotLayerTable : public CQTableWidget, public CQChartsWidgetIFace 
   Q_OBJECT
 
  public:
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsPlotLayerTable();
 
-  CQChartsPlot *plot() const { return plot_; }
-  void setPlot(CQChartsPlot *plot) override;
+  Plot *plot() const;
+  void setPlot(Plot *plot) override;
 
-  QImage *selectedImage(CQChartsPlot *plot) const;
+  QImage *selectedImage(Plot *plot) const;
 
   void initLayers();
 
-  void updateLayers(CQChartsPlot *plot);
+  void updateLayers(Plot *plot);
 
-  bool getLayerState(CQChartsPlot *plot, int row, CQChartsLayer::Type &type, bool &active);
+  bool getLayerState(Plot *plot, int row, CQChartsLayer::Type &type, bool &active);
 
  private Q_SLOTS:
   void selectionChangeSlot();
   void clickedSlot(int row, int column);
 
  private:
-  CQChartsPlot *plot_ { nullptr };
+  using PlotP = QPointer<Plot>;
+
+  PlotP plot_;
 };
 
 #endif

@@ -2,6 +2,8 @@
 #include <CQChartsGeomBBoxEdit.h>
 #include <CQChartsUnitsEdit.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsView.h>
+#include <CQChartsPlot.h>
 
 #include <CQPropertyView.h>
 #include <CQUtil.h>
@@ -50,7 +52,7 @@ setRect(const CQChartsRect &rect)
 
 void
 CQChartsRectEdit::
-setView(CQChartsView *view)
+setView(View *view)
 {
   view_ = view;
 
@@ -59,7 +61,7 @@ setView(CQChartsView *view)
 
 void
 CQChartsRectEdit::
-setPlot(CQChartsPlot *plot)
+setPlot(Plot *plot)
 {
   plot_ = plot;
 

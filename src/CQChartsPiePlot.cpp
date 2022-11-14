@@ -910,18 +910,18 @@ createObjs(PlotObjs &objs) const
     // process model data
     class PieVisitor : public ModelVisitor {
      public:
-      PieVisitor(const CQChartsPiePlot *plot, PlotObjs &objs) :
-       plot_(plot), objs_(objs) {
+      PieVisitor(const CQChartsPiePlot *piePlot, PlotObjs &objs) :
+       piePlot_(piePlot), objs_(objs) {
       }
 
       State visit(const QAbstractItemModel *, const VisitData &data) override {
-        plot_->addRow(data, objs_);
+        piePlot_->addRow(data, objs_);
 
         return State::OK;
       }
 
      private:
-      const CQChartsPiePlot *plot_ { nullptr };
+      const CQChartsPiePlot *piePlot_ { nullptr };
       PlotObjs&              objs_;
     };
 
@@ -1307,18 +1307,18 @@ calcDataTotal() const
   // process model data
   class DataTotalVisitor : public ModelVisitor {
    public:
-    DataTotalVisitor(const CQChartsPiePlot *plot) :
-     plot_(plot) {
+    DataTotalVisitor(const CQChartsPiePlot *piePlot) :
+     piePlot_(piePlot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRowDataTotal(data);
+      piePlot_->addRowDataTotal(data);
 
       return State::OK;
     }
 
    private:
-    const CQChartsPiePlot *plot_ { nullptr };
+    const CQChartsPiePlot *piePlot_ { nullptr };
   };
 
   DataTotalVisitor dataTotalVisitor(this);
@@ -1955,10 +1955,10 @@ createCustomControls()
 //------
 
 CQChartsPieObj::
-CQChartsPieObj(const PiePlot *plot, const BBox &rect, const QModelIndex &ind,
+CQChartsPieObj(const PiePlot *piePlot, const BBox &rect, const QModelIndex &ind,
                const ColorInd &ig) :
- CQChartsPlotObj(const_cast<PiePlot *>(plot), rect, ColorInd(), ig),
- plot_(plot)
+ CQChartsPlotObj(const_cast<PiePlot *>(piePlot), rect, ColorInd(), ig),
+ piePlot_(piePlot)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -1979,7 +1979,7 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  plot()->addNoTipColumns(tableTip);
+  piePlot()->addNoTipColumns(tableTip);
 
   //---
 
@@ -1992,11 +1992,11 @@ calcTipId() const
 
     if (! value1.length()) {
       if (column.isValid()) {
-        ModelIndex columnInd(plot_, modelInd().row(), column, modelInd().parent());
+        ModelIndex columnInd(piePlot_, modelInd().row(), column, modelInd().parent());
 
         bool ok;
 
-        value1 = plot_->modelString(columnInd, ok);
+        value1 = piePlot_->modelString(columnInd, ok);
         if (! ok) return;
       }
     }
@@ -2007,7 +2007,7 @@ calcTipId() const
     auto headerStr = header;
 
     if (column.isValid()) {
-      headerStr = plot_->columnHeaderName(column, /*tip*/true);
+      headerStr = piePlot_->columnHeaderName(column, /*tip*/true);
 
       if (headerStr == "")
         headerStr = header;
@@ -2028,26 +2028,26 @@ calcTipId() const
 
   // add tip values
   if (groupName.length())
-    addColumnRowValue(plot_->groupColumn(), groupName);
+    addColumnRowValue(piePlot_->groupColumn(), groupName);
 
-  addColumnRowValue(plot_->labelColumn(), labelName, label);
+  addColumnRowValue(piePlot_->labelColumn(), labelName, label);
 
-  if (plot_->valueColumns().count() == 1)
-    addColumnRowValue(plot_->valueColumns().column(), "Value", valueStr);
+  if (piePlot_->valueColumns().count() == 1)
+    addColumnRowValue(piePlot_->valueColumns().column(), "Value", valueStr);
   else
     tableTip.addTableRow("Value", valueStr);
 
   if (optRadius())
-    addColumnRowValue(plot_->radiusColumn(), "Radius", CQChartsUtil::realToString(*optRadius()));
+    addColumnRowValue(piePlot_->radiusColumn(), "Radius", CQChartsUtil::realToString(*optRadius()));
 
   //---
 
   // add color column
-  addColumnRowValue(plot_->colorColumn(), "Color");
+  addColumnRowValue(piePlot_->colorColumn(), "Color");
 
   //---
 
-  plot()->addTipColumns(tableTip, modelInd());
+  piePlot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -2059,15 +2059,15 @@ CQChartsPieObj::
 calcTipData(QString &groupName, QString &labelName, QString &label, QString &valueStr) const
 {
   // get group name
-  bool hasGroup = (plot_->numGroups() > 1 && groupObj());
+  bool hasGroup = (piePlot_->numGroups() > 1 && groupObj());
 
   if (hasGroup)
     groupName = groupObj()->name();
 
   // get label
-  auto ind = plot_->unnormalizeIndex(modelInd());
+  auto ind = piePlot_->unnormalizeIndex(modelInd());
 
-  label = plot_->calcIndLabel(ind, labelName);
+  label = piePlot_->calcIndLabel(ind, labelName);
 
   // get value string
   valueStr = this->valueStr();
@@ -2079,7 +2079,7 @@ valueStr() const
 {
   int valueColumn = modelInd().column();
 
-  return plot_->columnStr(Column(valueColumn), value());
+  return piePlot_->columnStr(Column(valueColumn), value());
 }
 
 CQChartsArcData
@@ -2106,7 +2106,7 @@ double
 CQChartsPieObj::
 value() const
 {
-  return calcValue(static_cast<CQChartsPieObj::ValueType>(plot_->valueType()));
+  return calcValue(static_cast<CQChartsPieObj::ValueType>(piePlot_->valueType()));
 }
 
 void
@@ -2141,16 +2141,16 @@ inside(const Point &p) const
   if (! isVisible())
     return false;
 
-  if      (plot_->calcTreeMap()) {
+  if      (piePlot_->calcTreeMap()) {
     auto bbox = calcTreeMapBBox();
 
     return bbox.inside(p);
   }
-  else if (plot_->calcWaffle()) {
+  else if (piePlot_->calcWaffle()) {
     // TODO
     return false;
   }
-  else if (plot_->calcPie()) {
+  else if (piePlot_->calcPie()) {
     return arcData().inside(p);
   }
   else {
@@ -2162,9 +2162,9 @@ void
 CQChartsPieObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->labelColumn());
+  addColumnSelectIndex(inds, piePlot_->labelColumn());
 
-  for (const auto &c : plot_->valueColumns())
+  for (const auto &c : piePlot_->valueColumns())
     addColumnSelectIndex(inds, c);
 }
 
@@ -2193,7 +2193,7 @@ calcExploded() const
 {
   bool isExploded = this->isExploded();
 
-  if (isSelected() && plot_->isExplodeSelected())
+  if (isSelected() && piePlot_->isExplodeSelected())
     isExploded = true;
 
   return isExploded;
@@ -2205,7 +2205,7 @@ extraFitBBox() const
 {
   BBox bbox;
 
-  if (! plot_->isTextLabels())
+  if (! piePlot_->isTextLabels())
     return bbox;
 
   if (! label().length())
@@ -2218,17 +2218,17 @@ extraFitBBox() const
 
   //---
 
-  auto textOptions = plot_->textLabelTextOptions();
+  auto textOptions = piePlot_->textLabelTextOptions();
 
   // if full circle always draw text at center
   if (Angle::isCircle(angle1(), angle2())) {
-    auto pc = plot_->windowToPixel(c);
+    auto pc = piePlot_->windowToPixel(c);
 
     auto textOptions1 = textOptions;
 
     textOptions1.angle = Angle();
 
-    bbox = RotatedTextBoxObj::bbox(const_cast<CQChartsPiePlot *>(plot_), pc, label(),
+    bbox = RotatedTextBoxObj::bbox(const_cast<CQChartsPiePlot *>(piePlot_), pc, label(),
                                    /*isRadial*/false, textOptions1, CQChartsMargin());
   }
   // draw on arc center line
@@ -2238,7 +2238,7 @@ extraFitBBox() const
 
     getRadii(ri, ro, rv);
 
-    double lr = plot_->labelRadius();
+    double lr = piePlot_->labelRadius();
 
     double lr1 = lr*ro;
 #if 0
@@ -2259,15 +2259,15 @@ extraFitBBox() const
 
     //---
 
-    if (plot_->numGroups() == 1 && lr > 1.0) {
+    if (piePlot_->numGroups() == 1 && lr > 1.0) {
       auto textOptions1 = textOptions;
 
-      if (plot_->isRotatedText())
+      if (piePlot_->isRotatedText())
         textOptions1.angle = ta;
 
-      RotatedTextBoxObj::calcConnectedRadialTextBBox(const_cast<CQChartsPiePlot *>(plot_),
+      RotatedTextBoxObj::calcConnectedRadialTextBBox(const_cast<CQChartsPiePlot *>(piePlot_),
                                                      c, rv, lr1, ta, label(), textOptions1,
-                                                     plot_->textLabelMargin(), bbox);
+                                                     piePlot_->textLabelMargin(), bbox);
     }
     else {
       // calc text position
@@ -2276,7 +2276,7 @@ extraFitBBox() const
       // calc text angle
       Angle angle = ta;
 
-      if (plot_->isRotatedText() && ta.cos() < 0.0)
+      if (piePlot_->isRotatedText() && ta.cos() < 0.0)
         angle.flipX();
 
       // calc text box
@@ -2285,9 +2285,10 @@ extraFitBBox() const
       textOptions1.angle = angle;
       textOptions1.align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-      bbox = RotatedTextBoxObj::bbox(const_cast<CQChartsPiePlot *>(plot_),
-                                     plot_->windowToPixel(pt), label(), plot_->isRotatedText(),
-                                     textOptions1, plot_->textLabelMargin());
+      bbox = RotatedTextBoxObj::bbox(const_cast<CQChartsPiePlot *>(piePlot_),
+                                     piePlot_->windowToPixel(pt), label(),
+                                     piePlot_->isRotatedText(), textOptions1,
+                                     piePlot_->textLabelMargin());
     }
   }
 
@@ -2303,11 +2304,11 @@ draw(PaintDevice *device) const
 
   //---
 
-  if      (plot_->calcTreeMap())
+  if      (piePlot_->calcTreeMap())
     drawTreeMap(device);
-  else if (plot_->calcWaffle())
+  else if (piePlot_->calcWaffle())
     drawWaffle(device);
-  else if (plot_->calcPie())
+  else if (piePlot_->calcPie())
     drawSegment(device);
 }
 
@@ -2316,8 +2317,8 @@ CQChartsPieObj::
 drawSegment(PaintDevice *device) const
 {
   auto drawPieSlice = [&](const Point &c, double ri, double ro, const Angle &a1, const Angle &a2) {
-    bool isInvertX = plot()->isInvertX();
-    bool isInvertY = plot()->isInvertY();
+    bool isInvertX = piePlot()->isInvertX();
+    bool isInvertY = piePlot()->isInvertY();
 
     CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, a1, a2, isInvertX, isInvertY);
   };
@@ -2327,7 +2328,7 @@ drawSegment(PaintDevice *device) const
   // get pie center (adjusted if exploded), radii and angles
   auto c = getAdjustedCenter();
 
-//Angle ga = plot_->gapAngle().value()/2.0;
+//Angle ga = piePlot_->gapAngle().value()/2.0;
   Angle ga { 0.0 };
 
   auto aa1 = angle1() + ga;
@@ -2337,7 +2338,7 @@ drawSegment(PaintDevice *device) const
 
   // draw grid lines (as pie)
   // TODO: if grid lines draw text at max radius ?
-  if (plot_->isGridLines()) {
+  if (piePlot_->isGridLines()) {
     double ri, ro, rv;
 
     getRadii(ri, ro, rv, /*scaled*/false);
@@ -2346,7 +2347,7 @@ drawSegment(PaintDevice *device) const
 
     PenBrush penBrush;
 
-    plot_->setGridLineDataPen(penBrush.pen, ColorInd());
+    piePlot_->setGridLineDataPen(penBrush.pen, ColorInd());
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -2381,24 +2382,24 @@ drawSegment(PaintDevice *device) const
 
   //---
 
-  if (plot_->isRadiusLabels() && optRadius()) {
+  if (piePlot_->isRadiusLabels() && optRadius()) {
     // set text pen and font
     PenBrush tpenBrush;
 
-    auto tc = plot_->interpRadiusLabelTextColor(calcColorInd());
+    auto tc = piePlot_->interpRadiusLabelTextColor(calcColorInd());
 
-    plot_->setPen(tpenBrush, PenData(true, tc, plot_->radiusLabelTextAlpha()));
+    piePlot_->setPen(tpenBrush, PenData(true, tc, piePlot_->radiusLabelTextAlpha()));
 
-    plot_->setPainterFont(device, plot_->radiusLabelTextFont());
+    piePlot_->setPainterFont(device, piePlot_->radiusLabelTextFont());
 
     //---
 
     // set text options
-    auto textOptions = plot_->radiusLabelTextOptions(device);
+    auto textOptions = piePlot_->radiusLabelTextOptions(device);
 
     textOptions.angle = Angle::avg(aa1, aa2);
 
-    textOptions = plot_->adjustTextOptions(textOptions);
+    textOptions = piePlot_->adjustTextOptions(textOptions);
 
     //---
 
@@ -2410,10 +2411,10 @@ drawSegment(PaintDevice *device) const
 
     bool labelRight = (pt.x >= c.x);
 
-    if (plot_->isInvertX())
+    if (piePlot_->isInvertX())
       labelRight = ! labelRight;
 
-    if (plot_->isRotatedText() && ! labelRight)
+    if (piePlot_->isRotatedText() && ! labelRight)
       textOptions.angle.flipX();
 
     device->setPen(tpenBrush.pen);
@@ -2423,10 +2424,10 @@ drawSegment(PaintDevice *device) const
 
   //---
 
-  bool separated = plot_->calcSeparated();
+  bool separated = piePlot_->calcSeparated();
 
   // draw mouse over as arc next to pie slice
-  if (isInside() && plot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+  if (isInside() && piePlot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
     PenBrush penBrush;
 
     calcPenBrushInside(penBrush, /*updateState*/false, /*inside*/true);
@@ -2437,18 +2438,18 @@ drawSegment(PaintDevice *device) const
 
     double r1;
 
-    if (! separated && plot_->numGroups() > 1)
+    if (! separated && piePlot_->numGroups() > 1)
       r1 = ro;
     else
-      r1 = rv + plot_->insideOffset();
+      r1 = rv + piePlot_->insideOffset();
 
-    double r2 = r1 + plot_->insideRadius();
+    double r2 = r1 + piePlot_->insideRadius();
 
     drawPieSlice(c, r1, r2, aa1, aa2);
 
     //---
 
-    if (! plot_->isTextLabels()) {
+    if (! piePlot_->isTextLabels()) {
       auto labelStr = calcTipId();
 
       //---
@@ -2456,23 +2457,23 @@ drawSegment(PaintDevice *device) const
       // set text pen
       PenBrush penBrush;
 
-      auto fg = plot_->interpTextLabelTextColor(calcColorInd());
+      auto fg = piePlot_->interpTextLabelTextColor(calcColorInd());
 
-      plot_->setPen(penBrush, PenData(true, fg, plot_->textLabelTextAlpha()));
+      piePlot_->setPen(penBrush, PenData(true, fg, piePlot_->textLabelTextAlpha()));
 
       //---
 
       device->setPen(penBrush.pen);
 
-      plot_->setPainterFont(device, plot_->textLabelTextFont());
+      piePlot_->setPainterFont(device, piePlot_->textLabelTextFont());
 
       //---
 
-      auto textOptions = plot_->textLabelTextOptions();
+      auto textOptions = piePlot_->textLabelTextOptions();
 
       textOptions.html = true; // calcTipId is HTML
 
-      textOptions = plot_->adjustTextOptions(textOptions);
+      textOptions = piePlot_->adjustTextOptions(textOptions);
 
       Point pt(0.0, 0.0);
 
@@ -2594,7 +2595,7 @@ drawFg(PaintDevice *device) const
 
   //---
 
-  if (! plot_->isTextLabels())
+  if (! piePlot_->isTextLabels())
     return;
 
   if (! label().length())
@@ -2603,11 +2604,11 @@ drawFg(PaintDevice *device) const
   //---
 
   // draw label
-  if      (plot_->calcTreeMap())
+  if      (piePlot_->calcTreeMap())
     drawTreeMapLabel(device);
-  else if (plot_->calcWaffle())
+  else if (piePlot_->calcWaffle())
     drawWaffleLabel(device);
-  else if (plot_->calcPie())
+  else if (piePlot_->calcPie())
     drawSegmentLabel(device);
 }
 
@@ -2633,7 +2634,7 @@ drawSegmentLabel(PaintDevice *device) const
 
   //---
 
-  double lr = plot_->labelRadius();
+  double lr = piePlot_->labelRadius();
 
   double lr1 = lr*ro;
 
@@ -2647,21 +2648,21 @@ drawSegmentLabel(PaintDevice *device) const
 
   auto bg = fillColor();
 
-  plot_->setPen(penBrush, PenData(true, bg, Alpha()));
+  piePlot_->setPen(penBrush, PenData(true, bg, Alpha()));
 
   //---
 
-  auto textOptions = plot_->textLabelTextOptions();
+  auto textOptions = piePlot_->textLabelTextOptions();
 
-  textOptions = plot_->adjustTextOptions(textOptions);
+  textOptions = piePlot_->adjustTextOptions(textOptions);
 
   PenBrush lpenBrush;
 
-  plot_->setTextLabelPenBrush(lpenBrush, calcColorInd());
+  piePlot_->setTextLabelPenBrush(lpenBrush, calcColorInd());
 
-  textOptions.color = plot_->interpTextLabelTextColor(calcColorInd());
-  textOptions.alpha = plot_->textLabelTextAlpha();
-  textOptions.font  = plot_->textLabelTextFont();
+  textOptions.color = piePlot_->interpTextLabelTextColor(calcColorInd());
+  textOptions.alpha = piePlot_->textLabelTextAlpha();
+  textOptions.font  = piePlot_->textLabelTextFont();
 
   //---
 
@@ -2681,18 +2682,18 @@ drawSegmentLabel(PaintDevice *device) const
 
     BBox drawBBox;
 
-    //bool isRadial = plot_->isRotatedText();
+    //bool isRadial = piePlot_->isRotatedText();
     bool isRadial = false;
 
     RotatedTextBoxObj::draw(device, p, label1, label2, isRadial, lpenBrush,
-                            textOptions1, plot_->textLabelMargin(),
-                            plot_->textLabelCornerSize(), plot_->textLabelBorderSides(),
+                            textOptions1, piePlot_->textLabelMargin(),
+                            piePlot_->textLabelCornerSize(), piePlot_->textLabelBorderSides(),
                             drawBBox);
   };
 
   // if full circle draw text at center (non-donut) or top (donut)
   if (Angle::isCircle(angle1(), angle2())) {
-    if (plot_->calcDonut()) {
+    if (piePlot_->calcDonut()) {
       auto pt = Angle::circlePoint(c, lr1, Angle(90));
 
       drawLabels(pt);
@@ -2713,26 +2714,26 @@ drawSegmentLabel(PaintDevice *device) const
     else if (labels.length() >= 2)
       label = QString("%1 (%2)").arg(labels.at(0)).arg(labels[1]);
 
-    if (plot_->numGroups() == 1 && lr > 1.0) {
+    if (piePlot_->numGroups() == 1 && lr > 1.0) {
       auto textOptions1 = textOptions;
 
-      if (plot_->isRotatedText())
+      if (piePlot_->isRotatedText())
         textOptions1.angle = ta;
 
       RotatedTextBoxObj::drawConnectedRadialText(device, c, rv, lr1, ta, label,
                                                  penBrush.pen, lpenBrush, textOptions1,
-                                                 plot_->textLabelMargin(),
-                                                 plot_->textLabelCornerSize(),
-                                                 plot_->textLabelBorderSides());
+                                                 piePlot_->textLabelMargin(),
+                                                 piePlot_->textLabelCornerSize(),
+                                                 piePlot_->textLabelBorderSides());
 
-      if (plot_->showBoxes()) {
+      if (piePlot_->showBoxes()) {
         BBox bbox;
 
-        RotatedTextBoxObj::calcConnectedRadialTextBBox(const_cast<CQChartsPiePlot *>(plot_),
+        RotatedTextBoxObj::calcConnectedRadialTextBBox(const_cast<CQChartsPiePlot *>(piePlot_),
                                                        c, rv, lr1, ta, label, textOptions1,
-                                                       plot_->textLabelMargin(), bbox);
+                                                       piePlot_->textLabelMargin(), bbox);
 
-        plot_->drawWindowColorBox(device, bbox);
+        piePlot_->drawWindowColorBox(device, bbox);
       }
     }
     else {
@@ -2740,14 +2741,14 @@ drawSegmentLabel(PaintDevice *device) const
       auto pt = Angle::circlePoint(c, lr1, ta);
 
       // calc text angle
-      auto angle = (plot_->isRotatedText() ? ta : Angle());
+      auto angle = (piePlot_->isRotatedText() ? ta : Angle());
 
       bool labelRight = (ta.cos() >= 0.0);
 
-      if (plot_->isInvertX())
+      if (piePlot_->isInvertX())
         labelRight = ! labelRight;
 
-      if (plot_->isRotatedText() && ! labelRight)
+      if (piePlot_->isRotatedText() && ! labelRight)
         angle.flipX();
 
       // draw label
@@ -2755,19 +2756,19 @@ drawSegmentLabel(PaintDevice *device) const
 
       drawLabels(pt, angle, align);
 
-      if (plot_->showBoxes()) {
+      if (piePlot_->showBoxes()) {
         // calc text box
         auto textOptions1 = textOptions;
 
         textOptions1.angle = angle;
         textOptions1.align = align;
 
-        auto bbox = RotatedTextBoxObj::bbox(const_cast<CQChartsPiePlot *>(plot_),
-                                            plot_->windowToPixel(pt), label,
-                                            plot_->isRotatedText(), textOptions1,
-                                            plot_->textLabelMargin());
+        auto bbox = RotatedTextBoxObj::bbox(const_cast<CQChartsPiePlot *>(piePlot_),
+                                            piePlot_->windowToPixel(pt), label,
+                                            piePlot_->isRotatedText(), textOptions1,
+                                            piePlot_->textLabelMargin());
 
-        plot_->drawWindowColorBox(device, bbox);
+        piePlot_->drawWindowColorBox(device, bbox);
       }
     }
   }
@@ -2788,17 +2789,17 @@ drawTreeMapLabel(PaintDevice *device) const
   // calc label pen
   PenBrush penBrush;
 
-  auto tc = plot_->interpTextLabelTextColor(calcColorInd());
+  auto tc = piePlot_->interpTextLabelTextColor(calcColorInd());
 
-  plot_->setPen(penBrush, PenData(true, tc, plot_->textLabelTextAlpha()));
+  piePlot_->setPen(penBrush, PenData(true, tc, piePlot_->textLabelTextAlpha()));
 
-  plot_->setPainterFont(device, plot_->textLabelTextFont());
+  piePlot_->setPainterFont(device, piePlot_->textLabelTextFont());
 
   //---
 
-  auto textOptions = plot_->textLabelTextOptions();
+  auto textOptions = piePlot_->textLabelTextOptions();
 
-  textOptions = plot_->adjustTextOptions(textOptions);
+  textOptions = piePlot_->adjustTextOptions(textOptions);
 
   auto bbox = calcTreeMapBBox();
 
@@ -2820,17 +2821,17 @@ drawWaffleLabel(PaintDevice *device) const
   // calc label pen
   PenBrush penBrush;
 
-  auto tc = plot_->interpTextLabelTextColor(calcColorInd());
+  auto tc = piePlot_->interpTextLabelTextColor(calcColorInd());
 
-  plot_->setPen(penBrush, PenData(true, tc, plot_->textLabelTextAlpha()));
+  piePlot_->setPen(penBrush, PenData(true, tc, piePlot_->textLabelTextAlpha()));
 
-  plot_->setPainterFont(device, plot_->textLabelTextFont());
+  piePlot_->setPainterFont(device, piePlot_->textLabelTextFont());
 
   //---
 
-  auto textOptions = plot_->textLabelTextOptions();
+  auto textOptions = piePlot_->textLabelTextOptions();
 
-  textOptions = plot_->adjustTextOptions(textOptions);
+  textOptions = piePlot_->adjustTextOptions(textOptions);
 
   CQChartsDrawUtil::drawStringsInBox(device, waffleBBox_, labels, textOptions);
 }
@@ -2847,7 +2848,7 @@ getDrawLabels(QStringList &labels) const
   if (label.trimmed().length())
     labels.push_back(label);
 
-  if (valueStr.length() && plot_->isCount())
+  if (valueStr.length() && piePlot_->isCount())
     labels.push_back(valueStr);
 }
 
@@ -2860,13 +2861,13 @@ getRadii(double &ri, double &ro, double &rv, bool scaled) const
   rv = valueRadius();
 
   if (groupObj_) {
-    bool separated = plot_->calcSeparated();
+    bool separated = piePlot_->calcSeparated();
 
     auto mapR = [&](double r) {
       double s = (scaled ? radiusScale() : 1.0);
 
       // if not separated and donut then object has absolute radii
-      if (! separated && plot_->calcDonut()) {
+      if (! separated && piePlot_->calcDonut()) {
         return CMathUtil::map(r, innerRadius(), outerRadius(), innerRadius(), s*outerRadius());
       }
 
@@ -2909,15 +2910,15 @@ calcPenBrushInside(PenBrush &penBrush, bool updateState, bool inside) const
   // calc stroke and brush
   auto colorInd = this->calcColorInd();
 
-  auto pc = plot_->interpStrokeColor(colorInd);
-  auto pa = (inside ? Alpha(0.0) : plot_->strokeAlpha());
+  auto pc = piePlot_->interpStrokeColor(colorInd);
+  auto pa = (inside ? Alpha(0.0) : piePlot_->strokeAlpha());
   auto fc = fillColor();
-  auto fa = (inside ? Alpha(0.7) : plot_->fillAlpha());
+  auto fa = (inside ? Alpha(0.7) : piePlot_->fillAlpha());
 
-  plot_->setPenBrush(penBrush, plot_->penData(pc, pa), plot_->brushData(fc, fa));
+  piePlot_->setPenBrush(penBrush, piePlot_->penData(pc, pa), piePlot_->brushData(fc, fa));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    piePlot_->updateObjPenBrushState(this, penBrush);
 }
 
 QColor
@@ -2928,18 +2929,18 @@ fillColor() const
 
   QColor fc;
 
-  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+  if (piePlot_->colorType() == CQChartsPlot::ColorType::AUTO) {
     if      (color().isValid())
-      fc = plot_->interpColor(color(), ColorInd());
-    else if (plot_->fillColor().type() != Color::Type::PALETTE)
-      fc = plot_->interpColor(plot_->fillColor(), iv_);
+      fc = piePlot_->interpColor(color(), ColorInd());
+    else if (piePlot_->fillColor().type() != Color::Type::PALETTE)
+      fc = piePlot_->interpColor(piePlot_->fillColor(), iv_);
     else if (ig_.n > 1)
-      fc = plot_->interpGroupPaletteColor(ig_, iv_);
+      fc = piePlot_->interpGroupPaletteColor(ig_, iv_);
     else
-      fc = plot_->interpFillColor(iv_);
+      fc = piePlot_->interpFillColor(iv_);
   }
   else {
-    fc = plot_->interpFillColor(colorInd);
+    fc = piePlot_->interpFillColor(colorInd);
   }
 
   return fc;
@@ -2969,7 +2970,7 @@ getAdjustedCenter() const
   // get adjusted center (exploded state)
   auto ta = Angle::avg(angle1(), angle2());
 
-  double er = std::max(plot_->explodeRadius(), 0.0);
+  double er = std::max(piePlot_->explodeRadius(), 0.0);
 
   auto ec = Angle::circlePoint(c, er*rv, ta);
 
@@ -3009,27 +3010,27 @@ bool
 CQChartsPieObj::
 isHidden() const
 {
-  if (plot()->numGroups() > 1)
-    return plot()->isGroupHidden(groupObj_->groupInd().i);
+  if (piePlot()->numGroups() > 1)
+    return piePlot()->isGroupHidden(groupObj_->groupInd().i);
 
   if (modelInd().isValid()) {
-    auto modelInd1 = plot()->unnormalizeIndex(modelInd());
+    auto modelInd1 = piePlot()->unnormalizeIndex(modelInd());
 
-    ModelIndex ind(plot(), modelInd1.row(), plot()->colorColumn(), modelInd1.parent());
+    ModelIndex ind(piePlot(), modelInd1.row(), piePlot()->colorColumn(), modelInd1.parent());
 
-    return plot()->isIndexHidden(ind);
+    return piePlot()->isIndexHidden(ind);
   }
 
-  return plot()->isSetHidden(colorIndex().i);
+  return piePlot()->isSetHidden(colorIndex().i);
 }
 
 //------
 
 CQChartsPieGroupObj::
-CQChartsPieGroupObj(const PiePlot *plot, const BBox &bbox, const ColorInd &groupInd,
+CQChartsPieGroupObj(const PiePlot *piePlot, const BBox &bbox, const ColorInd &groupInd,
                     const QString &name, const ColorInd &ig) :
- CQChartsGroupObj(const_cast<PiePlot *>(plot), bbox, ig),
- plot_(plot), groupInd_(groupInd), name_(name)
+ CQChartsGroupObj(const_cast<PiePlot *>(piePlot), bbox, ig),
+ piePlot_(piePlot), groupInd_(groupInd), name_(name)
 {
 }
 
@@ -3051,7 +3052,7 @@ calcTipId() const
 
   //---
 
-  //plot()->addTipColumns(tableTip, ind);
+  //piePlot()->addTipColumns(tableTip, ind);
 
   //---
 
@@ -3088,9 +3089,9 @@ inside(const Point &p) const
   // non-separated
   //  . count has pie segments per group
 
-  bool separated = plot_->calcSeparated();
+  bool separated = piePlot_->calcSeparated();
 
-  bool drawn = ((plot()->calcDonut() && separated) || plot()->isSummary());
+  bool drawn = ((piePlot()->calcDonut() && separated) || piePlot()->isSummary());
 
   if (! drawn)
     return false;
@@ -3147,15 +3148,15 @@ void
 CQChartsPieGroupObj::
 draw(PaintDevice *device) const
 {
-  if (plot()->isGroupHidden(groupInd().i))
+  if (piePlot()->isGroupHidden(groupInd().i))
     return;
 
-  bool separated = plot_->calcSeparated();
+  bool separated = piePlot_->calcSeparated();
 
   //---
 
   if (numObjs() == 0) {
-    if (! separated || plot()->isSummary())
+    if (! separated || piePlot()->isSummary())
       drawEmptyGroup(device);
 
     return;
@@ -3163,14 +3164,14 @@ draw(PaintDevice *device) const
 
   //---
 
-  if      (plot()->calcTreeMap()) {
+  if      (piePlot()->calcTreeMap()) {
     drawTreeMapHeader(device);
   }
-  else if (plot()->calcWaffle()) {
+  else if (piePlot()->calcWaffle()) {
     // TODO
   }
-  else if (plot()->calcPie()) {
-    bool drawn = ((plot()->calcDonut() && separated) || plot()->isSummary());
+  else if (piePlot()->calcPie()) {
+    bool drawn = ((piePlot()->calcDonut() && separated) || piePlot()->isSummary());
 
     if (drawn)
       drawDonut(device);
@@ -3180,7 +3181,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  if (separated && plot_->calcDumbbell())
+  if (separated && piePlot_->calcDumbbell())
     drawDumbbell(device);
 }
 
@@ -3196,7 +3197,7 @@ drawDonut(PaintDevice *device) const
 
   //---
 
-  bool separated = plot_->calcSeparated();
+  bool separated = piePlot_->calcSeparated();
 
   Angle aa1, aa2;
 
@@ -3206,7 +3207,7 @@ drawDonut(PaintDevice *device) const
       aa2 = Angle(360.0);
     }
     else {
-      double ga = plot_->gapAngle().value()/2.0;
+      double ga = piePlot_->gapAngle().value()/2.0;
 
       aa1 = Angle(startAngle().value() + ga);
       aa2 = Angle(endAngle  ().value() - ga);
@@ -3225,8 +3226,8 @@ drawDonut(PaintDevice *device) const
 
   // draw pie slice
   auto drawPieSlice = [&](const Point &c, double ri, double ro, const Angle &a1, const Angle &a2) {
-    bool isInvertX = plot()->isInvertX();
-    bool isInvertY = plot()->isInvertY();
+    bool isInvertX = piePlot()->isInvertX();
+    bool isInvertY = piePlot()->isInvertY();
 
     CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, a1, a2, isInvertX, isInvertY);
   };
@@ -3256,7 +3257,7 @@ void
 CQChartsPieGroupObj::
 drawPieBorder(PaintDevice *device) const
 {
-  if (plot_->numGroups() <= 1)
+  if (piePlot_->numGroups() <= 1)
     return;
 
   auto c = calcCenter();
@@ -3292,12 +3293,12 @@ drawEmptyGroup(PaintDevice *device) const
 
   //---
 
-  bool separated = plot_->calcSeparated();
+  bool separated = piePlot_->calcSeparated();
 
   Angle aa1, aa2;
 
   if (! separated) {
-    double ga = plot_->gapAngle().value()/2.0;
+    double ga = piePlot_->gapAngle().value()/2.0;
 
     aa1 = Angle(startAngle().value() + ga);
     aa2 = Angle(endAngle  ().value() - ga);
@@ -3311,8 +3312,8 @@ drawEmptyGroup(PaintDevice *device) const
 
   // draw pie slice
   auto drawPieSlice = [&](const Point &c, double ri, double ro, const Angle &a1, const Angle &a2) {
-    bool isInvertX = plot()->isInvertX();
-    bool isInvertY = plot()->isInvertY();
+    bool isInvertX = piePlot()->isInvertX();
+    bool isInvertY = piePlot()->isInvertY();
 
     CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, a1, a2, isInvertX, isInvertY);
   };
@@ -3338,7 +3339,7 @@ drawDumbbell(PaintDevice *device) const
   //---
 
   // draw range line
-  bool showPie = plot_->isDumbbellPie();
+  bool showPie = piePlot_->isDumbbellPie();
 
   double x1 = (showPie ?  c.x + ro + 24*dxt : -1.0 + 8*dxt);
   double x2 = 1.0 - 8*dxt;
@@ -3360,15 +3361,15 @@ drawDumbbell(PaintDevice *device) const
 
   auto symbolSize = Length::pixel(7);
 
-  double vmin = plot_->calcMinValue();
-  double vmax = plot_->calcMaxValue();
+  double vmin = piePlot_->calcMinValue();
+  double vmax = piePlot_->calcMaxValue();
 
-  auto valueSum = plot_->calcValueSum();
+  auto valueSum = piePlot_->calcValueSum();
 
   if (valueSum > 0.0)
     vmax = valueSum;
 
-  plot_->setPainterFont(device, plot_->groupTextFont());
+  piePlot_->setPainterFont(device, piePlot_->groupTextFont());
 
   CQChartsTextPlacer textPlacer;
 
@@ -3388,14 +3389,14 @@ drawDumbbell(PaintDevice *device) const
 
     //---
 
-    auto tc = plot_->interpGroupTextColor(calcColorInd());
+    auto tc = piePlot_->interpGroupTextColor(calcColorInd());
 
     //---
 
     // set text pen
     PenBrush tpenBrush;
 
-    plot_->setPen(tpenBrush, PenData(true, tc, plot_->groupTextAlpha()));
+    piePlot_->setPen(tpenBrush, PenData(true, tc, piePlot_->groupTextAlpha()));
 
     device->setPen(tpenBrush.pen);
 
@@ -3404,20 +3405,20 @@ drawDumbbell(PaintDevice *device) const
     // draw text label
     auto valueStr = obj->valueStr();
 
-    auto textOptions = plot_->groupTextOptions();
+    auto textOptions = piePlot_->groupTextOptions();
 
     auto p1 = Point(r, c.y + 8*dxt);
 
     textOptions.align = Qt::AlignHCenter | Qt::AlignBottom;
 
-    if (plot_->isAdjustText())
+    if (piePlot_->isAdjustText())
       textPlacer.addDrawText(device, valueStr, p1, textOptions, p, /*margin*/8);
     else
       CQChartsDrawUtil::drawTextAtPoint(device, p1, valueStr, textOptions);
   }
 
   // draw placed text
-  if (plot_->isAdjustText()) {
+  if (piePlot_->isAdjustText()) {
   //textPlacer.setDebug(true);
 
     auto clipRect = BBox(x1, c.y - ro, x2, c.y + ro);
@@ -3444,28 +3445,28 @@ void
 CQChartsPieGroupObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  auto pc = plot_->interpGroupStrokeColor(ig_);
-  auto bc = plot_->interpGroupFillColor  (ig_);
+  auto pc = piePlot_->interpGroupStrokeColor(ig_);
+  auto bc = piePlot_->interpGroupFillColor  (ig_);
 
-  plot_->setPenBrush(penBrush,
-    PenData  (true, pc, plot_->groupShapeData().stroke()),
-    BrushData(true, bc, plot_->groupShapeData().fill  ()));
+  piePlot_->setPenBrush(penBrush,
+    PenData  (true, pc, piePlot_->groupShapeData().stroke()),
+    BrushData(true, bc, piePlot_->groupShapeData().fill  ()));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    piePlot_->updateObjPenBrushState(this, penBrush);
 }
 
 void
 CQChartsPieGroupObj::
 drawFg(PaintDevice *device) const
 {
-  if (plot()->isGroupHidden(groupInd().i))
+  if (piePlot()->isGroupHidden(groupInd().i))
     return;
 
   //---
 
   // draw text at center of donut or summary
-  bool drawText = (plot()->calcDonut() || plot()->isSummary());
+  bool drawText = (piePlot()->calcDonut() || piePlot()->isSummary());
 
   if (drawText)
     drawDonutText(device);
@@ -3478,17 +3479,17 @@ drawDonutText(PaintDevice *device) const
   // get text
   QStringList labels;
 
-  if (plot_->isDonutTitle()) {
-    labels.push_back(plot_->titleStr());
+  if (piePlot_->isDonutTitle()) {
+    labels.push_back(piePlot_->titleStr());
   }
   else {
     if (name().trimmed().length())
       labels.push_back(name());
 
-    if (plot_->isCount()) {
+    if (piePlot_->isCount()) {
       auto numValuesStr = QString::number(numValues());
 
-      numValuesStr +=  QString(" (%1)").arg(plot_->valueTypeName());
+      numValuesStr +=  QString(" (%1)").arg(piePlot_->valueTypeName());
 
       labels.push_back(numValuesStr);
     }
@@ -3508,7 +3509,7 @@ drawDonutText(PaintDevice *device) const
 
   //---
 
-  bool separated = plot_->calcSeparated();
+  bool separated = piePlot_->calcSeparated();
 
   Point pt;
 
@@ -3527,24 +3528,24 @@ drawDonutText(PaintDevice *device) const
   // set text pen and font
   PenBrush penBrush;
 
-  auto tc = plot_->interpGroupTextColor(calcColorInd());
+  auto tc = piePlot_->interpGroupTextColor(calcColorInd());
 
-  plot_->setPen(penBrush, PenData(true, tc, plot_->groupTextAlpha()));
+  piePlot_->setPen(penBrush, PenData(true, tc, piePlot_->groupTextAlpha()));
 
-  plot_->setPainterFont(device, plot_->groupTextFont());
+  piePlot_->setPainterFont(device, piePlot_->groupTextFont());
 
   //---
 
   // set text options
-  auto textOptions = plot_->groupTextOptions();
+  auto textOptions = piePlot_->groupTextOptions();
 
-  textOptions = plot_->adjustTextOptions(textOptions);
+  textOptions = piePlot_->adjustTextOptions(textOptions);
 
   //---
 
   device->setPen(penBrush.pen);
 
-  if (plot_->isDonutTitle()) {
+  if (piePlot_->isDonutTitle()) {
     auto bbox = getBBox();
 
     auto textOptions1 = textOptions;
@@ -3569,7 +3570,7 @@ calcCenter() const
 {
   auto c = center();
 
-  if (plot_->calcSeparated() && plot_->calcDumbbell()) {
+  if (piePlot_->calcSeparated() && piePlot_->calcDumbbell()) {
     double ri, ro;
 
     getRadii(ri, ro);
@@ -3584,28 +3585,28 @@ void
 CQChartsPieGroupObj::
 getRadii(double &ri, double &ro) const
 {
-  bool separated = plot_->calcSeparated();
-  bool dumbbell  = plot_->calcDumbbell();
-  bool donut     = plot_->calcDonut();
-  bool treemap   = plot_->calcTreeMap();
+  bool separated = piePlot_->calcSeparated();
+  bool dumbbell  = piePlot_->calcDumbbell();
+  bool donut     = piePlot_->calcDonut();
+  bool treemap   = piePlot_->calcTreeMap();
 
   // empty group
   //  . not separated is whole circle
   //  . separated and count then 0.0 to scaled plot inner radius
   if (numObjs() == 0) {
     if (! separated) {
-      if (! plot()->isSummary()) {
+      if (! piePlot()->isSummary()) {
         ri = innerRadius();
         ro = outerRadius();
       }
       else {
         ri = 0.0;
-        ro = plot()->outerRadius();
+        ro = piePlot()->outerRadius();
       }
     }
     else {
       ri = 0.0;
-      ro = plot()->outerRadius()*outerRadius();
+      ro = piePlot()->outerRadius()*outerRadius();
     }
   }
   else {
@@ -3614,33 +3615,33 @@ getRadii(double &ri, double &ro) const
     //   . separated then group is from 0.0 to scaled plot inner radius
     if      (donut && ! dumbbell) {
       if (! separated) {
-        if (! plot()->isSummary()) {
+        if (! piePlot()->isSummary()) {
           ri = innerRadius();
           ro = outerRadius();
         }
         else {
           ri = 0.0;
-          ro = plot()->innerRadius();
+          ro = piePlot()->innerRadius();
         }
       }
       else {
         ri = 0.0;
-        ro = plot()->innerRadius()*outerRadius();
+        ro = piePlot()->innerRadius()*outerRadius();
       }
     }
     else if (treemap && separated) {
       ri = 0.0;
-      ro = outerRadius()*plot_->outerRadius();
+      ro = outerRadius()*piePlot_->outerRadius();
     }
     // not donut then from center to plot outer radius (already set ?)
     else {
       ri = 0.0;
 
       if (separated)
-        ro = outerRadius()*plot_->outerRadius();
+        ro = outerRadius()*piePlot_->outerRadius();
       else
-        ro = plot()->outerRadius();
-    //ri = std::min(std::max(donut ? plot()->innerRadius()*ro : 0.0, 0.0), 1.0);
+        ro = piePlot()->outerRadius();
+    //ri = std::min(std::max(donut ? piePlot()->innerRadius()*ro : 0.0, 0.0), 1.0);
     }
   }
 }
@@ -3662,14 +3663,14 @@ QColor
 CQChartsPieGroupObj::
 bgColor() const
 {
-  return plot_->interpGroupFillColor(ig_);
+  return piePlot_->interpGroupFillColor(ig_);
 }
 
 //------
 
 CQChartsPieColorKeyItem::
-CQChartsPieColorKeyItem(PiePlot *plot, PlotObj *obj) :
- CQChartsColorBoxKeyItem(plot, ColorInd(), ColorInd(), ColorInd()), obj_(obj)
+CQChartsPieColorKeyItem(PiePlot *piePlot, PlotObj *obj) :
+ CQChartsColorBoxKeyItem(piePlot, ColorInd(), ColorInd(), ColorInd()), obj_(obj)
 {
   setClickable(true);
 }
@@ -3678,7 +3679,7 @@ void
 CQChartsPieColorKeyItem::
 doSelect(SelMod)
 {
-  auto *plot = qobject_cast<PiePlot *>(plot_);
+  auto *piePlot = qobject_cast<PiePlot *>(plot_);
 
   auto *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
   auto *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
@@ -3688,7 +3689,7 @@ doSelect(SelMod)
   if (group) {
     auto is = setIndex();
 
-    plot->getGroupObjs(is.i, objs);
+    piePlot->getGroupObjs(is.i, objs);
   }
   else
     objs.push_back(obj);
@@ -3697,7 +3698,7 @@ doSelect(SelMod)
 
   //---
 
-  plot->selectObjs(objs, /*export*/true);
+  piePlot->selectObjs(objs, /*export*/true);
 
   key_->redraw(/*wait*/ true);
 }
@@ -3725,11 +3726,11 @@ bool
 CQChartsPieColorKeyItem::
 calcHidden() const
 {
-  auto *plot = qobject_cast<PiePlot *>(plot_);
+  auto *piePlot = qobject_cast<PiePlot *>(plot_);
 
   auto is = setIndex();
 
-  return plot->isSetHidden(is.i);
+  return piePlot->isSetHidden(is.i);
 }
 
 CQChartsUtil::ColorInd
@@ -3750,8 +3751,8 @@ setIndex() const
 //------
 
 CQChartsPieTextKeyItem::
-CQChartsPieTextKeyItem(PiePlot *plot, PlotObj *plotObj) :
- CQChartsTextKeyItem(plot, "", ColorInd()), obj_(plotObj)
+CQChartsPieTextKeyItem(PiePlot *piePlot, PlotObj *plotObj) :
+ CQChartsTextKeyItem(piePlot, "", ColorInd()), obj_(plotObj)
 {
   auto *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
   auto *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
@@ -3777,11 +3778,11 @@ bool
 CQChartsPieTextKeyItem::
 calcHidden() const
 {
-  auto *plot = qobject_cast<PiePlot *>(plot_);
+  auto *piePlot = qobject_cast<PiePlot *>(plot_);
 
   auto is = setIndex();
 
-  return (plot && plot->isSetHidden(is.i));
+  return (piePlot && piePlot->isSetHidden(is.i));
 }
 
 CQChartsUtil::ColorInd
@@ -3898,7 +3899,7 @@ void
 CQChartsPiePlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<PiePlot *>(plot);
+  piePlot_ = dynamic_cast<PiePlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
 }
@@ -3911,14 +3912,14 @@ updateWidgets()
 
   //---
 
-  if (drawTypeCombo_) drawTypeCombo_->setObj(plot_);
+  if (drawTypeCombo_) drawTypeCombo_->setObj(piePlot_);
 
-  if (separatedCheck_) separatedCheck_->setChecked(plot_->isSeparated());
+  if (separatedCheck_) separatedCheck_->setChecked(piePlot_->isSeparated());
 
-  if (donutCheck_   ) donutCheck_   ->setChecked(plot_->isDonut   ());
-  if (summaryCheck_ ) summaryCheck_ ->setChecked(plot_->isSummary ());
-  if (dumbbellCheck_) dumbbellCheck_->setChecked(plot_->isDumbbell());
-  if (countCheck_   ) countCheck_   ->setChecked(plot_->isCount   ());
+  if (donutCheck_   ) donutCheck_   ->setChecked(piePlot_->isDonut   ());
+  if (summaryCheck_ ) summaryCheck_ ->setChecked(piePlot_->isSummary ());
+  if (dumbbellCheck_) dumbbellCheck_->setChecked(piePlot_->isDumbbell());
+  if (countCheck_   ) countCheck_   ->setChecked(piePlot_->isCount   ());
 
   CQChartsGroupPlotCustomControls::updateWidgets();
 
@@ -3938,47 +3939,47 @@ void
 CQChartsPiePlotCustomControls::
 separatedSlot()
 {
-  plot_->setSeparated(separatedCheck_->isChecked());
+  piePlot_->setSeparated(separatedCheck_->isChecked());
 }
 
 void
 CQChartsPiePlotCustomControls::
 donutSlot()
 {
-  plot_->setDonut(donutCheck_->isChecked());
+  piePlot_->setDonut(donutCheck_->isChecked());
 }
 
 void
 CQChartsPiePlotCustomControls::
 summarySlot()
 {
-  plot_->setSummary(summaryCheck_->isChecked());
+  piePlot_->setSummary(summaryCheck_->isChecked());
 }
 
 void
 CQChartsPiePlotCustomControls::
 dumbbellSlot()
 {
-  plot_->setDumbbell(dumbbellCheck_->isChecked());
+  piePlot_->setDumbbell(dumbbellCheck_->isChecked());
 }
 
 void
 CQChartsPiePlotCustomControls::
 countSlot()
 {
-  plot_->setCount(countCheck_->isChecked());
+  piePlot_->setCount(countCheck_->isChecked());
 }
 
 CQChartsColor
 CQChartsPiePlotCustomControls::
 getColorValue()
 {
-  return plot_->fillColor();
+  return piePlot_->fillColor();
 }
 
 void
 CQChartsPiePlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setFillColor(c);
+  piePlot_->setFillColor(c);
 }

@@ -1789,10 +1789,10 @@ executeSlotFn(const QString &name, const QVariantList &args, QVariant &res)
 //------
 
 CQChartsPointBestFitObj::
-CQChartsPointBestFitObj(const CQChartsPointPlot *plot, int groupInd, const QString &name,
+CQChartsPointBestFitObj(const CQChartsPointPlot *pointPlot, int groupInd, const QString &name,
                         const ColorInd &ig, const ColorInd &is, const BBox &rect) :
- CQChartsPlotObj(const_cast<CQChartsPointPlot *>(plot), rect, is,
-                 ig, ColorInd()), plot_(plot), groupInd_(groupInd), name_(name)
+ CQChartsPlotObj(const_cast<CQChartsPointPlot *>(pointPlot), rect, is,
+                 ig, ColorInd()), pointPlot_(pointPlot), groupInd_(groupInd), name_(name)
 {
   setDetailHint(DetailHint::MAJOR);
 }
@@ -1817,11 +1817,11 @@ calcTipId() const
   QString groupName;
 
   if (name_ == "")
-    groupName = plot_->groupIndName(groupInd_);
+    groupName = pointPlot_->groupIndName(groupInd_);
   else {
     ColorInd ind;
 
-    groupName = plot_->singleGroupName(ind);
+    groupName = pointPlot_->singleGroupName(ind);
 
     if (groupName == "")
       groupName = name_;
@@ -1855,7 +1855,7 @@ draw(PaintDevice *device) const
 
   calcPenBrush(penBrush, updateState);
 
-  plot_->drawBestFit(device, bestFit, penBrush);
+  pointPlot_->drawBestFit(device, bestFit, penBrush);
 }
 
 void
@@ -1870,14 +1870,14 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     ic = ig_;
 
   // calc pen and brush
-  auto strokeColor = plot_->interpBestFitStrokeColor(ic);
-  auto fillColor   = plot_->interpBestFitFillColor  (ic);
+  auto strokeColor = pointPlot_->interpBestFitStrokeColor(ic);
+  auto fillColor   = pointPlot_->interpBestFitFillColor  (ic);
 
-  plot_->setPenBrush(penBrush, plot_->bestFitPenData(strokeColor),
-                     plot_->bestFitBrushData(fillColor));
+  pointPlot_->setPenBrush(penBrush, pointPlot_->bestFitPenData(strokeColor),
+                          pointPlot_->bestFitBrushData(fillColor));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
+    pointPlot_->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
 }
 
 CQChartsFitData *
@@ -1890,17 +1890,17 @@ getBestFit() const
 
   if (name_ == "") {
     // get fit data for group (add if needed)
-    fitData = plot_->getBestFit(groupInd_, created);
+    fitData = pointPlot_->getBestFit(groupInd_, created);
 
     if (created)
-      plot_->initGroupBestFit(fitData, ig_.i, QVariant(groupInd_), /*isGroup*/true);
+      pointPlot_->initGroupBestFit(fitData, ig_.i, QVariant(groupInd_), /*isGroup*/true);
   }
   else {
     // get fit data for set (add if needed)
-    fitData = plot_->getBestFit(is_.i, created);
+    fitData = pointPlot_->getBestFit(is_.i, created);
 
     if (created)
-      plot_->initGroupBestFit(fitData, is_.i, QVariant(name_), /*isGroup*/false);
+      pointPlot_->initGroupBestFit(fitData, is_.i, QVariant(name_), /*isGroup*/false);
   }
 
   return fitData;
@@ -1909,10 +1909,10 @@ getBestFit() const
 //------
 
 CQChartsPointHullObj::
-CQChartsPointHullObj(const CQChartsPointPlot *plot, int groupInd, const QString &name,
+CQChartsPointHullObj(const CQChartsPointPlot *pointPlot, int groupInd, const QString &name,
                      const ColorInd &ig, const ColorInd &is, const BBox &rect) :
- CQChartsPlotObj(const_cast<CQChartsPointPlot *>(plot), rect, is,
-                 ig, ColorInd()), plot_(plot), groupInd_(groupInd), name_(name)
+ CQChartsPlotObj(const_cast<CQChartsPointPlot *>(pointPlot), rect, is,
+                 ig, ColorInd()), pointPlot_(pointPlot), groupInd_(groupInd), name_(name)
 {
   setDetailHint(DetailHint::MAJOR);
 }
@@ -1937,11 +1937,11 @@ calcTipId() const
   QString groupName;
 
   if (name_ == "")
-    groupName = plot_->groupIndName(groupInd_);
+    groupName = pointPlot_->groupIndName(groupInd_);
   else {
     ColorInd ind;
 
-    groupName = plot_->singleGroupName(ind);
+    groupName = pointPlot_->singleGroupName(ind);
 
     if (groupName == "")
       groupName = name_;
@@ -1992,15 +1992,15 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   else
     ic = ig_;
 
-  plot_->setPenBrush(penBrush, plot_->hullPenData(ic), plot_->hullBrushData(ic));
+  pointPlot_->setPenBrush(penBrush, pointPlot_->hullPenData(ic), pointPlot_->hullBrushData(ic));
 
   Color color1;
 
-  if (plot_->adjustedGroupColor(ig_.i, ig_.n, color1))
-    CQChartsDrawUtil::updateBrushColor(penBrush.brush, plot_->interpColor(color1, ig_));
+  if (pointPlot_->adjustedGroupColor(ig_.i, ig_.n, color1))
+    CQChartsDrawUtil::updateBrushColor(penBrush.brush, pointPlot_->interpColor(color1, ig_));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::BOX);
+    pointPlot_->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::BOX);
 }
 
 CQChartsGrahamHull *
@@ -2022,20 +2022,20 @@ getHull() const
 
   if (name_ == "") {
     // get hull for group (add if needed)
-    hull = plot_->getHull(groupInd_, created);
+    hull = pointPlot_->getHull(groupInd_, created);
 
     if (created) {
-      const auto &points = plot_->indPoints(QVariant(groupInd_), /*isGroup*/true);
+      const auto &points = pointPlot_->indPoints(QVariant(groupInd_), /*isGroup*/true);
 
       addHullPoints(hull, points);
     }
   }
   else {
     // get hull for set (add if needed)
-    hull = plot_->getHull(is_.i, created);
+    hull = pointPlot_->getHull(is_.i, created);
 
     if (created) {
-      const auto &points = plot_->indPoints(QVariant(name_), /*isGroup*/false);
+      const auto &points = pointPlot_->indPoints(QVariant(name_), /*isGroup*/false);
 
       addHullPoints(hull, points);
     }

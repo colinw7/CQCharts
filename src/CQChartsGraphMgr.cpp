@@ -17,6 +17,13 @@ CQChartsGraphMgr::
 {
 }
 
+CQChartsPlot *
+CQChartsGraphMgr::
+plot() const
+{
+  return plot_.data();
+}
+
 bool
 CQChartsGraphMgr::
 hasGraph(int graphId) const

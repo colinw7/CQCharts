@@ -244,10 +244,10 @@ class CQChartsAdjacencyCellObj : public CQChartsPlotObj {
   double yColorValue(bool relative) const override;
 
  private:
-  const AdjacencyPlot* plot_  { nullptr }; //!< parent plot
-  AdjacencyNodeP       node1_;             //!< row node
-  AdjacencyNodeP       node2_;             //!< column node
-  double               value_ { 0.0 };     //!< connections value
+  const AdjacencyPlot* adjacencyPlot_ { nullptr }; //!< parent plot
+  AdjacencyNodeP       node1_;                     //!< row node
+  AdjacencyNodeP       node2_;                     //!< column node
+  double               value_         { 0.0 };     //!< connections value
 };
 
 //---
@@ -581,7 +581,7 @@ class CQChartsAdjacencyPlotCustomControls : public CQChartsConnectionPlotCustomC
 
   void addWidgets() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -594,7 +594,7 @@ class CQChartsAdjacencyPlotCustomControls : public CQChartsConnectionPlotCustomC
   void setColorValue(const CQChartsColor &c) override;
 
  protected:
-  CQChartsAdjacencyPlot* plot_ { nullptr };
+  CQChartsAdjacencyPlot* adjacencyPlot_ { nullptr };
 };
 
 #endif

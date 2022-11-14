@@ -5,7 +5,9 @@
 #include <CQChartsAngle.h>
 #include <CQChartsLength.h>
 #include <CQChartsFillPattern.h>
+
 #include <QPainter>
+#include <QPointer>
 
 class CQChartsView;
 class CQChartsPlot;
@@ -58,8 +60,8 @@ class CQChartsPaintDevice {
   };
 
  public:
-  CQChartsPaintDevice(View *view) : view_(view) { }
-  CQChartsPaintDevice(Plot *plot) : plot_(plot) { }
+  CQChartsPaintDevice(View *view);
+  CQChartsPaintDevice(Plot *plot);
 
   CQChartsPaintDevice(CQCharts *charts=nullptr) : charts_(charts) { }
 
@@ -67,11 +69,11 @@ class CQChartsPaintDevice {
 
   //---
 
-  View *view() const { return view_; }
-  void setView(View *p) { view_ = p; }
+  View *view() const;
+  void setView(View *view);
 
-  Plot *plot() const { return plot_; }
-  void setPlot(Plot *p) { plot_ = p; }
+  Plot *plot() const;
+  void setPlot(Plot *plot);
 
   CQCharts *charts() const { return charts_; }
   void setCharts(CQCharts *charts) { charts_ = charts; }
@@ -241,9 +243,12 @@ class CQChartsPaintDevice {
   void setNull(bool b) { isNull_ = b; }
 
  protected:
+  using ViewP = QPointer<View>;
+  using PlotP = QPointer<Plot>;
+
   CQCharts* charts_   { nullptr };
-  View*     view_     { nullptr };
-  Plot*     plot_     { nullptr };
+  ViewP     view_;
+  PlotP     plot_;
   bool      zoomFont_ { false };
   bool      isNull_   { false };
 };

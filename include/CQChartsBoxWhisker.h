@@ -7,6 +7,7 @@
 #include <CSafeIndex.h>
 
 #include <QString>
+#include <QPointer>
 
 #include <cassert>
 #include <vector>
@@ -246,7 +247,7 @@ class CQChartsAxisBoxWhisker : public CQChartsObj {
   CQChartsAxisBoxWhisker(Plot *plot, const Qt::Orientation &direction=Qt::Horizontal);
 
   //! get plot
-  Plot *plot() const { return plot_; }
+  Plot *plot() const;
 
   //! get/set side
   const Side &side() const { return side_; }
@@ -310,7 +311,9 @@ class CQChartsAxisBoxWhisker : public CQChartsObj {
   void draw(PaintDevice *device, const PenBrush &penBrush, int ind=1, double delta=0.0);
 
  private:
-  Plot*           plot_      { nullptr };                 //!< plot
+  using PlotP = QPointer<Plot>;
+
+  PlotP           plot_;                                  //!< plot
   Side            side_      { Side::Type::BOTTOM_LEFT }; //!< rug side
   Qt::Orientation direction_ { Qt::Horizontal };          //!< rug direction
   Length          width_     { Length::pixel(24) };       //!< width
@@ -357,7 +360,7 @@ class CQChartsAxisDensity : public CQChartsObj {
   CQChartsAxisDensity(Plot *plot, const Qt::Orientation &direction=Qt::Horizontal);
 
   //! get plot
-  Plot *plot() const { return plot_; }
+  Plot *plot() const;
 
   //! get/set side
   const Side &side() const { return side_; }
@@ -413,7 +416,9 @@ class CQChartsAxisDensity : public CQChartsObj {
   void draw(PaintDevice *device, const PenBrush &penBrush, double delta=0.0);
 
  private:
-  Plot*           plot_      { nullptr };                 //!< plot
+  using PlotP = QPointer<Plot>;
+
+  PlotP           plot_;                                  //!< plot
   Side            side_      { Side::Type::BOTTOM_LEFT }; //!< rug side
   Qt::Orientation direction_ { Qt::Horizontal };          //!< rug direction
   Length          width_     { Length::pixel(48) };       //!< width

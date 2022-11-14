@@ -68,11 +68,6 @@ class CQChartsMapKey : public CQChartsBoxObj,
 
   //---
 
-  //! get plot
-  Plot *plot() const { return plot_; }
-
-  //---
-
   //! get/set location
   const Location &location() const { return location_; }
   void setLocation(const Location &l);

@@ -300,11 +300,11 @@ class CQChartsChordSegmentObj : public CQChartsPlotObj {
   void valueAngles(int ind, Angle &a, Angle &da, PrimaryType primaryType=PrimaryType::ANY) const;
 
  private:
-  const ChordPlot* plot_    { nullptr }; //!< parent plot
-  ChordData        data_;                //!< chord data
-  EdgeObjs         edgeObjs_;            //!< edge objects
-  HierObj*         hierObj_ { nullptr }; //!< parent hier obj
-  PlotObjs         childObjs_;           //!< child objs
+  const ChordPlot* chordPlot_ { nullptr }; //!< parent plot
+  ChordData        data_;                  //!< chord data
+  EdgeObjs         edgeObjs_;              //!< edge objects
+  HierObj*         hierObj_   { nullptr }; //!< parent hier obj
+  PlotObjs         childObjs_;             //!< child objs
 };
 
 //---
@@ -367,11 +367,11 @@ class CQChartsChordEdgeObj : public CQChartsPlotObj {
   CQChartsChordSegmentObj *toObj  () const;
 
  private:
-  const ChordPlot*     plot_ { nullptr }; //!< parent plot
-  ChordData            data_;             //!< chord data (from)
-  int                  to_ { -1 };        //!< to index
-  OptReal              value_;            //!< edge value
-  mutable QPainterPath path_;             //!< drawn path
+  const ChordPlot*     chordPlot_ { nullptr }; //!< parent plot
+  ChordData            data_;                  //!< chord data (from)
+  int                  to_        { -1 };      //!< to index
+  OptReal              value_;                 //!< edge value
+  mutable QPainterPath path_;                  //!< drawn path
 };
 
 //---
@@ -452,11 +452,11 @@ class CQChartsChordHierObj : public CQChartsPlotObj {
   int childDepth() const;
 
  private:
-  const ChordPlot*     plot_    { nullptr }; //!< parent plot
-  QString              name_;                //!< hier name
-  HierObj*             hierObj_ { nullptr }; //!< parent hier obj
-  PlotObjs             childObjs_;           //!< child objs
-  mutable QPainterPath path_;                //!< drawn path
+  const ChordPlot*     chordPlot_ { nullptr }; //!< parent plot
+  QString              name_;                  //!< hier name
+  HierObj*             hierObj_   { nullptr }; //!< parent hier obj
+  PlotObjs             childObjs_;             //!< child objs
+  mutable QPainterPath path_;                  //!< drawn path
 };
 
 //---
@@ -697,7 +697,7 @@ class CQChartsChordPlotCustomControls : public CQChartsConnectionPlotCustomContr
 
   void addWidgets() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -711,7 +711,7 @@ class CQChartsChordPlotCustomControls : public CQChartsConnectionPlotCustomContr
   void setColorValue(const CQChartsColor &c) override;
 
  protected:
-  CQChartsChordPlot* plot_ { nullptr };
+  CQChartsChordPlot* chordPlot_ { nullptr };
 };
 
 #endif

@@ -4,7 +4,9 @@
 class CQChartsView;
 
 #include <CQToolTip.h>
+
 #include <QLabel>
+#include <QPointer>
 
 /*!
  * \brief Charts View Tooltip
@@ -12,11 +14,14 @@ class CQChartsView;
  */
 class CQChartsViewToolTip : public CQToolTipIFace {
  public:
-  CQChartsViewToolTip(CQChartsView *view);
+  using View = CQChartsView;
+
+ public:
+  CQChartsViewToolTip(View *view);
 
  ~CQChartsViewToolTip();
 
-  CQChartsView *view() const { return view_; }
+  View *view() const;
 
   QWidget *widget() const { return widget_; }
 
@@ -44,11 +49,13 @@ class CQChartsViewToolTip : public CQToolTipIFace {
   QSize sizeHint() const override;
 
  private:
-  CQChartsView* view_     { nullptr }; //!< parent view
-  QLabel*       widget_   { nullptr }; //!< tip widget
-  QPoint        gpos_;                 //!< global position
-  QFont         font_;                 //!< font
-  double        hideSecs_ { 3.0 };     //!< hide seconds
+  using ViewP = QPointer<View>;
+
+  ViewP   view_;                 //!< parent view
+  QLabel* widget_   { nullptr }; //!< tip widget
+  QPoint  gpos_;                 //!< global position
+  QFont   font_;                 //!< font
+  double  hideSecs_ { 3.0 };     //!< hide seconds
 };
 
 //------
@@ -61,9 +68,12 @@ class CQChartsViewToolTip : public CQToolTipIFace {
  */
 class CQChartsViewFloatTip : public CQFloatTip {
  public:
-  CQChartsViewFloatTip(CQChartsView *view);
+  using View = CQChartsView;
 
-  CQChartsView *view() const { return view_; }
+ public:
+  CQChartsViewFloatTip(View *view);
+
+  View *view() const;
 
   void showTip(const QPoint &gpos) override;
   void hideTip() override;
@@ -75,8 +85,10 @@ class CQChartsViewFloatTip : public CQFloatTip {
   bool updateTip();
 
  private:
-  CQChartsView *view_ { nullptr };
-  QPoint        tipPos_;
+  using ViewP = QPointer<View>;
+
+  ViewP  view_;
+  QPoint tipPos_;
 };
 
 #endif

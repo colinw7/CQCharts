@@ -78,7 +78,7 @@ class CQChartsCreatePlotDlg : public QDialog {
 
   int exec();
 
-  Plot *plot() const { return plot_; }
+  Plot *plot() const;
 
  private:
   using ColumnLineEdit  = CQChartsColumnLineEdit;
@@ -245,6 +245,7 @@ class CQChartsCreatePlotDlg : public QDialog {
   void connectSlots(bool b);
 
  private:
+  using PlotP           = QPointer<Plot>;
   using TypePlotData    = std::map<QString, PlotData>;
   using TabType         = std::map<int, PlotType *>;
   using TypeInitialized = std::map<QString, bool>;
@@ -319,8 +320,8 @@ class CQChartsCreatePlotDlg : public QDialog {
   CQChartsPreviewPlot *previewPlot_ { nullptr };
 
   //! misc
-  Plot* plot_        { nullptr }; //!< last created plot (apply)
-  bool  initialized_ { false   }; //!< is initialized
+  PlotP plot_;                  //!< last created plot (apply)
+  bool  initialized_ { false }; //!< is initialized
 
   // auto analyze
   bool            autoAnalyzeModel_       { true }; //!< auto analyze model

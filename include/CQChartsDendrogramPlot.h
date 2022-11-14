@@ -57,22 +57,22 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot     = CQChartsDendrogramPlot;
-  using NodeObj  = CQChartsDendrogramNodeObj;
-  using Node     = CQChartsDendrogram::Node;
-  using Length   = CQChartsLength;
-  using Angle    = CQChartsAngle;
-  using Sides    = CQChartsSides;
-  using OptReal  = CQChartsOptReal;
+  using DendrogramPlot = CQChartsDendrogramPlot;
+  using NodeObj        = CQChartsDendrogramNodeObj;
+  using Node           = CQChartsDendrogram::Node;
+  using Length         = CQChartsLength;
+  using Angle          = CQChartsAngle;
+  using Sides          = CQChartsSides;
+  using OptReal        = CQChartsOptReal;
 
  public:
-  CQChartsDendrogramNodeObj(const Plot *plot, Node *node, const BBox &rect);
+  CQChartsDendrogramNodeObj(const DendrogramPlot *plot, Node *node, const BBox &rect);
 
   QString typeName() const override { return "node"; }
 
   //---
 
-  const Plot *plot() const { return plot_; }
+  const DendrogramPlot *plot() const { return dendrogramPlot_; }
 
   const NodeObj *parent() const { return parent_; }
   void setParent(NodeObj *p) { parent_ = p; }
@@ -174,22 +174,22 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   using Children = std::vector<Child>;
 
-  const Plot*     plot_       { nullptr }; //!< plot
-  NodeObj*        parent_     { nullptr }; //!< parent
-  Children        children_;               //!< children
-  Node*           node_       { nullptr }; //!< associated node
-  QString         name_;                   //!< name
-  int             ind_        { 0 };       //!< unique index
-  double          value_      { 0.0 };     //!< value
-  double          childTotal_ { 0.0 };     //!< value
-  bool            isRoot_     { false };   //!< is root
-  bool            isHier_     { false };   //!< is hierarchical
-  bool            open_       { false };   //!< is open
-  ModelIndex      modelIndex_;             //!< model index
-  OptReal         color_;                  //!< optional color
-  OptReal         size_;                   //!< optional size
-  mutable double  hierColor_  { 0.0 };     //!< hier color
-  mutable double  hierSize_   { 0.0 };     //!< hier size
+  const DendrogramPlot* dendrogramPlot_ { nullptr }; //!< plot
+  NodeObj*              parent_         { nullptr }; //!< parent
+  Children              children_;                   //!< children
+  Node*                 node_           { nullptr }; //!< associated node
+  QString               name_;                       //!< name
+  int                   ind_            { 0 };       //!< unique index
+  double                value_          { 0.0 };     //!< value
+  double                childTotal_     { 0.0 };     //!< value
+  bool                  isRoot_         { false };   //!< is root
+  bool                  isHier_         { false };   //!< is hierarchical
+  bool                  open_           { false };   //!< is open
+  ModelIndex            modelIndex_;                 //!< model index
+  OptReal               color_;                      //!< optional color
+  OptReal               size_;                       //!< optional size
+  mutable double        hierColor_      { 0.0 };     //!< hier color
+  mutable double        hierSize_       { 0.0 };     //!< hier size
 };
 
 //---
@@ -531,7 +531,7 @@ class CQChartsDendrogramPlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -548,7 +548,7 @@ class CQChartsDendrogramPlotCustomControls : public CQChartsPlotCustomControls {
   void connectSlots(bool b) override;
 
  protected:
-  CQChartsDendrogramPlot* plot_ { nullptr }; //!< plot
+  CQChartsDendrogramPlot* dendrogramPlot_ { nullptr }; //!< plot
 
   FrameData optionsFrame_;
 

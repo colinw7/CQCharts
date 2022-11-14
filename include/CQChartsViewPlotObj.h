@@ -9,6 +9,8 @@
 #include <CQChartsFillPattern.h>
 #include <CQChartsTextOptions.h>
 
+#include <QPointer>
+
 class  CQChartsView;
 class  CQChartsPlot;
 class  CQChartsEditHandles;
@@ -62,7 +64,7 @@ class CQChartsViewPlotObj : public CQChartsObj,
   CQCharts *charts() const;
 
   View *view() const;
-  Plot *plot() const { return plot_; }
+  Plot *plot() const;
 
   //---
 
@@ -142,11 +144,13 @@ class CQChartsViewPlotObj : public CQChartsObj,
   static Rect     makeRect(View *view, Plot *plot, const Position &start, const Position &end);
 
  protected:
+  using ViewP        = QPointer<View>;
+  using PlotP        = QPointer<Plot>;
   using EditHandlesP = std::unique_ptr<EditHandles>;
 
-  View*        view_        { nullptr }; //!< parent view
-  Plot*        plot_        { nullptr }; //!< parent plot
-  EditHandlesP editHandles_;             //!< edit handles
+  ViewP        view_;        //!< parent view
+  PlotP        plot_;        //!< parent plot
+  EditHandlesP editHandles_; //!< edit handles
 };
 
 #endif

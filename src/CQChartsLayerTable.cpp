@@ -88,13 +88,27 @@ CQChartsLayerTableControl(QWidget *parent) :
   controlLayout->addStretch(1);
 }
 
+CQChartsView *
+CQChartsLayerTableControl::
+view() const
+{
+  return view_.data();
+}
+
 void
 CQChartsLayerTableControl::
-setView(CQChartsView *view)
+setView(View *view)
 {
   view_ = view;
 
   viewLayerTable_->setView(view_);
+}
+
+CQChartsPlot *
+CQChartsLayerTableControl::
+plot() const
+{
+  return plot_.data();
 }
 
 void
@@ -167,6 +181,13 @@ CQChartsViewLayerTable()
 
   connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChangeSlot()));
   connect(this, SIGNAL(cellClicked(int, int)), this, SLOT(clickedSlot(int, int)));
+}
+
+CQChartsView *
+CQChartsViewLayerTable::
+view() const
+{
+  return view_.data();
 }
 
 void
@@ -313,6 +334,13 @@ CQChartsPlotLayerTable()
 //setSelectionMode(ExtendedSelection);
 
   setSelectionBehavior(QAbstractItemView::SelectRows);
+}
+
+CQChartsPlot *
+CQChartsPlotLayerTable::
+plot() const
+{
+  return plot_.data();
 }
 
 void

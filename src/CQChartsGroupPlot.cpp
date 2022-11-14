@@ -472,30 +472,30 @@ initGroup(CQChartsGroupData &data) const
   // process model data
   class GroupVisitor : public ModelVisitor {
    public:
-    GroupVisitor(const CQChartsGroupPlot *plot, Bucket *bucket, bool hier) :
-     plot_(plot), bucket_(bucket), hier_(hier) {
+    GroupVisitor(const CQChartsGroupPlot *groupPlot, Bucket *bucket, bool hier) :
+     groupPlot_(groupPlot), bucket_(bucket), hier_(hier) {
     }
 
     State visit(const QAbstractItemModel *model, const VisitData &data) override {
       // add column value
       if      (bucket_->dataType() == Bucket::DataType::COLUMN ||
                bucket_->dataType() == Bucket::DataType::COLUMN_ROOT) {
-        ModelIndex rootInd(plot_, data.row, bucket_->column(), data.parent);
+        ModelIndex rootInd(groupPlot_, data.row, bucket_->column(), data.parent);
 
         bool ok;
 
         QVariant value;
 
         if (bucket_->dataType() == Bucket::DataType::COLUMN_ROOT)
-          value = plot_->modelRootValue(rootInd, ok);
+          value = groupPlot_->modelRootValue(rootInd, ok);
         else
-          value = plot_->modelHierValue(rootInd, ok);
+          value = groupPlot_->modelHierValue(rootInd, ok);
 
         if (value.isValid())
           bucket_->addValue(value);
 
         if (hier_) {
-          auto paths = plot_->pathStrs(value.toString());
+          auto paths = groupPlot_->pathStrs(value.toString());
 
           for (int i = 0; i < paths.length(); ++i)
             bucket_->addValue(paths[i]);
@@ -519,9 +519,9 @@ initGroup(CQChartsGroupData &data) const
     }
 
    private:
-    const CQChartsGroupPlot* plot_   { nullptr };
-    Bucket*                  bucket_ { nullptr };
-    bool                     hier_   { false };
+    const CQChartsGroupPlot* groupPlot_ { nullptr };
+    Bucket*                  bucket_    { nullptr };
+    bool                     hier_      { false };
   };
 
   GroupVisitor groupVisitor(this, columnBucket, data.hier);

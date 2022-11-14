@@ -20,7 +20,7 @@ class CQChartsGroupPlotCustomControls : public CQChartsPlotCustomControls {
  public:
   CQChartsGroupPlotCustomControls(CQCharts *charts, const QString &plotType);
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
   void addGroupColumnWidgets();
 
@@ -43,7 +43,7 @@ class CQChartsGroupPlotCustomControls : public CQChartsPlotCustomControls {
   void bucketStopsSlot();
 
  private:
-  CQChartsGroupPlot* plot_ { nullptr };
+  CQChartsGroupPlot* groupPlot_ { nullptr };
 
   FrameData            groupFrame_;
   QButtonGroup*        bucketRadioGroup_  { nullptr };

@@ -133,12 +133,12 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
-  const GeometryPlot* plot_     { nullptr }; //!< parent plot
-  Polygons            polygons_;             //!< geometry polygons
-  QString             name_;                 //!< geometry name
-//Color               color_;                //!< optional color
-  Style               style_;                //!< optional style
-  OptReal             value_;                //!< geometry value
+  const GeometryPlot* geometryPlot_ { nullptr }; //!< parent plot
+  Polygons            polygons_;                 //!< geometry polygons
+  QString             name_;                     //!< geometry name
+//Color               color_;                    //!< optional color
+  Style               style_;                    //!< optional style
+  OptReal             value_;                    //!< geometry value
 };
 
 //---
@@ -366,7 +366,7 @@ class CQChartsGeometryPlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -384,7 +384,7 @@ class CQChartsGeometryPlotCustomControls : public CQChartsPlotCustomControls {
   void setColorValue(const CQChartsColor &c) override;
 
  protected:
-  CQChartsGeometryPlot* plot_ { nullptr };
+  CQChartsGeometryPlot* geometryPlot_ { nullptr };
 };
 
 #endif

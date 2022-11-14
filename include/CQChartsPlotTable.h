@@ -25,7 +25,7 @@ class CQChartsPlotTableControl : public QFrame, public CQChartsWidgetIFace {
  public:
   CQChartsPlotTableControl();
 
-  View *view() const { return view_; }
+  View *view() const;
   void setView(View *view) override;
 
  private Q_SLOTS:
@@ -49,14 +49,16 @@ class CQChartsPlotTableControl : public QFrame, public CQChartsWidgetIFace {
   void removePlotsSlot();
 
  private:
-  CQChartsPlot *getSelectedPlot() const;
+  Plot *getSelectedPlot() const;
 
   void getSelectedPlots(Plots &plots) const;
 
  private:
+  using ViewP = QPointer<View>;
+
   CQChartsPlotTable *plotTable_ { nullptr }; //!< plot table
 
-  View *view_ { nullptr };
+  ViewP view_;
 
   QCheckBox*     overlayCheck_         { nullptr }; //!< overlay check
   QCheckBox*     x1x2Check_            { nullptr }; //!< x1x2 check
@@ -78,13 +80,17 @@ class CQChartsPlotTable : public CQTableWidget, public CQChartsWidgetIFace {
   Q_OBJECT
 
  public:
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsPlotTable();
 
-  void updatePlots(CQChartsView *view);
+  void updatePlots(View *view);
 
   void setCurrentInd(int ind);
 
-  void getSelectedPlots(CQChartsView *view, std::vector<CQChartsPlot *> &plots);
+  void getSelectedPlots(View *view, std::vector<Plot *> &plots);
 };
 
 #endif

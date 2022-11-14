@@ -46,6 +46,20 @@ charts() const
 
 //---
 
+CQChartsView *
+CQChartsArrow::
+view() const
+{
+  return view_.data();
+}
+
+CQChartsPlot *
+CQChartsArrow::
+plot() const
+{
+  return plot_.data();
+}
+
 void
 CQChartsArrow::
 setVisible(bool b)

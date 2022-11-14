@@ -100,7 +100,7 @@ class CQChartsDistributionPlot;
  */
 class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
  public:
-  using Plot = CQChartsDistributionPlot;
+  using DistributionPlot = CQChartsDistributionPlot;
 
  public:
   CQChartsDistributionPlotType();
@@ -124,7 +124,7 @@ class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
 
   QString description() const override;
 
-  CQChartsPlot *create(View *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -189,14 +189,14 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   };
 
  public:
-  using Plot     = CQChartsDistributionPlot;
-  using Bucket   = CQChartsDistributionBucket;
-  using BarValue = CQChartsDistributionBarValue;
-  using Column   = CQChartsColumn;
-  using Symbol   = CQChartsSymbol;
-  using Length   = CQChartsLength;
+  using DistributionPlot = CQChartsDistributionPlot;
+  using Bucket           = CQChartsDistributionBucket;
+  using BarValue         = CQChartsDistributionBarValue;
+  using Column           = CQChartsColumn;
+  using Symbol           = CQChartsSymbol;
+  using Length           = CQChartsLength;
 
-  CQChartsDistributionBarObj(const Plot *plot, const BBox &rect, int groupInd,
+  CQChartsDistributionBarObj(const DistributionPlot *plot, const BBox &rect, int groupInd,
                              const Bucket &bucket, const BarValue &barValue, bool isLine,
                              const ColorInd &ig, const ColorInd &iv);
 
@@ -303,13 +303,13 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
  private:
   using DensityP = std::unique_ptr<CQChartsDensity>;
 
-  const Plot* plot_     { nullptr }; //!< parent plot
-  int         groupInd_ { -1 };      //!< group ind
-  Bucket      bucket_;               //!< bucket
-  BarValue    barValue_;             //!< bar value
-  double      value1_   { 0.0 };     //!< bucket start value
-  double      value2_   { 1.0 };     //!< bucket end value
-  bool        isLine_   { false };   //!< is drawn as line
+  const DistributionPlot* distributionPlot_ { nullptr }; //!< parent plot
+  int                     groupInd_         { -1 };      //!< group ind
+  Bucket                  bucket_;                       //!< bucket
+  BarValue                barValue_;                     //!< bar value
+  double                  value1_           { 0.0 };     //!< bucket start value
+  double                  value2_           { 1.0 };     //!< bucket end value
+  bool                    isLine_           { false };   //!< is drawn as line
 
   mutable ColorData colorData_; //!< color data
   mutable QColor    barColor_;  //!< bar color
@@ -329,9 +329,9 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   Q_PROPERTY(int     numSamples READ numSamples)
 
  public:
-  using Plot   = CQChartsDistributionPlot;
-  using Bucket = CQChartsDistributionBucket;
-  using Symbol = CQChartsSymbol;
+  using DistributionPlot = CQChartsDistributionPlot;
+  using Bucket           = CQChartsDistributionBucket;
+  using Symbol           = CQChartsSymbol;
 
   using Points = std::vector<Point>;
 
@@ -365,7 +365,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   };
 
  public:
-  CQChartsDistributionDensityObj(const Plot *plot, const BBox &rect, int groupInd,
+  CQChartsDistributionDensityObj(const DistributionPlot *plot, const BBox &rect, int groupInd,
                                  const Data &data, double doffset, const ColorInd &is);
 
   int groupInd() const { return groupInd_; }
@@ -410,13 +410,13 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   BBox calcRect() const;
 
  private:
-  const Plot* plot_        { nullptr };
-  int         groupInd_    { -1 };
-  Data        data_;
-  double      doffset_     { 0.0 };
-  ColorInd    is_;
-  Polygon     poly_;
-  double      bucketScale_ { 1.0 };
+  const DistributionPlot* distributionPlot_ { nullptr };
+  int                     groupInd_         { -1 };
+  Data                    data_;
+  double                  doffset_          { 0.0 };
+  ColorInd                is_;
+  Polygon                 poly_;
+  double                  bucketScale_      { 1.0 };
 };
 
 //---
@@ -429,14 +429,14 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot       = CQChartsDistributionPlot;
-  using Bucket     = CQChartsDistributionBucket;
-  using Length     = CQChartsLength;
-  using Symbol     = CQChartsSymbol;
-  using SymbolType = CQChartsSymbolType;
+  using DistributionPlot = CQChartsDistributionPlot;
+  using Bucket           = CQChartsDistributionBucket;
+  using Length           = CQChartsLength;
+  using Symbol           = CQChartsSymbol;
+  using SymbolType       = CQChartsSymbolType;
 
  public:
-  CQChartsDistributionScatterObj(const Plot *plot, const BBox &rect, int groupInd,
+  CQChartsDistributionScatterObj(const DistributionPlot *plot, const BBox &rect, int groupInd,
                                  const Bucket &bucket, int n, const ColorInd &is,
                                  const ColorInd &iv);
 
@@ -469,13 +469,13 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
  private:
   using Points = std::vector<Point>;
 
-  const Plot* plot_     { nullptr };
-  int         groupInd_ { -1 };
-  Bucket      bucket_;
-  int         n_        { 0 };
-  ColorInd    is_;
-  ColorInd    iv_;
-  Points      points_;
+  const DistributionPlot* distributionPlot_ { nullptr };
+  int                     groupInd_         { -1 };
+  Bucket                  bucket_;
+  int                     n_                { 0 };
+  ColorInd                is_;
+  ColorInd                iv_;
+  Points                  points_;
 };
 
 //---
@@ -490,10 +490,10 @@ class CQChartsDistColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsDistributionPlot;
+  using DistributionPlot = CQChartsDistributionPlot;
 
  public:
-  CQChartsDistColorKeyItem(Plot *plot, const ColorInd &ig, const ColorInd &iv,
+  CQChartsDistColorKeyItem(DistributionPlot *plot, const ColorInd &ig, const ColorInd &iv,
                            const RangeValue &xv, const RangeValue &yv);
 
   const CQChartsColor &color() const { return color_; }
@@ -513,8 +513,8 @@ class CQChartsDistColorKeyItem : public CQChartsColorBoxKeyItem {
 #endif
 
  private:
-  Plot*         plot_ { nullptr }; //!< plot
-  CQChartsColor color_;            //!< custom color
+  DistributionPlot* distributionPlot_ { nullptr }; //!< plot
+  CQChartsColor     color_;                        //!< custom color
 };
 
 /*!
@@ -525,10 +525,11 @@ class CQChartsDistTextKeyItem : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsDistributionPlot;
+  using DistributionPlot = CQChartsDistributionPlot;
 
  public:
-  CQChartsDistTextKeyItem(Plot *plot, const QString &text, const ColorInd &ig, const ColorInd &iv);
+  CQChartsDistTextKeyItem(DistributionPlot *plot, const QString &text,
+                          const ColorInd &ig, const ColorInd &iv);
 
   QColor interpTextColor(const ColorInd &ind) const override;
 
@@ -1200,11 +1201,14 @@ class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomCon
   Q_OBJECT
 
  public:
+  using DistributionPlot = CQChartsDistributionPlot;
+
+ public:
   CQChartsDistributionPlotCustomControls(CQCharts *charts);
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -1240,7 +1244,7 @@ class CQChartsDistributionPlotCustomControls : public CQChartsGroupPlotCustomCon
   void statsLinesSlot(int);
 
  protected:
-  CQChartsDistributionPlot* plot_ { nullptr };
+  CQChartsDistributionPlot* distributionPlot_ { nullptr };
 
   FrameData optionsFrame_;
 

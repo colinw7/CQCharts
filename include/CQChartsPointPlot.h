@@ -41,11 +41,11 @@ class CQChartsPointBestFitObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot    = CQChartsPointPlot;
-  using BestFit = CQChartsFitData;
+  using PointPlot = CQChartsPointPlot;
+  using BestFit   = CQChartsFitData;
 
  public:
-  CQChartsPointBestFitObj(const Plot *plot, int groupInd, const QString &name,
+  CQChartsPointBestFitObj(const PointPlot *plot, int groupInd, const QString &name,
                           const ColorInd &ig, const ColorInd &is, const BBox &rect);
 
   int groupInd() const { return groupInd_; }
@@ -76,9 +76,9 @@ class CQChartsPointBestFitObj : public CQChartsPlotObj {
   BestFit *getBestFit() const;
 
  private:
-  const Plot* plot_     { nullptr }; //!< point plot
-  int         groupInd_ { -1 };      //!< plot group index
-  QString     name_;                 //!< plot set name
+  const PointPlot* pointPlot_ { nullptr }; //!< point plot
+  int              groupInd_  { -1 };      //!< plot group index
+  QString          name_;                  //!< plot set name
 };
 
 //---
@@ -91,11 +91,11 @@ class CQChartsPointHullObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsPointPlot;
-  using Hull = CQChartsGrahamHull;
+  using PointPlot = CQChartsPointPlot;
+  using Hull      = CQChartsGrahamHull;
 
  public:
-  CQChartsPointHullObj(const Plot *plot, int groupInd, const QString &name,
+  CQChartsPointHullObj(const PointPlot *plot, int groupInd, const QString &name,
                        const ColorInd &ig, const ColorInd &is, const BBox &rect);
 
   int groupInd() const { return groupInd_; }
@@ -126,9 +126,9 @@ class CQChartsPointHullObj : public CQChartsPlotObj {
   Hull *getHull() const;
 
  private:
-  const Plot* plot_     { nullptr }; //!< point plot
-  int         groupInd_ { -1 };      //!< plot group index
-  QString     name_;                 //!< plot set name
+  const PointPlot* pointPlot_ { nullptr }; //!< point plot
+  int              groupInd_  { -1 };      //!< plot group index
+  QString          name_;                  //!< plot set name
 };
 
 //---

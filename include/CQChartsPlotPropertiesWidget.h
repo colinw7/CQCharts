@@ -4,6 +4,7 @@
 #include <CQChartsWidgetIFace.h>
 
 #include <QFrame>
+#include <QPointer>
 
 #include <set>
 
@@ -29,7 +30,7 @@ class CQChartsPlotPropertiesWidget : public QFrame, public CQChartsWidgetIFace {
  public:
   CQChartsPlotPropertiesWidget(Plot *plot=nullptr);
 
-  Plot *plot() const { return plot_; }
+  Plot *plot() const;
   void setPlot(Plot *plot) override;
 
   CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
@@ -41,7 +42,9 @@ class CQChartsPlotPropertiesWidget : public QFrame, public CQChartsWidgetIFace {
   void filterStateSlot(bool show, bool focus);
 
  private:
-  Plot*                               plot_         { nullptr };
+  using PlotP = QPointer<Plot>;
+
+  PlotP                               plot_;
   CQChartsPropertyViewTree*           propertyTree_ { nullptr };
   CQChartsPropertyViewTreeFilterEdit* filterEdit_   { nullptr };
 };
@@ -60,7 +63,7 @@ class CQChartsPlotPropertiesControl : public QFrame, public CQChartsWidgetIFace 
  public:
   CQChartsPlotPropertiesControl(View *view=nullptr);
 
-  CQChartsView *view() const;
+  View *view() const;
   void setView(View *view) override;
 
   void updatePlots();
@@ -71,7 +74,7 @@ class CQChartsPlotPropertiesControl : public QFrame, public CQChartsWidgetIFace 
 
   void updatePlotPropertyViewTrees(const PlotSet &plotSet);
 
-  CQChartsPlot *getCurrentPlot() const;
+  Plot *getCurrentPlot() const;
 
  Q_SIGNALS:
   void propertyItemSelected(QObject *obj, const QString &path);
@@ -86,11 +89,12 @@ class CQChartsPlotPropertiesControl : public QFrame, public CQChartsWidgetIFace 
   void writeSlot();
 
  private:
+  using ViewP        = QPointer<View>;
   using EditTitleDlg = CQChartsEditTitleDlg;
   using EditKeyDlg   = CQChartsEditKeyDlg;
   using EditAxisDlg  = CQChartsEditAxisDlg;
 
-  View *view_ { nullptr };
+  ViewP view_;
 
   CQTabWidget*  plotsTab_     { nullptr }; //!< plot properties tab widget
   EditTitleDlg* editTitleDlg_ { nullptr }; //!< edit plot title dialog

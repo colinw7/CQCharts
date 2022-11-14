@@ -1038,9 +1038,9 @@ createCustomControls()
 //------
 
 CQChartsSummaryCellObj::
-CQChartsSummaryCellObj(const Plot *plot, const BBox &bbox, int row, int col) :
- CQChartsPlotObj(const_cast<Plot *>(plot), bbox, ColorInd(), ColorInd(), ColorInd()),
- plot_(plot), row_(row), col_(col)
+CQChartsSummaryCellObj(const SummaryPlot *summaryPlot, const BBox &bbox, int row, int col) :
+ CQChartsPlotObj(const_cast<SummaryPlot *>(summaryPlot), bbox, ColorInd(), ColorInd(), ColorInd()),
+ summaryPlot_(summaryPlot), row_(row), col_(col)
 {
 }
 
@@ -1058,27 +1058,27 @@ calcTipId() const
   CQChartsTableTip tableTip;
 
   if (row_ != col_) {
-    auto column1 = plot_->visibleColumns().getColumn(row_);
-    auto column2 = plot_->visibleColumns().getColumn(col_);
+    auto column1 = summaryPlot_->visibleColumns().getColumn(row_);
+    auto column2 = summaryPlot_->visibleColumns().getColumn(col_);
 
     bool ok;
-    auto xtip = plot_->modelHHeaderTip(column1, ok);
-    auto ytip = plot_->modelHHeaderTip(column2, ok);
+    auto xtip = summaryPlot_->modelHHeaderTip(column1, ok);
+    auto ytip = summaryPlot_->modelHHeaderTip(column2, ok);
 
     tableTip.addTableRow("X Column", xtip);
     tableTip.addTableRow("Y Column", ytip);
 
-    auto *details1 = plot_->columnDetails(column1);
-    auto *details2 = plot_->columnDetails(column2);
+    auto *details1 = summaryPlot_->columnDetails(column1);
+    auto *details2 = summaryPlot_->columnDetails(column2);
 
     if (details1 && details2 && details1->isNumeric() && details2->isNumeric()) {
-      if (! plot_->groupColumn().isValid()) {
-        auto correlation = plot_->modelDetails()->correlation(column1, column2);
+      if (! summaryPlot_->groupColumn().isValid()) {
+        auto correlation = summaryPlot_->modelDetails()->correlation(column1, column2);
 
         tableTip.addTableRow("Correlation", correlation);
       }
       else {
-        auto *groupDetails = plot_->columnDetails(plot_->groupColumn());
+        auto *groupDetails = summaryPlot_->columnDetails(summaryPlot_->groupColumn());
 
         const_cast<CQChartsSummaryCellObj *>(this)->initGroupedValues();
 
@@ -1098,14 +1098,14 @@ calcTipId() const
     }
   }
   else {
-    auto column = plot_->visibleColumns().getColumn(row_);
+    auto column = summaryPlot_->visibleColumns().getColumn(row_);
 
     bool ok;
-    auto tip = plot_->modelHHeaderTip(column, ok);
+    auto tip = summaryPlot_->modelHHeaderTip(column, ok);
 
     tableTip.addTableRow("Column", tip);
 
-    auto *details = plot_->columnDetails(column);
+    auto *details = summaryPlot_->columnDetails(column);
 
     if (details) {
       tableTip.addTableRow("Num Values", details->valueCount());
@@ -1132,8 +1132,8 @@ draw(PaintDevice *device) const
 
   //---
 
-  auto bx = plot_->lengthPlotWidth (plot_->border());
-  auto by = plot_->lengthPlotHeight(plot_->border());
+  auto bx = summaryPlot_->lengthPlotWidth (summaryPlot_->border());
+  auto by = summaryPlot_->lengthPlotHeight(summaryPlot_->border());
 
   auto bbox = this->rect();
 
@@ -1160,8 +1160,8 @@ draw(PaintDevice *device) const
     bool lower = (row_ > col_);
 
     auto isOffDiagonalType = [&](CQChartsSummaryPlot::OffDiagonalType type) {
-      return ((  lower && plot_->lowerDiagonalType() == type) ||
-              (! lower && plot_->upperDiagonalType() == type));
+      return ((  lower && summaryPlot_->lowerDiagonalType() == type) ||
+              (! lower && summaryPlot_->upperDiagonalType() == type));
     };
 
     bool isScatter     = isOffDiagonalType(CQChartsSummaryPlot::OffDiagonalType::SCATTER);
@@ -1173,11 +1173,11 @@ draw(PaintDevice *device) const
       drawCorrelation(device);
   }
   else {
-    if      (plot_->diagonalType() == CQChartsSummaryPlot::DiagonalType::BOXPLOT)
+    if      (summaryPlot_->diagonalType() == CQChartsSummaryPlot::DiagonalType::BOXPLOT)
       drawBoxPlot(device);
-    else if (plot_->diagonalType() == CQChartsSummaryPlot::DiagonalType::DISTRIBUTION)
+    else if (summaryPlot_->diagonalType() == CQChartsSummaryPlot::DiagonalType::DISTRIBUTION)
       drawDistribution(device);
-    else if (plot_->diagonalType() == CQChartsSummaryPlot::DiagonalType::PIE)
+    else if (summaryPlot_->diagonalType() == CQChartsSummaryPlot::DiagonalType::PIE)
       drawPie(device);
   }
 }
@@ -1186,13 +1186,13 @@ void
 CQChartsSummaryCellObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  auto bg = plot_->interpInterfaceColor(0.15);
-  auto fg = plot_->interpInterfaceColor(1.00);
+  auto bg = summaryPlot_->interpInterfaceColor(0.15);
+  auto fg = summaryPlot_->interpInterfaceColor(1.00);
 
-  plot_->setPenBrush(penBrush, PenData(true, fg, Alpha(0.3)), BrushData(true, bg));
+  summaryPlot_->setPenBrush(penBrush, PenData(true, fg, Alpha(0.3)), BrushData(true, bg));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush, drawType());
+    summaryPlot_->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 void
@@ -1203,24 +1203,24 @@ drawScatter(PaintDevice *device) const
 
   //---
 
-  auto column1 = plot_->visibleColumns().getColumn(row_);
-  auto column2 = plot_->visibleColumns().getColumn(col_);
+  auto column1 = summaryPlot_->visibleColumns().getColumn(row_);
+  auto column2 = summaryPlot_->visibleColumns().getColumn(col_);
 
-  auto *details1 = plot_->columnDetails(column1);
-  auto *details2 = plot_->columnDetails(column2);
+  auto *details1 = summaryPlot_->columnDetails(column1);
+  auto *details2 = summaryPlot_->columnDetails(column2);
   if (! details1 || ! details2) return;
 
-  auto *groupDetails = (plot_->groupColumn().isValid() ?
-    plot_->columnDetails(plot_->groupColumn()) : nullptr);
+  auto *groupDetails = (summaryPlot_->groupColumn().isValid() ?
+    summaryPlot_->columnDetails(summaryPlot_->groupColumn()) : nullptr);
 
   int ng = (groupDetails ? groupDetails->numUnique() : 0);
 
   //---
 
-  int nc = plot_->visibleColumns().count();
+  int nc = summaryPlot_->visibleColumns().count();
 
-  auto pc = plot_->interpInterfaceColor(1.0);
-  auto bc = plot_->interpPaletteColor(ColorInd(row_, nc));
+  auto pc = summaryPlot_->interpInterfaceColor(1.0);
+  auto bc = summaryPlot_->interpPaletteColor(ColorInd(row_, nc));
 
   if (details1->isNumeric()) {
     bool ok;
@@ -1250,7 +1250,7 @@ drawScatter(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  plot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.5)), BrushData(true, bc));
+  summaryPlot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.5)), BrushData(true, bc));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1292,11 +1292,11 @@ drawScatter(PaintDevice *device) const
 
       int ig = groupDetails->uniqueId(var);
 
-      auto bc1 = plot_->interpPaletteColor(ColorInd(ig, ng));
+      auto bc1 = summaryPlot_->interpPaletteColor(ColorInd(ig, ng));
 
-      plot_->setPenBrush(penBrush1, PenData(true, pc, Alpha(0.5)), BrushData(true, bc1));
+      summaryPlot_->setPenBrush(penBrush1, PenData(true, pc, Alpha(0.5)), BrushData(true, bc1));
 
-      auto *symbolSet = plot_->defaultSymbolSet();
+      auto *symbolSet = summaryPlot_->defaultSymbolSet();
 
       symbol1 = symbolSet->interpI(ig).symbol;
     }
@@ -1310,7 +1310,7 @@ drawScatter(PaintDevice *device) const
     CQChartsDrawUtil::setPenBrush(device, penBrush1);
 
     CQChartsDrawUtil::drawSymbol(device, penBrush1, symbol1, ps,
-                                 plot_->symbolSize(), /*scale*/true);
+                                 summaryPlot_->symbolSize(), /*scale*/true);
 
     //---
 
@@ -1319,7 +1319,7 @@ drawScatter(PaintDevice *device) const
 
   //---
 
-  if (plot_->isBestFit())
+  if (summaryPlot_->isBestFit())
     drawBestFit(device);
 }
 
@@ -1368,7 +1368,7 @@ drawBestFit(PaintDevice *device) const
     device->restore();
   };
 
-  if (! plot_->groupColumn().isValid()) {
+  if (! summaryPlot_->groupColumn().isValid()) {
     drawFitPoly(poly_);
   }
   else {
@@ -1390,34 +1390,34 @@ drawCorrelation(PaintDevice *device) const
 
   //---
 
-  auto column1 = plot_->visibleColumns().getColumn(row_);
-  auto column2 = plot_->visibleColumns().getColumn(col_);
+  auto column1 = summaryPlot_->visibleColumns().getColumn(row_);
+  auto column2 = summaryPlot_->visibleColumns().getColumn(col_);
 
-  auto *details1 = plot_->columnDetails(column1);
-  auto *details2 = plot_->columnDetails(column2);
+  auto *details1 = summaryPlot_->columnDetails(column1);
+  auto *details2 = summaryPlot_->columnDetails(column2);
   if (! details1 || ! details2) return;
 
   //---
 
   PenBrush tpenBrush;
 
-  auto tc = plot_->interpInterfaceColor(1.0);
+  auto tc = summaryPlot_->interpInterfaceColor(1.0);
 
-  plot_->setPenBrush(tpenBrush, PenData(true, tc), BrushData(true, tc));
+  summaryPlot_->setPenBrush(tpenBrush, PenData(true, tc), BrushData(true, tc));
 
   //---
 
   if (details1->isNumeric() && details2->isNumeric()) {
     auto *drawObj = new CQChartsDrawObj;
 
-    double bx = plot_->pixelToWindowWidth (2);
-    double by = plot_->pixelToWindowHeight(2);
+    double bx = summaryPlot_->pixelToWindowWidth (2);
+    double by = summaryPlot_->pixelToWindowHeight(2);
 
     double x = bx;
     double y = by;
 
-    if (! plot_->groupColumn().isValid()) {
-      auto correlation = plot_->modelDetails()->correlation(column1, column2);
+    if (! summaryPlot_->groupColumn().isValid()) {
+      auto correlation = summaryPlot_->modelDetails()->correlation(column1, column2);
 
       auto cstr = CQChartsUtil::realToString(correlation, 5);
 
@@ -1432,8 +1432,8 @@ drawCorrelation(PaintDevice *device) const
 
       QFontMetricsF fm(device->font());
 
-      double dx = plot_->pixelToWindowWidth (fm.height());
-      double dy = plot_->pixelToWindowHeight(fm.height());
+      double dx = summaryPlot_->pixelToWindowWidth (fm.height());
+      double dy = summaryPlot_->pixelToWindowHeight(fm.height());
 
       y += double(groupValues_.groupIndData.size() - 1)*(dy + by);
 
@@ -1443,9 +1443,9 @@ drawCorrelation(PaintDevice *device) const
 
         PenBrush rpenBrush;
 
-        auto fc = plot_->interpPaletteColor(ColorInd(ig, ng));
+        auto fc = summaryPlot_->interpPaletteColor(ColorInd(ig, ng));
 
-        plot_->setPenBrush(rpenBrush, PenData(false), BrushData(true, fc));
+        summaryPlot_->setPenBrush(rpenBrush, PenData(false), BrushData(true, fc));
 
         auto *drawRect = new CQChartsDrawRect(BBox(x, y, x + dx, y + dy), rpenBrush);
 
@@ -1492,15 +1492,15 @@ drawBoxPlot(PaintDevice *device) const
 
   //---
 
-  auto column = plot_->visibleColumns().getColumn(row_);
+  auto column = summaryPlot_->visibleColumns().getColumn(row_);
 
-  auto *details = plot_->columnDetails(column);
+  auto *details = summaryPlot_->columnDetails(column);
   if (! details) return;
 
-  int nc = plot_->visibleColumns().count();
+  int nc = summaryPlot_->visibleColumns().count();
 
-  auto pc = plot_->interpInterfaceColor(1.0);
-  auto bc = plot_->interpPaletteColor(ColorInd(row_, nc));
+  auto pc = summaryPlot_->interpInterfaceColor(1.0);
+  auto bc = summaryPlot_->interpPaletteColor(ColorInd(row_, nc));
 
   if (details->isNumeric()) {
     bool ok;
@@ -1511,7 +1511,7 @@ drawBoxPlot(PaintDevice *device) const
 
     PenBrush penBrush;
 
-    plot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.5)), BrushData(true, bc));
+    summaryPlot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.5)), BrushData(true, bc));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1545,21 +1545,21 @@ drawDistribution(PaintDevice *device) const
 
   //---
 
-  auto column = plot_->visibleColumns().getColumn(row_);
+  auto column = summaryPlot_->visibleColumns().getColumn(row_);
 
-  auto *details = plot_->columnDetails(column);
+  auto *details = summaryPlot_->columnDetails(column);
   if (! details) return;
 
-  bool isGroup = (plot_->groupColumn() == column);
+  bool isGroup = (summaryPlot_->groupColumn() == column);
 
-  int nc = plot_->visibleColumns().count();
+  int nc = summaryPlot_->visibleColumns().count();
 
-  auto pc = plot_->interpInterfaceColor(1.0);
-  auto bc = plot_->interpPaletteColor(ColorInd(row_, nc));
+  auto pc = summaryPlot_->interpInterfaceColor(1.0);
+  auto bc = summaryPlot_->interpPaletteColor(ColorInd(row_, nc));
 
   PenBrush penBrush;
 
-  plot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.5)), BrushData(true, bc));
+  summaryPlot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.5)), BrushData(true, bc));
 
   //---
 
@@ -1581,7 +1581,7 @@ drawDistribution(PaintDevice *device) const
     CQChartsSummaryPlot::BucketCount bucketCount;
     int                              maxCount = 0;
 
-    plot_->calcBucketCounts(row_, bucketCount, maxCount, bmin_, bmax_);
+    summaryPlot_->calcBucketCounts(row_, bucketCount, maxCount, bmin_, bmax_);
 
     int ig = 0;
     int ng = int(bucketCount.size());
@@ -1590,9 +1590,9 @@ drawDistribution(PaintDevice *device) const
       PenBrush penBrush1;
 
       if (isGroup) {
-        auto bc1 = plot_->interpPaletteColor(ColorInd(ig, ng));
+        auto bc1 = summaryPlot_->interpPaletteColor(ColorInd(ig, ng));
 
-        plot_->setPenBrush(penBrush1, PenData(true, pc, Alpha(0.5)), BrushData(true, bc1));
+        summaryPlot_->setPenBrush(penBrush1, PenData(true, pc, Alpha(0.5)), BrushData(true, bc1));
       }
       else {
         penBrush1 = penBrush;
@@ -1629,14 +1629,14 @@ drawDistribution(PaintDevice *device) const
 
     //---
 
-    if (plot_->isDensity())
+    if (summaryPlot_->isDensity())
       drawDensity(device);
   }
   else {
     CQChartsSummaryPlot::ValueCounts valueCounts;
     int                              maxCount = 0;
 
-    plot_->calcValueCounts(row_, valueCounts, maxCount);
+    summaryPlot_->calcValueCounts(row_, valueCounts, maxCount);
 
     int nc = int(valueCounts.size());
 
@@ -1650,9 +1650,9 @@ drawDistribution(PaintDevice *device) const
       if (isGroup) {
         int ig = details->uniqueId(vc.first);
 
-        auto bc1 = plot_->interpPaletteColor(ColorInd(ig, nc));
+        auto bc1 = summaryPlot_->interpPaletteColor(ColorInd(ig, nc));
 
-        plot_->setPenBrush(penBrush1, PenData(true, pc, Alpha(0.5)), BrushData(true, bc1));
+        summaryPlot_->setPenBrush(penBrush1, PenData(true, pc, Alpha(0.5)), BrushData(true, bc1));
       }
       else {
         penBrush1 = penBrush;
@@ -1683,14 +1683,14 @@ drawDensity(PaintDevice *device) const
 
   //---
 
-  auto column = plot_->visibleColumns().getColumn(row_);
+  auto column = summaryPlot_->visibleColumns().getColumn(row_);
 
-  auto *details = plot_->columnDetails(column);
+  auto *details = summaryPlot_->columnDetails(column);
   if (! details) return;
 
   //---
 
-  auto pc = plot_->interpInterfaceColor(1.0);
+  auto pc = summaryPlot_->interpInterfaceColor(1.0);
 
   CQChartsDensity density;
 
@@ -1718,7 +1718,7 @@ drawDensity(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  plot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.5)), BrushData(false));
+  summaryPlot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.5)), BrushData(false));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1730,7 +1730,7 @@ drawDensity(PaintDevice *device) const
 
   drawData.scaled = true;
 
-  density.draw(plot_, device, bbox, drawData);
+  density.draw(summaryPlot_, device, bbox, drawData);
 
   device->restore();
 }
@@ -1743,19 +1743,19 @@ drawPie(PaintDevice *device) const
 
   //---
 
-  auto column = plot_->visibleColumns().getColumn(row_);
+  auto column = summaryPlot_->visibleColumns().getColumn(row_);
 
-  auto *details = plot_->columnDetails(column);
+  auto *details = summaryPlot_->columnDetails(column);
   if (! details) return;
 
-  int nc = plot_->visibleColumns().count();
+  int nc = summaryPlot_->visibleColumns().count();
 
-  auto pc = plot_->interpInterfaceColor(1.0);
-  auto bc = plot_->interpPaletteColor(ColorInd(row_, nc));
+  auto pc = summaryPlot_->interpInterfaceColor(1.0);
+  auto bc = summaryPlot_->interpPaletteColor(ColorInd(row_, nc));
 
   PenBrush penBrush;
 
-  plot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.5)), BrushData(true, bc));
+  summaryPlot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.5)), BrushData(true, bc));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1765,7 +1765,7 @@ drawPie(PaintDevice *device) const
     CQChartsSummaryPlot::BucketCount bucketCount;
     int                              maxCount = 0;
 
-    plot_->calcBucketCounts(row_, bucketCount, maxCount, bmin_, bmax_);
+    summaryPlot_->calcBucketCounts(row_, bucketCount, maxCount, bmin_, bmax_);
 
     CQChartsRValues values;
 
@@ -1774,8 +1774,8 @@ drawPie(PaintDevice *device) const
 
     auto bbox1 = BBox(pxmin_, pymin_, pxmax_, pymax_);
 
-    CQChartsPlotDrawUtil::drawPie(const_cast<CQChartsSummaryPlot *>(plot_), device, values, bbox1,
-                                  plot_->defaultPalette(), penBrush.pen);
+    CQChartsPlotDrawUtil::drawPie(const_cast<CQChartsSummaryPlot *>(summaryPlot_), device,
+                                  values, bbox1, summaryPlot_->defaultPalette(), penBrush.pen);
   }
   else {
   }
@@ -1794,20 +1794,20 @@ initGroupedValues()
 
   groupValues_.set = true;
 
-  if (! plot_->groupColumn().isValid())
+  if (! summaryPlot_->groupColumn().isValid())
     return;
 
-  auto *groupDetails = plot_->columnDetails(plot_->groupColumn());
+  auto *groupDetails = summaryPlot_->columnDetails(summaryPlot_->groupColumn());
   if (! groupDetails) return;
 
   int nr = groupDetails->numRows();
 
   if (row_ != col_) {
-    auto column1 = plot_->visibleColumns().getColumn(row_);
-    auto column2 = plot_->visibleColumns().getColumn(col_);
+    auto column1 = summaryPlot_->visibleColumns().getColumn(row_);
+    auto column2 = summaryPlot_->visibleColumns().getColumn(col_);
 
-    auto *details1 = plot_->columnDetails(column1);
-    auto *details2 = plot_->columnDetails(column2);
+    auto *details1 = summaryPlot_->columnDetails(column1);
+    auto *details2 = summaryPlot_->columnDetails(column2);
     if (! details1 || ! details2) return;
 
     for (uint ir = 0; ir < uint(nr); ++ir) {
@@ -1843,9 +1843,9 @@ initGroupedValues()
     }
   }
   else {
-    auto column = plot_->visibleColumns().getColumn(row_);
+    auto column = summaryPlot_->visibleColumns().getColumn(row_);
 
-    auto *details = plot_->columnDetails(column);
+    auto *details = summaryPlot_->columnDetails(column);
     if (! details) return;
 
     for (uint ir = 0; ir < uint(nr); ++ir) {
@@ -1876,8 +1876,8 @@ initGroupedValues()
 //------
 
 CQChartsSummaryPlotGroupStats::
-CQChartsSummaryPlotGroupStats(CQChartsSummaryPlot *plot) :
- plot_(plot)
+CQChartsSummaryPlotGroupStats(CQChartsSummaryPlot *summaryPlot) :
+ summaryPlot_(summaryPlot)
 {
   setObjectName("groupStats");
 
@@ -1892,7 +1892,7 @@ void
 CQChartsSummaryPlotGroupStats::
 updateWidgets()
 {
-  auto groupColumn = (plot_ ? plot_->groupColumn() : CQChartsColumn());
+  auto groupColumn = (summaryPlot_ ? summaryPlot_->groupColumn() : CQChartsColumn());
 
   setVisible(groupColumn.isValid());
 
@@ -1901,7 +1901,7 @@ updateWidgets()
   if (! groupColumn.isValid())
     return;
 
-  auto *groupDetails = plot_->columnDetails(plot_->groupColumn());
+  auto *groupDetails = summaryPlot_->columnDetails(summaryPlot_->groupColumn());
   if (! groupDetails) return;
 
   //---
@@ -1941,7 +1941,8 @@ updateWidgets()
     int                              maxCount = 0;
     double                           bmin, bmax;
 
-    plot_->calcBucketCounts(plot_->groupColumn(), bucketCount, maxCount, bmin, bmax);
+    summaryPlot_->calcBucketCounts(summaryPlot_->groupColumn(), bucketCount,
+                                   maxCount, bmin, bmax);
 
     int ig = 0;
     int ng = int(bucketCount.size());
@@ -1957,7 +1958,7 @@ updateWidgets()
       auto rmin = CQChartsVariant::toReal(vmin, ok);
       auto rmax = CQChartsVariant::toReal(vmax, ok);
 
-      auto c = plot_->interpPaletteColor(CQChartsUtil::ColorInd(ig, ng));
+      auto c = summaryPlot_->interpPaletteColor(CQChartsUtil::ColorInd(ig, ng));
 
       auto *colorItem = createColorTableItem(c);
       auto *valueItem = createStringTableItem(QString("[%1,%2)").arg(rmin).arg(rmax));
@@ -1977,7 +1978,7 @@ updateWidgets()
     valueList_->setRowCount(ng);
 
     for (const auto &valueCount : groupDetails->uniqueValueCounts()) {
-      auto c = plot_->interpPaletteColor(CQChartsUtil::ColorInd(ig, ng));
+      auto c = summaryPlot_->interpPaletteColor(CQChartsUtil::ColorInd(ig, ng));
 
       auto *colorItem = createColorTableItem(c);
       auto *valueItem = createStringTableItem(valueCount.first.toString());
@@ -2175,21 +2176,21 @@ void
 CQChartsSummaryPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_) {
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
-    disconnect(plot_, SIGNAL(selectionChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && summaryPlot_) {
+    disconnect(summaryPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+    disconnect(summaryPlot_, SIGNAL(selectionChanged()), this, SLOT(updateWidgets()));
   }
 
-  plot_ = dynamic_cast<CQChartsSummaryPlot *>(plot);
+  summaryPlot_ = dynamic_cast<CQChartsSummaryPlot *>(plot);
 
-  stats_  ->setPlot(plot_);
-  chooser_->setPlot(plot_);
+  stats_  ->setPlot(summaryPlot_);
+  chooser_->setPlot(summaryPlot_);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_) {
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
-    connect(plot_, SIGNAL(selectionChanged()), this, SLOT(updateWidgets()));
+  if (summaryPlot_) {
+    connect(summaryPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+    connect(summaryPlot_, SIGNAL(selectionChanged()), this, SLOT(updateWidgets()));
   }
 }
 
@@ -2201,22 +2202,22 @@ updateWidgets()
 
   //---
 
-  plotTypeCombo_         ->setCurrentValue(static_cast<int>(plot_->plotType()));
-  diagonalTypeCombo_     ->setCurrentValue(static_cast<int>(plot_->diagonalType()));
-  upperDiagonalTypeCombo_->setCurrentValue(static_cast<int>(plot_->upperDiagonalType()));
-  lowerDiagonalTypeCombo_->setCurrentValue(static_cast<int>(plot_->lowerDiagonalType()));
+  plotTypeCombo_         ->setCurrentValue(static_cast<int>(summaryPlot_->plotType()));
+  diagonalTypeCombo_     ->setCurrentValue(static_cast<int>(summaryPlot_->diagonalType()));
+  upperDiagonalTypeCombo_->setCurrentValue(static_cast<int>(summaryPlot_->upperDiagonalType()));
+  lowerDiagonalTypeCombo_->setCurrentValue(static_cast<int>(summaryPlot_->lowerDiagonalType()));
 
-  bestFitCheck_->setChecked(plot_->isBestFit());
-  densityCheck_->setChecked(plot_->isDensity());
+  bestFitCheck_->setChecked(summaryPlot_->isBestFit());
+  densityCheck_->setChecked(summaryPlot_->isDensity());
 
   stats_  ->updateWidgets();
   chooser_->updateWidgets();
 
   //---
 
-  if (! plot_->isExpanded()) {
+  if (! summaryPlot_->isExpanded()) {
     expandButton_->setText("Expand");
-    expandButton_->setEnabled(plot_->selectedCellObj());
+    expandButton_->setEnabled(summaryPlot_->selectedCellObj());
   }
   else {
     expandButton_->setText("Collapse");
@@ -2236,17 +2237,17 @@ void
 CQChartsSummaryPlotCustomControls::
 plotTypeSlot()
 {
-  plot_->setPlotType(
+  summaryPlot_->setPlotType(
     static_cast<CQChartsSummaryPlot::PlotType>(plotTypeCombo_->currentValue()), /*update*/false);
 
-  QTimer::singleShot(10, plot_, SLOT(updatePlotsSlot()));
+  QTimer::singleShot(10, summaryPlot_, SLOT(updatePlotsSlot()));
 }
 
 void
 CQChartsSummaryPlotCustomControls::
 diagonalTypeSlot()
 {
-  plot_->setDiagonalType(
+  summaryPlot_->setDiagonalType(
     static_cast<CQChartsSummaryPlot::DiagonalType>(diagonalTypeCombo_->currentValue()));
 }
 
@@ -2254,7 +2255,7 @@ void
 CQChartsSummaryPlotCustomControls::
 upperDiagonalTypeSlot()
 {
-  plot_->setUpperDiagonalType(
+  summaryPlot_->setUpperDiagonalType(
     static_cast<CQChartsSummaryPlot::OffDiagonalType>(upperDiagonalTypeCombo_->currentValue()));
 }
 
@@ -2262,7 +2263,7 @@ void
 CQChartsSummaryPlotCustomControls::
 lowerDiagonalTypeSlot()
 {
-  plot_->setLowerDiagonalType(
+  summaryPlot_->setLowerDiagonalType(
     static_cast<CQChartsSummaryPlot::OffDiagonalType>(lowerDiagonalTypeCombo_->currentValue()));
 }
 
@@ -2270,22 +2271,22 @@ void
 CQChartsSummaryPlotCustomControls::
 bestFitSlot(int state)
 {
-  plot_->setBestFit(state);
+  summaryPlot_->setBestFit(state);
 }
 
 void
 CQChartsSummaryPlotCustomControls::
 densitySlot(int state)
 {
-  plot_->setDensity(state);
+  summaryPlot_->setDensity(state);
 }
 
 void
 CQChartsSummaryPlotCustomControls::
 expandSlot()
 {
-  if (! plot_->isExpanded())
-    plot_->expandCell(plot_->selectedCellObj());
+  if (! summaryPlot_->isExpanded())
+    summaryPlot_->expandCell(summaryPlot_->selectedCellObj());
   else
-    plot_->collapseCell();
+    summaryPlot_->collapseCell();
 }

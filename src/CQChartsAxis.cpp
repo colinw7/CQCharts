@@ -33,7 +33,7 @@ CQChartsAxis(const View *view, Qt::Orientation direction, double start, double e
  CQChartsObjAxesMajorGridLineData<CQChartsAxis>(this),
  CQChartsObjAxesMinorGridLineData<CQChartsAxis>(this),
  CQChartsObjAxesGridFillData     <CQChartsAxis>(this),
- view_(view), direction_(direction),
+ view_(const_cast<View *>(view)), direction_(direction),
  start_(std::min(start, end)), end_(std::max(start, end)), calcStart_(start), calcEnd_(end)
 {
   init();
@@ -48,7 +48,7 @@ CQChartsAxis(const Plot *plot, Qt::Orientation direction, double start, double e
  CQChartsObjAxesMajorGridLineData<CQChartsAxis>(this),
  CQChartsObjAxesMinorGridLineData<CQChartsAxis>(this),
  CQChartsObjAxesGridFillData     <CQChartsAxis>(this),
- plot_(plot), direction_(direction),
+ plot_(const_cast<Plot *>(plot)), direction_(direction),
  start_(std::min(start, end)), end_(std::max(start, end)), calcStart_(start), calcEnd_(end)
 {
   init();
@@ -179,18 +179,32 @@ calcId() const
     return id + "/yaxis";
 }
 
-CQChartsView *
+CQChartsAxis::Plot *
 CQChartsAxis::
-view()
+plot() const
 {
-  return const_cast<View *>(plot() ? plot()->view() : view_);
+  return plot_.data();
 }
 
-const CQChartsView *
+void
+CQChartsAxis::
+setPlot(const Plot *plot)
+{
+  plot_ = const_cast<Plot *>(plot);
+}
+
+CQChartsAxis::View *
 CQChartsAxis::
 view() const
 {
-  return (plot() ? plot()->view() : view_);
+  return (plot() ? plot()->view() : view_.data());
+}
+
+void
+CQChartsAxis::
+setView(const View *view)
+{
+  view_ = const_cast<View *>(view);
 }
 
 //---

@@ -6,7 +6,9 @@
 #include <CQChartsObjData.h>
 #include <CQChartsArrowData.h>
 #include <CQChartsGeom.h>
+
 #include <QObject>
+#include <QPointer>
 
 class CQChartsView;
 class CQChartsPlot;
@@ -94,8 +96,8 @@ class CQChartsArrow : public QObject,
 
   CQCharts *charts() const;
 
-  View *view() const { return view_; }
-  Plot *plot() const { return plot_; }
+  View *view() const;
+  Plot *plot() const;
 
   //---
 
@@ -375,8 +377,11 @@ class CQChartsArrow : public QObject,
   void dataChanged();
 
  private:
-  View* view_ { nullptr }; //!< parent view
-  Plot* plot_ { nullptr }; //!< parent plot
+  using ViewP = QPointer<View>;
+  using PlotP = QPointer<Plot>;
+
+  ViewP view_; //!< parent view
+  PlotP plot_; //!< parent plot
 
   bool visible_ { true }; //!< is visible
 

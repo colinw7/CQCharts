@@ -8,6 +8,8 @@
 #include <CQChartsColumnNum.h>
 #include <CQSummaryModel.h>
 
+#include <QPointer>
+
 class QScrollBar;
 
 //---
@@ -501,10 +503,10 @@ class CQChartsTableHeaderObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsTablePlot;
+  using TablePlot = CQChartsTablePlot;
 
  public:
-  CQChartsTableHeaderObj(const Plot *plot, const Plot::HeaderObjData &headerObjData);
+  CQChartsTableHeaderObj(const TablePlot *plot, const TablePlot::HeaderObjData &headerObjData);
 
   QString typeName() const override { return "header"; }
 
@@ -524,8 +526,8 @@ class CQChartsTableHeaderObj : public CQChartsPlotObj {
   bool rectIntersect(const BBox &r, bool inside) const override;
 
  private:
-  const Plot*         plot_ { nullptr }; //!< parent plot
-  Plot::HeaderObjData headerObjData_;
+  const TablePlot*         tablePlot_ { nullptr }; //!< parent plot
+  TablePlot::HeaderObjData headerObjData_;
 };
 
 //---
@@ -538,10 +540,10 @@ class CQChartsTableRowObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsTablePlot;
+  using TablePlot = CQChartsTablePlot;
 
  public:
-  CQChartsTableRowObj(const Plot *plot, const Plot::RowObjData &rowObjData);
+  CQChartsTableRowObj(const TablePlot *plot, const TablePlot::RowObjData &rowObjData);
 
   QString typeName() const override { return "row"; }
 
@@ -556,8 +558,8 @@ class CQChartsTableRowObj : public CQChartsPlotObj {
   bool rectIntersect(const BBox &r, bool inside) const override;
 
  private:
-  const Plot*      plot_ { nullptr }; //!< parent plot
-  Plot::RowObjData rowObjData_;
+  const TablePlot*      tablePlot_ { nullptr }; //!< parent plot
+  TablePlot::RowObjData rowObjData_;
 };
 
 //---
@@ -570,10 +572,10 @@ class CQChartsTableCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsTablePlot;
+  using TablePlot = CQChartsTablePlot;
 
  public:
-  CQChartsTableCellObj(const Plot *plot, const Plot::CellObjData &cellObjData);
+  CQChartsTableCellObj(const TablePlot *plot, const TablePlot::CellObjData &cellObjData);
 
   QString typeName() const override { return "cell"; }
 
@@ -592,8 +594,8 @@ class CQChartsTableCellObj : public CQChartsPlotObj {
   bool rectIntersect(const BBox &r, bool inside) const override;
 
  private:
-  const Plot*       plot_ { nullptr }; //!< parent plot
-  Plot::CellObjData cellObjData_;
+  const TablePlot*       tablePlot_ { nullptr }; //!< parent plot
+  TablePlot::CellObjData cellObjData_;
 };
 
 //---
@@ -612,7 +614,7 @@ class CQChartsTablePlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -625,7 +627,7 @@ class CQChartsTablePlotCustomControls : public CQChartsPlotCustomControls {
   void connectSlots(bool b) override;
 
  protected:
-  CQChartsTablePlot* plot_ { nullptr };
+  CQChartsTablePlot* tablePlot_ { nullptr };
 };
 
 #endif

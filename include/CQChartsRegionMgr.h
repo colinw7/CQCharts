@@ -19,10 +19,13 @@ class CQChartsRegionButton : public CQIconButton {
   };
 
  public:
+  using View = CQChartsView;
+
+ public:
   CQChartsRegionButton(QWidget *parent=nullptr);
  ~CQChartsRegionButton();
 
-  void setView(CQChartsView *view);
+  void setView(View *view);
 
   const Mode &mode() const { return mode_; }
   void setMode(const Mode &v) { mode_ = v; }
@@ -43,8 +46,10 @@ class CQChartsRegionButton : public CQIconButton {
   void pointRegionSetSlot(const CQChartsGeom::Point &p);
 
  private:
-  CQChartsView *view_ { nullptr };
-  Mode          mode_ { Mode::POINT };
+  using ViewP = QPointer<View>;
+
+  ViewP view_;
+  Mode  mode_ { Mode::POINT };
 };
 
 //---
@@ -53,7 +58,10 @@ class CQChartsRegionMgr : public QObject {
   Q_OBJECT
 
  public:
-  CQChartsRegionMgr(CQChartsView *view);
+  using View = CQChartsView;
+
+ public:
+  CQChartsRegionMgr(View *view);
  ~CQChartsRegionMgr();
 
  private:
@@ -72,11 +80,12 @@ class CQChartsRegionMgr : public QObject {
   void regionSlot(bool);
 
  private:
+  using ViewP     = QPointer<View>;
   using ButtonP   = QPointer<CQChartsRegionButton>;
   using ButtonSet = std::set<ButtonP>;
 
-  CQChartsView* view_ { nullptr };
-  ButtonSet     buttonSet_;
+  ViewP     view_;
+  ButtonSet buttonSet_;
 };
 
 #endif

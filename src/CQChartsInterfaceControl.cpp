@@ -36,6 +36,13 @@ CQChartsInterfaceControl(QWidget *parent) :
   connect(interfacePlot_, SIGNAL(colorsChanged()), this, SLOT(colorsChangedSlot()));
 }
 
+CQChartsView *
+CQChartsInterfaceControl::
+view() const
+{
+  return view_.data();
+}
+
 void
 CQChartsInterfaceControl::
 setView(CQChartsView *view)

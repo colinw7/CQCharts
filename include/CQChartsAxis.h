@@ -14,6 +14,8 @@
 #include <CInterval.h>
 #include <CSafeIndex.h>
 
+#include <QPointer>
+
 #include <map>
 #include <set>
 #include <vector>
@@ -158,7 +160,9 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   };
 
   using Plot                   = CQChartsPlot;
+  using PlotP                  = QPointer<Plot>;
   using View                   = CQChartsView;
+  using ViewP                  = QPointer<View>;
   using Axis                   = CQChartsAxis;
   using AxisValueType          = CQChartsAxisValueType;
   using AxisSide               = CQChartsAxisSide;
@@ -204,14 +208,12 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   //! get/set plot
-  Plot *plot() { return const_cast<Plot *>(plot_); }
-  const Plot *plot() const { return plot_; }
-  void setPlot(const Plot *plot) { plot_ = plot; }
+  Plot *plot() const;
+  void setPlot(const Plot *plot);
 
   //! get/set view
-  View *view();
-  const View *view() const;
-  void setView(const View *view) { view_ = view; }
+  View *view() const;
+  void setView(const View *view);
 
   //---
 
@@ -670,8 +672,8 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   using TextPlacer = CQChartsAxisTextPlacer;
 
   // basic state
-  const View*     view_      { nullptr };        //!< parent view
-  const Plot*     plot_      { nullptr };        //!< parent plot
+  ViewP           view_;                         //!< parent view
+  PlotP           plot_;                         //!< parent plot
   Qt::Orientation direction_ { Qt::Horizontal }; //!< direction
 
   // general

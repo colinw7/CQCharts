@@ -6,8 +6,8 @@
 
 class CQChartsBoxDataEdit;
 class CQChartsMarginEdit;
-class CQChartsPlot;
 class CQChartsView;
+class CQChartsPlot;
 
 /*!
  * \brief Box data line edit
@@ -65,13 +65,17 @@ class CQChartsBoxDataEdit : public CQChartsEditBase {
   Q_PROPERTY(CQChartsBoxData data READ data WRITE setData)
 
  public:
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsBoxDataEdit(QWidget *parent=nullptr);
 
   const CQChartsBoxData &data() const { return data_; }
   void setData(const CQChartsBoxData &d);
 
-  void setPlot(CQChartsPlot *plot) override;
-  void setView(CQChartsView *view) override;
+  void setPlot(Plot *plot) override;
+  void setView(View *view) override;
 
   void setTitle(const QString &title);
 
@@ -114,7 +118,7 @@ class CQChartsBoxDataEditPreview : public CQChartsEditPreview {
   void draw(QPainter *painter) override;
 
   static void draw(QPainter *painter, const CQChartsBoxData &data, const QRect &rect,
-                   CQChartsPlot *plot, CQChartsView *view);
+                   Plot *plot, View *view);
 
  private:
   CQChartsBoxDataEdit *edit_ { nullptr };
@@ -130,10 +134,14 @@ class CQChartsBoxDataEditPreview : public CQChartsEditPreview {
  */
 class CQChartsBoxDataPropertyViewType : public CQChartsPropertyViewType {
  public:
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
   CQPropertyViewEditorFactory *getEditor() const override;
 
   void drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
-                   CQChartsPlot *plot, CQChartsView *view) override;
+                   Plot *plot, View *view) override;
 
   QString tip(const QVariant &value) const override;
 

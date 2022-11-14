@@ -6,15 +6,15 @@
 #include <CQChartsPaintDevice.h>
 
 CQChartsEditHandles::
-CQChartsEditHandles(const CQChartsPlot *plot, const Mode &mode) :
- plot_(plot), mode_(mode)
+CQChartsEditHandles(const Plot *plot, const Mode &mode) :
+ plot_(const_cast<Plot *>(plot)), mode_(mode)
 {
   init();
 }
 
 CQChartsEditHandles::
-CQChartsEditHandles(const CQChartsView *view, const Mode &mode) :
- view_(view), mode_(mode)
+CQChartsEditHandles(const View *view, const Mode &mode) :
+ view_(const_cast<View *>(view)), mode_(mode)
 {
   init();
 }
@@ -28,6 +28,20 @@ CQChartsEditHandles::
     delete pc.second;
 
   removeExtraHandles();
+}
+
+CQChartsView *
+CQChartsEditHandles::
+view() const
+{
+  return view_.data();
+}
+
+CQChartsPlot *
+CQChartsEditHandles::
+plot() const
+{
+  return plot_.data();
 }
 
 void

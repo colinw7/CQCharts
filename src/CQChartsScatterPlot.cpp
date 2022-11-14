@@ -801,24 +801,27 @@ calcRange() const
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsScatterPlot *plot) :
-     plot_(plot) {
-      hasGroups_ = (plot_->numGroups() > 1);
+    using ScatterPlot = CQChartsScatterPlot;
+
+   public:
+    RowVisitor(const ScatterPlot *scatterPlot) :
+     scatterPlot_(scatterPlot) {
+      hasGroups_ = (scatterPlot_->numGroups() > 1);
     }
 
     bool calcGroupHidden(int groupInd) const {
-      return (hasGroups_ && plot_->isSetHidden(groupInd));
+      return (hasGroups_ && scatterPlot_->isSetHidden(groupInd));
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      if (plot_->isInterrupt())
+      if (scatterPlot_->isInterrupt())
         return State::TERMINATE;
 
-      ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
-      ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
+      ModelIndex xModelInd(scatterPlot_, data.row, scatterPlot_->xColumn(), data.parent);
+      ModelIndex yModelInd(scatterPlot_, data.row, scatterPlot_->yColumn(), data.parent);
 
       // init group
-      int groupInd = plot_->rowGroupInd(xModelInd);
+      int groupInd = scatterPlot_->rowGroupInd(xModelInd);
 
       auto updateRange = [&](double x, double y) {
         range_               .updateRange(x, y);
@@ -831,33 +834,33 @@ calcRange() const
         double x   { 0.0  }, y   { 0.0  };
         bool   okx { true }, oky { true };
 
-        double xDefVal = plot_->getModelBadValue(xModelInd.column(), data.row);
-        double yDefVal = plot_->getModelBadValue(yModelInd.column(), data.row);
+        double xDefVal = scatterPlot_->getModelBadValue(xModelInd.column(), data.row);
+        double yDefVal = scatterPlot_->getModelBadValue(yModelInd.column(), data.row);
 
         //---
 
-        if      (plot_->xColumnType() == ColumnType::REAL ||
-                 plot_->xColumnType() == ColumnType::INTEGER) {
-          okx = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), xDefVal);
+        if      (scatterPlot_->xColumnType() == ColumnType::REAL ||
+                 scatterPlot_->xColumnType() == ColumnType::INTEGER) {
+          okx = scatterPlot_->modelMappedReal(xModelInd, x, scatterPlot_->isLogX(), xDefVal);
         }
-        else if (plot_->xColumnType() == ColumnType::TIME) {
-          x = plot_->modelReal(xModelInd, okx);
+        else if (scatterPlot_->xColumnType() == ColumnType::TIME) {
+          x = scatterPlot_->modelReal(xModelInd, okx);
         }
         else {
-          x = uniqueId(data, plot_->xColumn()); ++numUniqueX_;
+          x = uniqueId(data, scatterPlot_->xColumn()); ++numUniqueX_;
         }
 
         //---
 
-        if      (plot_->yColumnType() == ColumnType::REAL ||
-                 plot_->yColumnType() == ColumnType::INTEGER) {
-          oky = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), yDefVal);
+        if      (scatterPlot_->yColumnType() == ColumnType::REAL ||
+                 scatterPlot_->yColumnType() == ColumnType::INTEGER) {
+          oky = scatterPlot_->modelMappedReal(yModelInd, y, scatterPlot_->isLogY(), yDefVal);
         }
-        else if (plot_->yColumnType() == ColumnType::TIME) {
-          y = plot_->modelReal(yModelInd, oky);
+        else if (scatterPlot_->yColumnType() == ColumnType::TIME) {
+          y = scatterPlot_->modelReal(yModelInd, oky);
         }
         else {
-          y = uniqueId(data, plot_->yColumn()); ++numUniqueY_;
+          y = uniqueId(data, scatterPlot_->yColumn()); ++numUniqueY_;
         }
 
         //---
@@ -865,7 +868,7 @@ calcRange() const
         // check for bad value
         bool skipBad = false;
 
-        if (plot_->isSkipBad() && (! okx || ! oky))
+        if (scatterPlot_->isSkipBad() && (! okx || ! oky))
           skipBad = true;
 
         if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
@@ -881,11 +884,11 @@ calcRange() const
     }
 
     int uniqueId(const VisitData &data, const Column &column) {
-      ModelIndex columnInd(plot_, data.row, column, data.parent);
+      ModelIndex columnInd(scatterPlot_, data.row, column, data.parent);
 
       bool ok;
 
-      auto var = plot_->modelValue(columnInd, ok);
+      auto var = scatterPlot_->modelValue(columnInd, ok);
       if (! var.isValid()) return -1;
 
       auto *columnDetails = this->columnDetails(column);
@@ -895,7 +898,7 @@ calcRange() const
 
     CQChartsModelColumnDetails *columnDetails(const Column &column) {
       if (! details_) {
-        auto *modelData = plot_->getModelData();
+        auto *modelData = scatterPlot_->getModelData();
 
         details_ = (modelData ? modelData->details() : nullptr);
       }
@@ -911,13 +914,13 @@ calcRange() const
     bool isUniqueY() const { return numUniqueY_ == numRows(); }
 
    private:
-    const CQChartsScatterPlot* plot_       { nullptr };
-    int                        hasGroups_  { false };
-    Range                      range_;
-    GroupRange                 groupRange_;
-    CQChartsModelDetails*      details_    { nullptr };
-    int                        numUniqueX_ { 0 };
-    int                        numUniqueY_ { 0 };
+    const ScatterPlot*    scatterPlot_ { nullptr };
+    int                   hasGroups_   { false };
+    Range                 range_;
+    GroupRange            groupRange_;
+    CQChartsModelDetails* details_     { nullptr };
+    int                   numUniqueX_  { 0 };
+    int                   numUniqueY_  { 0 };
   };
 
   RowVisitor visitor(this);
@@ -2405,57 +2408,60 @@ addNameValues() const
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsScatterPlot *plot) :
-     plot_(plot) {
+    using ScatterPlot = CQChartsScatterPlot;
+
+   public:
+    RowVisitor(const ScatterPlot *scatterPlot) :
+     scatterPlot_(scatterPlot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<CQChartsScatterPlot *>(plot_);
+      auto *plot = const_cast<ScatterPlot *>(scatterPlot_);
 
       //---
 
-      ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
-      ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
+      ModelIndex xModelInd(scatterPlot_, data.row, scatterPlot_->xColumn(), data.parent);
+      ModelIndex yModelInd(scatterPlot_, data.row, scatterPlot_->yColumn(), data.parent);
 
       // get group
-      int groupInd = plot_->rowGroupInd(xModelInd);
+      int groupInd = scatterPlot_->rowGroupInd(xModelInd);
 
       //---
 
       // get x, y value
-      auto xInd  = plot_->modelIndex(xModelInd);
-      auto xInd1 = plot_->normalizeIndex(xInd);
+      auto xInd  = scatterPlot_->modelIndex(xModelInd);
+      auto xInd1 = scatterPlot_->normalizeIndex(xInd);
 
       double x   { 0.0  }, y   { 0.0  };
       bool   okx { true }, oky { true };
 
-      double xDefVal = plot_->getModelBadValue(xModelInd.column(), data.row);
-      double yDefVal = plot_->getModelBadValue(yModelInd.column(), data.row);
+      double xDefVal = scatterPlot_->getModelBadValue(xModelInd.column(), data.row);
+      double yDefVal = scatterPlot_->getModelBadValue(yModelInd.column(), data.row);
 
       //---
 
-      if      (plot_->xColumnType() == ColumnType::REAL ||
-               plot_->xColumnType() == ColumnType::INTEGER) {
-        okx = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), xDefVal);
+      if      (scatterPlot_->xColumnType() == ColumnType::REAL ||
+               scatterPlot_->xColumnType() == ColumnType::INTEGER) {
+        okx = scatterPlot_->modelMappedReal(xModelInd, x, scatterPlot_->isLogX(), xDefVal);
       }
-      else if (plot_->xColumnType() == ColumnType::TIME) {
-        x = plot_->modelReal(xModelInd, okx);
+      else if (scatterPlot_->xColumnType() == ColumnType::TIME) {
+        x = scatterPlot_->modelReal(xModelInd, okx);
       }
       else {
-        x = uniqueId(data, plot_->xColumn());
+        x = uniqueId(data, scatterPlot_->xColumn());
       }
 
       //---
 
-      if      (plot_->yColumnType() == ColumnType::REAL ||
-               plot_->yColumnType() == ColumnType::INTEGER) {
-        oky = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), yDefVal);
+      if      (scatterPlot_->yColumnType() == ColumnType::REAL ||
+               scatterPlot_->yColumnType() == ColumnType::INTEGER) {
+        oky = scatterPlot_->modelMappedReal(yModelInd, y, scatterPlot_->isLogY(), yDefVal);
       }
-      else if (plot_->yColumnType() == ColumnType::TIME) {
-        y = plot_->modelReal(yModelInd, oky);
+      else if (scatterPlot_->yColumnType() == ColumnType::TIME) {
+        y = scatterPlot_->modelReal(yModelInd, oky);
       }
       else {
-        y = uniqueId(data, plot_->yColumn());
+        y = uniqueId(data, scatterPlot_->yColumn());
       }
 
       //---
@@ -2463,7 +2469,7 @@ addNameValues() const
       // check for bad value
       bool skipBad = false;
 
-      if (plot_->isSkipBad() && (! okx || ! oky))
+      if (scatterPlot_->isSkipBad() && (! okx || ! oky))
         skipBad = true;
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
@@ -2477,19 +2483,19 @@ addNameValues() const
       // get optional grouping name (name column, title, x axis)
       QString name;
 
-      if (plot_->nameColumn().isValid()) {
-        ModelIndex nameColumnInd(plot_, data.row, plot_->nameColumn(), data.parent);
+      if (scatterPlot_->nameColumn().isValid()) {
+        ModelIndex nameColumnInd(scatterPlot_, data.row, scatterPlot_->nameColumn(), data.parent);
 
         bool ok;
 
-        name = plot_->modelString(nameColumnInd, ok);
+        name = scatterPlot_->modelString(nameColumnInd, ok);
       }
 
-      if (! name.length() && plot_->title())
-        name = plot_->title()->textStr();
+      if (! name.length() && scatterPlot_->title())
+        name = scatterPlot_->title()->textStr();
 
-      if (! name.length() && plot_->xAxis())
-        name = plot_->xAxis()->label().string();
+      if (! name.length() && scatterPlot_->xAxis())
+        name = scatterPlot_->xAxis()->label().string();
 
       //---
 
@@ -2497,15 +2503,16 @@ addNameValues() const
       Color color;
 
       // get color label (needed if not string ?)
-      if (plot_->colorColumn().isValid()) {
-        (void) plot_->colorColumnColor(data.row, data.parent, color);
+      if (scatterPlot_->colorColumn().isValid()) {
+        (void) scatterPlot_->colorColumnColor(data.row, data.parent, color);
 
 #if 0
         if (skipBad) {
-          ModelIndex colorColumnInd(plot_, data.row, plot_->colorColumn(), data.parent);
+          ModelIndex colorColumnInd(scatterPlot_, data.row, scatterPlot_->colorColumn(),
+                                    data.parent);
 
           bool ok;
-          auto var = plot_->modelValue(colorColumnInd, ok);
+          auto var = scatterPlot_->modelValue(colorColumnInd, ok);
 
           if (ok && var.isValid())
             plot->addSkipColor(var, data.row);
@@ -2528,11 +2535,11 @@ addNameValues() const
     }
 
     int uniqueId(const VisitData &data, const Column &column) {
-      ModelIndex columnInd(plot_, data.row, column, data.parent);
+      ModelIndex columnInd(scatterPlot_, data.row, column, data.parent);
 
       bool ok;
 
-      auto var = plot_->modelValue(columnInd, ok);
+      auto var = scatterPlot_->modelValue(columnInd, ok);
       if (! var.isValid()) return -1;
 
       auto *columnDetails = this->columnDetails(column);
@@ -2542,7 +2549,7 @@ addNameValues() const
 
     CQChartsModelColumnDetails *columnDetails(const Column &column) {
       if (! details_) {
-        auto *modelData = plot_->getModelData();
+        auto *modelData = scatterPlot_->getModelData();
 
         details_ = (modelData ? modelData->details() : nullptr);
       }
@@ -2551,8 +2558,8 @@ addNameValues() const
     }
 
    private:
-    const CQChartsScatterPlot* plot_    { nullptr };
-    CQChartsModelDetails*      details_ { nullptr };
+    const ScatterPlot*    scatterPlot_ { nullptr };
+    CQChartsModelDetails* details_     { nullptr };
   };
 
   RowVisitor visitor(this);
@@ -4178,10 +4185,10 @@ createCustomControls()
 //------
 
 CQChartsScatterPointObj::
-CQChartsScatterPointObj(const Plot *plot, int groupInd, const BBox &rect, const Point &pos,
+CQChartsScatterPointObj(const ScatterPlot *plot, int groupInd, const BBox &rect, const Point &pos,
                         const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
- CQChartsPlotPointObj(const_cast<Plot *>(plot), rect, pos, is, ig, iv), plot_(plot),
- groupInd_(groupInd)
+ CQChartsPlotPointObj(const_cast<ScatterPlot *>(plot), rect, pos, is, ig, iv),
+ scatterPlot_(plot), groupInd_(groupInd)
 {
 }
 
@@ -4197,7 +4204,7 @@ calcSymbol() const
     symbol = this->symbol();
 
   if (! symbol.isValid())
-    symbol = plot_->symbol();
+    symbol = scatterPlot()->symbol();
 
   return symbol;
 }
@@ -4212,7 +4219,7 @@ calcSymbolSize() const
     symbolSize = this->symbolSize();
 
   if (! symbolSize.isValid())
-    symbolSize = plot()->symbolSize();
+    symbolSize = scatterPlot()->symbolSize();
 
   return symbolSize;
 }
@@ -4227,7 +4234,7 @@ calcFontSize() const
     fontSize = this->fontSize();
 
   if (! fontSize.isValid())
-    fontSize = plot()->dataLabelFontSize();
+    fontSize = scatterPlot()->dataLabelFontSize();
 
   return fontSize;
 }
@@ -4266,7 +4273,7 @@ calcFont() const
     font = this->font();
 
   if (! font.isValid())
-    font = plot()->dataLabelFont();
+    font = scatterPlot()->dataLabelFont();
 
   return font;
 }
@@ -4327,7 +4334,7 @@ QString
 CQChartsScatterPointObj::
 calcId() const
 {
-  auto ind1 = plot_->unnormalizeIndex(modelInd());
+  auto ind1 = scatterPlot()->unnormalizeIndex(modelInd());
 
   QString idStr;
 
@@ -4343,14 +4350,14 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  plot()->addTipHeader(tableTip, modelInd());
+  scatterPlot()->addTipHeader(tableTip, modelInd());
 
-  plot()->addNoTipColumns(tableTip);
+  scatterPlot()->addNoTipColumns(tableTip);
 
   //---
 
   if (nameColumn().isValid() && name().length() && ! tableTip.hasColumn(nameColumn())) {
-    auto name = plot()->columnHeaderName(nameColumn(), /*tip*/true);
+    auto name = scatterPlot()->columnHeaderName(nameColumn(), /*tip*/true);
 
     tableTip.addTableRow(name, this->name());
 
@@ -4361,10 +4368,10 @@ calcTipId() const
 
   // add group column (TODO: check group column)
   if (ig_.n > 1) {
-    auto groupColumn = plot_->groupIndColumn();
+    auto groupColumn = scatterPlot()->groupIndColumn();
 
     if (! tableTip.hasColumn(groupColumn)) {
-      auto groupName = plot_->groupIndName(groupInd_);
+      auto groupName = scatterPlot()->groupIndName(groupInd_);
 
       tableTip.addTableRow("Group", groupName);
 
@@ -4375,66 +4382,67 @@ calcTipId() const
   //---
 
   // add x, y columns
-  if (! tableTip.hasColumn(plot()->xColumn())) {
+  if (! tableTip.hasColumn(scatterPlot()->xColumn())) {
     double x = point().x;
 
     QString xstr;
 
-    if (plot()->isUniqueX()) {
-      auto *columnDetails = plot()->columnDetails(plot()->xColumn());
+    if (scatterPlot()->isUniqueX()) {
+      auto *columnDetails = scatterPlot()->columnDetails(scatterPlot()->xColumn());
 
       bool ok;
       xstr = (columnDetails ?
-        CQChartsVariant::toString(columnDetails->uniqueValue(int(x)), ok) : plot()->xStr(x));
+        CQChartsVariant::toString(columnDetails->uniqueValue(int(x)), ok) :
+        scatterPlot()->xStr(x));
     }
     else
-      xstr = plot()->xStr(x);
+      xstr = scatterPlot()->xStr(x);
 
-    tableTip.addTableRow(plot_->xHeaderName(/*tip*/true), xstr);
+    tableTip.addTableRow(scatterPlot()->xHeaderName(/*tip*/true), xstr);
 
-    tableTip.addColumn(plot()->xColumn());
+    tableTip.addColumn(scatterPlot()->xColumn());
   }
 
-  if (! tableTip.hasColumn(plot()->yColumn())) {
+  if (! tableTip.hasColumn(scatterPlot()->yColumn())) {
     double y = point().y;
 
     QString ystr;
 
-    if (plot()->isUniqueY()) {
-      auto *columnDetails = plot()->columnDetails(plot()->yColumn());
+    if (scatterPlot()->isUniqueY()) {
+      auto *columnDetails = scatterPlot()->columnDetails(scatterPlot()->yColumn());
 
       bool ok;
       ystr = (columnDetails ?
-        CQChartsVariant::toString(columnDetails->uniqueValue(int(y)), ok) : plot()->yStr(y));
+        CQChartsVariant::toString(columnDetails->uniqueValue(int(y)), ok) : scatterPlot()->yStr(y));
     }
     else
-      ystr = plot()->yStr(y);
+      ystr = scatterPlot()->yStr(y);
 
-    tableTip.addTableRow(plot_->yHeaderName(/*tip*/true), ystr);
+    tableTip.addTableRow(scatterPlot()->yHeaderName(/*tip*/true), ystr);
 
-    tableTip.addColumn(plot()->yColumn());
+    tableTip.addColumn(scatterPlot()->yColumn());
   }
 
   //---
 
   auto addColumnRowValue = [&](const Column &column) {
-    plot_->addTipColumn(tableTip, column, modelInd());
+    scatterPlot()->addTipColumn(tableTip, column, modelInd());
   };
 
   //---
 
   // add symbol type, symbol size and font size columns
-  addColumnRowValue(plot_->symbolTypeColumn());
-  addColumnRowValue(plot_->symbolSizeColumn());
-  addColumnRowValue(plot_->fontSizeColumn  ());
+  addColumnRowValue(scatterPlot()->symbolTypeColumn());
+  addColumnRowValue(scatterPlot()->symbolSizeColumn());
+  addColumnRowValue(scatterPlot()->fontSizeColumn  ());
 
   //---
 
   // get values for name (grouped id identical names)
   CQChartsPointPlot::ValueData valuePoint;
 
-  auto pg = plot_->groupNameValues().find(groupInd_);
-  assert(pg != plot_->groupNameValues().end());
+  auto pg = scatterPlot()->groupNameValues().find(groupInd_);
+  assert(pg != scatterPlot()->groupNameValues().end());
 
   auto p = (*pg).second.find(name());
 
@@ -4447,22 +4455,22 @@ calcTipId() const
   //---
 
   // add color column
-  if      (plot_->colorColumn().isValid())
-    addColumnRowValue(plot_->colorColumn());
+  if      (scatterPlot()->colorColumn().isValid())
+    addColumnRowValue(scatterPlot()->colorColumn());
   else if (valuePoint.color.isValid())
-    tableTip.addTableRow(plot_->colorHeaderName(/*tip*/true), valuePoint.color.colorStr());
+    tableTip.addTableRow(scatterPlot()->colorHeaderName(/*tip*/true), valuePoint.color.colorStr());
 
   //---
 
   // add alpha column
-  if      (plot_->alphaColumn().isValid())
-    addColumnRowValue(plot_->alphaColumn());
+  if      (scatterPlot()->alphaColumn().isValid())
+    addColumnRowValue(scatterPlot()->alphaColumn());
   else if (valuePoint.alpha.isSet())
-    tableTip.addTableRow(plot_->alphaHeaderName(/*tip*/true), valuePoint.alpha.toString());
+    tableTip.addTableRow(scatterPlot()->alphaHeaderName(/*tip*/true), valuePoint.alpha.toString());
 
   //---
 
-  plot()->addTipColumns(tableTip, modelInd());
+  scatterPlot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -4475,14 +4483,14 @@ void
 CQChartsScatterPointObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->xColumn());
-  addColumnSelectIndex(inds, plot_->yColumn());
+  addColumnSelectIndex(inds, scatterPlot()->xColumn());
+  addColumnSelectIndex(inds, scatterPlot()->yColumn());
 
-  addColumnSelectIndex(inds, plot_->symbolTypeColumn());
-  addColumnSelectIndex(inds, plot_->symbolSizeColumn());
-  addColumnSelectIndex(inds, plot_->fontSizeColumn  ());
-  addColumnSelectIndex(inds, plot_->colorColumn     ());
-  addColumnSelectIndex(inds, plot_->alphaColumn     ());
+  addColumnSelectIndex(inds, scatterPlot()->symbolTypeColumn());
+  addColumnSelectIndex(inds, scatterPlot()->symbolSizeColumn());
+  addColumnSelectIndex(inds, scatterPlot()->fontSizeColumn  ());
+  addColumnSelectIndex(inds, scatterPlot()->colorColumn     ());
+  addColumnSelectIndex(inds, scatterPlot()->alphaColumn     ());
 }
 
 //---
@@ -4524,7 +4532,7 @@ draw(PaintDevice *device) const
 
   if (! image.isValid()) {
     if (symbol.isValid())
-      plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
+      scatterPlot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
   }
   else {
     double aspect = (1.0*image.width())/image.height();
@@ -4537,15 +4545,15 @@ draw(PaintDevice *device) const
       sy = sx*(1.0/aspect);
     }
 
-    auto ps = plot_->windowToPixel(point());
+    auto ps = scatterPlot()->windowToPixel(point());
 
     auto pbbox = BBox(ps.x - sx, ps.y - sy, ps.x + 2*sx, ps.y + 2*sy);
 
-    device->drawImageInRect(plot()->pixelToWindow(pbbox), image);
+    device->drawImageInRect(scatterPlot()->pixelToWindow(pbbox), image);
   }
 
-  if (plot()->drawLayerType() == CQChartsLayer::Type::SELECTION) {
-    if (isSelected() && plot()->isOutlineSelected())
+  if (scatterPlot()->drawLayerType() == CQChartsLayer::Type::SELECTION) {
+    if (isSelected() && scatterPlot()->isOutlineSelected())
       CQChartsDrawUtil::drawSelectedOutline(device, rect());
   }
 
@@ -4554,7 +4562,7 @@ draw(PaintDevice *device) const
   //---
 
   // draw text labels
-  if (plot_->isPointLabels() && name().length())
+  if (scatterPlot()->isPointLabels() && name().length())
     drawDataLabel(device);
 }
 
@@ -4562,7 +4570,7 @@ bool
 CQChartsScatterPointObj::
 isMinSymbolSize() const
 {
-  auto &minSymbolSize = plot_->minSymbolSize();
+  auto &minSymbolSize = scatterPlot()->minSymbolSize();
 
   if (! minSymbolSize.isValid())
     return false;
@@ -4570,7 +4578,7 @@ isMinSymbolSize() const
   double sx, sy;
 
   if      (minSymbolSize.units() == Units::PLOT) {
-    plot()->plotSymbolSize(this->calcSymbolSize(), sx, sy, symbolDir());
+    scatterPlot()->plotSymbolSize(this->calcSymbolSize(), sx, sy, symbolDir());
 
     if (symbolDir() == Qt::Horizontal)
       return (minSymbolSize.value() > sx);
@@ -4578,7 +4586,7 @@ isMinSymbolSize() const
       return (minSymbolSize.value() > sy);
   }
   else if (minSymbolSize.units() == Units::PIXEL) {
-    plot()->pixelSymbolSize(this->calcSymbolSize(), sx, sy, symbolDir());
+    scatterPlot()->pixelSymbolSize(this->calcSymbolSize(), sx, sy, symbolDir());
 
     return (minSymbolSize.value() > sx);
   }
@@ -4593,7 +4601,7 @@ drawDataLabel(PaintDevice *device) const
   if (this->isMinLabelSize())
     return;
 
-  const auto *dataLabel = plot_->dataLabel();
+  const auto *dataLabel = scatterPlot()->dataLabel();
 
   //---
 
@@ -4602,7 +4610,8 @@ drawDataLabel(PaintDevice *device) const
 
   auto tc = dataLabel->interpTextColor(calcColorInd());
 
-  plot_->setPenBrush(penBrush, PenData(true, tc, dataLabel->textAlpha()), BrushData(false));
+  scatterPlot()->setPenBrush(penBrush, PenData(true, tc, dataLabel->textAlpha()),
+                             BrushData(false));
 
   //---
 
@@ -4612,7 +4621,7 @@ drawDataLabel(PaintDevice *device) const
   //---
 
   // draw text
-  auto ps = plot_->windowToPixel(point());
+  auto ps = scatterPlot()->windowToPixel(point());
 
   double sx, sy;
 
@@ -4620,20 +4629,20 @@ drawDataLabel(PaintDevice *device) const
 
   BBox ptbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
-  auto tbbox = plot_->pixelToWindow(ptbbox);
+  auto tbbox = scatterPlot()->pixelToWindow(ptbbox);
 
-  if (plot_->isAdjustText())
-    plot_->drawDataLabel(device, tbbox, name(), penBrush, font);
+  if (scatterPlot()->isAdjustText())
+    scatterPlot()->drawDataLabel(device, tbbox, name(), penBrush, font);
   else
-    const_cast<CQChartsScatterPlot *>(plot_)->
-      addDataLabelData(tbbox, name(), plot_->dataLabelPosition(), penBrush, font);
+    const_cast<ScatterPlot *>(scatterPlot())->
+      addDataLabelData(tbbox, name(), scatterPlot()->dataLabelPosition(), penBrush, font);
 }
 
 bool
 CQChartsScatterPointObj::
 isMinLabelSize() const
 {
-  auto &minLabelSize = plot_->minLabelSize();
+  auto &minLabelSize = scatterPlot()->minLabelSize();
 
   if (! minLabelSize.isValid())
     return false;
@@ -4642,12 +4651,12 @@ isMinLabelSize() const
   auto font = calcLabelFont();
 
   // get text size (pixels)
-  const auto *dataLabel = plot_->dataLabel();
+  const auto *dataLabel = scatterPlot()->dataLabel();
 
   BBox tbbox(-1, -1, 1, 1); // just need size do use dummy value
 
   auto wsize = dataLabel->calcRect(tbbox, name(),
-                 static_cast<CQChartsDataLabel::Position>(plot_->dataLabelPosition()),
+                 static_cast<CQChartsDataLabel::Position>(scatterPlot()->dataLabelPosition()),
                  font).size();
 
   if      (minLabelSize.units() == Units::PLOT) {
@@ -4657,7 +4666,7 @@ isMinLabelSize() const
       return (minLabelSize.value() > wsize.height());
   }
   else if (minLabelSize.units() == Units::PIXEL) {
-    auto psize = plot_->windowToPixelSize(wsize);
+    auto psize = scatterPlot()->windowToPixelSize(wsize);
 
     return (minLabelSize.value() > psize.width());
   }
@@ -4671,7 +4680,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   ColorInd ic;
 
-  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+  if (scatterPlot()->colorType() == CQChartsPlot::ColorType::AUTO) {
     // default for scatter is set or group color (not value color !!)
     if      (is_.n > 1)
       ic = is_;
@@ -4683,18 +4692,18 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   //--
 
-  //plot_->setSymbolPenBrush(penBrush, ic);
+  //scatterPlot()->setSymbolPenBrush(penBrush, ic);
 
-  auto fc = plot_->interpSymbolFillColor(ic);
-  auto fa = plot_->symbolFillAlpha();
-  auto sc = plot_->interpSymbolStrokeColor(ic);
-  auto sa = plot_->symbolStrokeAlpha();
+  auto fc = scatterPlot()->interpSymbolFillColor(ic);
+  auto fa = scatterPlot()->symbolFillAlpha();
+  auto sc = scatterPlot()->interpSymbolStrokeColor(ic);
+  auto sa = scatterPlot()->symbolStrokeAlpha();
 
   // override symbol fill color for custom color
   auto color = this->calcColor();
 
   if (color.isValid())
-    fc = plot_->interpColor(color, ic);
+    fc = scatterPlot()->interpColor(color, ic);
 
   // override symbol fill alpha for custom alpha
   auto alpha = this->calcAlpha();
@@ -4704,8 +4713,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   //---
 
-  bool filled  = plot_->isSymbolFilled();
-  bool stroked = plot_->isSymbolStroked();
+  bool filled  = scatterPlot()->isSymbolFilled();
+  bool stroked = scatterPlot()->isSymbolStroked();
 
   auto symbol = this->calcSymbol();
 
@@ -4724,12 +4733,12 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   //---
 
-  plot_->setPenBrush(penBrush,
-    (stroked ? plot()->symbolPenData  (sc, sa) : PenData  (false)),
-    (filled  ? plot()->symbolBrushData(fc, fa) : BrushData(false)));
+  scatterPlot()->setPenBrush(penBrush,
+    (stroked ? scatterPlot()->symbolPenData  (sc, sa) : PenData  (false)),
+    (filled  ? scatterPlot()->symbolBrushData(fc, fa) : BrushData(false)));
 
   if (updateState)
-    plot()->updateObjPenBrushState(this, penBrush, drawType());
+    scatterPlot()->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 CQChartsFont
@@ -4749,12 +4758,12 @@ calcLabelFont() const
     double fontPixelSize;
 
     if (calcLabelDir() == Qt::Horizontal)
-      fontPixelSize = plot_->lengthPixelWidth(fontSize);
+      fontPixelSize = scatterPlot()->lengthPixelWidth(fontSize);
     else
-      fontPixelSize = plot_->lengthPixelHeight(fontSize);
+      fontPixelSize = scatterPlot()->lengthPixelHeight(fontSize);
 
     // limit to max font size
-    fontPixelSize = plot_->limitFontSize(fontPixelSize);
+    fontPixelSize = scatterPlot()->limitFontSize(fontPixelSize);
 
     font1.setPointSizeF(fontPixelSize);
   }
@@ -4766,7 +4775,7 @@ double
 CQChartsScatterPointObj::
 xColorValue(bool relative) const
 {
-  const auto &dataRange = plot_->dataRange();
+  const auto &dataRange = scatterPlot()->dataRange();
 
   if (relative)
     return CMathUtil::map(point().x, dataRange.xmin(), dataRange.xmax(), 0.0, 1.0);
@@ -4778,7 +4787,7 @@ double
 CQChartsScatterPointObj::
 yColorValue(bool relative) const
 {
-  const auto &dataRange = plot_->dataRange();
+  const auto &dataRange = scatterPlot()->dataRange();
 
   if (relative)
     return CMathUtil::map(point().y, dataRange.ymin(), dataRange.ymax(), 0.0, 1.0);
@@ -4789,10 +4798,10 @@ yColorValue(bool relative) const
 //------
 
 CQChartsScatterConnectedObj::
-CQChartsScatterConnectedObj(const Plot *plot, int groupInd, const QString &name,
+CQChartsScatterConnectedObj(const ScatterPlot *plot, int groupInd, const QString &name,
                             const ColorInd &ig, const ColorInd &is, const BBox &rect) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, ColorInd()),
- plot_(plot), groupInd_(groupInd), name_(name)
+ CQChartsPlotObj(const_cast<ScatterPlot *>(plot), rect, is, ig, ColorInd()),
+ scatterPlot_(plot), groupInd_(groupInd), name_(name)
 {
   setDetailHint(DetailHint::MAJOR);
 }
@@ -4813,11 +4822,11 @@ calcTipId() const
   QString groupName;
 
   if (name_ == "")
-    groupName = plot_->groupIndName(groupInd_);
+    groupName = scatterPlot_->groupIndName(groupInd_);
   else {
     ColorInd ind;
 
-    groupName = plot_->singleGroupName(ind);
+    groupName = scatterPlot_->singleGroupName(ind);
 
     if (groupName == "")
       groupName = name_;
@@ -4845,9 +4854,9 @@ draw(PaintDevice *device) const
   Points points;
 
   if (name_ == "")
-    points = plot_->indPoints(QVariant(groupInd_), /*isGroup*/true);
+    points = scatterPlot_->indPoints(QVariant(groupInd_), /*isGroup*/true);
   else
-    points = plot_->indPoints(QVariant(name_), /*isGroup*/false);
+    points = scatterPlot_->indPoints(QVariant(name_), /*isGroup*/false);
 
   //---
 
@@ -4864,7 +4873,7 @@ draw(PaintDevice *device) const
   XPoints xPoints;
 
   for (const auto &p : points) {
-    auto gp = plot_->adjustGroupPoint(groupInd_, p);
+    auto gp = scatterPlot_->adjustGroupPoint(groupInd_, p);
 
     xPoints[gp.x].push_back(gp);
   }
@@ -4892,21 +4901,21 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     ic = ig_;
 
   // calc pen and brush
-  plot_->setLineDataPen(penBrush.pen, ic);
+  scatterPlot_->setLineDataPen(penBrush.pen, ic);
 
-  plot_->setBrush(penBrush, BrushData(false));
+  scatterPlot_->setBrush(penBrush, BrushData(false));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
+    scatterPlot_->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
 }
 
 //------
 
 CQChartsScatterCellObj::
-CQChartsScatterCellObj(const Plot *plot, int groupInd, const BBox &rect, const ColorInd &is,
+CQChartsScatterCellObj(const ScatterPlot *plot, int groupInd, const BBox &rect, const ColorInd &is,
                        const ColorInd &ig, int ix, int iy, const Points &points, int maxN) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
- groupInd_(groupInd), ix_(ix), iy_(iy), points_(points), maxN_(maxN)
+ CQChartsPlotObj(const_cast<ScatterPlot *>(plot), rect, is, ig, ColorInd()),
+ scatterPlot_(plot), groupInd_(groupInd), ix_(ix), iy_(iy), points_(points), maxN_(maxN)
 {
   setDetailHint(DetailHint::MAJOR);
 }
@@ -4926,8 +4935,8 @@ calcTipId() const
 
   double xmin, xmax, ymin, ymax;
 
-  plot_->gridData().xIValues(ix_, xmin, xmax);
-  plot_->gridData().yIValues(iy_, ymin, ymax);
+  scatterPlot_->gridData().xIValues(ix_, xmin, xmax);
+  scatterPlot_->gridData().yIValues(iy_, ymin, ymax);
 
   tableTip.addTableRow("X Range", QString("%1 %2").arg(xmin).arg(xmax));
   tableTip.addTableRow("Y Range", QString("%1 %2").arg(ymin).arg(ymax));
@@ -4935,7 +4944,7 @@ calcTipId() const
 
   //---
 
-  //plot()->addTipColumns(tableTip, ind);
+  //scatterPlot()->addTipColumns(tableTip, ind);
 
   //---
 
@@ -4983,13 +4992,14 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // set pen and brush
   ColorInd ic(int(points_.size()), maxN_);
 
-  auto pc = plot_->interpGridCellStrokeColor(ColorInd());
-  auto fc = plot_->interpPaletteColor(ic);
+  auto pc = scatterPlot_->interpGridCellStrokeColor(ColorInd());
+  auto fc = scatterPlot_->interpPaletteColor(ic);
 
-  plot_->setPenBrush(penBrush, plot_->gridCellPenData(pc), plot_->gridCellBrushData(fc));
+  scatterPlot_->setPenBrush(penBrush, scatterPlot_->gridCellPenData(pc),
+                            scatterPlot_->gridCellBrushData(fc));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    scatterPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 void
@@ -4999,18 +5009,18 @@ calcRugPenBrush(PenBrush &penBrush, bool updateState) const
   // calc stroke and brush
   auto ic = (ig_.n > 1 ? ig_ : is_);
 
-  plot_->setSymbolPenBrush(penBrush, ic);
+  scatterPlot_->setSymbolPenBrush(penBrush, ic);
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+    scatterPlot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 }
 
 //------
 
 CQChartsScatterHexObj::
-CQChartsScatterHexObj(const Plot *plot, int groupInd, const BBox &rect, const ColorInd &is,
+CQChartsScatterHexObj(const ScatterPlot *plot, int groupInd, const BBox &rect, const ColorInd &is,
                       const ColorInd &ig, int ix, int iy, const Polygon &poly, int n, int maxN) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
+ CQChartsPlotObj(const_cast<ScatterPlot *>(plot), rect, is, ig, ColorInd()), scatterPlot_(plot),
  groupInd_(groupInd), ix_(ix), iy_(iy), poly_(poly), n_(n), maxN_(maxN)
 {
   setDetailHint(DetailHint::MAJOR);
@@ -5075,21 +5085,23 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // set pen and brush
   ColorInd ic(n_, maxN_);
 
-  auto pc = plot_->interpGridCellStrokeColor(ColorInd());
-  auto fc = plot_->interpPaletteColor(ic);
+  auto pc = scatterPlot_->interpGridCellStrokeColor(ColorInd());
+  auto fc = scatterPlot_->interpPaletteColor(ic);
 
-  plot_->setPenBrush(penBrush, plot_->gridCellPenData(pc), plot_->gridCellBrushData(fc));
+  scatterPlot_->setPenBrush(penBrush, scatterPlot_->gridCellPenData(pc),
+                            scatterPlot_->gridCellBrushData(fc));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    scatterPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
 
 CQChartsScatterDensityObj::
-CQChartsScatterDensityObj(const Plot *plot, int groupInd, const QString &name, const BBox &rect) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, ColorInd(), ColorInd(), ColorInd()), plot_(plot),
- groupInd_(groupInd), name_(name)
+CQChartsScatterDensityObj(const ScatterPlot *plot, int groupInd, const QString &name,
+                          const BBox &rect) :
+ CQChartsPlotObj(const_cast<ScatterPlot *>(plot), rect, ColorInd(), ColorInd(), ColorInd()),
+ scatterPlot_(plot), groupInd_(groupInd), name_(name)
 {
   setDetailHint(DetailHint::MAJOR);
 }
@@ -5105,7 +5117,7 @@ QString
 CQChartsScatterDensityObj::
 calcTipId() const
 {
-  auto *density = plot_->getDensity(groupInd_, name_);
+  auto *density = scatterPlot_->getDensity(groupInd_, name_);
   if (! density) return "";
 
   //---
@@ -5115,11 +5127,11 @@ calcTipId() const
   QString groupName;
 
   if (name_ == "")
-    groupName = plot_->groupIndName(groupInd_);
+    groupName = scatterPlot_->groupIndName(groupInd_);
   else {
     ColorInd ind;
 
-    groupName = plot_->singleGroupName(ind);
+    groupName = scatterPlot_->singleGroupName(ind);
 
     if (groupName == "")
       groupName = name_;
@@ -5144,7 +5156,7 @@ void
 CQChartsScatterDensityObj::
 draw(PaintDevice *device) const
 {
-  auto *density = plot_->getDensity(groupInd_, name_);
+  auto *density = scatterPlot_->getDensity(groupInd_, name_);
   if (! density) return;
 
   //---
@@ -5152,9 +5164,9 @@ draw(PaintDevice *device) const
   // draw density
   PaintDevice::SaveRestore saveRestore(device);
 
-  plot_->setClipRect(device);
+  scatterPlot_->setClipRect(device);
 
-  density->draw(plot_, device);
+  density->draw(scatterPlot_, device);
 }
 
 void
@@ -5167,8 +5179,9 @@ calcPenBrush(PenBrush &, bool) const
 //------
 
 CQChartsScatterColorKeyItem::
-CQChartsScatterColorKeyItem(Plot *plot, int groupInd, const ColorInd &is, const ColorInd &ig) :
- CQChartsColorBoxKeyItem(plot, is, ig, ColorInd()), plot_(plot), groupInd_(groupInd)
+CQChartsScatterColorKeyItem(ScatterPlot *plot, int groupInd, const ColorInd &is,
+                            const ColorInd &ig) :
+ CQChartsColorBoxKeyItem(plot, is, ig, ColorInd()), scatterPlot_(plot), groupInd_(groupInd)
 {
   setClickable(true);
 }
@@ -5179,12 +5192,12 @@ doSelect(SelMod)
 {
   CQChartsPlot::PlotObjs objs;
 
-  plot()->getGroupObjs(ig_.i, objs);
+  scatterPlot()->getGroupObjs(ig_.i, objs);
   if (objs.empty()) return;
 
   //---
 
-  plot()->selectObjs(objs, /*export*/true);
+  scatterPlot()->selectObjs(objs, /*export*/true);
 
   key_->redraw(/*wait*/ true);
 }
@@ -5198,14 +5211,14 @@ fillBrush() const
   QColor c;
 
   if (color_.isValid())
-    c = plot_->interpColor(color_, ColorInd());
+    c = scatterPlot_->interpColor(color_, ColorInd());
   else {
-    c = plot_->interpSymbolFillColor(ic);
+    c = scatterPlot_->interpSymbolFillColor(ic);
 
     //c = CQChartsColorBoxKeyItem::fillBrush().color();
   }
 
-  CQChartsDrawUtil::setColorAlpha(c, plot_->symbolFillAlpha());
+  CQChartsDrawUtil::setColorAlpha(c, scatterPlot_->symbolFillAlpha());
 
   adjustFillColor(c);
 
@@ -5218,7 +5231,7 @@ calcHidden() const
 {
   auto ih = setIndex();
 
-  return plot_->isSetHidden(ih.i);
+  return scatterPlot_->isSetHidden(ih.i);
 }
 
 bool
@@ -5229,11 +5242,11 @@ tipText(const Point &, QString &tip) const
 
   CQChartsPlot::PlotObjs objs;
 
-  plot()->getGroupObjs(groupInd_, objs);
+  scatterPlot()->getGroupObjs(groupInd_, objs);
 
   CQChartsTableTip tableTip;
 
-  auto groupName = plot_->groupIndName(groupInd_);
+  auto groupName = scatterPlot_->groupIndName(groupInd_);
 
   tableTip.addTableRow("Name", groupName);
 
@@ -5258,8 +5271,8 @@ setIndex() const
 //---
 
 CQChartsScatterGridKeyItem::
-CQChartsScatterGridKeyItem(Plot *plot, int n) :
- CQChartsGradientKeyItem(plot), plot_(plot)
+CQChartsScatterGridKeyItem(ScatterPlot *plot, int n) :
+ CQChartsGradientKeyItem(plot), scatterPlot_(plot)
 {
   setMinValue(0);
   setMaxValue(n);
@@ -5269,8 +5282,8 @@ CQChartsScatterGridKeyItem(Plot *plot, int n) :
 //---
 
 CQChartsScatterHexKeyItem::
-CQChartsScatterHexKeyItem(Plot *plot, int n) :
- CQChartsGradientKeyItem(plot), plot_(plot)
+CQChartsScatterHexKeyItem(ScatterPlot *plot, int n) :
+ CQChartsGradientKeyItem(plot), scatterPlot_(plot)
 {
   setMinValue(0);
   setMaxValue(n);
@@ -5456,7 +5469,7 @@ void
 CQChartsScatterPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<CQChartsScatterPlot *>(plot);
+  scatterPlot_ = dynamic_cast<CQChartsScatterPlot *>(plot);
 
   CQChartsPointPlotCustomControls::setPlot(plot);
 }
@@ -5465,14 +5478,14 @@ CQChartsColor
 CQChartsScatterPlotCustomControls::
 getColorValue()
 {
-  return plot_->symbolFillColor();
+  return scatterPlot_->symbolFillColor();
 }
 
 void
 CQChartsScatterPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setSymbolFillColor(c);
+  scatterPlot_->setSymbolFillColor(c);
 }
 
 void
@@ -5483,40 +5496,40 @@ updateWidgets()
 
   //---
 
-  if (bestFitCheck_) bestFitCheck_->setChecked(plot_->isBestFit());
-  if (hullCheck_   ) hullCheck_   ->setChecked(plot_->isHull());
-  if (statsCheck_  ) statsCheck_  ->setChecked(plot_->isStatsLines());
+  if (bestFitCheck_) bestFitCheck_->setChecked(scatterPlot_->isBestFit());
+  if (hullCheck_   ) hullCheck_   ->setChecked(scatterPlot_->isHull());
+  if (statsCheck_  ) statsCheck_  ->setChecked(scatterPlot_->isStatsLines());
 
   //---
 
   if (plotTypeCombo_)
-    plotTypeCombo_->setCurrentValue(static_cast<int>(plot_->plotType()));
+    plotTypeCombo_->setCurrentValue(static_cast<int>(scatterPlot_->plotType()));
 
   //---
 
   if (labelColumnCombo_) {
-    bool hasLabelColumn = plot_->labelColumn().isValid();
+    bool hasLabelColumn = scatterPlot_->labelColumn().isValid();
 
   //if (symbolLabelGroup_) symbolLabelGroup_->setEnabled(hasLabelColumn);
     if (positionEdit_    ) positionEdit_    ->setEnabled(hasLabelColumn);
 
-    if (symbolLabelGroup_) symbolLabelGroup_->setChecked(plot_->isPointLabels());
-    if (labelColumnCombo_) labelColumnCombo_->setModelColumn(plot_->getModelData(),
-                                                             plot_->labelColumn());
-    if (positionEdit_    ) positionEdit_    ->setObj(plot_->dataLabel());
+    if (symbolLabelGroup_) symbolLabelGroup_->setChecked(scatterPlot_->isPointLabels());
+    if (labelColumnCombo_) labelColumnCombo_->setModelColumn(scatterPlot_->getModelData(),
+                                                             scatterPlot_->labelColumn());
+    if (positionEdit_    ) positionEdit_    ->setObj(scatterPlot_->dataLabel());
   }
 
   //---
 
-  bool hasFontSizeColumn = plot_->fontSizeColumn().isValid();
+  bool hasFontSizeColumn = scatterPlot_->fontSizeColumn().isValid();
 
   if (fontSizeEdit_ ) fontSizeEdit_ ->setEnabled(! hasFontSizeColumn);
   if (fontSizeRange_) fontSizeRange_->setEnabled(hasFontSizeColumn);
 
-  if (fontSizeEdit_       ) fontSizeEdit_       ->setLength(plot_->dataLabelFontSize());
-  if (fontSizeColumnCombo_) fontSizeColumnCombo_->setModelColumn(plot_->getModelData(),
-                                                                 plot_->fontSizeColumn());
-  if (fontSizeRange_      ) fontSizeRange_      ->setPlot(plot_);
+  if (fontSizeEdit_       ) fontSizeEdit_       ->setLength(scatterPlot_->dataLabelFontSize());
+  if (fontSizeColumnCombo_) fontSizeColumnCombo_->setModelColumn(scatterPlot_->getModelData(),
+                                                                 scatterPlot_->fontSizeColumn());
+  if (fontSizeRange_      ) fontSizeRange_      ->setPlot(scatterPlot_);
 
   if (fontSizeControlGroup_ && hasFontSizeColumn)
     fontSizeControlGroup_->setColumn();
@@ -5534,21 +5547,21 @@ void
 CQChartsScatterPlotCustomControls::
 bestFitSlot()
 {
-  plot_->setBestFit(bestFitCheck_->isChecked());
+  scatterPlot_->setBestFit(bestFitCheck_->isChecked());
 }
 
 void
 CQChartsScatterPlotCustomControls::
 convexHullSlot()
 {
-  plot_->setHull(hullCheck_->isChecked());
+  scatterPlot_->setHull(hullCheck_->isChecked());
 }
 
 void
 CQChartsScatterPlotCustomControls::
 statsLinesSlot()
 {
-  plot_->setStatsLines(statsCheck_->isChecked());
+  scatterPlot_->setStatsLines(statsCheck_->isChecked());
 }
 
 void
@@ -5556,25 +5569,26 @@ CQChartsScatterPlotCustomControls::
 plotTypeSlot()
 {
   if (plotTypeCombo_)
-    plot_->setPlotType(static_cast<CQChartsScatterPlot::PlotType>(plotTypeCombo_->currentValue()));
+    scatterPlot_->setPlotType(
+      static_cast<CQChartsScatterPlot::PlotType>(plotTypeCombo_->currentValue()));
 }
 
 void
 CQChartsScatterPlotCustomControls::
 pointLabelsSlot()
 {
-  plot_->setPointLabels(symbolLabelGroup_->isChecked());
+  scatterPlot_->setPointLabels(symbolLabelGroup_->isChecked());
 }
 
 void
 CQChartsScatterPlotCustomControls::
 labelColumnSlot()
 {
-  plot_->setLabelColumn(labelColumnCombo_->getColumn());
+  scatterPlot_->setLabelColumn(labelColumnCombo_->getColumn());
 
-  bool hasLabelColumn = plot_->labelColumn().isValid();
+  bool hasLabelColumn = scatterPlot_->labelColumn().isValid();
 
-  plot_->setPointLabels(hasLabelColumn);
+  scatterPlot_->setPointLabels(hasLabelColumn);
 
   updateWidgets();
 }
@@ -5583,7 +5597,8 @@ void
 CQChartsScatterPlotCustomControls::
 positionSlot()
 {
-  plot_->setDataLabelPosition(static_cast<CQChartsLabelPosition>(positionEdit_->currentIndex()));
+  scatterPlot_->setDataLabelPosition(
+    static_cast<CQChartsLabelPosition>(positionEdit_->currentIndex()));
 
   // TODO: need plot signal (property signal ?)
   updateWidgets();
@@ -5594,7 +5609,7 @@ CQChartsScatterPlotCustomControls::
 fontSizeGroupChanged()
 {
   if (fontSizeControlGroup_->isFixed()) {
-    plot_->setFontSizeColumn(CQChartsColumn());
+    scatterPlot_->setFontSizeColumn(CQChartsColumn());
 
     // TODO: need plot signal
     updateWidgets();
@@ -5605,7 +5620,7 @@ void
 CQChartsScatterPlotCustomControls::
 fontSizeSlot()
 {
-  plot_->setDataLabelFontSize(fontSizeEdit_->length());
+  scatterPlot_->setDataLabelFontSize(fontSizeEdit_->length());
 
   // TODO: need plot signal
   updateWidgets();
@@ -5615,7 +5630,7 @@ void
 CQChartsScatterPlotCustomControls::
 fontSizeColumnSlot()
 {
-  plot_->setFontSizeColumn(fontSizeColumnCombo_->getColumn());
+  scatterPlot_->setFontSizeColumn(fontSizeColumnCombo_->getColumn());
 
   // TODO: need plot signal
   updateWidgets();
@@ -5625,6 +5640,6 @@ void
 CQChartsScatterPlotCustomControls::
 fontSizeRangeSlot(double min, double max)
 {
-  plot_->setFontSizeUserMapMin(min);
-  plot_->setFontSizeUserMapMax(max);
+  scatterPlot_->setFontSizeUserMapMin(min);
+  scatterPlot_->setFontSizeUserMapMax(max);
 }

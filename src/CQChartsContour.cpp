@@ -49,7 +49,7 @@ static QColor contourColors[] = {
 //---
 
 CQChartsContour::
-CQChartsContour(CQChartsPlot *plot) :
+CQChartsContour(Plot *plot) :
  plot_(plot)
 {
   minX_ = 1E-6;
@@ -58,6 +58,20 @@ CQChartsContour(CQChartsPlot *plot) :
 #if 0
   colors_ = ColorArray(&contourColors[0], &contourColors[20]);
 #endif
+}
+
+CQChartsContour::Plot *
+CQChartsContour::
+plot() const
+{
+  return plot_.data();
+}
+
+void
+CQChartsContour::
+setPlot(Plot *plot)
+{
+  plot_ = plot;
 }
 
 void

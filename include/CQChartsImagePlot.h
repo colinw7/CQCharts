@@ -48,13 +48,13 @@ class CQChartsImageObj : public CQChartsPlotObj {
   Q_PROPERTY(double value READ value)
 
  public:
-  using Plot  = CQChartsImagePlot;
-  using Image = CQChartsImage;
+  using ImagePlot = CQChartsImagePlot;
+  using Image     = CQChartsImage;
 
  public:
-  CQChartsImageObj(const Plot *plot, const BBox &rect, int row, int col,
+  CQChartsImageObj(const ImagePlot *plot, const BBox &rect, int row, int col,
                    double value, const QModelIndex &ind, const ColorInd &iv);
-  CQChartsImageObj(const Plot *plot, const BBox &rect, int row, int col,
+  CQChartsImageObj(const ImagePlot *plot, const BBox &rect, int row, int col,
                    const Image &image, const QModelIndex &ind);
 
   //---
@@ -93,14 +93,14 @@ class CQChartsImageObj : public CQChartsPlotObj {
   double yColorValue(bool relative) const override;
 
  private:
-  const Plot*     plot_       { nullptr };               //!< parent plot
-  int             row_        { -1 };                    //!< row
-  int             col_        { -1 };                    //!< column
-  double          value_      { 0.0 };                   //!< value
-  Image           image_;                                //!< image
-  CQBaseModelType columnType_ { CQBaseModelType::REAL }; //!< data type
-  CQChartsColor   bgColor_;                              //!< optional background color
-  CQChartsColor   fgColor_;                              //!< optional foreground color
+  const ImagePlot* imagePlot_  { nullptr };               //!< parent plot
+  int              row_        { -1 };                    //!< row
+  int              col_        { -1 };                    //!< column
+  double           value_      { 0.0 };                   //!< value
+  Image            image_;                                //!< image
+  CQBaseModelType  columnType_ { CQBaseModelType::REAL }; //!< data type
+  CQChartsColor    bgColor_;                              //!< optional background color
+  CQChartsColor    fgColor_;                              //!< optional foreground color
 };
 
 //---
@@ -296,7 +296,7 @@ class CQChartsImagePlotCustomControls : public CQChartsPlotCustomControls {
 
   void addOptionsWidgets() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -308,7 +308,7 @@ class CQChartsImagePlotCustomControls : public CQChartsPlotCustomControls {
   void cellStyleSlot();
 
  protected:
-  CQChartsImagePlot* plot_ { nullptr };
+  CQChartsImagePlot* imagePlot_ { nullptr };
 
   FrameData optionsFrame_;
 

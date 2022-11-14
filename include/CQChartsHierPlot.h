@@ -113,7 +113,7 @@ class CQChartsHierPlotCustomControls : public CQChartsPlotCustomControls {
  public:
   CQChartsHierPlotCustomControls(CQCharts *charts, const QString &plotType);
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
   void addHierColumnWidgets();
 
@@ -124,7 +124,7 @@ class CQChartsHierPlotCustomControls : public CQChartsPlotCustomControls {
   void connectSlots(bool b) override;
 
  protected:
-  CQChartsHierPlot* plot_ { nullptr };
+  CQChartsHierPlot* hierPlot_ { nullptr };
 };
 
 #endif

@@ -21,7 +21,7 @@ setPlot(CQChartsPlot *plot)
 {
   plot_ = plot;
 
-  auto *pointPlot = dynamic_cast<CQChartsPointPlot *>(plot_);
+  auto *pointPlot = dynamic_cast<CQChartsPointPlot *>(plot_.data());
 
   if (pointPlot) {
     setRangeMinMax(pointPlot->fontSizeMapMin(), pointPlot->fontSizeMapMax(),

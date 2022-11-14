@@ -488,20 +488,20 @@ createObjs(PlotObjs &objs) const
 
   class WheelModelVisitor : public ModelVisitor {
    public:
-    WheelModelVisitor(const CQChartsWheelPlot *plot) :
-     plot_(plot) {
+    WheelModelVisitor(const CQChartsWheelPlot *wheelPlot) :
+     wheelPlot_(wheelPlot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
-      ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
+      ModelIndex xModelInd(wheelPlot_, data.row, wheelPlot_->xColumn(), data.parent);
+      ModelIndex yModelInd(wheelPlot_, data.row, wheelPlot_->yColumn(), data.parent);
 
       bool ok1;
-      auto x = plot_->modelNumericValue(xModelInd, ok1);
+      auto x = wheelPlot_->modelNumericValue(xModelInd, ok1);
       if (! ok1) return State::SKIP;
 
       bool ok2;
-      auto y = plot_->modelNumericValue(yModelInd, ok2);
+      auto y = wheelPlot_->modelNumericValue(yModelInd, ok2);
       if (! ok2) return State::SKIP;
 
       xMinMax_.add(x);
@@ -511,11 +511,11 @@ createObjs(PlotObjs &objs) const
 
       pointData.point = Point(x, y);
 
-      if (plot_->minColumn().isValid()) {
-        ModelIndex minModelInd(plot_, data.row, plot_->minColumn(), data.parent);
+      if (wheelPlot_->minColumn().isValid()) {
+        ModelIndex minModelInd(wheelPlot_, data.row, wheelPlot_->minColumn(), data.parent);
 
         bool ok;
-        auto min = plot_->modelReal(minModelInd, ok);
+        auto min = wheelPlot_->modelReal(minModelInd, ok);
 
         if (ok) {
           pointData.min = OptReal(min);
@@ -524,11 +524,11 @@ createObjs(PlotObjs &objs) const
         }
       }
 
-      if (plot_->maxColumn().isValid()) {
-        ModelIndex maxModelInd(plot_, data.row, plot_->maxColumn(), data.parent);
+      if (wheelPlot_->maxColumn().isValid()) {
+        ModelIndex maxModelInd(wheelPlot_, data.row, wheelPlot_->maxColumn(), data.parent);
 
         bool ok;
-        auto max = plot_->modelReal(maxModelInd, ok);
+        auto max = wheelPlot_->modelReal(maxModelInd, ok);
 
         if (ok) {
           pointData.max = OptReal(max);
@@ -537,21 +537,23 @@ createObjs(PlotObjs &objs) const
         }
       }
 
-      if (plot_->innerBarColumn().isValid()) {
-        ModelIndex innerBarModelInd(plot_, data.row, plot_->innerBarColumn(), data.parent);
+      if (wheelPlot_->innerBarColumn().isValid()) {
+        ModelIndex innerBarModelInd(wheelPlot_, data.row, wheelPlot_->innerBarColumn(),
+                                    data.parent);
 
         bool ok;
-        auto innerBar = plot_->modelValue(innerBarModelInd, ok);
+        auto innerBar = wheelPlot_->modelValue(innerBarModelInd, ok);
 
         if (ok)
           pointData.innerBar = innerBar;
       }
 
-      if (plot_->outerBarColumn().isValid()) {
-        ModelIndex outerBarModelInd(plot_, data.row, plot_->outerBarColumn(), data.parent);
+      if (wheelPlot_->outerBarColumn().isValid()) {
+        ModelIndex outerBarModelInd(wheelPlot_, data.row, wheelPlot_->outerBarColumn(),
+                                    data.parent);
 
         bool ok;
-        auto outerBar = plot_->modelReal(outerBarModelInd, ok);
+        auto outerBar = wheelPlot_->modelReal(outerBarModelInd, ok);
 
         if (ok) {
           pointData.outerBar = OptReal(outerBar);
@@ -560,11 +562,12 @@ createObjs(PlotObjs &objs) const
         }
       }
 
-      if (plot_->outerBubbleColumn().isValid()) {
-        ModelIndex outerBubbleModelInd(plot_, data.row, plot_->outerBubbleColumn(), data.parent);
+      if (wheelPlot_->outerBubbleColumn().isValid()) {
+        ModelIndex outerBubbleModelInd(wheelPlot_, data.row, wheelPlot_->outerBubbleColumn(),
+                                       data.parent);
 
         bool ok;
-        auto outerBubble = plot_->modelReal(outerBubbleModelInd, ok);
+        auto outerBubble = wheelPlot_->modelReal(outerBubbleModelInd, ok);
 
         if (ok && outerBubble > 0.0) {
           pointData.outerBubble = OptReal(outerBubble);
@@ -599,7 +602,7 @@ createObjs(PlotObjs &objs) const
     void addPointData(const PointData &pointData) { pointDatas_.push_back(pointData); }
 
    private:
-    const CQChartsWheelPlot* plot_ { nullptr };
+    const CQChartsWheelPlot* wheelPlot_ { nullptr };
     RMinMax                  xMinMax_;
     RMinMax                  yMinMax_;
     RMinMax                  outerBarMinMax_;
@@ -1138,10 +1141,10 @@ createCustomControls()
 //------
 
 CQChartsPointObj::
-CQChartsPointObj(const CQChartsWheelPlot *plot, const BBox &rect, const PointData &pointData,
+CQChartsPointObj(const CQChartsWheelPlot *wheelPlot, const BBox &rect, const PointData &pointData,
                  const QModelIndex &ind, const ColorInd &is) :
- CQChartsPlotObj(const_cast<CQChartsWheelPlot *>(plot), rect, is, ColorInd(), ColorInd()),
- plot_(plot), pointData_(pointData)
+ CQChartsPlotObj(const_cast<CQChartsWheelPlot *>(wheelPlot), rect, is, ColorInd(), ColorInd()),
+ wheelPlot_(wheelPlot), pointData_(pointData)
 {
   if (ind.isValid())
     setModelInd(ind);
@@ -1164,31 +1167,31 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  tableTip.addTableRow(plot_->columnHeaderName(plot_->xColumn()),
-    plot_->columnStr(plot_->xColumn(), point().x));
-  tableTip.addTableRow(plot_->columnHeaderName(plot_->yColumn()),
-    plot_->columnStr(plot_->yColumn(), point().y));
+  tableTip.addTableRow(wheelPlot_->columnHeaderName(wheelPlot_->xColumn()),
+    wheelPlot_->columnStr(wheelPlot_->xColumn(), point().x));
+  tableTip.addTableRow(wheelPlot_->columnHeaderName(wheelPlot_->yColumn()),
+    wheelPlot_->columnStr(wheelPlot_->yColumn(), point().y));
 
   if (pointData_.min.isSet())
-    tableTip.addTableRow(plot_->columnHeaderName(plot_->minColumn()),
-      plot_->columnStr(plot_->minColumn(), pointData_.min.real()));
+    tableTip.addTableRow(wheelPlot_->columnHeaderName(wheelPlot_->minColumn()),
+      wheelPlot_->columnStr(wheelPlot_->minColumn(), pointData_.min.real()));
 
   if (pointData_.max.isSet())
-    tableTip.addTableRow(plot_->columnHeaderName(plot_->maxColumn()),
-      plot_->columnStr(plot_->maxColumn(), pointData_.max.real()));
+    tableTip.addTableRow(wheelPlot_->columnHeaderName(wheelPlot_->maxColumn()),
+      wheelPlot_->columnStr(wheelPlot_->maxColumn(), pointData_.max.real()));
 
   if (pointData_.innerBar.isValid())
-    tableTip.addTableRow(plot_->columnHeaderName(plot_->innerBarColumn()),
+    tableTip.addTableRow(wheelPlot_->columnHeaderName(wheelPlot_->innerBarColumn()),
                          pointData_.innerBar.toString());
 
   if (pointData_.outerBar.isSet())
-    tableTip.addTableRow(plot_->columnHeaderName(plot_->outerBarColumn()),
-      plot_->columnStr(plot_->outerBarColumn(), pointData_.outerBar.real()));
+    tableTip.addTableRow(wheelPlot_->columnHeaderName(wheelPlot_->outerBarColumn()),
+      wheelPlot_->columnStr(wheelPlot_->outerBarColumn(), pointData_.outerBar.real()));
 
   //---
   if (pointData_.outerBubble.isSet())
-    tableTip.addTableRow(plot_->columnHeaderName(plot_->outerBubbleColumn()),
-      plot_->columnStr(plot_->outerBubbleColumn(), pointData_.outerBubble.real()));
+    tableTip.addTableRow(wheelPlot_->columnHeaderName(wheelPlot_->outerBubbleColumn()),
+      wheelPlot_->columnStr(wheelPlot_->outerBubbleColumn(), pointData_.outerBubble.real()));
 
   //---
 
@@ -1220,8 +1223,8 @@ void
 CQChartsPointObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->xColumn());
-  addColumnSelectIndex(inds, plot_->yColumn());
+  addColumnSelectIndex(inds, wheelPlot_->xColumn());
+  addColumnSelectIndex(inds, wheelPlot_->yColumn());
 }
 
 void
@@ -1240,10 +1243,10 @@ draw(PaintDevice *device) const
 
   //---
 
-  auto pp1 = plot_->pointToPolarPoint(Point(point().x - plot_->dx()/2.0, min));
-  auto pp2 = plot_->pointToPolarPoint(Point(point().x + plot_->dx()/2.0, min));
-  auto pp3 = plot_->pointToPolarPoint(Point(point().x - plot_->dx()/2.0, max));
-  auto pp4 = plot_->pointToPolarPoint(Point(point().x + plot_->dx()/2.0, max));
+  auto pp1 = wheelPlot_->pointToPolarPoint(Point(point().x - wheelPlot_->dx()/2.0, min));
+  auto pp2 = wheelPlot_->pointToPolarPoint(Point(point().x + wheelPlot_->dx()/2.0, min));
+  auto pp3 = wheelPlot_->pointToPolarPoint(Point(point().x - wheelPlot_->dx()/2.0, max));
+  auto pp4 = wheelPlot_->pointToPolarPoint(Point(point().x + wheelPlot_->dx()/2.0, max));
 
   //---
 
@@ -1274,7 +1277,7 @@ CQChartsPointObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto normalizeTemp = [&](double t) {
-    double nt = CMathUtil::map(t, plot_->coldTemp(), plot_->hotTemp(), 0.0, 1.0);
+    double nt = CMathUtil::map(t, wheelPlot_->coldTemp(), wheelPlot_->hotTemp(), 0.0, 1.0);
     return std::min(std::max(nt, 0.0), 1.0);
   };
 
@@ -1286,7 +1289,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   double pmin = normalizeTemp(min);
   double pmax = normalizeTemp(max);
 
-  auto palette = plot_->tempPalette();
+  auto palette = wheelPlot_->tempPalette();
   palette.setMin(pmin); palette.setMax(pmax);
 
   CQChartsFillPattern fillPattern(CQChartsFillPattern::Type::PALETTE);
@@ -1295,23 +1298,24 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   //fillPattern.setAltColor(c2);
 
-  auto pp = plot_->pointToPolarPoint(point());
+  auto pp = wheelPlot_->pointToPolarPoint(point());
 
   fillPattern.setAngle(Angle(pp.polar.a));
 
-  plot_->setPenBrush(penBrush, PenData(false), BrushData(true, QColor(), Alpha(), fillPattern));
+  wheelPlot_->setPenBrush(penBrush, PenData(false),
+                          BrushData(true, QColor(), Alpha(), fillPattern));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    wheelPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
 
 CQChartsLineObj::
-CQChartsLineObj(const CQChartsWheelPlot *plot, const BBox &rect, const Polygon &poly,
+CQChartsLineObj(const CQChartsWheelPlot *wheelPlot, const BBox &rect, const Polygon &poly,
                 const QModelIndex &ind, const ColorInd &is) :
- CQChartsPlotObj(const_cast<CQChartsWheelPlot *>(plot), rect, is, ColorInd(), ColorInd()),
- plot_(plot), poly_(poly)
+ CQChartsPlotObj(const_cast<CQChartsWheelPlot *>(wheelPlot), rect, is, ColorInd(), ColorInd()),
+ wheelPlot_(wheelPlot), poly_(poly)
 {
   if (ind.isValid())
     setModelInd(ind);
@@ -1358,8 +1362,8 @@ void
 CQChartsLineObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->xColumn());
-  addColumnSelectIndex(inds, plot_->yColumn());
+  addColumnSelectIndex(inds, wheelPlot_->xColumn());
+  addColumnSelectIndex(inds, wheelPlot_->yColumn());
 }
 
 void
@@ -1388,22 +1392,22 @@ void
 CQChartsLineObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  auto lc = plot_->interpColor(plot_->lineColor(), ColorInd());
+  auto lc = wheelPlot_->interpColor(wheelPlot_->lineColor(), ColorInd());
 
-  plot_->setPenBrush(penBrush,
-    PenData(true, lc, plot_->lineAlpha(), plot_->lineWidth()), BrushData(false));
+  wheelPlot_->setPenBrush(penBrush,
+    PenData(true, lc, wheelPlot_->lineAlpha(), wheelPlot_->lineWidth()), BrushData(false));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    wheelPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
 
 CQChartsInnerBarObj::
-CQChartsInnerBarObj(const CQChartsWheelPlot *plot, const BBox &rect, const PointData &pointData,
-                    const QModelIndex &ind, const ColorInd &is) :
- CQChartsPlotObj(const_cast<CQChartsWheelPlot *>(plot), rect, is, ColorInd(), ColorInd()),
- plot_(plot), pointData_(pointData)
+CQChartsInnerBarObj(const CQChartsWheelPlot *wheelPlot, const BBox &rect,
+                    const PointData &pointData, const QModelIndex &ind, const ColorInd &is) :
+ CQChartsPlotObj(const_cast<CQChartsWheelPlot *>(wheelPlot), rect, is, ColorInd(), ColorInd()),
+ wheelPlot_(wheelPlot), pointData_(pointData)
 {
   if (ind.isValid())
     setModelInd(ind);
@@ -1473,21 +1477,23 @@ draw(PaintDevice *device) const
 
   //---
 
-  auto pp1 = plot_->pointToPolarPoint(Point(point().x - plot_->dx()/2.0, plot_->wheelYMax()));
-  auto pp2 = plot_->pointToPolarPoint(Point(point().x + plot_->dx()/2.0, plot_->wheelYMax()));
+  auto pp1 = wheelPlot_->pointToPolarPoint(Point(point().x - wheelPlot_->dx()/2.0,
+                                                 wheelPlot_->wheelYMax()));
+  auto pp2 = wheelPlot_->pointToPolarPoint(Point(point().x + wheelPlot_->dx()/2.0,
+                                                 wheelPlot_->wheelYMax()));
 
-  double ri = std::min(std::max(plot_->innerRadius(), 0.0), 1.0);
-  double ro = std::min(std::max(plot_->outerRadius(), 0.0), 1.0);
+  double ri = std::min(std::max(wheelPlot_->innerRadius(), 0.0), 1.0);
+  double ro = std::min(std::max(wheelPlot_->outerRadius(), 0.0), 1.0);
 
   CQChartsPolarPoint::Polar pp3(pp1.polar.a, 0.0);
   CQChartsPolarPoint::Polar pp4(pp2.polar.a, 0.0);
   CQChartsPolarPoint::Polar pp5(pp1.polar.a, ro - ri);
   CQChartsPolarPoint::Polar pp6(pp2.polar.a, ro - ri);
 
-  auto p1 = plot_->polarToPoint(pp3);
-  auto p2 = plot_->polarToPoint(pp4);
-  auto p3 = plot_->polarToPoint(pp5);
-  auto p4 = plot_->polarToPoint(pp6);
+  auto p1 = wheelPlot_->polarToPoint(pp3);
+  auto p2 = wheelPlot_->polarToPoint(pp4);
+  auto p3 = wheelPlot_->polarToPoint(pp5);
+  auto p4 = wheelPlot_->polarToPoint(pp6);
 
   //---
 
@@ -1511,9 +1517,9 @@ void
 CQChartsInnerBarObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  auto *details = plot_->columnDetails(plot_->innerBarColumn());
+  auto *details = wheelPlot_->columnDetails(wheelPlot_->innerBarColumn());
 
-  auto fc = plot_->interpColor(plot_->innerBarColor(), ColorInd());
+  auto fc = wheelPlot_->interpColor(wheelPlot_->innerBarColor(), ColorInd());
 
   if (details) {
     Color c;
@@ -1526,19 +1532,19 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     fc = c.color();
   }
 
-  plot_->setPenBrush(penBrush, PenData(false), BrushData(true, fc, Alpha(0.3)));
+  wheelPlot_->setPenBrush(penBrush, PenData(false), BrushData(true, fc, Alpha(0.3)));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    wheelPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
 
 CQChartsOuterBarObj::
-CQChartsOuterBarObj(const CQChartsWheelPlot *plot, const BBox &rect, const PointData &pointData,
-                    const QModelIndex &ind, const ColorInd &is) :
- CQChartsPlotObj(const_cast<CQChartsWheelPlot *>(plot), rect, is, ColorInd(), ColorInd()),
- plot_(plot), pointData_(pointData)
+CQChartsOuterBarObj(const CQChartsWheelPlot *wheelPlot, const BBox &rect,
+                    const PointData &pointData, const QModelIndex &ind, const ColorInd &is) :
+ CQChartsPlotObj(const_cast<CQChartsWheelPlot *>(wheelPlot), rect, is, ColorInd(), ColorInd()),
+ wheelPlot_(wheelPlot), pointData_(pointData)
 {
   if (ind.isValid())
     setModelInd(ind);
@@ -1608,13 +1614,15 @@ draw(PaintDevice *device) const
 
   //---
 
-  double ri = std::min(std::max(plot_->innerRadius(), 0.0), 1.0);
-  double ro = std::min(std::max(plot_->outerRadius(), 0.0), 1.0);
+  double ri = std::min(std::max(wheelPlot_->innerRadius(), 0.0), 1.0);
+  double ro = std::min(std::max(wheelPlot_->outerRadius(), 0.0), 1.0);
 
-  auto tp1 = plot_->pointToPolarPoint(Point(point().x - plot_->dx()/2.0, plot_->wheelYMax()));
-  auto tp2 = plot_->pointToPolarPoint(Point(point().x + plot_->dx()/2.0, plot_->wheelYMax()));
+  auto tp1 = wheelPlot_->pointToPolarPoint(Point(point().x - wheelPlot_->dx()/2.0,
+                                                 wheelPlot_->wheelYMax()));
+  auto tp2 = wheelPlot_->pointToPolarPoint(Point(point().x + wheelPlot_->dx()/2.0,
+                                                 wheelPlot_->wheelYMax()));
 
-  double r = plot_->outerBarRadius(pointData_.outerBar.real());
+  double r = wheelPlot_->outerBarRadius(pointData_.outerBar.real());
 
   double gap = 0.01;
 
@@ -1623,10 +1631,10 @@ draw(PaintDevice *device) const
   CQChartsPolarPoint::Polar pp3(tp1.polar.a, r);
   CQChartsPolarPoint::Polar pp4(tp2.polar.a, r);
 
-  auto p1 = plot_->polarToPoint(pp1);
-  auto p2 = plot_->polarToPoint(pp2);
-  auto p3 = plot_->polarToPoint(pp3);
-  auto p4 = plot_->polarToPoint(pp4);
+  auto p1 = wheelPlot_->polarToPoint(pp1);
+  auto p2 = wheelPlot_->polarToPoint(pp2);
+  auto p3 = wheelPlot_->polarToPoint(pp3);
+  auto p4 = wheelPlot_->polarToPoint(pp4);
 
   //---
 
@@ -1650,21 +1658,21 @@ void
 CQChartsOuterBarObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  auto fc = plot_->interpColor(plot_->outerBarColor(), ColorInd());
+  auto fc = wheelPlot_->interpColor(wheelPlot_->outerBarColor(), ColorInd());
 
-  plot_->setPenBrush(penBrush, PenData(false), BrushData(true, fc, Alpha(0.3)));
+  wheelPlot_->setPenBrush(penBrush, PenData(false), BrushData(true, fc, Alpha(0.3)));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    wheelPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
 
 CQChartsOuterBubbleObj::
-CQChartsOuterBubbleObj(const CQChartsWheelPlot *plot, const BBox &rect, const PointData &pointData,
-                       const QModelIndex &ind, const ColorInd &is) :
- CQChartsPlotObj(const_cast<CQChartsWheelPlot *>(plot), rect, is, ColorInd(), ColorInd()),
- plot_(plot), pointData_(pointData)
+CQChartsOuterBubbleObj(const CQChartsWheelPlot *wheelPlot, const BBox &rect,
+                       const PointData &pointData, const QModelIndex &ind, const ColorInd &is) :
+ CQChartsPlotObj(const_cast<CQChartsWheelPlot *>(wheelPlot), rect, is, ColorInd(), ColorInd()),
+ wheelPlot_(wheelPlot), pointData_(pointData)
 {
   if (ind.isValid())
     setModelInd(ind);
@@ -1734,17 +1742,17 @@ draw(PaintDevice *device) const
 
   //---
 
-  double r = plot_->outerBubbleRadius(pointData_.outerBubble.real());
+  double r = wheelPlot_->outerBubbleRadius(pointData_.outerBubble.real());
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  auto pp = plot_->pointToPolarPoint(point());
+  auto pp = wheelPlot_->pointToPolarPoint(point());
 
-  double ri = std::min(std::max(plot_->innerRadius(), 0.0), 1.0);
+  double ri = std::min(std::max(wheelPlot_->innerRadius(), 0.0), 1.0);
 
   CQChartsPolarPoint::Polar pp1(pp.polar.a, 1.15 - ri);
 
-  auto p = plot_->polarToPoint(pp1);
+  auto p = wheelPlot_->polarToPoint(pp1);
 
   BBox bbox(p.x - r, p.y - r, p.x + r, p.y + r);
 
@@ -1759,12 +1767,12 @@ void
 CQChartsOuterBubbleObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  auto fc = plot_->interpColor(plot_->outerBubbleColor(), ColorInd());
+  auto fc = wheelPlot_->interpColor(wheelPlot_->outerBubbleColor(), ColorInd());
 
-  plot_->setPenBrush(penBrush, PenData(true, fc), BrushData(true, fc, Alpha(0.3)));
+  wheelPlot_->setPenBrush(penBrush, PenData(true, fc), BrushData(true, fc, Alpha(0.3)));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    wheelPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
@@ -1817,15 +1825,15 @@ void
 CQChartsWheelPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && wheelPlot_)
+    disconnect(wheelPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsWheelPlot *>(plot);
+  wheelPlot_ = dynamic_cast<CQChartsWheelPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (wheelPlot_)
+    connect(wheelPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

@@ -53,17 +53,17 @@ class CQChartsDelaunayPointObj : public CQChartsPlotPointObj {
   Q_OBJECT
 
  public:
-  using Plot   = CQChartsDelaunayPlot;
-  using Length = CQChartsLength;
-  using Symbol = CQChartsSymbol;
+  using DelaunayPlot = CQChartsDelaunayPlot;
+  using Length       = CQChartsLength;
+  using Symbol       = CQChartsSymbol;
 
  public:
-  CQChartsDelaunayPointObj(const Plot *plot, const BBox &rect, const Point &p, double value,
+  CQChartsDelaunayPointObj(const DelaunayPlot *plot, const BBox &rect, const Point &p, double value,
                            const QModelIndex &ind, const ColorInd &iv);
 
   //---
 
-  const Plot *plot() const { return plot_; }
+  const DelaunayPlot *delaunayPlot() const { return delaunayPlot_; }
 
   double value() const { return value_; }
 
@@ -87,8 +87,8 @@ class CQChartsDelaunayPointObj : public CQChartsPlotPointObj {
   Length calcSymbolSize() const override;
 
  private:
-  const Plot* plot_  { nullptr }; //!< plot
-  double      value_ { 0.0 };     //!< value
+  const DelaunayPlot* delaunayPlot_ { nullptr }; //!< plot
+  double              value_        { 0.0 };     //!< value
 };
 
 //---
@@ -262,7 +262,7 @@ class CQChartsDelaunayPlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -281,7 +281,7 @@ class CQChartsDelaunayPlotCustomControls : public CQChartsPlotCustomControls {
   void voronoiSlot();
 
  protected:
-  CQChartsDelaunayPlot* plot_ { nullptr };
+  CQChartsDelaunayPlot* delaunayPlot_ { nullptr };
 
   FrameData optionsFrame_;
 

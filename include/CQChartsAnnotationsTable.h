@@ -8,6 +8,7 @@
 #include <CQTableWidget.h>
 
 #include <QItemDelegate>
+#include <QPointer>
 
 class CQChartsViewAnnotationsControl;
 class CQChartsPlotAnnotationsControl;
@@ -50,13 +51,17 @@ class CQChartsAnnotationsControl : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
  public:
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsAnnotationsControl(QWidget *parent=nullptr);
 
-  CQChartsView *view() const { return view_; }
-  void setView(CQChartsView *view) override;
+  View *view() const;
+  void setView(View *view);
 
-  CQChartsPlot *plot() const;
-  void setPlot(CQChartsPlot *plot) override;
+  Plot *plot() const;
+  void setPlot(Plot *plot) override;
 
  private Q_SLOTS:
   void updateAnnotations();
@@ -64,12 +69,13 @@ class CQChartsAnnotationsControl : public QFrame, public CQChartsWidgetIFace {
   void writeAnnotationSlot();
 
  private:
-  using PlotP = QPointer<CQChartsPlot>;
+  using PlotP = QPointer<Plot>;
+  using ViewP = QPointer<View>;
 
   CQTabSplit *split_ { nullptr };
 
-  CQChartsView *view_ { nullptr };
-  PlotP         plot_;
+  ViewP view_;
+  PlotP plot_;
 
   CQChartsViewAnnotationsControl* viewTable_ { nullptr }; //!< view annotations table
   CQChartsPlotAnnotationsControl* plotTable_ { nullptr }; //!< plot annotations table
@@ -84,10 +90,13 @@ class CQChartsViewAnnotationsControl : public QFrame, public CQChartsWidgetIFace
   Q_OBJECT
 
  public:
+  using View = CQChartsView;
+
+ public:
   CQChartsViewAnnotationsControl(QWidget *parent=nullptr);
 
-  CQChartsView *view() const { return view_; }
-  void setView(CQChartsView *view) override;
+  View *view() const;
+  void setView(View *view);
 
  private:
   CQChartsAnnotation *getSelectedViewAnnotation() const;
@@ -103,11 +112,12 @@ class CQChartsViewAnnotationsControl : public QFrame, public CQChartsWidgetIFace
   void removeViewAnnotationsSlot();
 
  private:
+  using ViewP                = QPointer<View>;
   using ViewAnnotationsTable = CQChartsViewAnnotationsTable;
   using CreateAnnotationDlg  = CQChartsCreateAnnotationDlg;
   using EditAnnotationDlg    = CQChartsEditAnnotationDlg;
 
-  CQChartsView *view_ { nullptr };
+  ViewP view_;
 
   ViewAnnotationsTable* viewTable_        { nullptr }; //!< view annotations table
   QPushButton*          viewRaiseButton_  { nullptr }; //!< view annotation raise button
@@ -129,10 +139,13 @@ class CQChartsPlotAnnotationsControl : public QFrame, public CQChartsWidgetIFace
   Q_OBJECT
 
  public:
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsPlotAnnotationsControl(QWidget *parent=nullptr);
 
-  CQChartsPlot *plot() const;
-  void setPlot(CQChartsPlot *plot) override;
+  Plot *plot() const;
+  void setPlot(Plot *plot) override;
 
  private:
   CQChartsAnnotation *getSelectedPlotAnnotation() const;
@@ -152,7 +165,7 @@ class CQChartsPlotAnnotationsControl : public QFrame, public CQChartsWidgetIFace
   using CreateAnnotationDlg  = CQChartsCreateAnnotationDlg;
   using EditAnnotationDlg    = CQChartsEditAnnotationDlg;
 
-  using PlotP = QPointer<CQChartsPlot>;
+  using PlotP = QPointer<Plot>;
 
   PlotP plot_;
 
@@ -175,14 +188,16 @@ class CQChartsPlotAnnotationsControl : public QFrame, public CQChartsWidgetIFace
  */
 class CQChartsAnnotationsTable : public CQTableWidget {
  public:
+  using View        = CQChartsView;
+  using Plot        = CQChartsPlot;
   using Annotations = std::vector<CQChartsAnnotation *>;
 
  public:
-  CQChartsAnnotationsTable(CQChartsView *view=nullptr, CQChartsPlot *plot=nullptr);
+  CQChartsAnnotationsTable(View *view=nullptr, Plot *plot=nullptr);
  ~CQChartsAnnotationsTable();
 
-  void setView(CQChartsView *view) { view_ = view; plot_ = nullptr; }
-  void setPlot(CQChartsPlot *plot) { plot_ = plot; view_ = nullptr; }
+  void setView(View *view);
+  void setPlot(Plot *plot);
 
   void addHeaderItems();
 
@@ -194,8 +209,11 @@ class CQChartsAnnotationsTable : public CQTableWidget {
   CQChartsAnnotation *itemAnnotation(QTableWidgetItem *item) const;
 
  protected:
-  CQChartsView*               view_     { nullptr };
-  CQChartsPlot*               plot_     { nullptr };
+  using ViewP = QPointer<View>;
+  using PlotP = QPointer<Plot>;
+
+  ViewP                       view_;
+  PlotP                       plot_;
   CQChartsAnnotationDelegate* delegate_ { nullptr };
 };
 
@@ -208,16 +226,21 @@ class CQChartsViewAnnotationsTable : public CQChartsAnnotationsTable, public CQC
   Q_OBJECT
 
  public:
+  using View = CQChartsView;
+
+ public:
   CQChartsViewAnnotationsTable();
 
-  CQChartsView *view() const { return view_; }
-  void setView(CQChartsView *view) override;
+  View *view() const;
+  void setView(View *view) override;
 
  public Q_SLOTS:
   void updateAnnotations();
 
  private:
-  CQChartsView *view_ { nullptr };
+  using ViewP = QPointer<View>;
+
+  ViewP view_;
 };
 
 //--
@@ -229,16 +252,19 @@ class CQChartsPlotAnnotationsTable : public CQChartsAnnotationsTable, public CQC
   Q_OBJECT
 
  public:
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsPlotAnnotationsTable();
 
-  CQChartsPlot *plot() const;
-  void setPlot(CQChartsPlot *plot) override;
+  Plot *plot() const;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateAnnotations();
 
  private:
-  using PlotP = QPointer<CQChartsPlot>;
+  using PlotP = QPointer<Plot>;
 
   PlotP plot_;
 };

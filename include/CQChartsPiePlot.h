@@ -93,7 +93,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   //---
 
-  const PiePlot *plot() const { return plot_; }
+  const PiePlot *piePlot() const { return piePlot_; }
 
   //---
 
@@ -239,7 +239,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
   bool isHidden() const;
 
  protected:
-  const PiePlot*  plot_       { nullptr };  //!< parent plot
+  const PiePlot*  piePlot_    { nullptr };  //!< parent plot
   ColorInd        colorIndex_;              //!< color index
   Angle           angle1_     { 0.0 };      //!< wedge start angle
   Angle           angle2_     { 360.0 };    //!< wedge end angle
@@ -278,7 +278,7 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   CQChartsPieGroupObj(const PiePlot *plot, const BBox &bbox, const ColorInd &groupInd,
                       const QString &name, const ColorInd &ig);
 
-  const PiePlot *plot() const { return plot_; }
+  const PiePlot *piePlot() const { return piePlot_; }
 
   //---
 
@@ -382,7 +382,7 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   BBox getBBox() const;
 
  private:
-  const PiePlot* plot_         { nullptr };  //!< parent plot
+  const PiePlot* piePlot_      { nullptr };  //!< parent plot
   ColorInd       groupInd_;                  //!< group index
   QString        name_;                      //!< group name
   ColorInd       colorIndex_;                //!< color index
@@ -416,8 +416,6 @@ class CQChartsPieColorKeyItem : public CQChartsColorBoxKeyItem {
 
  public:
   CQChartsPieColorKeyItem(PiePlot *plot, PlotObj *obj);
-
-  Plot *plot() const { return plot_; }
 
   void doSelect(SelMod selMod) override;
 
@@ -926,7 +924,7 @@ class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -954,7 +952,7 @@ class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
   void countSlot    ();
 
  protected:
-  PiePlot* plot_ { nullptr };
+  PiePlot* piePlot_ { nullptr };
 
   FrameData optionsFrame_;
 

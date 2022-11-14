@@ -80,30 +80,30 @@ addParameters()
     setTip("Bars orientation");
 
   addEnumParameter("plotType", "Plot Type", "plotType").
-    addNameValue("NORMAL"      , static_cast<int>(Plot::PlotType::NORMAL      )).
-    addNameValue("STACKED"     , static_cast<int>(Plot::PlotType::STACKED     )).
-    addNameValue("SIDE_BY_SIDE", static_cast<int>(Plot::PlotType::SIDE_BY_SIDE)).
-    addNameValue("OVERLAY"     , static_cast<int>(Plot::PlotType::OVERLAY     )).
-    addNameValue("SCATTER"     , static_cast<int>(Plot::PlotType::SCATTER     )).
-    addNameValue("DENSITY"     , static_cast<int>(Plot::PlotType::DENSITY     )).
+    addNameValue("NORMAL"      , static_cast<int>(DistributionPlot::PlotType::NORMAL      )).
+    addNameValue("STACKED"     , static_cast<int>(DistributionPlot::PlotType::STACKED     )).
+    addNameValue("SIDE_BY_SIDE", static_cast<int>(DistributionPlot::PlotType::SIDE_BY_SIDE)).
+    addNameValue("OVERLAY"     , static_cast<int>(DistributionPlot::PlotType::OVERLAY     )).
+    addNameValue("SCATTER"     , static_cast<int>(DistributionPlot::PlotType::SCATTER     )).
+    addNameValue("DENSITY"     , static_cast<int>(DistributionPlot::PlotType::DENSITY     )).
     setTip("Plot type");
 
   addEnumParameter("valueType", "Value Type", "valueType").
-    addNameValue("COUNT", static_cast<int>(Plot::ValueType::COUNT)).
-    addNameValue("RANGE", static_cast<int>(Plot::ValueType::RANGE)).
-    addNameValue("MIN"  , static_cast<int>(Plot::ValueType::MIN  )).
-    addNameValue("MAX"  , static_cast<int>(Plot::ValueType::MAX  )).
-    addNameValue("MEAN" , static_cast<int>(Plot::ValueType::MEAN )).
-    addNameValue("SUM"  , static_cast<int>(Plot::ValueType::SUM  )).
+    addNameValue("COUNT", static_cast<int>(DistributionPlot::ValueType::COUNT)).
+    addNameValue("RANGE", static_cast<int>(DistributionPlot::ValueType::RANGE)).
+    addNameValue("MIN"  , static_cast<int>(DistributionPlot::ValueType::MIN  )).
+    addNameValue("MAX"  , static_cast<int>(DistributionPlot::ValueType::MAX  )).
+    addNameValue("MEAN" , static_cast<int>(DistributionPlot::ValueType::MEAN )).
+    addNameValue("SUM"  , static_cast<int>(DistributionPlot::ValueType::SUM  )).
     setTip("Bar value type");
 
   addEnumParameter("shapeType", "Shape Type", "shapeType").
-    addNameValue("RECT"    , static_cast<int>(Plot::ShapeType::RECT    )).
-    addNameValue("DOT_LINE", static_cast<int>(Plot::ShapeType::DOT_LINE)).
-    addNameValue("BOX"     , static_cast<int>(Plot::ShapeType::BOX     )).
-    addNameValue("SCATTER" , static_cast<int>(Plot::ShapeType::SCATTER )).
-    addNameValue("VIOLIN"  , static_cast<int>(Plot::ShapeType::VIOLIN  )).
-    addNameValue("TREEMAP" , static_cast<int>(Plot::ShapeType::TREEMAP )).
+    addNameValue("RECT"    , static_cast<int>(DistributionPlot::ShapeType::RECT    )).
+    addNameValue("DOT_LINE", static_cast<int>(DistributionPlot::ShapeType::DOT_LINE)).
+    addNameValue("BOX"     , static_cast<int>(DistributionPlot::ShapeType::BOX     )).
+    addNameValue("SCATTER" , static_cast<int>(DistributionPlot::ShapeType::SCATTER )).
+    addNameValue("VIOLIN"  , static_cast<int>(DistributionPlot::ShapeType::VIOLIN  )).
+    addNameValue("TREEMAP" , static_cast<int>(DistributionPlot::ShapeType::TREEMAP )).
     setTip("Bar shape type");
 
   addBoolParameter("percent"   , "Percent"    , "percent"   ).setTip("Show value as percentage");
@@ -172,7 +172,7 @@ CQChartsPlot *
 CQChartsDistributionPlotType::
 create(View *view, const ModelP &model) const
 {
-  return new Plot(view, model);
+  return new CQChartsDistributionPlot(view, model);
 }
 
 //------
@@ -982,18 +982,18 @@ calcRange() const
   // process model data (build grouped sets of values)
   class DistributionVisitor : public ModelVisitor {
    public:
-    DistributionVisitor(const CQChartsDistributionPlot *plot) :
-     plot_(plot) {
+    DistributionVisitor(const CQChartsDistributionPlot *distributionPlot) :
+     distributionPlot_(distributionPlot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRow(data);
+      distributionPlot_->addRow(data);
 
       return State::OK;
     }
 
    private:
-    const CQChartsDistributionPlot *plot_ { nullptr };
+    const CQChartsDistributionPlot *distributionPlot_ { nullptr };
   };
 
   DistributionVisitor distributionVisitor(this);
@@ -3071,21 +3071,22 @@ bucketValuesStr(int groupInd, const Bucket &bucket, const Values *values,
       else {
         class Formatter : public CQBucketer::Formatter {
          public:
-          Formatter(const CQChartsDistributionPlot *plot, const CQChartsColumn &column) :
-           plot_(plot), column_(column) {
+          Formatter(const CQChartsDistributionPlot *distributionPlot,
+                    const CQChartsColumn &column) :
+           distributionPlot_(distributionPlot), column_(column) {
           }
 
           QString formatReal(double r) const override {
             QString str;
 
-            if (plot_->formatColumnValue(column_, r, str))
+            if (distributionPlot_->formatColumnValue(column_, r, str))
               return str;
 
             return CQChartsUtil::formatReal(r);
           }
 
          private:
-          const CQChartsDistributionPlot *plot_ { nullptr };
+          const CQChartsDistributionPlot *distributionPlot_ { nullptr };
           CQChartsColumn                  column_;
         };
 
@@ -3629,15 +3630,16 @@ createCustomControls()
 //------
 
 CQChartsDistributionBarObj::
-CQChartsDistributionBarObj(const Plot *plot, const BBox &rect, int groupInd, const Bucket &bucket,
-                           const BarValue &barValue, bool isLine, const ColorInd &ig,
-                           const ColorInd &iv) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, ColorInd(), ig, iv), plot_(plot),
- groupInd_(groupInd), bucket_(bucket), barValue_(barValue), isLine_(isLine)
+CQChartsDistributionBarObj(const DistributionPlot *distributionPlot, const BBox &rect,
+                           int groupInd, const Bucket &bucket, const BarValue &barValue,
+                           bool isLine, const ColorInd &ig, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<DistributionPlot *>(distributionPlot), rect, ColorInd(), ig, iv),
+ distributionPlot_(distributionPlot), groupInd_(groupInd), bucket_(bucket),
+ barValue_(barValue), isLine_(isLine)
 {
   setDetailHint(DetailHint::MAJOR);
 
-  plot_->bucketValues(groupInd_, bucket_, value1_, value2_);
+  distributionPlot_->bucketValues(groupInd_, bucket_, value1_, value2_);
 }
 
 CQChartsDistributionBarObj::
@@ -3674,23 +3676,23 @@ calcTipId() const
   //---
 
   // add value
-  if      (plot_->isValueCount()) {
+  if      (distributionPlot_->isValueCount()) {
     tableTip.addTableRow("Count", count());
   }
-  else if (plot_->isValueRange()) {
+  else if (distributionPlot_->isValueRange()) {
     tableTip.addTableRow("Min", minValue());
     tableTip.addTableRow("Max", maxValue());
   }
-  else if (plot_->isValueMin()) {
+  else if (distributionPlot_->isValueMin()) {
     tableTip.addTableRow("Min", maxValue());
   }
-  else if (plot_->isValueMax()) {
+  else if (distributionPlot_->isValueMax()) {
     tableTip.addTableRow("Max", maxValue());
   }
-  else if (plot_->isValueMean()) {
+  else if (distributionPlot_->isValueMean()) {
     tableTip.addTableRow("Mean", maxValue());
   }
-  else if (plot_->isValueSum()) {
+  else if (distributionPlot_->isValueSum()) {
     tableTip.addTableRow("Sum", maxValue());
   }
 
@@ -3702,11 +3704,11 @@ calcTipId() const
   QModelIndex parent;
 
   for (const auto &row : colorData_.colorRows) {
-    ModelIndex colorColumnInd(plot(), row, plot_->colorColumn(), parent);
+    ModelIndex colorColumnInd(plot(), row, distributionPlot_->colorColumn(), parent);
 
     bool ok;
 
-    auto str = plot_->modelString(colorColumnInd, ok);
+    auto str = distributionPlot_->modelString(colorColumnInd, ok);
 
     if (ok)
       strs.push_back(str);
@@ -3715,7 +3717,7 @@ calcTipId() const
   if (strs.length()) {
     bool ok;
 
-    auto name = plot_->modelHHeaderString(plot_->colorColumn(), ok);
+    auto name = distributionPlot_->modelHHeaderString(distributionPlot_->colorColumn(), ok);
 
     QString name1;
 
@@ -3766,7 +3768,7 @@ groupName() const
   QString groupName;
 
   if (ig_.n > 1)
-    groupName = plot_->groupIndName(groupInd_);
+    groupName = distributionPlot_->groupIndName(groupInd_);
 
   return groupName;
 }
@@ -3777,10 +3779,10 @@ bucketStr() const
 {
   QString bucketStr;
 
-  if (! plot_->isBucketed())
-    bucketStr = plot_->groupIndName(groupInd_);
+  if (! distributionPlot_->isBucketed())
+    bucketStr = distributionPlot_->groupIndName(groupInd_);
   else
-    bucketStr = plot_->bucketValuesStr(groupInd_, bucket_);
+    bucketStr = distributionPlot_->bucketValuesStr(groupInd_, bucket_);
 
   return bucketStr;
 }
@@ -3792,12 +3794,12 @@ bucketXValue(double x, double &value) const
   if (! insideX(x))
     return false;
 
-  if (! plot_->isBucketed())
+  if (! distributionPlot_->isBucketed())
     value = groupInd_;
   else {
     double value1, value2;
 
-    plot_->bucketValues(groupInd_, bucket_, value1, value2);
+    distributionPlot_->bucketValues(groupInd_, bucket_, value1, value2);
 
     value = CMathUtil::map(x, rect().getXMin(), rect().getXMax(), value1, value2);
   }
@@ -3812,12 +3814,12 @@ bucketYValue(double y, double &value) const
   if (! insideY(y))
     return false;
 
-  if (! plot_->isBucketed())
+  if (! distributionPlot_->isBucketed())
     value = groupInd_;
   else {
     double value1, value2;
 
-    plot_->bucketValues(groupInd_, bucket_, value1, value2);
+    distributionPlot_->bucketValues(groupInd_, bucket_, value1, value2);
 
     value = CMathUtil::map(y, rect().getYMin(), rect().getYMax(), value1, value2);
   }
@@ -3850,30 +3852,31 @@ CQChartsGeom::BBox
 CQChartsDistributionBarObj::
 dataLabelRect() const
 {
-  if (! plot_->dataLabel()->isVisible())
+  if (! distributionPlot_->dataLabel()->isVisible())
     return BBox();
 
   auto bbox = calcRect();
 
   QString ystr;
 
-  if      (plot_->isValueCount()) { ystr = QString::number(count()); }
-  else if (plot_->isValueRange()) { ystr = QString("%1-%2").arg(minValue()).arg(maxValue()); }
-  else if (plot_->isValueMin  ()) { ystr = QString::number(maxValue()); }
-  else if (plot_->isValueMax  ()) { ystr = QString::number(maxValue()); }
-  else if (plot_->isValueMean ()) { ystr = QString::number(maxValue()); }
-  else if (plot_->isValueSum  ()) { ystr = QString::number(maxValue()); }
+  if      (distributionPlot_->isValueCount()) { ystr = QString::number(count()); }
+  else if (distributionPlot_->isValueRange()) {
+    ystr = QString("%1-%2").arg(minValue()).arg(maxValue()); }
+  else if (distributionPlot_->isValueMin  ()) { ystr = QString::number(maxValue()); }
+  else if (distributionPlot_->isValueMax  ()) { ystr = QString::number(maxValue()); }
+  else if (distributionPlot_->isValueMean ()) { ystr = QString::number(maxValue()); }
+  else if (distributionPlot_->isValueSum  ()) { ystr = QString::number(maxValue()); }
 
-  return plot_->dataLabel()->calcRect(bbox, ystr);
+  return distributionPlot_->dataLabel()->calcRect(bbox, ystr);
 }
 
 void
 CQChartsDistributionBarObj::
 getObjSelectIndices(Indices &inds) const
 {
-  Plot::VariantInds vinds;
+  DistributionPlot::VariantInds vinds;
 
-  plot_->getInds(groupInd_, bucket_, vinds);
+  distributionPlot_->getInds(groupInd_, bucket_, vinds);
 
   for (auto &vind : vinds) {
     const auto &ind = vind.ind;
@@ -3887,9 +3890,9 @@ CQChartsDistributionBarObj::
 addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 {
   if (column.isValid()) {
-    Plot::VariantInds vinds;
+    DistributionPlot::VariantInds vinds;
 
-    plot_->getInds(groupInd_, bucket_, vinds);
+    distributionPlot_->getInds(groupInd_, bucket_, vinds);
 
     for (auto &vind : vinds) {
       ModelIndex ind = vind.ind;
@@ -3946,14 +3949,14 @@ CQChartsDistributionBarObj::
 drawColoredRects(PaintDevice *device) const
 {
   auto bbox  = calcRect();
-  auto pbbox = plot_->windowToPixel(bbox);
+  auto pbbox = distributionPlot_->windowToPixel(bbox);
 
   bool useLine = (isLine() || this->isUseLine());
 
-  double size = (plot_->isVertical() ? pbbox.getHeight() : pbbox.getWidth());
+  double size = (distributionPlot_->isVertical() ? pbbox.getHeight() : pbbox.getWidth());
 
   // scale boxes by value count
-  if      (plot_->isValueCount()) {
+  if      (distributionPlot_->isValueCount()) {
     // get size delta
     double dsize = size/colorData_.nv;
 
@@ -3968,14 +3971,14 @@ drawColoredRects(PaintDevice *device) const
 
       BBox pbbox1;
 
-      if (plot_->isVertical())
+      if (distributionPlot_->isVertical())
         pbbox1 = BBox(pbbox.getXMin(), pbbox.getYMax() - pos2,
                       pbbox.getXMax(), pbbox.getYMax() - pos1);
       else
         pbbox1 = BBox(pbbox.getXMin() + pos1, pbbox.getYMin(),
                       pbbox.getXMin() + pos2, pbbox.getYMax());
 
-      auto bbox1 = plot_->pixelToWindow(pbbox1);
+      auto bbox1 = distributionPlot_->pixelToWindow(pbbox1);
 
       //---
 
@@ -3993,7 +3996,7 @@ drawColoredRects(PaintDevice *device) const
       barColor_ = QColor();
   }
   // scale boxes by value sum
-  else if (plot_->isValueSum()) {
+  else if (distributionPlot_->isValueSum()) {
     double pos1 = 0.0, pos2 = 0.0;
 
     for (auto &cs : colorData_.colorSizes) {
@@ -4005,14 +4008,14 @@ drawColoredRects(PaintDevice *device) const
 
       BBox pbbox1;
 
-      if (plot_->isVertical())
+      if (distributionPlot_->isVertical())
         pbbox1 = BBox(pbbox.getXMin(), pbbox.getYMax() - pos2,
                       pbbox.getXMax(), pbbox.getYMax() - pos1);
       else
         pbbox1 = BBox(pbbox.getXMin() + pos1, pbbox.getYMin(),
                       pbbox.getXMin() + pos2, pbbox.getYMax());
 
-      auto bbox1 = plot_->pixelToWindow(pbbox1);
+      auto bbox1 = distributionPlot_->pixelToWindow(pbbox1);
 
       //---
 
@@ -4039,21 +4042,21 @@ getImage() const
 
   // get first image for associated indices in image column
   // TODO: support global image (fill ?)
-  if (! plot_->imageColumn().isValid())
+  if (! distributionPlot_->imageColumn().isValid())
     return image;
 
-  Plot::VariantInds vinds;
+  DistributionPlot::VariantInds vinds;
 
-  plot_->getInds(groupInd_, bucket_, vinds);
+  distributionPlot_->getInds(groupInd_, bucket_, vinds);
 
   for (auto &vind : vinds) {
     ModelIndex ind = vind.ind;
 
-    ind.setColumn(plot_->imageColumn());
+    ind.setColumn(distributionPlot_->imageColumn());
 
     bool ok;
 
-    auto imageVar = plot_->modelValue(ind, ok);
+    auto imageVar = distributionPlot_->modelValue(ind, ok);
     if (! ok) continue;
 
     image = CQChartsVariant::toImage(imageVar, ok);
@@ -4076,28 +4079,30 @@ drawFg(PaintDevice *device) const
 
     QString ystr;
 
-    if      (plot_->isValueCount()) { ystr = QString::number(count()); }
-    else if (plot_->isValueRange()) { ystr = QString("%1-%2").arg(minValue()).arg(maxValue()); }
-    else if (plot_->isValueMin  ()) { ystr = QString::number(maxValue()); }
-    else if (plot_->isValueMax  ()) { ystr = QString::number(maxValue()); }
-    else if (plot_->isValueMean ()) { ystr = QString::number(maxValue()); }
-    else if (plot_->isValueSum  ()) { ystr = QString::number(maxValue()); }
+    if      (distributionPlot_->isValueCount()) { ystr = QString::number(count()); }
+    else if (distributionPlot_->isValueRange()) {
+      ystr = QString("%1-%2").arg(minValue()).arg(maxValue()); }
+    else if (distributionPlot_->isValueMin  ()) { ystr = QString::number(maxValue()); }
+    else if (distributionPlot_->isValueMax  ()) { ystr = QString::number(maxValue()); }
+    else if (distributionPlot_->isValueMean ()) { ystr = QString::number(maxValue()); }
+    else if (distributionPlot_->isValueSum  ()) { ystr = QString::number(maxValue()); }
 
     //---
 
-    auto pbbox = plot_->windowToPixel(bbox);
+    auto pbbox = distributionPlot_->windowToPixel(bbox);
 
-    if (! plot_->dataLabel()->isAdjustedPositionOutside(pbbox, ystr) && barColor_.isValid())
-      plot_->charts()->setContrastColor(barColor_);
+    if (! distributionPlot_->dataLabel()->isAdjustedPositionOutside(pbbox, ystr) &&
+        barColor_.isValid())
+      distributionPlot_->charts()->setContrastColor(barColor_);
 
-    plot_->dataLabel()->draw(device, bbox, ystr);
+    distributionPlot_->dataLabel()->draw(device, bbox, ystr);
 
-    plot_->charts()->resetContrastColor();
+    distributionPlot_->charts()->resetContrastColor();
   }
 
   //---
 
-  if (plot_->isRug())
+  if (distributionPlot_->isRug())
     drawRug(device);
 }
 
@@ -4106,15 +4111,15 @@ CQChartsDistributionBarObj::
 drawRug(PaintDevice *device) const
 {
   // get symbol and size
-  auto symbol     = plot_->rugSymbol();
-  auto symbolSize = plot_->rugSymbolSize();
+  auto symbol     = distributionPlot_->rugSymbol();
+  auto symbolSize = distributionPlot_->rugSymbolSize();
 
   if (! symbol.isValid())
-    symbol = (plot_->isVertical() ? Symbol::vline() : Symbol::hline());
+    symbol = (distributionPlot_->isVertical() ? Symbol::vline() : Symbol::hline());
 
   double sx, sy;
 
-  plot_->pixelSymbolSize(symbolSize, sx, sy, /*scale*/false);
+  distributionPlot_->pixelSymbolSize(symbolSize, sx, sy, /*scale*/false);
 
   //---
 
@@ -4123,37 +4128,37 @@ drawRug(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  plot_->setRugSymbolPenBrush(penBrush, ic);
+  distributionPlot_->setRugSymbolPenBrush(penBrush, ic);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
   // draw symbols
-  const auto &dataRange = plot_->dataRange();
+  const auto &dataRange = distributionPlot_->dataRange();
 
   std::vector<double> xvals;
 
-  plot_->getXVals(groupInd_, bucket_, xvals);
+  distributionPlot_->getXVals(groupInd_, bucket_, xvals);
 
   for (const auto &x : xvals) {
     double x1 = mapValue(x);
 
     Point p;
 
-    if (plot_->isVertical())
+    if (distributionPlot_->isVertical())
       p = Point(x1, dataRange.ymin());
     else
       p = Point(dataRange.xmin(), x1);
 
-    auto ps = plot_->windowToPixel(p);
+    auto ps = distributionPlot_->windowToPixel(p);
 
-    if (plot_->isVertical())
+    if (distributionPlot_->isVertical())
       ps.setY(ps.y + sy);
     else
       ps.setX(ps.x - sx);
 
-    auto p1 = plot_->pixelToWindow(ps);
+    auto p1 = distributionPlot_->pixelToWindow(ps);
 
     CQChartsDrawUtil::drawSymbol(device, symbol, p1, symbolSize, /*scale*/false);
   }
@@ -4163,8 +4168,8 @@ double
 CQChartsDistributionBarObj::
 mapValue(double v) const
 {
-  double bmin = (plot_->isVertical() ? rect_.getXMin() : rect_.getYMin());
-  double bmax = (plot_->isVertical() ? rect_.getXMax() : rect_.getYMax());
+  double bmin = (distributionPlot_->isVertical() ? rect_.getXMin() : rect_.getYMin());
+  double bmax = (distributionPlot_->isVertical() ? rect_.getXMax() : rect_.getYMax());
 
   return CMathUtil::map(v, value1_, value2_, bmin, bmax);
 }
@@ -4174,32 +4179,32 @@ CQChartsDistributionBarObj::
 getBarColoredRects(ColorData &colorData) const
 {
   // get data from color column
-  if (! plot_->colorColumn().isValid())
+  if (! distributionPlot_->colorColumn().isValid())
     return false;
 
   // only support count and sum (numeric)
-  if (! plot_->isValueCount() && ! plot_->isValueSum())
+  if (! distributionPlot_->isValueCount() && ! distributionPlot_->isValueSum())
     return false;
 
   // get normal bar color
   auto barColor = this->calcBarColor();
-  auto bgColor  = plot_->interpThemeColor(ColorInd(0.2));
+  auto bgColor  = distributionPlot_->interpThemeColor(ColorInd(0.2));
 
   // get color of individual values
   colorData.nv = 0;
 
   // for count value type get count of unique colors for values
   // for sum value type get fraction of total for values
-  Plot::VariantInds vinds;
+  DistributionPlot::VariantInds vinds;
 
-  plot_->getInds(groupInd_, bucket_, vinds);
+  distributionPlot_->getInds(groupInd_, bucket_, vinds);
 
   int nvi = int(vinds.size());
   if (nvi < 1) return false;
 
   //---
 
-  const auto *columnDetails = plot_->columnDetails(plot_->colorColumn());
+  const auto *columnDetails = distributionPlot_->columnDetails(distributionPlot_->colorColumn());
 
   bool isNumeric = (columnDetails ? columnDetails->isNumeric() : false);
   bool isColor   = (columnDetails ? columnDetails->type() == CQBaseModelType::COLOR : false);
@@ -4207,8 +4212,8 @@ getBarColoredRects(ColorData &colorData) const
   int nv = (columnDetails ? columnDetails->numUnique () : 1);
   int nb = (isNumeric     ? columnDetails->numBuckets() : 1);
 
-  auto colorMapMin = plot_->colorMapMin();
-  auto colorMapMax = plot_->colorMapMax();
+  auto colorMapMin = distributionPlot_->colorMapMin();
+  auto colorMapMax = distributionPlot_->colorMapMax();
 
   //---
 
@@ -4225,10 +4230,10 @@ getBarColoredRects(ColorData &colorData) const
     // calc relative size
     double bsize1 = bsize;
 
-    if (plot_->isValueSum()) {
+    if (distributionPlot_->isValueSum()) {
       bool ok;
 
-      double value = plot_->modelReal(ind, ok);
+      double value = distributionPlot_->modelReal(ind, ok);
 
       if (ok)
         bsize1 = value/maxValue();
@@ -4239,10 +4244,11 @@ getBarColoredRects(ColorData &colorData) const
     //---
 
     // get color column value from model
-    ModelIndex colorInd(plot_, ind.row(), plot_->colorColumn(), ind.parent());
+    ModelIndex colorInd(distributionPlot_, ind.row(),
+                        distributionPlot_->colorColumn(), ind.parent());
 
     bool ok;
-    auto var = plot_->modelValue(colorInd, ok);
+    auto var = distributionPlot_->modelValue(colorInd, ok);
 
     // set color from value
     Color  color;
@@ -4267,14 +4273,14 @@ getBarColoredRects(ColorData &colorData) const
           colorValue = CMathUtil::map(colorIVal, 0, nb - 1, colorMapMin, colorMapMax);
         }
 
-        color = plot_->colorFromColorMapPaletteValue(colorValue);
+        color = distributionPlot_->colorFromColorMapPaletteValue(colorValue);
       }
 
       //---
 
-      auto c1 = plot_->interpColor(color, ColorInd());
+      auto c1 = distributionPlot_->interpColor(color, ColorInd());
 
-      color    = Color(CQChartsDrawUtil::setColorAlpha(c1, plot_->barFillAlpha()));
+      color    = Color(CQChartsDrawUtil::setColorAlpha(c1, distributionPlot_->barFillAlpha()));
       colorSet = true;
     }
 
@@ -4345,19 +4351,19 @@ drawShape(PaintDevice *device, const BBox &bbox, const Color &color, bool useLin
 
   //---
 
-  if      (plot_->shapeType() == CQChartsDistributionPlot::ShapeType::DOT_LINE) {
+  if      (distributionPlot_->shapeType() == DistributionPlot::ShapeType::DOT_LINE) {
     drawDotLine(device, bbox, barPenBrush);
   }
-  else if (plot_->shapeType() == CQChartsDistributionPlot::ShapeType::BOX) {
+  else if (distributionPlot_->shapeType() == DistributionPlot::ShapeType::BOX) {
     drawBox(device, bbox);
   }
-  else if (plot_->shapeType() == CQChartsDistributionPlot::ShapeType::SCATTER) {
+  else if (distributionPlot_->shapeType() == DistributionPlot::ShapeType::SCATTER) {
     drawScatter(device, bbox);
   }
-  else if (plot_->shapeType() == CQChartsDistributionPlot::ShapeType::VIOLIN) {
+  else if (distributionPlot_->shapeType() == DistributionPlot::ShapeType::VIOLIN) {
     drawViolin(device, bbox);
   }
-  else if (plot_->shapeType() == CQChartsDistributionPlot::ShapeType::TREEMAP) {
+  else if (distributionPlot_->shapeType() == DistributionPlot::ShapeType::TREEMAP) {
     drawTreeMap(device, bbox, barPenBrush);
   }
   else {
@@ -4375,7 +4381,7 @@ drawRect(PaintDevice *device, const BBox &bbox, bool useLine) const
 {
   // draw rect
   if (! useLine) {
-    CQChartsDrawUtil::drawRoundedRect(device, bbox, plot_->barCornerSize());
+    CQChartsDrawUtil::drawRoundedRect(device, bbox, distributionPlot_->barCornerSize());
   }
   else {
     if (bbox.getWidth() < bbox.getHeight()) { // vertical
@@ -4400,13 +4406,13 @@ drawDotLine(PaintDevice *device, const BBox &bbox, const PenBrush &barPenBrush) 
 
   PenBrush dotPenBrush;
 
-  plot_->setDotSymbolPenBrush(dotPenBrush, ic);
+  distributionPlot_->setDotSymbolPenBrush(dotPenBrush, ic);
 
   //---
 
-  CQChartsDrawUtil::drawDotLine(device, barPenBrush, bbox, plot_->dotLineWidth(),
-                                plot_->isHorizontal(), plot_->dotSymbol(),
-                                plot_->dotSymbolSize(), dotPenBrush);
+  CQChartsDrawUtil::drawDotLine(device, barPenBrush, bbox, distributionPlot_->dotLineWidth(),
+                                distributionPlot_->isHorizontal(), distributionPlot_->dotSymbol(),
+                                distributionPlot_->dotSymbolSize(), dotPenBrush);
 }
 
 void
@@ -4416,12 +4422,12 @@ drawBox(PaintDevice *device, const BBox &bbox) const
   if (! density_) {
     density_ = std::make_unique<CQChartsDensity>();
 
-    density_->setOrientation(plot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
+    density_->setOrientation(distributionPlot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
   }
 
   std::vector<double> xvals;
 
-  plot_->getXVals(groupInd_, bucket_, xvals);
+  distributionPlot_->getXVals(groupInd_, bucket_, xvals);
 
   density_->setXVals(xvals);
 
@@ -4441,12 +4447,12 @@ drawScatter(PaintDevice *device, const BBox &bbox) const
   if (! density_) {
     density_ = std::make_unique<CQChartsDensity>();
 
-    density_->setOrientation(plot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
+    density_->setOrientation(distributionPlot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
   }
 
   std::vector<double> xvals;
 
-  plot_->getXVals(groupInd_, bucket_, xvals);
+  distributionPlot_->getXVals(groupInd_, bucket_, xvals);
 
   density_->setXVals(xvals);
 
@@ -4466,12 +4472,12 @@ drawViolin(PaintDevice *device, const BBox &bbox) const
   if (! density_) {
     density_ = std::make_unique<CQChartsDensity>();
 
-    density_->setOrientation(plot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
+    density_->setOrientation(distributionPlot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
   }
 
   std::vector<double> xvals;
 
-  plot_->getXVals(groupInd_, bucket_, xvals);
+  distributionPlot_->getXVals(groupInd_, bucket_, xvals);
 
   density_->setXVals(xvals);
 
@@ -4490,15 +4496,15 @@ drawTreeMap(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush) con
 {
   std::vector<double> xvals;
 
-  plot_->getXVals(groupInd_, bucket_, xvals);
+  distributionPlot_->getXVals(groupInd_, bucket_, xvals);
 
   CQChartsRValues values;
 
   for (const auto &r : xvals)
     values.addValue(r);
 
-  CQChartsPlotDrawUtil::drawTreeMap(const_cast<CQChartsPlot *>(plot()), device,
-                                    values, bbox, plot_->defaultPalette(), penBrush.pen);
+  CQChartsPlotDrawUtil::drawTreeMap(const_cast<CQChartsPlot *>(plot()), device, values,
+                                    bbox, distributionPlot_->defaultPalette(), penBrush.pen);
 }
 
 void
@@ -4516,24 +4522,24 @@ CQChartsDistributionBarObj::
 calcBarPenBrush(const Color &color, bool useLine, PenBrush &barPenBrush, bool updateState) const
 {
   // set pen and brush
-  auto bc = plot_->interpBarStrokeColor(ColorInd());
-  auto fc = plot_->interpColor(color, ColorInd());
+  auto bc = distributionPlot_->interpBarStrokeColor(ColorInd());
+  auto fc = distributionPlot_->interpColor(color, ColorInd());
 
-  auto bw = plot_->barStrokeWidth();
+  auto bw = distributionPlot_->barStrokeWidth();
 
   if (useLine) {
     bw = Length::pixel(0);
 
-    if (plot_->isBarFilled())
+    if (distributionPlot_->isBarFilled())
       bc = fc;
   }
 
-  plot_->setPenBrush(barPenBrush,
-    plot_->barPenData(bc, Alpha(), bw), plot_->barBrushData(fc));
+  distributionPlot_->setPenBrush(barPenBrush,
+    distributionPlot_->barPenData(bc, Alpha(), bw), distributionPlot_->barBrushData(fc));
 
   // adjust pen/brush for selected/mouse over
   if (updateState)
-    plot_->updateObjPenBrushState(this, barPenBrush);
+    distributionPlot_->updateObjPenBrushState(this, barPenBrush);
 }
 
 QColor
@@ -4542,7 +4548,7 @@ calcBarColor() const
 {
   auto colorInd = this->calcColorInd();
 
-  return plot_->interpBarFillColor(colorInd);
+  return distributionPlot_->interpBarFillColor(colorInd);
 }
 
 bool
@@ -4551,11 +4557,11 @@ isUseLine() const
 {
   bool useLine = false;
 
-  if (plot_->shapeType() != CQChartsDistributionPlot::ShapeType::DOT_LINE) {
+  if (distributionPlot_->shapeType() != DistributionPlot::ShapeType::DOT_LINE) {
     auto bbox  = calcRect();
-    auto pbbox = plot_->windowToPixel(bbox);
+    auto pbbox = distributionPlot_->windowToPixel(bbox);
 
-    double s = (plot_->isVertical() ? pbbox.getWidth() : pbbox.getHeight());
+    double s = (distributionPlot_->isVertical() ? pbbox.getWidth() : pbbox.getHeight());
 
     useLine = (s <= 2);
   }
@@ -4567,26 +4573,27 @@ CQChartsGeom::BBox
 CQChartsDistributionBarObj::
 calcRect() const
 {
-  double minSize = plot_->minBarSize();
+  double minSize = distributionPlot_->minBarSize();
 
   //---
 
-  auto prect = plot_->windowToPixel(rect_);
+  auto prect = distributionPlot_->windowToPixel(rect_);
 
   //---
 
   // calc margins
 
-  double ml = plot_->lengthPixelSize(plot_->margin(), plot_->isVertical());
+  double ml = distributionPlot_->lengthPixelSize(distributionPlot_->margin(),
+                                                 distributionPlot_->isVertical());
   double mr = ml;
 
-  if (plot_->hasGroups()) {
-    if      (plot_->isStacked()) {
+  if (distributionPlot_->hasGroups()) {
+    if      (distributionPlot_->isStacked()) {
     }
-    else if (plot_->isOverlaid()) {
+    else if (distributionPlot_->isOverlaid()) {
     }
     // tight packing for side by side
-    else if (plot_->isSideBySide()) {
+    else if (distributionPlot_->isSideBySide()) {
       ml = 0.0;
       mr = 0.0;
 
@@ -4598,16 +4605,18 @@ calcRect() const
     else {
       // adjust margins for first/last bar in group
       if      (iv_.i == 0)
-        ml = plot_->lengthPixelSize(plot_->groupMargin(), plot_->isVertical());
+        ml = distributionPlot_->lengthPixelSize(distributionPlot_->groupMargin(),
+                                                distributionPlot_->isVertical());
       else if (iv_.i == iv_.n - 1)
-        mr = plot_->lengthPixelSize(plot_->groupMargin(), plot_->isVertical());
+        mr = distributionPlot_->lengthPixelSize(distributionPlot_->groupMargin(),
+                                                distributionPlot_->isVertical());
     }
   }
 
   //---
 
   // adjust rect by margins
-  double rs = prect.getSize(plot_->isVertical());
+  double rs = prect.getSize(distributionPlot_->isVertical());
 
   double s1 = rs - 2*std::max(ml, mr);
 
@@ -4616,9 +4625,9 @@ calcRect() const
     mr = ml;
   }
 
-  prect.expandExtent(-ml, -mr, plot_->isVertical());
+  prect.expandExtent(-ml, -mr, distributionPlot_->isVertical());
 
-  return plot_->pixelToWindow(prect);
+  return distributionPlot_->pixelToWindow(prect);
 }
 
 double
@@ -4638,10 +4647,10 @@ yColorValue(bool relative) const
 //------
 
 CQChartsDistributionDensityObj::
-CQChartsDistributionDensityObj(const Plot *plot, const BBox &rect, int groupInd, const Data &data,
-                               double doffset, const ColorInd &is) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect), plot_(plot), groupInd_(groupInd),
- data_(data), doffset_(doffset), is_(is)
+CQChartsDistributionDensityObj(const DistributionPlot *distributionPlot, const BBox &rect,
+                               int groupInd, const Data &data, double doffset, const ColorInd &is) :
+ CQChartsPlotObj(const_cast<DistributionPlot *>(distributionPlot), rect),
+ distributionPlot_(distributionPlot), groupInd_(groupInd), data_(data), doffset_(doffset), is_(is)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -4657,7 +4666,7 @@ CQChartsDistributionDensityObj(const Plot *plot, const BBox &rect, int groupInd,
 
   double y1 = data_.ymin;
 
-  if (plot->isVertical()) {
+  if (distributionPlot->isVertical()) {
     for (int i = 0; i < np; ++i)
       poly_.addPoint(Point(data_.points[size_t(i)].x, data_.points[size_t(i)].y - y1 + doffset_));
   }
@@ -4678,7 +4687,8 @@ CQChartsDistributionDensityObj(const Plot *plot, const BBox &rect, int groupInd,
 
     double value1, value2;
 
-    plot_->bucketValues(groupInd_, Bucket(data_.buckets[size_t(i)].bucket), value1, value2);
+    distributionPlot_->bucketValues(groupInd_, Bucket(data_.buckets[size_t(i)].bucket),
+                                    value1, value2);
 
     double dx = (value2 - value1)/(data_.xmax - data_.xmin);
 
@@ -4722,7 +4732,7 @@ QString
 CQChartsDistributionDensityObj::
 groupName() const
 {
-  return plot_->groupIndName(groupInd_);
+  return distributionPlot_->groupIndName(groupInd_);
 }
 
 int
@@ -4762,7 +4772,7 @@ draw(PaintDevice *device) const
   //---
 
   // draw bars for buckets
-  if (plot_->isDensityBars()) {
+  if (distributionPlot_->isDensityBars()) {
     int nb = int(data_.buckets.size());
 
     for (int i = 0; i < nb; ++i) {
@@ -4770,7 +4780,8 @@ draw(PaintDevice *device) const
 
       double value1, value2;
 
-      plot_->bucketValues(groupInd_, Bucket(data_.buckets[size_t(i)].bucket), value1, value2);
+      distributionPlot_->bucketValues(groupInd_, Bucket(data_.buckets[size_t(i)].bucket),
+                                      value1, value2);
 
       BBox bbox(value1, 0, value2, y);
 
@@ -4790,10 +4801,10 @@ void
 CQChartsDistributionDensityObj::
 drawFg(PaintDevice *device) const
 {
-  if (plot_->isStatsLines())
+  if (distributionPlot_->isStatsLines())
     drawStatsLines(device);
 
-  if (plot_->isRug())
+  if (distributionPlot_->isRug())
     drawRug(device);
 }
 
@@ -4804,18 +4815,18 @@ drawStatsLines(PaintDevice *device) const
   // set pen
   PenBrush penBrush;
 
-  plot_->setStatsPenBrush(penBrush, ColorInd());
+  distributionPlot_->setStatsPenBrush(penBrush, ColorInd());
 
   device->setPen(penBrush.pen);
 
   //---
 
-  const auto &dataRange = plot_->dataRange();
+  const auto &dataRange = distributionPlot_->dataRange();
 
   auto drawStatLine = [&](double value) {
     Point p1, p2;
 
-    if (plot_->isVertical()) {
+    if (distributionPlot_->isVertical()) {
       p1 = Point(value, dataRange.ymin());
       p2 = Point(value, dataRange.ymax());
     }
@@ -4837,15 +4848,15 @@ CQChartsDistributionDensityObj::
 drawRug(PaintDevice *device) const
 {
   // get symbol and size
-  auto symbol     = plot_->rugSymbol();
-  auto symbolSize = plot_->rugSymbolSize();
+  auto symbol     = distributionPlot_->rugSymbol();
+  auto symbolSize = distributionPlot_->rugSymbolSize();
 
   if (! symbol.isValid())
-    symbol = (plot_->isVertical() ? Symbol::vline() : Symbol::hline());
+    symbol = (distributionPlot_->isVertical() ? Symbol::vline() : Symbol::hline());
 
   double sx, sy;
 
-  plot_->pixelSymbolSize(symbolSize, sx, sy, /*scale*/false);
+  distributionPlot_->pixelSymbolSize(symbolSize, sx, sy, /*scale*/false);
 
   //---
 
@@ -4853,38 +4864,38 @@ drawRug(PaintDevice *device) const
   // TODO: allow control of alpha, and line width
   PenBrush penBrush;
 
-  auto fillColor = plot_->interpBarFillColor(is_);
+  auto fillColor = distributionPlot_->interpBarFillColor(is_);
 
-  plot_->setPenBrush(penBrush,
+  distributionPlot_->setPenBrush(penBrush,
     PenData(true, fillColor), BrushData(true, fillColor, Alpha(0.5)));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
-  const auto &dataRange = plot_->dataRange();
+  const auto &dataRange = distributionPlot_->dataRange();
 
   std::vector<double> xvals;
   CQStatData          statData;
 
-  (void) plot_->getRealValues(groupInd_, xvals, statData);
+  (void) distributionPlot_->getRealValues(groupInd_, xvals, statData);
 
   for (const auto &x1 : xvals) {
     Point p1;
 
-    if (plot_->isVertical())
+    if (distributionPlot_->isVertical())
       p1 = Point(x1, dataRange.ymin());
     else
       p1 = Point(dataRange.xmin(), x1);
 
-    auto ps = plot_->windowToPixel(p1);
+    auto ps = distributionPlot_->windowToPixel(p1);
 
-    if (plot_->isVertical())
+    if (distributionPlot_->isVertical())
       ps.setY(ps.y + sy);
     else
       ps.setX(ps.x - sx);
 
-    auto p2 = plot_->pixelToWindow(ps);
+    auto p2 = distributionPlot_->pixelToWindow(ps);
 
     CQChartsDrawUtil::drawSymbol(device, symbol, p2, symbolSize, /*scale*/false);
   }
@@ -4895,20 +4906,21 @@ CQChartsDistributionDensityObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set pen and brush
-  auto bc = plot_->interpBarStrokeColor(is_);
-  auto fc = plot_->interpBarFillColor  (is_);
+  auto bc = distributionPlot_->interpBarStrokeColor(is_);
+  auto fc = distributionPlot_->interpBarFillColor  (is_);
 
-  plot_->setPenBrush(penBrush, plot_->barPenData(bc), plot_->barBrushData(fc));
+  distributionPlot_->setPenBrush(penBrush, distributionPlot_->barPenData(bc),
+                                 distributionPlot_->barBrushData(fc));
 
   //---
 
   // adjust brush for gradient
-  if (plot_->isDensityGradient()) {
-    auto pixelRect = plot_->calcPlotPixelRect();
+  if (distributionPlot_->isDensityGradient()) {
+    auto pixelRect = distributionPlot_->calcPlotPixelRect();
 
     Point pg1, pg2;
 
-    if (plot_->isVertical()) {
+    if (distributionPlot_->isVertical()) {
       pg1 = Point(pixelRect.getXMin(), pixelRect.getYMin());
       pg2 = Point(pixelRect.getXMax(), pixelRect.getYMin());
     }
@@ -4919,32 +4931,32 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
     QLinearGradient lg(pg1.x, pg1.y, pg2.x, pg2.y);
 
-    auto *palette = plot_->view()->themePalette();
+    auto *palette = distributionPlot_->view()->themePalette();
 
-    palette->setLinearGradient(lg, plot_->barFillAlpha().value());
+    palette->setLinearGradient(lg, distributionPlot_->barFillAlpha().value());
 
     penBrush.brush = QBrush(lg);
   }
 
   // adjust pen/brush for selected/mouse over
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    distributionPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
 
 CQChartsDistributionScatterObj::
-CQChartsDistributionScatterObj(const Plot *plot, const BBox &rect, int groupInd,
-                               const Bucket &bucket, int n, const ColorInd &is,
+CQChartsDistributionScatterObj(const DistributionPlot *distributionPlot, const BBox &rect,
+                               int groupInd, const Bucket &bucket, int n, const ColorInd &is,
                                const ColorInd &iv) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect), plot_(plot), groupInd_(groupInd),
- bucket_(bucket), n_(n), is_(is), iv_(iv)
+ CQChartsPlotObj(const_cast<DistributionPlot *>(distributionPlot), rect),
+ distributionPlot_(distributionPlot), groupInd_(groupInd), bucket_(bucket), n_(n), is_(is), iv_(iv)
 {
   // get factored number of points
-  int nf = CMathUtil::clamp(int(n_*plot_->scatterFactor()), 1, n_);
+  int nf = CMathUtil::clamp(int(n_*distributionPlot_->scatterFactor()), 1, n_);
 
   // generate random points in box (0.0->1.0) with margin
-  double m = std::min(std::max(plot_->scatterMargin(), 0.0), 1.0);
+  double m = std::min(std::max(distributionPlot_->scatterMargin(), 0.0), 1.0);
 
   // TODO: constant seed ?
   CQChartsRand::RealInRange rand(m, 1.0 - m);
@@ -4968,8 +4980,8 @@ QString
 CQChartsDistributionScatterObj::
 calcTipId() const
 {
-  auto groupName = plot_->groupIndName(groupInd_);
-  auto bucketStr = plot_->bucketStr(groupInd_, bucket_);
+  auto groupName = distributionPlot_->groupIndName(groupInd_);
+  auto bucketStr = distributionPlot_->bucketStr(groupInd_, bucket_);
 
   CQChartsTableTip tableTip;
 
@@ -5006,7 +5018,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  auto prect = plot_->windowToPixel(rect());
+  auto prect = distributionPlot_->windowToPixel(rect());
 
   //---
 
@@ -5019,18 +5031,18 @@ draw(PaintDevice *device) const
   for (const auto &point : points_) {
     double px, py;
 
-    if (plot_->isVertical()) {
-      px = plot_->windowToPixelWidth (point.x);
-      py = plot_->windowToPixelHeight(point.y);
+    if (distributionPlot_->isVertical()) {
+      px = distributionPlot_->windowToPixelWidth (point.x);
+      py = distributionPlot_->windowToPixelHeight(point.y);
     }
     else {
-      px = plot_->windowToPixelWidth (point.y);
-      py = plot_->windowToPixelHeight(point.x);
+      px = distributionPlot_->windowToPixelWidth (point.y);
+      py = distributionPlot_->windowToPixelHeight(point.x);
     }
 
     Point p(pll.x + px, pll.y + py);
 
-    auto p1 = plot_->pixelToWindow(p);
+    auto p1 = distributionPlot_->pixelToWindow(p);
 
     CQChartsDrawUtil::drawSymbol(device, symbol, p1, symbolSize, /*scale*/true);
   }
@@ -5043,17 +5055,18 @@ calcPenBrush(PenBrush &penBrush, bool) const
   // TODO: allow control of stroke color, alpha, and line width
   auto ic = (is_.n > 1 ? is_ : iv_);
 
-  auto c = plot_->interpBarFillColor(ic);
+  auto c = distributionPlot_->interpBarFillColor(ic);
 
-  plot_->setPenBrush(penBrush, PenData(true, Qt::black), BrushData(true, c));
+  distributionPlot_->setPenBrush(penBrush, PenData(true, Qt::black), BrushData(true, c));
 }
 
 //------
 
 CQChartsDistColorKeyItem::
-CQChartsDistColorKeyItem(Plot *plot, const ColorInd &ig, const ColorInd &iv,
+CQChartsDistColorKeyItem(DistributionPlot *distributionPlot, const ColorInd &ig, const ColorInd &iv,
                          const RangeValue &xv, const RangeValue &yv) :
- CQChartsColorBoxKeyItem(plot, ColorInd(), ig, iv, xv, yv), plot_(plot)
+ CQChartsColorBoxKeyItem(distributionPlot, ColorInd(), ig, iv, xv, yv),
+ distributionPlot_(distributionPlot)
 {
   setClickable(true);
 }
@@ -5092,11 +5105,11 @@ CQChartsDistColorKeyItem::
 fillBrush() const
 {
   if (color_.isValid())
-    return plot_->interpColor(color_, ColorInd());
+    return distributionPlot_->interpColor(color_, ColorInd());
 
   auto colorInd = this->calcColorInd();
 
-  auto c = plot_->interpBarFillColor(colorInd);
+  auto c = distributionPlot_->interpBarFillColor(colorInd);
 
   adjustFillColor(c);
 
@@ -5109,9 +5122,9 @@ CQChartsDistColorKeyItem::
 isSetHidden() const
 {
   if (ig_.n > 1)
-    return plot_->CQChartsPlot::isSetHidden(ig_.i);
+    return distributionPlot_->CQChartsPlot::isSetHidden(ig_.i);
   else
-    return plot_->CQChartsPlot::isSetHidden(iv_.i);
+    return distributionPlot_->CQChartsPlot::isSetHidden(iv_.i);
 }
 
 void
@@ -5119,16 +5132,17 @@ CQChartsDistColorKeyItem::
 setSetHidden(bool b)
 {
   if (ig_.n > 1)
-    plot_->CQChartsPlot::setSetHidden(ig_.i, b);
+    distributionPlot_->CQChartsPlot::setSetHidden(ig_.i, b);
   else
-    plot_->CQChartsPlot::setSetHidden(iv_.i, b);
+    distributionPlot_->CQChartsPlot::setSetHidden(iv_.i, b);
 }
 #endif
 
 //------
 
 CQChartsDistTextKeyItem::
-CQChartsDistTextKeyItem(Plot *plot, const QString &text, const ColorInd &ig, const ColorInd &iv) :
+CQChartsDistTextKeyItem(DistributionPlot *plot, const QString &text, const ColorInd &ig,
+                        const ColorInd &iv) :
  CQChartsTextKeyItem(plot, text, iv), ig_(ig), iv_(iv)
 {
 }
@@ -5320,7 +5334,7 @@ void
 CQChartsDistributionPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<CQChartsDistributionPlot *>(plot);
+  distributionPlot_ = dynamic_cast<CQChartsDistributionPlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
 }
@@ -5333,18 +5347,22 @@ updateWidgets()
 
   //---
 
-  if (orientationCombo_) orientationCombo_->setCurrentValue(static_cast<int>(plot_->orientation()));
-  if (plotTypeCombo_   ) plotTypeCombo_   ->setCurrentValue(static_cast<int>(plot_->plotType()));
-  if (valueTypeCombo_  ) valueTypeCombo_  ->setCurrentValue(static_cast<int>(plot_->valueType()));
-  if (shapeTypeCombo_  ) shapeTypeCombo_  ->setCurrentValue(static_cast<int>(plot_->shapeType()));
+  if (orientationCombo_)
+    orientationCombo_->setCurrentValue(static_cast<int>(distributionPlot_->orientation()));
+  if (plotTypeCombo_   )
+    plotTypeCombo_   ->setCurrentValue(static_cast<int>(distributionPlot_->plotType()));
+  if (valueTypeCombo_  )
+    valueTypeCombo_  ->setCurrentValue(static_cast<int>(distributionPlot_->valueType()));
+  if (shapeTypeCombo_  )
+    shapeTypeCombo_  ->setCurrentValue(static_cast<int>(distributionPlot_->shapeType()));
 
   //---
 
-  bool isUnique = plot_->isExactBucketValue();
-  bool isString = (plot_->bucketType() == CQBucketer::Type::STRING);
-  bool isFixed  = (plot_->bucketType() == CQBucketer::Type::REAL_RANGE);
-  bool isAuto   = (plot_->bucketType() == CQBucketer::Type::REAL_AUTO);
-  bool isStops  = (plot_->bucketType() == CQBucketer::Type::FIXED_STOPS);
+  bool isUnique = distributionPlot_->isExactBucketValue();
+  bool isString = (distributionPlot_->bucketType() == CQBucketer::Type::STRING);
+  bool isFixed  = (distributionPlot_->bucketType() == CQBucketer::Type::REAL_RANGE);
+  bool isAuto   = (distributionPlot_->bucketType() == CQBucketer::Type::REAL_AUTO);
+  bool isStops  = (distributionPlot_->bucketType() == CQBucketer::Type::FIXED_STOPS);
 
   if (fixedBucketRadio_) {
     assert(fixedBucketRadio_ && rangeBucketRadio_ && stopsBucketRadio_ && uniqueBucketRadio_);
@@ -5365,16 +5383,16 @@ updateWidgets()
 
     double rmin, rmax;
 
-    plot_->calcMinMaxBucketValue(rmin, rmax);
+    distributionPlot_->calcMinMaxBucketValue(rmin, rmax);
 
     bucketRange_    ->setRangeMinMax(rmin, rmax);
-    startBucketEdit_->setValue(plot_->startBucketValue());
-    deltaBucketEdit_->setValue(plot_->deltaBucketValue());
-    numBucketsEdit_ ->setValue(plot_->numAutoBuckets());
-    bucketStopsEdit_->setText(plot_->bucketStops().toString());
-    uniqueCount_    ->setValue(plot_->numUniqueValues());
-    rangeLabel_     ->setText(QString("%1-%2").arg(plot_->minBucketValue()).
-                                               arg(plot_->maxBucketValue()));
+    startBucketEdit_->setValue(distributionPlot_->startBucketValue());
+    deltaBucketEdit_->setValue(distributionPlot_->deltaBucketValue());
+    numBucketsEdit_ ->setValue(distributionPlot_->numAutoBuckets());
+    bucketStopsEdit_->setText(distributionPlot_->bucketStops().toString());
+    uniqueCount_    ->setValue(distributionPlot_->numUniqueValues());
+    rangeLabel_     ->setText(QString("%1-%2").arg(distributionPlot_->minBucketValue()).
+                                               arg(distributionPlot_->maxBucketValue()));
 
     setFrameWidgetVisible(bucketRange_    , ! isUnique && isAuto);
     setFrameWidgetVisible(startBucketEdit_, ! isUnique && isFixed);
@@ -5387,7 +5405,7 @@ updateWidgets()
 
   //---
 
-  if (statsCheck_) statsCheck_->setChecked(plot_->isStatsLines());
+  if (statsCheck_) statsCheck_->setChecked(distributionPlot_->isStatsLines());
 
   //---
 
@@ -5437,31 +5455,32 @@ void
 CQChartsDistributionPlotCustomControls::
 orientationSlot()
 {
-  plot_->setOrientation(static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
+  distributionPlot_->setOrientation(
+    static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
 }
 
 void
 CQChartsDistributionPlotCustomControls::
 plotTypeSlot()
 {
-  plot_->setPlotType(
-    static_cast<CQChartsDistributionPlot::PlotType>(plotTypeCombo_->currentValue()));
+  distributionPlot_->setPlotType(
+    static_cast<DistributionPlot::PlotType>(plotTypeCombo_->currentValue()));
 }
 
 void
 CQChartsDistributionPlotCustomControls::
 valueTypeSlot()
 {
-  plot_->setValueType(
-    static_cast<CQChartsDistributionPlot::ValueType>(valueTypeCombo_->currentValue()));
+  distributionPlot_->setValueType(
+    static_cast<DistributionPlot::ValueType>(valueTypeCombo_->currentValue()));
 }
 
 void
 CQChartsDistributionPlotCustomControls::
 shapeTypeSlot()
 {
-  plot_->setShapeType(
-    static_cast<CQChartsDistributionPlot::ShapeType>(shapeTypeCombo_->currentValue()));
+  distributionPlot_->setShapeType(
+    static_cast<DistributionPlot::ShapeType>(shapeTypeCombo_->currentValue()));
 }
 
 void
@@ -5469,14 +5488,14 @@ CQChartsDistributionPlotCustomControls::
 bucketRadioGroupSlot(QAbstractButton *button)
 {
   if      (button == fixedBucketRadio_)
-    plot_->setBucketType(CQBucketer::Type::REAL_RANGE);
+    distributionPlot_->setBucketType(CQBucketer::Type::REAL_RANGE);
   else if (button == rangeBucketRadio_)
-    plot_->setBucketType(CQBucketer::Type::REAL_AUTO);
+    distributionPlot_->setBucketType(CQBucketer::Type::REAL_AUTO);
   else if (button == stopsBucketRadio_)
-    plot_->setBucketType(CQBucketer::Type::FIXED_STOPS);
+    distributionPlot_->setBucketType(CQBucketer::Type::FIXED_STOPS);
   else if (button == uniqueBucketRadio_) {
-    if (plot_->bucketType() != CQBucketer::Type::STRING)
-      plot_->setExactBucketValue(true);
+    if (distributionPlot_->bucketType() != CQBucketer::Type::STRING)
+      distributionPlot_->setExactBucketValue(true);
   }
 }
 
@@ -5489,14 +5508,14 @@ bucketRangeSlot()
   setUpdatesEnabled(false);
 
   if (bucketRange_->sliderMin() != bucketRange_->rangeMin())
-    plot_->setUnderflowBucket(CQChartsOptReal(bucketRange_->sliderMin()));
+    distributionPlot_->setUnderflowBucket(CQChartsOptReal(bucketRange_->sliderMin()));
   else
-    plot_->setUnderflowBucket(CQChartsOptReal());
+    distributionPlot_->setUnderflowBucket(CQChartsOptReal());
 
   if (bucketRange_->sliderMax() != bucketRange_->rangeMax())
-    plot_->setOverflowBucket(CQChartsOptReal(bucketRange_->sliderMax()));
+    distributionPlot_->setOverflowBucket(CQChartsOptReal(bucketRange_->sliderMax()));
   else
-    plot_->setOverflowBucket(CQChartsOptReal());
+    distributionPlot_->setOverflowBucket(CQChartsOptReal());
 
   setUpdatesEnabled(true);
 
@@ -5509,47 +5528,47 @@ void
 CQChartsDistributionPlotCustomControls::
 startBucketSlot()
 {
-  plot_->setStartBucketValue(startBucketEdit_->value());
+  distributionPlot_->setStartBucketValue(startBucketEdit_->value());
 }
 
 void
 CQChartsDistributionPlotCustomControls::
 deltaBucketSlot()
 {
-  plot_->setDeltaBucketValue(deltaBucketEdit_->value());
+  distributionPlot_->setDeltaBucketValue(deltaBucketEdit_->value());
 }
 
 void
 CQChartsDistributionPlotCustomControls::
 numBucketsSlot()
 {
-  plot_->setNumAutoBuckets(numBucketsEdit_->value());
+  distributionPlot_->setNumAutoBuckets(numBucketsEdit_->value());
 }
 
 void
 CQChartsDistributionPlotCustomControls::
 bucketStopsSlot()
 {
-  plot_->setBucketStops(CQChartsReals(bucketStopsEdit_->text()));
+  distributionPlot_->setBucketStops(CQChartsReals(bucketStopsEdit_->text()));
 }
 
 void
 CQChartsDistributionPlotCustomControls::
 statsLinesSlot(int state)
 {
-  plot_->setStatsLines(state);
+  distributionPlot_->setStatsLines(state);
 }
 
 CQChartsColor
 CQChartsDistributionPlotCustomControls::
 getColorValue()
 {
-  return plot_->barFillColor();
+  return distributionPlot_->barFillColor();
 }
 
 void
 CQChartsDistributionPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setBarFillColor(c);
+  distributionPlot_->setBarFillColor(c);
 }

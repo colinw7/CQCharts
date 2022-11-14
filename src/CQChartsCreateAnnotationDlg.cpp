@@ -49,6 +49,20 @@ CQChartsCreateAnnotationDlg(QWidget *parent, Plot *plot) :
   initWidgets();
 }
 
+CQChartsView *
+CQChartsCreateAnnotationDlg::
+view() const
+{
+  return view_.data();
+}
+
+CQChartsPlot *
+CQChartsCreateAnnotationDlg::
+plot() const
+{
+  return plot_.data();
+}
+
 void
 CQChartsCreateAnnotationDlg::
 initWidgets()

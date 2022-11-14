@@ -22,10 +22,13 @@ class CQChartsPlotTipLabel : public QLabel {
 #if 0
 class CQChartsPlotTip : public CQToolTipIFace {
  public:
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsPlotTip();
  ~CQChartsPlotTip();
 
-  void setPlot(CQChartsPlot *plot);
+  void setPlot(Plot *plot);
 
   QWidget *showWidget(const QPoint &p) override;
 
@@ -40,7 +43,7 @@ class CQChartsPlotTip : public CQToolTipIFace {
   bool keyPress(int key, Qt::KeyboardModifiers mod) override;
 
  private:
-  using PlotP = QPointer<CQChartsPlot>;
+  using PlotP = QPointer<Plot>;
 
   PlotP                 plot_;
   CQChartsPlotTipLabel* widget_   { nullptr };

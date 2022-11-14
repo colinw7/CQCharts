@@ -1235,11 +1235,11 @@ createCustomControls()
 //------
 
 CQChartsPivotBarObj::
-CQChartsPivotBarObj(const PivotPlot *plot, const BBox &rect, const QModelIndex &ind,
+CQChartsPivotBarObj(const PivotPlot *pivotPlot, const BBox &rect, const QModelIndex &ind,
                     const QModelIndices &inds, const ColorInd &ir, const ColorInd &ic,
                     double value) :
- CQChartsPlotObj(const_cast<PivotPlot *>(plot), rect, ColorInd(), ir, ic),
- plot_(plot), value_(value), ind_(ind)
+ CQChartsPlotObj(const_cast<PivotPlot *>(pivotPlot), rect, ColorInd(), ir, ic),
+ pivotPlot_(pivotPlot), value_(value), ind_(ind)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -1264,18 +1264,19 @@ calcTipId() const
 
   CQChartsTableTip tableTip;
 
-  auto valueName = plot()->columnHeaderName(plot_->valueColumn(), /*tip*/true);
-  auto vkeyValue = plot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
-  auto hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
+  auto valueName = plot()->columnHeaderName(pivotPlot_->valueColumn(), /*tip*/true);
+  auto vkeyValue = pivotPlot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
+  auto hkeyValue = pivotPlot_->pivotModel()->data(
+                     pivotPlot_->pivotModel()->index(ir, 0)).toString();
 
-  if (plot_->valueColumn().isValid())
+  if (pivotPlot_->valueColumn().isValid())
     tableTip.addTableRow(valueName, QString::number(value()));
 
-  if (plot_->xColumns().isValid())
-    tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
+  if (pivotPlot_->xColumns().isValid())
+    tableTip.addTableRow(pivotPlot_->pivotModel()->hheader(), vkeyValue);
 
-  if (plot_->yColumns().isValid())
-    tableTip.addTableRow(plot_->pivotModel()->vheader(), hkeyValue);
+  if (pivotPlot_->yColumns().isValid())
+    tableTip.addTableRow(pivotPlot_->pivotModel()->vheader(), hkeyValue);
 
   plot()->addTipColumns(tableTip, modelInd());
 
@@ -1288,12 +1289,12 @@ CQChartsGeom::BBox
 CQChartsPivotBarObj::
 dataLabelRect() const
 {
-  if (! plot_->dataLabel()->isVisible())
+  if (! pivotPlot_->dataLabel()->isVisible())
     return BBox();
 
   auto label = QString::number(value());
 
-  return plot_->dataLabel()->calcRect(rect(), label);
+  return pivotPlot_->dataLabel()->calcRect(rect(), label);
 }
 
 //---
@@ -1302,10 +1303,10 @@ void
 CQChartsPivotBarObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : plot_->xColumns())
+  for (const auto &c : pivotPlot_->xColumns())
     addColumnSelectIndex(inds, c);
 
-  for (const auto &c : plot_->yColumns())
+  for (const auto &c : pivotPlot_->yColumns())
     addColumnSelectIndex(inds, c);
 }
 
@@ -1327,7 +1328,7 @@ draw(PaintDevice *device) const
   // draw bar
   device->setColorNames();
 
-  CQChartsDrawUtil::drawRoundedRect(device, penBrush, rect(), plot_->barCornerSize());
+  CQChartsDrawUtil::drawRoundedRect(device, penBrush, rect(), pivotPlot_->barCornerSize());
 
   device->resetColorNames();
 }
@@ -1337,15 +1338,15 @@ CQChartsPivotBarObj::
 drawFg(PaintDevice *device) const
 {
   // draw data label on foreground layers
-  if (! plot_->dataLabel()->isVisible())
+  if (! pivotPlot_->dataLabel()->isVisible())
     return;
 
   auto label = QString::number(value());
 
   if (label != "") {
-    auto pos = plot_->dataLabel()->position();
+    auto pos = pivotPlot_->dataLabel()->position();
 
-    plot_->dataLabel()->draw(device, rect(), label, pos);
+    pivotPlot_->dataLabel()->draw(device, rect(), label, pos);
   }
 }
 
@@ -1356,19 +1357,20 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // calc pen and brush
   auto colorInd = calcColorInd();
 
-  plot_->setPenBrush(penBrush, plot_->barPenData(colorInd), plot_->barBrushData(colorInd));
+  pivotPlot_->setPenBrush(penBrush, pivotPlot_->barPenData(colorInd),
+                          pivotPlot_->barBrushData(colorInd));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    pivotPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
 
 CQChartsPivotLineObj::
-CQChartsPivotLineObj(const PivotPlot *plot, const BBox &rect, const QModelIndices &inds,
+CQChartsPivotLineObj(const PivotPlot *pivotPlot, const BBox &rect, const QModelIndices &inds,
                      const ColorInd &ic, const Polygon &polygon, const QString &name) :
- CQChartsPlotObj(const_cast<PivotPlot *>(plot), rect, ColorInd(), ic, ColorInd()),
- plot_(plot), polygon_(polygon), name_(name)
+ CQChartsPlotObj(const_cast<PivotPlot *>(pivotPlot), rect, ColorInd(), ic, ColorInd()),
+ pivotPlot_(pivotPlot), polygon_(polygon), name_(name)
 {
   setModelInds(inds);
 }
@@ -1388,7 +1390,7 @@ calcTipId() const
 
   tableTip.addTableRow("Name", name_);
 
-  //plot()->addTipColumns(tableTip, modelInd());
+  //pivotPlot()->addTipColumns(tableTip, modelInd());
 
   return tableTip.str();
 }
@@ -1397,10 +1399,10 @@ bool
 CQChartsPivotLineObj::
 inside(const Point &p) const
 {
-  bool isFilled = (plot_->plotType() == PivotPlot::PlotType::AREA);
-  bool isLines  = (plot_->plotType() == PivotPlot::PlotType::LINES ||
-                   plot_->plotType() == PivotPlot::PlotType::AREA);
-  bool isPoints = (plot_->plotType() == PivotPlot::PlotType::LINES);
+  bool isFilled = (pivotPlot_->plotType() == PivotPlot::PlotType::AREA);
+  bool isLines  = (pivotPlot_->plotType() == PivotPlot::PlotType::LINES ||
+                   pivotPlot_->plotType() == PivotPlot::PlotType::AREA);
+  bool isPoints = (pivotPlot_->plotType() == PivotPlot::PlotType::LINES);
 
   auto pp = plot()->windowToPixel(p);
 
@@ -1446,10 +1448,10 @@ void
 CQChartsPivotLineObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : plot_->xColumns())
+  for (const auto &c : pivotPlot_->xColumns())
     addColumnSelectIndex(inds, c);
 
-  for (const auto &c : plot_->yColumns())
+  for (const auto &c : pivotPlot_->yColumns())
     addColumnSelectIndex(inds, c);
 }
 
@@ -1462,10 +1464,10 @@ draw(PaintDevice *device) const
 
   //---
 
-  bool isFilled = (plot_->plotType() == PivotPlot::PlotType::AREA);
-  bool isLines  = (plot_->plotType() == PivotPlot::PlotType::LINES ||
-                   plot_->plotType() == PivotPlot::PlotType::AREA);
-  bool isPoints = (plot_->plotType() == PivotPlot::PlotType::LINES);
+  bool isFilled = (pivotPlot_->plotType() == PivotPlot::PlotType::AREA);
+  bool isLines  = (pivotPlot_->plotType() == PivotPlot::PlotType::LINES ||
+                   pivotPlot_->plotType() == PivotPlot::PlotType::AREA);
+  bool isPoints = (pivotPlot_->plotType() == PivotPlot::PlotType::LINES);
 
   int np = polygon_.size();
 
@@ -1478,12 +1480,12 @@ draw(PaintDevice *device) const
     // calc pen and brush
     PenBrush penBrush;
 
-    auto lc = plot_->interpBarFillColor(colorInd);
+    auto lc = pivotPlot_->interpBarFillColor(colorInd);
 
-    plot_->setPenBrush(penBrush, PenData(true, lc), BrushData(false));
+    pivotPlot_->setPenBrush(penBrush, PenData(true, lc), BrushData(false));
 
     if (updateState)
-      plot_->updateObjPenBrushState(this, penBrush);
+      pivotPlot_->updateObjPenBrushState(this, penBrush);
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1522,12 +1524,12 @@ draw(PaintDevice *device) const
     // calc pen and brush
     PenBrush penBrush;
 
-    auto fc = plot_->interpBarFillColor(colorInd);
+    auto fc = pivotPlot_->interpBarFillColor(colorInd);
 
-    plot_->setPenBrush(penBrush, PenData(false), BrushData(true, fc, Alpha(0.5)));
+    pivotPlot_->setPenBrush(penBrush, PenData(false), BrushData(true, fc, Alpha(0.5)));
 
     if (updateState)
-      plot_->updateObjPenBrushState(this, penBrush);
+      pivotPlot_->updateObjPenBrushState(this, penBrush);
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1543,19 +1545,20 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto colorInd = calcColorInd();
 
-  plot_->setPenBrush(penBrush, plot_->barPenData(colorInd), plot_->barBrushData(colorInd));
+  pivotPlot_->setPenBrush(penBrush, pivotPlot_->barPenData(colorInd),
+                          pivotPlot_->barBrushData(colorInd));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    pivotPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
 
 CQChartsPivotPointObj::
-CQChartsPivotPointObj(const PivotPlot *plot, const BBox &rect, const QModelIndices &inds,
+CQChartsPivotPointObj(const PivotPlot *pivotPlot, const BBox &rect, const QModelIndices &inds,
                       const ColorInd &ir, const ColorInd &ic, const Point &p, double value) :
- CQChartsPlotPointObj(const_cast<PivotPlot *>(plot), rect, p, ColorInd(), ic, ir),
- plot_(plot), value_(value)
+ CQChartsPlotPointObj(const_cast<PivotPlot *>(pivotPlot), rect, p, ColorInd(), ic, ir),
+ pivotPlot_(pivotPlot), value_(value)
 {
   setModelInds(inds);
 }
@@ -1587,18 +1590,19 @@ calcTipId() const
 
   CQChartsTableTip tableTip;
 
-  auto valueName = plot()->columnHeaderName(plot_->valueColumn(), /*tip*/true);
-  auto vkeyValue = plot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
-  auto hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
+  auto valueName = plot()->columnHeaderName(pivotPlot_->valueColumn(), /*tip*/true);
+  auto vkeyValue = pivotPlot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
+  auto hkeyValue = pivotPlot_->pivotModel()->data(
+                     pivotPlot_->pivotModel()->index(ir, 0)).toString();
 
-  if (plot_->valueColumn().isValid())
+  if (pivotPlot_->valueColumn().isValid())
     tableTip.addTableRow(valueName, QString::number(value()));
 
-  if (plot_->xColumns().isValid())
-    tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
+  if (pivotPlot_->xColumns().isValid())
+    tableTip.addTableRow(pivotPlot_->pivotModel()->hheader(), vkeyValue);
 
-  if (plot_->yColumns().isValid())
-    tableTip.addTableRow(plot_->pivotModel()->vheader(), hkeyValue);
+  if (pivotPlot_->yColumns().isValid())
+    tableTip.addTableRow(pivotPlot_->pivotModel()->vheader(), hkeyValue);
 
   plot()->addTipColumns(tableTip, modelInd());
 
@@ -1611,10 +1615,10 @@ void
 CQChartsPivotPointObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : plot_->xColumns())
+  for (const auto &c : pivotPlot_->xColumns())
     addColumnSelectIndex(inds, c);
 
-  for (const auto &c : plot_->yColumns())
+  for (const auto &c : pivotPlot_->yColumns())
     addColumnSelectIndex(inds, c);
 }
 
@@ -1648,27 +1652,28 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto colorInd = calcColorInd();
 
-  plot_->setPenBrush(penBrush, plot_->barPenData(colorInd), plot_->barBrushData(colorInd));
+  pivotPlot_->setPenBrush(penBrush, pivotPlot_->barPenData(colorInd),
+                          pivotPlot_->barBrushData(colorInd));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    pivotPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
 
 CQChartsPivotCellObj::
-CQChartsPivotCellObj(const PivotPlot *plot, const BBox &rect, const QModelIndices &inds,
+CQChartsPivotCellObj(const PivotPlot *pivotPlot, const BBox &rect, const QModelIndices &inds,
                      const ColorInd &ir, const ColorInd &ic, const QString &name, double value,
                      double hnorm, double vnorm, bool valid) :
- CQChartsPlotObj(const_cast<PivotPlot *>(plot), rect, ColorInd(), ic, ir),
- plot_(plot), name_(name), value_(value), hnorm_(hnorm), vnorm_(vnorm), valid_(valid)
+ CQChartsPlotObj(const_cast<PivotPlot *>(pivotPlot), rect, ColorInd(), ic, ir),
+ pivotPlot_(pivotPlot), name_(name), value_(value), hnorm_(hnorm), vnorm_(vnorm), valid_(valid)
 {
   setDetailHint(DetailHint::MAJOR);
 
   setModelInds(inds);
 
   // get column palette and bg color
-  auto *columnDetails = plot_->columnDetails(CQChartsColumn(modelInd().column()));
+  auto *columnDetails = pivotPlot_->columnDetails(CQChartsColumn(modelInd().column()));
 
   if (columnDetails)
     color_ = columnDetails->tableDrawColor();
@@ -1693,18 +1698,19 @@ calcTipId() const
 
   CQChartsTableTip tableTip;
 
-  auto valueName = plot()->columnHeaderName(plot_->valueColumn(), /*tip*/true);
-  auto vkeyValue = plot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
-  auto hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
+  auto valueName = plot()->columnHeaderName(pivotPlot_->valueColumn(), /*tip*/true);
+  auto vkeyValue = pivotPlot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
+  auto hkeyValue = pivotPlot_->pivotModel()->data(
+                     pivotPlot_->pivotModel()->index(ir, 0)).toString();
 
-  if (plot_->valueColumn().isValid())
+  if (pivotPlot_->valueColumn().isValid())
     tableTip.addTableRow(valueName, QString::number(value()));
 
-  if (plot_->xColumns().isValid())
-    tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
+  if (pivotPlot_->xColumns().isValid())
+    tableTip.addTableRow(pivotPlot_->pivotModel()->hheader(), vkeyValue);
 
-  if (plot_->yColumns().isValid())
-    tableTip.addTableRow(plot_->pivotModel()->vheader(), hkeyValue);
+  if (pivotPlot_->yColumns().isValid())
+    tableTip.addTableRow(pivotPlot_->pivotModel()->vheader(), hkeyValue);
 
   tableTip.addTableRow("Row %"   , 100*hnorm_);
   tableTip.addTableRow("Column %", 100*vnorm_);
@@ -1718,10 +1724,10 @@ void
 CQChartsPivotCellObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : plot_->xColumns())
+  for (const auto &c : pivotPlot_->xColumns())
     addColumnSelectIndex(inds, c);
 
-  for (const auto &c : plot_->yColumns())
+  for (const auto &c : pivotPlot_->yColumns())
     addColumnSelectIndex(inds, c);
 }
 
@@ -1733,8 +1739,8 @@ draw(PaintDevice *device) const
   QColor hbg, vbg;
 
   if (color_.isValid()) {
-    auto bg1 = plot_->charts()->interpColor(color_, ColorInd());
-    auto bg2 = plot_->interpPlotFillColor(ColorInd());
+    auto bg1 = pivotPlot_->charts()->interpColor(color_, ColorInd());
+    auto bg2 = pivotPlot_->interpPlotFillColor(ColorInd());
 
     hbg = CQChartsUtil::blendColors(bg1, bg2, hnorm_);
     vbg = CQChartsUtil::blendColors(bg1, bg2, vnorm_);
@@ -1743,7 +1749,7 @@ draw(PaintDevice *device) const
   //---
 
   // calc bar box
-  auto prect = plot_->windowToPixel(rect());
+  auto prect = pivotPlot_->windowToPixel(rect());
 
   double m  = 4;
   double bs = std::min(prect.getMinSize()/2 - 2*m, 32.0);
@@ -1763,7 +1769,7 @@ draw(PaintDevice *device) const
 
   CQChartsDrawUtil::setPenBrush(device, bgPenBrush);
 
-  device->drawRect(plot_->pixelToWindow(prect));
+  device->drawRect(pivotPlot_->pixelToWindow(prect));
 
   device->resetColorNames();
 
@@ -1776,7 +1782,7 @@ draw(PaintDevice *device) const
 
     //---
 
-    auto textOptions = plot_->dataLabel()->textOptions();
+    auto textOptions = pivotPlot_->dataLabel()->textOptions();
 
     textOptions.angle     = Angle();
     textOptions.align     = Qt::AlignHCenter | Qt::AlignVCenter;
@@ -1784,15 +1790,15 @@ draw(PaintDevice *device) const
     textOptions.html      = false;
     textOptions.clipped   = false;
 
-    textOptions = plot_->adjustTextOptions(textOptions);
+    textOptions = pivotPlot_->adjustTextOptions(textOptions);
 
     device->setPen(CQChartsUtil::bwColor(vbg));
 
-    plot_->setPainterFont(device, plot_->dataLabel()->textFont());
+    pivotPlot_->setPainterFont(device, pivotPlot_->dataLabel()->textFont());
 
     BBox tbbox;
 
-    if (plot_->isGridBars()) {
+    if (pivotPlot_->isGridBars()) {
       // calc text box
       double tw = prect.getWidth () - bs - 3*m;
       double th = prect.getHeight() - bs - 3*m;
@@ -1800,10 +1806,10 @@ draw(PaintDevice *device) const
       BBox tbbox1(prect.getXMin() + m     , prect.getYMin() + m,
                   prect.getXMin() + m + tw, prect.getYMin() + m + th);
 
-      tbbox = plot_->pixelToWindow(tbbox1);
+      tbbox = pivotPlot_->pixelToWindow(tbbox1);
     }
     else
-      tbbox = plot_->pixelToWindow(prect);
+      tbbox = pivotPlot_->pixelToWindow(prect);
 
     CQChartsDrawUtil::drawTextInBox(device, tbbox, valueStr, textOptions);
   }
@@ -1811,7 +1817,7 @@ draw(PaintDevice *device) const
   //---
 
   // calc bar pen and brush and draw
-  if (valid_ && plot_->isGridBars()) {
+  if (valid_ && pivotPlot_->isGridBars()) {
     double bw = prect.getWidth () - bs - 3*m;
     double bh = prect.getHeight() - bs - 3*m;
 
@@ -1830,7 +1836,7 @@ draw(PaintDevice *device) const
     BBox bboxh2(prect.getXMin() + m     , prect.getYMax() - bs - m,
                 prect.getXMin() + m + bw, prect.getYMax()      - m);
 
-    device->drawRect(plot_->pixelToWindow(bboxh2));
+    device->drawRect(pivotPlot_->pixelToWindow(bboxh2));
 
     device->resetColorNames();
 
@@ -1838,14 +1844,14 @@ draw(PaintDevice *device) const
 
     PenBrush hbgPenBrush;
 
-    plot_->setPenBrush(hbgPenBrush, PenData(false), BrushData(true, hbg));
+    pivotPlot_->setPenBrush(hbgPenBrush, PenData(false), BrushData(true, hbg));
 
     CQChartsDrawUtil::setPenBrush(device, hbgPenBrush);
 
     BBox bboxh1(prect.getXMin() + m            , prect.getYMax() - bs - m,
                 prect.getXMin() + m + bw*hnorm_, prect.getYMax()      - m);
 
-    device->drawRect(plot_->pixelToWindow(bboxh1));
+    device->drawRect(pivotPlot_->pixelToWindow(bboxh1));
 
     //---
 
@@ -1856,7 +1862,7 @@ draw(PaintDevice *device) const
     BBox bboxv2(prect.getXMax() - m - bs, prect.getYMin() + m,
                 prect.getXMax() - m     , prect.getYMin() + m + bh);
 
-    device->drawRect(plot_->pixelToWindow(bboxv2));
+    device->drawRect(pivotPlot_->pixelToWindow(bboxv2));
 
     device->resetColorNames();
 
@@ -1864,14 +1870,14 @@ draw(PaintDevice *device) const
 
     PenBrush vbgPenBrush;
 
-    plot_->setPenBrush(vbgPenBrush, PenData(false), BrushData(true, vbg));
+    pivotPlot_->setPenBrush(vbgPenBrush, PenData(false), BrushData(true, vbg));
 
     CQChartsDrawUtil::setPenBrush(device, vbgPenBrush);
 
     BBox bboxv1(prect.getXMax() - m - bs, prect.getYMin() + m,
                 prect.getXMax() - m     , prect.getYMin() + m + bh*vnorm_);
 
-    device->drawRect(plot_->pixelToWindow(bboxv1));
+    device->drawRect(pivotPlot_->pixelToWindow(bboxv1));
   }
 }
 
@@ -1889,10 +1895,11 @@ calcBgPenBrush(PenBrush &bgPenBrush, bool updateState) const
   // get background color
   auto colorInd = calcColorInd();
 
-  plot_->setPenBrush(bgPenBrush, plot_->barPenData(colorInd), plot_->barBrushData(colorInd));
+  pivotPlot_->setPenBrush(bgPenBrush, pivotPlot_->barPenData(colorInd),
+                          pivotPlot_->barBrushData(colorInd));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, bgPenBrush);
+    pivotPlot_->updateObjPenBrushState(this, bgPenBrush);
 
   if (! valid_)
     bgPenBrush.brush = Qt::NoBrush;
@@ -1905,9 +1912,9 @@ calcFgPenBrush(PenBrush &fgPenBrush, bool /*updateState*/) const
   // get foreground color
   auto colorInd = calcColorInd();
 
-  plot_->setPen(fgPenBrush, plot_->barPenData(colorInd));
+  pivotPlot_->setPen(fgPenBrush, pivotPlot_->barPenData(colorInd));
 
-  fgPenBrush.brush = QBrush(plot_->interpPlotFillColor(ColorInd()));
+  fgPenBrush.brush = QBrush(pivotPlot_->interpPlotFillColor(ColorInd()));
 }
 
 void
@@ -1953,8 +1960,8 @@ writeScriptInsideColor(ScriptPaintDevice *device, bool isSave) const
 //------
 
 CQChartsPivotColorKeyItem::
-CQChartsPivotColorKeyItem(PivotPlot *plot, const ColorInd &ic) :
- CQChartsColorBoxKeyItem(plot, ColorInd(), ic, ColorInd())
+CQChartsPivotColorKeyItem(PivotPlot *pivotPlot, const ColorInd &ic) :
+ CQChartsColorBoxKeyItem(pivotPlot, ColorInd(), ic, ColorInd())
 {
 }
 
@@ -1962,15 +1969,15 @@ QBrush
 CQChartsPivotColorKeyItem::
 fillBrush() const
 {
-  auto *plot = qobject_cast<PivotPlot *>(this->plot());
+  auto *pivotPlot = qobject_cast<PivotPlot *>(this->plot());
 
-  auto fc = plot->interpBarFillColor(ig_);
+  auto fc = pivotPlot->interpBarFillColor(ig_);
 
   adjustFillColor(fc);
 
   PenBrush penBrush;
 
-  plot->setBrush(penBrush, plot->barBrushData(fc));
+  pivotPlot->setBrush(penBrush, pivotPlot->barBrushData(fc));
 
   return penBrush.brush;
 }
@@ -1985,8 +1992,8 @@ calcHidden() const
 //------
 
 CQChartsPivotTextKeyItem::
-CQChartsPivotTextKeyItem(PivotPlot *plot, const QString &name) :
- CQChartsTextKeyItem(plot, name, ColorInd())
+CQChartsPivotTextKeyItem(PivotPlot *pivotPlot, const QString &name) :
+ CQChartsTextKeyItem(pivotPlot, name, ColorInd())
 {
 }
 
@@ -2050,15 +2057,15 @@ void
 CQChartsPivotPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && pivotPlot_)
+    disconnect(pivotPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsPivotPlot *>(plot);
+  pivotPlot_ = dynamic_cast<CQChartsPivotPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (pivotPlot_)
+    connect(pivotPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

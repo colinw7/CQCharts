@@ -16,6 +16,34 @@ CQChartsEditBase(QWidget *parent) :
 {
 }
 
+CQChartsEditBase::Plot *
+CQChartsEditBase::
+plot() const
+{
+  return plot_.data();
+}
+
+void
+CQChartsEditBase::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = plot;
+}
+
+CQChartsEditBase::View *
+CQChartsEditBase::
+view() const
+{
+  return view_.data();
+}
+
+void
+CQChartsEditBase::
+setView(CQChartsView *view)
+{
+  view_ = view;
+}
+
 void
 CQChartsEditBase::
 drawCenteredText(QPainter *painter, const QString &text)

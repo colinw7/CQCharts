@@ -457,19 +457,19 @@ calcRange() const
   // calc range for each value column (set)
   class RowVisitor : public ModelVisitor {
    public:
-    using Plot = CQChartsParallelPlot;
+    using ParallelPlot = CQChartsParallelPlot;
 
    public:
-    RowVisitor(const Plot *plot) :
-     plot_(plot) {
-      ns_ = plot_->visibleYColumns().count();
+    RowVisitor(const ParallelPlot *parallelPlot) :
+     parallelPlot_(parallelPlot) {
+      ns_ = parallelPlot_->visibleYColumns().count();
 
       details_.resize(size_t(ns_));
 
       for (int i = 0; i < ns_; ++i) {
-        const auto &yColumn = plot_->visibleYColumns().getColumn(i);
+        const auto &yColumn = parallelPlot_->visibleYColumns().getColumn(i);
 
-        details_[size_t(i)] = plot_->columnDetails(yColumn);
+        details_[size_t(i)] = parallelPlot_->columnDetails(yColumn);
 
         setRanges_.emplace_back();
       }
@@ -479,22 +479,22 @@ calcRange() const
       for (int i = 0; i < ns_; ++i) {
         auto &range = setRanges_[size_t(i)];
 
-        const auto &yColumn = plot_->visibleYColumns().getColumn(i);
+        const auto &yColumn = parallelPlot_->visibleYColumns().getColumn(i);
 
-        ModelIndex yColumnInd(plot_, data.row, yColumn, data.parent);
+        ModelIndex yColumnInd(parallelPlot_, data.row, yColumn, data.parent);
 
         //---
 
-        double defVal = plot_->getModelBadValue(yColumn, data.row);
+        double defVal = parallelPlot_->getModelBadValue(yColumn, data.row);
 
         double x = 0.0;
         double y = defVal;
 
         // TODO: control default value ?
-        if (! plot_->rowColValue(details_[size_t(i)], yColumnInd, y, /*defVal*/y))
+        if (! parallelPlot_->rowColValue(details_[size_t(i)], yColumnInd, y, /*defVal*/y))
           continue;
 
-        if (plot_->isVertical())
+        if (parallelPlot_->isVertical())
           range.updateRange(x, y);
         else
           range.updateRange(y, x);
@@ -508,10 +508,10 @@ calcRange() const
    private:
     using ColumnDetailsArray = std::vector<CQChartsModelColumnDetails *>;
 
-    const Plot*        plot_    { nullptr };
-    int                ns_      { 0 };
-    ColumnDetailsArray details_ { nullptr };
-    Ranges             setRanges_;
+    const ParallelPlot* parallelPlot_ { nullptr };
+    int                 ns_           { 0 };
+    ColumnDetailsArray  details_      { nullptr };
+    Ranges              setRanges_;
   };
 
   RowVisitor visitor(this);
@@ -672,37 +672,37 @@ createObjs(PlotObjs &objs) const
 
   class RowVisitor : public ModelVisitor {
    public:
-    using Plot = CQChartsParallelPlot;
+    using ParallelPlot = CQChartsParallelPlot;
 
    public:
-    RowVisitor(const Plot *plot) :
-     plot_(plot) {
-      ns_ = plot_->visibleYColumns().count();
+    RowVisitor(const ParallelPlot *plot) :
+     parallelPlot_(plot) {
+      ns_ = parallelPlot_->visibleYColumns().count();
 
       details_.resize(size_t(ns_));
 
       for (int i = 0; i < ns_; ++i) {
-        const auto &yColumn = plot_->visibleYColumns().getColumn(i);
+        const auto &yColumn = parallelPlot_->visibleYColumns().getColumn(i);
 
-        details_[size_t(i)] = plot_->columnDetails(yColumn);
+        details_[size_t(i)] = parallelPlot_->columnDetails(yColumn);
       }
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
+      ModelIndex xModelInd(parallelPlot_, data.row, parallelPlot_->xColumn(), data.parent);
 
       Polygon poly;
 
-      auto xind = plot_->modelIndex(xModelInd);
+      auto xind = parallelPlot_->modelIndex(xModelInd);
 
       xinds_.push_back(xind);
 
       //---
 
       for (int i = 0; i < ns_; ++i) {
-        const auto &yColumn = plot_->visibleYColumns().getColumn(i);
+        const auto &yColumn = parallelPlot_->visibleYColumns().getColumn(i);
 
-        ModelIndex yColumnInd(plot_, data.row, yColumn, data.parent);
+        ModelIndex yColumnInd(parallelPlot_, data.row, yColumn, data.parent);
 
         //---
 
@@ -710,10 +710,10 @@ createObjs(PlotObjs &objs) const
         double y = i;
 
         // TODO: control default value ?
-        if (! plot_->rowColValue(details_[size_t(i)], yColumnInd, y, /*defVal*/y))
+        if (! parallelPlot_->rowColValue(details_[size_t(i)], yColumnInd, y, /*defVal*/y))
           continue;
 
-        if (plot_->isVertical())
+        if (parallelPlot_->isVertical())
           poly.addPoint(Point(x, y));
         else
           poly.addPoint(Point(y, x));
@@ -731,11 +731,11 @@ createObjs(PlotObjs &objs) const
    private:
     using ColumnDetailsArray = std::vector<CQChartsModelColumnDetails *>;
 
-    const Plot*        plot_    { nullptr };
-    int                ns_      { 0 };
-    ColumnDetailsArray details_ { nullptr };
-    Polygons           polys_;
-    Indices            xinds_;
+    const ParallelPlot* parallelPlot_ { nullptr };
+    int                 ns_           { 0 };
+    ColumnDetailsArray  details_      { nullptr };
+    Polygons            polys_;
+    Indices             xinds_;
   };
 
   RowVisitor visitor(this);
@@ -1252,10 +1252,11 @@ createCustomControls()
 //------
 
 CQChartsParallelLineObj::
-CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const BBox &rect, const Polygon &poly,
-                        const QModelIndex &ind, const ColorInd &is) :
- CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(plot), rect, is, ColorInd(), ColorInd()),
- plot_(plot), poly_(poly)
+CQChartsParallelLineObj(const CQChartsParallelPlot *parallelPlot, const BBox &rect,
+                        const Polygon &poly, const QModelIndex &ind, const ColorInd &is) :
+ CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(parallelPlot),
+                 rect, is, ColorInd(), ColorInd()),
+ parallelPlot_(parallelPlot), poly_(poly)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -1269,8 +1270,8 @@ calcId() const
 {
   QString xname;
 
-  if (plot_->xColumn().isValid()) {
-    ModelIndex xModelInd(plot(), modelInd().row(), plot_->xColumn(), modelInd().parent());
+  if (parallelPlot_->xColumn().isValid()) {
+    ModelIndex xModelInd(plot(), modelInd().row(), parallelPlot_->xColumn(), modelInd().parent());
 
     bool ok;
 
@@ -1296,11 +1297,11 @@ calcTipId() const
   int nl = poly_.size();
 
   for (int j = 0; j < nl; ++j) {
-    const auto &yColumn = plot_->visibleYColumns().getColumn(j);
+    const auto &yColumn = parallelPlot_->visibleYColumns().getColumn(j);
 
     bool ok;
 
-    auto yname = plot_->modelHHeaderString(yColumn, ok);
+    auto yname = parallelPlot_->modelHHeaderString(yColumn, ok);
 
     tableTip.addTableRow(yname, poly_.point(j).y);
   }
@@ -1320,12 +1321,12 @@ xName() const
 {
   QString xname;
 
-  if (plot_->xColumn().isValid()) {
-    ModelIndex xModelInd(plot(), modelInd().row(), plot_->xColumn(), modelInd().parent());
+  if (parallelPlot_->xColumn().isValid()) {
+    ModelIndex xModelInd(plot(), modelInd().row(), parallelPlot_->xColumn(), modelInd().parent());
 
     bool ok;
 
-    xname = plot_->modelString(xModelInd, ok);
+    xname = parallelPlot_->modelString(xModelInd, ok);
   }
   else {
     xname = QString::number(modelInd().row());
@@ -1338,7 +1339,7 @@ bool
 CQChartsParallelLineObj::
 isVisible() const
 {
-  if (! plot_->isLines())
+  if (! parallelPlot_->isLines())
     return false;
 
   return CQChartsPlotObj::isVisible();
@@ -1351,7 +1352,7 @@ inside(const Point &p) const
   if (! isVisible())
     return false;
 
-  if (! plot_->isLinesSelectable())
+  if (! parallelPlot_->isLinesSelectable())
     return false;
 
   // TODO: check as lines created, only need to create lines close to point
@@ -1376,8 +1377,8 @@ inside(const Point &p) const
     if (! CQChartsUtil::PointLineDistance(p, pl1, pl2, &d))
       continue;
 
-    auto pdx = plot_->windowToPixelWidth (d);
-    auto pdy = plot_->windowToPixelHeight(d);
+    auto pdx = parallelPlot_->windowToPixelWidth (d);
+    auto pdy = parallelPlot_->windowToPixelHeight(d);
 
     if (pdx < 4 || pdy < 4)
       return true;
@@ -1419,9 +1420,9 @@ void
 CQChartsParallelLineObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->xColumn());
+  addColumnSelectIndex(inds, parallelPlot_->xColumn());
 
-  for (const auto &c : plot_->visibleYColumns())
+  for (const auto &c : parallelPlot_->visibleYColumns())
     addColumnSelectIndex(inds, c);
 }
 
@@ -1459,22 +1460,22 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto colorInd = calcColorInd();
 
-  plot_->setLineDataPen(penBrush.pen, colorInd);
+  parallelPlot_->setLineDataPen(penBrush.pen, colorInd);
 
-  if (plot_->colorColumn().isValid() &&
-      plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+  if (parallelPlot_->colorColumn().isValid() &&
+      parallelPlot_->colorType() == CQChartsPlot::ColorType::AUTO) {
     auto ind1 = modelInd();
 
     Color indColor;
 
-    if (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
-      penBrush.pen.setColor(plot_->interpColor(indColor, colorInd));
+    if (parallelPlot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
+      penBrush.pen.setColor(parallelPlot_->interpColor(indColor, colorInd));
   }
 
-  plot_->setBrush(penBrush, BrushData(false));
+  parallelPlot_->setBrush(penBrush, BrushData(false));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::LINE);
+    parallelPlot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::LINE);
 }
 
 void
@@ -1483,12 +1484,12 @@ getPolyLine(Polygon &poly) const
 {
   // create unnormalized polyline
   for (int i = 0; i < poly_.size(); ++i) {
-    const auto &range = plot_->setRange(i);
+    const auto &range = parallelPlot_->setRange(i);
     if (! range.isValid()) continue;
 
     double x, y;
 
-    if (plot_->isVertical()) {
+    if (parallelPlot_->isVertical()) {
       x = poly_.point(i).x;
       y = (poly_.point(i).y - range.ymin())/range.ysize();
     }
@@ -1504,10 +1505,11 @@ getPolyLine(Polygon &poly) const
 //------
 
 CQChartsParallelPointObj::
-CQChartsParallelPointObj(const Plot *plot, const BBox &rect, double yval, const Point &p,
-                         const QModelIndex &ind, const ColorInd &is, const ColorInd &iv) :
- CQChartsPlotPointObj(const_cast<Plot *>(plot), rect, p, is, ColorInd(), iv),
- plot_(plot), yval_(yval)
+CQChartsParallelPointObj(const ParallelPlot *parallelPlot, const BBox &rect, double yval,
+                         const Point &p, const QModelIndex &ind, const ColorInd &is,
+                         const ColorInd &iv) :
+ CQChartsPlotPointObj(const_cast<ParallelPlot *>(parallelPlot), rect, p, is, ColorInd(), iv),
+ parallelPlot_(parallelPlot), yval_(yval)
 {
   if (ind.isValid())
     setModelInd(ind);
@@ -1519,7 +1521,7 @@ CQChartsLength
 CQChartsParallelPointObj::
 calcSymbolSize() const
 {
-  return plot()->symbolSize();
+  return parallelPlot()->symbolSize();
 }
 
 //---
@@ -1530,11 +1532,11 @@ calcId() const
 {
   auto xname = this->xName();
 
-  const auto &yColumn = plot_->visibleYColumns().getColumn(iv_.i);
+  const auto &yColumn = parallelPlot_->visibleYColumns().getColumn(iv_.i);
 
   bool ok1;
 
-  auto yname = plot_->modelHHeaderString(yColumn, ok1);
+  auto yname = parallelPlot_->modelHHeaderString(yColumn, ok1);
 
   return QString("%1:%2:%3=%4").arg(typeName()).arg(xname).arg(yname).arg(yval_);
 }
@@ -1549,17 +1551,17 @@ calcTipId() const
 
   tableTip.addBoldLine(xname);
 
-  const auto &yColumn = plot_->visibleYColumns().getColumn(iv_.i);
+  const auto &yColumn = parallelPlot_->visibleYColumns().getColumn(iv_.i);
 
   bool ok1;
 
-  auto yname = plot_->modelHHeaderString(yColumn, ok1);
+  auto yname = parallelPlot_->modelHHeaderString(yColumn, ok1);
 
   tableTip.addTableRow(yname, yval_);
 
   //---
 
-  plot()->addTipColumns(tableTip, modelInd());
+  parallelPlot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -1574,12 +1576,12 @@ xName() const
 {
   QString xname;
 
-  if (plot_->xColumn().isValid()) {
-    ModelIndex xModelInd(plot(), modelInd().row(), plot_->xColumn(), modelInd().parent());
+  if (parallelPlot_->xColumn().isValid()) {
+    ModelIndex xModelInd(plot(), modelInd().row(), parallelPlot_->xColumn(), modelInd().parent());
 
     bool ok;
 
-    xname = plot_->modelString(xModelInd, ok);
+    xname = parallelPlot_->modelString(xModelInd, ok);
   }
   else {
     xname = QString::number(modelInd().row());
@@ -1594,7 +1596,7 @@ bool
 CQChartsParallelPointObj::
 isVisible() const
 {
-  if (! plot_->isPoints())
+  if (! parallelPlot_->isPoints())
     return false;
 
   return CQChartsPlotPointObj::isVisible();
@@ -1615,7 +1617,7 @@ void
 CQChartsParallelPointObj::
 draw(PaintDevice *device) const
 {
-  auto symbol = plot()->symbol();
+  auto symbol = parallelPlot()->symbol();
 
   if (! symbol.isValid())
     return;
@@ -1648,7 +1650,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto colorInd = calcColorInd();
 
-  plot()->setSymbolPenBrush(penBrush, colorInd);
+  parallelPlot()->setSymbolPenBrush(penBrush, colorInd);
 
   if (updateState)
     plot()->updateObjPenBrushState(this, penBrush, drawType());
@@ -1771,17 +1773,17 @@ void
 CQChartsParallelPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && parallelPlot_)
+    disconnect(parallelPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsParallelPlot *>(plot);
+  parallelPlot_ = dynamic_cast<CQChartsParallelPlot *>(plot);
 
-  chooser_->setPlot(plot_);
+  chooser_->setPlot(parallelPlot_);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (parallelPlot_)
+    connect(parallelPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
@@ -1792,7 +1794,7 @@ updateWidgets()
 
   //---
 
-  orientationCombo_->setCurrentValue(static_cast<int>(plot_->orientation()));
+  orientationCombo_->setCurrentValue(static_cast<int>(parallelPlot_->orientation()));
 
   chooser_->updateWidgets();
 
@@ -1809,19 +1811,19 @@ void
 CQChartsParallelPlotCustomControls::
 orientationSlot()
 {
-  plot_->setOrientation(static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
+  parallelPlot_->setOrientation(static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
 }
 
 CQChartsColor
 CQChartsParallelPlotCustomControls::
 getColorValue()
 {
-  return plot_->linesColor();
+  return parallelPlot_->linesColor();
 }
 
 void
 CQChartsParallelPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setLinesColor(c);
+  parallelPlot_->setLinesColor(c);
 }

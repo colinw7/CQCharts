@@ -2,6 +2,7 @@
 #define CQChartsViewSettings_H
 
 #include <QFrame>
+#include <QPointer>
 
 class CQChartsGlobalPropertiesWidget;
 class CQChartsViewPropertiesControl;
@@ -72,7 +73,7 @@ class CQChartsViewSettings : public QFrame {
   // show error tab on error
   void showErrorsTab();
 
-  CQChartsPlot *currentPlot(bool remap=true) const;
+  Plot *currentPlot(bool remap=true) const;
 
  Q_SIGNALS:
   void objectsPropertyItemChanged(QObject *obj, const QString &path);
@@ -202,7 +203,8 @@ class CQChartsViewSettings : public QFrame {
   SymbolsList *symbolsList() const { return symbolsList_; }
 
  private:
-  using TabNum = std::map<QString, int>;
+  using PlotCustomControlsP = QPointer<PlotCustomControls>;
+  using TabNum              = std::map<QString, int>;
 
   CQChartsWindow* window_ { nullptr }; //!< parent window
 
@@ -211,7 +213,7 @@ class CQChartsViewSettings : public QFrame {
   PropertiesWidgets     propertiesWidgets_;              //!< properties widgets
   PlotControlFrame*     quickControlFrame_  { nullptr }; //!< quick control widgets
   QFrame*               customControlFrame_ { nullptr }; //!< custom control widgets
-  PlotCustomControls*   plotCustomControls_ { nullptr }; //!< plot custom controls
+  PlotCustomControlsP   plotCustomControls_;             //!< plot custom controls
   ModelsWidgets         modelsWidgets_;                  //!< models widgets
   PlotsWidgets          plotsWidgets_;                   //!< plots widgets
   AnnotationsWidgets    annotationsWidgets_;             //!< annotations widgets

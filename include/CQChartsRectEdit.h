@@ -2,7 +2,9 @@
 #define CQChartsRectEdit_H
 
 #include <CQChartsRect.h>
+
 #include <QFrame>
+#include <QPointer>
 
 class CQChartsView;
 class CQChartsPlot;
@@ -27,14 +29,14 @@ class CQChartsRectEdit : public QFrame {
  public:
   CQChartsRectEdit(QWidget *parent=nullptr);
 
-  const Rect &rect() const { return rect_; }
-  void setRect(const Rect &pos);
-
-  const View *view() const { return view_; }
+  View *view() const;
   void setView(View *view);
 
-  const Plot *plot() const { return plot_; }
+  Plot *plot() const;
   void setPlot(Plot *plot);
+
+  const Rect &rect() const { return rect_; }
+  void setRect(const Rect &pos);
 
   void setRegion(const BBox &bbox);
 
@@ -56,9 +58,12 @@ class CQChartsRectEdit : public QFrame {
   void connectSlots(bool b);
 
  private:
+  using ViewP = QPointer<View>;
+  using PlotP = QPointer<Plot>;
+
+  ViewP                 view_;                  //!< associated view
+  PlotP                 plot_;                  //!< associated plot
   Rect                  rect_;                  //!< rect data
-  View*                 view_      { nullptr }; //!< associated view
-  Plot*                 plot_      { nullptr }; //!< associated plot
   CQChartsGeomBBoxEdit* edit_      { nullptr }; //!< rect edit
   CQChartsUnitsEdit*    unitsEdit_ { nullptr }; //!< units edit
   bool                  connected_ { false };   //!< is connected

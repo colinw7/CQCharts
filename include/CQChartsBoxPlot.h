@@ -133,11 +133,11 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
   using VTexts = std::vector<VText>;
 
  public:
-  using Plot  = CQChartsBoxPlot;
-  using Angle = CQChartsAngle;
+  using BoxPlot = CQChartsBoxPlot;
+  using Angle   = CQChartsAngle;
 
  public:
-  CQChartsBoxPlotObj(const Plot *plot, const BBox &rect, const ColorInd &is=ColorInd(),
+  CQChartsBoxPlotObj(const BoxPlot *boxPlot, const BBox &rect, const ColorInd &is=ColorInd(),
                      const ColorInd &ig=ColorInd(), const ColorInd &iv=ColorInd());
 
   void clearDrawBBoxes();
@@ -159,8 +159,8 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
  protected:
   using BBoxes = std::vector<BBox>;
 
-  const Plot* plot_ { nullptr }; //!< parent plot
-  BBoxes      drawBBoxes_;
+  const BoxPlot* boxPlot_ { nullptr }; //!< parent plot
+  BBoxes         drawBBoxes_;
 };
 
 //---
@@ -182,13 +182,13 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   Q_PROPERTY(double notch       READ notch      )
 
  public:
-  using Plot       = CQChartsBoxPlot;
+  using BoxPlot    = CQChartsBoxPlot;
   using Symbol     = CQChartsSymbol;
   using SymbolType = CQChartsSymbolType;
   using Whisker    = CQChartsBoxPlotWhisker;
 
  public:
-  CQChartsBoxPlotWhiskerObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
+  CQChartsBoxPlotWhiskerObj(const BoxPlot *boxPlot, const BBox &rect, int setId, int groupInd,
                             const Whisker *whisker, const ColorInd &is, const ColorInd &ig);
 
   //---
@@ -250,17 +250,17 @@ class CQChartsBoxPlotOutlierObj : public CQChartsPlotPointObj {
   Q_OBJECT
 
  public:
-  using Plot    = CQChartsBoxPlot;
+  using BoxPlot = CQChartsBoxPlot;
   using Whisker = CQChartsBoxPlotWhisker;
   using Length  = CQChartsLength;
 
  public:
-  CQChartsBoxPlotOutlierObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
+  CQChartsBoxPlotOutlierObj(const BoxPlot *boxPlot, const BBox &rect, int setId, int groupInd,
                             const Whisker *whisker, const ColorInd &is, const ColorInd &ig, int io);
 
   //---
 
-  const Plot *plot() const { return plot_; }
+  const BoxPlot *boxPlot() const { return boxPlot_; }
 
   QString typeName() const override { return "outlier"; }
 
@@ -290,7 +290,7 @@ class CQChartsBoxPlotOutlierObj : public CQChartsPlotPointObj {
   double remapPos(double pos) const;
 
  private:
-  const Plot*    plot_     { nullptr }; //!< plot
+  const BoxPlot* boxPlot_  { nullptr }; //!< plot
   int            setId_    { 0 };       //!< set id
   int            groupInd_ { 0 };       //!< group ind
   const Whisker* whisker_  { nullptr }; //!< whisker data
@@ -310,11 +310,11 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
   Q_PROPERTY(double pos READ pos)
 
  public:
-  using Plot        = CQChartsBoxPlot;
+  using BoxPlot     = CQChartsBoxPlot;
   using WhiskerData = CQChartsBoxWhiskerData;
 
  public:
-  CQChartsBoxPlotDataObj(const Plot *plot, const BBox &rect, const WhiskerData &data,
+  CQChartsBoxPlotDataObj(const BoxPlot *boxPlot, const BBox &rect, const WhiskerData &data,
                          const ColorInd &is);
 
   QString typeName() const override { return "data"; }
@@ -349,10 +349,10 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsBoxPlot;
+  using BoxPlot = CQChartsBoxPlot;
 
  public:
-  CQChartsBoxPlotConnectedObj(const Plot *plot, const BBox &rect, int groupInd,
+  CQChartsBoxPlotConnectedObj(const BoxPlot *boxPlot, const BBox &rect, int groupInd,
                               const ColorInd &ig);
 
   QString typeName() const override { return "connected"; }
@@ -375,10 +375,10 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
   void initPolygon();
 
  private:
-  const Plot* plot_     { nullptr }; //!< parent plot
-  int         groupInd_ { -1 };      //!< group ind
-  Polygon     line_;                 //!< connected line
-  Polygon     poly_;                 //!< connected polygon
+  const BoxPlot* boxPlot_  { nullptr }; //!< parent plot
+  int            groupInd_ { -1 };      //!< group ind
+  Polygon        line_;                 //!< connected line
+  Polygon        poly_;                 //!< connected polygon
 };
 
 //---
@@ -393,7 +393,7 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotPointObj {
   Q_OBJECT
 
  public:
-  using Plot       = CQChartsBoxPlot;
+  using BoxPlot    = CQChartsBoxPlot;
   using Column     = CQChartsColumn;
   using Color      = CQChartsColor;
   using Symbol     = CQChartsSymbol;
@@ -401,13 +401,13 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotPointObj {
   using Length     = CQChartsLength;
 
  public:
-  CQChartsBoxPlotPointObj(const Plot *plot, const BBox &rect, int setId,
+  CQChartsBoxPlotPointObj(const BoxPlot *boxPlot, const BBox &rect, int setId,
                           int groupInd, const Point &p, const QModelIndex &ind,
                           const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
 
   //---
 
-  const Plot *plot() const { return plot_; }
+  const BoxPlot *boxPlot() const { return boxPlot_; }
 
   //---
 
@@ -430,10 +430,10 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotPointObj {
   Length calcSymbolSize() const override;
 
  private:
-  const Plot* plot_     { nullptr }; //!< parent plot
-  int         setId_    { -1 };      //!< set id
-  int         groupInd_ { -1 };      //!< group id
-  Color       color_;                //!< custom color
+  const BoxPlot* boxPlot_  { nullptr }; //!< parent plot
+  int            setId_    { -1 };      //!< set id
+  int            groupInd_ { -1 };      //!< group id
+  Color          color_;                //!< custom color
 };
 
 //---
@@ -448,10 +448,10 @@ class CQChartsBoxColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsBoxPlot;
+  using BoxPlot = CQChartsBoxPlot;
 
  public:
-  CQChartsBoxColorKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig);
+  CQChartsBoxColorKeyItem(BoxPlot *boxPlot, const ColorInd &is, const ColorInd &ig);
 
   //! handle select press
   bool selectPress(const Point &p, SelData &selData) override;
@@ -477,10 +477,11 @@ class CQChartsBoxTextKeyItem : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsBoxPlot;
+  using BoxPlot = CQChartsBoxPlot;
 
  public:
-  CQChartsBoxTextKeyItem(Plot *plot, const QString &text, const ColorInd &is, const ColorInd &ig);
+  CQChartsBoxTextKeyItem(BoxPlot *boxPlot, const QString &text, const ColorInd &is,
+                         const ColorInd &ig);
 
   QColor interpTextColor(const ColorInd &ind) const override;
 
@@ -1008,7 +1009,7 @@ class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -1040,7 +1041,7 @@ class CQChartsBoxPlotCustomControls : public CQChartsGroupPlotCustomControls {
   void errorBarSlot();
 
  protected:
-  CQChartsBoxPlot* plot_ { nullptr };
+  CQChartsBoxPlot* boxPlot_ { nullptr };
 
   FrameData optionsFrame_;
 
@@ -1067,7 +1068,7 @@ class CQChartsBoxPlotColumnChooser : public CQChartsPlotColumnChooser {
   Q_OBJECT
 
  public:
-  CQChartsBoxPlotColumnChooser(CQChartsBoxPlot *plot=nullptr);
+  CQChartsBoxPlotColumnChooser(CQChartsBoxPlot *boxPlot=nullptr);
 
   const CQChartsColumns &getColumns() const override;
 

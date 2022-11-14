@@ -61,6 +61,20 @@ CQChartsPlotControlFrame(QWidget *parent) :
   layout->addStretch(1);
 }
 
+CQChartsPlotControlFrame::Plot *
+CQChartsPlotControlFrame::
+plot() const
+{
+  return plot_.data();
+}
+
+void
+CQChartsPlotControlFrame::
+setPlot(Plot *plot)
+{
+  plot_ = plot;
+}
+
 bool
 CQChartsPlotControlFrame::
 isEqual() const
@@ -727,3 +741,18 @@ CQChartsPlotControlIFace(Plot *plot, const Column &column) :
  QFrame(plot->view()), plot_(plot), column_(column)
 {
 }
+
+CQChartsPlot *
+CQChartsPlotControlIFace::
+plot() const
+{
+  return plot_.data();
+}
+
+void
+CQChartsPlotControlIFace::
+setPlot(Plot *plot)
+{
+  plot_ = plot;
+}
+

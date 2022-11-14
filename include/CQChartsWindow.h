@@ -2,8 +2,10 @@
 #define CQChartsWindow_H
 
 #include <CQRangeScroll.h>
+
 #include <QFrame>
 #include <QModelIndex>
+#include <QPointer>
 
 class CQChartsTabWindow;
 class CQChartsWindow;
@@ -100,7 +102,7 @@ class CQChartsWindow : public QFrame {
   CQChartsWindow(View *view);
  ~CQChartsWindow();
 
-  View *view() const { return view_; }
+  View *view() const;
 
   ViewSettings *viewSettings() { return settings_; }
 
@@ -203,16 +205,17 @@ class CQChartsWindow : public QFrame {
   void propertyItemSelected(QObject *obj, const QString &path);
 
  private:
+  using ViewP           = QPointer<View>;
   using RangeScroll     = CQChartsWindowRangeScroll;
   using FilterEdit      = CQChartsFilterEdit;
   using ModelViewHolder = CQChartsModelViewHolder;
   using ToolBar         = CQChartsViewToolBar;
   using Status          = CQChartsViewStatus;
 
-  View* view_          { nullptr }; //!< parent view
-  bool  xRangeMap_     { false };   //!< xrange map
-  bool  yRangeMap_     { false };   //!< xrange map
-  bool  showDataTable_ { false };   //!< data table
+  ViewP view_;                    //!< parent view
+  bool  xRangeMap_     { false }; //!< xrange map
+  bool  yRangeMap_     { false }; //!< xrange map
+  bool  showDataTable_ { false }; //!< data table
 
   struct ViewSettingsData {
     bool visible      { true };  //!< view settings visible

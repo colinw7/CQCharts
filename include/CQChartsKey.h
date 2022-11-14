@@ -323,8 +323,6 @@ class CQChartsPlotKey : public CQChartsKey {
   CQChartsPlotKey(Plot *plot);
  ~CQChartsPlotKey();
 
-  Plot *plot() const { return plot_; }
-
   Plot *drawPlot() const;
 
   //---
@@ -644,9 +642,15 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
   using Point = CQChartsGeom::Point;
 
  public:
-  CQChartsKeyItem(PlotKey *key, const ColorInd &ic);
+  CQChartsKeyItem(PlotKey *key, const ColorInd &ic, Plot *plot=nullptr);
 
   virtual ~CQChartsKeyItem() { }
+
+  //---
+
+  Plot *plot() const;
+
+  //---
 
   virtual Size size() const = 0;
 
@@ -752,10 +756,13 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
   virtual void draw(PaintDevice *device, const BBox &rect) const = 0;
 
  protected:
+  using PlotP = QPointer<Plot>;
+
   PlotKey*     key_       { nullptr }; //!< parent key
+  ColorInd     ic_;                    //!< color index
+  PlotP        plot_;                  //!< parent plot
   QString      id_;                    //!< id
   ItemGroup*   group_     { nullptr }; //!< associated group
-  ColorInd     ic_;                    //!< color index
   int          row_       { 0 };       //!< row
   int          col_       { 0 };       //!< col
   int          rowSpan_   { 1 };       //!< row span
@@ -790,8 +797,6 @@ class CQChartsGroupKeyItem : public CQChartsKeyItem {
   virtual ~CQChartsGroupKeyItem();
 
   QString typeName() const override { return "group"; }
-
-  Plot *plot() const { return plot_; }
 
   void setKey(PlotKey *p) override;
 
@@ -841,7 +846,6 @@ class CQChartsGroupKeyItem : public CQChartsKeyItem {
   void draw(PaintDevice *device, const BBox &rect) const override;
 
  protected:
-  Plot*    plot_ { nullptr };
   KeyItems items_;
 };
 
@@ -862,8 +866,6 @@ class CQChartsTextKeyItem : public CQChartsKeyItem {
 
   QString typeName() const override { return "text"; }
 
-  Plot *plot() const { return plot_; }
-
   const QString &text() const { return text_; }
   void setText(const QString &s) { text_ = s; }
 
@@ -876,7 +878,6 @@ class CQChartsTextKeyItem : public CQChartsKeyItem {
   void draw(PaintDevice *device, const BBox &rect) const override;
 
  protected:
-  Plot*   plot_ { nullptr };
   QString text_;
 };
 
@@ -909,8 +910,6 @@ class CQChartsColorBoxKeyItem : public CQChartsKeyItem {
   QString typeName() const override { return "color"; }
 
   //---
-
-  Plot *plot() const { return plot_; }
 
   const Length &cornerRadius() const { return boxData_.shape().stroke().cornerSize(); }
   void setCornerRadius(const Length &r) { boxData_.shape().stroke().setCornerSize(r); }
@@ -951,7 +950,6 @@ class CQChartsColorBoxKeyItem : public CQChartsKeyItem {
  protected:
   using BoxData = CQChartsBoxData;
 
-  Plot*      plot_     { nullptr }; //!< parent plot
   BoxData    boxData_;              //!< box data
   ColorInd   is_;                   //!< group index
   ColorInd   ig_;                   //!< group index
@@ -980,8 +978,6 @@ class CQChartsLineKeyItem : public CQChartsKeyItem {
 
   QString typeName() const override { return "line"; }
 
-  Plot *plot() const { return plot_; }
-
   Size size() const override;
 
   //---
@@ -1001,7 +997,6 @@ class CQChartsLineKeyItem : public CQChartsKeyItem {
   void draw(PaintDevice *device, const BBox &rect) const override;
 
  protected:
-  Plot*      plot_ { nullptr }; //!< parent plot
   ColorInd   is_   { 0 };       //!< set color index
   ColorInd   ig_   { 0 };       //!< group color index
   QVariant   value_;            //!< associated value
@@ -1057,7 +1052,6 @@ class CQChartsGradientKeyItem : public CQChartsKeyItem {
   void calcLabels(QStringList &labels) const;
 
  private:
-  Plot*       plot_     { nullptr };
   double      minValue_ { 0 };
   double      maxValue_ { 100 };
   bool        integer_  { false };
@@ -1083,10 +1077,6 @@ class CQChartsCheckKeyItem : public CQChartsKeyItem {
 
   //---
 
-  Plot *plot() const { return plot_; }
-
-  //---
-
   Size size() const override;
 
   QVariant drawValue() const override { return QVariant(); } // TODO
@@ -1100,10 +1090,9 @@ class CQChartsCheckKeyItem : public CQChartsKeyItem {
   void setHidden(bool hidden) override;
 
  private:
-  Plot*    plot_ { nullptr }; //!< parent plot
-  ColorInd is_;               //!< group index
-  ColorInd ig_;               //!< group index
-  ColorInd iv_;               //!< number of groups
+  ColorInd is_; //!< group index
+  ColorInd ig_; //!< group index
+  ColorInd iv_; //!< number of groups
 };
 
 //---

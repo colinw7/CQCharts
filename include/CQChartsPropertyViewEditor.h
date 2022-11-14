@@ -23,6 +23,10 @@ class QRect;
  */
 class CQChartsPropertyViewType : public CQPropertyViewType {
  public:
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsPropertyViewType() { }
 
   virtual ~CQChartsPropertyViewType() { }
@@ -34,7 +38,7 @@ class CQChartsPropertyViewType : public CQPropertyViewType {
             const QVariant &value, const ItemState &itemState) override;
 
   virtual void drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
-                           CQChartsPlot *plot, CQChartsView *view) = 0;
+                           Plot *plot, View *view) = 0;
 };
 
 //---

@@ -333,6 +333,13 @@ CQChartsPlotPropertiesWidget(CQChartsPlot *plot)
   setPlot(plot);
 }
 
+CQChartsPlot *
+CQChartsPlotPropertiesWidget::
+plot() const
+{
+  return plot_.data();
+}
+
 void
 CQChartsPlotPropertiesWidget::
 setPlot(CQChartsPlot *plot)

@@ -5,15 +5,29 @@
 #include <CQChartsPaintDevice.h>
 
 CQChartsResizeHandle::
-CQChartsResizeHandle(const CQChartsView *view, CQChartsResizeSide side) :
- view_(view), side_(side)
+CQChartsResizeHandle(const View *view, CQChartsResizeSide side) :
+ view_(const_cast<View *>(view)), side_(side)
 {
 }
 
 CQChartsResizeHandle::
-CQChartsResizeHandle(const CQChartsPlot *plot, CQChartsResizeSide side) :
- plot_(plot), side_(side)
+CQChartsResizeHandle(const Plot *plot, CQChartsResizeSide side) :
+ plot_(const_cast<Plot *>(plot)), side_(side)
 {
+}
+
+CQChartsView *
+CQChartsResizeHandle::
+view() const
+{
+  return view_.data();
+}
+
+CQChartsPlot *
+CQChartsResizeHandle::
+plot() const
+{
+  return plot_.data();
 }
 
 void

@@ -83,14 +83,14 @@ init()
   //---
 
 #ifdef CQCHARTS_MODEL_VIEW
-  assert(! view_);
+  assert(! modelView_);
 
-  view_ = new CQChartsModelView(charts_);
+  modelView_ = new CQChartsModelView(charts_);
 
-  viewLayout->addWidget(view_);
+  viewLayout->addWidget(modelView_);
 
-  connect(view_, SIGNAL(columnClicked(int)), this, SLOT(columnClicked(int)));
-  connect(view_, SIGNAL(selectionHasChanged()), this, SLOT(selectionChanged()));
+  connect(modelView_, SIGNAL(columnClicked(int)), this, SLOT(columnClicked(int)));
+  connect(modelView_, SIGNAL(selectionHasChanged()), this, SLOT(selectionChanged()));
 #else
   assert(! stack_);
 
@@ -166,7 +166,7 @@ filterSlot()
   auto *filterEdit = qobject_cast<CQChartsLineEdit *>(sender());
 
 #ifdef CQCHARTS_MODEL_VIEW
-  view_->setFilter(filterEdit->text());
+  modelView_->setFilter(filterEdit->text());
 #else
   if (stack_->currentIndex() == 0) {
     if (tree_)
@@ -194,7 +194,7 @@ selectionChanged()
   std::set<int> columns;
 
 #ifdef CQCHARTS_MODEL_VIEW
-  auto *sm = view_->selectionModel();
+  auto *sm = modelView_->selectionModel();
 
   auto inds = sm->selectedIndexes();
 
@@ -246,7 +246,7 @@ reloadModel()
     return;
 
 #ifdef CQCHARTS_MODEL_VIEW
-  view_->setModelP(modelData_->currentModel(isProxy()));
+  modelView_->setModelP(modelData_->currentModel(isProxy()));
 #else
   if (modelData_->details()->isHierarchical()) {
     if (tree_)
@@ -275,7 +275,7 @@ setDetails()
   const ModelData *modelData1 = nullptr;
 
 #ifdef CQCHARTS_MODEL_VIEW
-  modelData1 = charts_->getModelData(view_->modelP());
+  modelData1 = charts_->getModelData(modelView_->modelP());
 #else
   if (stack_->currentIndex() == 0) {
     if (tree_)

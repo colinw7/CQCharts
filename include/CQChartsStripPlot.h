@@ -58,17 +58,17 @@ class CQChartsStripPointObj : public CQChartsPlotPointObj {
   Q_OBJECT
 
  public:
-  using Plot   = CQChartsStripPlot;
-  using Length = CQChartsLength;
+  using StripPlot = CQChartsStripPlot;
+  using Length    = CQChartsLength;
 
  public:
-  CQChartsStripPointObj(const Plot *plot, const BBox &rect, int groupInd,
+  CQChartsStripPointObj(const StripPlot *plot, const BBox &rect, int groupInd,
                         const Point &p, const QModelIndex &ind, const ColorInd &ig,
                         const ColorInd &iv);
 
   //---
 
-  const Plot *plot() const { return plot_; }
+  const StripPlot *stripPlot() const { return stripPlot_; }
 
   //---
 
@@ -87,8 +87,8 @@ class CQChartsStripPointObj : public CQChartsPlotPointObj {
   Length calcSymbolSize() const override;
 
  protected:
-  const Plot* plot_     { nullptr }; //!< parent plot
-  int         groupInd_ { 0 };       //!< group index
+  const StripPlot* stripPlot_ { nullptr }; //!< parent plot
+  int              groupInd_  { 0 };       //!< group index
 };
 
 //---
@@ -231,14 +231,14 @@ class CQChartsStripPlotCustomControls : public CQChartsGroupPlotCustomControls {
 
   void addWidgets() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  protected:
   CQChartsColor getColorValue() override;
   void setColorValue(const CQChartsColor &c) override;
 
  protected:
-  CQChartsStripPlot* plot_ { nullptr };
+  CQChartsStripPlot* stripPlot_ { nullptr };
 };
 
 #endif

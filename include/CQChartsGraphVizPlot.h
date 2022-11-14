@@ -435,21 +435,22 @@ class CQChartsGraphVizNodeObj : public CQChartsPlotObj {
     PLAIN_TEXT    = static_cast<int>(CQChartsShapeType::PLAIN_TEXT)
   };
 
-  using Plot  = CQChartsGraphVizPlot;
-  using Node  = CQChartsGraphVizPlotNode;
-  using Edge  = CQChartsGraphVizPlotEdge;
-  using Color = CQChartsColor;
-  using Angle = CQChartsAngle;
+  using GraphVizPlot = CQChartsGraphVizPlot;
+  using Node         = CQChartsGraphVizPlotNode;
+  using Edge         = CQChartsGraphVizPlotEdge;
+  using Color        = CQChartsColor;
+  using Angle        = CQChartsAngle;
 
  public:
-  CQChartsGraphVizNodeObj(const Plot *plot, const BBox &rect, Node *node, const ColorInd &ind);
+  CQChartsGraphVizNodeObj(const GraphVizPlot *plot, const BBox &rect, Node *node,
+                          const ColorInd &ind);
 
   virtual ~CQChartsGraphVizNodeObj();
 
   //---
 
   //! get plot
-  const Plot *plot() const { return plot_; }
+  const GraphVizPlot *graphVizPlot() const { return graphVizPlot_; }
 
   //! get node
   Node *node() const { return node_; }
@@ -544,10 +545,10 @@ class CQChartsGraphVizNodeObj : public CQChartsPlotObj {
   QColor calcFillColor() const;
 
  protected:
-  const Plot* plot_        { nullptr }; //!< parent plot
-  Node*       node_        { nullptr }; //!< node
-  QString     hierName_;                //!< node hier name
-  bool        editChanged_ { false };   //!< edit is changed
+  const GraphVizPlot* graphVizPlot_ { nullptr }; //!< parent plot
+  Node*               node_         { nullptr }; //!< node
+  QString             hierName_;                 //!< node hier name
+  bool                editChanged_  { false };   //!< edit is changed
 };
 
 //---
@@ -570,21 +571,21 @@ class CQChartsGraphVizEdgeObj : public CQChartsPlotObj {
     ARROW
   };
 
-  using Plot   = CQChartsGraphVizPlot;
-  using Edge   = CQChartsGraphVizPlotEdge;
-  using Node   = CQChartsGraphVizPlotNode;
-  using Length = CQChartsLength;
-  using Angle  = CQChartsAngle;
+  using GraphVizPlot = CQChartsGraphVizPlot;
+  using Edge         = CQChartsGraphVizPlotEdge;
+  using Node         = CQChartsGraphVizPlotNode;
+  using Length       = CQChartsLength;
+  using Angle        = CQChartsAngle;
 
  public:
-  CQChartsGraphVizEdgeObj(const Plot *plot, const BBox &rect, Edge *edge);
+  CQChartsGraphVizEdgeObj(const GraphVizPlot *plot, const BBox &rect, Edge *edge);
 
   virtual ~CQChartsGraphVizEdgeObj();
 
   //---
 
   //! get plot
-  const Plot *plot() const { return plot_; }
+  const GraphVizPlot *graphVizPlot() const { return graphVizPlot_; }
 
   //! get/set edge
   Edge *edge() const { return edge_; }
@@ -639,12 +640,12 @@ class CQChartsGraphVizEdgeObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  protected:
-  const Plot*          plot_      { nullptr }; //!< parent plot
-  Edge*                edge_      { nullptr }; //!< edge
-  BBox                 srcRect_;               //!< src rect
-  BBox                 destRect_;              //!< dest rect
-  mutable QPainterPath epath_;                 //!< line path
-  mutable QPainterPath path_;                  //!< painter path
+  const GraphVizPlot*  graphVizPlot_ { nullptr }; //!< parent plot
+  Edge*                edge_         { nullptr }; //!< edge
+  BBox                 srcRect_;                  //!< src rect
+  BBox                 destRect_;                 //!< dest rect
+  mutable QPainterPath epath_;                    //!< line path
+  mutable QPainterPath path_;                     //!< painter path
 };
 
 //---
@@ -1132,7 +1133,7 @@ class CQChartsGraphVizPlotCustomControls : public CQChartsConnectionPlotCustomCo
 
   void addWidgets() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -1146,7 +1147,7 @@ class CQChartsGraphVizPlotCustomControls : public CQChartsConnectionPlotCustomCo
   void setColorValue(const Color &c) override;
 
  protected:
-  CQChartsGraphVizPlot* plot_ { nullptr };
+  CQChartsGraphVizPlot* graphVizPlot_ { nullptr };
 };
 
 #endif

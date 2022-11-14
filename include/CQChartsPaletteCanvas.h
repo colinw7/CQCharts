@@ -4,6 +4,8 @@
 #include <CQColorsEditCanvas.h>
 #include <CQChartsWidgetIFace.h>
 
+#include <QPointer>
+
 class CQChartsView;
 
 class CQChartsPaletteCanvas : public CQColorsEditCanvas, public CQChartsWidgetIFace {
@@ -13,10 +15,13 @@ class CQChartsPaletteCanvas : public CQColorsEditCanvas, public CQChartsWidgetIF
   Q_PROPERTY(bool    interface   READ isInterface WRITE setInterface)
 
  public:
+  using View = CQChartsView;
+
+ public:
   CQChartsPaletteCanvas(QWidget *parent=nullptr);
 
-  const CQChartsView *view() const { return view_; }
-  void setView(CQChartsView *view) override;
+  View *view() const;
+  void setView(View *view) override;
 
   const QString &paletteName() const { return paletteName_; }
   void setPaletteName(const QString &name);
@@ -28,9 +33,11 @@ class CQChartsPaletteCanvas : public CQColorsEditCanvas, public CQChartsWidgetIF
   void updatePalette();
 
  private:
-  CQChartsView *view_      { nullptr };
-  QString       paletteName_;
-  bool          interface_ { false };
+  using ViewP = QPointer<View>;
+
+  ViewP   view_;
+  QString paletteName_;
+  bool    interface_ { false };
 };
 
 #endif

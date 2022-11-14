@@ -196,15 +196,15 @@ void
 CQChartsHierPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && hierPlot_)
+    disconnect(hierPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsHierPlot *>(plot);
+  hierPlot_ = dynamic_cast<CQChartsHierPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (hierPlot_)
+    connect(hierPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

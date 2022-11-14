@@ -196,6 +196,13 @@ CQChartsAxisBoxWhisker(Plot *plot, const Qt::Orientation &direction) :
 {
 }
 
+CQChartsPlot *
+CQChartsAxisBoxWhisker::
+plot() const
+{
+  return plot_.data();
+}
+
 void
 CQChartsAxisBoxWhisker::
 setSide(const Side &s)
@@ -426,6 +433,13 @@ CQChartsAxisDensity::
 CQChartsAxisDensity(Plot *plot, const Qt::Orientation &direction) :
  CQChartsObj(plot->charts()), plot_(plot), direction_(direction)
 {
+}
+
+CQChartsPlot *
+CQChartsAxisDensity::
+plot() const
+{
+  return plot_.data();
 }
 
 void

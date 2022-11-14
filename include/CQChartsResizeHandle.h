@@ -7,6 +7,7 @@
 
 #include <QPainterPath>
 #include <QColor>
+#include <QPointer>
 
 class CQChartsView;
 class CQChartsPlot;
@@ -42,8 +43,8 @@ class CQChartsResizeHandle : QObject {
 
   //---
 
-  const View* view() const { return view_; }
-  const Plot* plot() const { return plot_; }
+  View* view() const;
+  Plot* plot() const;
 
   //---
 
@@ -85,8 +86,11 @@ class CQChartsResizeHandle : QObject {
   Point windowToPixel(const Point &p) const;
 
  private:
-  const View*          view_        { nullptr };
-  const Plot*          plot_        { nullptr };
+  using ViewP = QPointer<View>;
+  using PlotP = QPointer<Plot>;
+
+  ViewP                view_;
+  PlotP                plot_;
   BBox                 bbox_;
   ResizeSide           side_        { ResizeSide::NONE };
   bool                 selected_    { false };

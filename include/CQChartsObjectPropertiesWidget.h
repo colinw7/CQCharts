@@ -2,6 +2,7 @@
 #define CQChartsObjectPropertiesWidget_H
 
 #include <QFrame>
+#include <QPointer>
 
 class CQChartsPlot;
 class CQChartsPropertyViewTree;
@@ -20,7 +21,7 @@ class CQChartsObjectPropertiesWidget : public QFrame {
  public:
   CQChartsObjectPropertiesWidget();
 
-  Plot *plot() const { return plot_; }
+  Plot *plot() const;
 
   CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
 
@@ -31,7 +32,9 @@ class CQChartsObjectPropertiesWidget : public QFrame {
   void filterStateSlot(bool show, bool focus);
 
  private:
-  Plot*                               plot_         { nullptr };
+  using PlotP = QPointer<Plot>;
+
+  PlotP                               plot_;
   CQChartsPropertyViewTree*           propertyTree_ { nullptr };
   CQChartsPropertyViewTreeFilterEdit* filterEdit_   { nullptr };
 };

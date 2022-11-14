@@ -4,20 +4,27 @@
 #include <CQChartsPaletteName.h>
 #include <CQDoubleRangeSlider.h>
 
+#include <QPointer>
+
 class CQChartsPlot;
 
 class CQChartsColorRangeSlider : public CQDoubleRangeSlider {
   Q_OBJECT
 
  public:
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsColorRangeSlider(QWidget *parent=nullptr);
 
-  void setPlot(CQChartsPlot *plot);
+  void setPlot(Plot *plot);
 
   void setPaletteName(const CQChartsPaletteName &paletteName);
 
  public:
-  CQChartsPlot*       plot_ { nullptr };
+  using PlotP = QPointer<Plot>;
+
+  PlotP               plot_;
   CQChartsPaletteName paletteName_;
 };
 

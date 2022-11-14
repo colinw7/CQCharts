@@ -175,19 +175,19 @@ class CQChartsHierScatterPointObj : public CQChartsPlotPointObj {
   Q_OBJECT
 
  public:
-  using Plot       = CQChartsHierScatterPlot;
-  using PointGroup = CQChartsHierScatterPointGroup;
-  using Length     = CQChartsLength;
-  using Symbol     = CQChartsSymbol;
-  using SymbolType = CQChartsSymbolType;
+  using HierScatterPlot = CQChartsHierScatterPlot;
+  using PointGroup      = CQChartsHierScatterPointGroup;
+  using Length          = CQChartsLength;
+  using Symbol          = CQChartsSymbol;
+  using SymbolType      = CQChartsSymbolType;
 
  public:
-  CQChartsHierScatterPointObj(const Plot *plot, const BBox &rect, const Point &p,
+  CQChartsHierScatterPointObj(const HierScatterPlot *plot, const BBox &rect, const Point &p,
                               const ColorInd &iv);
 
   //---
 
-  const Plot *plot() const { return plot_; }
+  const HierScatterPlot *hierScatterPlot() const { return hierScatterPlot_; }
 
   //---
 
@@ -212,9 +212,9 @@ class CQChartsHierScatterPointObj : public CQChartsPlotPointObj {
   Length calcSymbolSize() const override;
 
  private:
-  const Plot* plot_ { nullptr };
-  QString     name_;
-  PointGroup* group_ { nullptr };
+  const HierScatterPlot* hierScatterPlot_ { nullptr };
+  QString                name_;
+  PointGroup*            group_ { nullptr };
 };
 
 //---
@@ -229,10 +229,10 @@ class CQChartsHierScatterColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsHierScatterPlot;
+  using HierScatterPlot = CQChartsHierScatterPlot;
 
  public:
-  CQChartsHierScatterColorKeyItem(Plot *plot, CQChartsHierScatterPointGroup *group,
+  CQChartsHierScatterColorKeyItem(HierScatterPlot *plot, CQChartsHierScatterPointGroup *group,
                                   const ColorInd &ic);
 
   //! handle select press
@@ -425,7 +425,7 @@ class CQChartsHierScatterPlotCustomControls : public CQChartsPlotCustomControls 
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -438,7 +438,7 @@ class CQChartsHierScatterPlotCustomControls : public CQChartsPlotCustomControls 
   void connectSlots(bool b) override;
 
  protected:
-  CQChartsHierScatterPlot* plot_ { nullptr };
+  CQChartsHierScatterPlot* hierScatterPlot_ { nullptr };
 };
 
 #endif

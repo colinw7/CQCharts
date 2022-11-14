@@ -150,18 +150,18 @@ calcRange() const
   // calc data range (x, y, z values)
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsContourPlot *plot) :
-     plot_(plot) {
+    RowVisitor(const CQChartsContourPlot *contourPlot) :
+     contourPlot_(contourPlot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       // first row is y values (skip first column)
       if (data.row == 0) {
         for (int col = 1; col < numCols(); ++col) {
-          ModelIndex columnModelInd(plot_, data.row, Column(col), data.parent);
+          ModelIndex columnModelInd(contourPlot_, data.row, Column(col), data.parent);
 
           bool ok;
-          double y = plot_->modelReal(columnModelInd, ok);
+          double y = contourPlot_->modelReal(columnModelInd, ok);
 
           if (! ok) {
             y  = col - 1; // use column number if not numeric
@@ -174,10 +174,10 @@ calcRange() const
       }
       // remaining rows are x values (first column)
       else {
-        ModelIndex columnModelInd(plot_, data.row, Column(0), data.parent);
+        ModelIndex columnModelInd(contourPlot_, data.row, Column(0), data.parent);
 
         bool ok;
-        double x = plot_->modelReal(columnModelInd, ok);
+        double x = contourPlot_->modelReal(columnModelInd, ok);
 
         if (! ok) {
           x  = data.row - 1; // use row number if not numeric
@@ -188,10 +188,10 @@ calcRange() const
           xValueRange_.add(x);
 
         for (int col = 1; col < numCols(); ++col) {
-          ModelIndex columnModelInd1(plot_, data.row, Column(col), data.parent);
+          ModelIndex columnModelInd1(contourPlot_, data.row, Column(col), data.parent);
 
           bool ok1;
-          double z = plot_->modelReal(columnModelInd1, ok1);
+          double z = contourPlot_->modelReal(columnModelInd1, ok1);
 
           if (ok && ! CMathUtil::isNaN(z))
             zValueRange_.add(z);
@@ -209,7 +209,7 @@ calcRange() const
     double maxZValue() const { return zValueRange_.max(1.0); }
 
    private:
-    const CQChartsContourPlot* plot_ { nullptr };
+    const CQChartsContourPlot* contourPlot_ { nullptr };
     RMinMax                    xValueRange_;
     RMinMax                    yValueRange_;
     RMinMax                    zValueRange_;
@@ -264,19 +264,19 @@ createObjs(PlotObjs &) const
   // create points for original data points
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsContourPlot *plot, std::vector<double> &x,
+    RowVisitor(const CQChartsContourPlot *contourPlot, std::vector<double> &x,
                std::vector<double> &y, std::vector<double> &z) :
-     plot_(plot), x_(x), y_(y), z_(z) {
+     contourPlot_(contourPlot), x_(x), y_(y), z_(z) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       // first row is y values (skip first column)
       if (data.row == 0) {
         for (int col = 1; col < numCols(); ++col) {
-          ModelIndex columnModelInd(plot_, data.row, Column(col), data.parent);
+          ModelIndex columnModelInd(contourPlot_, data.row, Column(col), data.parent);
 
           bool ok;
-          double y = plot_->modelReal(columnModelInd, ok);
+          double y = contourPlot_->modelReal(columnModelInd, ok);
 
           if (! ok) {
             y  = col - 1; // use column number if not numeric
@@ -291,10 +291,10 @@ createObjs(PlotObjs &) const
       }
       // remaining rows are x values (first column) and z values
       else {
-        ModelIndex columnModelInd(plot_, data.row, Column(0), data.parent);
+        ModelIndex columnModelInd(contourPlot_, data.row, Column(0), data.parent);
 
         bool ok;
-        double x = plot_->modelReal(columnModelInd, ok);
+        double x = contourPlot_->modelReal(columnModelInd, ok);
 
         if (! ok) {
           x  = data.row - 1; // use row number if not numeric
@@ -307,10 +307,10 @@ createObjs(PlotObjs &) const
          x_[size_t(ix_++)] = x;
 
         for (int col = 1; col < numCols(); ++col) {
-          ModelIndex columnModelInd1(plot_, data.row, Column(col), data.parent);
+          ModelIndex columnModelInd1(contourPlot_, data.row, Column(col), data.parent);
 
           bool ok1;
-          double z = plot_->modelReal(columnModelInd1, ok1);
+          double z = contourPlot_->modelReal(columnModelInd1, ok1);
 
           if (! ok || CMathUtil::isNaN(z))
             z = 0.0; // default bad value to zero
@@ -323,7 +323,7 @@ createObjs(PlotObjs &) const
     }
 
    private:
-    const CQChartsContourPlot* plot_ { nullptr };
+    const CQChartsContourPlot* contourPlot_ { nullptr };
     std::vector<double>&       x_;
     std::vector<double>&       y_;
     std::vector<double>&       z_;
@@ -466,15 +466,15 @@ void
 CQChartsContourPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && contourPlot_)
+    disconnect(contourPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsContourPlot *>(plot);
+  contourPlot_ = dynamic_cast<CQChartsContourPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (contourPlot_)
+    connect(contourPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
@@ -485,7 +485,7 @@ updateWidgets()
 
   //---
 
-  solidCheck_->setChecked(plot_->isSolid());
+  solidCheck_->setChecked(contourPlot_->isSolid());
 
   //---
 
@@ -496,5 +496,5 @@ void
 CQChartsContourPlotCustomControls::
 solidSlot()
 {
-  plot_->setSolid(solidCheck_->isChecked());
+  contourPlot_->setSolid(solidCheck_->isChecked());
 }

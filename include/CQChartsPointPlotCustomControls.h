@@ -28,7 +28,7 @@ class CQChartsPointPlotCustomControls : public CQChartsGroupPlotCustomControls {
  public:
   CQChartsPointPlotCustomControls(CQCharts *charts, const QString &plotType);
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
   //---
 
@@ -89,7 +89,7 @@ class CQChartsPointPlotCustomControls : public CQChartsGroupPlotCustomControls {
  private:
   using ColumnEdits = std::vector<CQChartsColumnParameterEdit *>;
 
-  CQChartsPointPlot* plot_ { nullptr };
+  CQChartsPointPlot* pointPlot_ { nullptr };
 
   OptBool showSizeRange_;
   OptBool showSizeMapping_;

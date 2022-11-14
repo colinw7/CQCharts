@@ -252,11 +252,19 @@ connectSlots(bool b)
       numericIcon_, SIGNAL(clicked(bool)), this, SLOT(numericOnlySlot(bool)));
 }
 
+CQChartsPlotCustomControls::Plot *
+CQChartsPlotCustomControls::
+plot() const
+{
+  return plot_.data();
+}
+
 void
 CQChartsPlotCustomControls::
-setPlot(CQChartsPlot *plot)
+setPlot(Plot *plot)
 {
   if (plot_) {
+    disconnect(plot_, SIGNAL(destroyed(QObject *)), this, SLOT(resetPlot()));
     disconnect(plot_, SIGNAL(plotDrawn()), this, SLOT(plotDrawnSlot()));
     disconnect(plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
   }
@@ -264,9 +272,17 @@ setPlot(CQChartsPlot *plot)
   plot_ = plot;
 
   if (plot_) {
+    connect(plot_, SIGNAL(destroyed(QObject *)), this, SLOT(resetPlot()));
     connect(plot_, SIGNAL(plotDrawn()), this, SLOT(plotDrawnSlot()));
     connect(plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
   }
+}
+
+void
+CQChartsPlotCustomControls::
+resetPlot()
+{
+  plot_ = PlotP();
 }
 
 void
@@ -651,7 +667,7 @@ updateWidgets()
 
   if (colorEdit_) {
     auto hasColorColumn = plot()->colorColumn().isValid();
-    auto isNative       = (plot()->colorMapType() == CQChartsPlot::ColumnType::COLOR);
+    auto isNative       = (plot()->colorMapType() == Plot::ColumnType::COLOR);
 
     colorEdit_       ->setEnabled(! hasColorColumn);
     colorRange_      ->setEnabled(hasColorColumn && ! isNative);
@@ -797,7 +813,7 @@ colorMappingSlot()
 //---
 
 CQChartsPlotCustomKey::
-CQChartsPlotCustomKey(CQChartsPlot *plot) :
+CQChartsPlotCustomKey(Plot *plot) :
  plot_(plot)
 {
   setObjectName("keyList");
@@ -810,6 +826,20 @@ CQChartsPlotCustomKey(CQChartsPlot *plot) :
           this, SLOT(boolClickSlot(int, int, bool)));
 
   layout->addWidget(table_);
+}
+
+CQChartsPlotColumnChooser::Plot *
+CQChartsPlotCustomKey::
+plot() const
+{
+  return plot_.data();
+}
+
+void
+CQChartsPlotCustomKey::
+setPlot(Plot *plot)
+{
+  plot_ = plot;
 }
 
 void
@@ -989,7 +1019,7 @@ sizeHint() const
 //------
 
 CQChartsPlotColumnChooser::
-CQChartsPlotColumnChooser(CQChartsPlot *plot) :
+CQChartsPlotColumnChooser(Plot *plot) :
  plot_(plot)
 {
   setObjectName("columnChooser");
@@ -1002,6 +1032,20 @@ CQChartsPlotColumnChooser(CQChartsPlot *plot) :
           this, SLOT(columnClickSlot(int, int, bool)));
 
   layout->addWidget(columnList_);
+}
+
+CQChartsPlotColumnChooser::Plot *
+CQChartsPlotColumnChooser::
+plot() const
+{
+  return plot_.data();
+}
+
+void
+CQChartsPlotColumnChooser::
+setPlot(Plot *plot)
+{
+  plot_ = plot;
 }
 
 void

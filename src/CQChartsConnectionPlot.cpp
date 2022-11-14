@@ -666,21 +666,21 @@ initLinkObjs() const
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsConnectionPlot *plot) :
-     plot_(plot) {
-      separator_ = plot_->calcSeparator();
+    RowVisitor(const CQChartsConnectionPlot *connectionPlot) :
+     connectionPlot_(connectionPlot) {
+      separator_ = connectionPlot_->calcSeparator();
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       LinkConnectionData linkConnectionData;
 
       // Get group value
-      if (plot_->groupColumn().isValid()) {
+      if (connectionPlot_->groupColumn().isValid()) {
         linkConnectionData.groupModelInd =
-          ModelIndex(plot_, data.row, plot_->groupColumn(), data.parent);
+          ModelIndex(connectionPlot_, data.row, connectionPlot_->groupColumn(), data.parent);
 
-        if (! plot_->groupColumnData(linkConnectionData.groupModelInd,
-                                     linkConnectionData.groupData)) {
+        if (! connectionPlot_->groupColumnData(linkConnectionData.groupModelInd,
+                                               linkConnectionData.groupData)) {
           return addDataError(linkConnectionData.groupModelInd, "Invalid group value");
         }
       }
@@ -692,20 +692,20 @@ initLinkObjs() const
 
       // Get link value
       linkConnectionData.linkModelInd =
-        ModelIndex(plot_, data.row, plot_->linkColumn(), data.parent);
+        ModelIndex(connectionPlot_, data.row, connectionPlot_->linkColumn(), data.parent);
 
       CQChartsNamePair namePair;
 
-      if (plot_->linkColumnType() == ColumnType::NAME_PAIR) {
+      if (connectionPlot_->linkColumnType() == ColumnType::NAME_PAIR) {
         bool ok;
-        auto linkVar = plot_->modelValue(linkConnectionData.linkModelInd, ok);
+        auto linkVar = connectionPlot_->modelValue(linkConnectionData.linkModelInd, ok);
         if (! ok) return addDataError(linkConnectionData.linkModelInd, "Invalid Link");
 
         namePair = CQChartsNamePair::fromVariant(linkVar);
       }
       else {
         bool ok;
-        auto linkStr = plot_->modelString(linkConnectionData.linkModelInd, ok);
+        auto linkStr = connectionPlot_->modelString(linkConnectionData.linkModelInd, ok);
         if (! ok) return addDataError(linkConnectionData.linkModelInd, "Invalid Link");
 
         namePair = CQChartsNamePair(linkStr, separator_);
@@ -717,12 +717,12 @@ initLinkObjs() const
       //---
 
       // Get value value
-      if (plot_->valueColumn().isValid()) {
+      if (connectionPlot_->valueColumn().isValid()) {
         linkConnectionData.valueModelInd =
-          ModelIndex(plot_, data.row, plot_->valueColumn(), data.parent);
+          ModelIndex(connectionPlot_, data.row, connectionPlot_->valueColumn(), data.parent);
 
         bool ok1;
-        double value = plot_->modelReal(linkConnectionData.valueModelInd, ok1);
+        double value = connectionPlot_->modelReal(linkConnectionData.valueModelInd, ok1);
         if (! ok1) return addDataError(linkConnectionData.valueModelInd, "Invalid Value");
 
         linkConnectionData.value = OptReal(value);
@@ -731,19 +731,19 @@ initLinkObjs() const
       //---
 
       // Get name value
-      if (plot_->nameColumn().isValid())
+      if (connectionPlot_->nameColumn().isValid())
         linkConnectionData.nameModelInd =
-          ModelIndex(plot_, data.row, plot_->nameColumn(), data.parent);
+          ModelIndex(connectionPlot_, data.row, connectionPlot_->nameColumn(), data.parent);
 
       //---
 
       // Get depth value
-      if (plot_->depthColumn().isValid()) {
+      if (connectionPlot_->depthColumn().isValid()) {
         linkConnectionData.depthModelInd =
-          ModelIndex(plot_, data.row, plot_->depthColumn(), data.parent);
+          ModelIndex(connectionPlot_, data.row, connectionPlot_->depthColumn(), data.parent);
 
         bool ok2;
-        long depth = plot_->modelInteger(linkConnectionData.depthModelInd, ok2);
+        long depth = connectionPlot_->modelInteger(linkConnectionData.depthModelInd, ok2);
         if (! ok2) return addDataError(linkConnectionData.depthModelInd, "Non-integer depth value");
 
         linkConnectionData.depth = static_cast<int>(depth);
@@ -752,11 +752,12 @@ initLinkObjs() const
       //---
 
       // get attributes from optional column
-      if (plot_->attributesColumn().isValid()) {
-        ModelIndex attributesModelInd(plot_, data.row, plot_->attributesColumn(), data.parent);
+      if (connectionPlot_->attributesColumn().isValid()) {
+        ModelIndex attributesModelInd(connectionPlot_, data.row,
+                                      connectionPlot_->attributesColumn(), data.parent);
 
         bool ok4;
-        auto attributesStr = plot_->modelString(attributesModelInd, ok4);
+        auto attributesStr = connectionPlot_->modelString(attributesModelInd, ok4);
         if (! ok4) return State::SKIP;
 
         linkConnectionData.nameValues = NameValues(attributesStr);
@@ -767,20 +768,20 @@ initLinkObjs() const
       linkConnectionData.srcStr  = namePair.name1();
       linkConnectionData.destStr = namePair.name2();
 
-      plot_->addLinkConnection(linkConnectionData);
+      connectionPlot_->addLinkConnection(linkConnectionData);
 
       return State::OK;
     }
 
    private:
     State addDataError(const ModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsConnectionPlot *>(plot_)->addDataError(ind , msg);
+      const_cast<CQChartsConnectionPlot *>(connectionPlot_)->addDataError(ind , msg);
       return State::SKIP;
     }
 
   private:
-    const CQChartsConnectionPlot* plot_      { nullptr };
-    QString                       separator_ { "/" };
+    const CQChartsConnectionPlot* connectionPlot_ { nullptr };
+    QString                       separator_      { "/" };
   };
 
   RowVisitor visitor(this);
@@ -802,8 +803,8 @@ initConnectionObjs() const
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsConnectionPlot *plot) :
-     plot_(plot) {
+    RowVisitor(const CQChartsConnectionPlot *connectionPlot) :
+     connectionPlot_(connectionPlot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -812,11 +813,11 @@ initConnectionObjs() const
       // get group value
       GroupData groupData;
 
-      if (plot_->groupColumn().isValid()) {
+      if (connectionPlot_->groupColumn().isValid()) {
         connectionsData.groupModelInd =
-          ModelIndex(plot_, data.row, plot_->groupColumn(), data.parent);
+          ModelIndex(connectionPlot_, data.row, connectionPlot_->groupColumn(), data.parent);
 
-        if (! plot_->groupColumnData(connectionsData.groupModelInd, groupData))
+        if (! connectionPlot_->groupColumnData(connectionsData.groupModelInd, groupData))
           return addDataError(connectionsData.groupModelInd, "Invalid group value");
       }
       else {
@@ -830,12 +831,12 @@ initConnectionObjs() const
       // get optional node id (default to row)
       connectionsData.node = data.row;
 
-      if (plot_->nodeColumn().isValid()) {
+      if (connectionPlot_->nodeColumn().isValid()) {
         connectionsData.nodeModelInd =
-          ModelIndex(plot_, data.row, plot_->nodeColumn(), data.parent);
+          ModelIndex(connectionPlot_, data.row, connectionPlot_->nodeColumn(), data.parent);
 
         bool ok2;
-        long inode = plot_->modelInteger(connectionsData.nodeModelInd, ok2);
+        long inode = connectionPlot_->modelInteger(connectionsData.nodeModelInd, ok2);
         if (! ok2) return addDataError(connectionsData.nodeModelInd, "Non-integer node value");
 
         connectionsData.node = static_cast<int>(inode);
@@ -845,18 +846,19 @@ initConnectionObjs() const
 
       // get connections
       connectionsData.connectionsModelInd =
-        ModelIndex(plot_, data.row, plot_->connectionsColumn(), data.parent);
+        ModelIndex(connectionPlot_, data.row, connectionPlot_->connectionsColumn(), data.parent);
 
-      if (plot_->connectionsColumnType() == ColumnType::CONNECTION_LIST) {
+      if (connectionPlot_->connectionsColumnType() == ColumnType::CONNECTION_LIST) {
         bool ok3;
-        auto connectionsVar = plot_->modelValue(connectionsData.connectionsModelInd, ok3);
+        auto connectionsVar = connectionPlot_->modelValue(connectionsData.connectionsModelInd, ok3);
 
         connectionsData.connections =
           CQChartsConnectionList::fromVariant(connectionsVar).connections();
       }
       else {
         bool ok3;
-        auto connectionsStr = plot_->modelString(connectionsData.connectionsModelInd, ok3);
+        auto connectionsStr =
+          connectionPlot_->modelString(connectionsData.connectionsModelInd, ok3);
         if (! ok3) return addDataError(connectionsData.connectionsModelInd,
                                        "Invalid connection string");
 
@@ -868,23 +870,24 @@ initConnectionObjs() const
       // get name
       connectionsData.name = QString::number(connectionsData.node);
 
-      if (plot_->nameColumn().isValid()) {
+      if (connectionPlot_->nameColumn().isValid()) {
         connectionsData.nameModelInd =
-          ModelIndex(plot_, data.row, plot_->nameColumn(), data.parent);
+          ModelIndex(connectionPlot_, data.row, connectionPlot_->nameColumn(), data.parent);
 
         bool ok4;
-        connectionsData.name = plot_->modelString(connectionsData.nameModelInd, ok4);
+        connectionsData.name = connectionPlot_->modelString(connectionsData.nameModelInd, ok4);
         if (! ok4) return addDataError(connectionsData.nameModelInd, "Invalid name string");
       }
 
       //---
 
       // get attributes from optional column
-      if (plot_->attributesColumn().isValid()) {
-        ModelIndex attributesModelInd(plot_, data.row, plot_->attributesColumn(), data.parent);
+      if (connectionPlot_->attributesColumn().isValid()) {
+        ModelIndex attributesModelInd(connectionPlot_, data.row,
+                                      connectionPlot_->attributesColumn(), data.parent);
 
         bool ok4;
-        auto attributesStr = plot_->modelString(attributesModelInd, ok4);
+        auto attributesStr = connectionPlot_->modelString(attributesModelInd, ok4);
         if (! ok4) return State::SKIP;
 
         connectionsData.nameValues = NameValues(attributesStr);
@@ -902,8 +905,8 @@ initConnectionObjs() const
 
       // store connections data by node id
       if (connectionsData.nodeModelInd.isValid()) {
-        auto nodeInd  = plot_->modelIndex(connectionsData.nodeModelInd);
-        auto nodeInd1 = plot_->normalizeIndex(nodeInd);
+        auto nodeInd  = connectionPlot_->modelIndex(connectionsData.nodeModelInd);
+        auto nodeInd1 = connectionPlot_->normalizeIndex(nodeInd);
 
         connectionsData.ind = nodeInd1;
       }
@@ -917,12 +920,12 @@ initConnectionObjs() const
 
    private:
     State addDataError(const ModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsConnectionPlot *>(plot_)->addDataError(ind , msg);
+      const_cast<CQChartsConnectionPlot *>(connectionPlot_)->addDataError(ind , msg);
       return State::SKIP;
     }
 
    private:
-    const CQChartsConnectionPlot* plot_ { nullptr };
+    const CQChartsConnectionPlot* connectionPlot_ { nullptr };
     IdConnectionsData             idConnectionsData_;
   };
 
@@ -964,9 +967,9 @@ initHierObjs() const
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsConnectionPlot *plot) :
-     plot_(plot) {
-      separator_ = plot_->calcSeparator();
+    RowVisitor(const CQChartsConnectionPlot *connectionPlot) :
+     connectionPlot_(connectionPlot) {
+      separator_ = connectionPlot_->calcSeparator();
     }
 
     // enter hierarchical row
@@ -977,10 +980,11 @@ initHierObjs() const
 
       //---
 
-      hierData_.parentLinkInd = ModelIndex(plot_, data.row, plot_->linkColumn(), data.parent);
+      hierData_.parentLinkInd =
+        ModelIndex(connectionPlot_, data.row, connectionPlot_->linkColumn(), data.parent);
 
       bool ok;
-      auto linkStr = plot_->modelString(hierData_.parentLinkInd, ok);
+      auto linkStr = connectionPlot_->modelString(hierData_.parentLinkInd, ok);
 
       hierData_.linkStrs.push_back(linkStr);
 
@@ -1016,7 +1020,7 @@ initHierObjs() const
       if (hierData.total <= 0)
         hierData.total = 1;
 
-      plot_->initHierObjsAddHierConnection(hierData_, hierData);
+      connectionPlot_->initHierObjsAddHierConnection(hierData_, hierData);
 
       //---
 
@@ -1027,15 +1031,17 @@ initHierObjs() const
 
     // visit leaf row
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      ModelIndex linkModelInd (plot_, data.row, plot_->linkColumn (), data.parent);
-      ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
+      ModelIndex linkModelInd (connectionPlot_, data.row, connectionPlot_->linkColumn (),
+                               data.parent);
+      ModelIndex valueModelInd(connectionPlot_, data.row, connectionPlot_->valueColumn(),
+                               data.parent);
 
       bool ok1;
 
-      auto linkStr = plot_->modelString(linkModelInd, ok1);
+      auto linkStr = connectionPlot_->modelString(linkModelInd, ok1);
       if (! ok1) return addDataError(linkModelInd, "Invalid Link");
 
-      auto value = plot_->modelReal(valueModelInd, ok1);
+      auto value = connectionPlot_->modelReal(valueModelInd, ok1);
       if (! ok1) return addDataError(valueModelInd, "Invalid Value");
 
       //---
@@ -1050,7 +1056,7 @@ initHierObjs() const
       hierData.parentStr     = hierData.linkStrs.join(separator_);
       hierData.total         = value;
 
-      plot_->initHierObjsAddLeafConnection(hierData_, hierData);
+      connectionPlot_->initHierObjsAddLeafConnection(hierData_, hierData);
 
       //---
 
@@ -1061,13 +1067,13 @@ initHierObjs() const
 
    private:
     State addDataError(const ModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsConnectionPlot *>(plot_)->addDataError(ind , msg);
+      const_cast<CQChartsConnectionPlot *>(connectionPlot_)->addDataError(ind , msg);
       return State::SKIP;
     }
 
    private:
-    const CQChartsConnectionPlot* plot_      { nullptr };
-    QString                       separator_ { "/" };
+    const CQChartsConnectionPlot* connectionPlot_ { nullptr };
+    QString                       separator_      { "/" };
     HierConnectionDataList        hierDataList_;
     HierConnectionData            hierData_;
   };
@@ -1089,30 +1095,32 @@ initPathObjs() const
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsConnectionPlot *plot) :
-     plot_(plot) {
-      separator_ = plot_->calcSeparator();
+    RowVisitor(const CQChartsConnectionPlot *connectionPlot) :
+     connectionPlot_(connectionPlot) {
+      separator_ = connectionPlot_->calcSeparator();
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       PathData pathData;
 
-      pathData.pathModelInd = ModelIndex(plot_, data.row, plot_->pathColumn(), data.parent);
+      pathData.pathModelInd =
+        ModelIndex(connectionPlot_, data.row, connectionPlot_->pathColumn(), data.parent);
 
       // get hier names from path column
       bool ok;
-      auto pathStrs = plot_->modelString(pathData.pathModelInd, ok);
+      auto pathStrs = connectionPlot_->modelString(pathData.pathModelInd, ok);
       if (! ok) return State::SKIP;
 
       pathData.pathStrs = pathStrs.split(separator_, Qt::SkipEmptyParts);
 
       //---
 
-      if (plot_->valueColumn().isValid()) {
-        pathData.valueModelInd = ModelIndex(plot_, data.row, plot_->valueColumn(), data.parent);
+      if (connectionPlot_->valueColumn().isValid()) {
+        pathData.valueModelInd =
+          ModelIndex(connectionPlot_, data.row, connectionPlot_->valueColumn(), data.parent);
 
         bool ok1;
-        double value = plot_->modelReal(pathData.valueModelInd, ok1);
+        double value = connectionPlot_->modelReal(pathData.valueModelInd, ok1);
         if (! ok1) return State::SKIP;
 
         pathData.value = OptReal(value);
@@ -1120,14 +1128,14 @@ initPathObjs() const
 
       //---
 
-      plot_->addPathValue(pathData);
+      connectionPlot_->addPathValue(pathData);
 
       return State::OK;
     }
 
    private:
-    const CQChartsConnectionPlot* plot_      { nullptr };
-    QString                       separator_ { "/" };
+    const CQChartsConnectionPlot* connectionPlot_ { nullptr };
+    QString                       separator_      { "/" };
   };
 
   RowVisitor visitor(this);
@@ -1147,8 +1155,8 @@ initFromToObjs() const
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsConnectionPlot *plot) :
-     plot_(plot) {
+    RowVisitor(const CQChartsConnectionPlot *connectionPlot) :
+     connectionPlot_(connectionPlot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -1156,24 +1164,27 @@ initFromToObjs() const
 
       //---
 
-      fromToData.fromModelInd = ModelIndex(plot_, data.row, plot_->fromColumn(), data.parent);
-      fromToData.toModelInd   = ModelIndex(plot_, data.row, plot_->toColumn  (), data.parent);
+      fromToData.fromModelInd =
+        ModelIndex(connectionPlot_, data.row, connectionPlot_->fromColumn(), data.parent);
+      fromToData.toModelInd   =
+        ModelIndex(connectionPlot_, data.row, connectionPlot_->toColumn  (), data.parent);
 
       // get from/to node names
       bool ok1, ok2;
-      fromToData.fromStr = plot_->modelString(fromToData.fromModelInd, ok1);
-      fromToData.toStr   = plot_->modelString(fromToData.toModelInd  , ok2);
+      fromToData.fromStr = connectionPlot_->modelString(fromToData.fromModelInd, ok1);
+      fromToData.toStr   = connectionPlot_->modelString(fromToData.toModelInd  , ok2);
 
       if (! ok1 && ! ok2) return State::SKIP;
 
       //---
 
       // get value from optional value column
-      if (plot_->valueColumn().isValid()) {
-        fromToData.valueModelInd = ModelIndex(plot_, data.row, plot_->valueColumn(), data.parent);
+      if (connectionPlot_->valueColumn().isValid()) {
+        fromToData.valueModelInd =
+          ModelIndex(connectionPlot_, data.row, connectionPlot_->valueColumn(), data.parent);
 
         bool ok3;
-        auto value = plot_->modelReal(fromToData.valueModelInd, ok3);
+        auto value = connectionPlot_->modelReal(fromToData.valueModelInd, ok3);
         if (! ok3) return State::SKIP;
 
         fromToData.value = OptReal(value);
@@ -1183,11 +1194,12 @@ initFromToObjs() const
 
 #ifdef CQCHARTS_GRAPH_PATH_ID
       // get pathId from optional column
-      if (plot_->pathIdColumn().isValid()) {
-        fromToData.pathIdModelInd = ModelIndex(plot_, data.row, plot_->pathIdColumn(), data.parent);
+      if (connectionPlot_->pathIdColumn().isValid()) {
+        fromToData.pathIdModelInd =
+          ModelIndex(connectionPlot_, data.row, connectionPlot_->pathIdColumn(), data.parent);
 
         bool ok4;
-        auto value = plot_->modelInteger(fromToData.pathIdModelInd, ok4);
+        auto value = connectionPlot_->modelInteger(fromToData.pathIdModelInd, ok4);
         if (! ok4) return State::SKIP;
 
         fromToData.pathId = OptInt(int(value));
@@ -1197,11 +1209,12 @@ initFromToObjs() const
       //---
 
       // get attributes from optional column
-      if (plot_->attributesColumn().isValid()) {
-        ModelIndex attributesModelInd(plot_, data.row, plot_->attributesColumn(), data.parent);
+      if (connectionPlot_->attributesColumn().isValid()) {
+        ModelIndex attributesModelInd(connectionPlot_, data.row,
+                                      connectionPlot_->attributesColumn(), data.parent);
 
         bool ok5;
-        auto attributesStr = plot_->modelString(attributesModelInd, ok5);
+        auto attributesStr = connectionPlot_->modelString(attributesModelInd, ok5);
         if (! ok5) return State::SKIP;
 
         fromToData.nameValues = NameValues(attributesStr);
@@ -1210,10 +1223,11 @@ initFromToObjs() const
       //---
 
       // Get group value
-      if (plot_->groupColumn().isValid()) {
-        ModelIndex groupModelInd(plot_, data.row, plot_->groupColumn(), data.parent);
+      if (connectionPlot_->groupColumn().isValid()) {
+        ModelIndex groupModelInd(connectionPlot_, data.row,
+                                 connectionPlot_->groupColumn(), data.parent);
 
-        if (! plot_->groupColumnData(groupModelInd, fromToData.groupData))
+        if (! connectionPlot_->groupColumnData(groupModelInd, fromToData.groupData))
           return addDataError(groupModelInd, "Invalid group value");
       }
       else {
@@ -1223,12 +1237,12 @@ initFromToObjs() const
       //---
 
       // Get depth value
-      if (plot_->depthColumn().isValid()) {
+      if (connectionPlot_->depthColumn().isValid()) {
         fromToData.depthModelInd =
-          ModelIndex(plot_, data.row, plot_->depthColumn(), data.parent);
+          ModelIndex(connectionPlot_, data.row, connectionPlot_->depthColumn(), data.parent);
 
         bool ok3;
-        long depth = plot_->modelInteger(fromToData.depthModelInd, ok3);
+        long depth = connectionPlot_->modelInteger(fromToData.depthModelInd, ok3);
         if (! ok3) return addDataError(fromToData.depthModelInd, "Non-integer depth value");
 
         fromToData.depth = static_cast<int>(depth);
@@ -1236,19 +1250,19 @@ initFromToObjs() const
 
       //---
 
-      plot_->addFromToValue(fromToData);
+      connectionPlot_->addFromToValue(fromToData);
 
       return State::OK;
     }
 
    private:
     State addDataError(const ModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsConnectionPlot *>(plot_)->addDataError(ind , msg);
+      const_cast<CQChartsConnectionPlot *>(connectionPlot_)->addDataError(ind , msg);
       return State::SKIP;
     }
 
    private:
-    const CQChartsConnectionPlot* plot_ { nullptr };
+    const CQChartsConnectionPlot* connectionPlot_ { nullptr };
   };
 
   RowVisitor visitor(this);
@@ -1285,11 +1299,11 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
   // get values for each row from model
   class RowVisitor : public ModelVisitor {
    public:
-    using Plot = CQChartsConnectionPlot;
+    using ConnectionPlot = CQChartsConnectionPlot;
 
    public:
-    RowVisitor(const Plot *plot) :
-     plot_(plot) {
+    RowVisitor(const ConnectionPlot *connectionPlot) :
+     connectionPlot_(connectionPlot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -1302,9 +1316,9 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
       for (int ic = 0; ic < nc; ++ic) {
         Column c(ic);
 
-        ModelIndex columnInd(plot_, data.row, c, data.parent);
+        ModelIndex columnInd(connectionPlot_, data.row, c, data.parent);
 
-        auto ind = plot_->modelIndex(columnInd);
+        auto ind = connectionPlot_->modelIndex(columnInd);
 
         // save index for first column
         if (ic == 0)
@@ -1312,7 +1326,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
 
         bool ok;
 
-        indRowData.rowData[size_t(ic)] = plot_->modelValue(columnInd, ok);
+        indRowData.rowData[size_t(ic)] = connectionPlot_->modelValue(columnInd, ok);
       }
 
       indRowDatas_.push_back(std::move(indRowData));
@@ -1323,8 +1337,8 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
     const IndRowDatas &indRowDatas() const { return indRowDatas_; }
 
    private:
-    const Plot* plot_ { nullptr };
-    IndRowDatas indRowDatas_;
+    const ConnectionPlot* connectionPlot_ { nullptr };
+    IndRowDatas           indRowDatas_;
   };
 
   RowVisitor visitor(this);
@@ -1586,15 +1600,15 @@ void
 CQChartsConnectionPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && connectionPlot_)
+    disconnect(connectionPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsConnectionPlot *>(plot);
+  connectionPlot_ = dynamic_cast<CQChartsConnectionPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (connectionPlot_)
+    connect(connectionPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
@@ -1605,9 +1619,9 @@ updateWidgets()
 
   //---
 
-  columnsTypeCombo_->setObj(plot_);
+  columnsTypeCombo_->setObj(connectionPlot_);
 
-  auto type = plot_->calcColumnDataType();
+  auto type = connectionPlot_->calcColumnDataType();
 
   if      (type == CQChartsConnectionPlot::ColumnDataType::HIER) {
     showColumnWidgets(QStringList() << "link" << "value");

@@ -728,8 +728,8 @@ calcTableSize() const
   // update column widths and number of visible rows
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsTablePlot *plot, TableData &tableData) :
-     plot_(plot), tableData_(tableData), fm_(tableData_.font) {
+    RowVisitor(const CQChartsTablePlot *tablePlot, TableData &tableData) :
+     tablePlot_(tablePlot), tableData_(tableData), fm_(tableData_.font) {
     }
 
     // process hier row
@@ -740,7 +740,7 @@ calcTableSize() const
 
       expandStack_.push_back(expanded_);
 
-      if (plot_->isFollowView()) {
+      if (tablePlot_->isFollowView()) {
         auto ind = model_->index(data.row, 0, data.parent);
 
         expanded_ = tableData_.expandInds.contains(ind);
@@ -767,14 +767,14 @@ calcTableSize() const
       //---
 
       for (int i = 0; i < tableData_.nc; ++i) {
-        const auto &c = plot_->columns().getColumn(i);
+        const auto &c = tablePlot_->columns().getColumn(i);
 
-        ModelIndex ind(plot_, data.row, c, data.parent);
+        ModelIndex ind(tablePlot_, data.row, c, data.parent);
 
         bool ok;
 
-        auto str = plot_->modelString(const_cast<QAbstractItemModel *>(model_), ind,
-                                      Qt::DisplayRole, ok);
+        auto str = tablePlot_->modelString(const_cast<QAbstractItemModel *>(model_), ind,
+                                           Qt::DisplayRole, ok);
         if (! ok) continue;
 
         auto &data = tableData_.columnDataMap[c];
@@ -782,7 +782,7 @@ calcTableSize() const
         double cw = fm_.horizontalAdvance(str) + 2.0*tableData_.pmargin;
 
         if (i == 0)
-          cw += tableData_.maxDepth*plot_->indent(); // add hierarchical indent
+          cw += tableData_.maxDepth*tablePlot_->indent(); // add hierarchical indent
 
         data.pwidth = std::max(data.pwidth, cw);
       }
@@ -791,10 +791,10 @@ calcTableSize() const
     }
 
    private:
-    const CQChartsTablePlot* plot_   { nullptr };
+    const CQChartsTablePlot* tablePlot_ { nullptr };
     TableData&               tableData_;
     QFontMetricsF            fm_;
-    bool                     expanded_ { true };
+    bool                     expanded_  { true };
     std::vector<int>         expandStack_;
   };
 
@@ -1512,10 +1512,10 @@ createTableObjData() const
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsTablePlot *plot, const TableData &tableData_) :
-     plot_(plot), tableData_(tableData_) {
-      xm_ = plot_->pixelToWindowWidth(tableData_.pmargin);
-      xd_ = plot_->pixelToWindowWidth(plot_->indent());
+    RowVisitor(const CQChartsTablePlot *tablePlot, const TableData &tableData_) :
+     tablePlot_(tablePlot), tableData_(tableData_) {
+      xm_ = tablePlot_->pixelToWindowWidth(tableData_.pmargin);
+      xd_ = tablePlot_->pixelToWindowWidth(tablePlot_->indent());
     }
 
     // draw hier row
@@ -1525,7 +1525,7 @@ createTableObjData() const
       //---
 
       // draw header
-      if (plot_->isHeaderVisible())
+      if (tablePlot_->isHeaderVisible())
         if (data.vrow == 0) {
           drawHeader();
       }
@@ -1540,7 +1540,7 @@ createTableObjData() const
       //---
 
       // draw line number
-      if (plot_->isRowColumn()) {
+      if (tablePlot_->isRowColumn()) {
         const auto &cdata = tableData_.rowColumnData;
 
         drawRowNumber(x, y, data.vrow + 1);
@@ -1557,7 +1557,7 @@ createTableObjData() const
 
       expandStack_.push_back(expanded_);
 
-      if (plot_->isFollowView()) {
+      if (tablePlot_->isFollowView()) {
         auto ind = model_->index(data.row, 0, data.parent);
 
         expanded_ = tableData_.expandInds.contains(ind);
@@ -1584,7 +1584,7 @@ createTableObjData() const
       //---
 
       // draw header
-      if (plot_->isHeaderVisible())
+      if (tablePlot_->isHeaderVisible())
         if (data.vrow == 0) {
           drawHeader();
       }
@@ -1599,7 +1599,7 @@ createTableObjData() const
       //---
 
       // draw line number
-      if (plot_->isRowColumn()) {
+      if (tablePlot_->isRowColumn()) {
         const auto &cdata = tableData_.rowColumnData;
 
         drawRowNumber(x, y, data.vrow + 1);
@@ -1623,10 +1623,10 @@ createTableObjData() const
       double x = tableData_.xo;
 
       // draw empty line number area
-      if (plot_->isRowColumn()) {
+      if (tablePlot_->isRowColumn()) {
         Column c;
 
-        auto &headerObjData = plot_->getHeaderObjData(c);
+        auto &headerObjData = tablePlot_->getHeaderObjData(c);
 
         headerObjData.str = " ";
 
@@ -1643,7 +1643,7 @@ createTableObjData() const
 
       // draw column headers
       for (int ic = 0; ic < tableData_.nc; ++ic) {
-        const auto &c = plot_->columns().getColumn(ic);
+        const auto &c = tablePlot_->columns().getColumn(ic);
 
         bool ok;
 
@@ -1652,7 +1652,7 @@ createTableObjData() const
 
         //---
 
-        auto &headerObjData = plot_->getHeaderObjData(c);
+        auto &headerObjData = tablePlot_->getHeaderObjData(c);
 
         headerObjData.str = str;
 
@@ -1678,7 +1678,7 @@ createTableObjData() const
 
       //---
 
-      auto &rowObjData = plot_->getRowObjData(n);
+      auto &rowObjData = tablePlot_->getRowObjData(n);
 
       rowObjData.align = Qt::AlignRight | Qt::AlignVCenter;
 
@@ -1689,7 +1689,7 @@ createTableObjData() const
 
     void drawCellValues(double x, double y, const VisitData &data) {
       for (int ic = 0; ic < tableData_.nc; ++ic) {
-        const auto &c = plot_->columns().getColumn(ic);
+        const auto &c = tablePlot_->columns().getColumn(ic);
 
         const auto &cdata = tableData_.columnDataMap[c];
 
@@ -1700,21 +1700,21 @@ createTableObjData() const
     }
 
     void drawCellValue(double x, double y, const VisitData &data, int ic) {
-      const auto &c = plot_->columns().getColumn(ic);
+      const auto &c = tablePlot_->columns().getColumn(ic);
 
       //---
 
-      ModelIndex ind(plot_, data.row, c, data.parent);
+      ModelIndex ind(tablePlot_, data.row, c, data.parent);
 
       bool ok;
 
-      auto str = plot_->modelString(const_cast<QAbstractItemModel *>(model_), ind,
-                                    Qt::DisplayRole, ok);
+      auto str = tablePlot_->modelString(const_cast<QAbstractItemModel *>(model_), ind,
+                                         Qt::DisplayRole, ok);
       if (! ok) str.clear();
 
       //---
 
-      auto &cellObjData = plot_->getCellObjData(ind);
+      auto &cellObjData = tablePlot_->getCellObjData(ind);
 
       cellObjData.str = str;
 
@@ -1729,8 +1729,8 @@ createTableObjData() const
 
       //---
 
-      auto bgVar = plot_->modelValue(ind, Qt::BackgroundRole, ok);
-      auto fgVar = plot_->modelValue(ind, Qt::ForegroundRole, ok);
+      auto bgVar = tablePlot_->modelValue(ind, Qt::BackgroundRole, ok);
+      auto fgVar = tablePlot_->modelValue(ind, Qt::ForegroundRole, ok);
 
       auto bgColor = CQChartsVariant::toColor(bgVar, ok);
       auto fgColor = CQChartsVariant::toColor(fgVar, ok);
@@ -1749,11 +1749,11 @@ createTableObjData() const
     }
 
    private:
-    const CQChartsTablePlot* plot_     { nullptr };
+    const CQChartsTablePlot* tablePlot_ { nullptr };
     TableData                tableData_;
-    double                   xm_       { 0.0 };
-    double                   xd_       { 0.0 };
-    bool                     expanded_ { true };
+    double                   xm_        { 0.0 };
+    double                   xd_        { 0.0 };
+    bool                     expanded_  { true };
     std::vector<int>         expandStack_;
   };
 
@@ -1960,9 +1960,9 @@ createCustomControls()
 //------
 
 CQChartsTableHeaderObj::
-CQChartsTableHeaderObj(const Plot *plot, const Plot::HeaderObjData &headerObjData) :
- CQChartsPlotObj(const_cast<Plot *>(plot), headerObjData.rect, ColorInd(), ColorInd(), ColorInd()),
- plot_(plot), headerObjData_(headerObjData)
+CQChartsTableHeaderObj(const TablePlot *tablePlot, const TablePlot::HeaderObjData &headerObjData) :
+ CQChartsPlotObj(const_cast<TablePlot *>(tablePlot), headerObjData.rect, ColorInd(), ColorInd(),
+ ColorInd()), tablePlot_(tablePlot), headerObjData_(headerObjData)
 {
 }
 
@@ -1989,15 +1989,15 @@ bool
 CQChartsTableHeaderObj::
 selectPress(const Point & /*p*/, SelData & /*selData*/)
 {
-  auto *plot = const_cast<CQChartsTablePlot *>(plot_);
+  auto *tablePlot = const_cast<CQChartsTablePlot *>(tablePlot_);
 
-  if (plot->sortColumn() != CQChartsColumnNum(headerObjData_.c.column()))
-    plot->setSortColumn(CQChartsColumnNum(headerObjData_.c.column()));
+  if (tablePlot->sortColumn() != CQChartsColumnNum(headerObjData_.c.column()))
+    tablePlot->setSortColumn(CQChartsColumnNum(headerObjData_.c.column()));
   else {
-    if (plot_->sortOrder() == Qt::AscendingOrder)
-      plot->setSortOrder(Qt::DescendingOrder);
+    if (tablePlot_->sortOrder() == Qt::AscendingOrder)
+      tablePlot->setSortOrder(Qt::DescendingOrder);
     else
-      plot->setSortOrder(Qt::AscendingOrder);
+      tablePlot->setSortOrder(Qt::AscendingOrder);
   }
 
   return true;
@@ -2009,24 +2009,24 @@ draw(PaintDevice *device) const
 {
   device->save();
 
-  auto pixelRect = plot_->calcTablePixelRect();
+  auto pixelRect = tablePlot_->calcTablePixelRect();
 
-  device->setClipRect(plot_->pixelToWindow(pixelRect));
+  device->setClipRect(tablePlot_->pixelToWindow(pixelRect));
 
   //---
 
   auto *th = const_cast<CQChartsTableHeaderObj *>(this);
 
-  th->rect_ = headerObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  th->rect_ = headerObjData_.rect.translated(tablePlot_->scrollX(), -tablePlot_->scrollY());
 
   //---
 
-  int pSortWidth = plot_->sortPixelWidth();
+  int pSortWidth = tablePlot_->sortPixelWidth();
 
   auto trect = rect_;
 
-  if (plot_->sortColumn() == CQChartsColumnNum(headerObjData_.c.column())) {
-    auto sortWidth = plot_->pixelToWindowWidth(pSortWidth);
+  if (tablePlot_->sortColumn() == CQChartsColumnNum(headerObjData_.c.column())) {
+    auto sortWidth = tablePlot_->pixelToWindowWidth(pSortWidth);
 
     trect = BBox(rect_.getXMin()            , rect_.getYMin(),
                  rect_.getXMax() - sortWidth, rect_.getYMax());
@@ -2035,14 +2035,14 @@ draw(PaintDevice *device) const
   //---
 
   // draw header text
-  device->setFont(plot_->tableHeaderFont());
+  device->setFont(tablePlot_->tableHeaderFont());
 
-  auto bg = plot_->interpColor(plot_->headerColor(), ColorInd());
-  auto tc = plot_->calcTextColor(bg);
+  auto bg = tablePlot_->interpColor(tablePlot_->headerColor(), ColorInd());
+  auto tc = tablePlot_->calcTextColor(bg);
 
   PenBrush textPenBrush;
 
-  plot_->setPen(textPenBrush, PenData(true, tc));
+  tablePlot_->setPen(textPenBrush, PenData(true, tc));
 
   device->setPen(textPenBrush.pen);
 
@@ -2054,40 +2054,40 @@ draw(PaintDevice *device) const
 
   //---
 
-  if (plot_->sortColumn() == CQChartsColumnNum(headerObjData_.c.column())) {
+  if (tablePlot_->sortColumn() == CQChartsColumnNum(headerObjData_.c.column())) {
     PenBrush sortPenBrush;
 
     // 1 (top/bottom), 4 mid
-    int pSortHeight = int((plot_->windowToPixelHeight(trect.getHeight()) - 6.0)/2.0);
+    int pSortHeight = int((tablePlot_->windowToPixelHeight(trect.getHeight()) - 6.0)/2.0);
 
-    int px1 = int(plot_->windowToPixel(Point(trect.getXMax(), 0)).x + 2.0);
-    int py1 = int(plot_->windowToPixel(Point(0, trect.getYMax())).y + 1.0);
+    int px1 = int(tablePlot_->windowToPixel(Point(trect.getXMax(), 0)).x + 2.0);
+    int py1 = int(tablePlot_->windowToPixel(Point(0, trect.getYMax())).y + 1.0);
     int px2 = px1 + pSortWidth - 4;
-    int py2 = int(plot_->windowToPixel(Point(0, trect.getYMin())).y - 1.0);
+    int py2 = int(tablePlot_->windowToPixel(Point(0, trect.getYMin())).y - 1.0);
 
     // ascending
-    if (plot_->sortOrder() == Qt::AscendingOrder)
-      plot_->setPenBrush(sortPenBrush, PenData(false), BrushData(true, tc));
+    if (tablePlot_->sortOrder() == Qt::AscendingOrder)
+      tablePlot_->setPenBrush(sortPenBrush, PenData(false), BrushData(true, tc));
     else
-      plot_->setPenBrush(sortPenBrush, PenData(true, tc), BrushData(false));
+      tablePlot_->setPenBrush(sortPenBrush, PenData(true, tc), BrushData(false));
 
-    auto p1 = plot_->pixelToWindow(Point((px1 + px2)/2.0, py1));
-    auto p2 = plot_->pixelToWindow(Point(px1, py1 + pSortHeight));
-    auto p3 = plot_->pixelToWindow(Point(px2, py1 + pSortHeight));
+    auto p1 = tablePlot_->pixelToWindow(Point((px1 + px2)/2.0, py1));
+    auto p2 = tablePlot_->pixelToWindow(Point(px1, py1 + pSortHeight));
+    auto p3 = tablePlot_->pixelToWindow(Point(px2, py1 + pSortHeight));
 
     Polygon poly1; poly1.addPoint(p1); poly1.addPoint(p2); poly1.addPoint(p3);
 
     CQChartsDrawUtil::drawRoundedPolygon(device, sortPenBrush, poly1);
 
     // descending
-    if (plot_->sortOrder() == Qt::AscendingOrder)
-      plot_->setPenBrush(sortPenBrush, PenData(true, tc), BrushData(false));
+    if (tablePlot_->sortOrder() == Qt::AscendingOrder)
+      tablePlot_->setPenBrush(sortPenBrush, PenData(true, tc), BrushData(false));
     else
-      plot_->setPenBrush(sortPenBrush, PenData(false), BrushData(true, tc));
+      tablePlot_->setPenBrush(sortPenBrush, PenData(false), BrushData(true, tc));
 
-    auto p4 = plot_->pixelToWindow(Point((px1 + px2)/2.0, py2));
-    auto p5 = plot_->pixelToWindow(Point(px1, py2 - pSortHeight));
-    auto p6 = plot_->pixelToWindow(Point(px2, py2 - pSortHeight));
+    auto p4 = tablePlot_->pixelToWindow(Point((px1 + px2)/2.0, py2));
+    auto p5 = tablePlot_->pixelToWindow(Point(px1, py2 - pSortHeight));
+    auto p6 = tablePlot_->pixelToWindow(Point(px2, py2 - pSortHeight));
 
     Polygon poly2; poly2.addPoint(p4); poly2.addPoint(p5); poly2.addPoint(p6);
 
@@ -2103,19 +2103,19 @@ void
 CQChartsTableHeaderObj::
 calcPenBrush(PenBrush &penBrush, bool /*updateState*/) const
 {
-  auto bg = plot_->interpColor(plot_->headerColor(), ColorInd());
-  auto tc = plot_->calcTextColor(bg);
+  auto bg = tablePlot_->interpColor(tablePlot_->headerColor(), ColorInd());
+  auto tc = tablePlot_->calcTextColor(bg);
 
-  plot_->setPen(penBrush, PenData(true, tc));
+  tablePlot_->setPen(penBrush, PenData(true, tc));
 }
 
 void
 CQChartsTableHeaderObj::
 getObjSelectIndices(Indices &inds) const
 {
-  ModelIndex ind(plot_, 0, headerObjData_.c, QModelIndex());
+  ModelIndex ind(tablePlot_, 0, headerObjData_.c, QModelIndex());
 
-  auto modelInd = plot_->modelIndex(ind);
+  auto modelInd = tablePlot_->modelIndex(ind);
 
   inds.insert(modelInd);
 }
@@ -2124,7 +2124,7 @@ bool
 CQChartsTableHeaderObj::
 rectIntersect(const BBox &r, bool inside) const
 {
-  auto rect = headerObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  auto rect = headerObjData_.rect.translated(tablePlot_->scrollX(), -tablePlot_->scrollY());
 
   if (inside)
     return r.inside(rect);
@@ -2135,9 +2135,9 @@ rectIntersect(const BBox &r, bool inside) const
 //------
 
 CQChartsTableRowObj::
-CQChartsTableRowObj(const Plot *plot, const Plot::RowObjData &rowObjData) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rowObjData.rect, ColorInd(), ColorInd(), ColorInd()),
- plot_(plot), rowObjData_(rowObjData)
+CQChartsTableRowObj(const TablePlot *tablePlot, const TablePlot::RowObjData &rowObjData) :
+ CQChartsPlotObj(const_cast<TablePlot *>(tablePlot), rowObjData.rect, ColorInd(), ColorInd(),
+ ColorInd()), tablePlot_(tablePlot), rowObjData_(rowObjData)
 {
 }
 
@@ -2166,27 +2166,27 @@ draw(PaintDevice *device) const
 {
   device->save();
 
-  auto pixelRect = plot_->calcTablePixelRect();
+  auto pixelRect = tablePlot_->calcTablePixelRect();
 
-  device->setClipRect(plot_->pixelToWindow(pixelRect));
+  device->setClipRect(tablePlot_->pixelToWindow(pixelRect));
 
   //---
 
   auto *th = const_cast<CQChartsTableRowObj *>(this);
 
-  th->rect_ = rowObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  th->rect_ = rowObjData_.rect.translated(tablePlot_->scrollX(), -tablePlot_->scrollY());
 
   //---
 
   // draw row text
-  device->setFont(plot_->tableFont());
+  device->setFont(tablePlot_->tableFont());
 
-  auto bg = plot_->interpColor(plot_->cellColor(), ColorInd());
-  auto tc = plot_->calcTextColor(bg);
+  auto bg = tablePlot_->interpColor(tablePlot_->cellColor(), ColorInd());
+  auto tc = tablePlot_->calcTextColor(bg);
 
   PenBrush textPenBrush;
 
-  plot_->setPen(textPenBrush, PenData(true, tc));
+  tablePlot_->setPen(textPenBrush, PenData(true, tc));
 
   device->setPen(textPenBrush.pen);
 
@@ -2205,17 +2205,17 @@ void
 CQChartsTableRowObj::
 calcPenBrush(PenBrush &penBrush, bool /*updateState*/) const
 {
-  auto bg = plot_->interpColor(plot_->cellColor(), ColorInd());
-  auto tc = plot_->calcTextColor(bg);
+  auto bg = tablePlot_->interpColor(tablePlot_->cellColor(), ColorInd());
+  auto tc = tablePlot_->calcTextColor(bg);
 
-  plot_->setPen(penBrush, PenData(true, tc));
+  tablePlot_->setPen(penBrush, PenData(true, tc));
 }
 
 bool
 CQChartsTableRowObj::
 rectIntersect(const BBox &r, bool inside) const
 {
-  auto rect = rowObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  auto rect = rowObjData_.rect.translated(tablePlot_->scrollX(), -tablePlot_->scrollY());
 
   if (inside)
     return r.inside(rect);
@@ -2226,9 +2226,9 @@ rectIntersect(const BBox &r, bool inside) const
 //------
 
 CQChartsTableCellObj::
-CQChartsTableCellObj(const Plot *plot, const Plot::CellObjData &cellObjData) :
- CQChartsPlotObj(const_cast<Plot *>(plot), cellObjData.rect, ColorInd(), ColorInd(), ColorInd()),
- plot_(plot), cellObjData_(cellObjData)
+CQChartsTableCellObj(const TablePlot *tablePlot, const TablePlot::CellObjData &cellObjData) :
+ CQChartsPlotObj(const_cast<TablePlot *>(tablePlot), cellObjData.rect, ColorInd(), ColorInd(),
+ ColorInd()), tablePlot_(tablePlot), cellObjData_(cellObjData)
 {
 }
 
@@ -2257,15 +2257,15 @@ draw(PaintDevice *device) const
 {
   device->save();
 
-  auto pixelRect = plot_->calcTablePixelRect();
+  auto pixelRect = tablePlot_->calcTablePixelRect();
 
-  device->setClipRect(plot_->pixelToWindow(pixelRect));
+  device->setClipRect(tablePlot_->pixelToWindow(pixelRect));
 
   //---
 
   auto *th = const_cast<CQChartsTableCellObj *>(this);
 
-  th->rect_ = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  th->rect_ = cellObjData_.rect.translated(tablePlot_->scrollX(), -tablePlot_->scrollY());
 
   //---
 
@@ -2273,19 +2273,19 @@ draw(PaintDevice *device) const
   bool   bgSet { false };
   bool   useDrawColor { true };
 
-  auto *columnDetails = plot_->columnDetails(cellObjData_.ind.column());
+  auto *columnDetails = tablePlot_->columnDetails(cellObjData_.ind.column());
 
   // calc background pen and brush and draw
   if      (isInside()) {
     PenBrush bgPenBrush;
 
-    bg    = plot_->interpColor(plot_->insideColor(), ColorInd());
+    bg    = tablePlot_->interpColor(tablePlot_->insideColor(), ColorInd());
     bgSet = true;
   }
   else if (isSelected()) {
     PenBrush bgPenBrush;
 
-    bg    = plot_->interpColor(plot_->selectedColor(), ColorInd());
+    bg    = tablePlot_->interpColor(tablePlot_->selectedColor(), ColorInd());
     bgSet = true;
   }
   else {
@@ -2326,12 +2326,12 @@ draw(PaintDevice *device) const
     if (hasRange) {
       if      (tableDrawType == CQChartsModelColumnDetails::TableDrawType::HEATMAP) {
         bg = columnDetails->heatmapColor(value, min, max,
-               plot_->interpColor(plot_->cellColor(), ColorInd()));
+               tablePlot_->interpColor(tablePlot_->cellColor(), ColorInd()));
         bgSet = true;
       }
       else if (tableDrawType == CQChartsModelColumnDetails::TableDrawType::BARCHART) {
-        auto xm = plot_->pixelToWindowWidth (1.0);
-        auto ym = plot_->pixelToWindowHeight(2.0);
+        auto xm = tablePlot_->pixelToWindowWidth (1.0);
+        auto ym = tablePlot_->pixelToWindowHeight(2.0);
 
         double barWidth = rect_.getWidth() - 2.0*xm;
 
@@ -2340,7 +2340,7 @@ draw(PaintDevice *device) const
         double rw = (1 - norm)*barWidth;
 
         auto bg1 = columnDetails->barchartColor();
-        auto bg2 = plot_->interpColor(plot_->cellColor(), ColorInd());
+        auto bg2 = tablePlot_->interpColor(tablePlot_->cellColor(), ColorInd());
 
         BBox lrect(rect_.getXMin() + xm          , rect_.getYMin() + ym,
                    rect_.getXMin() + xm + lw     , rect_.getYMax() - ym);
@@ -2349,12 +2349,12 @@ draw(PaintDevice *device) const
 
         PenBrush bgPenBrush;
 
-        plot_->setPenBrush(bgPenBrush, PenData(false), BrushData(true, bg1));
+        tablePlot_->setPenBrush(bgPenBrush, PenData(false), BrushData(true, bg1));
         CQChartsDrawUtil::setPenBrush(device, bgPenBrush);
 
         device->drawRect(lrect);
 
-        plot_->setPenBrush(bgPenBrush, PenData(false), BrushData(true, bg2));
+        tablePlot_->setPenBrush(bgPenBrush, PenData(false), BrushData(true, bg2));
         CQChartsDrawUtil::setPenBrush(device, bgPenBrush);
 
         device->drawRect(rrect);
@@ -2365,14 +2365,14 @@ draw(PaintDevice *device) const
   }
 
   if (! bgSet && cellObjData_.bgColor.isValid()) {
-    bg    = plot_->interpColor(cellObjData_.bgColor, ColorInd());
+    bg    = tablePlot_->interpColor(cellObjData_.bgColor, ColorInd());
     bgSet = true;
   }
 
   if (bgSet) {
     PenBrush bgPenBrush;
 
-    plot_->setPenBrush(bgPenBrush, PenData(false), BrushData(true, bg));
+    tablePlot_->setPenBrush(bgPenBrush, PenData(false), BrushData(true, bg));
 
     CQChartsDrawUtil::setPenBrush(device, bgPenBrush);
 
@@ -2385,7 +2385,7 @@ draw(PaintDevice *device) const
   bool   fgSet = false;
 
   if (cellObjData_.fgColor.isValid()) {
-    fg    = plot_->interpColor(cellObjData_.bgColor, ColorInd());
+    fg    = tablePlot_->interpColor(cellObjData_.bgColor, ColorInd());
     fgSet = true;
   }
 
@@ -2393,7 +2393,7 @@ draw(PaintDevice *device) const
     CQChartsColor textColor;
 
     if (! bgSet) {
-      textColor = plot_->calcTextColor(plot_->cellColor());
+      textColor = tablePlot_->calcTextColor(tablePlot_->cellColor());
 
       if (useDrawColor && columnDetails) {
         const auto &drawColor = columnDetails->tableDrawColor();
@@ -2403,25 +2403,25 @@ draw(PaintDevice *device) const
       }
 
       if      (isInside())
-        textColor = plot_->calcTextColor(plot_->insideColor());
+        textColor = tablePlot_->calcTextColor(tablePlot_->insideColor());
       else if (isSelected())
-        textColor = plot_->calcTextColor(plot_->selectedColor());
+        textColor = tablePlot_->calcTextColor(tablePlot_->selectedColor());
     }
     else {
-      textColor = CQChartsColor(plot_->calcTextColor(bg));
+      textColor = CQChartsColor(tablePlot_->calcTextColor(bg));
     }
 
-    fg = plot_->interpColor(textColor, ColorInd());
+    fg = tablePlot_->interpColor(textColor, ColorInd());
   }
 
   //---
 
   // draw cell text
-  device->setFont(plot_->tableFont());
+  device->setFont(tablePlot_->tableFont());
 
   PenBrush textPenBrush;
 
-  plot_->setPen(textPenBrush, PenData(true, fg));
+  tablePlot_->setPen(textPenBrush, PenData(true, fg));
 
   device->setPen(textPenBrush.pen);
 
@@ -2446,7 +2446,7 @@ void
 CQChartsTableCellObj::
 getObjSelectIndices(Indices &inds) const
 {
-  auto modelInd = plot_->modelIndex(cellObjData_.ind);
+  auto modelInd = tablePlot_->modelIndex(cellObjData_.ind);
 
   inds.insert(modelInd);
 }
@@ -2458,7 +2458,7 @@ inside(const Point &p) const
   if (! isVisible())
     return false;
 
-  auto rect = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  auto rect = cellObjData_.rect.translated(tablePlot_->scrollX(), -tablePlot_->scrollY());
 
   return rect.inside(p);
 }
@@ -2467,7 +2467,7 @@ bool
 CQChartsTableCellObj::
 rectIntersect(const BBox &r, bool inside) const
 {
-  auto rect = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  auto rect = cellObjData_.rect.translated(tablePlot_->scrollX(), -tablePlot_->scrollY());
 
   if (inside)
     return r.inside(rect);
@@ -2524,15 +2524,15 @@ void
 CQChartsTablePlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && tablePlot_)
+    disconnect(tablePlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsTablePlot *>(plot);
+  tablePlot_ = dynamic_cast<CQChartsTablePlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (tablePlot_)
+    connect(tablePlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

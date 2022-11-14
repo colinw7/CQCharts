@@ -603,7 +603,7 @@ class CQChartsConnectionPlotCustomControls : public CQChartsPlotCustomControls {
  public:
   CQChartsConnectionPlotCustomControls(CQCharts *charts, const QString &plotType);
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
   void addConnectionColumnWidgets();
 
@@ -617,7 +617,7 @@ class CQChartsConnectionPlotCustomControls : public CQChartsPlotCustomControls {
   void columnsTypeSlot();
 
  protected:
-  CQChartsConnectionPlot* plot_             { nullptr };
+  CQChartsConnectionPlot* connectionPlot_   { nullptr };
   CQEnumCombo*            columnsTypeCombo_ { nullptr };
 };
 

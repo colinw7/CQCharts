@@ -70,8 +70,8 @@ class CQChartsSymbolDataEdit : public CQChartsEditBase {
   const CQChartsSymbolData &data() const { return data_; }
   void setData(const CQChartsSymbolData &d);
 
-  void setPlot(CQChartsPlot *plot) override;
-  void setView(CQChartsView *view) override;
+  void setPlot(Plot *plot) override;
+  void setView(View *view) override;
 
   void setTitle(const QString &title);
 
@@ -89,8 +89,6 @@ class CQChartsSymbolDataEdit : public CQChartsEditBase {
   void widgetsToData();
 
  private:
-  CQChartsPlot*                  plot_       { nullptr }; //!< parent plot
-  CQChartsView*                  view_       { nullptr }; //!< parent view
   CQChartsSymbolData             data_;                   //!< symbol data
   CQGroupBox*                    groupBox_   { nullptr }; //!< group box
   CQChartsSymbolLineEdit*        symbolEdit_ { nullptr }; //!< symbol edit
@@ -116,7 +114,7 @@ class CQChartsSymbolDataEditPreview : public CQChartsEditPreview {
   void draw(QPainter *painter) override;
 
   static void draw(QPainter *painter, const CQChartsSymbolData &data, const QRect &rect,
-                   CQChartsPlot *plot, CQChartsView *view);
+                   Plot *plot, View *view);
 
  private:
   CQChartsSymbolDataEdit *edit_ { nullptr };
@@ -135,7 +133,7 @@ class CQChartsSymbolDataPropertyViewType : public CQChartsPropertyViewType {
   CQPropertyViewEditorFactory *getEditor() const override;
 
   void drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
-                   CQChartsPlot *plot, CQChartsView *view) override;
+                   Plot *plot, View *view) override;
 
   QString tip(const QVariant &value) const override;
 

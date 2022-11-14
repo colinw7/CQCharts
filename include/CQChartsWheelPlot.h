@@ -131,8 +131,8 @@ class CQChartsPointObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
-  const WheelPlot* plot_ { nullptr }; //!< parent plot
-  PointData        pointData_;        //!< point data
+  const WheelPlot* wheelPlot_ { nullptr }; //!< parent plot
+  PointData        pointData_;             //!< point data
 };
 
 //---
@@ -174,8 +174,8 @@ class CQChartsLineObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
-  const WheelPlot* plot_ { nullptr }; //!< parent plot
-  Polygon          poly_;             //!< polygon
+  const WheelPlot* wheelPlot_ { nullptr }; //!< parent plot
+  Polygon          poly_;                  //!< polygon
 };
 
 //---
@@ -218,8 +218,8 @@ class CQChartsInnerBarObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
-  const WheelPlot* plot_ { nullptr }; //!< parent plot
-  PointData        pointData_;        //!< point data
+  const WheelPlot* wheelPlot_ { nullptr }; //!< parent plot
+  PointData        pointData_;             //!< point data
 };
 
 //---
@@ -262,8 +262,8 @@ class CQChartsOuterBarObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
-  const WheelPlot* plot_ { nullptr }; //!< parent plot
-  PointData        pointData_;        //!< point data
+  const WheelPlot* wheelPlot_ { nullptr }; //!< parent plot
+  PointData        pointData_;             //!< point data
 };
 
 //---
@@ -306,8 +306,8 @@ class CQChartsOuterBubbleObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
-  const WheelPlot* plot_ { nullptr }; //!< parent plot
-  PointData        pointData_;        //!< point data
+  const WheelPlot* wheelPlot_ { nullptr }; //!< parent plot
+  PointData        pointData_;             //!< point data
 };
 
 //---
@@ -598,7 +598,7 @@ class CQChartsWheelPlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -611,7 +611,7 @@ class CQChartsWheelPlotCustomControls : public CQChartsPlotCustomControls {
   void connectSlots(bool b) override;
 
  protected:
-  CQChartsWheelPlot* plot_ { nullptr };
+  CQChartsWheelPlot* wheelPlot_ { nullptr };
 };
 
 #endif

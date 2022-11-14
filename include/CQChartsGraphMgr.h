@@ -55,7 +55,7 @@ class CQChartsGraphMgr {
 
   virtual ~CQChartsGraphMgr();
 
-  Plot *plot() const { return plot_; }
+  Plot *plot() const;
 
   //---
 
@@ -176,10 +176,11 @@ class CQChartsGraphMgr {
   void clearNodesAndEdges();
 
  private:
+  using PlotP       = QPointer<Plot>;
   using NameNodeMap = std::map<QString, Node *>;
   using IndNodeMap  = std::map<int, Node *>;
 
-  Plot*           plot_             { nullptr };            //!< parent plot
+  PlotP           plot_;                                    //!< parent plot
   Graphs          graphs_;                                  //!< graphs
   Qt::Orientation orientation_      { Qt::Vertical };       //!< orientation
   Align           align_            { Align::SRC };         //!< align

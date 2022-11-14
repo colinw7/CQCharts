@@ -345,11 +345,11 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot   = CQChartsSummaryPlot;
-  using Length = CQChartsLength;
+  using SummaryPlot = CQChartsSummaryPlot;
+  using Length      = CQChartsLength;
 
  public:
-  CQChartsSummaryCellObj(const Plot *plot, const BBox &bbox, int row, int col);
+  CQChartsSummaryCellObj(const SummaryPlot *plot, const BBox &bbox, int row, int col);
 
   int row() const { return row_; }
   int col() const { return col_; }
@@ -394,21 +394,21 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
     GroupIndData groupIndData;
   };
 
-  const Plot*     plot_ { nullptr }; //!< parent plot
-  int             row_  { -1 };      //!< row
-  int             col_  { -1 };      //!< column
-  mutable Polygon poly_;
-  GroupValues     groupValues_;
-  mutable double  pxmin_ { 0.0 };
-  mutable double  pymin_ { 0.0 };
-  mutable double  pxmax_ { 1.0 };
-  mutable double  pymax_ { 1.0 };
-  mutable double  xmin_  { 0.0 };
-  mutable double  ymin_  { 0.0 };
-  mutable double  xmax_  { 1.0 };
-  mutable double  ymax_  { 1.0 };
-  mutable double  bmin_  { 0.0 };
-  mutable double  bmax_  { 1.0 };
+  const SummaryPlot* summaryPlot_ { nullptr }; //!< parent plot
+  int                row_         { -1 };      //!< row
+  int                col_         { -1 };      //!< column
+  mutable Polygon    poly_;
+  GroupValues        groupValues_;
+  mutable double     pxmin_       { 0.0 };
+  mutable double     pymin_       { 0.0 };
+  mutable double     pxmax_       { 1.0 };
+  mutable double     pymax_       { 1.0 };
+  mutable double     xmin_        { 0.0 };
+  mutable double     ymin_        { 0.0 };
+  mutable double     xmax_        { 1.0 };
+  mutable double     ymax_        { 1.0 };
+  mutable double     bmin_        { 0.0 };
+  mutable double     bmax_        { 1.0 };
 };
 
 //---
@@ -433,7 +433,7 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -464,7 +464,7 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
   void expandSlot();
 
  protected:
-  CQChartsSummaryPlot* plot_ { nullptr };
+  CQChartsSummaryPlot* summaryPlot_ { nullptr };
 
   FrameData optionsFrame_;
 
@@ -492,18 +492,18 @@ class CQChartsSummaryPlotGroupStats : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsSummaryPlotGroupStats(CQChartsSummaryPlot *plot=nullptr);
+  CQChartsSummaryPlotGroupStats(CQChartsSummaryPlot *summaryPlot=nullptr);
 
-  CQChartsSummaryPlot *plot() const { return plot_; }
-  void setPlot(CQChartsSummaryPlot *plot) { plot_ = plot; }
+  CQChartsSummaryPlot *summaryPlot() const { return summaryPlot_; }
+  void setPlot(CQChartsSummaryPlot *summaryPlot) { summaryPlot_ = summaryPlot; }
 
   void updateWidgets();
 
   QSize sizeHint() const override;
 
  private:
-  CQChartsSummaryPlot* plot_      { nullptr };
-  CQTableWidget*       valueList_ { nullptr };
+  CQChartsSummaryPlot* summaryPlot_ { nullptr };
+  CQTableWidget*       valueList_   { nullptr };
 };
 
 //---

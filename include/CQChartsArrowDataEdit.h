@@ -118,8 +118,6 @@ class CQChartsArrowDataEditPreview : public CQChartsEditPreview {
   Q_OBJECT
 
  public:
-  using View      = CQChartsView;
-  using Plot      = CQChartsPlot;
   using ArrowData = CQChartsArrowData;
 
  public:

@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QString>
 #include <QFont>
+#include <QPointer>
 
 class CQChartsView;
 class CQChartsPlot;
@@ -67,7 +68,9 @@ class CQChartsProbeBand : public QObject {
   const Qt::Orientation &orientation() const { return orientation_; }
 
  private:
-  View*           view_        { nullptr };
+  using ViewP = QPointer<View>;
+
+  ViewP           view_;
   QRubberBand*    vband_       { nullptr };
   QRubberBand*    hband_       { nullptr };
   QLabel*         tip_         { nullptr };

@@ -4,6 +4,7 @@
 #include <CQChartsWidgetIFace.h>
 
 #include <QFrame>
+#include <QPointer>
 
 class CQChartsPaletteCanvas;
 class CQChartsView;
@@ -16,10 +17,13 @@ class CQChartsPaletteControl : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
  public:
+  using View = CQChartsView;
+
+ public:
   CQChartsPaletteControl(QWidget *parent);
 
-  CQChartsView *view() const { return view_; }
-  void setView(CQChartsView *view);
+  View *view() const;
+  void setView(View *view);
 
   void updatePalettes();
 
@@ -35,7 +39,9 @@ class CQChartsPaletteControl : public QFrame, public CQChartsWidgetIFace {
   void colorsChangedSlot();
 
  private:
-  CQChartsView*          view_            { nullptr };
+  using ViewP = QPointer<View>;
+
+  ViewP                  view_;
   QComboBox*             palettesCombo_   { nullptr };
   CQChartsPaletteCanvas* palettesPlot_    { nullptr };
   CQColorsEditControl*   palettesControl_ { nullptr };

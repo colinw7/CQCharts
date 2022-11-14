@@ -58,12 +58,12 @@ class CQChartsSankeyEdgeObj;
  */
 class CQChartsSankeyPlotNode {
  public:
+  using SankeyPlot  = CQChartsSankeyPlot;
   using Node        = CQChartsSankeyPlotNode;
   using NodeSet     = std::set<const Node *>;
   using Edge        = CQChartsSankeyPlotEdge;
   using Edges       = std::vector<Edge *>;
   using EdgeSet     = std::set<const Edge *>;
-  using Plot        = CQChartsSankeyPlot;
   using Obj         = CQChartsSankeyNodeObj;
   using Color       = CQChartsColor;
   using Alpha       = CQChartsAlpha;
@@ -83,12 +83,12 @@ class CQChartsSankeyPlotNode {
   using ColorInd    = CQChartsUtil::ColorInd;
 
  public:
-  CQChartsSankeyPlotNode(const Plot *plot, const QString &str);
+  CQChartsSankeyPlotNode(const SankeyPlot *plot, const QString &str);
 
   virtual ~CQChartsSankeyPlotNode();
 
   //! get plot
-  const Plot *plot() const { return plot_; }
+  const SankeyPlot *sankeyPlot() const { return sankeyPlot_; }
 
   //! get/set edge parent
   Node *parent() const { return parent_; }
@@ -341,18 +341,18 @@ class CQChartsSankeyPlotNode {
     LineDash dash;  //!< stroke dash
   };
 
-  const Plot* plot_    { nullptr }; //!< associated plot
-  Node*       parent_  { nullptr }; //!< parent node (source node for dest node)
-  QString     str_;                 //!< string
-  int         id_      { -1 };      //!< id
-  bool        visible_ { true };    //!< is visible
-  ModelIndex  ind_;                 //!< model index
-  QString     name_;                //!< name
-  QString     label_;               //!< label
-  OptReal     value_;               //!< value
-  int         group_   { -1 };      //!< group index
-  int         ngroup_  { 0 };       //!< number of groups
-  int         depth_   { -1 };      //!< depth
+  const SankeyPlot* sankeyPlot_ { nullptr }; //!< associated plot
+  Node*             parent_     { nullptr }; //!< parent node (source node for dest node)
+  QString           str_;                    //!< string
+  int               id_         { -1 };      //!< id
+  bool              visible_    { true };    //!< is visible
+  ModelIndex        ind_;                    //!< model index
+  QString           name_;                   //!< name
+  QString           label_;                  //!< label
+  OptReal           value_;                  //!< value
+  int               group_      { -1 };      //!< group index
+  int               ngroup_     { 0 };       //!< number of groups
+  int               depth_      { -1 };      //!< depth
 
   // appearance
   FillData   fillData_;   //!< fill data
@@ -386,7 +386,7 @@ class CQChartsSankeyPlotNode {
  */
 class CQChartsSankeyPlotEdge {
  public:
-  using Plot       = CQChartsSankeyPlot;
+  using SankeyPlot = CQChartsSankeyPlot;
   using Edge       = CQChartsSankeyPlotEdge;
   using Node       = CQChartsSankeyPlotNode;
   using Obj        = CQChartsSankeyEdgeObj;
@@ -400,14 +400,15 @@ class CQChartsSankeyPlotEdge {
   using Point      = CQChartsGeom::Point;
 
  public:
-  CQChartsSankeyPlotEdge(const Plot *plot, const OptReal &value, Node *srcNode, Node *destNode);
+  CQChartsSankeyPlotEdge(const SankeyPlot *plot, const OptReal &value,
+                         Node *srcNode, Node *destNode);
 
   virtual ~CQChartsSankeyPlotEdge();
 
   //---
 
   //! get plot
-  const Plot *plot() const { return plot_; }
+  const SankeyPlot *sankeyPlot() const { return sankeyPlot_; }
 
   //---
 
@@ -494,21 +495,21 @@ class CQChartsSankeyPlotEdge {
  protected:
   using NamedColumn = std::map<QString, Column>;
 
-  const Plot* plot_     { nullptr }; //!< plot
-  int         id_       { -1 };      //!< unique id
-  OptReal     value_;                //!< value
-  NamedColumn namedColumn_;          //!< named columns
-//QString     label_;                //!< label
-  Color       color_;                //!< color
+  const SankeyPlot* sankeyPlot_ { nullptr }; //!< plot
+  int               id_         { -1 };      //!< unique id
+  OptReal           value_;                  //!< value
+  NamedColumn       namedColumn_;            //!< named columns
+//QString           label_;                  //!< label
+  Color             color_;                  //!< color
 #ifdef CQCHARTS_GRAPH_PATH_ID
-  int         pathId_   { -1 };      //!< path id
+  int               pathId_     { -1 };      //!< path id
 #endif
-  QModelIndex modelInd_;             //!< original row model index
-  ModelInds   modelInds_;            //!< model inds
-  Node*       srcNode_  { nullptr }; //!< source node
-  Node*       destNode_ { nullptr }; //!< destination node
-  Obj*        obj_      { nullptr }; //!< associated edge object
-  bool        isLine_   { false };   //!< is edge a line
+  QModelIndex       modelInd_;               //!< original row model index
+  ModelInds         modelInds_;              //!< model inds
+  Node*             srcNode_     { nullptr }; //!< source node
+  Node*             destNode_    { nullptr }; //!< destination node
+  Obj*              obj_         { nullptr }; //!< associated edge object
+  bool              isLine_      { false };   //!< is edge a line
 };
 
 //---
@@ -519,11 +520,11 @@ class CQChartsSankeyPlotEdge {
  */
 class CQChartsSankeyPlotGraph {
  public:
-  using Plot  = CQChartsSankeyPlot;
-  using Node  = CQChartsSankeyPlotNode;
-  using Nodes = std::vector<Node *>;
-  using BBox  = CQChartsGeom::BBox;
-  using Point = CQChartsGeom::Point;
+  using SankeyPlot = CQChartsSankeyPlot;
+  using Node       = CQChartsSankeyPlotNode;
+  using Nodes      = std::vector<Node *>;
+  using BBox       = CQChartsGeom::BBox;
+  using Point      = CQChartsGeom::Point;
 
   //! data for nodes at depth
   struct DepthData {
@@ -536,14 +537,14 @@ class CQChartsSankeyPlotGraph {
   using PosNodesMap   = std::map<int, Nodes>;
 
  public:
-  CQChartsSankeyPlotGraph(const Plot *plot);
+  CQChartsSankeyPlotGraph(const SankeyPlot *plot);
 
   virtual ~CQChartsSankeyPlotGraph() { }
 
   //---
 
   //! get plot
-  const Plot *plot() const { return plot_; }
+  const SankeyPlot *sankeyPlot() const { return sankeyPlot_; }
 
   //---
 
@@ -642,16 +643,16 @@ class CQChartsSankeyPlotGraph {
   void scale(double fx, double fy);
 
  protected:
-  const Plot*   plot_         { nullptr }; //!< associated plot
-  Nodes         nodes_;                    //!< nodes in graph
-  BBox          rect_;                     //!< placed rectangle
-  int           maxNodeDepth_ { 0 };       //!< max depth of nodes
-  int           maxHeight_    { 0 };       //!< max height of all depth nodes
-  double        totalSize_    { 0.0 };     //!< total size of all depth nodes
-  DepthNodesMap depthNodesMap_;            //!< nodes data at depth
-  PosNodesMap   posNodesMap_;              //!< pos node map (needed ?)
-  double        valueMargin_  { 0.0 };     //!< y value margin
-  double        valueScale_   { 1.0 };     //!< y value scale
+  const SankeyPlot* sankeyPlot_   { nullptr }; //!< associated plot
+  Nodes             nodes_;                    //!< nodes in graph
+  BBox              rect_;                     //!< placed rectangle
+  int               maxNodeDepth_ { 0 };       //!< max depth of nodes
+  int               maxHeight_    { 0 };       //!< max height of all depth nodes
+  double            totalSize_    { 0.0 };     //!< total size of all depth nodes
+  DepthNodesMap     depthNodesMap_;            //!< nodes data at depth
+  PosNodesMap       posNodesMap_;              //!< pos node map (needed ?)
+  double            valueMargin_  { 0.0 };     //!< y value margin
+  double            valueScale_   { 1.0 };     //!< y value scale
 };
 
 //---
@@ -670,13 +671,13 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsColor fillColor READ fillColor WRITE setFillColor)
 
  public:
-  using Plot  = CQChartsSankeyPlot;
-  using Node  = CQChartsSankeyPlotNode;
-  using Edge  = CQChartsSankeyPlotEdge;
-  using Angle = CQChartsAngle;
+  using SankeyPlot = CQChartsSankeyPlot;
+  using Node       = CQChartsSankeyPlotNode;
+  using Edge       = CQChartsSankeyPlotEdge;
+  using Angle      = CQChartsAngle;
 
  public:
-  CQChartsSankeyNodeObj(const Plot *plot, const BBox &rect, Node *node,
+  CQChartsSankeyNodeObj(const SankeyPlot *plot, const BBox &rect, Node *node,
                         const ColorInd &ig, const ColorInd &iv);
 
   virtual ~CQChartsSankeyNodeObj();
@@ -689,7 +690,7 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   //---
 
   //! get plot
-  const Plot *plot() const { return plot_; }
+  const SankeyPlot *sankeyPlot() const { return sankeyPlot_; }
 
   //! get node
   Node *node() const { return node_; }
@@ -790,10 +791,10 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   QColor calcFillColor() const;
 
  protected:
-  const Plot* plot_        { nullptr }; //!< parent plot
-  Node*       node_        { nullptr }; //!< node
-  QString     hierName_;                //!< node hier name
-  bool        editChanged_ { false };   //!< edit is changed
+  const SankeyPlot* sankeyPlot_  { nullptr }; //!< parent plot
+  Node*             node_        { nullptr }; //!< node
+  QString           hierName_;                //!< node hier name
+  bool              editChanged_ { false };   //!< edit is changed
 };
 
 //---
@@ -808,19 +809,19 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   Q_PROPERTY(double value READ value)
 
  public:
-  using Plot = CQChartsSankeyPlot;
-  using Edge = CQChartsSankeyPlotEdge;
-  using Node = CQChartsSankeyPlotNode;
+  using SankeyPlot = CQChartsSankeyPlot;
+  using Edge       = CQChartsSankeyPlotEdge;
+  using Node       = CQChartsSankeyPlotNode;
 
  public:
-  CQChartsSankeyEdgeObj(const Plot *plot, const BBox &rect, Edge *edge);
+  CQChartsSankeyEdgeObj(const SankeyPlot *plot, const BBox &rect, Edge *edge);
 
   virtual ~CQChartsSankeyEdgeObj();
 
   //---
 
   //! get plot
-  const Plot *plot() const { return plot_; }
+  const SankeyPlot *sankeyPlot() const { return sankeyPlot_; }
 
   //! get edge
   Edge *edge() const { return edge_; }
@@ -876,11 +877,11 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  protected:
-  const Plot*          plot_      { nullptr }; //!< parent plot
-  Edge*                edge_      { nullptr }; //!< edge
-  BBox                 srcRect_;               //!< src rect
-  BBox                 destRect_;              //!< dest rect
-  mutable QPainterPath path_;                  //!< painter path
+  const SankeyPlot*    sankeyPlot_ { nullptr }; //!< parent plot
+  Edge*                edge_       { nullptr }; //!< edge
+  BBox                 srcRect_;                //!< src rect
+  BBox                 destRect_;               //!< dest rect
+  mutable QPainterPath path_;                   //!< painter path
 };
 
 //---
@@ -1505,7 +1506,7 @@ class CQChartsSankeyPlotCustomControls : public CQChartsConnectionPlotCustomCont
 
   void addWidgets() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -1519,7 +1520,7 @@ class CQChartsSankeyPlotCustomControls : public CQChartsConnectionPlotCustomCont
   void setColorValue(const CQChartsColor &c) override;
 
  protected:
-  CQChartsSankeyPlot* plot_ { nullptr };
+  CQChartsSankeyPlot* sankeyPlot_ { nullptr };
 };
 
 #endif

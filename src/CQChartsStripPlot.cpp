@@ -262,18 +262,18 @@ calcRange() const
   // process model data
   class StripVisitor : public ModelVisitor {
    public:
-    StripVisitor(const CQChartsStripPlot *plot, Range &dataRange) :
-     plot_(plot), dataRange_(dataRange) {
+    StripVisitor(const CQChartsStripPlot *stripPlot, Range &dataRange) :
+     stripPlot_(stripPlot), dataRange_(dataRange) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      plot_->calcRowRange(data, dataRange_);
+      stripPlot_->calcRowRange(data, dataRange_);
 
       return State::OK;
     }
 
    private:
-    const CQChartsStripPlot* plot_ { nullptr };
+    const CQChartsStripPlot* stripPlot_ { nullptr };
     Range&                   dataRange_;
   };
 
@@ -449,18 +449,18 @@ createObjs(PlotObjs &objs) const
   // process model data
   class StripVisitor : public ModelVisitor {
    public:
-    StripVisitor(const CQChartsStripPlot *plot, PlotObjs &objs) :
-     plot_(plot), objs_(objs) {
+    StripVisitor(const CQChartsStripPlot *stripPlot, PlotObjs &objs) :
+     stripPlot_(stripPlot), objs_(objs) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRowObj(data, objs_);
+      stripPlot_->addRowObj(data, objs_);
 
       return State::OK;
     }
 
    private:
-    const CQChartsStripPlot *plot_ { nullptr };
+    const CQChartsStripPlot *stripPlot_ { nullptr };
     PlotObjs&                objs_;
   };
 
@@ -679,10 +679,10 @@ createCustomControls()
 //------
 
 CQChartsStripPointObj::
-CQChartsStripPointObj(const Plot *plot, const BBox &rect, int groupInd, const Point &p,
+CQChartsStripPointObj(const StripPlot *stripPlot, const BBox &rect, int groupInd, const Point &p,
                       const QModelIndex &ind, const ColorInd &ig, const ColorInd &iv) :
- CQChartsPlotPointObj(const_cast<Plot *>(plot), rect, p, ColorInd(), ig, iv),
- plot_(plot), groupInd_(groupInd)
+ CQChartsPlotPointObj(const_cast<StripPlot *>(stripPlot), rect, p, ColorInd(), ig, iv),
+ stripPlot_(stripPlot), groupInd_(groupInd)
 {
   if (ind.isValid())
     setModelInd(ind);
@@ -694,7 +694,7 @@ CQChartsLength
 CQChartsStripPointObj::
 calcSymbolSize() const
 {
-  return plot()->symbolSize();
+  return stripPlot()->symbolSize();
 }
 
 //---
@@ -712,7 +712,7 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  auto groupName = plot_->groupIndName(groupInd_);
+  auto groupName = stripPlot_->groupIndName(groupInd_);
 
   tableTip.addTableRow("Group", groupName);
   tableTip.addTableRow("Ind"  , iv_.i);
@@ -739,7 +739,7 @@ void
 CQChartsStripPointObj::
 draw(PaintDevice *device) const
 {
-  auto symbol = plot_->symbol();
+  auto symbol = stripPlot_->symbol();
 
   if (! symbol.isValid())
     return;
@@ -772,24 +772,24 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto colorInd = this->calcColorInd();
 
-  plot_->setSymbolPenBrush(penBrush, colorInd);
+  stripPlot_->setSymbolPenBrush(penBrush, colorInd);
 
-  if (plot_->colorColumn().isValid()) {
+  if (stripPlot_->colorColumn().isValid()) {
     auto ind1 = modelInd();
 
     Color indColor;
 
     auto symbolColor = penBrush.brush.color();
 
-    if (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor)) {
-      symbolColor = plot_->interpColor(indColor, colorInd);
+    if (stripPlot_->colorColumnColor(ind1.row(), ind1.parent(), indColor)) {
+      symbolColor = stripPlot_->interpColor(indColor, colorInd);
 
       CQChartsDrawUtil::updateBrushColor(penBrush.brush, symbolColor);
     }
   }
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+    stripPlot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 }
 
 //------
@@ -826,7 +826,7 @@ void
 CQChartsStripPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<CQChartsStripPlot *>(plot);
+  stripPlot_ = dynamic_cast<CQChartsStripPlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
 }
@@ -835,12 +835,12 @@ CQChartsColor
 CQChartsStripPlotCustomControls::
 getColorValue()
 {
-  return plot_->symbolFillColor();
+  return stripPlot_->symbolFillColor();
 }
 
 void
 CQChartsStripPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setSymbolFillColor(c);
+  stripPlot_->setSymbolFillColor(c);
 }

@@ -17,7 +17,7 @@ class CQChartsDensity;
  */
 class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
  public:
-  using Plot = CQChartsBarChartPlot;
+  using BarChartPlot = CQChartsBarChartPlot;
 
  public:
   CQChartsBarChartPlotType();
@@ -40,7 +40,7 @@ class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
 
   QString description() const override;
 
-  CQChartsPlot *create(View *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -278,12 +278,12 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsColor color READ color    WRITE setColor)
 
  public:
-  using Plot     = CQChartsBarChartPlot;
-  using ValueSet = CQChartsBarChartValueSet;
-  using BarValue = CQChartsBarChartValue;
+  using BarChartPlot = CQChartsBarChartPlot;
+  using ValueSet     = CQChartsBarChartValueSet;
+  using BarValue     = CQChartsBarChartValue;
 
  public:
-  CQChartsBarChartObj(const Plot *plot, const BBox &rect, bool isValueSet, int valueSetInd,
+  CQChartsBarChartObj(const BarChartPlot *plot, const BBox &rect, bool isValueSet, int valueSetInd,
                       const ColorInd &iset, const ColorInd &ival, const ColorInd &isval,
                       const QModelIndex &ind);
 
@@ -351,8 +351,8 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
  private:
   using DensityP = std::unique_ptr<CQChartsDensity>;
 
-  const Plot*   plot_  { nullptr }; //!< parent plot
-  CQChartsColor color_;             //!< custom color
+  const BarChartPlot* barChartPlot_ { nullptr }; //!< parent plot
+  CQChartsColor       color_;                    //!< custom color
 
   bool valueSet_    { false }; //!< is value set
   int  valueSetInd_ { -1 };    //!< value set ind
@@ -374,10 +374,10 @@ class CQChartsBarColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_PROPERTY(CQChartsColor color READ color WRITE setColor)
 
  public:
-  using Plot = CQChartsBarChartPlot;
+  using BarChartPlot = CQChartsBarChartPlot;
 
  public:
-  CQChartsBarColorKeyItem(Plot *plot, const QString &name, const ColorInd &is,
+  CQChartsBarColorKeyItem(BarChartPlot *plot, const QString &name, const ColorInd &is,
                           const ColorInd &ig, const ColorInd &iv);
 
 #if 0
@@ -397,8 +397,8 @@ class CQChartsBarColorKeyItem : public CQChartsColorBoxKeyItem {
 #endif
 
  private:
-  Plot*   plot_ { nullptr }; //!< plot
-  QString name_;             //!< item name
+  BarChartPlot* barChartPlot_ { nullptr }; //!< plot
+  QString       name_;                     //!< item name
 };
 
 /*!
@@ -409,10 +409,10 @@ class CQChartsBarTextKeyItem : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsBarChartPlot;
+  using BarChartPlot = CQChartsBarChartPlot;
 
  public:
-  CQChartsBarTextKeyItem(Plot *plot, const QString &text, const ColorInd &ic);
+  CQChartsBarTextKeyItem(BarChartPlot *plot, const QString &text, const ColorInd &ic);
 
   QColor interpTextColor(const ColorInd &ind) const override;
 
@@ -763,7 +763,7 @@ class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControl
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -799,7 +799,7 @@ class CQChartsBarChartPlotCustomControls : public CQChartsGroupPlotCustomControl
   void colorBySetSlot();
 
  protected:
-  CQChartsBarChartPlot* plot_ { nullptr };
+  CQChartsBarChartPlot* barChartPlot_ { nullptr };
 
   FrameData optionsFrame_;
 

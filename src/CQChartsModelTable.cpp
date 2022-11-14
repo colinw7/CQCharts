@@ -96,9 +96,16 @@ setCharts(CQCharts *charts)
   updateState();
 }
 
+CQChartsView *
+CQChartsModelTableControl::
+view() const
+{
+  return view_.data();
+}
+
 void
 CQChartsModelTableControl::
-setView(CQChartsView *view)
+setView(View *view)
 {
   view_ = view;
 }
@@ -190,7 +197,7 @@ createPlotModelSlot()
 
   auto *createPlotDlg = charts_->createPlotDlg(modelData);
 
-  auto *view = (view_ ? view_ : charts_->currentView());
+  auto *view = (this->view() ? this->view() : charts_->currentView());
 
   if (view)
     createPlotDlg->setViewName(view->id());

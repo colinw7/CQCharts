@@ -22,11 +22,26 @@ CQChartsModelIndex(int row, const CQChartsColumn &column, const QModelIndex &par
 #endif
 
 CQChartsModelIndex::
-CQChartsModelIndex(const CQChartsPlot *plot, int row, const CQChartsColumn &column,
+CQChartsModelIndex(const Plot *plot, int row, const CQChartsColumn &column,
                    const QModelIndex &parent, bool normalized) :
- plot_(plot), row_(row), column_(column), parent_(parent), normalized_(normalized)
+ plot_(const_cast<Plot *>(plot)), row_(row), column_(column),
+ parent_(parent), normalized_(normalized)
 {
   assert(plot_->isNormalizedIndex(*this) == normalized_);
+}
+
+CQChartsModelIndex::Plot *
+CQChartsModelIndex::
+plot() const
+{
+  return plot_.data();
+}
+
+void
+CQChartsModelIndex::
+setPlot(const Plot *plot)
+{
+  plot_ = const_cast<Plot *>(plot);
 }
 
 bool

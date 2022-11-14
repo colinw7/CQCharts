@@ -19,9 +19,16 @@ CQChartsSymbolTypeRangeSlider(QWidget *parent) :
   setXBorder(12);
 }
 
+CQChartsPlot *
+CQChartsSymbolTypeRangeSlider::
+plot() const
+{
+  return plot_.data();
+}
+
 void
 CQChartsSymbolTypeRangeSlider::
-setPlot(CQChartsPlot *plot)
+setPlot(Plot *plot)
 {
   plot_ = plot;
 
@@ -34,7 +41,7 @@ setSymbolSetName(const QString &name)
 {
   symbolSetName_ = name;
 
-  auto *symbolSetMgr = (plot_ ? plot_->charts()->symbolSetMgr() : nullptr);
+  auto *symbolSetMgr = (plot() ? plot()->charts()->symbolSetMgr() : nullptr);
   auto *symbolSet    = (symbolSetMgr ? symbolSetMgr->symbolSet(symbolSetName_) : nullptr);
 
   int typeVal1 = (symbolSet ?                           0 : CQChartsSymbolType::minOutlineValue());
@@ -42,7 +49,7 @@ setSymbolSetName(const QString &name)
 
   setRangeMinMax(typeVal1, typeVal2);
 
-  auto *pointPlot = dynamic_cast<CQChartsPointPlot *>(plot_);
+  auto *pointPlot = dynamic_cast<CQChartsPointPlot *>(plot());
 
   if (pointPlot)
     setSliderMinMax(int(pointPlot->symbolTypeMapMin()), int(pointPlot->symbolTypeMapMax()));
@@ -71,7 +78,7 @@ drawSliderLabels(QPainter *painter)
 
   //---
 
-  auto *symbolSetMgr = (plot_ ? plot_->charts()->symbolSetMgr() : nullptr);
+  auto *symbolSetMgr = (plot() ? plot()->charts()->symbolSetMgr() : nullptr);
   auto *symbolSet    = (symbolSetMgr ? symbolSetMgr->symbolSet(symbolSetName_) : nullptr);
 
   //---

@@ -2105,9 +2105,9 @@ createCustomControls()
 //------
 
 CQChartsGraphNodeObj::
-CQChartsGraphNodeObj(const Plot *plot, const BBox &rect, Node *node, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, ColorInd(), ColorInd(), iv),
- plot_(plot), node_(node)
+CQChartsGraphNodeObj(const GraphPlot *graphPlot, const BBox &rect, Node *node, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<GraphPlot *>(graphPlot), rect, ColorInd(), ColorInd(), iv),
+ graphPlot_(graphPlot), node_(node)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -2252,7 +2252,7 @@ calcTipId() const
 
   auto namedColumn = [&](const QString &name, const QString &defName="") {
     if (edge && edge->hasNamedColumn(name))
-      return plot_->columnHeaderName(edge->namedColumn(name));
+      return graphPlot_->columnHeaderName(edge->namedColumn(name));
 
     auto headerName = (defName.length() ? defName : name);
 
@@ -2286,12 +2286,12 @@ calcTipId() const
 
   tableTip.addTableRow("Edges", QString("In:%1, Out:%2").arg(ns).arg(nd));
 
-  if (plot_->groupColumn().isValid())
+  if (graphPlot_->groupColumn().isValid())
     tableTip.addTableRow("Group", node()->group());
 
   //---
 
-  plot()->addTipColumns(tableTip, modelInd());
+  graphPlot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -2379,7 +2379,7 @@ editMove(const Point &p)
 
   editChanged_ = true;
 
-  const_cast<CQChartsGraphPlot *>(plot())->drawObjs();
+  const_cast<CQChartsGraphPlot *>(graphPlot())->drawObjs();
 
   return true;
 }
@@ -2396,7 +2396,7 @@ CQChartsGraphNodeObj::
 editRelease(const Point &)
 {
   if (editChanged_)
-    const_cast<CQChartsGraphPlot *>(plot())->invalidateObjTree();
+    const_cast<CQChartsGraphPlot *>(graphPlot())->invalidateObjTree();
 
   return true;
 }
@@ -2504,15 +2504,15 @@ void
 CQChartsGraphNodeObj::
 drawFg(PaintDevice *device) const
 {
-  if (! plot_->isNodeTextVisible())
+  if (! graphPlot_->isNodeTextVisible())
     return;
 
-  auto prect = plot_->windowToPixel(rect());
+  auto prect = graphPlot_->windowToPixel(rect());
 
   //---
 
   // set font
-  plot_->setPainterFont(device, plot_->nodeTextFont());
+  graphPlot_->setPainterFont(device, graphPlot_->nodeTextFont());
 
   QFontMetricsF fm(device->font());
 
@@ -2523,9 +2523,9 @@ drawFg(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  auto c = plot_->interpNodeTextColor(ic);
+  auto c = graphPlot_->interpNodeTextColor(ic);
 
-  plot_->setPen(penBrush, PenData(true, c, plot_->nodeTextAlpha()));
+  graphPlot_->setPen(penBrush, PenData(true, c, graphPlot_->nodeTextAlpha()));
 
   device->setPen(penBrush.pen);
 
@@ -2540,7 +2540,7 @@ drawFg(PaintDevice *device) const
 
   //---
 
-  bool textInside = plot_->isNodeTextInside();
+  bool textInside = graphPlot_->isNodeTextInside();
 
   if (shapeType() == ShapeType::DIAMOND || shapeType() == ShapeType::BOX ||
       shapeType() == ShapeType::POLYGON || shapeType() == ShapeType::CIRCLE ||
@@ -2550,7 +2550,7 @@ drawFg(PaintDevice *device) const
   //---
 
   // only support contrast
-  auto textOptions = plot_->nodeTextOptions(device);
+  auto textOptions = graphPlot_->nodeTextOptions(device);
 
   textOptions.angle = Angle();
   textOptions.align = Qt::AlignLeft;
@@ -2559,16 +2559,16 @@ drawFg(PaintDevice *device) const
   if (! textInside) {
     double ptw = fm.horizontalAdvance(str);
 
-    double clipLength = plot_->lengthPixelWidth(plot()->nodeTextClipLength());
+    double clipLength = graphPlot_->lengthPixelWidth(graphPlot()->nodeTextClipLength());
 
     if (clipLength > 0.0)
       ptw = std::min(ptw, clipLength);
 
-    double tw = plot_->pixelToWindowWidth(ptw);
+    double tw = graphPlot_->pixelToWindowWidth(ptw);
 
     //---
 
-    auto range = plot_->getCalcDataRange();
+    auto range = graphPlot_->getCalcDataRange();
 
     double xm = (range.isSet() ? range.xmid() : 0.0);
 
@@ -2576,7 +2576,7 @@ drawFg(PaintDevice *device) const
       prect.getXMax() + textMargin : prect.getXMin() - textMargin - ptw);
     double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
 
-    auto pt = plot_->pixelToWindow(Point(tx, ty));
+    auto pt = graphPlot_->pixelToWindow(Point(tx, ty));
 
     CQChartsDrawUtil::drawTextAtPoint(device, pt, str, textOptions);
   }
@@ -2598,30 +2598,30 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   QColor bc;
 
   if (node()->strokeColor().isValid())
-    bc = plot_->interpColor(node()->strokeColor(), ic);
+    bc = graphPlot_->interpColor(node()->strokeColor(), ic);
   else
-    bc = plot_->interpNodeStrokeColor(ic);
+    bc = graphPlot_->interpNodeStrokeColor(ic);
 
   auto fc = calcFillColor();
 
   auto fillAlpha   = (node()->fillAlpha  ().isValid() ?
-    node()->fillAlpha() : plot_->nodeFillAlpha());
+    node()->fillAlpha() : graphPlot_->nodeFillAlpha());
   auto fillPattern = (node()->fillPattern().isValid() ?
-    node()->fillPattern() : plot_->nodeFillPattern());
+    node()->fillPattern() : graphPlot_->nodeFillPattern());
 
   auto strokeAlpha = (node()->strokeAlpha().isValid() ?
-    node()->strokeAlpha() : plot_->nodeStrokeAlpha());
+    node()->strokeAlpha() : graphPlot_->nodeStrokeAlpha());
   auto strokeWidth = (node()->strokeWidth().isValid() ?
-    node()->strokeWidth() : plot_->nodeStrokeWidth());
+    node()->strokeWidth() : graphPlot_->nodeStrokeWidth());
   auto strokeDash  = (node()->strokeDash ().isValid() ?
-    node()->strokeDash () : plot_->nodeStrokeDash());
+    node()->strokeDash () : graphPlot_->nodeStrokeDash());
 
-  plot_->setPenBrush(penBrush,
-    plot_->nodePenData  (bc, strokeAlpha, strokeWidth, strokeDash),
-    plot_->nodeBrushData(fc, fillAlpha, fillPattern));
+  graphPlot_->setPenBrush(penBrush,
+    graphPlot_->nodePenData  (bc, strokeAlpha, strokeWidth, strokeDash),
+    graphPlot_->nodeBrushData(fc, fillAlpha, fillPattern));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    graphPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 QColor
@@ -2633,9 +2633,9 @@ calcFillColor() const
   auto ic = calcColorInd();
 
   if (fillColor().isValid())
-    fc = plot_->interpColor(fillColor(), ic);
+    fc = graphPlot_->interpColor(fillColor(), ic);
   else
-    fc = plot_->interpNodeFillColor(ic);
+    fc = graphPlot_->interpNodeFillColor(ic);
 
   return fc;
 }
@@ -2643,8 +2643,8 @@ calcFillColor() const
 //------
 
 CQChartsGraphEdgeObj::
-CQChartsGraphEdgeObj(const Plot *plot, const BBox &rect, Edge *edge) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect), plot_(plot), edge_(edge)
+CQChartsGraphEdgeObj(const GraphPlot *graphPlot, const BBox &rect, Edge *edge) :
+ CQChartsPlotObj(const_cast<GraphPlot *>(graphPlot), rect), graphPlot_(graphPlot), edge_(edge)
 {
   //setDetailHint(DetailHint::MAJOR);
 }
@@ -2700,7 +2700,7 @@ calcTipId() const
 {
   auto namedColumn = [&](const QString &name, const QString &defName="") {
     if (edge()->hasNamedColumn(name))
-      return plot_->columnHeaderName(edge()->namedColumn(name));
+      return graphPlot_->columnHeaderName(edge()->namedColumn(name));
 
     auto headerName = (defName.length() ? defName : name);
 
@@ -2734,7 +2734,7 @@ calcTipId() const
 
   //---
 
-  plot()->addTipColumns(tableTip, modelInd());
+  graphPlot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -2827,7 +2827,7 @@ draw(PaintDevice *device) const
   if (! destRect.isSet())
     destRect = edge()->destNode()->rect();
 
-  if (shapeType() == ShapeType::ARROW || ! plot_->isEdgeScaled()) {
+  if (shapeType() == ShapeType::ARROW || ! graphPlot_->isEdgeScaled()) {
     if (edge()->srcNode()->shapeType() == Node::ShapeType::DIAMOND ||
         edge()->srcNode()->shapeType() == Node::ShapeType::POLYGON ||
         edge()->srcNode()->shapeType() == Node::ShapeType::CIRCLE ||
@@ -2852,7 +2852,7 @@ draw(PaintDevice *device) const
 
   bool swapped = false;
 
-  if (plot_->isHorizontal()) {
+  if (graphPlot_->isHorizontal()) {
     // x from right of source rect to left of dest rect
     x1 = srcRect .getXMax();
     x2 = destRect.getXMin();
@@ -2878,16 +2878,16 @@ draw(PaintDevice *device) const
   // draw edge
   path_ = QPainterPath();
 
-  auto orient = plot_->orientation();
+  auto orient = graphPlot_->orientation();
 
   auto angle = Angle::fromOrientation(orient);
 
   auto edgeType = CQChartsDrawUtil::EdgeType::ARC;
 
   if (shapeType() == ShapeType::ARROW) {
-    const_cast<CQChartsGraphPlot *>(plot())->setUpdatesEnabled(false);
+    const_cast<CQChartsGraphPlot *>(graphPlot())->setUpdatesEnabled(false);
 
-    double lw = plot_->lengthPlotHeight(plot()->edgeWidth());
+    double lw = graphPlot_->lengthPlotHeight(graphPlot()->edgeWidth());
 
     if (! isSelf) {
       QPainterPath lpath;
@@ -2909,17 +2909,17 @@ draw(PaintDevice *device) const
       device->drawPath(path_);
     }
 
-    const_cast<CQChartsGraphPlot *>(plot())->setUpdatesEnabled(true);
+    const_cast<CQChartsGraphPlot *>(graphPlot())->setUpdatesEnabled(true);
   }
   else {
-    if (plot_->isEdgeScaled()) {
+    if (graphPlot_->isEdgeScaled()) {
       CQChartsDrawUtil::edgePath(path_, srcRect, destRect, edgeType, angle);
     }
     else {
-      double lw = plot_->lengthPlotHeight(plot()->edgeWidth()); // TODO: config
+      double lw = graphPlot_->lengthPlotHeight(graphPlot()->edgeWidth()); // TODO: config
 
       if (! isSelf) {
-        if (plot_->isHorizontal()) {
+        if (graphPlot_->isHorizontal()) {
           // start y range from source node, and end y range from dest node
           y1 = srcRect .getYMid();
           y2 = destRect.getYMid();
@@ -2957,7 +2957,7 @@ void
 CQChartsGraphEdgeObj::
 drawFg(PaintDevice *device) const
 {
-  if (! plot_->isEdgeTextVisible())
+  if (! graphPlot_->isEdgeTextVisible())
     return;
 
   //---
@@ -2984,12 +2984,12 @@ drawFg(PaintDevice *device) const
 
   auto rect = (isSelf ? srcRect : srcRect + destRect);
 
-  auto prect = plot_->windowToPixel(rect);
+  auto prect = graphPlot_->windowToPixel(rect);
 
   //---
 
   // set font
-  plot_->setPainterFont(device, plot_->edgeTextFont());
+  graphPlot_->setPainterFont(device, graphPlot_->edgeTextFont());
 
   QFontMetricsF fm(device->font());
 
@@ -3000,9 +3000,9 @@ drawFg(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  auto c = plot_->interpEdgeTextColor(ic);
+  auto c = graphPlot_->interpEdgeTextColor(ic);
 
-  plot_->setPen(penBrush, PenData(true, c, plot_->edgeTextAlpha()));
+  graphPlot_->setPen(penBrush, PenData(true, c, graphPlot_->edgeTextAlpha()));
 
   device->setPen(penBrush.pen);
 
@@ -3020,10 +3020,10 @@ drawFg(PaintDevice *device) const
   double tx = prect.getXMid() - textMargin - ptw/2.0;
   double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
 
-  auto pt = plot_->pixelToWindow(Point(tx, ty));
+  auto pt = graphPlot_->pixelToWindow(Point(tx, ty));
 
   // only support contrast
-  auto textOptions = plot_->edgeTextOptions(device);
+  auto textOptions = graphPlot_->edgeTextOptions(device);
 
   textOptions.angle     = Angle();
   textOptions.align     = Qt::AlignLeft;
@@ -3053,7 +3053,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   QColor fc;
 
   if (! edge()->fillColor().isValid()) {
-    if (plot()->isBlendEdgeColor()) {
+    if (graphPlot()->isBlendEdgeColor()) {
       auto *srcObj  = srcNode ->obj();
       auto *destObj = destNode->obj();
 
@@ -3064,13 +3064,13 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
         fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
       }
       else
-        fc = plot()->interpEdgeFillColor(colorInd);
+        fc = graphPlot()->interpEdgeFillColor(colorInd);
     }
     else
-      fc = plot()->interpEdgeFillColor(colorInd);
+      fc = graphPlot()->interpEdgeFillColor(colorInd);
   }
   else {
-    fc = plot()->interpColor(edge()->fillColor(), colorInd);
+    fc = graphPlot()->interpColor(edge()->fillColor(), colorInd);
   }
 
   //---
@@ -3078,35 +3078,35 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // calc stroke color
   QColor sc;
 
-  if (plot()->isBlendEdgeColor()) {
-    int numNodes = plot_->numNodes();
+  if (graphPlot()->isBlendEdgeColor()) {
+    int numNodes = graphPlot_->numNodes();
 
     ColorInd ic1(srcNode ->id(), numNodes);
     ColorInd ic2(destNode->id(), numNodes);
 
-    auto sc1 = plot()->interpEdgeStrokeColor(ic1);
-    auto sc2 = plot()->interpEdgeStrokeColor(ic2);
+    auto sc1 = graphPlot()->interpEdgeStrokeColor(ic1);
+    auto sc2 = graphPlot()->interpEdgeStrokeColor(ic2);
 
     sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
   }
   else {
-    sc = plot()->interpEdgeStrokeColor(colorInd);
+    sc = graphPlot()->interpEdgeStrokeColor(colorInd);
   }
 
   //---
 
-  plot_->setPenBrush(penBrush, plot_->edgePenData(sc), plot_->edgeBrushData(fc));
+  graphPlot_->setPenBrush(penBrush, graphPlot_->edgePenData(sc), graphPlot_->edgeBrushData(fc));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    graphPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
 
 CQChartsGraphGraphObj::
-CQChartsGraphGraphObj(const Plot *plot, const BBox &rect, Graph *graph) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, ColorInd(), ColorInd(), ColorInd()),
- plot_(plot), graph_(graph)
+CQChartsGraphGraphObj(const GraphPlot *graphPlot, const BBox &rect, Graph *graph) :
+ CQChartsPlotObj(const_cast<GraphPlot *>(graphPlot), rect, ColorInd(), ColorInd(), ColorInd()),
+ graphPlot_(graphPlot), graph_(graph)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -3278,13 +3278,13 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // set fill and stroke
   auto ic = calcColorInd();
 
-  auto bc = plot_->interpGraphStrokeColor(ic);
-  auto fc = plot_->interpGraphFillColor  (ic);
+  auto bc = graphPlot_->interpGraphStrokeColor(ic);
+  auto fc = graphPlot_->interpGraphFillColor  (ic);
 
-  plot_->setPenBrush(penBrush, plot_->graphPenData(bc), plot_->graphBrushData(fc));
+  graphPlot_->setPenBrush(penBrush, graphPlot_->graphPenData(bc), graphPlot_->graphBrushData(fc));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    graphPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
@@ -3326,7 +3326,7 @@ void
 CQChartsGraphPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<CQChartsGraphPlot *>(plot);
+  graphPlot_ = dynamic_cast<CQChartsGraphPlot *>(plot);
 
   CQChartsConnectionPlotCustomControls::setPlot(plot);
 }
@@ -3350,21 +3350,21 @@ CQChartsColor
 CQChartsGraphPlotCustomControls::
 getColorValue()
 {
-  return plot_->nodeFillColor();
+  return graphPlot_->nodeFillColor();
 }
 
 void
 CQChartsGraphPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setNodeFillColor(c);
+  graphPlot_->setNodeFillColor(c);
 }
 
 //---
 
 CQChartsGraphPlotMgr::
-CQChartsGraphPlotMgr(CQChartsGraphPlot *plot) :
- CQChartsGraphMgr(plot), plot_(plot)
+CQChartsGraphPlotMgr(CQChartsGraphPlot *graphPlot) :
+ CQChartsGraphMgr(graphPlot), graphPlot_(graphPlot)
 {
 }
 

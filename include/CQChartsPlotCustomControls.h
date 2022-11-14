@@ -41,6 +41,7 @@ class CQChartsPlotCustomControls : public QScrollArea {
   Q_PROPERTY(CQChartsOptBool showColorMapping READ isShowColorMapping WRITE setShowColorMapping)
 
  public:
+  using Plot    = CQChartsPlot;
   using OptBool = CQChartsOptBool;
 
  public:
@@ -60,8 +61,8 @@ class CQChartsPlotCustomControls : public QScrollArea {
 
   //---
 
-  virtual CQChartsPlot *plot() const { return plot_; }
-  virtual void setPlot(CQChartsPlot *plot);
+  virtual Plot *plot() const;
+  virtual void setPlot(Plot *plot);
 
   bool isNumericOnly() const { return numericOnly_; }
   void setNumericOnly(bool b);
@@ -143,6 +144,8 @@ class CQChartsPlotCustomControls : public QScrollArea {
   virtual void updateWidgets();
 
  protected Q_SLOTS:
+  void resetPlot();
+
   void colorGroupChanged();
 
   void plotDrawnSlot();
@@ -178,6 +181,7 @@ class CQChartsPlotCustomControls : public QScrollArea {
   void updateNumericOnly();
 
  protected:
+  using PlotP        = QPointer<Plot>;
   using ColumnEdits  = std::vector<CQChartsColumnParameterEdit  *>;
   using ColumnsEdits = std::vector<CQChartsColumnsParameterEdit *>;
 
@@ -186,8 +190,8 @@ class CQChartsPlotCustomControls : public QScrollArea {
   QFrame*      frame_  { nullptr }; //!< frame
   QVBoxLayout* layout_ { nullptr }; //!< frame layout
 
-  QString       plotType_;         //!< plot type
-  CQChartsPlot* plot_ { nullptr }; //!< plot
+  QString plotType_; //!< plot type
+  PlotP   plot_;     //!< plot
 
   bool numericOnly_ { false }; //!< support numeric only columns
   bool showTitle_   { true };  //!< show title
@@ -227,10 +231,14 @@ class CQChartsPlotCustomKey : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsPlotCustomKey(CQChartsPlot *plot=nullptr);
+  using Plot  = CQChartsPlot;
+  using PlotP = QPointer<Plot>;
 
-  CQChartsPlot *plot() const { return plot_; }
-  void setPlot(CQChartsPlot *plot) { plot_ = plot; }
+ public:
+  CQChartsPlotCustomKey(Plot *plot=nullptr);
+
+  Plot *plot() const;
+  void setPlot(Plot *plot);
 
   void updateWidgets();
 
@@ -265,7 +273,7 @@ class CQChartsPlotCustomKey : public QFrame {
     bool     clickable { false };
   };
 
-  CQChartsPlot*  plot_  { nullptr }; //!< plot
+  PlotP          plot_;              //!< plot
   CQTableWidget* table_ { nullptr }; //!< table
   RowColItemData itemData_;          //!< item data
 };
@@ -278,10 +286,14 @@ class CQChartsPlotColumnChooser : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsPlotColumnChooser(CQChartsPlot *plot=nullptr);
+  using Plot  = CQChartsPlot;
+  using PlotP = QPointer<Plot>;
 
-  CQChartsPlot *plot() const { return plot_; }
-  void setPlot(CQChartsPlot *plot) { plot_ = plot; }
+ public:
+  CQChartsPlotColumnChooser(Plot *plot=nullptr);
+
+  Plot *plot() const;
+  void setPlot(Plot *plot);
 
   void updateWidgets();
 
@@ -296,7 +308,7 @@ class CQChartsPlotColumnChooser : public QFrame {
   void columnClickSlot(int row, int column, bool b);
 
  private:
-  CQChartsPlot*  plot_       { nullptr }; //!< plot
+  PlotP          plot_;                   //!< plot
   CQTableWidget* columnList_ { nullptr }; //!< column list
 };
 

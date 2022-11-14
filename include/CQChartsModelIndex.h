@@ -5,6 +5,7 @@
 #include <CQUtilMeta.h>
 
 #include <QModelIndex>
+#include <QPointer>
 
 class CQChartsPlot;
 
@@ -26,6 +27,7 @@ class CQChartsModelIndex :
 
  public:
   using Plot   = CQChartsPlot;
+  using PlotP  = QPointer<Plot>;
   using Column = CQChartsColumn;
 
  public:
@@ -39,8 +41,8 @@ class CQChartsModelIndex :
 
   //---
 
-  const Plot *plot() const { return plot_; }
-  void setPlot(const Plot *p) { plot_ = p; }
+  Plot *plot() const;
+  void setPlot(const Plot *p);
 
   int row() const { return row_; }
   void setRow(int i) { row_ = i; }
@@ -65,8 +67,8 @@ class CQChartsModelIndex :
 
   //! compare for (==, !=, <, >, <=, >=)
   friend int cmp(const CQChartsModelIndex &lhs, const CQChartsModelIndex &rhs) {
-    if (lhs.plot_ > rhs.plot_) return  1;
-    if (lhs.plot_ < rhs.plot_) return  1;
+    if (lhs.plot() > rhs.plot()) return  1;
+    if (lhs.plot() < rhs.plot()) return  1;
 
     int c1 = cmpInd(lhs.parent_, rhs.parent_);
     if (c1 != 0) return c1;
@@ -112,7 +114,7 @@ class CQChartsModelIndex :
   }
 
  private:
-  const Plot* plot_       { nullptr };
+  PlotP       plot_;
   int         row_        { -1 };
   Column      column_;
   QModelIndex parent_;

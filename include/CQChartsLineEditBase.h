@@ -28,6 +28,10 @@ class CQChartsLineEditBase : public QFrame {
   Q_PROPERTY(bool    editable        READ isEditable      WRITE setEditable       )
 
  public:
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsLineEditBase(QWidget *parent=nullptr);
 
   QString text() const;
@@ -42,11 +46,11 @@ class CQChartsLineEditBase : public QFrame {
   const CQChartsPropertyViewTree *propertyViewTree() const { return propertyViewTree_; }
   void setPropertyViewTree(CQChartsPropertyViewTree *tree) { propertyViewTree_ = tree; }
 
-  CQChartsPlot *plot() const;
-  virtual void setPlot(CQChartsPlot *plot);
+  Plot *plot() const;
+  virtual void setPlot(Plot *plot);
 
-  CQChartsView *view() const;
-  virtual void setView(CQChartsView *view);
+  View *view() const;
+  virtual void setView(View *view);
 
   CQChartsEditBase *menuEdit() const { return menuEdit_; }
 

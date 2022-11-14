@@ -632,7 +632,7 @@ class CQChartsForceDirectedPlotCustomControls : public CQChartsConnectionPlotCus
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -656,7 +656,7 @@ class CQChartsForceDirectedPlotCustomControls : public CQChartsConnectionPlotCus
   void stepSlot();
 
  protected:
-  CQChartsForceDirectedPlot* plot_ { nullptr };
+  CQChartsForceDirectedPlot* forceDirectedPlot_ { nullptr };
 
   FrameData optionsFrame_;
 

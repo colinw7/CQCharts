@@ -18,10 +18,13 @@ class CQChartsTextBoxDataLineEdit : public CQChartsLineEditBase {
   Q_PROPERTY(CQChartsTextBoxData textBoxData READ textBoxData WRITE setTextBoxData)
 
  public:
+  using TextBoxData = CQChartsTextBoxData;
+
+ public:
   CQChartsTextBoxDataLineEdit(QWidget *parent=nullptr);
 
-  const CQChartsTextBoxData &textBoxData() const;
-  void setTextBoxData(const CQChartsTextBoxData &c);
+  const TextBoxData &textBoxData() const;
+  void setTextBoxData(const TextBoxData &c);
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
@@ -34,7 +37,7 @@ class CQChartsTextBoxDataLineEdit : public CQChartsLineEditBase {
  private:
   void textChanged() override;
 
-  void updateTextBoxData(const CQChartsTextBoxData &c, bool updateText);
+  void updateTextBoxData(const TextBoxData &c, bool updateText);
 
   void textBoxDataToWidgets();
 
@@ -62,13 +65,18 @@ class CQChartsTextBoxDataEdit : public CQChartsEditBase {
   Q_PROPERTY(CQChartsTextBoxData data READ data WRITE setData)
 
  public:
+  using Plot        = CQChartsPlot;
+  using View        = CQChartsView;
+  using TextBoxData = CQChartsTextBoxData;
+
+ public:
   CQChartsTextBoxDataEdit(QWidget *parent=nullptr, bool tabbed=false);
 
-  const CQChartsTextBoxData &data() const { return data_; }
-  void setData(const CQChartsTextBoxData &d);
+  const TextBoxData &data() const { return data_; }
+  void setData(const TextBoxData &d);
 
-  void setPlot(CQChartsPlot *plot) override;
-  void setView(CQChartsView *view) override;
+  void setPlot(Plot *plot) override;
+  void setView(View *view) override;
 
   void setTitle(const QString &title);
 
@@ -86,10 +94,8 @@ class CQChartsTextBoxDataEdit : public CQChartsEditBase {
   void widgetsToData();
 
  private:
-  CQChartsPlot*                   plot_     { nullptr };
-  CQChartsView*                   view_     { nullptr };
   bool                            tabbed_   { false };
-  CQChartsTextBoxData             data_;
+  TextBoxData                     data_;
   CQChartsTextDataEdit*           textEdit_ { nullptr };
   CQChartsBoxDataEdit*            boxEdit_  { nullptr };
   CQChartsTextBoxDataEditPreview* preview_  { nullptr };
@@ -105,12 +111,15 @@ class CQChartsTextBoxDataEditPreview : public CQChartsEditPreview {
   Q_OBJECT
 
  public:
+  using TextBoxData = CQChartsTextBoxData;
+
+ public:
   CQChartsTextBoxDataEditPreview(CQChartsTextBoxDataEdit *edit);
 
   void draw(QPainter *painter) override;
 
-  static void draw(QPainter *painter, const CQChartsTextBoxData &data, const QRect &rect,
-                   CQChartsPlot *plot, CQChartsView *view);
+  static void draw(QPainter *painter, const TextBoxData &data, const QRect &rect,
+                   Plot *plot, View *view);
 
  private:
   CQChartsTextBoxDataEdit *edit_ { nullptr };
@@ -126,10 +135,14 @@ class CQChartsTextBoxDataEditPreview : public CQChartsEditPreview {
  */
 class CQChartsTextBoxDataPropertyViewType : public CQChartsPropertyViewType {
  public:
+  using Plot = CQChartsPlot;
+  using View = CQChartsView;
+
+ public:
   CQPropertyViewEditorFactory *getEditor() const override;
 
   void drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
-                   CQChartsPlot *plot, CQChartsView *view) override;
+                   Plot *plot, View *view) override;
 
   QString tip(const QVariant &value) const override;
 

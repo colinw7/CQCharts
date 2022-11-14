@@ -90,8 +90,6 @@ class CQChartsShapeDataEdit : public CQChartsEditBase {
   void widgetsToData();
 
  private:
-  Plot*                         plot_       { nullptr };
-  View*                         view_       { nullptr };
   bool                          tabbed_     { false };
   CQChartsShapeData             data_;
   CQChartsFillDataEdit*         fillEdit_   { nullptr };
@@ -107,10 +105,6 @@ class CQChartsShapeDataEdit : public CQChartsEditBase {
  */
 class CQChartsShapeDataEditPreview : public CQChartsEditPreview {
   Q_OBJECT
-
- public:
-  using View = CQChartsView;
-  using Plot = CQChartsPlot;
 
  public:
   CQChartsShapeDataEditPreview(CQChartsShapeDataEdit *edit);

@@ -328,8 +328,8 @@ calcRange() const
     using Values = CQChartsRValues;
 
    public:
-    GridModelVisitor(const CQChartsGridPlot *plot) :
-     plot_(plot) {
+    GridModelVisitor(const CQChartsGridPlot *gridPlot) :
+     gridPlot_(gridPlot) {
     }
 
     void initVisit() override {
@@ -343,11 +343,11 @@ calcRange() const
       // get row number (from row column or from model row)
       int row = data.row/std::max(nx_, 1);
 
-      if (plot_->rowColumn().isValid()) {
-        ModelIndex rowModelInd(plot_, data.row, plot_->rowColumn(), data.parent);
+      if (gridPlot_->rowColumn().isValid()) {
+        ModelIndex rowModelInd(gridPlot_, data.row, gridPlot_->rowColumn(), data.parent);
 
         bool ok1;
-        row = int(plot_->modelInteger(rowModelInd, ok1));
+        row = int(gridPlot_->modelInteger(rowModelInd, ok1));
         if (! ok1) return State::SKIP;
 
         if (row < 0)
@@ -359,11 +359,11 @@ calcRange() const
       // get column number (from column column or from model row)
       int column = data.row % std::max(nx_, 1);
 
-      if (plot_->columnColumn().isValid()) {
-        ModelIndex columnModelInd(plot_, data.row, plot_->columnColumn(), data.parent);
+      if (gridPlot_->columnColumn().isValid()) {
+        ModelIndex columnModelInd(gridPlot_, data.row, gridPlot_->columnColumn(), data.parent);
 
         bool ok2;
-        column = int(plot_->modelInteger(columnModelInd, ok2));
+        column = int(gridPlot_->modelInteger(columnModelInd, ok2));
         if (! ok2) return State::SKIP;
 
         if (column < 0)
@@ -373,11 +373,12 @@ calcRange() const
       //---
 
       // get values from value columns
-      for (int i = 0; i < plot_->valueColumns().count(); ++i) {
-        ModelIndex valueModelInd(plot_, data.row, plot_->valueColumns().getColumn(i), data.parent);
+      for (int i = 0; i < gridPlot_->valueColumns().count(); ++i) {
+        ModelIndex valueModelInd(gridPlot_, data.row, gridPlot_->valueColumns().getColumn(i),
+                                 data.parent);
 
         bool ok4;
-        auto value = plot_->modelReal(valueModelInd, ok4);
+        auto value = gridPlot_->modelReal(valueModelInd, ok4);
         if (! ok4) continue;
 
         values_.addValue(CQChartsRValues::OptReal(value));
@@ -400,9 +401,9 @@ calcRange() const
     const BBox &bbox() const { return bbox_; }
 
    private:
-    const CQChartsGridPlot* plot_ { nullptr };
-    int                     nx_   { 1 };
-    int                     ny_   { 1 };
+    const CQChartsGridPlot* gridPlot_ { nullptr };
+    int                     nx_       { 1 };
+    int                     ny_       { 1 };
     Values                  values_;
     BBox                    bbox_;
   };
@@ -438,8 +439,8 @@ createObjs(PlotObjs &objs) const
 
   class GridModelVisitor : public ModelVisitor {
    public:
-    GridModelVisitor(const CQChartsGridPlot *plot) :
-     plot_(plot) {
+    GridModelVisitor(const CQChartsGridPlot *gridPlot) :
+     gridPlot_(gridPlot) {
     }
 
     void initVisit() override {
@@ -451,10 +452,10 @@ createObjs(PlotObjs &objs) const
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       // get name
-      ModelIndex nameModelInd(plot_, data.row, plot_->nameColumn(), data.parent);
+      ModelIndex nameModelInd(gridPlot_, data.row, gridPlot_->nameColumn(), data.parent);
 
       bool ok1;
-      auto name = plot_->modelString(nameModelInd, ok1);
+      auto name = gridPlot_->modelString(nameModelInd, ok1);
       if (! ok1) return State::SKIP;
 
       //---
@@ -462,11 +463,11 @@ createObjs(PlotObjs &objs) const
       // get label (if label column specified)
       QString label;
 
-      if (plot_->labelColumn().isValid()) {
-        ModelIndex labelModelInd(plot_, data.row, plot_->labelColumn(), data.parent);
+      if (gridPlot_->labelColumn().isValid()) {
+        ModelIndex labelModelInd(gridPlot_, data.row, gridPlot_->labelColumn(), data.parent);
 
         bool ok1;
-        label = plot_->modelString(labelModelInd, ok1);
+        label = gridPlot_->modelString(labelModelInd, ok1);
      }
 
       //---
@@ -474,11 +475,11 @@ createObjs(PlotObjs &objs) const
       // get row number (from row column or from model row)
       int row = data.row/std::max(nx_, 1);
 
-      if (plot_->rowColumn().isValid()) {
-        ModelIndex rowModelInd(plot_, data.row, plot_->rowColumn(), data.parent);
+      if (gridPlot_->rowColumn().isValid()) {
+        ModelIndex rowModelInd(gridPlot_, data.row, gridPlot_->rowColumn(), data.parent);
 
         bool ok2;
-        row = int(plot_->modelInteger(rowModelInd, ok2));
+        row = int(gridPlot_->modelInteger(rowModelInd, ok2));
         if (! ok2) return State::SKIP;
 
         if (row < 0)
@@ -490,11 +491,11 @@ createObjs(PlotObjs &objs) const
       // get column number (from column column or from model row)
       int column = data.row % std::max(nx_, 1);
 
-      if (plot_->columnColumn().isValid()) {
-        ModelIndex columnModelInd(plot_, data.row, plot_->columnColumn(), data.parent);
+      if (gridPlot_->columnColumn().isValid()) {
+        ModelIndex columnModelInd(gridPlot_, data.row, gridPlot_->columnColumn(), data.parent);
 
         bool ok3;
-        column = int(plot_->modelInteger(columnModelInd, ok3));
+        column = int(gridPlot_->modelInteger(columnModelInd, ok3));
         if (! ok3) return State::SKIP;
 
         if (column < 0)
@@ -508,11 +509,12 @@ createObjs(PlotObjs &objs) const
 
       Values values;
 
-      for (int i = 0; i < plot_->valueColumns().count(); ++i) {
-        ModelIndex valueModelInd(plot_, data.row, plot_->valueColumns().getColumn(i), data.parent);
+      for (int i = 0; i < gridPlot_->valueColumns().count(); ++i) {
+        ModelIndex valueModelInd(gridPlot_, data.row, gridPlot_->valueColumns().getColumn(i),
+                                 data.parent);
 
         bool ok4;
-        auto value = plot_->modelReal(valueModelInd, ok4);
+        auto value = gridPlot_->modelReal(valueModelInd, ok4);
         if (! ok4) continue;
 
         values.addValue(CQChartsRValues::OptReal(value));
@@ -527,9 +529,9 @@ createObjs(PlotObjs &objs) const
       //---
 
       // create cell object
-      auto *obj = plot_->createCellObj(bbox, name, label, row, column, values);
+      auto *obj = gridPlot_->createCellObj(bbox, name, label, row, column, values);
 
-      obj->setModelInd(plot_->normalizedModelIndex(nameModelInd));
+      obj->setModelInd(gridPlot_->normalizedModelIndex(nameModelInd));
 
       objs_.push_back(obj);
 
@@ -539,10 +541,10 @@ createObjs(PlotObjs &objs) const
     const PlotObjs &objs() const { return objs_; }
 
    private:
-    const CQChartsGridPlot* plot_ { nullptr };
+    const CQChartsGridPlot* gridPlot_ { nullptr };
     PlotObjs                objs_;
-    int                     nx_   { 1 };
-    int                     ny_   { 1 };
+    int                     nx_       { 1 };
+    int                     ny_       { 1 };
   };
 
   //---
@@ -598,10 +600,10 @@ createCustomControls()
 //------
 
 CQChartsGridCellObj::
-CQChartsGridCellObj(const Plot *plot, const BBox &bbox, const QString &name,
+CQChartsGridCellObj(const GridPlot *gridPlot, const BBox &bbox, const QString &name,
                     const QString &label, int row, int column, const RValues &values) :
- CQChartsPlotObj(const_cast<Plot *>(plot), bbox, ColorInd(), ColorInd(), ColorInd()),
- plot_(plot), name_(name), label_(label), row_(row), column_(column), values_(values)
+ CQChartsPlotObj(const_cast<GridPlot *>(gridPlot), bbox, ColorInd(), ColorInd(), ColorInd()),
+ gridPlot_(gridPlot), name_(name), label_(label), row_(row), column_(column), values_(values)
 {
 }
 
@@ -621,7 +623,7 @@ calcTipId() const
   //---
 
   auto addColumnRowValue = [&](const Column &column) {
-    plot_->addTipColumn(tableTip, column, modelInd());
+    gridPlot_->addTipColumn(tableTip, column, modelInd());
   };
 
   //---
@@ -631,11 +633,11 @@ calcTipId() const
   if (label_.length())
     tableTip.addTableRow("Label", label_);
 
-  addColumnRowValue(plot_->rowColumn());
-  addColumnRowValue(plot_->columnColumn());
+  addColumnRowValue(gridPlot_->rowColumn());
+  addColumnRowValue(gridPlot_->columnColumn());
 
-  if (plot_->colorColumn().isValid())
-    addColumnRowValue(plot_->colorColumn());
+  if (gridPlot_->colorColumn().isValid())
+    addColumnRowValue(gridPlot_->colorColumn());
 
   //---
 
@@ -653,7 +655,7 @@ CQChartsGridCellObj::
 draw(PaintDevice *device) const
 {
   // set cell rect
-  double m = plot_->cellMargin();
+  double m = gridPlot_->cellMargin();
 
   double cw = (rect().getWidth ()/2.0 - m);
   double ch = (rect().getHeight()/2.0 - m);
@@ -681,10 +683,10 @@ draw(PaintDevice *device) const
 
   double adjustScale = 1.0;
 
-  if      (plot_->drawType() == CQChartsGridPlot::DrawType::PIE) {
+  if      (gridPlot_->drawType() == CQChartsGridPlot::DrawType::PIE) {
     device->drawEllipse(cellRect); adjustScale = 1.0/sqrt(2.0);
   }
-  else if (plot_->drawType() == CQChartsGridPlot::DrawType::TREEMAP) {
+  else if (gridPlot_->drawType() == CQChartsGridPlot::DrawType::TREEMAP) {
     device->drawRect(cellRect); adjustScale = 1.0;
   }
   else {
@@ -702,11 +704,11 @@ draw(PaintDevice *device) const
   //---
 
   // calc text color
-  plot_->charts()->setContrastColor(penBrush.brush.color());
+  gridPlot_->charts()->setContrastColor(penBrush.brush.color());
 
-  auto tc = plot_->interpTextColor(ColorInd());
+  auto tc = gridPlot_->interpTextColor(ColorInd());
 
-  plot_->charts()->resetContrastColor();
+  gridPlot_->charts()->resetContrastColor();
 
   //---
 
@@ -717,21 +719,21 @@ draw(PaintDevice *device) const
   if (label.length())
     labels.push_back(label);
 
-  if (plot_->isShowValue()) {
+  if (gridPlot_->isShowValue()) {
     auto sv = CMathUtil::scaledNumberString(values_.sum(), 0);
 
     labels.push_back(QString::fromStdString(sv));
   }
 
-  auto textOptions = plot_->textOptions();
+  auto textOptions = gridPlot_->textOptions();
 
   textOptions.angle = Angle();
   textOptions.align = (Qt::AlignHCenter | Qt::AlignVCenter);
 
   if (labels.length()) {
-    plot_->setPen(penBrush, PenData(true, tc, plot_->textAlpha()));
+    gridPlot_->setPen(penBrush, PenData(true, tc, gridPlot_->textAlpha()));
 
-    plot_->setPainterFont(device, plot_->textFont());
+    gridPlot_->setPainterFont(device, gridPlot_->textFont());
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -741,15 +743,15 @@ draw(PaintDevice *device) const
   //---
 
   // draw pie slice or treemap if inside
-  auto &cellPalette = plot_->cellPalette();
+  auto &cellPalette = gridPlot_->cellPalette();
 
   if (isInside() && nv > 1) {
-    if      (plot_->drawType() == CQChartsGridPlot::DrawType::PIE) {
-      CQChartsPlotDrawUtil::drawPie(const_cast<CQChartsGridPlot *>(plot_), device,
+    if      (gridPlot_->drawType() == CQChartsGridPlot::DrawType::PIE) {
+      CQChartsPlotDrawUtil::drawPie(const_cast<CQChartsGridPlot *>(gridPlot_), device,
                                     values_, cellRect, cellPalette, penBrush.pen);
     }
-    else if (plot_->drawType() == CQChartsGridPlot::DrawType::TREEMAP) {
-      CQChartsPlotDrawUtil::drawTreeMap(const_cast<CQChartsGridPlot *>(plot_), device,
+    else if (gridPlot_->drawType() == CQChartsGridPlot::DrawType::TREEMAP) {
+      CQChartsPlotDrawUtil::drawTreeMap(const_cast<CQChartsGridPlot *>(gridPlot_), device,
                                         values_, cellRect, cellPalette, penBrush.pen);
     }
 
@@ -775,7 +777,8 @@ draw(PaintDevice *device) const
     double bh = plot()->pixelToWindowHeight(16);
 
     for (auto &v : values_.values()) {
-      plot_->setBrush(penBrush, BrushData(true, plot_->interpColor(color, ColorInd(i, int(nv)))));
+      gridPlot_->setBrush(penBrush,
+        BrushData(true, gridPlot_->interpColor(color, ColorInd(i, int(nv)))));
 
       CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -784,18 +787,18 @@ draw(PaintDevice *device) const
 
       //---
 
-      auto name = plot_->columnHeaderName(plot_->valueColumns().getColumn(i));
+      auto name = gridPlot_->columnHeaderName(gridPlot_->valueColumns().getColumn(i));
 
       auto text = QString("%1 %2").arg(name).arg(v.value_or(0.0));
 
-      auto textOptions = plot_->textOptions();
+      auto textOptions = gridPlot_->textOptions();
 
       textOptions.angle = Angle();
       textOptions.align = Qt::AlignLeft;
 
       auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), textOptions);
 
-      plot_->setPen(penBrush, PenData(true, tc, plot_->textAlpha()));
+      gridPlot_->setPen(penBrush, PenData(true, tc, gridPlot_->textAlpha()));
 
       CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -812,7 +815,7 @@ draw(PaintDevice *device) const
     // draw sum
     tx = rect().getXMid();
 
-    auto textOptions = plot_->textOptions();
+    auto textOptions = gridPlot_->textOptions();
 
     textOptions.angle = Angle();
     textOptions.align = (Qt::AlignHCenter | Qt::AlignVCenter);
@@ -846,7 +849,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   uint nv = values_.size();
 
   if (nv > 1) {
-    double f = CMathUtil::map(values_.max(0.0), plot_->minValue(), plot_->maxValue(), 0.0, 1.0);
+    double f = CMathUtil::map(values_.max(0.0), gridPlot_->minValue(),
+                              gridPlot_->maxValue(), 0.0, 1.0);
 
     colorInd = ColorInd(f);
 
@@ -860,24 +864,24 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   Color indColor;
 
-  auto ind1 = plot_->unnormalizeIndex(modelInd());
+  auto ind1 = gridPlot_->unnormalizeIndex(modelInd());
 
-  if      (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
-    bc = plot_->interpColor(indColor, colorInd);
+  if      (gridPlot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
+    bc = gridPlot_->interpColor(indColor, colorInd);
   else if (useValueColor)
-    bc = plot_->interpColor(Color::makePalette(), colorInd);
+    bc = gridPlot_->interpColor(Color::makePalette(), colorInd);
   else
-    bc = plot_->interpFillColor(colorInd);
+    bc = gridPlot_->interpFillColor(colorInd);
 
   // calc stroke color
-  auto sc = plot_->interpStrokeColor(colorInd);
+  auto sc = gridPlot_->interpStrokeColor(colorInd);
 
   //---
 
-  plot_->setPenBrush(penBrush, plot_->penData(sc), plot_->brushData(bc));
+  gridPlot_->setPenBrush(penBrush, gridPlot_->penData(sc), gridPlot_->brushData(bc));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    gridPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 void
@@ -951,15 +955,15 @@ void
 CQChartsGridPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && gridPlot_)
+    disconnect(gridPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsGridPlot *>(plot);
+  gridPlot_ = dynamic_cast<CQChartsGridPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (gridPlot_)
+    connect(gridPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
@@ -970,7 +974,7 @@ updateWidgets()
 
   //---
 
-  drawTypeCombo_->setCurrentValue(static_cast<int>(plot_->drawType()));
+  drawTypeCombo_->setCurrentValue(static_cast<int>(gridPlot_->drawType()));
 
   //---
 
@@ -987,5 +991,5 @@ void
 CQChartsGridPlotCustomControls::
 drawTypeSlot()
 {
-  plot_->setDrawType(static_cast<CQChartsGridPlot::DrawType>(drawTypeCombo_->currentValue()));
+  gridPlot_->setDrawType(static_cast<CQChartsGridPlot::DrawType>(drawTypeCombo_->currentValue()));
 }

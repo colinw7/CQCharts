@@ -46,7 +46,7 @@ class CQChartsCamera {
   using Range3D = CQChartsGeom::Range3D;
 
  public:
-  CQChartsCamera(CQChartsPlot3D *plot=nullptr);
+  CQChartsCamera(CQChartsPlot3D *plot3D=nullptr);
 
   virtual ~CQChartsCamera();
 
@@ -56,13 +56,13 @@ class CQChartsCamera {
   void init();
 
   void init(const CQChartsCamera &camera) {
-    CQChartsPlot3D *plot;
+    CQChartsPlot3D *plot3D;
 
-    std::swap(plot, plot_);
+    std::swap(plot3D, plot3D_);
 
     *this = camera;
 
-    std::swap(plot, plot_);
+    std::swap(plot3D, plot3D_);
   }
 
   void reset();
@@ -154,7 +154,7 @@ class CQChartsCamera {
   void unsetView();
 
  private:
-  CQChartsPlot3D*    plot_       { nullptr };
+  CQChartsPlot3D*    plot3D_     { nullptr };
   bool               enabled_    { true };
   double             xmin_       { -1 };
   double             xmax_       {  1 };

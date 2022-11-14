@@ -57,6 +57,13 @@ editHandles() const
 
 //---
 
+CQChartsPlot *
+CQChartsPlotObj::
+plot() const
+{
+  return plot_.data();
+}
+
 bool
 CQChartsPlotObj::
 calcColumnId(const QModelIndex &ind, QString &str) const

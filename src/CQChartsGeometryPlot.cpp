@@ -426,12 +426,12 @@ calcRange() const
   // process model data
   class GeometryPlotVisitor : public ModelVisitor {
    public:
-    GeometryPlotVisitor(const CQChartsGeometryPlot *plot) :
-     plot_(plot) {
+    GeometryPlotVisitor(const CQChartsGeometryPlot *geometryPlot) :
+     geometryPlot_(geometryPlot) {
     }
 
     State visit(const QAbstractItemModel *model, const VisitData &data) override {
-      plot_->addRow(model, data, dataRange_);
+      geometryPlot_->addRow(model, data, dataRange_);
 
       return State::OK;
     }
@@ -439,7 +439,7 @@ calcRange() const
     const Range &dataRange() const { return dataRange_; }
 
    private:
-    const CQChartsGeometryPlot *plot_ { nullptr };
+    const CQChartsGeometryPlot *geometryPlot_ { nullptr };
     Range                       dataRange_;
   };
 
@@ -819,10 +819,11 @@ createCustomControls()
 //------
 
 CQChartsGeometryObj::
-CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const BBox &rect, const Polygons &polygons,
-                    const QModelIndex &ind, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsGeometryPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
- plot_(plot), polygons_(polygons)
+CQChartsGeometryObj(const CQChartsGeometryPlot *geometryPlot, const BBox &rect,
+                    const Polygons &polygons, const QModelIndex &ind, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<CQChartsGeometryPlot *>(geometryPlot),
+                 rect, ColorInd(), ColorInd(), iv),
+ geometryPlot_(geometryPlot), polygons_(polygons)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -851,16 +852,16 @@ calcTipId() const
     if (tableTip.hasColumn(column))
       return;
 
-    ModelIndex columnInd(plot_, modelInd().row(), column, modelInd().parent());
+    ModelIndex columnInd(geometryPlot_, modelInd().row(), column, modelInd().parent());
 
     bool ok;
-    auto name = plot_->modelString(columnInd, ok);
+    auto name = geometryPlot_->modelString(columnInd, ok);
     if (! ok) return;
 
     auto label1 = label;
 
     if (label1 == "") {
-      label1 = plot_->columnHeaderName(column, /*tip*/true);
+      label1 = geometryPlot_->columnHeaderName(column, /*tip*/true);
       if (label1 == "") label1 = defLabel;
     }
 
@@ -876,7 +877,7 @@ calcTipId() const
   if (hasValue())
     tableTip.addTableRow("Value", value());
 
-  addColumnRowValue(plot_->colorColumn(), "Color");
+  addColumnRowValue(geometryPlot_->colorColumn(), "Color");
 
   //---
 
@@ -893,7 +894,7 @@ bool
 CQChartsGeometryObj::
 inside(const Point &p) const
 {
-  if (! plot_->isGeometrySelectable())
+  if (! geometryPlot_->isGeometrySelectable())
     return false;
 
   auto p1 = p;
@@ -912,10 +913,10 @@ void
 CQChartsGeometryObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->nameColumn    ());
-  addColumnSelectIndex(inds, plot_->geometryColumn());
-  addColumnSelectIndex(inds, plot_->valueColumn   ());
-  addColumnSelectIndex(inds, plot_->styleColumn   ());
+  addColumnSelectIndex(inds, geometryPlot_->nameColumn    ());
+  addColumnSelectIndex(inds, geometryPlot_->geometryColumn());
+  addColumnSelectIndex(inds, geometryPlot_->valueColumn   ());
+  addColumnSelectIndex(inds, geometryPlot_->styleColumn   ());
 }
 
 //---
@@ -948,28 +949,28 @@ void
 CQChartsGeometryObj::
 drawFg(PaintDevice *device) const
 {
-  plot_->dataLabel()->draw(device, rect(), name());
+  geometryPlot_->dataLabel()->draw(device, rect(), name());
 
   //---
 
   bool updateState = device->isInteractive();
 
   // draw balloon for value
-  if (plot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::BALLOON && hasValue()) {
+  if (geometryPlot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::BALLOON && hasValue()) {
     auto safeSqrt = [](double r) {
       return (r > 0.0 ? std::sqrt(r) : 0.0);
     };
 
-    auto prect = plot_->windowToPixel(rect());
+    auto prect = geometryPlot_->windowToPixel(rect());
 
-    auto pbbox = plot_->calcPlotPixelRect();
+    auto pbbox = geometryPlot_->calcPlotPixelRect();
 
-    double minSize = plot_->minBalloonSize()*pbbox.getHeight();
-    double maxSize = plot_->maxBalloonSize()*pbbox.getHeight();
+    double minSize = geometryPlot_->minBalloonSize()*pbbox.getHeight();
+    double maxSize = geometryPlot_->maxBalloonSize()*pbbox.getHeight();
 
     double v1    = safeSqrt(value());
-    double minV1 = safeSqrt(plot_->minValue());
-    double maxV1 = safeSqrt(plot_->maxValue());
+    double minV1 = safeSqrt(geometryPlot_->minValue());
+    double maxV1 = safeSqrt(geometryPlot_->maxValue());
 
     double s = CMathUtil::map(v1, minV1, maxV1, minSize, maxSize);
 
@@ -981,35 +982,35 @@ drawFg(PaintDevice *device) const
     auto pc = QColor(Qt::black);
     auto bc = QColor(Qt::red);
 
-    if (plot_->colorColumn().isValid()) {
+    if (geometryPlot_->colorColumn().isValid()) {
       auto ind1 = modelInd();
 
       Color indColor;
 
-      if (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
-        bc = plot_->interpColor(indColor, ColorInd());
+      if (geometryPlot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
+        bc = geometryPlot_->interpColor(indColor, ColorInd());
       else
         bc = QColor();
 
-      if (! plot_->colorVisible(bc))
+      if (! geometryPlot_->colorVisible(bc))
         return;
     }
 
     PenBrush penBrush;
 
-    plot_->setPenBrush(penBrush,
+    geometryPlot_->setPenBrush(penBrush,
       PenData  (/*stroked*/true, pc),
       BrushData(/*filled*/ true, bc, Alpha(0.5)));
 
     if (updateState)
-      plot_->updateObjPenBrushState(this, penBrush);
+      geometryPlot_->updateObjPenBrushState(this, penBrush);
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     BBox ebbox(prect.getXMid() - s/2, prect.getYMid() - s/2,
                prect.getXMid() + s/2, prect.getYMid() + s/2);
 
-    device->drawEllipse(plot_->pixelToWindow(ebbox));
+    device->drawEllipse(geometryPlot_->pixelToWindow(ebbox));
   }
 }
 
@@ -1023,41 +1024,42 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   // calc fill color
   auto calcFillColor = [&](bool &filtered) {
-    if (plot_->colorColumn().isValid()) {
+    if (geometryPlot_->colorColumn().isValid()) {
       auto ind1 = modelInd();
 
       Color indColor;
 
       QColor c;
 
-      if (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
-        c = plot_->interpColor(indColor, ColorInd());
+      if (geometryPlot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
+        c = geometryPlot_->interpColor(indColor, ColorInd());
 
-      filtered = ! plot_->colorVisible(c);
+      filtered = ! geometryPlot_->colorVisible(c);
 
       return c;
     }
 
     //---
 
-    if (hasValue() && plot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::COLOR) {
-      double dv = (value() - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
+    if (hasValue() && geometryPlot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::COLOR) {
+      double dv = (value() - geometryPlot_->minValue())/
+                  (geometryPlot_->maxValue() - geometryPlot_->minValue());
 
 #if 0
       if (color().isValid())
-        return plot_->interpColor(color(), ColorInd(dv));
+        return geometryPlot_->interpColor(color(), ColorInd(dv));
       else
-        return plot_->interpColor(plot_->fillColor(), ColorInd(dv));
+        return geometryPlot_->interpColor(geometryPlot_->fillColor(), ColorInd(dv));
 #endif
-      return plot_->interpColor(plot_->fillColor(), ColorInd(dv));
+      return geometryPlot_->interpColor(geometryPlot_->fillColor(), ColorInd(dv));
     }
 
     //---
 
     //if  (color().isValid())
-    //  return plot_->interpColor(color(), colorInd);
+    //  return geometryPlot_->interpColor(color(), colorInd);
 
-    return plot_->interpFillColor(colorInd);
+    return geometryPlot_->interpFillColor(colorInd);
   };
 
   bool filtered = false;
@@ -1071,12 +1073,12 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   // calc stroke color
-  auto bc = plot_->interpStrokeColor(colorInd);
+  auto bc = geometryPlot_->interpStrokeColor(colorInd);
 
   //---
 
   // calc pen and brush
-  plot_->setPenBrush(penBrush, plot_->penData(bc), plot_->brushData(fc));
+  geometryPlot_->setPenBrush(penBrush, geometryPlot_->penData(bc), geometryPlot_->brushData(fc));
 
   if (style().isValid()) {
     penBrush.pen   = style().pen  ();
@@ -1084,7 +1086,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   }
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    geometryPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
@@ -1157,15 +1159,15 @@ void
 CQChartsGeometryPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && geometryPlot_)
+    disconnect(geometryPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsGeometryPlot *>(plot);
+  geometryPlot_ = dynamic_cast<CQChartsGeometryPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (geometryPlot_)
+    connect(geometryPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
@@ -1187,12 +1189,12 @@ CQChartsColor
 CQChartsGeometryPlotCustomControls::
 getColorValue()
 {
-  return plot_->fillColor();
+  return geometryPlot_->fillColor();
 }
 
 void
 CQChartsGeometryPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setFillColor(c);
+  geometryPlot_->setFillColor(c);
 }

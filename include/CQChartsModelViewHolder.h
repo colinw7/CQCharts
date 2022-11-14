@@ -42,7 +42,7 @@ class CQChartsModelViewHolder : public QFrame, public CQChartsWidgetIFace {
   void setCharts(CQCharts *charts) override;
 
 #ifdef CQCHARTS_MODEL_VIEW
-  CQChartsModelView *view() const { return view_; }
+  CQChartsModelView *view() const { return modelView_; }
 #else
   CQChartsTable *table() const { return table_; }
   CQChartsTree  *tree () const { return tree_ ; }
@@ -86,7 +86,7 @@ class CQChartsModelViewHolder : public QFrame, public CQChartsWidgetIFace {
  private:
   CQCharts*          charts_       { nullptr };
 #ifdef CQCHARTS_MODEL_VIEW
-  CQChartsModelView* view_        { nullptr };
+  CQChartsModelView* modelView_    { nullptr };
 #else
   QStackedWidget*    stack_        { nullptr };
   CQChartsTable*     table_        { nullptr };

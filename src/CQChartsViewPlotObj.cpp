@@ -36,7 +36,14 @@ CQChartsView *
 CQChartsViewPlotObj::
 view() const
 {
-  return (plot_ ? plot_->view() : view_);
+  return (plot_ ? plot_->view() : view_.data());
+}
+
+CQChartsPlot *
+CQChartsViewPlotObj::
+plot() const
+{
+  return plot_.data();
 }
 
 //---

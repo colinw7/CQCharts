@@ -339,33 +339,35 @@ calcRange() const
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsHierScatterPlot *plot) :
-     plot_(plot) {
+    RowVisitor(const CQChartsHierScatterPlot *hierScatterPlot) :
+     hierScatterPlot_(hierScatterPlot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      if (plot_->isInterrupt())
+      if (hierScatterPlot_->isInterrupt())
         return State::TERMINATE;
 
       //---
 
       // check filter
-      if (! plot_->acceptsRow(data.row, data.parent))
+      if (! hierScatterPlot_->acceptsRow(data.row, data.parent))
         return State::SKIP;
 
       //---
 
-      double xDefVal = plot_->getModelBadValue(plot_->xColumn(), data.row);
-      double yDefVal = plot_->getModelBadValue(plot_->yColumn(), data.row);
+      double xDefVal = hierScatterPlot_->getModelBadValue(hierScatterPlot_->xColumn(), data.row);
+      double yDefVal = hierScatterPlot_->getModelBadValue(hierScatterPlot_->yColumn(), data.row);
 
       // get x, y value
-      ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
-      ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
+      ModelIndex xModelInd(hierScatterPlot_, data.row, hierScatterPlot_->xColumn(), data.parent);
+      ModelIndex yModelInd(hierScatterPlot_, data.row, hierScatterPlot_->yColumn(), data.parent);
 
       double x, y;
 
-      bool ok1 = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), xDefVal);
-      bool ok2 = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), yDefVal);
+      bool ok1 = hierScatterPlot_->modelMappedReal(xModelInd, x,
+                                                   hierScatterPlot_->isLogX(), xDefVal);
+      bool ok2 = hierScatterPlot_->modelMappedReal(yModelInd, y,
+                                                   hierScatterPlot_->isLogY(), yDefVal);
 
       if (! ok1) x = xDefVal;
       if (! ok2) y = yDefVal;
@@ -383,7 +385,7 @@ calcRange() const
     const Range &range() const { return range_; }
 
    private:
-    const CQChartsHierScatterPlot* plot_ { nullptr };
+    const CQChartsHierScatterPlot* hierScatterPlot_ { nullptr };
     Range                          range_;
   };
 
@@ -503,18 +505,18 @@ initGroupValueSets()
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsHierScatterPlot *plot) :
-     plot_(plot) {
+    RowVisitor(const CQChartsHierScatterPlot *hierScatterPlot) :
+     hierScatterPlot_(hierScatterPlot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRowGroupValueSets(data);
+      hierScatterPlot_->addRowGroupValueSets(data);
 
       return State::OK;
     }
 
    private:
-    const CQChartsHierScatterPlot* plot_ { nullptr };
+    const CQChartsHierScatterPlot* hierScatterPlot_ { nullptr };
   };
 
   RowVisitor visitor(this);
@@ -580,27 +582,29 @@ createObjs(PlotObjs &objs) const
 
     class RowVisitor : public ModelVisitor {
      public:
-      RowVisitor(const CQChartsHierScatterPlot *plot) :
-       plot_(plot) {
+      RowVisitor(const CQChartsHierScatterPlot *hierScatterPlot) :
+       hierScatterPlot_(hierScatterPlot) {
       }
 
       State visit(const QAbstractItemModel *, const VisitData &data) override {
-        if (! plot_->acceptsRow(data.row, data.parent))
+        if (! hierScatterPlot_->acceptsRow(data.row, data.parent))
           return State::SKIP;
 
         //---
 
-        double xDefVal = plot_->getModelBadValue(plot_->xColumn(), data.row);
-        double yDefVal = plot_->getModelBadValue(plot_->yColumn(), data.row);
+        double xDefVal = hierScatterPlot_->getModelBadValue(hierScatterPlot_->xColumn(), data.row);
+        double yDefVal = hierScatterPlot_->getModelBadValue(hierScatterPlot_->yColumn(), data.row);
 
         // get x, y value
-        ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
-        ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
+        ModelIndex xModelInd(hierScatterPlot_, data.row, hierScatterPlot_->xColumn(), data.parent);
+        ModelIndex yModelInd(hierScatterPlot_, data.row, hierScatterPlot_->yColumn(), data.parent);
 
         double x, y;
 
-        bool ok1 = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), xDefVal);
-        bool ok2 = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), yDefVal);
+        bool ok1 = hierScatterPlot_->modelMappedReal(xModelInd, x,
+                                                     hierScatterPlot_->isLogX(), xDefVal);
+        bool ok2 = hierScatterPlot_->modelMappedReal(yModelInd, y,
+                                                     hierScatterPlot_->isLogY(), yDefVal);
 
         if (! ok1) x = xDefVal;
         if (! ok2) y = yDefVal;
@@ -613,19 +617,20 @@ createObjs(PlotObjs &objs) const
         // get optional name
         bool ok;
 
-        ModelIndex nameModelInd(plot_, data.row, plot_->nameColumn(), data.parent);
+        ModelIndex nameModelInd(hierScatterPlot_, data.row, hierScatterPlot_->nameColumn(),
+                                data.parent);
 
-        auto name = plot_->modelString(nameModelInd, ok);
+        auto name = hierScatterPlot_->modelString(nameModelInd, ok);
 
         //---
 
-        plot_->addGroupPoint(data, x, y, name);
+        hierScatterPlot_->addGroupPoint(data, x, y, name);
 
         return State::OK;
       }
 
      private:
-      const CQChartsHierScatterPlot* plot_ { nullptr };
+      const CQChartsHierScatterPlot* hierScatterPlot_ { nullptr };
     };
 
     RowVisitor visitor(this);
@@ -895,10 +900,11 @@ createCustomControls()
 //------
 
 CQChartsHierScatterPointObj::
-CQChartsHierScatterPointObj(const Plot *plot, const BBox &rect, const Point &p,
-                            const ColorInd &iv) :
- CQChartsPlotPointObj(const_cast<Plot *>(plot), rect, p, ColorInd(), ColorInd(), iv),
- plot_(plot)
+CQChartsHierScatterPointObj(const HierScatterPlot *hierScatterPlot, const BBox &rect,
+                            const Point &p, const ColorInd &iv) :
+ CQChartsPlotPointObj(const_cast<HierScatterPlot *>(hierScatterPlot), rect, p,
+                      ColorInd(), ColorInd(), iv),
+ hierScatterPlot_(hierScatterPlot)
 {
 }
 
@@ -908,7 +914,7 @@ CQChartsLength
 CQChartsHierScatterPointObj::
 calcSymbolSize() const
 {
-  return plot()->symbolSize();
+  return hierScatterPlot()->symbolSize();
 }
 
 //---
@@ -944,8 +950,8 @@ void
 CQChartsHierScatterPointObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->xColumn());
-  addColumnSelectIndex(inds, plot_->yColumn());
+  addColumnSelectIndex(inds, hierScatterPlot_->xColumn());
+  addColumnSelectIndex(inds, hierScatterPlot_->yColumn());
 }
 
 //---
@@ -964,7 +970,7 @@ draw(PaintDevice *device) const
   //---
 
   // get symbol and size
-  auto symbol = plot_->symbol();
+  auto symbol = hierScatterPlot_->symbol();
 
   double sx, sy;
 
@@ -979,14 +985,14 @@ draw(PaintDevice *device) const
   //---
 
   // draw label
-  if (plot_->isTextLabels()) {
-    const auto *dataLabel = plot_->dataLabel();
+  if (hierScatterPlot_->isTextLabels()) {
+    const auto *dataLabel = hierScatterPlot_->dataLabel();
 
-    auto ps = plot_->windowToPixel(point());
+    auto ps = hierScatterPlot_->windowToPixel(point());
 
     BBox ebbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
-    dataLabel->draw(device, plot_->pixelToWindow(ebbox), name_);
+    dataLabel->draw(device, hierScatterPlot_->pixelToWindow(ebbox), name_);
   }
 }
 
@@ -996,14 +1002,14 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto ic = calcColorInd();
 
-  auto fillColor   = plot_->interpColor(plot_->symbolFillColor  (), ic);
-  auto strokeColor = plot_->interpColor(plot_->symbolStrokeColor(), ic);
+  auto fillColor   = hierScatterPlot_->interpColor(hierScatterPlot_->symbolFillColor  (), ic);
+  auto strokeColor = hierScatterPlot_->interpColor(hierScatterPlot_->symbolStrokeColor(), ic);
 
-  plot_->setPenBrush(penBrush,
-    plot_->symbolPenData(strokeColor), plot_->symbolBrushData(fillColor));
+  hierScatterPlot_->setPenBrush(penBrush,
+    hierScatterPlot_->symbolPenData(strokeColor), hierScatterPlot_->symbolBrushData(fillColor));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+    hierScatterPlot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 }
 
 //------
@@ -1091,15 +1097,15 @@ void
 CQChartsHierScatterPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && hierScatterPlot_)
+    disconnect(hierScatterPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsHierScatterPlot *>(plot);
+  hierScatterPlot_ = dynamic_cast<CQChartsHierScatterPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (hierScatterPlot_)
+    connect(hierScatterPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

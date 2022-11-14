@@ -19,9 +19,12 @@ class CQChartsColumnNumLineEdit : public QFrame {
   Q_PROPERTY(bool              proxy     READ isProxy   WRITE setProxy    )
 
  public:
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsColumnNumLineEdit(QWidget *parent=nullptr);
 
-  void setPlot(CQChartsPlot *plot);
+  void setPlot(Plot *plot);
 
   void setModelData(CQChartsModelData *modelData);
 

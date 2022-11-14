@@ -51,18 +51,18 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
   Q_PROPERTY(CQChartsColor  color      READ color      WRITE setColor     )
 
  public:
-  using Plot    = CQChartsScatterPlot3D;
-  using Length  = CQChartsLength;
-  using Units   = CQChartsUnits::Type;
-  using Symbol  = CQChartsSymbol;
-  using Point3D = CQChartsGeom::Point3D;
+  using ScatterPlot3D = CQChartsScatterPlot3D;
+  using Length        = CQChartsLength;
+  using Units         = CQChartsUnits::Type;
+  using Symbol        = CQChartsSymbol;
+  using Point3D       = CQChartsGeom::Point3D;
 
  public:
-  CQChartsScatterPoint3DObj(const Plot *plot, int groupInd, const BBox &rect,
+  CQChartsScatterPoint3DObj(const ScatterPlot3D *plot, int groupInd, const BBox &rect,
                             const Point3D &pos, const ColorInd &is, const ColorInd &ig,
                             const ColorInd &iv);
 
-  const Plot *scatterPlot() const;
+  const ScatterPlot3D *scatterPlot() const;
 
   int groupInd() const { return groupInd_; }
 
@@ -150,10 +150,10 @@ class CQChartsScatter3DColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsScatterPlot3D;
+  using ScatterPlot3D = CQChartsScatterPlot3D;
 
  public:
-  CQChartsScatter3DColorKeyItem(Plot *plot, int groupInd, const ColorInd &ic);
+  CQChartsScatter3DColorKeyItem(ScatterPlot3D *plot, int groupInd, const ColorInd &ic);
 
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &c) { color_ = c; }
@@ -495,7 +495,7 @@ class CQChartsScatterPlot3DCustomControls : public CQChartsPlotCustomControls {
 
   void addWidgets() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  protected:
   void connectSlots(bool b) override;
@@ -504,7 +504,7 @@ class CQChartsScatterPlot3DCustomControls : public CQChartsPlotCustomControls {
   void updateWidgets() override;
 
  private:
-  CQChartsScatterPlot3D* plot_ { nullptr };
+  CQChartsScatterPlot3D* scatter3DPlot_ { nullptr };
 };
 
 #endif

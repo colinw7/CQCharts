@@ -356,7 +356,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   //---
 
-  const CQChartsPlot::ZoomData &zoomData() const override;
+  const ZoomData &zoomData() const override;
   void setZoomData(const ZoomData &zoomData) override;
 
   //---

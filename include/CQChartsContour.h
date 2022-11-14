@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QColor>
+#include <QPointer>
+
 #include <vector>
 
 class CQChartsPlot;
@@ -22,6 +24,7 @@ class CQChartsContour : public QObject {
 
  public:
   using Plot          = CQChartsPlot;
+  using PlotP         = QPointer<Plot>;
   using PaintDevice   = CQChartsPaintDevice;
   using ContourLevels = std::vector<double>;
 
@@ -34,8 +37,8 @@ class CQChartsContour : public QObject {
 
   //---
 
-  const Plot *plot() const { return plot_; }
-  void setPlot(Plot *p) { plot_ = p; }
+  Plot *plot() const;
+  void setPlot(Plot *p);
 
   bool isSolid() const { return solid_; }
   void setSolid(bool b) { solid_ = b; }
@@ -80,7 +83,8 @@ class CQChartsContour : public QObject {
 
  private:
   using RealArray  = std::vector<double>;
-  Plot*      plot_            { nullptr };
+
+  PlotP      plot_;
   bool       solid_           { false };
   RealArray  x_;
   RealArray  y_;

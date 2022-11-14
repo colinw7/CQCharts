@@ -2,6 +2,7 @@
 #define CQChartsViewQuery_H
 
 #include <QFrame>
+#include <QPointer>
 
 class CQChartsView;
 class QTextEdit;
@@ -16,7 +17,10 @@ class CQChartsViewQuery : public QFrame {
   Q_PROPERTY(QString text READ text WRITE setText)
 
  public:
-  CQChartsViewQuery(CQChartsView *view);
+  using View = CQChartsView;
+
+ public:
+  CQChartsViewQuery(View *view);
 
   QString text() const;
   void setText(const QString &text);
@@ -24,8 +28,10 @@ class CQChartsViewQuery : public QFrame {
   QSize sizeHint() const override;
 
  private:
-  CQChartsView* view_ { nullptr };
-  QTextEdit*    text_ { nullptr };
+  using ViewP = QPointer<View>;
+
+  ViewP      view_;
+  QTextEdit* text_ { nullptr };
 };
 
 #endif

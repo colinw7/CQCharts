@@ -4,6 +4,7 @@
 #include <CQChartsWidgetIFace.h>
 
 #include <QFrame>
+#include <QPointer>
 
 class CQChartsPlotPropertyEdit;
 class CQChartsPlot;
@@ -25,7 +26,7 @@ class CQChartsPlotPropertyEditGroup : public QFrame, public CQChartsWidgetIFace 
  public:
   CQChartsPlotPropertyEditGroup(Plot *plot=nullptr);
 
-  const Plot *plot() const { return plot_; }
+  Plot *plot() const;
   void setPlot(Plot *p) override;
 
   void addEdit(CQChartsPlotPropertyEdit *edit);
@@ -36,9 +37,10 @@ class CQChartsPlotPropertyEditGroup : public QFrame, public CQChartsWidgetIFace 
   void addSlot(const QString &data); // [<label>] <property>
 
  private:
+  using PlotP = QPointer<Plot>;
   using Edits = std::vector<CQChartsPlotPropertyEdit *>;
 
-  Plot*        plot_         { nullptr };
+  PlotP        plot_;
   QVBoxLayout* widgetLayout_ { nullptr };
   QVBoxLayout* layout_       { nullptr };
   Edits        edits_;
@@ -62,7 +64,7 @@ class CQChartsPlotPropertyEdit : public QFrame, public CQChartsWidgetIFace {
  public:
   CQChartsPlotPropertyEdit(Plot *plot=nullptr, const QString &propertyName="");
 
-  const Plot *plot() const { return plot_; }
+  Plot *plot() const;
   void setPlot(Plot *p) override;
 
   const QString &propertyName() const { return propertyName_; }
@@ -84,7 +86,9 @@ class CQChartsPlotPropertyEdit : public QFrame, public CQChartsWidgetIFace {
   void updateValue();
 
  private:
-  Plot*        plot_         { nullptr };
+  using PlotP = QPointer<Plot>;
+
+  PlotP        plot_;
   QString      propertyName_;
   QString      label_;
   QHBoxLayout* layout_       { nullptr };

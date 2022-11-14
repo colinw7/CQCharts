@@ -45,7 +45,7 @@ setPolygon(const CQChartsPolygon &polygon)
   updatePolygon(polygon, /*updateText*/ true);
 }
 
-const CQChartsPlot *
+CQChartsPlot *
 CQChartsPolygonLineEdit::
 plot() const
 {
@@ -380,8 +380,6 @@ void
 CQChartsPolygonEdit::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = plot;
-
   for (auto &pointEdit : pointEdits_) {
     if (pointEdit)
       pointEdit->setPlot(plot);
@@ -515,7 +513,7 @@ updatePointEdits()
   CQChartsUtil::makeArraySize(pointEdits_, n, [&]() {
     auto *edit = CQUtil::makeWidget<CQChartsGeomPointEdit>("edit");
 
-    edit->setPlot(plot_);
+    edit->setPlot(plot());
 
     connect(edit, SIGNAL(valueChanged()), this, SLOT(pointSlot()));
 

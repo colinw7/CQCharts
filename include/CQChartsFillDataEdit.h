@@ -88,8 +88,6 @@ class CQChartsFillDataEdit : public CQChartsEditBase {
   void alphaDragValueChanged(double);
 
  private:
-  CQChartsPlot*                plot_        { nullptr }; //!< parent plot
-  CQChartsView*                view_        { nullptr }; //!< parent view
   CQChartsFillData             data_;                    //!< fill data
   CQGroupBox*                  groupBox_    { nullptr }; //!< group box
   CQChartsColorLineEdit*       colorEdit_   { nullptr }; //!< color edit
@@ -115,7 +113,7 @@ class CQChartsFillDataEditPreview : public CQChartsEditPreview {
   void draw(QPainter *painter) override;
 
   static void draw(QPainter *painter, const CQChartsFillData &data, const QRect &rect,
-                   CQChartsPlot *plot, CQChartsView *view);
+                   Plot *plot, View *view);
 
  private:
   CQChartsFillDataEdit *edit_ { nullptr };
@@ -134,7 +132,7 @@ class CQChartsFillDataPropertyViewType : public CQChartsPropertyViewType {
   CQPropertyViewEditorFactory *getEditor() const override;
 
   void drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
-                   CQChartsPlot *plot, CQChartsView *view) override;
+                   Plot *plot, View *view) override;
 
   QString tip(const QVariant &value) const override;
 

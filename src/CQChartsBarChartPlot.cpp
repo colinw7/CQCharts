@@ -51,25 +51,25 @@ addParameters()
     setTip("Bars orientation");
 
   addEnumParameter("plotType", "Plot Type", "plotType").
-    addNameValue("NORMAL" , static_cast<int>(Plot::PlotType::NORMAL )).
-    addNameValue("STACKED", static_cast<int>(Plot::PlotType::STACKED)).
+    addNameValue("NORMAL" , static_cast<int>(BarChartPlot::PlotType::NORMAL )).
+    addNameValue("STACKED", static_cast<int>(BarChartPlot::PlotType::STACKED)).
     setTip("Plot type");
 
   addEnumParameter("valueType", "Value Type", "valueType").
-   addNameValue("VALUE", static_cast<int>(Plot::ValueType::VALUE)).
-   addNameValue("RANGE", static_cast<int>(Plot::ValueType::RANGE)).
-   addNameValue("MIN"  , static_cast<int>(Plot::ValueType::MIN  )).
-   addNameValue("MAX"  , static_cast<int>(Plot::ValueType::MAX  )).
-   addNameValue("MEAN" , static_cast<int>(Plot::ValueType::MEAN )).
-   addNameValue("SUM"  , static_cast<int>(Plot::ValueType::SUM  )).
+   addNameValue("VALUE", static_cast<int>(BarChartPlot::ValueType::VALUE)).
+   addNameValue("RANGE", static_cast<int>(BarChartPlot::ValueType::RANGE)).
+   addNameValue("MIN"  , static_cast<int>(BarChartPlot::ValueType::MIN  )).
+   addNameValue("MAX"  , static_cast<int>(BarChartPlot::ValueType::MAX  )).
+   addNameValue("MEAN" , static_cast<int>(BarChartPlot::ValueType::MEAN )).
+   addNameValue("SUM"  , static_cast<int>(BarChartPlot::ValueType::SUM  )).
    setTip("Bar value type");
 
   addEnumParameter("shapeType", "Shape Type", "shapeType").
-    addNameValue("RECT"    , static_cast<int>(Plot::ShapeType::RECT    )).
-    addNameValue("DOT_LINE", static_cast<int>(Plot::ShapeType::DOT_LINE)).
-    addNameValue("BOX"     , static_cast<int>(Plot::ShapeType::BOX     )).
-    addNameValue("SCATTER" , static_cast<int>(Plot::ShapeType::SCATTER )).
-    addNameValue("VIOLIN"  , static_cast<int>(Plot::ShapeType::VIOLIN  )).
+    addNameValue("RECT"    , static_cast<int>(BarChartPlot::ShapeType::RECT    )).
+    addNameValue("DOT_LINE", static_cast<int>(BarChartPlot::ShapeType::DOT_LINE)).
+    addNameValue("BOX"     , static_cast<int>(BarChartPlot::ShapeType::BOX     )).
+    addNameValue("SCATTER" , static_cast<int>(BarChartPlot::ShapeType::SCATTER )).
+    addNameValue("VIOLIN"  , static_cast<int>(BarChartPlot::ShapeType::VIOLIN  )).
     setTip("Bar shape type");
 
   addBoolParameter("percent"  , "Percent"   , "percent"  ).setTip("Show value is percentage");
@@ -579,18 +579,18 @@ calcRange() const
   // process model data
   class BarChartVisitor : public ModelVisitor {
    public:
-    BarChartVisitor(const CQChartsBarChartPlot *plot, RangeData &rangeData) :
-     plot_(plot), rangeData_(rangeData) {
+    BarChartVisitor(const CQChartsBarChartPlot *barChartPlot, RangeData &rangeData) :
+     barChartPlot_(barChartPlot), rangeData_(rangeData) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRow(data, rangeData_);
+      barChartPlot_->addRow(data, rangeData_);
 
       return State::OK;
     }
 
    private:
-    const CQChartsBarChartPlot* plot_ { nullptr };
+    const CQChartsBarChartPlot* barChartPlot_ { nullptr };
     RangeData&                  rangeData_;
   };
 
@@ -2170,11 +2170,11 @@ createCustomControls()
 //------
 
 CQChartsBarChartObj::
-CQChartsBarChartObj(const CQChartsBarChartPlot *plot, const BBox &rect, bool valueSet,
+CQChartsBarChartObj(const CQChartsBarChartPlot *barChartPlot, const BBox &rect, bool valueSet,
                     int valueSetInd, const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
                     const QModelIndex &ind) :
- CQChartsPlotObj(const_cast<CQChartsBarChartPlot *>(plot), rect, is, ig, iv),
- plot_(plot), valueSet_(valueSet), valueSetInd_(valueSetInd)
+ CQChartsPlotObj(const_cast<CQChartsBarChartPlot *>(barChartPlot), rect, is, ig, iv),
+ barChartPlot_(barChartPlot), valueSet_(valueSet), valueSetInd_(valueSetInd)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -2213,11 +2213,11 @@ calcTipId() const
 
     if (! value1.length()) {
       if (column.isValid()) {
-        ModelIndex columnInd(plot_, modelInd().row(), column, modelInd().parent());
+        ModelIndex columnInd(barChartPlot_, modelInd().row(), column, modelInd().parent());
 
         bool ok;
 
-        value1 = plot_->modelString(columnInd, ok);
+        value1 = barChartPlot_->modelString(columnInd, ok);
         if (! ok) return;
       }
     }
@@ -2228,7 +2228,7 @@ calcTipId() const
     auto headerStr = header;
 
     if (column.isValid()) {
-      headerStr = plot_->columnHeaderName(column, /*tip*/true);
+      headerStr = barChartPlot_->columnHeaderName(column, /*tip*/true);
 
       if (headerStr == "")
         headerStr = header;
@@ -2251,7 +2251,7 @@ calcTipId() const
     auto headerStr = header;
 
     if (columns.isValid()) {
-      headerStr = plot_->columnsHeaderName(columns, /*tip*/true);
+      headerStr = barChartPlot_->columnsHeaderName(columns, /*tip*/true);
 
       if (headerStr == "")
         headerStr = header;
@@ -2265,12 +2265,12 @@ calcTipId() const
 
   //---
 
-  auto valueColumns = plot_->calcValueColumns();
+  auto valueColumns = barChartPlot_->calcValueColumns();
 
-  addOptColumnRow (plot_->groupColumn (), "Group", this->groupStr());
-  addOptColumnRow (plot_->nameColumn  (), "Name" , this->nameStr ());
+  addOptColumnRow (barChartPlot_->groupColumn (), "Group", this->groupStr());
+  addOptColumnRow (barChartPlot_->nameColumn  (), "Name" , this->nameStr ());
   addOptColumnsRow(valueColumns         , "Value", this->valueStr());
-  addOptColumnRow (plot_->colorColumn (), "Color");
+  addOptColumnRow (barChartPlot_->colorColumn (), "Color");
 
   //---
 
@@ -2333,20 +2333,20 @@ valueStr() const
     if (! valueSet->calcStats(min, max, mean, sum))
       return "";
 
-    if      (plot_->isValueRange()) {
-      auto minValueStr = plot_->valueStr(min);
-      auto maxValueStr = plot_->valueStr(max);
+    if      (barChartPlot_->isValueRange()) {
+      auto minValueStr = barChartPlot_->valueStr(min);
+      auto maxValueStr = barChartPlot_->valueStr(max);
 
       valueStr = QString("%1-%2").arg(minValueStr).arg(maxValueStr);
     }
-    else if (plot_->isValueMin())
-      valueStr = plot_->valueStr(min);
-    else if (plot_->isValueMax())
-      valueStr = plot_->valueStr(max);
-    else if (plot_->isValueMean())
-      valueStr = plot_->valueStr(mean);
-    else if (plot_->isValueSum())
-      valueStr = plot_->valueStr(sum);
+    else if (barChartPlot_->isValueMin())
+      valueStr = barChartPlot_->valueStr(min);
+    else if (barChartPlot_->isValueMax())
+      valueStr = barChartPlot_->valueStr(max);
+    else if (barChartPlot_->isValueMean())
+      valueStr = barChartPlot_->valueStr(mean);
+    else if (barChartPlot_->isValueSum())
+      valueStr = barChartPlot_->valueStr(sum);
   }
   else {
     const auto *value = this->value();
@@ -2356,23 +2356,23 @@ valueStr() const
 
     value->calcRange(minInd, maxInd, mean, sum);
 
-    if      (plot_->isValueValue()) {
-      valueStr = plot_->valueStr(minInd.value);
+    if      (barChartPlot_->isValueValue()) {
+      valueStr = barChartPlot_->valueStr(minInd.value);
     }
-    else if (plot_->isValueRange()) {
-      auto minValueStr = plot_->valueStr(minInd.value);
-      auto maxValueStr = plot_->valueStr(maxInd.value);
+    else if (barChartPlot_->isValueRange()) {
+      auto minValueStr = barChartPlot_->valueStr(minInd.value);
+      auto maxValueStr = barChartPlot_->valueStr(maxInd.value);
 
       valueStr = QString("%1-%2").arg(minValueStr).arg(maxValueStr);
     }
-    else if (plot_->isValueMin())
-      valueStr = plot_->valueStr(minInd.value);
-    else if (plot_->isValueMax())
-      valueStr = plot_->valueStr(maxInd.value);
-    else if (plot_->isValueMean())
-      valueStr = plot_->valueStr(mean);
-    else if (plot_->isValueSum())
-      valueStr = plot_->valueStr(sum);
+    else if (barChartPlot_->isValueMin())
+      valueStr = barChartPlot_->valueStr(minInd.value);
+    else if (barChartPlot_->isValueMax())
+      valueStr = barChartPlot_->valueStr(maxInd.value);
+    else if (barChartPlot_->isValueMean())
+      valueStr = barChartPlot_->valueStr(mean);
+    else if (barChartPlot_->isValueSum())
+      valueStr = barChartPlot_->valueStr(sum);
   }
 
   return valueStr;
@@ -2382,23 +2382,23 @@ CQChartsGeom::BBox
 CQChartsBarChartObj::
 dataLabelRect() const
 {
-  if (! plot_->isLabelsVisible())
+  if (! barChartPlot_->isLabelsVisible())
     return BBox();
 
   const auto *value = this->value();
 
   auto label = value->getNameValue("Label");
 
-  if (! plot_->labelColumn().isValid()) {
+  if (! barChartPlot_->labelColumn().isValid()) {
     const auto &valueInds = value->valueInds();
     assert(! valueInds.empty());
 
     double value1 = valueInds[0].value;
 
-    label = plot_->valueStr(value1);
+    label = barChartPlot_->valueStr(value1);
   }
 
-  return plot_->dataLabel()->calcRect(rect(), label);
+  return barChartPlot_->dataLabel()->calcRect(rect(), label);
 }
 
 //---
@@ -2428,13 +2428,13 @@ void
 CQChartsBarChartObj::
 getObjSelectIndices(Indices &inds) const
 {
-  auto valueColumns = plot_->calcValueColumns();
+  auto valueColumns = barChartPlot_->calcValueColumns();
 
-  addColumnSelectIndex(inds, plot_->groupColumn());
+  addColumnSelectIndex(inds, barChartPlot_->groupColumn());
 
   int nv = valueColumns.count();
 
-  if (plot_->isStacked()) {
+  if (barChartPlot_->isStacked()) {
     if (ig_.i < nv)
       addColumnSelectIndex(inds, valueColumns.getColumn(ig_.i));
   }
@@ -2443,8 +2443,8 @@ getObjSelectIndices(Indices &inds) const
       addColumnSelectIndex(inds, valueColumns.getColumn(is_.i));
   }
 
-  addColumnSelectIndex(inds, plot_->nameColumn());
-  addColumnSelectIndex(inds, plot_->labelColumn());
+  addColumnSelectIndex(inds, barChartPlot_->nameColumn());
+  addColumnSelectIndex(inds, barChartPlot_->labelColumn());
 }
 
 #if 0
@@ -2453,9 +2453,9 @@ CQChartsBarChartObj::
 isHidden() const
 {
   if (is_.n > 1)
-    return plot_->isSetHidden(is_.i);
+    return barChartPlot_->isSetHidden(is_.i);
   else
-    return plot_->isSetHidden(ig_.i);
+    return barChartPlot_->isSetHidden(ig_.i);
 }
 #endif
 
@@ -2464,21 +2464,25 @@ CQChartsBarChartObj::
 draw(PaintDevice *device) const
 {
   // calc bar borders
-  double m1 = plot_->lengthPixelSize(plot_->margin(), plot_->isVertical());
+  double m1 = barChartPlot_->lengthPixelSize(barChartPlot_->margin(), barChartPlot_->isVertical());
   double m2 = m1;
 
-  if (! plot_->isStacked()) {
+  if (! barChartPlot_->isStacked()) {
     if      (is_.n > 1) {
       if      (ig_.i == 0)
-        m1 = plot_->lengthPixelSize(plot_->groupMargin(), plot_->isVertical());
+        m1 = barChartPlot_->lengthPixelSize(barChartPlot_->groupMargin(),
+                                            barChartPlot_->isVertical());
       else if (ig_.i == ig_.n - 1)
-        m2 = plot_->lengthPixelSize(plot_->groupMargin(), plot_->isVertical());
+        m2 = barChartPlot_->lengthPixelSize(barChartPlot_->groupMargin(),
+                                            barChartPlot_->isVertical());
     }
     else if (ig_.n > 1) {
       if      (iv_.i == 0)
-        m1 = plot_->lengthPixelSize(plot_->groupMargin(), plot_->isVertical());
+        m1 = barChartPlot_->lengthPixelSize(barChartPlot_->groupMargin(),
+                                            barChartPlot_->isVertical());
       else if (iv_.i == iv_.n - 1)
-        m2 = plot_->lengthPixelSize(plot_->groupMargin(), plot_->isVertical());
+        m2 = barChartPlot_->lengthPixelSize(barChartPlot_->groupMargin(),
+                                            barChartPlot_->isVertical());
     }
   }
 
@@ -2487,9 +2491,9 @@ draw(PaintDevice *device) const
   // adjust border sizes and rect
   static double minSize = 3.0;
 
-  auto prect = plot_->windowToPixel(rect());
+  auto prect = barChartPlot_->windowToPixel(rect());
 
-  double rs = prect.getSize(plot_->isVertical());
+  double rs = prect.getSize(barChartPlot_->isVertical());
 
   double s1 = rs - 2*m1;
 
@@ -2498,9 +2502,9 @@ draw(PaintDevice *device) const
     m2 = m1;
   }
 
-  prect.expandExtent(-m1, -m2, plot_->isVertical());
+  prect.expandExtent(-m1, -m2, barChartPlot_->isVertical());
 
-  auto rect = plot_->pixelToWindow(prect);
+  auto rect = barChartPlot_->pixelToWindow(prect);
 
   //---
 
@@ -2526,16 +2530,16 @@ drawShape(PaintDevice *device, const BBox &bbox) const
 
   //---
 
-  if      (plot_->shapeType() == CQChartsBarChartPlot::ShapeType::DOT_LINE) {
+  if      (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::DOT_LINE) {
     drawDotLine(device, bbox, barPenBrush);
   }
-  else if (plot_->shapeType() == CQChartsBarChartPlot::ShapeType::BOX) {
+  else if (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::BOX) {
     drawBox(device, bbox);
   }
-  else if (plot_->shapeType() == CQChartsBarChartPlot::ShapeType::SCATTER) {
+  else if (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::SCATTER) {
     drawScatter(device, bbox);
   }
-  else if (plot_->shapeType() == CQChartsBarChartPlot::ShapeType::VIOLIN) {
+  else if (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::VIOLIN) {
     drawViolin(device, bbox);
   }
   else {
@@ -2552,7 +2556,7 @@ CQChartsBarChartObj::
 drawRect(PaintDevice *device, const BBox &bbox, const CQChartsPenBrush &barPenBrush) const
 {
   // draw rect (TODO: line for thin bar)
-  CQChartsDrawUtil::drawRoundedRect(device, barPenBrush, bbox, plot_->barCornerSize());
+  CQChartsDrawUtil::drawRoundedRect(device, barPenBrush, bbox, barChartPlot_->barCornerSize());
 }
 
 void
@@ -2564,13 +2568,13 @@ drawDotLine(PaintDevice *device, const BBox &bbox, const PenBrush &barPenBrush) 
 
   PenBrush dotPenBrush;
 
-  plot_->setDotSymbolPenBrush(dotPenBrush, ic);
+  barChartPlot_->setDotSymbolPenBrush(dotPenBrush, ic);
 
   //---
 
-  CQChartsDrawUtil::drawDotLine(device, barPenBrush, bbox, plot_->dotLineWidth(),
-                                plot_->isHorizontal(), plot_->dotSymbol(),
-                                plot_->dotSymbolSize(), dotPenBrush);
+  CQChartsDrawUtil::drawDotLine(device, barPenBrush, bbox, barChartPlot_->dotLineWidth(),
+                                barChartPlot_->isHorizontal(), barChartPlot_->dotSymbol(),
+                                barChartPlot_->dotSymbolSize(), dotPenBrush);
 }
 
 void
@@ -2580,11 +2584,11 @@ drawBox(PaintDevice *device, const BBox &bbox) const
   if (! density_) {
     density_ = std::make_unique<CQChartsDensity>();
 
-    density_->setOrientation(plot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
+    density_->setOrientation(barChartPlot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
   }
 
   std::vector<double> rvalues;
-  plot_->valueSet(valueSetInd_).getValues(rvalues);
+  barChartPlot_->valueSet(valueSetInd_).getValues(rvalues);
 
   density_->setXVals(rvalues);
 
@@ -2604,11 +2608,11 @@ drawScatter(PaintDevice *device, const BBox &bbox) const
   if (! density_) {
     density_ = std::make_unique<CQChartsDensity>();
 
-    density_->setOrientation(plot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
+    density_->setOrientation(barChartPlot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
   }
 
   std::vector<double> rvalues;
-  plot_->valueSet(valueSetInd_).getValues(rvalues);
+  barChartPlot_->valueSet(valueSetInd_).getValues(rvalues);
 
   density_->setXVals(rvalues);
 
@@ -2628,11 +2632,11 @@ drawViolin(PaintDevice *device, const BBox &bbox) const
   if (! density_) {
     density_ = std::make_unique<CQChartsDensity>();
 
-    density_->setOrientation(plot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
+    density_->setOrientation(barChartPlot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
   }
 
   std::vector<double> rvalues;
-  plot_->valueSet(valueSetInd_).getValues(rvalues);
+  barChartPlot_->valueSet(valueSetInd_).getValues(rvalues);
 
   density_->setXVals(rvalues);
 
@@ -2650,7 +2654,7 @@ CQChartsBarChartObj::
 drawFg(PaintDevice *device) const
 {
   // draw data label on foreground layers
-  if (! plot_->isLabelsVisible())
+  if (! barChartPlot_->isLabelsVisible())
     return;
 
   //---
@@ -2659,7 +2663,7 @@ drawFg(PaintDevice *device) const
   double  minValue = 0;
 
   // calc min/max value
-  if (plot_->isValueValue()) {
+  if (barChartPlot_->isValueValue()) {
     const auto *value = this->value();
 
     minLabel = value->getNameValue("Label");
@@ -2668,12 +2672,12 @@ drawFg(PaintDevice *device) const
     BarValue::ValueInd minInd, maxInd;
     double             mean = 0.0, sum = 0.0;
 
-    if (! plot_->labelColumn().isValid()) {
+    if (! barChartPlot_->labelColumn().isValid()) {
       value->calcRange(minInd, maxInd, mean, sum);
 
       double scale = 1.0;
 
-      if (plot_->isPercent()) {
+      if (barChartPlot_->isPercent()) {
         const auto *valueSet = this->valueSet();
 
         double posSum = 0.0, negSum = 0.0;
@@ -2685,8 +2689,8 @@ drawFg(PaintDevice *device) const
         scale = (total > 0.0 ? 100.0/total : 1.0);
       }
 
-      minLabel = plot_->valueStr(scale*minInd.value);
-      maxLabel = plot_->valueStr(scale*maxInd.value);
+      minLabel = barChartPlot_->valueStr(scale*minInd.value);
+      maxLabel = barChartPlot_->valueStr(scale*maxInd.value);
     }
 
     minValue = minInd.value;
@@ -2698,18 +2702,18 @@ drawFg(PaintDevice *device) const
 
     (void) valueSet->calcStats(min, max, mean, sum);
 
-    if      (plot_->isValueRange()) {
-      minLabel = plot_->valueStr(min);
-      maxLabel = plot_->valueStr(max);
+    if      (barChartPlot_->isValueRange()) {
+      minLabel = barChartPlot_->valueStr(min);
+      maxLabel = barChartPlot_->valueStr(max);
     }
-    else if (plot_->isValueMin())
-      minLabel = plot_->valueStr(min);
-    else if (plot_->isValueMax())
-      minLabel = plot_->valueStr(max);
-    else if (plot_->isValueMean())
-      minLabel = plot_->valueStr(mean);
-    else if (plot_->isValueSum())
-      minLabel = plot_->valueStr(sum);
+    else if (barChartPlot_->isValueMin())
+      minLabel = barChartPlot_->valueStr(min);
+    else if (barChartPlot_->isValueMax())
+      minLabel = barChartPlot_->valueStr(max);
+    else if (barChartPlot_->isValueMean())
+      minLabel = barChartPlot_->valueStr(mean);
+    else if (barChartPlot_->isValueSum())
+      minLabel = barChartPlot_->valueStr(sum);
 
     if (maxLabel == "")
       maxLabel = minLabel;
@@ -2719,49 +2723,49 @@ drawFg(PaintDevice *device) const
 
   //---
 
-  if (! plot_->dataLabel()->isPositionOutside()) {
+  if (! barChartPlot_->dataLabel()->isPositionOutside()) {
     PenBrush barPenBrush;
 
     calcPenBrush(barPenBrush, /*updateState*/false);
 
-    plot_->charts()->setContrastColor(barPenBrush.brush.color());
+    barChartPlot_->charts()->setContrastColor(barPenBrush.brush.color());
   }
   else {
-    plot_->charts()->setContrastColor(plot_->plotBgColor());
+    barChartPlot_->charts()->setContrastColor(barChartPlot_->plotBgColor());
   }
 
   //---
 
   if (minLabel == maxLabel) {
-    auto pos = plot_->labelPosition();
+    auto pos = barChartPlot_->labelPosition();
 
-    if (! plot_->labelColumn().isValid() && minValue < 0)
+    if (! barChartPlot_->labelColumn().isValid() && minValue < 0)
       pos = CQChartsDataLabel::flipPosition(pos);
 
     if (minLabel != "")
-      plot_->dataLabel()->draw(device, rect(), minLabel,
-                               static_cast<CQChartsDataLabel::Position>(pos));
+      barChartPlot_->dataLabel()->draw(device, rect(), minLabel,
+                                       static_cast<CQChartsDataLabel::Position>(pos));
   }
   else {
-    if (plot_->dataLabel()->isPositionOutside()) {
+    if (barChartPlot_->dataLabel()->isPositionOutside()) {
       auto minPos = CQChartsDataLabel::Position::BOTTOM_OUTSIDE;
       auto maxPos = CQChartsDataLabel::Position::TOP_OUTSIDE;
 
-      plot_->dataLabel()->draw(device, rect(), minLabel, minPos);
-      plot_->dataLabel()->draw(device, rect(), maxLabel, maxPos);
+      barChartPlot_->dataLabel()->draw(device, rect(), minLabel, minPos);
+      barChartPlot_->dataLabel()->draw(device, rect(), maxLabel, maxPos);
     }
     else {
       auto minPos = CQChartsDataLabel::Position::BOTTOM_INSIDE;
       auto maxPos = CQChartsDataLabel::Position::TOP_INSIDE;
 
-      plot_->dataLabel()->draw(device, rect(), minLabel, minPos);
-      plot_->dataLabel()->draw(device, rect(), maxLabel, maxPos);
+      barChartPlot_->dataLabel()->draw(device, rect(), minLabel, minPos);
+      barChartPlot_->dataLabel()->draw(device, rect(), maxLabel, maxPos);
     }
   }
 
   //---
 
-  plot_->charts()->resetContrastColor();
+  barChartPlot_->charts()->resetContrastColor();
 }
 
 void
@@ -2770,9 +2774,9 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   static double minBorderSize = 5.0;
 
-  auto prect = plot_->windowToPixel(rect());
+  auto prect = barChartPlot_->windowToPixel(rect());
 
-  double rs = prect.getSize(plot_->isVertical());
+  double rs = prect.getSize(barChartPlot_->isVertical());
 
   bool skipBorder = (rs < minBorderSize);
 
@@ -2780,20 +2784,20 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   auto colorInd = calcColorInd();
 
-  auto bc = plot_->interpBarStrokeColor(colorInd);
+  auto bc = barChartPlot_->interpBarStrokeColor(colorInd);
 
   auto barColor = calcBarColor();
 
-  auto penData = plot_->barPenData(bc);
+  auto penData = barChartPlot_->barPenData(bc);
 
   if (skipBorder)
     penData.setVisible(false);
 
-  plot_->setPenBrush(penBrush, penData, plot_->barBrushData(barColor));
+  barChartPlot_->setPenBrush(penBrush, penData, barChartPlot_->barBrushData(barColor));
 
   // adjust pen/brush for selected/mouse over
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    barChartPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 QColor
@@ -2805,43 +2809,43 @@ calcBarColor() const
 
   QColor barColor;
 
-  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    int ns = plot_->calcNumSets();
+  if (barChartPlot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    int ns = barChartPlot_->calcNumSets();
 
     if (ns > 1) {
       if (isValueSet()) {
-        barColor = plot_->interpBarFillColor(ig_);
+        barColor = barChartPlot_->interpBarFillColor(ig_);
       }
       else {
-        if (plot_->isColorBySet())
-          barColor = plot_->interpBarFillColor(ig_);
+        if (barChartPlot_->isColorBySet())
+          barColor = barChartPlot_->interpBarFillColor(ig_);
         else
-          barColor = plot_->interpBarFillColor(is_);
+          barColor = barChartPlot_->interpBarFillColor(is_);
       }
     }
     else {
       if (! color_.isValid()) {
         if      (ig_.n > 1)
-          barColor = plot_->interpBarFillColor(ig_);
+          barColor = barChartPlot_->interpBarFillColor(ig_);
         else if (iv_.n > 1)
-          barColor = plot_->interpBarFillColor(iv_);
+          barColor = barChartPlot_->interpBarFillColor(iv_);
         else {
           ColorInd ig1(ig_.i    , ig_.n + 1);
           ColorInd ig2(ig_.i + 1, ig_.n + 1);
 
-          auto barColor1 = plot_->interpBarFillColor(ig1);
-          auto barColor2 = plot_->interpBarFillColor(ig2);
+          auto barColor1 = barChartPlot_->interpBarFillColor(ig1);
+          auto barColor2 = barChartPlot_->interpBarFillColor(ig2);
 
           barColor = CQChartsUtil::blendColors(barColor1, barColor2, iv_.value());
         }
       }
       else {
-        barColor = plot_->interpColor(color_, colorInd);
+        barColor = barChartPlot_->interpColor(color_, colorInd);
       }
     }
   }
   else {
-    barColor = plot_->interpBarFillColor(colorInd);
+    barColor = barChartPlot_->interpBarFillColor(colorInd);
   }
 
   return barColor;
@@ -2870,12 +2874,12 @@ CQChartsBarChartObj::
 valueSet() const
 {
   if (is_.n > 1) {
-    const auto &valueSet = plot_->valueSet(ig_.i);
+    const auto &valueSet = barChartPlot_->valueSet(ig_.i);
 
     return &valueSet;
   }
   else {
-    const auto &valueSet = plot_->valueSet(ig_.i);
+    const auto &valueSet = barChartPlot_->valueSet(ig_.i);
 
     return &valueSet;
   }
@@ -2884,9 +2888,9 @@ valueSet() const
 //------
 
 CQChartsBarColorKeyItem::
-CQChartsBarColorKeyItem(Plot *plot, const QString &name, const ColorInd &is,
+CQChartsBarColorKeyItem(BarChartPlot *barChartPlot, const QString &name, const ColorInd &is,
                         const ColorInd &ig, const ColorInd &iv) :
- CQChartsColorBoxKeyItem(plot, is, ig, iv), plot_(plot), name_(name)
+ CQChartsColorBoxKeyItem(barChartPlot, is, ig, iv), barChartPlot_(barChartPlot), name_(name)
 {
   setClickable(true);
 }
@@ -2898,7 +2902,7 @@ selectPress(const Point &, SelData &selData)
 {
   if (selData.selMod == SelMod::ADD) {
     for (int i = 0; i < iv_.n; ++i) {
-      plot_->CQChartsPlot::setSetHidden(i, i != iv_.i);
+      barChartPlot_->CQChartsPlot::setSetHidden(i, i != iv_.i);
     }
   }
   else {
@@ -2936,48 +2940,48 @@ fillBrush() const
 
   QColor barColor;
 
-  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    int ns = plot_->calcNumSets();
+  if (barChartPlot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    int ns = barChartPlot_->calcNumSets();
 
     if (ns > 1) {
-      if (plot_->isColorBySet()) {
+      if (barChartPlot_->isColorBySet()) {
         if (ig_.n > 1)
-          barColor = plot_->interpBarFillColor(ig_);
+          barColor = barChartPlot_->interpBarFillColor(ig_);
         else
-          barColor = plot_->interpBarFillColor(iv_);
+          barColor = barChartPlot_->interpBarFillColor(iv_);
       }
       else {
         if      (is_.n > 1)
-          barColor = plot_->interpBarFillColor(is_);
+          barColor = barChartPlot_->interpBarFillColor(is_);
         else if (ig_.n > 1)
-          barColor = plot_->interpBarFillColor(ig_);
+          barColor = barChartPlot_->interpBarFillColor(ig_);
         else
-          barColor = plot_->interpBarFillColor(iv_);
+          barColor = barChartPlot_->interpBarFillColor(iv_);
       }
     }
     else {
       if (! color_.isValid()) {
         if      (ig_.n > 1)
-          barColor = plot_->interpBarFillColor(ig_);
+          barColor = barChartPlot_->interpBarFillColor(ig_);
         else if (iv_.n > 1)
-          barColor = plot_->interpBarFillColor(iv_);
+          barColor = barChartPlot_->interpBarFillColor(iv_);
         else {
           ColorInd ig1(ig_.i    , ig_.n + 1);
           ColorInd ig2(ig_.i + 1, ig_.n + 1);
 
-          auto barColor1 = plot_->interpBarFillColor(ig1);
-          auto barColor2 = plot_->interpBarFillColor(ig2);
+          auto barColor1 = barChartPlot_->interpBarFillColor(ig1);
+          auto barColor2 = barChartPlot_->interpBarFillColor(ig2);
 
           barColor = CQChartsUtil::blendColors(barColor1, barColor2, iv_.value());
         }
       }
       else {
-        barColor = plot_->interpColor(color_, colorInd);
+        barColor = barChartPlot_->interpColor(color_, colorInd);
       }
     }
   }
   else {
-    barColor = plot_->interpBarFillColor(colorInd);
+    barColor = barChartPlot_->interpBarFillColor(colorInd);
   }
 
   //---
@@ -2986,7 +2990,7 @@ fillBrush() const
 
   QBrush brush;
 
-  auto barBrushData = plot_->barBrushData(barColor);
+  auto barBrushData = barChartPlot_->barBrushData(barColor);
 
   CQChartsDrawUtil::setBrush(brush, barBrushData);
 
@@ -2999,13 +3003,13 @@ strokePen() const
 {
   auto colorInd = calcColorInd();
 
-  auto bc = plot_->interpBarStrokeColor(colorInd);
+  auto bc = barChartPlot_->interpBarStrokeColor(colorInd);
 
-  auto penData = plot_->barPenData(bc);
+  auto penData = barChartPlot_->barPenData(bc);
 
   PenBrush penBrush;
 
-  plot_->setPen(penBrush, penData);
+  barChartPlot_->setPen(penBrush, penData);
 
   return penBrush.pen;
 }
@@ -3020,22 +3024,22 @@ tipText(const Point &, QString &tip) const
 
   double posSum = 0.0, negSum = 0.0;
 
-  int ns = plot_->calcNumSets();
-  int nv = plot_->numValueSets();
+  int ns = barChartPlot_->calcNumSets();
+  int nv = barChartPlot_->numValueSets();
 
   if (ns > 1) {
-    if (plot_->isColorBySet()) {
-      const auto &valueSet = plot_->valueSet(iv_.i);
+    if (barChartPlot_->isColorBySet()) {
+      const auto &valueSet = barChartPlot_->valueSet(iv_.i);
 
       valueSet.calcSums(posSum, negSum);
 
       count = valueSet.numValues();
     }
     else {
-      count = plot_->numSetValues();
+      count = barChartPlot_->numSetValues();
 
       for (int i = 0; i < nv; ++i) {
-        const auto &valueSet = plot_->valueSet(i);
+        const auto &valueSet = barChartPlot_->valueSet(i);
 
         const auto &ivalue = valueSet.value(iv_.i);
 
@@ -3051,14 +3055,14 @@ tipText(const Point &, QString &tip) const
   }
   else {
     if      (nv > 1) {
-      const auto &valueSet = plot_->valueSet(iv_.i);
+      const auto &valueSet = barChartPlot_->valueSet(iv_.i);
 
       valueSet.calcSums(posSum, negSum);
 
       count = valueSet.numValues();
     }
     else if (nv == 1) {
-      const auto &valueSet = plot_->valueSet(0);
+      const auto &valueSet = barChartPlot_->valueSet(0);
 
       const auto &ivalue = valueSet.value(iv_.i);
 
@@ -3110,11 +3114,11 @@ CQChartsBarColorKeyItem::
 isSetHidden() const
 {
   if      (is_.n > 1)
-    return plot_->CQChartsPlot::isSetHidden(is_.i);
+    return barChartPlot_->CQChartsPlot::isSetHidden(is_.i);
   else if (ig_.n > 1)
-    return plot_->CQChartsPlot::isSetHidden(ig_.i);
+    return barChartPlot_->CQChartsPlot::isSetHidden(ig_.i);
   else if (iv_.n > 1)
-    return plot_->CQChartsPlot::isSetHidden(iv_.i);
+    return barChartPlot_->CQChartsPlot::isSetHidden(iv_.i);
   else
     return false;
 }
@@ -3124,19 +3128,19 @@ CQChartsBarColorKeyItem::
 setSetHidden(bool b)
 {
   if      (is_.n > 1)
-    plot_->CQChartsPlot::setSetHidden(is_.i, b);
+    barChartPlot_->CQChartsPlot::setSetHidden(is_.i, b);
   else if (ig_.n > 1)
-    plot_->CQChartsPlot::setSetHidden(ig_.i, b);
+    barChartPlot_->CQChartsPlot::setSetHidden(ig_.i, b);
   else if (iv_.n > 1)
-    plot_->CQChartsPlot::setSetHidden(iv_.i, b);
+    barChartPlot_->CQChartsPlot::setSetHidden(iv_.i, b);
 }
 #endif
 
 //------
 
 CQChartsBarTextKeyItem::
-CQChartsBarTextKeyItem(Plot *plot, const QString &text, const ColorInd &ic) :
- CQChartsTextKeyItem(plot, text, ic)
+CQChartsBarTextKeyItem(BarChartPlot *barChartPlot, const QString &text, const ColorInd &ic) :
+ CQChartsTextKeyItem(barChartPlot, text, ic)
 {
 }
 
@@ -3156,7 +3160,7 @@ bool
 CQChartsBarTextKeyItem::
 isSetHidden() const
 {
-  return plot_->CQChartsPlot::isSetHidden(ic_.i);
+  return barChartPlot_->CQChartsPlot::isSetHidden(ic_.i);
 }
 #endif
 
@@ -3279,7 +3283,7 @@ void
 CQChartsBarChartPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<CQChartsBarChartPlot *>(plot);
+  barChartPlot_ = dynamic_cast<CQChartsBarChartPlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
 }
@@ -3293,23 +3297,27 @@ updateWidgets()
   //---
 
   if (labelColumnCombo_)
-    labelColumnCombo_->setModelColumn(plot_->getModelData(), plot_->labelColumn());
+    labelColumnCombo_->setModelColumn(barChartPlot_->getModelData(), barChartPlot_->labelColumn());
 
-  if (labelCheck_) labelCheck_->setChecked(plot_->isLabelsVisible());
-
-  //---
-
-  if (orientationCombo_) orientationCombo_->setCurrentValue(static_cast<int>(plot_->orientation()));
-  if (plotTypeCombo_   ) plotTypeCombo_   ->setCurrentValue(static_cast<int>(plot_->plotType()));
-  if (valueTypeCombo_  ) valueTypeCombo_  ->setCurrentValue(static_cast<int>(plot_->valueType()));
-  if (shapeTypeCombo_  ) shapeTypeCombo_  ->setCurrentValue(static_cast<int>(plot_->shapeType()));
+  if (labelCheck_) labelCheck_->setChecked(barChartPlot_->isLabelsVisible());
 
   //---
 
-  if (percentCheck_      ) percentCheck_      ->setChecked(plot_->isPercent());
-  if (skipEmptyCheck_    ) skipEmptyCheck_    ->setChecked(plot_->isSkipEmpty());
-  if (groupByColumnCheck_) groupByColumnCheck_->setChecked(plot_->isGroupByColumn());
-  if (colorBySetCheck_   ) colorBySetCheck_   ->setChecked(plot_->isColorBySet());
+  if (orientationCombo_)
+    orientationCombo_->setCurrentValue(static_cast<int>(barChartPlot_->orientation()));
+  if (plotTypeCombo_   )
+    plotTypeCombo_   ->setCurrentValue(static_cast<int>(barChartPlot_->plotType()));
+  if (valueTypeCombo_  )
+    valueTypeCombo_  ->setCurrentValue(static_cast<int>(barChartPlot_->valueType()));
+  if (shapeTypeCombo_  )
+    shapeTypeCombo_  ->setCurrentValue(static_cast<int>(barChartPlot_->shapeType()));
+
+  //---
+
+  if (percentCheck_      ) percentCheck_      ->setChecked(barChartPlot_->isPercent());
+  if (skipEmptyCheck_    ) skipEmptyCheck_    ->setChecked(barChartPlot_->isSkipEmpty());
+  if (groupByColumnCheck_) groupByColumnCheck_->setChecked(barChartPlot_->isGroupByColumn());
+  if (colorBySetCheck_   ) colorBySetCheck_   ->setChecked(barChartPlot_->isColorBySet());
 
   //---
 
@@ -3357,35 +3365,36 @@ void
 CQChartsBarChartPlotCustomControls::
 labelColumnSlot()
 {
-  plot_->setLabelColumn(labelColumnCombo_->getColumn());
+  barChartPlot_->setLabelColumn(labelColumnCombo_->getColumn());
 }
 
 void
 CQChartsBarChartPlotCustomControls::
 labelVisibleSlot(int b)
 {
-  plot_->setLabelsVisible(b);
+  barChartPlot_->setLabelsVisible(b);
 }
 
 void
 CQChartsBarChartPlotCustomControls::
 orientationSlot()
 {
-  plot_->setOrientation(static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
+  barChartPlot_->setOrientation(static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
 }
 
 void
 CQChartsBarChartPlotCustomControls::
 plotTypeSlot()
 {
-  plot_->setPlotType(static_cast<CQChartsBarChartPlot::PlotType>(plotTypeCombo_->currentValue()));
+  barChartPlot_->setPlotType(
+    static_cast<CQChartsBarChartPlot::PlotType>(plotTypeCombo_->currentValue()));
 }
 
 void
 CQChartsBarChartPlotCustomControls::
 valueTypeSlot()
 {
-  plot_->setValueType(
+  barChartPlot_->setValueType(
     static_cast<CQChartsBarChartPlot::ValueType>(valueTypeCombo_->currentValue()));
 }
 
@@ -3393,7 +3402,7 @@ void
 CQChartsBarChartPlotCustomControls::
 shapeTypeSlot()
 {
-  plot_->setShapeType(
+  barChartPlot_->setShapeType(
     static_cast<CQChartsBarChartPlot::ShapeType>(shapeTypeCombo_->currentValue()));
 }
 
@@ -3401,40 +3410,40 @@ void
 CQChartsBarChartPlotCustomControls::
 percentSlot()
 {
-  plot_->setPercent(percentCheck_->isChecked());
+  barChartPlot_->setPercent(percentCheck_->isChecked());
 }
 
 void
 CQChartsBarChartPlotCustomControls::
 skipEmptySlot()
 {
-  plot_->setSkipEmpty(skipEmptyCheck_->isChecked());
+  barChartPlot_->setSkipEmpty(skipEmptyCheck_->isChecked());
 }
 
 void
 CQChartsBarChartPlotCustomControls::
 groupByColumnSlot()
 {
-  plot_->setGroupByColumn(groupByColumnCheck_->isChecked());
+  barChartPlot_->setGroupByColumn(groupByColumnCheck_->isChecked());
 }
 
 void
 CQChartsBarChartPlotCustomControls::
 colorBySetSlot()
 {
-  plot_->setColorBySet(colorBySetCheck_->isChecked());
+  barChartPlot_->setColorBySet(colorBySetCheck_->isChecked());
 }
 
 CQChartsColor
 CQChartsBarChartPlotCustomControls::
 getColorValue()
 {
-  return plot_->barFillColor();
+  return barChartPlot_->barFillColor();
 }
 
 void
 CQChartsBarChartPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setBarFillColor(c);
+  barChartPlot_->setBarFillColor(c);
 }

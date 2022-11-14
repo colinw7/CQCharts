@@ -337,21 +337,21 @@ calcRange() const
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsDelaunayPlot *plot) :
-     plot_(plot) {
+    RowVisitor(const CQChartsDelaunayPlot *delaunayPlot) :
+     delaunayPlot_(delaunayPlot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      ModelIndex xInd(plot_, data.row, plot_->xColumn(), data.parent);
-      ModelIndex yInd(plot_, data.row, plot_->yColumn(), data.parent);
+      ModelIndex xInd(delaunayPlot_, data.row, delaunayPlot_->xColumn(), data.parent);
+      ModelIndex yInd(delaunayPlot_, data.row, delaunayPlot_->yColumn(), data.parent);
 
       bool ok1, ok2;
 
-      double x = plot_->modelNumericValue(xInd, ok1);
-      double y = plot_->modelNumericValue(yInd, ok2);
+      double x = delaunayPlot_->modelNumericValue(xInd, ok1);
+      double y = delaunayPlot_->modelNumericValue(yInd, ok2);
 
-      double xDefVal = plot_->getModelBadValue(plot_->xColumn(), data.row);
-      double yDefVal = plot_->getModelBadValue(plot_->yColumn(), data.row);
+      double xDefVal = delaunayPlot_->getModelBadValue(delaunayPlot_->xColumn(), data.row);
+      double yDefVal = delaunayPlot_->getModelBadValue(delaunayPlot_->yColumn(), data.row);
 
       if (! ok1) { addDataError(xInd, "Bad X Value"); x = xDefVal; }
       if (! ok2) { addDataError(yInd, "Bad Y Value"); y = yDefVal; }
@@ -370,11 +370,11 @@ calcRange() const
 
    private:
     void addDataError(const ModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsDelaunayPlot *>(plot_)->addDataError(ind, msg);
+      const_cast<CQChartsDelaunayPlot *>(delaunayPlot_)->addDataError(ind, msg);
     }
 
    private:
-    const CQChartsDelaunayPlot* plot_ { nullptr };
+    const CQChartsDelaunayPlot* delaunayPlot_ { nullptr };
     Range                       range_;
   };
 
@@ -442,24 +442,24 @@ createObjs(PlotObjs &objs) const
   // create points for original data points
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsDelaunayPlot *plot, PlotObjs &objs) :
-     plot_(plot), objs_(objs) {
+    RowVisitor(const CQChartsDelaunayPlot *delaunayPlot, PlotObjs &objs) :
+     delaunayPlot_(delaunayPlot), objs_(objs) {
       nr_ = numRows();
     }
 
     const RMinMax &valueRange() const { return valueRange_; }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      ModelIndex xInd(plot_, data.row, plot_->xColumn(), data.parent);
-      ModelIndex yInd(plot_, data.row, plot_->yColumn(), data.parent);
+      ModelIndex xInd(delaunayPlot_, data.row, delaunayPlot_->xColumn(), data.parent);
+      ModelIndex yInd(delaunayPlot_, data.row, delaunayPlot_->yColumn(), data.parent);
 
       bool ok1, ok2;
 
-      double x = plot_->modelNumericValue(xInd, ok1);
-      double y = plot_->modelNumericValue(yInd, ok2);
+      double x = delaunayPlot_->modelNumericValue(xInd, ok1);
+      double y = delaunayPlot_->modelNumericValue(yInd, ok2);
 
-      double xDefVal = plot_->getModelBadValue(plot_->xColumn(), data.row);
-      double yDefVal = plot_->getModelBadValue(plot_->yColumn(), data.row);
+      double xDefVal = delaunayPlot_->getModelBadValue(delaunayPlot_->xColumn(), data.row);
+      double yDefVal = delaunayPlot_->getModelBadValue(delaunayPlot_->yColumn(), data.row);
 
       if (! ok1) { addDataError(xInd, "Bad X Value"); x = xDefVal; }
       if (! ok2) { addDataError(yInd, "Bad Y Value"); y = yDefVal; }
@@ -471,12 +471,12 @@ createObjs(PlotObjs &objs) const
 
       double value = 0.0;
 
-      if (plot_->valueColumn().isValid()) {
-        ModelIndex valueInd(plot_, data.row, plot_->valueColumn(), data.parent);
+      if (delaunayPlot_->valueColumn().isValid()) {
+        ModelIndex valueInd(delaunayPlot_, data.row, delaunayPlot_->valueColumn(), data.parent);
 
         bool ok3;
 
-        value = plot_->modelReal(valueInd, ok3);
+        value = delaunayPlot_->modelReal(valueInd, ok3);
 
         if (ok3)
           valueRange_.add(value);
@@ -488,22 +488,22 @@ createObjs(PlotObjs &objs) const
 
       //---
 
-      auto xInd1 = plot_->modelIndex(xInd);
+      auto xInd1 = delaunayPlot_->modelIndex(xInd);
 
-      plot_->addPointObj(Point(x, y), value, xInd1, ModelVisitor::row(), nr_, objs_);
+      delaunayPlot_->addPointObj(Point(x, y), value, xInd1, ModelVisitor::row(), nr_, objs_);
 
       return State::OK;
     }
 
    private:
     void addDataError(const ModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsDelaunayPlot *>(plot_)->addDataError(ind, msg);
+      const_cast<CQChartsDelaunayPlot *>(delaunayPlot_)->addDataError(ind, msg);
     }
 
    private:
-    const CQChartsDelaunayPlot* plot_      { nullptr };
+    const CQChartsDelaunayPlot* delaunayPlot_ { nullptr };
     PlotObjs&                   objs_;
-    int                         nr_        { 0 };
+    int                         nr_           { 0 };
     RMinMax                     valueRange_;
   };
 
@@ -787,10 +787,11 @@ createCustomControls()
 //------
 
 CQChartsDelaunayPointObj::
-CQChartsDelaunayPointObj(const Plot *plot, const BBox &rect, const Point &p,
+CQChartsDelaunayPointObj(const DelaunayPlot *delaunayPlot, const BBox &rect, const Point &p,
                          double value, const QModelIndex &ind, const ColorInd &iv) :
- CQChartsPlotPointObj(const_cast<Plot *>(plot), rect, p, ColorInd(), ColorInd(), iv),
- plot_(plot), value_(value)
+ CQChartsPlotPointObj(const_cast<DelaunayPlot *>(delaunayPlot), rect, p,
+                      ColorInd(), ColorInd(), iv),
+ delaunayPlot_(delaunayPlot), value_(value)
 {
   if (ind.isValid())
     setModelInd(ind);
@@ -802,7 +803,7 @@ CQChartsLength
 CQChartsDelaunayPointObj::
 calcSymbolSize() const
 {
-  return plot()->symbolSize();
+  return delaunayPlot()->symbolSize();
 }
 
 //---
@@ -813,14 +814,15 @@ calcId() const
 {
   QString name1;
 
-  if (plot_->nameColumn().isValid()) {
-    ModelIndex nameInd(plot_, modelInd().row(), plot_->nameColumn(), modelInd().parent());
+  if (delaunayPlot_->nameColumn().isValid()) {
+    ModelIndex nameInd(delaunayPlot_, modelInd().row(), delaunayPlot_->nameColumn(),
+                       modelInd().parent());
 
     bool ok;
-    name1 = plot_->modelString(nameInd, ok);
+    name1 = delaunayPlot_->modelString(nameInd, ok);
   }
   else
-    name1 = plot_->yname();
+    name1 = delaunayPlot_->yname();
 
   if (name1.length())
     return QString("%1:%2:%3:%4").arg(typeName()).arg(name1).arg(x()).arg(y());
@@ -834,11 +836,12 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  if (plot_->nameColumn().isValid()) {
-    ModelIndex nameInd(plot_, modelInd().row(), plot_->nameColumn(), modelInd().parent());
+  if (delaunayPlot_->nameColumn().isValid()) {
+    ModelIndex nameInd(delaunayPlot_, modelInd().row(), delaunayPlot_->nameColumn(),
+                       modelInd().parent());
 
     bool ok;
-    auto name = plot_->modelString(nameInd, ok);
+    auto name = delaunayPlot_->modelString(nameInd, ok);
 
     if (ok && name.length())
       tableTip.addTableRow("Name", name);
@@ -853,7 +856,7 @@ calcTipId() const
   tableTip.addTableRow("X", xstr);
   tableTip.addTableRow("Y", ystr);
 
-  if (plot_->valueColumn().isValid())
+  if (delaunayPlot_->valueColumn().isValid())
     tableTip.addTableRow("Value", value());
 
   //---
@@ -871,7 +874,7 @@ bool
 CQChartsDelaunayPointObj::
 isVisible() const
 {
-  if (! plot_->isPoints())
+  if (! delaunayPlot_->isPoints())
     return false;
 
   return CQChartsPlotPointObj::isVisible();
@@ -883,8 +886,8 @@ void
 CQChartsDelaunayPointObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->xColumn());
-  addColumnSelectIndex(inds, plot_->yColumn());
+  addColumnSelectIndex(inds, delaunayPlot_->xColumn());
+  addColumnSelectIndex(inds, delaunayPlot_->yColumn());
 }
 
 //---
@@ -893,7 +896,7 @@ void
 CQChartsDelaunayPointObj::
 draw(PaintDevice *device) const
 {
-  auto symbol = plot()->symbol();
+  auto symbol = delaunayPlot()->symbol();
 
   if (! symbol.isValid())
     return;
@@ -926,10 +929,10 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto colorInd = calcColorInd();
 
-  plot_->setSymbolPenBrush(penBrush, colorInd);
+  delaunayPlot_->setSymbolPenBrush(penBrush, colorInd);
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+    delaunayPlot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 }
 
 //------
@@ -1006,15 +1009,15 @@ void
 CQChartsDelaunayPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && delaunayPlot_)
+    disconnect(delaunayPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsDelaunayPlot *>(plot);
+  delaunayPlot_ = dynamic_cast<CQChartsDelaunayPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (delaunayPlot_)
+    connect(delaunayPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
@@ -1025,8 +1028,8 @@ updateWidgets()
 
   //---
 
-  delaunayCheck_->setChecked(plot_->isDelaunay());
-  voronoiCheck_ ->setChecked(plot_->isVoronoi ());
+  delaunayCheck_->setChecked(delaunayPlot_->isDelaunay());
+  voronoiCheck_ ->setChecked(delaunayPlot_->isVoronoi ());
 
   CQChartsPlotCustomControls::updateWidgets();
 
@@ -1039,12 +1042,12 @@ void
 CQChartsDelaunayPlotCustomControls::
 delaunaySlot()
 {
-  plot_->setDelaunay(delaunayCheck_->isChecked());
+  delaunayPlot_->setDelaunay(delaunayCheck_->isChecked());
 }
 
 void
 CQChartsDelaunayPlotCustomControls::
 voronoiSlot()
 {
-  plot_->setVoronoi(voronoiCheck_->isChecked());
+  delaunayPlot_->setVoronoi(voronoiCheck_->isChecked());
 }

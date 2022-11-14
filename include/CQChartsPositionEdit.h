@@ -2,7 +2,9 @@
 #define CQChartsPositionEdit_H
 
 #include <CQChartsPosition.h>
+
 #include <QFrame>
+#include <QPointer>
 
 class CQChartsView;
 class CQChartsPlot;
@@ -30,10 +32,10 @@ class CQChartsPositionEdit : public QFrame {
   const Position &position() const { return position_; }
   void setPosition(const Position &pos);
 
-  const View *view() const { return view_; }
+  View *view() const;
   void setView(View *view);
 
-  const Plot *plot() const { return plot_; }
+  Plot *plot() const;
   void setPlot(Plot *plot);
 
   void setRegion(const Point &p);
@@ -56,9 +58,12 @@ class CQChartsPositionEdit : public QFrame {
   void connectSlots(bool b);
 
  private:
+  using ViewP = QPointer<View>;
+  using PlotP = QPointer<Plot>;
+
   Position               position_;              //!< position data
-  View*                  view_      { nullptr }; //!< associated view
-  Plot*                  plot_      { nullptr }; //!< associated plot
+  ViewP                  view_;                  //!< associated view
+  PlotP                  plot_;                  //!< associated plot
   CQChartsGeomPointEdit* edit_      { nullptr }; //!< position edit
   CQChartsUnitsEdit*     unitsEdit_ { nullptr }; //!< units edit
   bool                   connected_ { false };   //!< is connected

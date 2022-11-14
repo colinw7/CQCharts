@@ -3,7 +3,9 @@
 
 #include <CQChartsGeom.h>
 #include <CQChartsTypes.h>
+
 #include <QObject>
+#include <QPointer>
 
 class CQChartsView;
 class CQChartsPlot;
@@ -46,8 +48,8 @@ class CQChartsEditHandles : public QObject {
 
   //---
 
-  const View *view() const { return view_; }
-  const Plot *plot() const { return plot_; }
+  View *view() const;
+  Plot *plot() const;
 
   //---
 
@@ -117,10 +119,12 @@ class CQChartsEditHandles : public QObject {
   void init();
 
  private:
+  using ViewP         = QPointer<View>;
+  using PlotP         = QPointer<Plot>;
   using CornerHandles = std::map<ResizeSide, Handle *>;
 
-  const View*   view_       { nullptr };          //!< parent view
-  const Plot*   plot_       { nullptr };          //!< parent plot
+  ViewP         view_;                            //!< parent view
+  PlotP         plot_;                            //!< parent plot
   Mode          mode_       { Mode::RESIZE };     //!< handle mode
   BBox          bbox_       { 0, 0, 1, 1 };       //!< handle bbox
   Handle*       moveHandle_ { nullptr };          //!< move handle

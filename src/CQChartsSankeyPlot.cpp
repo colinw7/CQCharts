@@ -3210,8 +3210,8 @@ createCustomControls()
 //------
 
 CQChartsSankeyPlotNode::
-CQChartsSankeyPlotNode(const Plot *plot, const QString &str) :
- plot_(plot), str_(str)
+CQChartsSankeyPlotNode(const SankeyPlot *sankeyPlot, const QString &str) :
+ sankeyPlot_(sankeyPlot), str_(str)
 {
 }
 
@@ -3254,7 +3254,7 @@ void
 CQChartsSankeyPlotNode::
 sortPathIdEdges(bool force)
 {
-  if (! force && ! plot()->isSortPathIdEdges())
+  if (! force && ! sankeyPlot()->isSortPathIdEdges())
     return;
 
   //---
@@ -3549,7 +3549,7 @@ placeEdges(bool reset)
   //---
 
 #ifdef CQCHARTS_GRAPH_PATH_ID
-  if (plot()->hasAnyPathId())
+  if (sankeyPlot()->hasAnyPathId())
     sortPathIdEdges();
 #endif
 
@@ -3568,12 +3568,12 @@ placeEdges(bool reset)
 
   double nodeSize;
 
-  if (plot_->isHorizontal())
+  if (sankeyPlot_->isHorizontal())
     nodeSize = y2 - y1;
   else
     nodeSize = x2 - x1;
 
-  if (! plot_->useMaxTotals()) {
+  if (! sankeyPlot_->useMaxTotals()) {
     if (this->srcEdges().size() == 1) {
       auto *edge = *this->srcEdges().begin();
 
@@ -3582,7 +3582,7 @@ placeEdges(bool reset)
     else {
       double boxSize = (srcTotal > 0.0 ? nodeSize/srcTotal : 0.0);
 
-      double perpPos3 = (plot_->isHorizontal() ? y2 : x2); // top/right
+      double perpPos3 = (sankeyPlot_->isHorizontal() ? y2 : x2); // top/right
 
       for (const auto &edge : this->srcEdges()) {
         if (! edge->hasValue()) {
@@ -3594,7 +3594,7 @@ placeEdges(bool reset)
         double perpPos4  = perpPos3 - perpSize1;
 
         if (! hasSrcEdgeRect(edge))
-          setSrcEdgeRect(edge, plot_->isHorizontal() ?
+          setSrcEdgeRect(edge, sankeyPlot_->isHorizontal() ?
             BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
 
         perpPos3 = perpPos4;
@@ -3611,7 +3611,7 @@ placeEdges(bool reset)
     else {
       double boxSize = (destTotal > 0.0 ? nodeSize/destTotal : 0.0);
 
-      double perpPos3 = (plot_->isHorizontal() ? y2 : x2); // top/right
+      double perpPos3 = (sankeyPlot_->isHorizontal() ? y2 : x2); // top/right
 
       for (const auto &edge : this->destEdges()) {
         if (! edge->hasValue()) {
@@ -3623,7 +3623,7 @@ placeEdges(bool reset)
         double perpPos4  = perpPos3 - perpSize1;
 
         if (! hasDestEdgeRect(edge))
-          setDestEdgeRect(edge, plot_->isHorizontal() ?
+          setDestEdgeRect(edge, sankeyPlot_->isHorizontal() ?
             BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
 
         perpPos3 = perpPos4;
@@ -3638,7 +3638,7 @@ placeEdges(bool reset)
     double dperp1 = (nodeSize - boxSize*srcTotal )/2.0;
     double dperp2 = (nodeSize - boxSize*destTotal)/2.0;
 
-    double perpPos3 = (plot_->isHorizontal() ?
+    double perpPos3 = (sankeyPlot_->isHorizontal() ?
       y2 - dperp1 : x2 - dperp1); // top/right
 
     for (const auto &edge : this->srcEdges()) {
@@ -3651,7 +3651,7 @@ placeEdges(bool reset)
       double perpPos4  = perpPos3 - perpSize1;
 
       if (! hasSrcEdgeRect(edge))
-        setSrcEdgeRect(edge, plot_->isHorizontal() ?
+        setSrcEdgeRect(edge, sankeyPlot_->isHorizontal() ?
           BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
 
       perpPos3 = perpPos4;
@@ -3659,7 +3659,7 @@ placeEdges(bool reset)
 
     //---
 
-    perpPos3 = (plot_->isHorizontal() ?  y2 - dperp2 : x2 - dperp2); // top/right
+    perpPos3 = (sankeyPlot_->isHorizontal() ?  y2 - dperp2 : x2 - dperp2); // top/right
 
     for (const auto &edge : this->destEdges()) {
       if (! edge->hasValue()) {
@@ -3671,7 +3671,7 @@ placeEdges(bool reset)
       double perpPos4  = perpPos3 - perpSize1;
 
       if (! hasDestEdgeRect(edge))
-        setDestEdgeRect(edge, plot_->isHorizontal() ?
+        setDestEdgeRect(edge, sankeyPlot_->isHorizontal() ?
           BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
 
       perpPos3 = perpPos4;
@@ -3708,7 +3708,7 @@ void
 CQChartsSankeyPlotNode::
 adjustPathIdSrcDestRects()
 {
-  if (! plot_->useMaxTotals())
+  if (! sankeyPlot_->useMaxTotals())
     return;
 
   // align each source path id rect with destination path id rects
@@ -3724,8 +3724,8 @@ adjustPathIdSrcDestRects()
     if (! srcRect.isSet() || ! destRect.isSet())
       continue;
 
-    double perpPos1 = (plot_->isHorizontal() ?  srcRect .getYMid() : srcRect .getXMid());
-    double perpPos2 = (plot_->isHorizontal() ?  destRect.getYMid() : destRect.getXMid());
+    double perpPos1 = (sankeyPlot_->isHorizontal() ?  srcRect .getYMid() : srcRect .getXMid());
+    double perpPos2 = (sankeyPlot_->isHorizontal() ?  destRect.getYMid() : destRect.getXMid());
 
     double dperp = perpPos1 - perpPos2;
 
@@ -3733,7 +3733,7 @@ adjustPathIdSrcDestRects()
       continue;
 
     if (srcEdgeSum() > destEdgeSum()) {
-      if (plot_->isHorizontal())
+      if (sankeyPlot_->isHorizontal())
         destRect.moveBy(Point(0.0, dperp));
       else
         destRect.moveBy(Point(dperp, 0.0));
@@ -3744,7 +3744,7 @@ adjustPathIdSrcDestRects()
       }
     }
     else {
-      if (plot_->isHorizontal())
+      if (sankeyPlot_->isHorizontal())
         srcRect.moveBy(Point(0.0, -dperp));
       else
         srcRect.moveBy(Point(-dperp, 0.0));
@@ -3811,19 +3811,20 @@ calcColor() const
   if (ngroup() > 0 && group() >= 0 && group() < ngroup())
     ic = CQChartsUtil::ColorInd(group(), ngroup());
   else
-    ic = CQChartsUtil::ColorInd(id(), plot_->numNodes());
+    ic = CQChartsUtil::ColorInd(id(), sankeyPlot_->numNodes());
 
   if (fillColor().isValid())
-    return plot_->interpColor(fillColor(), ic);
+    return sankeyPlot_->interpColor(fillColor(), ic);
   else
-    return plot_->interpNodeFillColor(ic);
+    return sankeyPlot_->interpNodeFillColor(ic);
 }
 
 //------
 
 CQChartsSankeyPlotEdge::
-CQChartsSankeyPlotEdge(const Plot *plot, const OptReal &value, Node *srcNode, Node *destNode) :
- plot_(plot), value_(value), srcNode_(srcNode), destNode_(destNode)
+CQChartsSankeyPlotEdge(const SankeyPlot *sankeyPlot, const OptReal &value,
+                       Node *srcNode, Node *destNode) :
+ sankeyPlot_(sankeyPlot), value_(value), srcNode_(srcNode), destNode_(destNode)
 {
 }
 
@@ -3907,7 +3908,7 @@ edgePath(QPainterPath &path, bool isLine) const
 
   //---
 
-  auto angle = Angle::fromOrientation(plot_->orientation());
+  auto angle = Angle::fromOrientation(sankeyPlot_->orientation());
 
   if (! isLine)
     CQChartsDrawUtil::edgePath(path, srcRect, destRect, CQChartsDrawUtil::EdgeType::ARC, angle);
@@ -3920,10 +3921,10 @@ edgePath(QPainterPath &path, bool isLine) const
 //------
 
 CQChartsSankeyNodeObj::
-CQChartsSankeyNodeObj(const Plot *plot, const BBox &rect, Node *node,
+CQChartsSankeyNodeObj(const SankeyPlot *sankeyPlot, const BBox &rect, Node *node,
                       const ColorInd &ig, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, ColorInd(), ig, iv),
- plot_(plot), node_(node)
+ CQChartsPlotObj(const_cast<SankeyPlot *>(sankeyPlot), rect, ColorInd(), ig, iv),
+ sankeyPlot_(sankeyPlot), node_(node)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -4024,7 +4025,7 @@ calcTipId() const
 
   auto namedColumn = [&](const QString &name, const QString &defName="") {
     if (edge && edge->hasNamedColumn(name))
-      return plot_->columnHeaderName(edge->namedColumn(name));
+      return sankeyPlot_->columnHeaderName(edge->namedColumn(name));
 
     auto headerName = (defName.length() ? defName : name);
 
@@ -4058,12 +4059,12 @@ calcTipId() const
 
   tableTip.addTableRow("Edges", QString("In:%1, Out:%2").arg(ns).arg(nd));
 
-  if (plot_->groupColumn().isValid())
+  if (sankeyPlot_->groupColumn().isValid())
     tableTip.addTableRow("Group", node()->group());
 
   //---
 
-  plot()->addTipColumns(tableTip, modelInd());
+  sankeyPlot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -4140,14 +4141,14 @@ editMove(const Point &p)
 
   editHandles()->setDragPos(p);
 
-  auto *graph = plot_->graph();
+  auto *graph = sankeyPlot_->graph();
 
   if (graph)
     graph->updateRect();
 
   editChanged_ = true;
 
-  const_cast<CQChartsSankeyPlot *>(plot())->drawObjs();
+  const_cast<CQChartsSankeyPlot *>(sankeyPlot())->drawObjs();
 
   return true;
 }
@@ -4164,7 +4165,7 @@ CQChartsSankeyNodeObj::
 editRelease(const Point &)
 {
   if (editChanged_)
-    const_cast<CQChartsSankeyPlot *>(plot())->invalidateObjTree();
+    const_cast<CQChartsSankeyPlot *>(sankeyPlot())->invalidateObjTree();
 
   return true;
 }
@@ -4177,8 +4178,8 @@ setEditBBox(const BBox &bbox, const CQChartsResizeSide &)
 
   double dx = 0.0, dy = 0.0;
 
-  if (plot()->isConstrainMove()) {
-    if (plot_->isHorizontal())
+  if (sankeyPlot()->isConstrainMove()) {
+    if (sankeyPlot_->isHorizontal())
       dy = bbox.getYMin() - rect_.getYMin();
     else
       dx = bbox.getXMin() - rect_.getXMin();
@@ -4197,7 +4198,7 @@ void
 CQChartsSankeyNodeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : plot_->modelColumns())
+  for (const auto &c : sankeyPlot_->modelColumns())
     addColumnSelectIndex(inds, c);
 }
 
@@ -4248,13 +4249,13 @@ draw(PaintDevice *device) const
   //---
 
   // show source and destination nodes on inside
-  if (plot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
-    if (plot_->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
-      plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
+  if (sankeyPlot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+    if (sankeyPlot_->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
+      sankeyPlot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
-      drawConnectionMouseOver(device, static_cast<int>(plot_->mouseColoring()));
+      drawConnectionMouseOver(device, static_cast<int>(sankeyPlot_->mouseColoring()));
 
-      plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
+      sankeyPlot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
     }
   }
 }
@@ -4286,7 +4287,7 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
 
     nodeObj->setInside(true);
 
-    if (plot_->isMouseNodeColoring())
+    if (sankeyPlot_->isMouseNodeColoring())
       nodeObj->draw(device);
 
 #ifdef CQCHARTS_GRAPH_PATH_ID
@@ -4313,7 +4314,7 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
       if (edge) {
         auto rect = (isSrc ? node->destEdgeRect(edge) : node->srcEdgeRect(edge));
 
-        if (! plot()->isTextVisible() && rect.isSet())
+        if (! sankeyPlot()->isTextVisible() && rect.isSet())
           nodeObj->drawFgRect(device, rect);
       }
       else {
@@ -4405,13 +4406,13 @@ void
 CQChartsSankeyNodeObj::
 drawFgRect(PaintDevice *device, const BBox &rect) const
 {
-  if (! plot_->isTextVisible()) {
+  if (! sankeyPlot_->isTextVisible()) {
     bool visible = false;
 
-    if (plot_->isInsideTextVisible() && isInside())
+    if (sankeyPlot_->isInsideTextVisible() && isInside())
       visible = true;
 
-    if (plot_->isSelectedTextVisible() && isSelected())
+    if (sankeyPlot_->isSelectedTextVisible() && isSelected())
       visible = true;
 
     if (! visible)
@@ -4421,7 +4422,7 @@ drawFgRect(PaintDevice *device, const BBox &rect) const
   //---
 
   // set font
-  plot_->setPainterFont(device, plot_->textFont());
+  sankeyPlot_->setPainterFont(device, sankeyPlot_->textFont());
 
   //---
 
@@ -4430,7 +4431,7 @@ drawFgRect(PaintDevice *device, const BBox &rect) const
   else
     drawFgText(device, rect);
 
-  if (plot_->isValueLabel())
+  if (sankeyPlot_->isValueLabel())
     drawValueLabel(device, rect);
 }
 
@@ -4442,24 +4443,24 @@ drawFgImage(PaintDevice *device, const BBox &rect) const
 
   QFontMetricsF fm(device->font());
 
-  auto iw = plot_->pixelToWindowWidth (fm.height())*1.1;
-  auto ih = plot_->pixelToWindowHeight(fm.height())*1.1;
+  auto iw = sankeyPlot_->pixelToWindowWidth (fm.height())*1.1;
+  auto ih = sankeyPlot_->pixelToWindowHeight(fm.height())*1.1;
 
   BBox irect;
 
-  if (plot_->isHorizontal()) {
-    double textMargin = plot_->pixelToWindowWidth(pTextMargin);
+  if (sankeyPlot_->isHorizontal()) {
+    double textMargin = sankeyPlot_->pixelToWindowWidth(pTextMargin);
 
     double yc;
 
-    if (plot_->isValueLabel())
+    if (sankeyPlot_->isValueLabel())
       yc = rect.getYMin() + ih/2;
     else
       yc = rect.getYMid();
 
-    double xm = plot_->getCalcDataRange().xmid();
+    double xm = sankeyPlot_->getCalcDataRange().xmid();
 
-    if (plot_->isTextInternal()) {
+    if (sankeyPlot_->isTextInternal()) {
       if (rect.getXMid() < xm - iw/2.0)
         irect = BBox(rect.getXMax() + textMargin     , yc - ih/2,
                      rect.getXMax() + textMargin + iw, yc + ih/2); // left
@@ -4477,18 +4478,18 @@ drawFgImage(PaintDevice *device, const BBox &rect) const
     }
   }
   else {
-    double textMargin = plot_->pixelToWindowHeight(pTextMargin);
+    double textMargin = sankeyPlot_->pixelToWindowHeight(pTextMargin);
 
     double xc;
 
-    if (plot_->isValueLabel())
+    if (sankeyPlot_->isValueLabel())
       xc = rect.getXMin() + iw/2;
     else
       xc = rect.getXMid();
 
-    double ym = plot_->getCalcDataRange().ymid();
+    double ym = sankeyPlot_->getCalcDataRange().ymid();
 
-    if (plot_->isTextInternal()) {
+    if (sankeyPlot_->isTextInternal()) {
       if (rect.getYMid() < ym - ih/2.0)
         irect = BBox(xc - iw/2, rect.getYMax() + textMargin,
                      xc + iw/2, rect.getYMax() + textMargin + ih); // bottom
@@ -4515,7 +4516,7 @@ drawFgText(PaintDevice *device, const BBox &rect) const
 {
   double pTextMargin = 4; // pixels
 
-  auto prect = plot()->windowToPixel(rect);
+  auto prect = sankeyPlot()->windowToPixel(rect);
 
   QFontMetricsF fm(device->font());
 
@@ -4526,9 +4527,9 @@ drawFgText(PaintDevice *device, const BBox &rect) const
 
   PenBrush penBrush;
 
-  auto c = plot_->interpTextColor(ic);
+  auto c = sankeyPlot_->interpTextColor(ic);
 
-  plot_->setPen(penBrush, PenData(true, c, plot_->textAlpha()));
+  sankeyPlot_->setPen(penBrush, PenData(true, c, sankeyPlot_->textAlpha()));
 
   device->setPen(penBrush.pen);
 
@@ -4543,24 +4544,24 @@ drawFgText(PaintDevice *device, const BBox &rect) const
 
   double ptw = fm.horizontalAdvance(str);
 
-  auto clipLength = plot_->lengthPixelWidth(plot()->textClipLength());
+  auto clipLength = sankeyPlot_->lengthPixelWidth(sankeyPlot()->textClipLength());
 
   if (clipLength > 0.0)
     ptw = std::min(ptw, clipLength);
 
-  double tw = plot_->pixelToWindowWidth(ptw);
+  double tw = sankeyPlot_->pixelToWindowWidth(ptw);
 
   //---
 
   Point pt;
 
-  if (plot_->isHorizontal()) {
+  if (sankeyPlot_->isHorizontal()) {
     // align left/right depending on left/right of mid x
-    double xm = plot_->getCalcDataRange().xmid();
+    double xm = sankeyPlot_->getCalcDataRange().xmid();
 
     double tx;
 
-    if (plot_->isTextInternal()) {
+    if (sankeyPlot_->isTextInternal()) {
       if (rect.getXMid() < xm - tw)
         tx = prect.getXMax() + pTextMargin; // left
       else
@@ -4576,15 +4577,15 @@ drawFgText(PaintDevice *device, const BBox &rect) const
     // centered at mid bbox
     double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
 
-    pt = plot()->pixelToWindow(Point(tx, ty));
+    pt = sankeyPlot()->pixelToWindow(Point(tx, ty));
   }
   else {
     // align bottom/top depending on top/bottom of mid y
-    double ym = plot_->getCalcDataRange().ymid();
+    double ym = sankeyPlot_->getCalcDataRange().ymid();
 
     double ty;
 
-    if (plot_->isTextInternal()) {
+    if (sankeyPlot_->isTextInternal()) {
       if (rect.getYMid() < ym - tw)
         ty = prect.getYMin() - pTextMargin - fm.descent(); // bottom
       else
@@ -4600,18 +4601,18 @@ drawFgText(PaintDevice *device, const BBox &rect) const
     // centered at mid bbox
     double tx = prect.getXMid() - ptw/2.0;
 
-    pt = plot()->pixelToWindow(Point(tx, ty));
+    pt = sankeyPlot()->pixelToWindow(Point(tx, ty));
   }
 
   // only support contrast
-  auto textOptions = plot()->textOptions();
+  auto textOptions = sankeyPlot()->textOptions();
 
   textOptions.angle      = Angle();
   textOptions.align      = Qt::AlignLeft;
   textOptions.clipLength = clipLength;
 
-  if (plot_->isAdjustText())
-    plot_->addDrawText(device, str, pt, textOptions, rect.getCenter());
+  if (sankeyPlot_->isAdjustText())
+    sankeyPlot_->addDrawText(device, str, pt, textOptions, rect.getCenter());
   else {
     CQChartsDrawUtil::drawTextAtPoint(device, pt, str, textOptions);
   }
@@ -4623,7 +4624,7 @@ drawValueLabel(PaintDevice *device, const BBox &rect) const
 {
   double pTextMargin = 4; // pixels
 
-  auto prect = plot()->windowToPixel(rect);
+  auto prect = sankeyPlot()->windowToPixel(rect);
 
   double value = node()->edgeSum();
   if (value <= 1) return; // TODO: check value column type
@@ -4634,14 +4635,14 @@ drawValueLabel(PaintDevice *device, const BBox &rect) const
 
   double ptw = fm.horizontalAdvance(str);
 
-  double tw = plot_->pixelToWindowWidth(ptw);
+  double tw = sankeyPlot_->pixelToWindowWidth(ptw);
 
   Point pt;
 
-  if (plot_->isHorizontal()) {
-    double xm = plot_->getCalcDataRange().xmid();
+  if (sankeyPlot_->isHorizontal()) {
+    double xm = sankeyPlot_->getCalcDataRange().xmid();
 
-    if (plot_->isTextInternal()) {
+    if (sankeyPlot_->isTextInternal()) {
       if (rect.getXMid() < xm - tw)
         pt = Point(prect.getXMax() + pTextMargin, prect.getYMax() - fm.ascent()); // left
       else
@@ -4655,9 +4656,9 @@ drawValueLabel(PaintDevice *device, const BBox &rect) const
     }
   }
   else {
-    double ym = plot_->getCalcDataRange().ymid();
+    double ym = sankeyPlot_->getCalcDataRange().ymid();
 
-    if (plot_->isTextInternal()) {
+    if (sankeyPlot_->isTextInternal()) {
       if (rect.getYMid() < ym - tw)
         pt = Point(prect.getXMax() - ptw, prect.getYMin() - pTextMargin - fm.descent()); // bottom
       else
@@ -4673,7 +4674,7 @@ drawValueLabel(PaintDevice *device, const BBox &rect) const
 
   CQChartsTextOptions options;
 
-  CQChartsDrawUtil::drawTextAtPoint(device, plot()->pixelToWindow(pt), str, options);
+  CQChartsDrawUtil::drawTextAtPoint(device, sankeyPlot()->pixelToWindow(pt), str, options);
 }
 
 void
@@ -4686,30 +4687,30 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   QColor bc;
 
   if (node()->strokeColor().isValid())
-    bc = plot_->interpColor(node()->strokeColor(), ic);
+    bc = sankeyPlot_->interpColor(node()->strokeColor(), ic);
   else
-    bc = plot_->interpNodeStrokeColor(ic);
+    bc = sankeyPlot_->interpNodeStrokeColor(ic);
 
   auto fc = calcFillColor();
 
   auto fillAlpha   = (node()->fillAlpha  ().isValid() ?
-    node()->fillAlpha() : plot_->nodeFillAlpha());
+    node()->fillAlpha() : sankeyPlot_->nodeFillAlpha());
   auto fillPattern = (node()->fillPattern().isValid() ?
-    node()->fillPattern() : plot_->nodeFillPattern());
+    node()->fillPattern() : sankeyPlot_->nodeFillPattern());
 
   auto strokeAlpha = (node()->strokeAlpha().isValid() ?
-    node()->strokeAlpha() : plot_->nodeStrokeAlpha());
+    node()->strokeAlpha() : sankeyPlot_->nodeStrokeAlpha());
   auto strokeWidth = (node()->strokeWidth().isValid() ?
-    node()->strokeWidth() : plot_->nodeStrokeWidth());
+    node()->strokeWidth() : sankeyPlot_->nodeStrokeWidth());
   auto strokeDash  = (node()->strokeDash ().isValid() ?
-    node()->strokeDash () : plot_->nodeStrokeDash());
+    node()->strokeDash () : sankeyPlot_->nodeStrokeDash());
 
-  plot_->setPenBrush(penBrush,
-    plot_->nodePenData  (bc, strokeAlpha, strokeWidth, strokeDash),
-    plot_->nodeBrushData(fc, fillAlpha, fillPattern));
+  sankeyPlot_->setPenBrush(penBrush,
+    sankeyPlot_->nodePenData  (bc, strokeAlpha, strokeWidth, strokeDash),
+    sankeyPlot_->nodeBrushData(fc, fillAlpha, fillPattern));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    sankeyPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 QColor
@@ -4718,7 +4719,7 @@ calcFillColor() const
 {
   QColor fc;
 
-  if (plot_->isSrcColoring()) {
+  if (sankeyPlot_->isSrcColoring()) {
     using Colors = std::vector<QColor>;
 
     Colors colors;
@@ -4740,8 +4741,8 @@ calcFillColor() const
     auto colorInd = calcColorInd();
 
     if (fillColor().isValid())
-      fc = plot_->interpColor(fillColor(), colorInd);
-    else if (plot_->colorColumn().isValid()) {
+      fc = sankeyPlot_->interpColor(fillColor(), colorInd);
+    else if (sankeyPlot_->colorColumn().isValid()) {
       using Colors = std::vector<QColor>;
 
       Colors colors;
@@ -4750,12 +4751,12 @@ calcFillColor() const
         auto *edgeObj = edge->obj();
 
         auto ind  = edgeObj->modelInd();
-        auto ind1 = plot_->unnormalizeIndex(ind);
+        auto ind1 = sankeyPlot_->unnormalizeIndex(ind);
 
         Color color;
 
-        if (plot_->colorColumnColor(ind1.row(), ind1.parent(), color)) {
-          auto c = plot_->interpColor(color, colorInd);
+        if (sankeyPlot_->colorColumnColor(ind1.row(), ind1.parent(), color)) {
+          auto c = sankeyPlot_->interpColor(color, colorInd);
 
           colors.push_back(c);
         }
@@ -4765,12 +4766,12 @@ calcFillColor() const
         auto *edgeObj = edge->obj();
 
         auto ind  = edgeObj->modelInd();
-        auto ind1 = plot_->unnormalizeIndex(ind);
+        auto ind1 = sankeyPlot_->unnormalizeIndex(ind);
 
         Color color;
 
-        if (plot_->colorColumnColor(ind1.row(), ind1.parent(), color)) {
-          auto c = plot_->interpColor(color, colorInd);
+        if (sankeyPlot_->colorColumnColor(ind1.row(), ind1.parent(), color)) {
+          auto c = sankeyPlot_->interpColor(color, colorInd);
 
           colors.push_back(c);
         }
@@ -4779,10 +4780,10 @@ calcFillColor() const
       if (! colors.empty())
         fc = CQChartsUtil::blendColors(colors);
       else
-        fc = plot_->interpNodeFillColor(colorInd);
+        fc = sankeyPlot_->interpNodeFillColor(colorInd);
     }
     else
-      fc = plot_->interpNodeFillColor(colorInd);
+      fc = sankeyPlot_->interpNodeFillColor(colorInd);
   }
 
   return fc;
@@ -4791,8 +4792,8 @@ calcFillColor() const
 //------
 
 CQChartsSankeyEdgeObj::
-CQChartsSankeyEdgeObj(const Plot *plot, const BBox &rect, Edge *edge) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect), plot_(plot), edge_(edge)
+CQChartsSankeyEdgeObj(const SankeyPlot *sankeyPlot, const BBox &rect, Edge *edge) :
+ CQChartsPlotObj(const_cast<SankeyPlot *>(sankeyPlot), rect), sankeyPlot_(sankeyPlot), edge_(edge)
 {
   //setDetailHint(DetailHint::MAJOR);
 
@@ -4824,7 +4825,7 @@ calcTipId() const
 {
   auto namedColumn = [&](const QString &name, const QString &defName="") {
     if (edge()->hasNamedColumn(name))
-      return plot_->columnHeaderName(edge()->namedColumn(name));
+      return sankeyPlot_->columnHeaderName(edge()->namedColumn(name));
 
     auto headerName = (defName.length() ? defName : name);
 
@@ -4859,7 +4860,7 @@ calcTipId() const
 
   //---
 
-  plot()->addTipColumns(tableTip, modelInd());
+  sankeyPlot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -4894,7 +4895,7 @@ void
 CQChartsSankeyEdgeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : plot()->modelColumns())
+  for (const auto &c : sankeyPlot()->modelColumns())
     addColumnSelectIndex(inds, c);
 }
 
@@ -4949,13 +4950,13 @@ draw(PaintDevice *device) const
   //---
 
   // show source and destination nodes on inside
-  if (plot()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
-    if (plot()->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
-      plot()->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
+  if (sankeyPlot()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+    if (sankeyPlot()->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
+      sankeyPlot()->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
-      drawConnectionMouseOver(device, static_cast<int>(plot()->mouseColoring()));
+      drawConnectionMouseOver(device, static_cast<int>(sankeyPlot()->mouseColoring()));
 
-      plot()->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
+      sankeyPlot()->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
     }
   }
 }
@@ -4976,10 +4977,10 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
 
     nodeObj->setInside(true);
 
-    if (plot()->isMouseNodeColoring())
+    if (sankeyPlot()->isMouseNodeColoring())
       nodeObj->draw(device);
 
-    if (! plot()->isTextVisible())
+    if (! sankeyPlot()->isTextVisible())
       nodeObj->drawFgRect(device, rect);
 
     nodeObj->setInside(false);
@@ -5055,7 +5056,7 @@ void
 CQChartsSankeyEdgeObj::
 drawFg(PaintDevice *device) const
 {
-  if (! plot()->isTextVisible())
+  if (! sankeyPlot()->isTextVisible())
     return;
 
   auto str = edge()->label();
@@ -5079,12 +5080,12 @@ drawFg(PaintDevice *device) const
 
   auto rect = (isSelf ? srcRect : srcRect + destRect);
 
-  auto prect = plot()->windowToPixel(rect);
+  auto prect = sankeyPlot()->windowToPixel(rect);
 
   //---
 
   // set font
-  plot()->setPainterFont(device, plot()->textFont());
+  sankeyPlot()->setPainterFont(device, sankeyPlot()->textFont());
 
   QFontMetricsF fm(device->font());
 
@@ -5095,9 +5096,9 @@ drawFg(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  auto c = plot()->interpTextColor(ic);
+  auto c = sankeyPlot()->interpTextColor(ic);
 
-  plot()->setPen(penBrush, PenData(true, c, plot()->textAlpha()));
+  sankeyPlot()->setPen(penBrush, PenData(true, c, sankeyPlot()->textAlpha()));
 
   device->setPen(penBrush.pen);
 
@@ -5110,10 +5111,10 @@ drawFg(PaintDevice *device) const
   double tx = prect.getXMid() - pTextMargin - ptw/2.0;
   double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
 
-  auto pt = plot()->pixelToWindow(Point(tx, ty));
+  auto pt = sankeyPlot()->pixelToWindow(Point(tx, ty));
 
   // only support contrast
-  auto textOptions = plot()->textOptions();
+  auto textOptions = sankeyPlot()->textOptions();
 
   textOptions.angle = Angle();
   textOptions.align = Qt::AlignLeft;
@@ -5136,7 +5137,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 #ifdef CQCHARTS_GRAPH_PATH_ID
   if (edge()->pathId() >= 0) {
-    const auto &pathIdMinMax = plot()->pathIdMinMax();
+    const auto &pathIdMinMax = sankeyPlot()->pathIdMinMax();
 
     if (pathIdMinMax.isSet())
       colorInd = ColorInd(edge()->pathId() - pathIdMinMax.min(),
@@ -5150,29 +5151,29 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   QColor fillColor;
 
   if (! edge()->fillColor().isValid()) {
-    if (plot()->blendEdgeColor() == CQChartsSankeyPlot::BlendType::FILL_AVERAGE) {
+    if (sankeyPlot()->blendEdgeColor() == CQChartsSankeyPlot::BlendType::FILL_AVERAGE) {
       auto fillColor1 = srcNode ->obj()->calcFillColor();
       auto fillColor2 = destNode->obj()->calcFillColor();
 
       fillColor = CQChartsUtil::blendColors(fillColor1, fillColor2, 0.5);
     }
     else
-      fillColor = plot()->interpEdgeFillColor(colorInd);
+      fillColor = sankeyPlot()->interpEdgeFillColor(colorInd);
   }
   else {
-    fillColor = plot()->interpColor(edge()->fillColor(), colorInd);
+    fillColor = sankeyPlot()->interpColor(edge()->fillColor(), colorInd);
   }
 
   // calc fill pattern
-  auto fillPattern = plot()->edgeFillPattern();
+  auto fillPattern = sankeyPlot()->edgeFillPattern();
 
-  if (plot()->blendEdgeColor() == CQChartsSankeyPlot::BlendType::FILL_GRADIENT) {
+  if (sankeyPlot()->blendEdgeColor() == CQChartsSankeyPlot::BlendType::FILL_GRADIENT) {
     auto fillColor1 = srcNode ->obj()->calcFillColor();
     auto fillColor2 = destNode->obj()->calcFillColor();
 
     fillColor = fillColor1;
 
-    CQChartsDrawUtil::setColorAlpha(fillColor2, plot()->edgeFillAlpha());
+    CQChartsDrawUtil::setColorAlpha(fillColor2, sankeyPlot()->edgeFillAlpha());
 
     fillPattern.setType    (CQChartsFillPattern::Type::LGRADIENT);
     fillPattern.setAltColor(Color(fillColor2));
@@ -5183,35 +5184,35 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // calc stroke color
   QColor sc;
 
-  if (plot()->blendEdgeColor() == CQChartsSankeyPlot::BlendType::STROKE_AVERAGE) {
-    int numNodes = plot()->numNodes();
+  if (sankeyPlot()->blendEdgeColor() == CQChartsSankeyPlot::BlendType::STROKE_AVERAGE) {
+    int numNodes = sankeyPlot()->numNodes();
 
     ColorInd ic1(srcNode ->id(), numNodes);
     ColorInd ic2(destNode->id(), numNodes);
 
-    auto sc1 = plot()->interpEdgeStrokeColor(ic1);
-    auto sc2 = plot()->interpEdgeStrokeColor(ic2);
+    auto sc1 = sankeyPlot()->interpEdgeStrokeColor(ic1);
+    auto sc2 = sankeyPlot()->interpEdgeStrokeColor(ic2);
 
     sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
   }
   else {
-    sc = plot()->interpEdgeStrokeColor(colorInd);
+    sc = sankeyPlot()->interpEdgeStrokeColor(colorInd);
   }
 
   //---
 
-  plot()->setPenBrush(penBrush,
-    plot()->edgePenData(sc), plot()->edgeBrushData(fillColor, Alpha(), fillPattern));
+  sankeyPlot()->setPenBrush(penBrush,
+    sankeyPlot()->edgePenData(sc), sankeyPlot()->edgeBrushData(fillColor, Alpha(), fillPattern));
 
   if (updateState)
-    plot()->updateObjPenBrushState(this, penBrush);
+    sankeyPlot()->updateObjPenBrushState(this, penBrush);
 }
 
 //------
 
 CQChartsSankeyPlotGraph::
-CQChartsSankeyPlotGraph(const Plot *plot) :
- plot_(plot)
+CQChartsSankeyPlotGraph(const SankeyPlot *sankeyPlot) :
+ sankeyPlot_(sankeyPlot)
 {
 }
 
@@ -5275,7 +5276,7 @@ setRect(const BBox &rect)
 
   double fx = 1.0, fy = 1.0;
 
-  if (plot_->isHorizontal())
+  if (sankeyPlot_->isHorizontal())
     fy = (rect_.getHeight() > 0.0 ? rect.getHeight()/rect_.getHeight() : 1.0);
   else
     fx = (rect_.getWidth () > 0.0 ? rect.getWidth ()/rect_.getWidth () : 1.0);
@@ -5286,7 +5287,7 @@ setRect(const BBox &rect)
 
   double dx = 0.0, dy = 0.0;
 
-  if (plot_->isHorizontal())
+  if (sankeyPlot_->isHorizontal())
     dy = rect.getYMin() - rect_.getYMin();
   else
     dx = rect.getXMin() - rect_.getXMin();
@@ -5389,7 +5390,7 @@ void
 CQChartsSankeyPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<CQChartsSankeyPlot *>(plot);
+  sankeyPlot_ = dynamic_cast<CQChartsSankeyPlot *>(plot);
 
   CQChartsConnectionPlotCustomControls::setPlot(plot);
 }
@@ -5413,12 +5414,12 @@ CQChartsColor
 CQChartsSankeyPlotCustomControls::
 getColorValue()
 {
-  return plot_->nodeFillColor();
+  return sankeyPlot_->nodeFillColor();
 }
 
 void
 CQChartsSankeyPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setNodeFillColor(c);
+  sankeyPlot_->setNodeFillColor(c);
 }

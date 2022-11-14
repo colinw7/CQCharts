@@ -17,18 +17,22 @@ class CQChartsViewError : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsViewError(CQChartsView *view);
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
+  CQChartsViewError(View *view);
 
   void updatePlots();
 
   QSize sizeHint() const override;
 
  private:
-  using Texts = std::map<CQChartsPlot *, QTextBrowser *>;
+  using Texts = std::map<Plot *, QTextBrowser *>;
 
-  CQChartsView* view_ { nullptr };
-  CQTabSplit*   tab_  { nullptr };
-  Texts         texts_;
+  View*       view_ { nullptr };
+  CQTabSplit* tab_  { nullptr };
+  Texts       texts_;
 };
 
 #endif

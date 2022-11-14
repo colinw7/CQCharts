@@ -360,6 +360,13 @@ CQChartsWindow::
   delete toolbar_;
 }
 
+CQChartsView *
+CQChartsWindow::
+view() const
+{
+  return view_.data();
+}
+
 void
 CQChartsWindow::
 resizeEvent(QResizeEvent *)
@@ -619,7 +626,7 @@ removeViewSlot(View *view)
 
   view_->setParent(nullptr);
 
-  view_ = nullptr;
+  view_ = ViewP();
 
   deleteLater();
 }

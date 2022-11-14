@@ -150,18 +150,18 @@ void
 CQChartsPointPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_) {
-    disconnect(plot_, SIGNAL(plotDrawn()), this, SLOT(plotDrawnSlot()));
-    disconnect(plot_, SIGNAL(symbolSizeDetailsChanged()), this, SLOT(symbolSizeDetailsSlot()));
-    disconnect(plot_, SIGNAL(symbolTypeDetailsChanged()), this, SLOT(symbolTypeDetailsSlot()));
+  if (plot_ && pointPlot_) {
+    disconnect(pointPlot_, SIGNAL(plotDrawn()), this, SLOT(plotDrawnSlot()));
+    disconnect(pointPlot_, SIGNAL(symbolSizeDetailsChanged()), this, SLOT(symbolSizeDetailsSlot()));
+    disconnect(pointPlot_, SIGNAL(symbolTypeDetailsChanged()), this, SLOT(symbolTypeDetailsSlot()));
   }
 
-  plot_ = dynamic_cast<CQChartsPointPlot *>(plot);
+  pointPlot_ = dynamic_cast<CQChartsPointPlot *>(plot);
 
-  if (plot_) {
-    connect(plot_, SIGNAL(plotDrawn()), this, SLOT(plotDrawnSlot()));
-    connect(plot_, SIGNAL(symbolSizeDetailsChanged()), this, SLOT(symbolSizeDetailsSlot()));
-    connect(plot_, SIGNAL(symbolTypeDetailsChanged()), this, SLOT(symbolTypeDetailsSlot()));
+  if (pointPlot_) {
+    connect(pointPlot_, SIGNAL(plotDrawn()), this, SLOT(plotDrawnSlot()));
+    connect(pointPlot_, SIGNAL(symbolSizeDetailsChanged()), this, SLOT(symbolSizeDetailsSlot()));
+    connect(pointPlot_, SIGNAL(symbolTypeDetailsChanged()), this, SLOT(symbolTypeDetailsSlot()));
   }
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
@@ -190,28 +190,29 @@ updateWidgets()
   //---
 
   if (symbolSizeLengthEdit_) {
-    auto hasSymbolSizeColumn = plot_->symbolSizeColumn().isValid();
+    auto hasSymbolSizeColumn = pointPlot_->symbolSizeColumn().isValid();
 
     symbolSizeLengthEdit_ ->setEnabled(! hasSymbolSizeColumn);
     symbolSizeRange_      ->setEnabled(hasSymbolSizeColumn);
     symbolSizeMappingEdit_->setEnabled(hasSymbolSizeColumn);
 
-    symbolSizeLengthEdit_ ->setLength(plot_->fixedSymbolSize());
-    symbolSizeColumnCombo_->setModelColumn(plot_->getModelData(), plot_->symbolSizeColumn());
-    symbolSizeRange_      ->setPlot(plot_);
-    symbolSizeMappingEdit_->setText(plot_->symbolSizeMap().toString());
+    symbolSizeLengthEdit_ ->setLength(pointPlot_->fixedSymbolSize());
+    symbolSizeColumnCombo_->setModelColumn(pointPlot_->getModelData(),
+                                           pointPlot_->symbolSizeColumn());
+    symbolSizeRange_      ->setPlot(pointPlot_);
+    symbolSizeMappingEdit_->setText(pointPlot_->symbolSizeMap().toString());
 
     if (hasSymbolSizeColumn)
       symbolSizeControlGroup_->setColumn();
 
-    bool hasSizeMap = plot_->symbolSizeMap().isValid();
+    bool hasSizeMap = pointPlot_->symbolSizeMap().isValid();
 
     setFrameWidgetVisible(symbolSizeRange_      , isShowSizeRange  ().boolOr(! hasSizeMap));
     setFrameWidgetVisible(symbolSizeMappingEdit_, isShowSizeMapping().boolOr(  hasSizeMap));
   }
 
   if (symbolTypeEdit_) {
-    auto hasSymbolTypeColumn = plot_->symbolTypeColumn().isValid();
+    auto hasSymbolTypeColumn = pointPlot_->symbolTypeColumn().isValid();
 
     symbolTypeEdit_       ->setEnabled(! hasSymbolTypeColumn);
     symbolTypeRange_      ->setEnabled(hasSymbolTypeColumn);
@@ -219,19 +220,20 @@ updateWidgets()
     symbolTypeMappingEdit_->setEnabled(hasSymbolTypeColumn);
 
     auto *symbolSetMgr = charts_->symbolSetMgr();
-    auto *symbolSet    = symbolSetMgr->symbolSet(plot_->symbolTypeSetName());
+    auto *symbolSet    = symbolSetMgr->symbolSet(pointPlot_->symbolTypeSetName());
 
-    symbolTypeEdit_       ->setSymbol(plot_->fixedSymbol());
-    symbolTypeColumnCombo_->setModelColumn(plot_->getModelData(), plot_->symbolTypeColumn());
+    symbolTypeEdit_       ->setSymbol(pointPlot_->fixedSymbol());
+    symbolTypeColumnCombo_->setModelColumn(pointPlot_->getModelData(),
+                                           pointPlot_->symbolTypeColumn());
     symbolTypeSetEdit_    ->setSymbolSetName(symbolSet ? symbolSet->name() : "");
-    symbolTypeRange_      ->setPlot(plot_);
+    symbolTypeRange_      ->setPlot(pointPlot_);
     symbolTypeRange_      ->setSymbolSetName(symbolSet ? symbolSet->name() : "");
-    symbolTypeMappingEdit_->setText(plot_->symbolTypeMap().toString());
+    symbolTypeMappingEdit_->setText(pointPlot_->symbolTypeMap().toString());
 
     if (hasSymbolTypeColumn)
       symbolTypeControlGroup_->setColumn();
 
-    bool hasTypeMap = plot_->symbolTypeMap().isValid();
+    bool hasTypeMap = pointPlot_->symbolTypeMap().isValid();
 
     setFrameWidgetVisible(symbolTypeRange_      , isShowSymbolRange  ().boolOr(! hasTypeMap));
     setFrameWidgetVisible(symbolTypeSetEdit_    , isShowSymbolSet    ().boolOr(! hasTypeMap));
@@ -267,13 +269,14 @@ CQChartsPointPlotCustomControls::
 updateSymbolSizeMapKeyVisible()
 {
   if (symbolSizeMapKey_) {
-    auto hasSymbolSizeColumn = plot_->symbolSizeColumn().isValid();
+    auto hasSymbolSizeColumn = pointPlot_->symbolSizeColumn().isValid();
 
-    bool hasSymbolSizeMapKey = (hasSymbolSizeColumn && ! plot_->symbolSizeMapKey()->isNative());
+    bool hasSymbolSizeMapKey =
+      (hasSymbolSizeColumn && ! pointPlot_->symbolSizeMapKey()->isNative());
 
     symbolSizeMapKey_->setVisible(hasSymbolSizeMapKey && symbolSizeControlGroup_->isKeyVisible());
 
-    symbolSizeMapKey_->setKey(plot_->symbolSizeMapKey());
+    symbolSizeMapKey_->setKey(pointPlot_->symbolSizeMapKey());
   }
 }
 
@@ -282,13 +285,14 @@ CQChartsPointPlotCustomControls::
 updateSymbolTypeMapKeyVisible()
 {
   if (symbolTypeMapKey_) {
-    auto hasSymbolTypeColumn = plot_->symbolTypeColumn().isValid();
+    auto hasSymbolTypeColumn = pointPlot_->symbolTypeColumn().isValid();
 
-    bool hasSymbolTypeMapKey = (hasSymbolTypeColumn && ! plot_->symbolTypeMapKey()->isNative());
+    bool hasSymbolTypeMapKey =
+     (hasSymbolTypeColumn && ! pointPlot_->symbolTypeMapKey()->isNative());
 
     symbolTypeMapKey_->setVisible(hasSymbolTypeMapKey && symbolTypeControlGroup_->isKeyVisible());
 
-    symbolTypeMapKey_->setKey(plot_->symbolTypeMapKey());
+    symbolTypeMapKey_->setKey(pointPlot_->symbolTypeMapKey());
   }
 
   CQChartsGroupPlotCustomControls::handlePlotDrawn();
@@ -299,7 +303,7 @@ CQChartsPointPlotCustomControls::
 symbolSizeGroupChanged()
 {
   if (symbolSizeControlGroup_->isFixed())
-    plot_->setSymbolSizeColumn(CQChartsColumn());
+    pointPlot_->setSymbolSizeColumn(CQChartsColumn());
 }
 
 void
@@ -314,7 +318,7 @@ void
 CQChartsPointPlotCustomControls::
 symbolSizeLengthSlot()
 {
-  plot_->setFixedSymbolSize(symbolSizeLengthEdit_->length());
+  pointPlot_->setFixedSymbolSize(symbolSizeLengthEdit_->length());
 
   // TODO: need plot signal
   updateWidgets();
@@ -324,7 +328,7 @@ void
 CQChartsPointPlotCustomControls::
 symbolSizeColumnSlot()
 {
-  plot_->setSymbolSizeColumn(symbolSizeColumnCombo_->getColumn());
+  pointPlot_->setSymbolSizeColumn(symbolSizeColumnCombo_->getColumn());
 }
 
 void
@@ -333,8 +337,8 @@ symbolSizeRangeSlot(double min, double max)
 {
   connectSlots(false);
 
-  plot_->setSymbolSizeUserMapMin(min);
-  plot_->setSymbolSizeUserMapMax(max);
+  pointPlot_->setSymbolSizeUserMapMin(min);
+  pointPlot_->setSymbolSizeUserMapMax(max);
 
   connectSlots(true);
 
@@ -347,7 +351,7 @@ symbolSizeMappingSlot()
 {
   connectSlots(false);
 
-  plot_->setSymbolSizeMap(CQChartsSymbolSizeMap(symbolSizeMappingEdit_->text()));
+  pointPlot_->setSymbolSizeMap(CQChartsSymbolSizeMap(symbolSizeMappingEdit_->text()));
 
   connectSlots(true);
 
@@ -359,7 +363,7 @@ CQChartsPointPlotCustomControls::
 symbolTypeGroupChanged()
 {
   if (symbolTypeControlGroup_->isFixed())
-    plot_->setSymbolTypeColumn(CQChartsColumn());
+    pointPlot_->setSymbolTypeColumn(CQChartsColumn());
 }
 
 void
@@ -374,14 +378,14 @@ void
 CQChartsPointPlotCustomControls::
 symbolTypeSlot()
 {
-  plot_->setFixedSymbol(CQChartsSymbol(symbolTypeEdit_->symbol()));
+  pointPlot_->setFixedSymbol(CQChartsSymbol(symbolTypeEdit_->symbol()));
 }
 
 void
 CQChartsPointPlotCustomControls::
 symbolTypeColumnSlot()
 {
-  plot_->setSymbolTypeColumn(symbolTypeColumnCombo_->getColumn());
+  pointPlot_->setSymbolTypeColumn(symbolTypeColumnCombo_->getColumn());
 }
 
 void
@@ -390,8 +394,8 @@ symbolTypeRangeSlot(int min, int max)
 {
   connectSlots(false);
 
-  plot_->setSymbolTypeMapMin(min);
-  plot_->setSymbolTypeMapMax(max);
+  pointPlot_->setSymbolTypeMapMin(min);
+  pointPlot_->setSymbolTypeMapMax(max);
 
   connectSlots(true);
 
@@ -402,7 +406,7 @@ void
 CQChartsPointPlotCustomControls::
 symbolTypeSetSlot(const QString &name)
 {
-  plot_->setSymbolTypeSetName(name);
+  pointPlot_->setSymbolTypeSetName(name);
 }
 
 void
@@ -411,7 +415,7 @@ symbolTypeMappingSlot()
 {
   connectSlots(false);
 
-  plot_->setSymbolTypeMap(CQChartsSymbolTypeMap(symbolTypeMappingEdit_->text()));
+  pointPlot_->setSymbolTypeMap(CQChartsSymbolTypeMap(symbolTypeMappingEdit_->text()));
 
   connectSlots(true);
 

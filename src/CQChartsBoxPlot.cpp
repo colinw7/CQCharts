@@ -1146,12 +1146,12 @@ updateCalcRange() const
     using DataList = CQChartsBoxPlot::WhiskerDataList;
 
    public:
-    BoxPlotVisitor(const CQChartsBoxPlot *plot, Range &dataRange, RMinMax &xrange) :
-     plot_(plot), dataRange_(dataRange), xrange_(xrange) {
+    BoxPlotVisitor(const CQChartsBoxPlot *boxPlot, Range &dataRange, RMinMax &xrange) :
+     boxPlot_(boxPlot), dataRange_(dataRange), xrange_(xrange) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      plot_->addCalcRow(data, dataList_, dataRange_, xrange_);
+      boxPlot_->addCalcRow(data, dataList_, dataRange_, xrange_);
 
       return State::OK;
     }
@@ -1159,7 +1159,7 @@ updateCalcRange() const
     const DataList &dataList() const { return dataList_; }
 
    private:
-    const CQChartsBoxPlot* plot_ { nullptr };
+    const CQChartsBoxPlot* boxPlot_ { nullptr };
     Range&                 dataRange_;
     RMinMax&               xrange_;
     DataList               dataList_;
@@ -1344,18 +1344,18 @@ updateRawWhiskers() const
   // process model data
   class BoxPlotVisitor : public ModelVisitor {
    public:
-    BoxPlotVisitor(const CQChartsBoxPlot *plot) :
-     plot_(plot) {
+    BoxPlotVisitor(const CQChartsBoxPlot *boxPlot) :
+     boxPlot_(boxPlot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRawWhiskerRow(data);
+      boxPlot_->addRawWhiskerRow(data);
 
       return State::OK;
     }
 
    private:
-    const CQChartsBoxPlot *plot_ { nullptr };
+    const CQChartsBoxPlot *boxPlot_ { nullptr };
   };
 
   BoxPlotVisitor boxPlotVisitor(this);
@@ -1515,7 +1515,7 @@ calcExtraFitBBox() const
   BBox bbox;
 
   for (const auto &plotObj : plotObjs_) {
-    auto *boxObj = dynamic_cast<CQChartsBoxPlotWhiskerObj *>(plotObj);
+    auto *boxObj = dynamic_cast<WhiskerObj *>(plotObj);
 
     if (boxObj)
       bbox += boxObj->extraFitBBox();
@@ -2244,7 +2244,7 @@ CQChartsBoxPlot::
 createWhiskerObj(const BBox &rect, int setId, int groupInd, const Whisker *whisker,
                  const ColorInd &is, const ColorInd &ig) const
 {
-  return new CQChartsBoxPlotWhiskerObj(this, rect, setId, groupInd, whisker, is, ig);
+  return new WhiskerObj(this, rect, setId, groupInd, whisker, is, ig);
 }
 
 CQChartsBoxPlotOutlierObj *
@@ -2252,21 +2252,21 @@ CQChartsBoxPlot::
 createOutlierObj(const BBox &rect, int setId, int groupInd, const Whisker *whisker,
                  const ColorInd &is, const ColorInd &ig, int io) const
 {
-  return new CQChartsBoxPlotOutlierObj(this, rect, setId, groupInd, whisker, is, ig, io);
+  return new OutlierObj(this, rect, setId, groupInd, whisker, is, ig, io);
 }
 
 CQChartsBoxPlotDataObj *
 CQChartsBoxPlot::
 createDataObj(const BBox &rect, const WhiskerData &data, const ColorInd &is) const
 {
-  return new CQChartsBoxPlotDataObj(this, rect, data, is);
+  return new DataObj(this, rect, data, is);
 }
 
 CQChartsBoxPlotConnectedObj *
 CQChartsBoxPlot::
 createConnectedObj(const BBox &rect, int groupInd, const ColorInd &ig) const
 {
-  return new CQChartsBoxPlotConnectedObj(this, rect, groupInd, ig);
+  return new ConnectedObj(this, rect, groupInd, ig);
 }
 
 CQChartsBoxPlotPointObj *
@@ -2274,7 +2274,7 @@ CQChartsBoxPlot::
 createPointObj(const BBox &rect, int setId, int groupInd, const Point &p, const QModelIndex &ind,
                const ColorInd &is, const ColorInd &ig, const ColorInd &iv) const
 {
-  return new CQChartsBoxPlotPointObj(this, rect, setId, groupInd, p, ind, is, ig, iv);
+  return new PointObj(this, rect, setId, groupInd, p, ind, is, ig, iv);
 }
 
 //---
@@ -2327,9 +2327,9 @@ createCustomControls()
 //------
 
 CQChartsBoxPlotWhiskerObj::
-CQChartsBoxPlotWhiskerObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
+CQChartsBoxPlotWhiskerObj(const BoxPlot *boxPlot, const BBox &rect, int setId, int groupInd,
                           const Whisker *whisker, const ColorInd &is, const ColorInd &ig) :
- CQChartsBoxPlotObj(plot, rect, is, ig, ColorInd()), setId_(setId), groupInd_(groupInd),
+ CQChartsBoxPlotObj(boxPlot, rect, is, ig, ColorInd()), setId_(setId), groupInd_(groupInd),
  whisker_(whisker)
 {
   assert(whisker_);
@@ -2344,7 +2344,7 @@ double
 CQChartsBoxPlotWhiskerObj::
 pos() const
 {
-  return rect_.getXYMid(plot_->isVertical());
+  return rect_.getXYMid(boxPlot_->isVertical());
 }
 
 double
@@ -2419,11 +2419,11 @@ calcTipId() const
 {
   QString setName, groupName, name;
 
-  if (plot_->hasSets())
-    setName = plot_->setIdName(setId_);
+  if (boxPlot_->hasSets())
+    setName = boxPlot_->setIdName(setId_);
 
-  if (plot_->hasGroups())
-    groupName = plot_->groupIndName(groupInd_);
+  if (boxPlot_->hasGroups())
+    groupName = boxPlot_->groupIndName(groupInd_);
 
   if (! setName.length() && ! groupName.length())
     name = (whisker_ ? whisker_->name() : "");
@@ -2439,7 +2439,7 @@ calcTipId() const
   if (name.length())
     tableTip.addTableRow("Name", name);
 
-  if (plot_->isErrorBar()) {
+  if (boxPlot_->isErrorBar()) {
     tableTip.addTableRow("Mean"  , mean  ());
     tableTip.addTableRow("StdDev", stddev());
   }
@@ -2453,7 +2453,7 @@ calcTipId() const
 
   //---
 
-  //plot()->addTipColumns(tableTip, node1_->ind());
+  //boxPlot()->addTipColumns(tableTip, node1_->ind());
 
   //---
 
@@ -2492,15 +2492,15 @@ void
 CQChartsBoxPlotWhiskerObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->setColumn  ());
-  addColumnSelectIndex(inds, plot_->groupColumn());
+  addColumnSelectIndex(inds, boxPlot_->setColumn  ());
+  addColumnSelectIndex(inds, boxPlot_->groupColumn());
 }
 
 bool
 CQChartsBoxPlotWhiskerObj::
 inside(const Point &p) const
 {
-  if (plot_->isViolin())
+  if (boxPlot_->isViolin())
     return poly_.containsPoint(p, Qt::OddEvenFill);
 
   return CQChartsBoxPlotObj::inside(p);
@@ -2517,7 +2517,7 @@ draw(PaintDevice *device) const
   // get color index
   auto colorInd = this->calcColorInd();
 
-  if (plot_->hasSets() && plot_->isColorBySet())
+  if (boxPlot_->hasSets() && boxPlot_->isColorBySet())
     colorInd = is_;
 
   //---
@@ -2536,23 +2536,23 @@ draw(PaintDevice *device) const
   // set whisker fill and stroke
   PenBrush whiskerPenBrush;
 
-  plot_->setWhiskerLineDataPen(whiskerPenBrush.pen, colorInd);
+  boxPlot_->setWhiskerLineDataPen(whiskerPenBrush.pen, colorInd);
 
-  plot_->setBrush(whiskerPenBrush, BrushData(false));
+  boxPlot_->setBrush(whiskerPenBrush, BrushData(false));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, whiskerPenBrush, drawType());
+    boxPlot_->updateObjPenBrushState(this, whiskerPenBrush, drawType());
 
   //---
 
-  auto orientation = (plot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
+  auto orientation = (boxPlot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
 
   //---
 
   double pos = this->pos();
 
-  double ww = plot_->whiskerExtent();
-  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal());
+  double ww = boxPlot_->whiskerExtent();
+  double bw = boxPlot_->lengthPlotSize(boxPlot_->boxWidth(), boxPlot_->isHorizontal());
 
   CQStatData statData;
 
@@ -2571,30 +2571,30 @@ draw(PaintDevice *device) const
   bool drawBoxFilled = true;
 
   // draw violin
-  if (plot_->isViolin()) {
+  if (boxPlot_->isViolin()) {
     const auto &density = whisker_->density();
 
-    double vw = plot_->lengthPlotSize(plot_->violinWidth(), plot_->isHorizontal())/2.0;
+    double vw = boxPlot_->lengthPlotSize(boxPlot_->violinWidth(), boxPlot_->isHorizontal())/2.0;
 
-    auto rect = CQChartsGeom::makeDirBBox(/*flipped*/plot_->isHorizontal(),
+    auto rect = CQChartsGeom::makeDirBBox(/*flipped*/boxPlot_->isHorizontal(),
                                           pos - vw, statData.min, pos + vw, statData.max);
 
     CQChartsWhiskerOpts opts;
 
     opts.violin = true;
 
-    density.calcDistributionPoly(poly_, plot_, rect, orientation, opts);
+    density.calcDistributionPoly(poly_, boxPlot_, rect, orientation, opts);
 
     device->drawPolygon(poly_);
 
-    drawBox       = plot_->isViolinBox();
+    drawBox       = boxPlot_->isViolinBox();
     drawBoxFilled = false;
   }
 
   //---
 
   // draw error bar
-  if (plot_->isErrorBar()) {
+  if (boxPlot_->isErrorBar()) {
     device->setPen(whiskerPenBrush.pen);
 
     //---
@@ -2603,33 +2603,33 @@ draw(PaintDevice *device) const
     double dev1 = remapPos(this->mean() - this->stddev());
     double dev2 = remapPos(this->mean() + this->stddev());
 
-    auto rect = CQChartsGeom::makeDirBBox(/*flipped*/plot_->isHorizontal(),
+    auto rect = CQChartsGeom::makeDirBBox(/*flipped*/boxPlot_->isHorizontal(),
                                           pos - bw/2.0, dev1, pos + bw/2.0, dev2);
 
-    if      (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::CROSS_BAR) {
-      CQChartsDensity::drawCrossBar(device, rect, mean, orientation, plot_->boxCornerSize());
+    if      (boxPlot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::CROSS_BAR) {
+      CQChartsDensity::drawCrossBar(device, rect, mean, orientation, boxPlot_->boxCornerSize());
     }
-    else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::ERROR_BAR) {
+    else if (boxPlot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::ERROR_BAR) {
       CQChartsSymbolData symbol;
 
       symbol.setSymbol(Symbol::circle());
-      symbol.setSize(plot_->outlierSymbolSize());
+      symbol.setSize(boxPlot_->outlierSymbolSize());
 
       CQChartsDensity::drawErrorBar(device, rect, mean, orientation, symbol);
     }
-    else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::POINT_RANGE) {
+    else if (boxPlot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::POINT_RANGE) {
       // set fill and stroke
       PenBrush symbolPenBrush;
 
-      auto boxColor    = plot_->interpBoxFillColor  (colorInd);
-      auto strokeColor = plot_->interpBoxStrokeColor(colorInd);
+      auto boxColor    = boxPlot_->interpBoxFillColor  (colorInd);
+      auto strokeColor = boxPlot_->interpBoxStrokeColor(colorInd);
 
-      plot_->setPenBrush(symbolPenBrush,
-        PenData  (true, strokeColor, plot_->boxShapeData().stroke()),
-        BrushData(true, boxColor   , plot_->boxShapeData().fill  ()));
+      boxPlot_->setPenBrush(symbolPenBrush,
+        PenData  (true, strokeColor, boxPlot_->boxShapeData().stroke()),
+        BrushData(true, boxColor   , boxPlot_->boxShapeData().fill  ()));
 
       if (updateState)
-        plot_->updateObjPenBrushState(this, symbolPenBrush, drawType());
+        boxPlot_->updateObjPenBrushState(this, symbolPenBrush, drawType());
 
       CQChartsDrawUtil::setPenBrush(device, symbolPenBrush);
 
@@ -2638,11 +2638,11 @@ draw(PaintDevice *device) const
       CQChartsSymbolData symbol;
 
       symbol.setSymbol(Symbol::circle());
-      symbol.setSize(plot_->outlierSymbolSize());
+      symbol.setSize(boxPlot_->outlierSymbolSize());
 
       CQChartsDensity::drawPointRange(device, rect, mean, orientation, symbol);
     }
-    else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::LINE_RANGE) {
+    else if (boxPlot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::LINE_RANGE) {
       CQChartsDensity::drawLineRange(device, rect, orientation);
     }
 
@@ -2658,7 +2658,7 @@ draw(PaintDevice *device) const
     //---
 
     if (! drawBoxFilled) {
-      auto boxColor = plot_->interpThemeColor(ColorInd());
+      auto boxColor = boxPlot_->interpThemeColor(ColorInd());
 
       penBrush.brush.setColor(boxColor);
 
@@ -2672,7 +2672,7 @@ draw(PaintDevice *device) const
     std::vector<double> outliers;
 
     CQChartsBoxWhiskerUtil::drawWhiskerBar(device, statData, pos, orientation, ww, bw,
-                                           plot_->boxCornerSize(), plot_->isNotched(),
+                                           boxPlot_->boxCornerSize(), boxPlot_->isNotched(),
                                            median, outliers);
   }
 
@@ -2691,19 +2691,19 @@ draw(PaintDevice *device) const
 
   //---
 
-  if (plot_->isErrorBar()) {
+  if (boxPlot_->isErrorBar()) {
   }
   else {
     double wd1 = ww/2.0;
     double wd2 = bw/2.0;
 
     if (! device->isInteractive() ||
-        plot_->drawLayerType() == CQChartsLayer::Type::MID_PLOT) {
+        boxPlot_->drawLayerType() == CQChartsLayer::Type::MID_PLOT) {
       auto posToPixel = [&](double pos, double value) {
-        if (plot_->isVertical())
-          return plot_->windowToPixel(Point(pos, value));
+        if (boxPlot_->isVertical())
+          return boxPlot_->windowToPixel(Point(pos, value));
         else
-          return plot_->windowToPixel(Point(value, pos));
+          return boxPlot_->windowToPixel(Point(value, pos));
       };
 
       auto p1 = posToPixel(pos - wd1, statData.min        );
@@ -2713,16 +2713,16 @@ draw(PaintDevice *device) const
       auto p5 = posToPixel(pos + wd1, statData.max        );
 
       // draw labels
-      if (plot_->isTextVisible()) {
-        plot_->setPainterFont(device, plot_->textFont());
+      if (boxPlot_->isTextVisible()) {
+        boxPlot_->setPainterFont(device, boxPlot_->textFont());
 
         //---
 
         PenBrush penBrush;
 
-        auto tc = plot_->interpTextColor(colorInd);
+        auto tc = boxPlot_->interpTextColor(colorInd);
 
-        plot_->setPen(penBrush, PenData(true, tc, plot_->textAlpha()));
+        boxPlot_->setPen(penBrush, PenData(true, tc, boxPlot_->textAlpha()));
 
         device->setPen(penBrush.pen);
 
@@ -2737,7 +2737,7 @@ draw(PaintDevice *device) const
           auto ustr = QString::number(this->upperMedian());
           auto strh = QString::number(this->max        ());
 
-          if (plot_->isVertical()) {
+          if (boxPlot_->isVertical()) {
             addHText(p1.x, p5.x, p1.y, strl, /*onLeft*/true );
             addHText(p2.x, p4.x, p2.y, lstr, /*onLeft*/false);
             addHText(p2.x, p4.x, p3.y, mstr, /*onLeft*/true );
@@ -2755,7 +2755,7 @@ draw(PaintDevice *device) const
         else {
           auto strl = QString::number(this->min());
 
-          if (plot_->isVertical())
+          if (boxPlot_->isVertical())
             addHText(p1.x, p5.x, p1.y, strl, /*onLeft*/true);
           else
             addVText(p1.y, p5.y, p1.x, strl, /*onBottom*/false);
@@ -2790,43 +2790,43 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // get color index
   auto colorInd = this->calcColorInd();
 
-  if (plot_->hasSets() && plot_->isColorBySet())
+  if (boxPlot_->hasSets() && boxPlot_->isColorBySet())
     colorInd = is_;
 
   //---
 
   // set fill and stroke
-  auto bc = plot_->interpBoxStrokeColor(colorInd);
-  auto fc = plot_->interpBoxFillColor  (colorInd);
+  auto bc = boxPlot_->interpBoxStrokeColor(colorInd);
+  auto fc = boxPlot_->interpBoxFillColor  (colorInd);
 
-  plot_->setPenBrush(penBrush, plot_->boxPenData(bc), plot_->boxBrushData(fc));
+  boxPlot_->setPenBrush(penBrush, boxPlot_->boxPenData(bc), boxPlot_->boxBrushData(fc));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush, drawType());
+    boxPlot_->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 CQChartsGeom::BBox
 CQChartsBoxPlotWhiskerObj::
 extraFitBBox() const
 {
-  if (plot_->isErrorBar())
+  if (boxPlot_->isErrorBar())
     return BBox();
 
   //---
 
   double pos = this->pos();
 
-  double ww = plot_->whiskerExtent();
-  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal());
+  double ww = boxPlot_->whiskerExtent();
+  double bw = boxPlot_->lengthPlotSize(boxPlot_->boxWidth(), boxPlot_->isHorizontal());
 
   double wd1 = ww/2.0;
   double wd2 = bw/2.0;
 
   auto posToRemapPixel = [&](double pos, double value) {
-    if (plot_->isVertical())
-      return plot_->windowToPixel(Point(pos, remapPos(value)));
+    if (boxPlot_->isVertical())
+      return boxPlot_->windowToPixel(Point(pos, remapPos(value)));
     else
-      return plot_->windowToPixel(Point(remapPos(value), pos));
+      return boxPlot_->windowToPixel(Point(remapPos(value), pos));
   };
 
   auto p1 = posToRemapPixel(pos - wd1, min        ());
@@ -2839,7 +2839,7 @@ extraFitBBox() const
 
   BBox pbbox;
 
-  if (plot_->isTextVisible()) {
+  if (boxPlot_->isTextVisible()) {
     bool hasRange = (fabs(max() - min()) > 1E-6);
 
     if (hasRange) {
@@ -2849,7 +2849,7 @@ extraFitBBox() const
       auto ustr = QString::number(upperMedian());
       auto strh = QString::number(max        ());
 
-      if (plot_->isVertical()) {
+      if (boxPlot_->isVertical()) {
         addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
         addHBBox(pbbox, p2.x, p4.x, p2.y, lstr, /*onLeft*/true );
         addHBBox(pbbox, p2.x, p4.x, p3.y, mstr, /*onLeft*/false);
@@ -2867,7 +2867,7 @@ extraFitBBox() const
     else {
       auto strl = QString::number(min());
 
-      if (plot_->isVertical())
+      if (boxPlot_->isVertical())
         addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
       else
         addVBBox(pbbox, p1.y, p5.y, p1.x, strl, /*onBottom*/true);
@@ -2883,7 +2883,7 @@ extraFitBBox() const
 
   //---
 
-  auto bbox = plot_->pixelToWindow(pbbox);
+  auto bbox = boxPlot_->pixelToWindow(pbbox);
 
   return bbox;
 }
@@ -2893,12 +2893,12 @@ CQChartsBoxPlotWhiskerObj::
 remapPos(double y) const
 {
   // remap to margin -> 1.0 - margin
-  if (! plot_->isNormalized())
+  if (! boxPlot_->isNormalized())
     return y;
 
-  double ymargin = plot_->ymargin();
+  double ymargin = boxPlot_->ymargin();
 
-  if (plot_->isShowOutliers())
+  if (boxPlot_->isShowOutliers())
     return CMathUtil::map(y, whisker_->vmin(), whisker_->vmax(), ymargin, 1.0 - ymargin);
   else
     return CMathUtil::map(y, min(), max(), ymargin, 1.0 - ymargin);
@@ -2907,10 +2907,10 @@ remapPos(double y) const
 //------
 
 CQChartsBoxPlotOutlierObj::
-CQChartsBoxPlotOutlierObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
+CQChartsBoxPlotOutlierObj(const BoxPlot *boxPlot, const BBox &rect, int setId, int groupInd,
                           const Whisker *whisker, const ColorInd &is, const ColorInd &ig, int io) :
- CQChartsPlotPointObj(const_cast<Plot *>(plot), rect, rect.getCenter(), is, ig, ColorInd()),
- plot_(plot), setId_(setId), groupInd_(groupInd), whisker_(whisker), io_(io)
+ CQChartsPlotPointObj(const_cast<BoxPlot *>(boxPlot), rect, rect.getCenter(), is, ig, ColorInd()),
+ boxPlot_(boxPlot), setId_(setId), groupInd_(groupInd), whisker_(whisker), io_(io)
 {
   if (whisker_) {
     const auto &ovalue = whisker_->value(io_);
@@ -2925,7 +2925,7 @@ CQChartsLength
 CQChartsBoxPlotOutlierObj::
 calcSymbolSize() const
 {
-  return plot()->outlierSymbolSize();
+  return boxPlot()->outlierSymbolSize();
 }
 
 //---
@@ -2943,11 +2943,11 @@ calcTipId() const
 {
   QString setName, groupName, name;
 
-  if (plot_->hasSets())
-    setName = plot_->setIdName(setId_);
+  if (boxPlot_->hasSets())
+    setName = boxPlot_->setIdName(setId_);
 
-  if (plot_->hasGroups())
-    groupName = plot_->groupIndName(groupInd_);
+  if (boxPlot_->hasGroups())
+    groupName = boxPlot_->groupIndName(groupInd_);
 
   if (whisker_ && ! setName.length() && ! groupName.length())
     name = whisker_->name();
@@ -2974,7 +2974,7 @@ calcTipId() const
 
     //---
 
-    plot()->addTipColumns(tableTip, ovalue.ind);
+    boxPlot()->addTipColumns(tableTip, ovalue.ind);
   }
 
   //---
@@ -2988,8 +2988,8 @@ void
 CQChartsBoxPlotOutlierObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->setColumn  ());
-  addColumnSelectIndex(inds, plot_->groupColumn());
+  addColumnSelectIndex(inds, boxPlot_->setColumn  ());
+  addColumnSelectIndex(inds, boxPlot_->groupColumn());
 
   //---
 
@@ -3006,7 +3006,7 @@ void
 CQChartsBoxPlotOutlierObj::
 draw(PaintDevice *device) const
 {
-  auto symbol = plot_->outlierSymbol();
+  auto symbol = boxPlot_->outlierSymbol();
 
   if (! symbol.isValid())
     return;
@@ -3030,7 +3030,7 @@ draw(PaintDevice *device) const
   //---
 
   // draw symbol
-  plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
+  boxPlot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
 }
 
 void
@@ -3039,16 +3039,16 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto colorInd = this->calcColorInd();
 
-  if (plot_->hasSets() && plot_->isColorBySet())
+  if (boxPlot_->hasSets() && boxPlot_->isColorBySet())
     colorInd = is_;
 
-  plot_->setOutlierSymbolPenBrush(penBrush, colorInd);
+  boxPlot_->setOutlierSymbolPenBrush(penBrush, colorInd);
 
   if (color_.isValid())
-    CQChartsDrawUtil::updateBrushColor(penBrush.brush, plot_->interpColor(color_, colorInd));
+    CQChartsDrawUtil::updateBrushColor(penBrush.brush, boxPlot_->interpColor(color_, colorInd));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush, drawType());
+    boxPlot_->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 double
@@ -3056,10 +3056,10 @@ CQChartsBoxPlotOutlierObj::
 remapPos(double y) const
 {
   // remap to margin -> 1.0 - margin
-  if (! whisker_ || ! plot_->isNormalized())
+  if (! whisker_ || ! boxPlot_->isNormalized())
     return y;
 
-  double ymargin = plot_->ymargin();
+  double ymargin = boxPlot_->ymargin();
 
   return CMathUtil::map(y, whisker_->vmin(), whisker_->vmax(), ymargin, 1.0 - ymargin);
 }
@@ -3067,9 +3067,9 @@ remapPos(double y) const
 //------
 
 CQChartsBoxPlotDataObj::
-CQChartsBoxPlotDataObj(const Plot *plot, const BBox &rect, const WhiskerData &data,
+CQChartsBoxPlotDataObj(const BoxPlot *boxPlot, const BBox &rect, const WhiskerData &data,
                        const ColorInd &is) :
- CQChartsBoxPlotObj(plot, rect, is, ColorInd(), ColorInd()), data_(data)
+ CQChartsBoxPlotObj(boxPlot, rect, is, ColorInd(), ColorInd()), data_(data)
 {
   if (data_.ind.isValid())
     setModelInd(data_.ind);
@@ -3079,7 +3079,7 @@ double
 CQChartsBoxPlotDataObj::
 pos() const
 {
-  return rect_.getXYMid(plot_->isVertical());
+  return rect_.getXYMid(boxPlot_->isVertical());
 }
 
 QString
@@ -3115,13 +3115,13 @@ void
 CQChartsBoxPlotDataObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->xColumn          ());
-  addColumnSelectIndex(inds, plot_->minColumn        ());
-  addColumnSelectIndex(inds, plot_->lowerMedianColumn());
-  addColumnSelectIndex(inds, plot_->medianColumn     ());
-  addColumnSelectIndex(inds, plot_->upperMedianColumn());
-  addColumnSelectIndex(inds, plot_->maxColumn        ());
-  addColumnSelectIndex(inds, plot_->outliersColumn   ());
+  addColumnSelectIndex(inds, boxPlot_->xColumn          ());
+  addColumnSelectIndex(inds, boxPlot_->minColumn        ());
+  addColumnSelectIndex(inds, boxPlot_->lowerMedianColumn());
+  addColumnSelectIndex(inds, boxPlot_->medianColumn     ());
+  addColumnSelectIndex(inds, boxPlot_->upperMedianColumn());
+  addColumnSelectIndex(inds, boxPlot_->maxColumn        ());
+  addColumnSelectIndex(inds, boxPlot_->outliersColumn   ());
 }
 
 void
@@ -3133,25 +3133,25 @@ draw(PaintDevice *device) const
   // set whisker fill and stroke
   PenBrush whiskerPenBrush;
 
-  plot_->setWhiskerLineDataPen(whiskerPenBrush.pen, ColorInd());
+  boxPlot_->setWhiskerLineDataPen(whiskerPenBrush.pen, ColorInd());
 
-  plot_->setBrush(whiskerPenBrush, BrushData(false));
+  boxPlot_->setBrush(whiskerPenBrush, BrushData(false));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, whiskerPenBrush, drawType());
+    boxPlot_->updateObjPenBrushState(this, whiskerPenBrush, drawType());
 
   //---
 
   // set fill and stroke
   PenBrush penBrush;
 
-  auto bc = plot_->interpBoxStrokeColor(ColorInd());
-  auto fc = plot_->interpBoxFillColor  (ColorInd());
+  auto bc = boxPlot_->interpBoxStrokeColor(ColorInd());
+  auto fc = boxPlot_->interpBoxFillColor  (ColorInd());
 
-  plot_->setPenBrush(penBrush, plot_->boxPenData(bc), plot_->boxBrushData(fc));
+  boxPlot_->setPenBrush(penBrush, boxPlot_->boxPenData(bc), boxPlot_->boxBrushData(fc));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush, drawType());
+    boxPlot_->updateObjPenBrushState(this, penBrush, drawType());
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -3159,12 +3159,12 @@ draw(PaintDevice *device) const
 
   double pos = this->pos();
 
-  double ww = plot_->whiskerExtent();
-  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal());
+  double ww = boxPlot_->whiskerExtent();
+  double bw = boxPlot_->lengthPlotSize(boxPlot_->boxWidth(), boxPlot_->isHorizontal());
 
   //---
 
-  auto orientation = plot_->orientation();
+  auto orientation = boxPlot_->orientation();
 
   //---
 
@@ -3184,7 +3184,7 @@ draw(PaintDevice *device) const
   std::vector<double> outliers;
 
   CQChartsBoxWhiskerUtil::drawWhiskerBar(device, statData, pos, orientation, ww, bw,
-                                         plot_->boxCornerSize(), notched, median, outliers);
+                                         boxPlot_->boxCornerSize(), notched, median, outliers);
 
   //---
 
@@ -3202,15 +3202,15 @@ draw(PaintDevice *device) const
   //---
 
   // draw labels
-  if (plot_->isTextVisible()) {
+  if (boxPlot_->isTextVisible()) {
     double wd1 = ww/2.0;
     double wd2 = bw/2.0;
 
     auto posToRemapPixel = [&](double pos, double value) {
-      if (plot_->isVertical())
-        return plot_->windowToPixel(Point(pos, remapPos(value)));
+      if (boxPlot_->isVertical())
+        return boxPlot_->windowToPixel(Point(pos, remapPos(value)));
       else
-        return plot_->windowToPixel(Point(remapPos(value), pos));
+        return boxPlot_->windowToPixel(Point(remapPos(value), pos));
     };
 
     auto p1 = posToRemapPixel(pos - wd1, data_.statData.min        );
@@ -3221,15 +3221,15 @@ draw(PaintDevice *device) const
 
     //---
 
-    plot_->setPainterFont(device, plot_->textFont());
+    boxPlot_->setPainterFont(device, boxPlot_->textFont());
 
     //---
 
     PenBrush penBrush;
 
-    auto tc = plot_->interpTextColor(ColorInd());
+    auto tc = boxPlot_->interpTextColor(ColorInd());
 
-    plot_->setPen(penBrush, PenData(true, tc, plot_->textAlpha()));
+    boxPlot_->setPen(penBrush, PenData(true, tc, boxPlot_->textAlpha()));
 
     device->setPen(penBrush.pen);
 
@@ -3241,7 +3241,7 @@ draw(PaintDevice *device) const
     auto ustr = QString::number(data_.statData.upperMedian);
     auto strh = QString::number(data_.statData.max        );
 
-    if (plot_->isVertical()) {
+    if (boxPlot_->isVertical()) {
       addHText(p1.x, p5.x, p1.y, strl, /*onLeft*/false);
       addHText(p2.x, p4.x, p2.y, lstr, /*onLeft*/true );
       addHText(p2.x, p4.x, p3.y, mstr, /*onLeft*/false);
@@ -3287,17 +3287,17 @@ extraFitBBox() const
 {
   double pos = this->pos();
 
-  double ww = plot_->whiskerExtent();
-  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal());
+  double ww = boxPlot_->whiskerExtent();
+  double bw = boxPlot_->lengthPlotSize(boxPlot_->boxWidth(), boxPlot_->isHorizontal());
 
   double wd1 = ww/2.0;
   double wd2 = bw/2.0;
 
   auto posToRemapPixel = [&](double pos, double value) {
-    if (plot_->isVertical())
-      return plot_->windowToPixel(Point(pos, remapPos(value)));
+    if (boxPlot_->isVertical())
+      return boxPlot_->windowToPixel(Point(pos, remapPos(value)));
     else
-      return plot_->windowToPixel(Point(remapPos(value), pos));
+      return boxPlot_->windowToPixel(Point(remapPos(value), pos));
   };
 
   auto p1 = posToRemapPixel(pos - wd1, data_.statData.min        );
@@ -3310,14 +3310,14 @@ extraFitBBox() const
 
   BBox pbbox;
 
-  if (plot_->isTextVisible()) {
+  if (boxPlot_->isTextVisible()) {
     auto strl = QString::number(data_.statData.min        );
     auto lstr = QString::number(data_.statData.lowerMedian);
     auto mstr = QString::number(data_.statData.median     );
     auto ustr = QString::number(data_.statData.upperMedian);
     auto strh = QString::number(data_.statData.max        );
 
-    if (plot_->isVertical()) {
+    if (boxPlot_->isVertical()) {
       addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
       addHBBox(pbbox, p2.x, p4.x, p2.y, lstr, /*onLeft*/true );
       addHBBox(pbbox, p2.x, p4.x, p3.y, mstr, /*onLeft*/false);
@@ -3342,7 +3342,7 @@ extraFitBBox() const
 
   //---
 
-  auto bbox = plot_->pixelToWindow(pbbox);
+  auto bbox = boxPlot_->pixelToWindow(pbbox);
 
   return bbox;
 }
@@ -3352,10 +3352,10 @@ CQChartsBoxPlotDataObj::
 remapPos(double y) const
 {
   // remap to margin -> 1.0 - margin
-  if (! plot_->isNormalized())
+  if (! boxPlot_->isNormalized())
     return y;
 
-  double ymargin = plot_->ymargin();
+  double ymargin = boxPlot_->ymargin();
 
   return CMathUtil::map(y, data_.dataMin, data_.dataMax, ymargin, 1.0 - ymargin);
 }
@@ -3363,10 +3363,10 @@ remapPos(double y) const
 //------
 
 CQChartsBoxPlotConnectedObj::
-CQChartsBoxPlotConnectedObj(const CQChartsBoxPlot *plot, const BBox &rect, int groupInd,
+CQChartsBoxPlotConnectedObj(const CQChartsBoxPlot *boxPlot, const BBox &rect, int groupInd,
                             const ColorInd &ig) :
- CQChartsPlotObj(const_cast<CQChartsBoxPlot *>(plot), rect, ColorInd(), ig, ColorInd()),
- plot_(plot), groupInd_(groupInd)
+ CQChartsPlotObj(const_cast<CQChartsBoxPlot *>(boxPlot), rect, ColorInd(), ig, ColorInd()),
+ boxPlot_(boxPlot), groupInd_(groupInd)
 {
   initPolygon();
 }
@@ -3382,7 +3382,7 @@ QString
 CQChartsBoxPlotConnectedObj::
 calcTipId() const
 {
-  auto groupName = plot_->groupIndName(groupInd_);
+  auto groupName = boxPlot_->groupIndName(groupInd_);
 
   const auto &setWhiskerMap = this->setWhiskerMap();
 
@@ -3443,7 +3443,7 @@ setWhiskerMap() const
 
   int i = 0;
 
-  for (const auto &groupIdWhiskers : plot_->groupWhiskers()) {
+  for (const auto &groupIdWhiskers : boxPlot_->groupWhiskers()) {
     if (i == ig_.i)
       return groupIdWhiskers.second;
 
@@ -3492,13 +3492,13 @@ draw(PaintDevice *device) const
   // set pen
   PenBrush lPenBrush;
 
-  auto lineColor = plot_->interpBoxStrokeColor(ig_);
+  auto lineColor = boxPlot_->interpBoxStrokeColor(ig_);
 
-  plot_->setPen(lPenBrush,
-    PenData(true, lineColor, plot_->boxShapeData().stroke()));
+  boxPlot_->setPen(lPenBrush,
+    PenData(true, lineColor, boxPlot_->boxShapeData().stroke()));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, lPenBrush, drawType());
+    boxPlot_->updateObjPenBrushState(this, lPenBrush, drawType());
 
   device->setPen(lPenBrush.pen);
 
@@ -3517,21 +3517,21 @@ void
 CQChartsBoxPlotConnectedObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  auto bc = plot_->interpBoxStrokeColor(ig_);
-  auto fc = plot_->interpBoxFillColor  (ig_);
+  auto bc = boxPlot_->interpBoxStrokeColor(ig_);
+  auto fc = boxPlot_->interpBoxFillColor  (ig_);
 
-  plot_->setPenBrush(penBrush, plot_->boxPenData(bc), plot_->boxBrushData(fc));
+  boxPlot_->setPenBrush(penBrush, boxPlot_->boxPenData(bc), boxPlot_->boxBrushData(fc));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush, drawType());
+    boxPlot_->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 //------
 
 CQChartsBoxPlotObj::
-CQChartsBoxPlotObj(const CQChartsBoxPlot *plot, const BBox &rect, const ColorInd &is,
+CQChartsBoxPlotObj(const CQChartsBoxPlot *boxPlot, const BBox &rect, const ColorInd &is,
                    const ColorInd &ig, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsBoxPlot *>(plot), rect, is, ig, iv), plot_(plot)
+ CQChartsPlotObj(const_cast<CQChartsBoxPlot *>(boxPlot), rect, is, ig, iv), boxPlot_(boxPlot)
 {
 }
 
@@ -3566,22 +3566,22 @@ CQChartsBoxPlotObj::
 drawHText(PaintDevice *device, double pxl, double pxr, double py,
           const QString &text, bool onLeft, BBox &bbox) const
 {
-  double margin  = plot_->textMargin();
-  bool   invertX = plot_->isInvertX();
+  double margin  = boxPlot_->textMargin();
+  bool   invertX = boxPlot_->isInvertX();
 
   if (invertX)
     onLeft = ! onLeft;
 
   double px = ((onLeft && ! invertX) || (! onLeft && invertX) ? pxl : pxr);
 
-  plot_->setPainterFont(device, plot_->textFont());
+  boxPlot_->setPainterFont(device, boxPlot_->textFont());
 
   QFontMetricsF fm(device->font());
 
   auto tp = (onLeft ? Point(px - margin - fm.horizontalAdvance(text), py) : Point(px + margin, py));
 
   // only support contrast
-  auto textOptions = plot_->textOptions(device);
+  auto textOptions = boxPlot_->textOptions(device);
 
   textOptions.angle     = Angle();
   textOptions.align     = Qt::AlignLeft | Qt::AlignVCenter;
@@ -3589,14 +3589,14 @@ drawHText(PaintDevice *device, double pxl, double pxr, double py,
   textOptions.scaled    = false;
   textOptions.html      = false;
 
-  auto tw = plot_->pixelToWindow(tp); // left/midy
+  auto tw = boxPlot_->pixelToWindow(tp); // left/midy
 
   auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), textOptions);
 
   auto pbbox = BBox(tp.x                , tp.y - psize.height()/2.0,
                     tp.x + psize.width(), tp.y + psize.height()/2.0);
 
-  bbox = plot_->pixelToWindow(pbbox);
+  bbox = boxPlot_->pixelToWindow(pbbox);
 
   if (! checkDrawBBox(bbox))
     return false;
@@ -3611,15 +3611,15 @@ CQChartsBoxPlotObj::
 drawVText(PaintDevice *device, double pyb, double pyt, double px, const QString &text,
           bool onBottom, BBox &bbox) const
 {
-  double margin  = plot_->textMargin();
-  bool   invertY = plot_->isInvertY();
+  double margin  = boxPlot_->textMargin();
+  bool   invertY = boxPlot_->isInvertY();
 
   if (invertY)
     onBottom = ! onBottom;
 
   double py = ((onBottom && ! invertY) || (! onBottom && invertY) ? pyb : pyt);
 
-  plot_->setPainterFont(device, plot_->textFont());
+  boxPlot_->setPainterFont(device, boxPlot_->textFont());
 
   QFontMetricsF fm(device->font());
 
@@ -3629,7 +3629,7 @@ drawVText(PaintDevice *device, double pyb, double pyt, double px, const QString 
   auto tp = (onBottom ? Point(px - xf, py + margin + yf) : Point(px - xf, py - margin - yf));
 
   // only support contrast
-  auto textOptions = plot_->textOptions(device);
+  auto textOptions = boxPlot_->textOptions(device);
 
   textOptions.angle     = Angle();
   textOptions.align     = Qt::AlignLeft | Qt::AlignVCenter;
@@ -3637,7 +3637,7 @@ drawVText(PaintDevice *device, double pyb, double pyt, double px, const QString 
   textOptions.scaled    = false;
   textOptions.html      = false;
 
-  auto tw = plot_->pixelToWindow(tp); // left/midy
+  auto tw = boxPlot_->pixelToWindow(tp); // left/midy
 
   auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), textOptions);
   auto size  = plot()->pixelToWindowSize(psize);
@@ -3656,15 +3656,15 @@ void
 CQChartsBoxPlotObj::
 addHBBox(BBox &pbbox, double xl, double xr, double y, const QString &text, bool onLeft) const
 {
-  double margin  = plot_->textMargin();
-  bool   invertX = plot_->isInvertX();
+  double margin  = boxPlot_->textMargin();
+  bool   invertX = boxPlot_->isInvertX();
 
   if (invertX)
     onLeft = ! onLeft;
 
   double x = ((onLeft && ! invertX) || (! onLeft && invertX) ? xl : xr);
 
-  auto font = plot_->qfont(plot_->textFont());
+  auto font = boxPlot_->qfont(boxPlot_->textFont());
 
   QFontMetricsF fm(font);
 
@@ -3687,15 +3687,15 @@ void
 CQChartsBoxPlotObj::
 addVBBox(BBox &pbbox, double yb, double yt, double x, const QString &text, bool onBottom) const
 {
-  double margin  = plot_->textMargin();
-  bool   invertY = plot_->isInvertY();
+  double margin  = boxPlot_->textMargin();
+  bool   invertY = boxPlot_->isInvertY();
 
   if (invertY)
     onBottom = ! onBottom;
 
   double y = ((onBottom && ! invertY) || (! onBottom && invertY) ? yb : yt);
 
-  auto font = plot_->qfont(plot_->textFont());
+  auto font = boxPlot_->qfont(boxPlot_->textFont());
 
   QFontMetricsF fm(font);
 
@@ -3717,11 +3717,11 @@ addVBBox(BBox &pbbox, double yb, double yt, double x, const QString &text, bool 
 //------
 
 CQChartsBoxPlotPointObj::
-CQChartsBoxPlotPointObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
+CQChartsBoxPlotPointObj(const BoxPlot *boxPlot, const BBox &rect, int setId, int groupInd,
                         const Point &p, const QModelIndex &ind, const ColorInd &is,
                         const ColorInd &ig, const ColorInd &iv) :
- CQChartsPlotPointObj(const_cast<Plot *>(plot), rect, p, is, ig, iv),
- plot_(plot), setId_(setId), groupInd_(groupInd)
+ CQChartsPlotPointObj(const_cast<BoxPlot *>(boxPlot), rect, p, is, ig, iv),
+ boxPlot_(boxPlot), setId_(setId), groupInd_(groupInd)
 {
   if (ind.isValid())
     setModelInd(ind);
@@ -3733,7 +3733,7 @@ CQChartsLength
 CQChartsBoxPlotPointObj::
 calcSymbolSize() const
 {
-  return plot()->jitterSymbolSize();
+  return boxPlot()->jitterSymbolSize();
 }
 
 //---
@@ -3753,11 +3753,11 @@ calcTipId() const
 
   QString setName, groupName;
 
-  if (plot_->hasSets())
-    setName = plot_->setIdName(setId_);
+  if (boxPlot_->hasSets())
+    setName = boxPlot_->setIdName(setId_);
 
-  if (plot_->hasGroups())
-    groupName = plot_->groupIndName(groupInd_);
+  if (boxPlot_->hasGroups())
+    groupName = boxPlot_->groupIndName(groupInd_);
 
   if (setName.length())
     tableTip.addTableRow("Set", setName);
@@ -3775,24 +3775,24 @@ calcTipId() const
     if (tableTip.hasColumn(column))
       return;
 
-    ModelIndex columnInd(plot_, modelInd().row(), column, modelInd().parent());
+    ModelIndex columnInd(boxPlot_, modelInd().row(), column, modelInd().parent());
 
     bool ok;
 
-    auto str = plot_->modelString(columnInd, ok);
+    auto str = boxPlot_->modelString(columnInd, ok);
     if (! ok) return;
 
-    tableTip.addTableRow(plot_->columnHeaderName(column, /*tip*/true), str);
+    tableTip.addTableRow(boxPlot_->columnHeaderName(column, /*tip*/true), str);
 
     tableTip.addColumn(column);
   };
 
   //---
 
-  if (plot_->visibleValueColumns().count() == 1)
-    addColumnRowValue(plot_->visibleValueColumns().column());
+  if (boxPlot_->visibleValueColumns().count() == 1)
+    addColumnRowValue(boxPlot_->visibleValueColumns().column());
 
-  addColumnRowValue(plot_->colorColumn());
+  addColumnRowValue(boxPlot_->colorColumn());
 
   //---
 
@@ -3818,7 +3818,7 @@ void
 CQChartsBoxPlotPointObj::
 draw(PaintDevice *device) const
 {
-  auto symbol = plot_->jitterSymbol();
+  auto symbol = boxPlot_->jitterSymbol();
 
   if (! symbol.isValid())
     return;
@@ -3851,23 +3851,23 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto colorInd = this->calcColorInd();
 
-  if (plot_->hasSets() && plot_->isColorBySet())
+  if (boxPlot_->hasSets() && boxPlot_->isColorBySet())
     colorInd = is_;
 
-  plot_->setJitterSymbolPenBrush(penBrush, colorInd);
+  boxPlot_->setJitterSymbolPenBrush(penBrush, colorInd);
 
   if (color_.isValid())
-    CQChartsDrawUtil::updateBrushColor(penBrush.brush, plot_->interpColor(color_, colorInd));
+    CQChartsDrawUtil::updateBrushColor(penBrush.brush, boxPlot_->interpColor(color_, colorInd));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush, drawType());
+    boxPlot_->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 //------
 
 CQChartsBoxColorKeyItem::
-CQChartsBoxColorKeyItem(CQChartsBoxPlot *plot, const ColorInd &is, const ColorInd &ig) :
- CQChartsColorBoxKeyItem(plot, is, ig, ColorInd())
+CQChartsBoxColorKeyItem(CQChartsBoxPlot *boxPlot, const ColorInd &is, const ColorInd &ig) :
+ CQChartsColorBoxKeyItem(boxPlot, is, ig, ColorInd())
 {
 }
 
@@ -3875,11 +3875,11 @@ bool
 CQChartsBoxColorKeyItem::
 selectPress(const Point &, SelData &)
 {
-  auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
+  auto *boxPlot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
   auto ic = (is_.n > 1 ? is_ : ig_);
 
-  plot->setSetHidden(ic.i, ! plot->isSetHidden(ic.i));
+  boxPlot->setSetHidden(ic.i, ! boxPlot->isSetHidden(ic.i));
 
   return true;
 }
@@ -3899,11 +3899,11 @@ bool
 CQChartsBoxColorKeyItem::
 calcHidden() const
 {
-  auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
+  auto *boxPlot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
   auto ic = (is_.n > 1 ? is_ : ig_);
 
-  return plot->isSetHidden(ic.i);
+  return boxPlot->isSetHidden(ic.i);
 }
 
 double
@@ -3942,9 +3942,9 @@ boxObj() const
 //------
 
 CQChartsBoxTextKeyItem::
-CQChartsBoxTextKeyItem(CQChartsBoxPlot *plot, const QString &text,
+CQChartsBoxTextKeyItem(CQChartsBoxPlot *boxPlot, const QString &text,
                        const ColorInd &is, const ColorInd &ig) :
- CQChartsTextKeyItem(plot, text, (is.n > 1 ? is : ig))
+ CQChartsTextKeyItem(boxPlot, text, (is.n > 1 ? is : ig))
 {
 }
 
@@ -3963,16 +3963,16 @@ bool
 CQChartsBoxTextKeyItem::
 calcHidden() const
 {
-  auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
+  auto *boxPlot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
-  return plot->isSetHidden(ic_.i);
+  return boxPlot->isSetHidden(ic_.i);
 }
 
 //------
 
 CQChartsBoxPlotColumnChooser::
-CQChartsBoxPlotColumnChooser(CQChartsBoxPlot *plot) :
- CQChartsPlotColumnChooser(plot)
+CQChartsBoxPlotColumnChooser(CQChartsBoxPlot *boxPlot) :
+ CQChartsPlotColumnChooser(boxPlot)
 {
 }
 
@@ -3980,29 +3980,29 @@ const CQChartsColumns &
 CQChartsBoxPlotColumnChooser::
 getColumns() const
 {
-  auto *plot = dynamic_cast<CQChartsBoxPlot *>(this->plot());
-  assert(plot);
+  auto *boxPlot = dynamic_cast<CQChartsBoxPlot *>(this->plot());
+  assert(boxPlot);
 
-  return plot->valueColumns();
+  return boxPlot->valueColumns();
 }
 
 bool
 CQChartsBoxPlotColumnChooser::
 isColumnVisible(int ic) const
 {
-  auto *plot = dynamic_cast<CQChartsBoxPlot *>(this->plot());
+  auto *boxPlot = dynamic_cast<CQChartsBoxPlot *>(this->plot());
 
-  return (plot ? plot->isValueColumnVisible(ic) : false);
+  return (boxPlot ? boxPlot->isValueColumnVisible(ic) : false);
 }
 
 void
 CQChartsBoxPlotColumnChooser::
 setColumnVisible(int ic, bool visible)
 {
-  auto *plot = dynamic_cast<CQChartsBoxPlot *>(this->plot());
+  auto *boxPlot = dynamic_cast<CQChartsBoxPlot *>(this->plot());
 
-  if (plot)
-    plot->setValueColumnVisible(ic, visible);
+  if (boxPlot)
+    boxPlot->setValueColumnVisible(ic, visible);
 }
 
 //------
@@ -4139,9 +4139,9 @@ void
 CQChartsBoxPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<CQChartsBoxPlot *>(plot);
+  boxPlot_ = dynamic_cast<CQChartsBoxPlot *>(plot);
 
-  chooser_->setPlot(plot_);
+  chooser_->setPlot(boxPlot_);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
 }
@@ -4154,32 +4154,32 @@ updateWidgets()
 
   //---
 
-  columnsTypeCombo_->setObj(plot_);
+  columnsTypeCombo_->setObj(boxPlot_);
 
-  auto type = plot_->calcColumnDataType();
+  auto type = boxPlot_->calcColumnDataType();
 
   if (type == CQChartsBoxPlot::ColumnDataType::RAW)
-    showColumnWidgets(plot_->rawCustomColumns());
+    showColumnWidgets(boxPlot_->rawCustomColumns());
   else
-    showColumnWidgets(plot_->calculatedCustomColumns());
+    showColumnWidgets(boxPlot_->calculatedCustomColumns());
 
   chooser_->updateWidgets();
 
   //---
 
-  orientationCombo_->setCurrentValue(static_cast<int>(plot_->orientation()));
-  pointsTypeCombo_ ->setCurrentValue(static_cast<int>(plot_->pointsType()));
+  orientationCombo_->setCurrentValue(static_cast<int>(boxPlot_->orientation()));
+  pointsTypeCombo_ ->setCurrentValue(static_cast<int>(boxPlot_->pointsType()));
 
-  colorBySetCheck_->setChecked(plot_->isColorBySet());
+  colorBySetCheck_->setChecked(boxPlot_->isColorBySet());
 
-  normalizedCheck_->setChecked(plot_->isNormalized());
-  notchedCheck_   ->setChecked(plot_->isNotched());
-  violinCheck_    ->setChecked(plot_->isViolin());
-  errorBarCheck_  ->setChecked(plot_->isErrorBar());
+  normalizedCheck_->setChecked(boxPlot_->isNormalized());
+  notchedCheck_   ->setChecked(boxPlot_->isNotched());
+  violinCheck_    ->setChecked(boxPlot_->isViolin());
+  errorBarCheck_  ->setChecked(boxPlot_->isErrorBar());
 
-  colorBySetCheck_->setEnabled(plot_->canColorBySet());
+  colorBySetCheck_->setEnabled(boxPlot_->canColorBySet());
 
-  if (plot_->calcColumnDataType() == CQChartsBoxPlot::ColumnDataType::RAW) {
+  if (boxPlot_->calcColumnDataType() == CQChartsBoxPlot::ColumnDataType::RAW) {
     notchedCheck_ ->setEnabled(! violinCheck_->isChecked() && ! errorBarCheck_->isChecked());
     violinCheck_  ->setEnabled(true);
     errorBarCheck_->setEnabled(true);
@@ -4210,7 +4210,7 @@ void
 CQChartsBoxPlotCustomControls::
 orientationSlot()
 {
-  plot_->setOrientation(static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
+  boxPlot_->setOrientation(static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
 
   updateWidgets();
 }
@@ -4219,7 +4219,8 @@ void
 CQChartsBoxPlotCustomControls::
 pointsTypeSlot()
 {
-  plot_->setPointsType(static_cast<CQChartsBoxPlot::PointsType>(pointsTypeCombo_->currentValue()));
+  boxPlot_->setPointsType(
+    static_cast<CQChartsBoxPlot::PointsType>(pointsTypeCombo_->currentValue()));
 
   updateWidgets();
 }
@@ -4228,7 +4229,7 @@ void
 CQChartsBoxPlotCustomControls::
 normalizedSlot()
 {
-  plot_->setNormalized(normalizedCheck_->isChecked());
+  boxPlot_->setNormalized(normalizedCheck_->isChecked());
 
   updateWidgets();
 }
@@ -4237,7 +4238,7 @@ void
 CQChartsBoxPlotCustomControls::
 notchedSlot()
 {
-  plot_->setNotched(notchedCheck_->isChecked());
+  boxPlot_->setNotched(notchedCheck_->isChecked());
 
   updateWidgets();
 }
@@ -4246,7 +4247,7 @@ void
 CQChartsBoxPlotCustomControls::
 colorBySetSlot()
 {
-  plot_->setColorBySet(colorBySetCheck_->isChecked());
+  boxPlot_->setColorBySet(colorBySetCheck_->isChecked());
 
   updateWidgets();
 }
@@ -4255,7 +4256,7 @@ void
 CQChartsBoxPlotCustomControls::
 violinSlot()
 {
-  plot_->setViolin(violinCheck_->isChecked());
+  boxPlot_->setViolin(violinCheck_->isChecked());
 
   updateWidgets();
 }
@@ -4264,7 +4265,7 @@ void
 CQChartsBoxPlotCustomControls::
 errorBarSlot()
 {
-  plot_->setErrorBar(errorBarCheck_->isChecked());
+  boxPlot_->setErrorBar(errorBarCheck_->isChecked());
 
   updateWidgets();
 }
@@ -4273,12 +4274,12 @@ CQChartsColor
 CQChartsBoxPlotCustomControls::
 getColorValue()
 {
-  return plot_->jitterSymbolFillColor();
+  return boxPlot_->jitterSymbolFillColor();
 }
 
 void
 CQChartsBoxPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setJitterSymbolFillColor(c);
+  boxPlot_->setJitterSymbolFillColor(c);
 }

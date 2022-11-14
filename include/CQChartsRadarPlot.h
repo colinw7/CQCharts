@@ -102,10 +102,10 @@ class CQChartsRadarObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
-  const RadarPlot* plot_ { nullptr }; //!< parent plot
-  QString          name_;             //!< row name
-  Polygon          poly_;             //!< polygon
-  NameValues       nameValues_;       //!< column values
+  const RadarPlot* radarPlot_ { nullptr }; //!< parent plot
+  QString          name_;                  //!< row name
+  Polygon          poly_;                  //!< polygon
+  NameValues       nameValues_;            //!< column values
 };
 
 //---
@@ -287,7 +287,7 @@ class CQChartsRadarPlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -305,7 +305,7 @@ class CQChartsRadarPlotCustomControls : public CQChartsPlotCustomControls {
   void setColorValue(const CQChartsColor &c) override;
 
  protected:
-  CQChartsRadarPlot* plot_ { nullptr };
+  CQChartsRadarPlot* radarPlot_ { nullptr };
 };
 
 #endif

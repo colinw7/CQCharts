@@ -54,10 +54,10 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsParallelPlot;
+  using ParallelPlot = CQChartsParallelPlot;
 
  public:
-  CQChartsParallelLineObj(const Plot *plot, const BBox &rect, const Polygon &poly,
+  CQChartsParallelLineObj(const ParallelPlot *plot, const BBox &rect, const Polygon &poly,
                           const QModelIndex &ind, const ColorInd &is);
 
   //---
@@ -101,9 +101,9 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   QString xName() const;
 
  private:
-  const Plot*     plot_ { nullptr }; //!< plot
-  Polygon         poly_;             //!< polygon
-  mutable Polygon polyLine_;         //!< polyline
+  const ParallelPlot* parallelPlot_ { nullptr }; //!< plot
+  Polygon             poly_;                     //!< polygon
+  mutable Polygon     polyLine_;                 //!< polyline
 };
 
 //---
@@ -116,18 +116,18 @@ class CQChartsParallelPointObj : public CQChartsPlotPointObj {
   Q_OBJECT
 
  public:
-  using Plot   = CQChartsParallelPlot;
-  using Column = CQChartsColumn;
-  using Length = CQChartsLength;
-  using Symbol = CQChartsSymbol;
+  using ParallelPlot = CQChartsParallelPlot;
+  using Column       = CQChartsColumn;
+  using Length       = CQChartsLength;
+  using Symbol       = CQChartsSymbol;
 
  public:
-  CQChartsParallelPointObj(const Plot *plot, const BBox &rect, double yval, const Point &p,
+  CQChartsParallelPointObj(const ParallelPlot *plot, const BBox &rect, double yval, const Point &p,
                            const QModelIndex &ind, const ColorInd &is, const ColorInd &iv);
 
   //---
 
-  const Plot *plot() const { return plot_; }
+  const ParallelPlot *parallelPlot() const { return parallelPlot_; }
 
   double yval() const { return yval_; }
 
@@ -153,8 +153,8 @@ class CQChartsParallelPointObj : public CQChartsPlotPointObj {
   QString xName() const;
 
  private:
-  const Plot* plot_ { nullptr }; //!< plot
-  double      yval_ { 0.0 };     //!< y value
+  const ParallelPlot* parallelPlot_ { nullptr }; //!< plot
+  double              yval_         { 0.0 };     //!< y value
 };
 
 //---
@@ -376,7 +376,7 @@ class CQChartsParallelPlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -399,7 +399,7 @@ class CQChartsParallelPlotCustomControls : public CQChartsPlotCustomControls {
   void orientationSlot();
 
  protected:
-  CQChartsParallelPlot* plot_ { nullptr };
+  CQChartsParallelPlot* parallelPlot_ { nullptr };
 
   FrameData optionsFrame_;
 

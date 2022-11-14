@@ -31,8 +31,8 @@ CQChartsTableDelegate(Tree *tree) :
 }
 
 CQChartsTableDelegate::
-CQChartsTableDelegate(ModelView *view) :
- view_(view)
+CQChartsTableDelegate(ModelView *modelView) :
+ modelView_(modelView)
 {
   init();
 }
@@ -672,9 +672,9 @@ CQCharts *
 CQChartsTableDelegate::
 charts() const
 {
-  if (table_) return table_->charts();
-  if (tree_ ) return tree_ ->charts();
-  if (view_ ) return view_ ->charts();
+  if (table_    ) return table_    ->charts();
+  if (tree_     ) return tree_     ->charts();
+  if (modelView_) return modelView_->charts();
   return nullptr;
 }
 
@@ -682,9 +682,9 @@ CQChartsTableDelegate::ModelP
 CQChartsTableDelegate::
 modelP() const
 {
-  if (table_) return table_->modelP();
-  if (tree_ ) return tree_ ->modelP();
-  if (view_ ) return view_ ->modelP();
+  if (table_    ) return table_    ->modelP();
+  if (tree_     ) return tree_     ->modelP();
+  if (modelView_) return modelView_->modelP();
   return ModelP();
 }
 
@@ -692,8 +692,8 @@ CQChartsModelDetails *
 CQChartsTableDelegate::
 getDetails() const
 {
-  if (table_) return table_->getDetails();
-  if (tree_ ) return tree_ ->getDetails();
-  if (view_ ) return view_ ->getDetails();
+  if (table_    ) return table_    ->getDetails();
+  if (tree_     ) return tree_     ->getDetails();
+  if (modelView_) return modelView_->getDetails();
   return nullptr;
 }

@@ -125,7 +125,7 @@ class CQChartsContourPlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -141,7 +141,7 @@ class CQChartsContourPlotCustomControls : public CQChartsPlotCustomControls {
   void solidSlot();
 
  protected:
-  CQChartsContourPlot* plot_ { nullptr };
+  CQChartsContourPlot* contourPlot_ { nullptr };
 
   FrameData optionsFrame_;
 

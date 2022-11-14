@@ -2,6 +2,7 @@
 #define CQChartsEditBase_H
 
 #include <QFrame>
+#include <QPointer>
 
 class CQChartsPlot;
 class CQChartsView;
@@ -17,23 +18,29 @@ class CQChartsEditBase : public QFrame {
   Q_OBJECT
 
  public:
+  using View  = CQChartsView;
+  using ViewP = QPointer<View>;
+  using Plot  = CQChartsPlot;
+  using PlotP = QPointer<Plot>;
+
+ public:
   CQChartsEditBase(QWidget *parent=nullptr);
 
   virtual ~CQChartsEditBase() { }
 
-  CQChartsPlot *plot() const { return plot_; }
-  virtual void setPlot(CQChartsPlot *plot) { plot_ = plot; }
+  View *view() const;
+  virtual void setView(View *view);
 
-  CQChartsView *view() const { return view_; }
-  virtual void setView(CQChartsView *view) { view_ = view; }
+  Plot *plot() const;
+  virtual void setPlot(Plot *plot);
 
   void drawCenteredText(QPainter *painter, const QString &text);
 
   void fixLabelWidth();
 
  protected:
-  CQChartsPlot* plot_ { nullptr };
-  CQChartsView* view_ { nullptr };
+  ViewP view_;
+  PlotP plot_;
 };
 
 //------
@@ -46,6 +53,11 @@ class CQChartsEditPreview : public QFrame {
   Q_OBJECT
 
  public:
+  using View  = CQChartsView;
+  using Plot  = CQChartsPlot;
+  using Color = CQChartsColor;
+
+ public:
   CQChartsEditPreview(CQChartsEditBase *edit);
 
   void paintEvent(QPaintEvent *) override;
@@ -54,7 +66,7 @@ class CQChartsEditPreview : public QFrame {
 
   QSize sizeHint() const override;
 
-  static QColor interpColor(CQChartsPlot *plot, CQChartsView *view, const CQChartsColor &color);
+  static QColor interpColor(Plot *plot, View *view, const Color &color);
 
  protected:
   CQChartsEditBase *edit_ { nullptr };

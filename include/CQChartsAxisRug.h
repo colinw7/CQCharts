@@ -4,6 +4,8 @@
 #include <CQChartsObj.h>
 #include <CQChartsObjData.h>
 
+#include <QPointer>
+
 class CQChartsPlot;
 
 //! class for run on x/y axis
@@ -37,7 +39,7 @@ class CQChartsAxisRug : public CQChartsObj,
  public:
   CQChartsAxisRug(Plot *plot, const Qt::Orientation &direction=Qt::Horizontal);
 
-  Plot *plot() const { return plot_; }
+  Plot *plot() const;
 
   const Side &side() const { return side_; }
   void setSide(const Side &s);
@@ -59,9 +61,10 @@ class CQChartsAxisRug : public CQChartsObj,
   void draw(PaintDevice *device, double delta=0.0);
 
  private:
+  using PlotP  = QPointer<Plot>;
   using Points = std::vector<RugPoint>;
 
-  Plot*           plot_      { nullptr };                 //!< plot
+  PlotP           plot_;                                  //!< plot
   Side            side_      { Side::Type::BOTTOM_LEFT }; //!< rug side
   Qt::Orientation direction_ { Qt::Horizontal };          //!< rug direction
   Points          points_;                                //!< rug points

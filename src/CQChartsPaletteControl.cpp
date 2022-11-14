@@ -107,9 +107,16 @@ resetSlot()
   updatePalettes();
 }
 
+CQChartsView *
+CQChartsPaletteControl::
+view() const
+{
+  return view_.data();
+}
+
 void
 CQChartsPaletteControl::
-setView(CQChartsView *view)
+setView(View *view)
 {
   view_ = view;
 

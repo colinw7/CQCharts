@@ -5,9 +5,23 @@
 #include <CQTrie.h>
 
 CQChartsValueSet::
-CQChartsValueSet(const CQChartsPlot *plot) :
- plot_(plot)
+CQChartsValueSet(const Plot *plot) :
+ plot_(const_cast<Plot *>(plot))
 {
+}
+
+CQChartsPlot *
+CQChartsValueSet::
+plot() const
+{
+  return plot_.data();
+}
+
+void
+CQChartsValueSet::
+setPlot(const Plot *plot)
+{
+  plot_ = const_cast<Plot *>(plot);
 }
 
 bool
@@ -728,7 +742,7 @@ calcType() const
 
       bool ok;
 
-      double r = CQChartsVariant::toReal(value, ok);
+      auto r = CQChartsVariant::toReal(value, ok);
 
       if (CQModelUtil::isInteger(r))
         ++ni;
@@ -738,7 +752,7 @@ calcType() const
     else {
       bool ok;
 
-      double r = CQChartsVariant::toReal(value, ok);
+      auto r = CQChartsVariant::toReal(value, ok);
 
       if (ok) {
         if (CQModelUtil::isInteger(r))

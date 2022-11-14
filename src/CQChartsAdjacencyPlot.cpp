@@ -659,14 +659,14 @@ initConnectionObjs(PlotObjs &objs) const
 {
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsAdjacencyPlot *plot) :
-     plot_(plot) {
+    RowVisitor(const CQChartsAdjacencyPlot *adjacencyPlot) :
+     adjacencyPlot_(adjacencyPlot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       ConnectionsData connections;
 
-      if (! plot_->getRowConnections(data, connections))
+      if (! adjacencyPlot_->getRowConnections(data, connections))
         return State::SKIP;
 
       idConnections_[connections.node] = connections;
@@ -677,7 +677,7 @@ initConnectionObjs(PlotObjs &objs) const
     const IdConnectionsData &idConnections() const { return idConnections_; }
 
    private:
-    const CQChartsAdjacencyPlot* plot_ { nullptr };
+    const CQChartsAdjacencyPlot* adjacencyPlot_ { nullptr };
     IdConnectionsData            idConnections_;
   };
 
@@ -1601,11 +1601,11 @@ createCustomControls()
 //------
 
 CQChartsAdjacencyCellObj::
-CQChartsAdjacencyCellObj(const AdjacencyPlot *plot, const AdjacencyNodeP &node1,
+CQChartsAdjacencyCellObj(const AdjacencyPlot *adjacencyPlot, const AdjacencyNodeP &node1,
                          const AdjacencyNodeP &node2, double value, const BBox &rect,
                          const ColorInd &ig) :
- CQChartsPlotObj(const_cast<AdjacencyPlot *>(plot), rect, ColorInd(), ig, ColorInd()),
- plot_(plot), node1_(node1), node2_(node2), value_(value)
+ CQChartsPlotObj(const_cast<AdjacencyPlot *>(adjacencyPlot), rect, ColorInd(), ig, ColorInd()),
+ adjacencyPlot_(adjacencyPlot), node1_(node1), node2_(node2), value_(value)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -1613,9 +1613,9 @@ CQChartsAdjacencyCellObj(const AdjacencyPlot *plot, const AdjacencyNodeP &node1,
   auto ind2 = node2->ind(node1->id());
 
   if      (ind1.isValid())
-    addModelInd(plot->modelIndex(ind1));
+    addModelInd(adjacencyPlot->modelIndex(ind1));
   else if (ind2.isValid())
-    addModelInd(plot->modelIndex(ind2));
+    addModelInd(adjacencyPlot->modelIndex(ind2));
 }
 
 QString
@@ -1674,8 +1674,8 @@ draw(PaintDevice *device) const
 {
   // draw inside object
   if (isInside()) {
-    if (plot_->insideObj() != this) {
-      auto *plot = const_cast<AdjacencyPlot *>(plot_);
+    if (adjacencyPlot_->insideObj() != this) {
+      auto *plot = const_cast<AdjacencyPlot *>(adjacencyPlot_);
 
       plot->setInsideObj(const_cast<CQChartsAdjacencyCellObj *>(this));
 
@@ -1697,7 +1697,7 @@ draw(PaintDevice *device) const
   // draw box
   device->setColorNames();
 
-  CQChartsDrawUtil::drawRoundedRect(device, penBrush, rect(), plot_->cornerSize());
+  CQChartsDrawUtil::drawRoundedRect(device, penBrush, rect(), adjacencyPlot_->cornerSize());
 
   device->resetColorNames();
 }
@@ -1713,27 +1713,27 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // get fill color for node
   auto nodeFillColor = [&](const AdjacencyNodeP &srcNode,
                            const AdjacencyNodeP &destNode, bool &scaled) {
-    auto colorType = plot_->colorType();
+    auto colorType = adjacencyPlot_->colorType();
 
     if      (colorType == CQChartsPlot::ColorType::AUTO ||
              colorType == CQChartsPlot::ColorType::GROUP) {
-      if (plot_->colorColumn().isValid()) {
+      if (adjacencyPlot_->colorColumn().isValid()) {
         scaled = false;
 
         auto ind1 = srcNode->ind(destNode->id());
 
         Color indColor;
 
-        if (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
-          return plot_->interpColor(indColor, ColorInd());
+        if (adjacencyPlot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
+          return adjacencyPlot_->interpColor(indColor, ColorInd());
       }
 
-      return plot_->interpFillColor(plot_->groupColorInd(srcNode->group()));
+      return adjacencyPlot_->interpFillColor(adjacencyPlot_->groupColorInd(srcNode->group()));
     }
     else if (colorType == CQChartsPlot::ColorType::INDEX)
-      return plot_->interpFillColor(ColorInd(srcNode->id(), plot_->numNodes()));
+      return adjacencyPlot_->interpFillColor(ColorInd(srcNode->id(), adjacencyPlot_->numNodes()));
     else
-      return plot_->interpFillColor(colorInd);
+      return adjacencyPlot_->interpFillColor(colorInd);
   };
 
   auto nodesFillColor = [&](const AdjacencyNodeP &srcNode,
@@ -1750,15 +1750,15 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   // get stroke color for node
   auto nodeStrokeColor = [&](const AdjacencyNodeP &srcNode, const AdjacencyNodeP & /*destNode*/) {
-    auto colorType = plot_->colorType();
+    auto colorType = adjacencyPlot_->colorType();
 
     if      (colorType == CQChartsPlot::ColorType::AUTO ||
              colorType == CQChartsPlot::ColorType::GROUP)
-      return plot_->interpStrokeColor(plot_->groupColorInd(srcNode->group()));
+      return adjacencyPlot_->interpStrokeColor(adjacencyPlot_->groupColorInd(srcNode->group()));
     else if (colorType == CQChartsPlot::ColorType::INDEX)
-      return plot_->interpStrokeColor(ColorInd(srcNode->id(), plot_->numNodes()));
+      return adjacencyPlot_->interpStrokeColor(ColorInd(srcNode->id(), adjacencyPlot_->numNodes()));
     else
-      return plot_->interpStrokeColor(colorInd);
+      return adjacencyPlot_->interpStrokeColor(colorInd);
   };
 
   auto nodesStrokeColor = [&](const AdjacencyNodeP &srcNode, const AdjacencyNodeP &destNode) {
@@ -1772,7 +1772,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   // get background color
-  auto bg = plot_->interpEmptyCellFillColor(ColorInd());
+  auto bg = adjacencyPlot_->interpEmptyCellFillColor(ColorInd());
 
   //--
 
@@ -1783,7 +1783,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (scaled) {
     if (node1() != node2()) {
-      double s = CMathUtil::map(value(), 0.0, plot_->maxValue(), 0.0, 1.0);
+      double s = CMathUtil::map(value(), 0.0, adjacencyPlot_->maxValue(), 0.0, 1.0);
 
       bc = CQChartsUtil::blendColors(bc, bg, s);
     }
@@ -1795,12 +1795,12 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   // calc pen and brush
-  plot_->setPenBrush(penBrush,
-    PenData  (true, pc, plot_->shapeData().stroke()),
-    BrushData(true, bc, plot_->shapeData().fill  ()));
+  adjacencyPlot_->setPenBrush(penBrush,
+    PenData  (true, pc, adjacencyPlot_->shapeData().stroke()),
+    BrushData(true, bc, adjacencyPlot_->shapeData().fill  ()));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush, drawType());
+    adjacencyPlot_->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 double
@@ -1810,7 +1810,7 @@ xColorValue(bool relative) const
   if (! relative)
     return node1()->id();
   else
-    return CMathUtil::map(node1()->id(), 0.0, plot_->maxNode(), 0.0, 1.0);
+    return CMathUtil::map(node1()->id(), 0.0, adjacencyPlot_->maxNode(), 0.0, 1.0);
 }
 
 double
@@ -1820,7 +1820,7 @@ yColorValue(bool relative) const
   if (! relative)
     return node2()->id();
   else
-    return CMathUtil::map(node2()->id(), 0.0, plot_->maxNode(), 0.0, 1.0);
+    return CMathUtil::map(node2()->id(), 0.0, adjacencyPlot_->maxNode(), 0.0, 1.0);
 }
 
 //------
@@ -1864,7 +1864,7 @@ void
 CQChartsAdjacencyPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<CQChartsAdjacencyPlot *>(plot);
+  adjacencyPlot_ = dynamic_cast<CQChartsAdjacencyPlot *>(plot);
 
   CQChartsConnectionPlotCustomControls::setPlot(plot);
 }
@@ -1888,12 +1888,12 @@ CQChartsColor
 CQChartsAdjacencyPlotCustomControls::
 getColorValue()
 {
-  return plot_->fillColor();
+  return adjacencyPlot_->fillColor();
 }
 
 void
 CQChartsAdjacencyPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setFillColor(c);
+  adjacencyPlot_->setFillColor(c);
 }

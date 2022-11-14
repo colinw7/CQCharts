@@ -97,8 +97,6 @@ class CQChartsStrokeDataEdit : public CQChartsEditBase {
 
  private:
   CQChartsStrokeDataEditConfig   config_;                 //!< edit config
-  CQChartsPlot*                  plot_       { nullptr }; //!< parent plot
-  CQChartsView*                  view_       { nullptr }; //!< parent view
   CQChartsStrokeData             data_;                   //!< stroke data
   CQGroupBox*                    groupBox_   { nullptr }; //!< group box
   CQChartsColorLineEdit*         colorEdit_  { nullptr }; //!< color edit
@@ -125,7 +123,7 @@ class CQChartsStrokeDataEditPreview : public CQChartsEditPreview {
   void draw(QPainter *painter) override;
 
   static void draw(QPainter *painter, const CQChartsStrokeData &data, const QRect &rect,
-                   CQChartsPlot *plot, CQChartsView *view);
+                   Plot *plot, View *view);
 
  private:
   CQChartsStrokeDataEdit *edit_ { nullptr };
@@ -144,7 +142,7 @@ class CQChartsStrokeDataPropertyViewType : public CQChartsPropertyViewType {
   CQPropertyViewEditorFactory *getEditor() const override;
 
   void drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
-                   CQChartsPlot *plot, CQChartsView *view) override;
+                   Plot *plot, View *view) override;
 
   QString tip(const QVariant &value) const override;
 

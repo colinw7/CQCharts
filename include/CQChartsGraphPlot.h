@@ -62,7 +62,7 @@ class CQChartsGraphPlotMgr : public CQChartsGraphMgr {
  public:
   CQChartsGraphPlotMgr(CQChartsGraphPlot *plot);
 
-  CQChartsGraphPlot *plot() const { return plot_; }
+  CQChartsGraphPlot *graphPlot() const { return graphPlot_; }
 
   Graph *createGraph(const QString &name) const override;
 
@@ -70,7 +70,7 @@ class CQChartsGraphPlotMgr : public CQChartsGraphMgr {
   Edge *createEdge(const OptReal &value, Node *srcNode, Node *destNode) const override;
 
  private:
-  CQChartsGraphPlot* plot_ { nullptr };
+  CQChartsGraphPlot* graphPlot_ { nullptr };
 };
 
 /*!
@@ -176,21 +176,21 @@ class CQChartsGraphNodeObj : public CQChartsPlotObj {
     DOUBLE_CIRCLE = static_cast<int>(CQChartsBoxObj::ShapeType::DOUBLE_CIRCLE)
   };
 
-  using Plot  = CQChartsGraphPlot;
-  using Node  = CQChartsGraphNode;
-  using Edge  = CQChartsGraphEdge;
-  using Color = CQChartsColor;
-  using Angle = CQChartsAngle;
+  using GraphPlot = CQChartsGraphPlot;
+  using Node      = CQChartsGraphNode;
+  using Edge      = CQChartsGraphEdge;
+  using Color     = CQChartsColor;
+  using Angle     = CQChartsAngle;
 
  public:
-  CQChartsGraphNodeObj(const Plot *plot, const BBox &rect, Node *node, const ColorInd &ind);
+  CQChartsGraphNodeObj(const GraphPlot *plot, const BBox &rect, Node *node, const ColorInd &ind);
 
   virtual ~CQChartsGraphNodeObj();
 
   //---
 
   //! get plot
-  const Plot *plot() const { return plot_; }
+  const GraphPlot *graphPlot() const { return graphPlot_; }
 
   //! get node
   Node *node() const { return node_; }
@@ -285,10 +285,10 @@ class CQChartsGraphNodeObj : public CQChartsPlotObj {
   QColor calcFillColor() const;
 
  protected:
-  const Plot* plot_        { nullptr }; //!< parent plot
-  Node*       node_        { nullptr }; //!< node
-  QString     hierName_;                //!< node hier name
-  bool        editChanged_ { false };   //!< edit is changed
+  const GraphPlot* graphPlot_   { nullptr }; //!< parent plot
+  Node*            node_        { nullptr }; //!< node
+  QString          hierName_;                //!< node hier name
+  bool             editChanged_ { false };   //!< edit is changed
 };
 
 //---
@@ -312,21 +312,21 @@ class CQChartsGraphEdgeObj : public CQChartsPlotObj {
     ARROW
   };
 
-  using Plot   = CQChartsGraphPlot;
-  using Edge   = CQChartsGraphEdge;
-  using Node   = CQChartsGraphNode;
-  using Length = CQChartsLength;
-  using Angle  = CQChartsAngle;
+  using GraphPlot = CQChartsGraphPlot;
+  using Edge      = CQChartsGraphEdge;
+  using Node      = CQChartsGraphNode;
+  using Length    = CQChartsLength;
+  using Angle     = CQChartsAngle;
 
  public:
-  CQChartsGraphEdgeObj(const Plot *plot, const BBox &rect, Edge *edge);
+  CQChartsGraphEdgeObj(const GraphPlot *plot, const BBox &rect, Edge *edge);
 
   virtual ~CQChartsGraphEdgeObj();
 
   //---
 
   //! get plot
-  const Plot *plot() const { return plot_; }
+  const GraphPlot *graphPlot() const { return graphPlot_; }
 
   //! get/set edge
   Edge *edge() const { return edge_; }
@@ -378,7 +378,7 @@ class CQChartsGraphEdgeObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  protected:
-  const Plot*          plot_      { nullptr }; //!< parent plot
+  const GraphPlot*     graphPlot_ { nullptr }; //!< parent plot
   Edge*                edge_      { nullptr }; //!< edge
   BBox                 srcRect_;               //!< src rect
   BBox                 destRect_;              //!< dest rect
@@ -395,11 +395,11 @@ class CQChartsGraphGraphObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot  = CQChartsGraphPlot;
-  using Graph = CQChartsGraphGraph;
+  using GraphPlot = CQChartsGraphPlot;
+  using Graph     = CQChartsGraphGraph;
 
  public:
-  CQChartsGraphGraphObj(const Plot *plot, const BBox &rect, Graph *graph);
+  CQChartsGraphGraphObj(const GraphPlot *plot, const BBox &rect, Graph *graph);
 
   virtual ~CQChartsGraphGraphObj();
 
@@ -447,9 +447,9 @@ class CQChartsGraphGraphObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  protected:
-  const Plot* plot_        { nullptr }; //!< parent plot
-  Graph*      graph_       { nullptr }; //!< node
-  bool        editChanged_ { false };
+  const GraphPlot* graphPlot_   { nullptr }; //!< parent plot
+  Graph*           graph_       { nullptr }; //!< node
+  bool             editChanged_ { false };
 };
 
 //---
@@ -880,7 +880,7 @@ class CQChartsGraphPlotCustomControls : public CQChartsConnectionPlotCustomContr
 
   void addWidgets() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -894,7 +894,7 @@ class CQChartsGraphPlotCustomControls : public CQChartsConnectionPlotCustomContr
   void setColorValue(const CQChartsColor &c) override;
 
  protected:
-  CQChartsGraphPlot* plot_ { nullptr };
+  CQChartsGraphPlot* graphPlot_ { nullptr };
 };
 
 #endif

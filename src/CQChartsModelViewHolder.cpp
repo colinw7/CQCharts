@@ -27,7 +27,7 @@ CQChartsModelViewHolder::
 ~CQChartsModelViewHolder()
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  delete view_;
+  delete modelView_;
 #else
   delete table_;
   delete tree_;
@@ -41,7 +41,7 @@ setCharts(CQCharts *charts)
   charts_ = charts;
 
 #ifdef CQCHARTS_MODEL_VIEW
-  if (! view_)
+  if (! modelView_)
     init();
 #else
   if (! table_)
@@ -49,7 +49,7 @@ setCharts(CQCharts *charts)
 #endif
 
 #ifdef CQCHARTS_MODEL_VIEW
-  view_ ->setCharts(this->charts());
+  modelView_ ->setCharts(this->charts());
 #else
   table_->setCharts(this->charts());
   tree_ ->setCharts(this->charts());
@@ -65,13 +65,13 @@ init()
   //---
 
 #ifdef CQCHARTS_MODEL_VIEW
-  assert(! view_);
+  assert(! modelView_);
 
-  view_ = new CQChartsModelView(charts(), this);
+  modelView_ = new CQChartsModelView(charts(), this);
 
-  layout->addWidget(view_);
+  layout->addWidget(modelView_);
 
-  connect(view_, SIGNAL(columnClicked(int)), this, SLOT(columnClickedSlot(int)));
+  connect(modelView_, SIGNAL(columnClicked(int)), this, SLOT(columnClickedSlot(int)));
 #else
   assert(! stack_);
 
@@ -116,7 +116,7 @@ CQChartsModelViewHolder::
 setFilterAnd(bool b)
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  view_->setFilterAnd(b);
+  modelView_->setFilterAnd(b);
 #else
   table_->setFilterAnd(b);
 #endif
@@ -127,7 +127,7 @@ CQChartsModelViewHolder::
 setFilter(const QString &text)
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  view_->setFilter(text);
+  modelView_->setFilter(text);
 #else
   table_->setFilter(text);
 #endif
@@ -138,7 +138,7 @@ CQChartsModelViewHolder::
 addFilter(const QString &text)
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  view_->addFilter(text);
+  modelView_->addFilter(text);
 #else
   table_->addFilter(text);
 #endif
@@ -149,7 +149,7 @@ CQChartsModelViewHolder::
 filterDetails() const
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  return view_->filterDetails();
+  return modelView_->filterDetails();
 #else
   return table_->filterDetails();
 #endif
@@ -160,7 +160,7 @@ CQChartsModelViewHolder::
 setSearch(const QString &text)
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  view_->setSearch(text);
+  modelView_->setSearch(text);
 #else
   table_->setSearch(text);
 #endif
@@ -171,7 +171,7 @@ CQChartsModelViewHolder::
 addSearch(const QString &text)
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  view_->addSearch(text);
+  modelView_->addSearch(text);
 #else
   table_->addSearch(text);
 #endif
@@ -182,7 +182,7 @@ CQChartsModelViewHolder::
 model() const
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  return view_->modelP();
+  return modelView_->modelP();
 #else
   if (! hierarchical_)
     return table_->modelP();
@@ -228,7 +228,7 @@ setModel(ModelP model, bool hierarchical)
   hierarchical_ = hierarchical;
 
 #ifdef CQCHARTS_MODEL_VIEW
-  view_->setModelP(model);
+  modelView_->setModelP(model);
 #else
   if (! hierarchical_) {
     table_->setModelP(model);
@@ -250,7 +250,7 @@ CQChartsModelViewHolder::
 selectionModel()
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  return view_->selectionModel();
+  return modelView_->selectionModel();
 #else
   if (! hierarchical_)
     return table_->selectionModel();
@@ -264,7 +264,7 @@ CQChartsModelViewHolder::
 showColumn(int column)
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  return view_->showColumn(column);
+  return modelView_->showColumn(column);
 #else
   if (! hierarchical_)
     return table_->showColumn(column);
@@ -278,7 +278,7 @@ CQChartsModelViewHolder::
 hideColumn(int column)
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  return view_->hideColumn(column);
+  return modelView_->hideColumn(column);
 #else
   if (! hierarchical_)
     return table_->hideColumn(column);

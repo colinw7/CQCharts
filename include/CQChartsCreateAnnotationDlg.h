@@ -3,7 +3,9 @@
 
 #include <CQChartsUnits.h>
 #include <CQChartsTypes.h>
+
 #include <QDialog>
+#include <QPointer>
 
 class CQChartsView;
 class CQChartsPlot;
@@ -52,8 +54,8 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   CQChartsCreateAnnotationDlg(QWidget *parent, View *view);
   CQChartsCreateAnnotationDlg(QWidget *parent, Plot *plot);
 
-  View *view() const { return view_; }
-  Plot *plot() const { return plot_; }
+  View *view() const;
+  Plot *plot() const;
 
  private:
   struct Widgets {
@@ -283,8 +285,11 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   void cancelSlot();
 
  private:
-  View*             view_             { nullptr }; //!< associated view
-  Plot*             plot_             { nullptr }; //!< associated plot
+  using ViewP = QPointer<View>;
+  using PlotP = QPointer<Plot>;
+
+  ViewP             view_;                         //!< associated view
+  PlotP             plot_;                         //!< associated plot
   QComboBox*        typeCombo_        { nullptr }; //!< type combo
   CQChartsLineEdit* idEdit_           { nullptr }; //!< id edit
   CQChartsLineEdit* tipEdit_          { nullptr }; //!< tip edit

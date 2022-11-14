@@ -5,6 +5,7 @@
 #include <CQChartsWidgetIFace.h>
 
 #include <QFrame>
+#include <QPointer>
 
 class CQChartsPlotControlIFace;
 class CQChartsPlot;
@@ -32,13 +33,14 @@ class CQChartsPlotControlFrame : public QFrame, public CQChartsWidgetIFace {
   Q_PROPERTY(bool opAnd   READ isAnd   WRITE setAnd  )
 
  public:
-  using Plot = CQChartsPlot;
+  using Plot  = CQChartsPlot;
+  using PlotP = QPointer<Plot>;
 
  public:
   CQChartsPlotControlFrame(QWidget *parent=nullptr);
 
-  Plot *plot() const { return plot_; }
-  void setPlot(Plot *p) override { plot_ = p; }
+  Plot *plot() const;
+  void setPlot(Plot *p) override;
 
   bool isEqual() const;
   void setEqual(bool b);
@@ -72,7 +74,7 @@ class CQChartsPlotControlFrame : public QFrame, public CQChartsWidgetIFace {
  private:
   using IFaces = std::vector<CQChartsPlotControlIFace *>;
 
-  Plot*         plot_             { nullptr }; //!< plot
+  PlotP         plot_;                         //!< plot
   QCheckBox*    equalCheck_       { nullptr }; //!< equal check
   QCheckBox*    andCheck_         { nullptr }; //!< and check
   QFrame*       controlArea_      { nullptr }; //!< controls area
@@ -94,14 +96,15 @@ class CQChartsPlotControlIFace : public QFrame {
 
  public:
   using Plot   = CQChartsPlot;
+  using PlotP  = QPointer<Plot>;
   using Column = CQChartsColumn;
 
  public:
   CQChartsPlotControlIFace(QWidget *parent=nullptr);
   CQChartsPlotControlIFace(Plot *plot, const Column &column);
 
-  const Plot *plot() const { return plot_; }
-  virtual void setPlot(Plot *p) { plot_ = p; }
+  Plot *plot() const;
+  virtual void setPlot(Plot *p);
 
   const Column &column() const { return column_; }
   virtual void setColumn(const Column &c) { column_ = c; }
@@ -113,7 +116,7 @@ class CQChartsPlotControlIFace : public QFrame {
   virtual QString filterStr(const QString &cmpStr) const = 0;
 
  protected:
-  Plot*         plot_  { nullptr };
+  PlotP         plot_;
   Column        column_;
   QLabel*       label_ { nullptr };
   QRadioButton* radio_ { nullptr };

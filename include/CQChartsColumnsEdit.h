@@ -27,7 +27,7 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
  public:
   CQChartsColumnsLineEdit(QWidget *parent=nullptr, bool basic=false);
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
   ModelData *modelData() const;
   void setModelData(ModelData *modelData);

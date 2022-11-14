@@ -8,6 +8,8 @@
 #include <CQModelUtil.h>
 #include <CSafeIndex.h>
 
+#include <QPointer>
+
 #include <vector>
 #include <set>
 #include <map>
@@ -638,6 +640,8 @@ class CQChartsValueSet : public QObject {
 
  public:
   using Plot      = CQChartsPlot;
+  using PlotP     = QPointer<Plot>;
+  using Column    = CQChartsColumn;
   using Type      = CQBaseModelType;
   using OptInt    = std::optional<long>;
   using OptReal   = std::optional<double>;
@@ -648,13 +652,13 @@ class CQChartsValueSet : public QObject {
 
   //---
 
-  const Plot *plot() const { return plot_; }
-  void setPlot(const Plot *p) { plot_ = p; }
+  Plot *plot() const;
+  void setPlot(const Plot *p);
 
   //---
 
-  const CQChartsColumn &column() const { return column_; }
-  void setColumn(const CQChartsColumn &c) { column_ = c; }
+  const Column &column() const { return column_; }
+  void setColumn(const Column &c) { column_ = c; }
 
   // get/set mapping enabled
   bool isMapped() const { return mapped_; }
@@ -830,9 +834,9 @@ class CQChartsValueSet : public QObject {
  protected:
   using Values = std::vector<QVariant>;
 
-  const Plot* plot_ { nullptr }; //!< plot
+  PlotP plot_; //!< plot
 
-  CQChartsColumn column_; //!< associated model column
+  Column column_; //!< associated model column
 
   bool   mapped_  { false }; //!< is mapped
   double map_min_ { 0.0 };   //!< map min

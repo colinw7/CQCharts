@@ -722,11 +722,11 @@ loadHier(HierNode *root) const
 {
   class RowVisitor : public ModelVisitor {
    public:
-    using Plot = CQChartsSunburstPlot;
+    using SunburstPlot = CQChartsSunburstPlot;
 
    public:
-    RowVisitor(const Plot *plot, HierNode *root) :
-     plot_(plot) {
+    RowVisitor(const SunburstPlot *sunburstPlot, HierNode *root) :
+     sunburstPlot_(sunburstPlot) {
       hierStack_.push_back(root);
     }
 
@@ -738,7 +738,7 @@ loadHier(HierNode *root) const
 
       //---
 
-      auto *hier = plot_->addHierNode(parentHier(), name, nameInd);
+      auto *hier = sunburstPlot_->addHierNode(parentHier(), name, nameInd);
 
       //---
 
@@ -767,12 +767,13 @@ loadHier(HierNode *root) const
 
       QModelIndex valueInd;
 
-      if (plot_->valueColumn().isValid()) {
-        ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
+      if (sunburstPlot_->valueColumn().isValid()) {
+        ModelIndex valueModelInd(sunburstPlot_, data.row, sunburstPlot_->valueColumn(),
+                                 data.parent);
 
-        valueInd = plot_->modelIndex(valueModelInd);
+        valueInd = sunburstPlot_->modelIndex(valueModelInd);
 
-        if (! plot_->getValueSize(valueModelInd, size))
+        if (! sunburstPlot_->getValueSize(valueModelInd, size))
           return State::SKIP;
 
         if (size == 0.0)
@@ -781,7 +782,7 @@ loadHier(HierNode *root) const
 
       //---
 
-      (void) plot_->hierAddNode(parentHier(), name, size, nameInd, valueInd);
+      (void) sunburstPlot_->hierAddNode(parentHier(), name, size, nameInd, valueInd);
 
       return State::OK;
     }
@@ -794,13 +795,14 @@ loadHier(HierNode *root) const
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
-      ModelIndex nameModelInd(plot_, data.row, plot_->nameColumns().column(), data.parent);
+      ModelIndex nameModelInd(sunburstPlot_, data.row, sunburstPlot_->nameColumns().column(),
+                              data.parent);
 
-      nameInd = plot_->modelIndex(nameModelInd);
+      nameInd = sunburstPlot_->modelIndex(nameModelInd);
 
       bool ok;
 
-      name = plot_->modelString(nameModelInd, ok);
+      name = sunburstPlot_->modelString(nameModelInd, ok);
 
       return ok;
     }
@@ -808,8 +810,8 @@ loadHier(HierNode *root) const
    private:
     using HierStack = std::vector<HierNode *>;
 
-    const Plot* plot_ { nullptr };
-    HierStack   hierStack_;
+    const SunburstPlot* sunburstPlot_ { nullptr };
+    HierStack           hierStack_;
   };
 
   RowVisitor visitor(this, root);
@@ -861,11 +863,11 @@ loadFlat(HierNode *root) const
 {
   class RowVisitor : public ModelVisitor {
    public:
-    using Plot = CQChartsSunburstPlot;
+    using SunburstPlot = CQChartsSunburstPlot;
 
    public:
-    RowVisitor(const Plot *plot, HierNode *root) :
-     plot_(plot), root_(root) {
+    RowVisitor(const SunburstPlot *sunburstPlot, HierNode *root) :
+     sunburstPlot_(sunburstPlot), root_(root) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -873,8 +875,8 @@ loadFlat(HierNode *root) const
       QStringList   nameStrs;
       QModelIndices nameInds;
 
-      if (! plot_->getHierColumnNames(data.parent, data.row, plot_->nameColumns(),
-                                      plot_->calcSeparator(), nameStrs, nameInds))
+      if (! sunburstPlot_->getHierColumnNames(data.parent, data.row, sunburstPlot_->nameColumns(),
+                                              sunburstPlot_->calcSeparator(), nameStrs, nameInds))
         return State::SKIP;
 
       //---
@@ -882,12 +884,13 @@ loadFlat(HierNode *root) const
       // add group name at top of hier if specified
       QString groupName;
 
-      if (plot_->groupColumn().isValid()) {
-        ModelIndex groupModelInd(plot_, data.row, plot_->groupColumn(), data.parent);
+      if (sunburstPlot_->groupColumn().isValid()) {
+        ModelIndex groupModelInd(sunburstPlot_, data.row, sunburstPlot_->groupColumn(),
+                                 data.parent);
 
         bool ok;
 
-        groupName = plot_->modelString(groupModelInd, ok); // hier ?
+        groupName = sunburstPlot_->modelString(groupModelInd, ok); // hier ?
 
         if (groupName == "")
           groupName = "<none>";
@@ -895,7 +898,7 @@ loadFlat(HierNode *root) const
 
       //---
 
-      auto nameInd1 = plot_->normalizeIndex(nameInds[0]);
+      auto nameInd1 = sunburstPlot_->normalizeIndex(nameInds[0]);
 
       //---
 
@@ -912,19 +915,19 @@ loadFlat(HierNode *root) const
 
       auto *root1 = root_;
 
-      if (plot_->isSplitGroups()) {
+      if (sunburstPlot_->isSplitGroups()) {
         // init root for group if not yet created
-        auto *plot = const_cast<CQChartsSunburstPlot *>(plot_);
+        auto *sunburstPlot = const_cast<CQChartsSunburstPlot *>(sunburstPlot_);
 
-        auto pg = plot->groupSunburstData_.find(groupName);
+        auto pg = sunburstPlot->groupSunburstData_.find(groupName);
 
-        if (pg == plot->groupSunburstData_.end()) {
-          pg = plot->groupSunburstData_.insert(pg,
+        if (pg == sunburstPlot->groupSunburstData_.end()) {
+          pg = sunburstPlot->groupSunburstData_.insert(pg,
                  GroupSunburstData::value_type(groupName, SunburstData()));
 
           auto &sunburstData = (*pg).second;
 
-          auto *root = new RootNode(plot, groupName);
+          auto *root = new RootNode(sunburstPlot, groupName);
 
           root->setGroupName(groupName);
 
@@ -933,10 +936,10 @@ loadFlat(HierNode *root) const
 
         //---
 
-        root1 = plot_->rootNode(groupName, groupName);
+        root1 = sunburstPlot_->rootNode(groupName, groupName);
 
         if (! root1) {
-          root1 = plot->createRootNode(groupName, groupName);
+          root1 = sunburstPlot->createRootNode(groupName, groupName);
 
           root1->setInd(nameInd1);
         }
@@ -945,7 +948,7 @@ loadFlat(HierNode *root) const
       //---
 
       // create node
-      auto *node = plot_->flatAddNode(groupName, root1, nameStrs, size, nameInd1, valueInd);
+      auto *node = sunburstPlot_->flatAddNode(groupName, root1, nameStrs, size, nameInd1, valueInd);
 
       if (groupName != "")
         groupNameSet_.insert(groupName);
@@ -953,10 +956,10 @@ loadFlat(HierNode *root) const
       //---
 
       // set color from color column
-      if (node && plot_->colorColumn().isValid()) {
+      if (node && sunburstPlot_->colorColumn().isValid()) {
         Color color;
 
-        if (plot_->colorColumnColor(data.row, data.parent, color))
+        if (sunburstPlot_->colorColumnColor(data.row, data.parent, color))
           node->setColor(color);
       }
 
@@ -966,18 +969,18 @@ loadFlat(HierNode *root) const
     bool getSize(const VisitData &data, double &size, QModelIndex &valueInd) const {
       size = 1.0;
 
-      if (! plot_->valueColumn().isValid())
+      if (! sunburstPlot_->valueColumn().isValid())
         return true;
 
-      ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
+      ModelIndex valueModelInd(sunburstPlot_, data.row, sunburstPlot_->valueColumn(), data.parent);
 
-      if (! plot_->getValueSize(valueModelInd, size))
+      if (! sunburstPlot_->getValueSize(valueModelInd, size))
         return false;
 
       if (size == 0.0) // allow negative ?
         return false;
 
-      valueInd = plot_->modelIndex(valueModelInd);
+      valueInd = sunburstPlot_->modelIndex(valueModelInd);
 
       return true;
     }
@@ -985,9 +988,9 @@ loadFlat(HierNode *root) const
     const GroupNameSet &groupNameSet() const { return groupNameSet_; }
 
    private:
-    const Plot*  plot_ { nullptr };
-    HierNode*    root_ { nullptr };
-    GroupNameSet groupNameSet_;
+    const SunburstPlot* sunburstPlot_ { nullptr };
+    HierNode*           root_         { nullptr };
+    GroupNameSet        groupNameSet_;
   };
 
   //---
@@ -1751,8 +1754,9 @@ createCustomControls()
 //------
 
 CQChartsSunburstNodeObj::
-CQChartsSunburstNodeObj(const Plot *plot, const BBox &rect, Node *node) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect), plot_(plot), node_(node)
+CQChartsSunburstNodeObj(const SunburstPlot *sunburstPlot, const BBox &rect, Node *node) :
+ CQChartsPlotObj(const_cast<SunburstPlot *>(sunburstPlot), rect),
+ sunburstPlot_(sunburstPlot), node_(node)
 {
   if (node_->ind().isValid())
     setModelInd(node_->ind());
@@ -1778,19 +1782,19 @@ calcTipId() const
   tableTip.addTableRow("Name" , name);
   tableTip.addTableRow("Value", node_->hierSize());
 
-  auto ind1 = plot_->unnormalizeIndex(node_->ind());
+  auto ind1 = sunburstPlot_->unnormalizeIndex(node_->ind());
 
-  if (plot_->colorColumn().isValid()) {
-    ModelIndex colorInd1(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
+  if (sunburstPlot_->colorColumn().isValid()) {
+    ModelIndex colorInd1(sunburstPlot_, ind1.row(), sunburstPlot_->colorColumn(), ind1.parent());
 
     bool ok;
 
-    auto colorStr = plot_->modelString(colorInd1, ok);
+    auto colorStr = sunburstPlot_->modelString(colorInd1, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }
 
-  plot_->addTipColumn(tableTip, plot_->groupColumn(), ind1);
+  sunburstPlot_->addTipColumn(tableTip, sunburstPlot_->groupColumn(), ind1);
 
   //---
 
@@ -1810,7 +1814,7 @@ inside(const Point &p) const
   double r1 = node_->r();
   double r2 = r1 + node_->dr();
 
-  auto c = plot_->getGroupRect(node_->groupName()).getCenter();
+  auto c = sunburstPlot_->getGroupRect(node_->groupName()).getCenter();
 
   double r = p.distanceTo(c);
 
@@ -1848,10 +1852,10 @@ void
 CQChartsSunburstNodeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : plot_->nameColumns())
+  for (const auto &c : sunburstPlot_->nameColumns())
     addColumnSelectIndex(inds, c);
 
-  addColumnSelectIndex(inds, plot_->valueColumn());
+  addColumnSelectIndex(inds, sunburstPlot_->valueColumn());
 }
 
 void
@@ -1872,7 +1876,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  plot_->drawNode(device, node_, penBrush, tPenBrush);
+  sunburstPlot_->drawNode(device, node_, penBrush, tPenBrush);
 }
 
 void
@@ -1881,14 +1885,14 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto colorInd = calcColorInd();
 
-  auto bc = plot_->interpStrokeColor(colorInd);
-  auto fc = node_->interpColor(plot_, plot_->fillColor(), colorInd,
-                               plot_->numColorIds(node_->groupName()));
+  auto bc = sunburstPlot_->interpStrokeColor(colorInd);
+  auto fc = node_->interpColor(sunburstPlot_, sunburstPlot_->fillColor(), colorInd,
+                               sunburstPlot_->numColorIds(node_->groupName()));
 
-  plot_->setPenBrush(penBrush, plot_->penData(bc), plot_->brushData(fc));
+  sunburstPlot_->setPenBrush(penBrush, sunburstPlot_->penData(bc), sunburstPlot_->brushData(fc));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    sunburstPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 void
@@ -1897,18 +1901,18 @@ calcTextPenBrush(PenBrush &tPenBrush, bool updateState) const
 {
   auto colorInd = calcColorInd();
 
-  auto tc = plot_->interpTextColor(colorInd);
+  auto tc = sunburstPlot_->interpTextColor(colorInd);
 
-  plot_->setPen(tPenBrush, PenData(true, tc, plot_->textAlpha()));
+  sunburstPlot_->setPen(tPenBrush, PenData(true, tc, sunburstPlot_->textAlpha()));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, tPenBrush);
+    sunburstPlot_->updateObjPenBrushState(this, tPenBrush);
 }
 
 //------
 
 CQChartsSunburstHierNode::
-CQChartsSunburstHierNode(const Plot *plot, HierNode *parent, const QString &name) :
+CQChartsSunburstHierNode(const SunburstPlot *plot, HierNode *parent, const QString &name) :
  CQChartsSunburstNode(plot, parent, name)
 {
   if (parent_)
@@ -1929,7 +1933,7 @@ bool
 CQChartsSunburstHierNode::
 isHierExpanded() const
 {
-  if (plot_->isRoot(groupName(), this))
+  if (sunburstPlot_->isRoot(groupName(), this))
     return true;
 
   if (! isExpanded())
@@ -2034,11 +2038,11 @@ packSubNodes(HierNode *root, double ri, double dr,
   for (auto &node : nodes_)
     nodes.push_back(node);
 
-  if      (root->plot()->sortType() == CQChartsSunburstPlot::SortType::SIZE)
+  if      (root->sunburstPlot()->sortType() == CQChartsSunburstPlot::SortType::SIZE)
     std::sort(nodes.begin(), nodes.end(), CQChartsSunburstNodeSizeCmp());
-  else if (root->plot()->sortType() == CQChartsSunburstPlot::SortType::COUNT)
+  else if (root->sunburstPlot()->sortType() == CQChartsSunburstPlot::SortType::COUNT)
     std::sort(nodes.begin(), nodes.end(), CQChartsSunburstNodeCountCmp());
-  else if (root->plot()->sortType() == CQChartsSunburstPlot::SortType::NAME)
+  else if (root->sunburstPlot()->sortType() == CQChartsSunburstPlot::SortType::NAME)
     std::sort(nodes.begin(), nodes.end(), CQChartsSunburstNodeNameCmp());
 
   //---
@@ -2094,20 +2098,21 @@ removeNode(Node *node)
 
 QColor
 CQChartsSunburstHierNode::
-interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) const
+interpColor(const SunburstPlot *sunburstPlot, const Color &c,
+            const ColorInd &colorInd, int n) const
 {
   using Colors = std::vector<QColor>;
 
   Colors colors;
 
   for (auto &child : children_)
-    colors.push_back(child->interpColor(plot, c, colorInd, n));
+    colors.push_back(child->interpColor(sunburstPlot, c, colorInd, n));
 
   for (auto &node : nodes_)
-    colors.push_back(node->interpColor(plot, c, colorInd, n));
+    colors.push_back(node->interpColor(sunburstPlot, c, colorInd, n));
 
   if (colors.empty())
-    return plot->interpColor(c, colorInd);
+    return sunburstPlot->interpColor(c, colorInd);
 
   return CQChartsUtil::blendColors(colors);
 }
@@ -2115,8 +2120,8 @@ interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) c
 //------
 
 CQChartsSunburstNode::
-CQChartsSunburstNode(const Plot *plot, HierNode *parent, const QString &name) :
- plot_(plot), parent_(parent), id_(nextId()), name_(name)
+CQChartsSunburstNode(const SunburstPlot *sunburstPlot, HierNode *parent, const QString &name) :
+ sunburstPlot_(sunburstPlot), parent_(parent), id_(nextId()), name_(name)
 {
 }
 
@@ -2124,7 +2129,8 @@ QString
 CQChartsSunburstNode::
 hierName(const QString &separator) const
 {
-  if (parent() && (plot()->isMultiRoot() || parent() != plot()->roots(groupName())[0]))
+  if (parent() && (sunburstPlot()->isMultiRoot() ||
+      parent() != sunburstPlot()->roots(groupName())[0]))
     return parent()->hierName(separator) + separator + name();
   else
     return name();
@@ -2182,14 +2188,15 @@ pointInside(double x, double y)
 
 QColor
 CQChartsSunburstNode::
-interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) const
+interpColor(const SunburstPlot *sunburstPlot, const Color &c,
+            const ColorInd &colorInd, int n) const
 {
   if      (color().isValid())
-    return plot->interpColor(color(), ColorInd());
-  else if (colorId() >= 0 && plot_->isColorById())
-    return plot->interpFillColor(ColorInd(colorId(), n));
+    return sunburstPlot->interpColor(color(), ColorInd());
+  else if (colorId() >= 0 && sunburstPlot_->isColorById())
+    return sunburstPlot->interpFillColor(ColorInd(colorId(), n));
   else
-    return plot->interpColor(c, colorInd);
+    return sunburstPlot->interpColor(c, colorInd);
 }
 
 //------
@@ -2271,7 +2278,7 @@ void
 CQChartsSunburstPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<CQChartsSunburstPlot *>(plot);
+  sunburstPlot_ = dynamic_cast<CQChartsSunburstPlot *>(plot);
 
   CQChartsHierPlotCustomControls::setPlot(plot);
 }
@@ -2295,12 +2302,12 @@ CQChartsColor
 CQChartsSunburstPlotCustomControls::
 getColorValue()
 {
-  return plot_->fillColor();
+  return sunburstPlot_->fillColor();
 }
 
 void
 CQChartsSunburstPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setFillColor(c);
+  sunburstPlot_->setFillColor(c);
 }

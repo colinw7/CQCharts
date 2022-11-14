@@ -289,20 +289,20 @@ calcRange() const
   // get values for each row
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsRadarPlot *plot) :
-     plot_(plot) {
-      nv_ = plot_->valueColumns().count();
+    RowVisitor(const CQChartsRadarPlot *radarPlot) :
+     radarPlot_(radarPlot) {
+      nv_ = radarPlot_->valueColumns().count();
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       for (int iv = 0; iv < nv_; ++iv) {
-        const auto &column = plot_->valueColumns().getColumn(iv);
+        const auto &column = radarPlot_->valueColumns().getColumn(iv);
 
-        ModelIndex ind(plot_, data.row, column, data.parent);
+        ModelIndex ind(radarPlot_, data.row, column, data.parent);
 
         double value;
 
-        if (! plot_->columnValue(ind, value))
+        if (! radarPlot_->columnValue(ind, value))
           continue;
 
         valueDatas_[iv].add(value);
@@ -314,8 +314,8 @@ calcRange() const
     const ValueDatas &valueDatas() const { return valueDatas_; }
 
    private:
-    const CQChartsRadarPlot *plot_ { nullptr };
-    int                      nv_   { 0 };
+    const CQChartsRadarPlot *radarPlot_ { nullptr };
+    int                      nv_        { 0 };
     ValueDatas               valueDatas_;
   };
 
@@ -469,19 +469,19 @@ createObjs(PlotObjs &objs) const
   // process model data
   class RadarPlotVisitor : public ModelVisitor {
    public:
-    RadarPlotVisitor(const CQChartsRadarPlot *plot, PlotObjs &objs) :
-     plot_(plot), objs_(objs) {
+    RadarPlotVisitor(const CQChartsRadarPlot *radarPlot, PlotObjs &objs) :
+     radarPlot_(radarPlot), objs_(objs) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      if (! plot_->addRow(data, numRows(), objs_))
+      if (! radarPlot_->addRow(data, numRows(), objs_))
         return State::SKIP;
 
       return State::OK;
     }
 
    private:
-    const CQChartsRadarPlot* plot_ { nullptr };
+    const CQChartsRadarPlot* radarPlot_ { nullptr };
     PlotObjs&                objs_;
   };
 
@@ -647,8 +647,8 @@ addKeyItems(PlotKey *key)
 {
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsRadarPlot *plot, CQChartsPlotKey *key) :
-     plot_(plot), key_(key) {
+    RowVisitor(const CQChartsRadarPlot *radarPlot, CQChartsPlotKey *key) :
+     radarPlot_(radarPlot), key_(key) {
       row_ = (! key_->isHorizontal() ? key_->maxRow() : 0);
       col_ = (! key_->isHorizontal() ? 0 : key_->maxCol());
     }
@@ -656,12 +656,12 @@ addKeyItems(PlotKey *key)
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       QString name;
 
-      if (plot_->nameColumn().isValid()) {
-        ModelIndex nameInd(plot_, data.row, plot_->nameColumn(), data.parent);
+      if (radarPlot_->nameColumn().isValid()) {
+        ModelIndex nameInd(radarPlot_, data.row, radarPlot_->nameColumn(), data.parent);
 
         bool ok;
 
-        name = plot_->modelString(nameInd, ok);
+        name = radarPlot_->modelString(nameInd, ok);
       }
 
       //---
@@ -674,12 +674,12 @@ addKeyItems(PlotKey *key)
     }
 
     void addKeyItem(const QString &name, const ColorInd &ic) {
-      auto *plot = const_cast<CQChartsRadarPlot *>(plot_);
+      auto *radarPlot = const_cast<CQChartsRadarPlot *>(radarPlot_);
 
-      auto *colorItem = new CQChartsColorBoxKeyItem(plot, ColorInd(), ColorInd(), ic);
-      auto *textItem  = new CQChartsTextKeyItem    (plot, name, ic);
+      auto *colorItem = new CQChartsColorBoxKeyItem(radarPlot, ColorInd(), ColorInd(), ic);
+      auto *textItem  = new CQChartsTextKeyItem    (radarPlot, name, ic);
 
-      auto *groupItem = new CQChartsGroupKeyItem(plot);
+      auto *groupItem = new CQChartsGroupKeyItem(radarPlot);
 
       groupItem->addRowItems(colorItem, textItem);
 
@@ -691,10 +691,10 @@ addKeyItems(PlotKey *key)
     }
 
    private:
-    const CQChartsRadarPlot* plot_ { nullptr };
-    CQChartsPlotKey*         key_  { nullptr };
-    int                      row_  { 0 };
-    int                      col_  { 0 };
+    const CQChartsRadarPlot* radarPlot_ { nullptr };
+    CQChartsPlotKey*         key_       { nullptr };
+    int                      row_       { 0 };
+    int                      col_       { 0 };
   };
 
   RowVisitor visitor(this, key);
@@ -943,11 +943,11 @@ createCustomControls()
 //------
 
 CQChartsRadarObj::
-CQChartsRadarObj(const CQChartsRadarPlot *plot, const BBox &rect, const QString &name,
+CQChartsRadarObj(const CQChartsRadarPlot *radarPlot, const BBox &rect, const QString &name,
                  const Polygon &poly, const NameValues &nameValues, const QModelIndex &ind,
                  const ColorInd &is) :
- CQChartsPlotObj(const_cast<CQChartsRadarPlot *>(plot), rect, is, ColorInd(), ColorInd()),
- plot_(plot), name_(name), poly_(poly), nameValues_(nameValues)
+ CQChartsPlotObj(const_cast<CQChartsRadarPlot *>(radarPlot), rect, is, ColorInd(), ColorInd()),
+ radarPlot_(radarPlot), name_(name), poly_(poly), nameValues_(nameValues)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -1052,7 +1052,7 @@ void
 CQChartsRadarObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &valueColumn : plot_->valueColumns())
+  for (const auto &valueColumn : radarPlot_->valueColumns())
     addColumnSelectIndex(inds, valueColumn);
 
   addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
@@ -1068,12 +1068,12 @@ draw(PaintDevice *device) const
   //---
 
   // get pixel origin
-  auto po = plot_->windowToPixel(Point(0.0, 0.0));
+  auto po = radarPlot_->windowToPixel(Point(0.0, 0.0));
 
   //---
 
   // create pixel polygon
-  auto ppoly = plot_->windowToPixel(poly_);
+  auto ppoly = radarPlot_->windowToPixel(poly_);
 
   ppoly.addPoint(ppoly.point(0)); // close
 
@@ -1100,7 +1100,7 @@ draw(PaintDevice *device) const
 
     BBox pbbox(po.x - r, po.y - r, po.x + r, po.y + r);
 
-    device->drawEllipse(plot_->pixelToWindow(pbbox));
+    device->drawEllipse(radarPlot_->pixelToWindow(pbbox));
   }
   // draw line
   else if (poly_.size() == 2) {
@@ -1112,7 +1112,7 @@ draw(PaintDevice *device) const
 
     BBox pbbox(po.x - xr, po.y - yr, po.x + xr, po.y + yr);
 
-    device->drawEllipse(plot_->pixelToWindow(pbbox));
+    device->drawEllipse(radarPlot_->pixelToWindow(pbbox));
   }
   // draw polygon
   else if (poly_.size() >= 3) {
@@ -1130,25 +1130,27 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   QColor fillColor;
 
-  if (plot_->colorColumn().isValid() && plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+  if (radarPlot_->colorColumn().isValid() &&
+      radarPlot_->colorType() == CQChartsPlot::ColorType::AUTO) {
     auto ind1 = modelInd();
 
     Color indColor;
 
-    if (plot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
-      fillColor = plot_->interpColor(indColor, colorInd);
+    if (radarPlot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
+      fillColor = radarPlot_->interpColor(indColor, colorInd);
     else
-      fillColor = plot_->interpFillColor(colorInd);
+      fillColor = radarPlot_->interpFillColor(colorInd);
   }
   else
-    fillColor = plot_->interpFillColor(colorInd);
+    fillColor = radarPlot_->interpFillColor(colorInd);
 
-  auto strokeColor = plot_->interpStrokeColor(colorInd);
+  auto strokeColor = radarPlot_->interpStrokeColor(colorInd);
 
-  plot_->setPenBrush(penBrush, plot_->penData(strokeColor), plot_->brushData(fillColor));
+  radarPlot_->setPenBrush(penBrush, radarPlot_->penData(strokeColor),
+                          radarPlot_->brushData(fillColor));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    radarPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
@@ -1205,15 +1207,15 @@ void
 CQChartsRadarPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot_)
-    disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (plot_ && radarPlot_)
+    disconnect(radarPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsRadarPlot *>(plot);
+  radarPlot_ = dynamic_cast<CQChartsRadarPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
-  if (plot_)
-    connect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+  if (radarPlot_)
+    connect(radarPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
@@ -1235,12 +1237,12 @@ CQChartsColor
 CQChartsRadarPlotCustomControls::
 getColorValue()
 {
-  return plot_->fillColor();
+  return radarPlot_->fillColor();
 }
 
 void
 CQChartsRadarPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setFillColor(c);
+  radarPlot_->setFillColor(c);
 }

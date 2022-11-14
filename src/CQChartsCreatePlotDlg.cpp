@@ -60,6 +60,13 @@ CQChartsCreatePlotDlg::
 {
 }
 
+CQChartsPlot *
+CQChartsCreatePlotDlg::
+plot() const
+{
+  return plot_.data();
+}
+
 void
 CQChartsCreatePlotDlg::
 init()
@@ -2283,7 +2290,7 @@ bool
 CQChartsCreatePlotDlg::
 applySlot()
 {
-  plot_ = nullptr;
+  plot_ = PlotP();
 
   // create plot for typename of current tab
   auto *type = getPlotType();
@@ -2596,7 +2603,7 @@ void
 CQChartsCreatePlotDlg::
 cancelSlot()
 {
-  plot_ = nullptr;
+  plot_ = PlotP();
 
   reject();
 }
@@ -2828,7 +2835,7 @@ int
 CQChartsCreatePlotDlg::
 exec()
 {
-  plot_ = nullptr;
+  plot_ = PlotP();
 
   return QDialog::exec();
 }

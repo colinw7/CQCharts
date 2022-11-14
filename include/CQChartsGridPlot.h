@@ -203,12 +203,12 @@ class CQChartsGridCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot    = CQChartsGridPlot;
-  using RValues = CQChartsRValues;
-  using Angle   = CQChartsAngle;
+  using GridPlot = CQChartsGridPlot;
+  using RValues  = CQChartsRValues;
+  using Angle    = CQChartsAngle;
 
  public:
-  CQChartsGridCellObj(const Plot *plot, const BBox &bbox, const QString &name,
+  CQChartsGridCellObj(const GridPlot *plot, const BBox &bbox, const QString &name,
                       const QString &label, int row, int column, const RValues &values);
 
   QString typeName() const override { return "cell"; }
@@ -224,12 +224,12 @@ class CQChartsGridCellObj : public CQChartsPlotObj {
   void getObjSelectIndices(Indices &inds) const override;
 
  private:
-  const Plot* plot_   { nullptr }; //!< parent plot
-  QString     name_;               //!< cell name
-  QString     label_;              //!< optional label name
-  int         row_    { 0 };       //!< cell row
-  int         column_ { 0 };       //!< cell column
-  RValues     values_;             //!< values
+  const GridPlot* gridPlot_ { nullptr }; //!< parent plot
+  QString         name_;                 //!< cell name
+  QString         label_;                //!< optional label name
+  int             row_      { 0 };       //!< cell row
+  int             column_   { 0 };       //!< cell column
+  RValues         values_;               //!< values
 };
 
 //---
@@ -248,7 +248,7 @@ class CQChartsGridPlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -266,7 +266,7 @@ class CQChartsGridPlotCustomControls : public CQChartsPlotCustomControls {
   void drawTypeSlot();
 
  protected:
-  CQChartsGridPlot* plot_ { nullptr };
+  CQChartsGridPlot* gridPlot_ { nullptr };
 
   FrameData optionsFrame_;
 

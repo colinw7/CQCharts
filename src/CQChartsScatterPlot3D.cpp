@@ -466,30 +466,30 @@ calcRange() const
   // calc data range (x, y, z values)
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsScatterPlot3D *plot) :
-     plot_(plot) {
-      hasGroups_ = (plot_->numGroups() > 1);
+    RowVisitor(const CQChartsScatterPlot3D *scatterPlot) :
+     scatterPlot_(scatterPlot) {
+      hasGroups_ = (scatterPlot_->numGroups() > 1);
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      if (plot_->isInterrupt())
+      if (scatterPlot_->isInterrupt())
         return State::TERMINATE;
 
       //---
 
       // init group
-      ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
+      ModelIndex xModelInd(scatterPlot_, data.row, scatterPlot_->xColumn(), data.parent);
 
-      int groupInd = plot_->rowGroupInd(xModelInd);
+      int groupInd = scatterPlot_->rowGroupInd(xModelInd);
 
-      bool hidden = (hasGroups_ && plot_->isSetHidden(groupInd));
+      bool hidden = (hasGroups_ && scatterPlot_->isSetHidden(groupInd));
       if (hidden) return State::OK;
 
       //---
 
-      bool isCell = (plot_->xColumn().isCell() ||
-                     plot_->yColumn().isCell() ||
-                     plot_->zColumn().isCell());
+      bool isCell = (scatterPlot_->xColumn().isCell() ||
+                     scatterPlot_->yColumn().isCell() ||
+                     scatterPlot_->zColumn().isCell());
 
       if (isCell) {
         for (int col = 0; col < numCols(); ++col) {
@@ -504,9 +504,9 @@ calcRange() const
     }
 
     State visitCell(int col, const VisitData &data) {
-      ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
-      ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
-      ModelIndex zModelInd(plot_, data.row, plot_->zColumn(), data.parent);
+      ModelIndex xModelInd(scatterPlot_, data.row, scatterPlot_->xColumn(), data.parent);
+      ModelIndex yModelInd(scatterPlot_, data.row, scatterPlot_->yColumn(), data.parent);
+      ModelIndex zModelInd(scatterPlot_, data.row, scatterPlot_->zColumn(), data.parent);
 
       xModelInd.setCellCol(col);
       yModelInd.setCellCol(col);
@@ -522,29 +522,29 @@ calcRange() const
       auto modelValue = [&](const ColumnType &columnType, const ModelIndex &modelInd,
                             double &value, bool &ok, bool isLog, int &numUnique) {
         if      (columnType == ColumnType::REAL || columnType == ColumnType::INTEGER) {
-          double defVal = plot_->getModelBadValue(modelInd.column(), data.row);
+          double defVal = scatterPlot_->getModelBadValue(modelInd.column(), data.row);
 
-          ok = plot_->modelMappedReal(modelInd, value, isLog, defVal);
+          ok = scatterPlot_->modelMappedReal(modelInd, value, isLog, defVal);
         }
         else if (columnType == ColumnType::TIME) {
-          value = plot_->modelReal(modelInd, ok);
+          value = scatterPlot_->modelReal(modelInd, ok);
         }
         else if (modelInd.column().isRow() ||
                  modelInd.column().isColumn() ||
                  modelInd.column().isCell())
-          value = plot_->modelReal(modelInd, ok);
+          value = scatterPlot_->modelReal(modelInd, ok);
         else {
           value = uniqueId(modelInd); ++numUnique;
         }
       };
 
-      modelValue(plot_->xColumnType(), xModelInd, x, okx, plot_->isLogX(), uniqueX_);
-      modelValue(plot_->yColumnType(), yModelInd, y, oky, plot_->isLogY(), uniqueY_);
-      modelValue(plot_->zColumnType(), zModelInd, z, okz, /*log*/false   , uniqueZ_);
+      modelValue(scatterPlot_->xColumnType(), xModelInd, x, okx, scatterPlot_->isLogX(), uniqueX_);
+      modelValue(scatterPlot_->yColumnType(), yModelInd, y, oky, scatterPlot_->isLogY(), uniqueY_);
+      modelValue(scatterPlot_->zColumnType(), zModelInd, z, okz, /*log*/false   , uniqueZ_);
 
       //---
 
-      if (plot_->isSkipBad() && (! okx || ! oky || ! okz))
+      if (scatterPlot_->isSkipBad() && (! okx || ! oky || ! okz))
         return State::SKIP;
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y) || CMathUtil::isNaN(z))
@@ -558,7 +558,7 @@ calcRange() const
     int uniqueId(const ModelIndex &columnInd) {
       bool ok;
 
-      auto var = plot_->modelValue(columnInd, ok);
+      auto var = scatterPlot_->modelValue(columnInd, ok);
       if (! var.isValid()) return -1;
 
       auto *columnDetails = this->columnDetails(columnInd.column());
@@ -568,7 +568,7 @@ calcRange() const
 
     CQChartsModelColumnDetails *columnDetails(const Column &column) {
       if (! details_) {
-        auto *modelData = plot_->getModelData();
+        auto *modelData = scatterPlot_->getModelData();
 
         details_ = (modelData ? modelData->details() : nullptr);
       }
@@ -583,13 +583,13 @@ calcRange() const
     bool isUniqueZ() const { return uniqueZ_ == numRows(); }
 
    private:
-    const CQChartsScatterPlot3D* plot_      { nullptr };
-    int                          hasGroups_ { false };
+    const CQChartsScatterPlot3D* scatterPlot_ { nullptr };
+    int                          hasGroups_  { false };
     Range3D                      range3D_;
-    CQChartsModelDetails*        details_   { nullptr };
-    int                          uniqueX_   { 0 };
-    int                          uniqueY_   { 0 };
-    int                          uniqueZ_   { 0 };
+    CQChartsModelDetails*        details_    { nullptr };
+    int                          uniqueX_    { 0 };
+    int                          uniqueY_    { 0 };
+    int                          uniqueZ_    { 0 };
   };
 
   RowVisitor visitor(this);
@@ -962,14 +962,14 @@ addNameValues() const
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsScatterPlot3D *plot) :
-     plot_(plot) {
+    RowVisitor(const CQChartsScatterPlot3D *scatterPlot) :
+     scatterPlot_(scatterPlot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      bool isCell = (plot_->xColumn().isCell() ||
-                     plot_->yColumn().isCell() ||
-                     plot_->zColumn().isCell());
+      bool isCell = (scatterPlot_->xColumn().isCell() ||
+                     scatterPlot_->yColumn().isCell() ||
+                     scatterPlot_->zColumn().isCell());
 
       if (isCell) {
         for (int col = 0; col < numCols(); ++col) {
@@ -984,9 +984,9 @@ addNameValues() const
     }
 
     State visitCell(int col, const VisitData &data) {
-      ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
-      ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
-      ModelIndex zModelInd(plot_, data.row, plot_->zColumn(), data.parent);
+      ModelIndex xModelInd(scatterPlot_, data.row, scatterPlot_->xColumn(), data.parent);
+      ModelIndex yModelInd(scatterPlot_, data.row, scatterPlot_->yColumn(), data.parent);
+      ModelIndex zModelInd(scatterPlot_, data.row, scatterPlot_->zColumn(), data.parent);
 
       xModelInd.setCellCol(col);
       yModelInd.setCellCol(col);
@@ -995,13 +995,13 @@ addNameValues() const
       //---
 
       // get group
-      int groupInd = plot_->rowGroupInd(xModelInd);
+      int groupInd = scatterPlot_->rowGroupInd(xModelInd);
 
       //---
 
       // get x, y, z value
-      auto xInd  = plot_->modelIndex(xModelInd);
-      auto xInd1 = plot_->normalizeIndex(xInd);
+      auto xInd  = scatterPlot_->modelIndex(xModelInd);
+      auto xInd1 = scatterPlot_->normalizeIndex(xInd);
 
       double x   { 0.0  }, y   { 0.0  }, z   { 0.0  };
       bool   okx { true }, oky { true }, okz { true };
@@ -1011,29 +1011,29 @@ addNameValues() const
       auto modelValue = [&](const ColumnType &columnType, const ModelIndex &modelInd,
                             double &value, bool &ok, bool isLog) {
         if      (columnType == ColumnType::REAL || columnType == ColumnType::INTEGER) {
-          double defVal = plot_->getModelBadValue(modelInd.column(), data.row);
+          double defVal = scatterPlot_->getModelBadValue(modelInd.column(), data.row);
 
-          ok = plot_->modelMappedReal(modelInd, value, isLog, defVal);
+          ok = scatterPlot_->modelMappedReal(modelInd, value, isLog, defVal);
         }
         else if (columnType == ColumnType::TIME) {
-          value = plot_->modelReal(modelInd, ok);
+          value = scatterPlot_->modelReal(modelInd, ok);
         }
         else if (modelInd.column().isRow() ||
                  modelInd.column().isColumn() ||
                  modelInd.column().isCell())
-          value = plot_->modelReal(modelInd, ok);
+          value = scatterPlot_->modelReal(modelInd, ok);
         else {
           value = uniqueId(modelInd);
         }
       };
 
-      modelValue(plot_->xColumnType(), xModelInd, x, okx, plot_->isLogX());
-      modelValue(plot_->yColumnType(), yModelInd, y, oky, plot_->isLogY());
-      modelValue(plot_->zColumnType(), zModelInd, z, okz, /*log*/false);
+      modelValue(scatterPlot_->xColumnType(), xModelInd, x, okx, scatterPlot_->isLogX());
+      modelValue(scatterPlot_->yColumnType(), yModelInd, y, oky, scatterPlot_->isLogY());
+      modelValue(scatterPlot_->zColumnType(), zModelInd, z, okz, /*log*/false);
 
       //---
 
-      if (plot_->isSkipBad() && (! okx || ! oky || ! okz))
+      if (scatterPlot_->isSkipBad() && (! okx || ! oky || ! okz))
         return State::SKIP;
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
@@ -1044,16 +1044,16 @@ addNameValues() const
       // get optional grouping name (name column, title)
       QString name;
 
-      if (plot_->nameColumn().isValid()) {
-        ModelIndex nameColumnInd(plot_, data.row, plot_->nameColumn(), data.parent);
+      if (scatterPlot_->nameColumn().isValid()) {
+        ModelIndex nameColumnInd(scatterPlot_, data.row, scatterPlot_->nameColumn(), data.parent);
 
         bool ok;
 
-        name = plot_->modelString(nameColumnInd, ok);
+        name = scatterPlot_->modelString(nameColumnInd, ok);
       }
 
-      if (! name.length() && plot_->title())
-        name = plot_->title()->textStr();
+      if (! name.length() && scatterPlot_->title())
+        name = scatterPlot_->title()->textStr();
 
       //---
 
@@ -1061,13 +1061,13 @@ addNameValues() const
       Color color;
 
       // get color label (needed if not string ?)
-      if (plot_->colorColumn().isValid()) {
-        (void) plot_->colorColumnColor(data.row, data.parent, color);
+      if (scatterPlot_->colorColumn().isValid()) {
+        (void) scatterPlot_->colorColumnColor(data.row, data.parent, color);
       }
 
       //---
 
-      auto *plot = const_cast<CQChartsScatterPlot3D *>(plot_);
+      auto *plot = const_cast<CQChartsScatterPlot3D *>(scatterPlot_);
 
       Point3D p(x, y, z);
 
@@ -1079,7 +1079,7 @@ addNameValues() const
     int uniqueId(const ModelIndex &columnInd) {
       bool ok;
 
-      auto var = plot_->modelValue(columnInd, ok);
+      auto var = scatterPlot_->modelValue(columnInd, ok);
       if (! var.isValid()) return -1;
 
       auto *columnDetails = this->columnDetails(columnInd.column());
@@ -1089,7 +1089,7 @@ addNameValues() const
 
     CQChartsModelColumnDetails *columnDetails(const Column &column) {
       if (! details_) {
-        auto *modelData = plot_->getModelData();
+        auto *modelData = scatterPlot_->getModelData();
 
         details_ = (modelData ? modelData->details() : nullptr);
       }
@@ -1098,8 +1098,8 @@ addNameValues() const
     }
 
    private:
-    const CQChartsScatterPlot3D* plot_    { nullptr };
-    CQChartsModelDetails*        details_ { nullptr };
+    const CQChartsScatterPlot3D* scatterPlot_ { nullptr };
+    CQChartsModelDetails*        details_     { nullptr };
   };
 
   RowVisitor visitor(this);
@@ -1500,14 +1500,14 @@ draw3D()
 
     class RowVisitor : public ModelVisitor {
      public:
-      RowVisitor(const CQChartsScatterPlot3D *plot, ValuesData *values) :
-       plot_(plot), values_(values) {
+      RowVisitor(const CQChartsScatterPlot3D *scatterPlot, ValuesData *values) :
+       scatterPlot_(scatterPlot), values_(values) {
       }
 
       State visit(const QAbstractItemModel *, const VisitData &data) override {
-        ModelIndex xModelInd(plot_, data.row, plot_->xColumn(), data.parent);
-        ModelIndex yModelInd(plot_, data.row, plot_->yColumn(), data.parent);
-        ModelIndex zModelInd(plot_, data.row, plot_->zColumn(), data.parent);
+        ModelIndex xModelInd(scatterPlot_, data.row, scatterPlot_->xColumn(), data.parent);
+        ModelIndex yModelInd(scatterPlot_, data.row, scatterPlot_->yColumn(), data.parent);
+        ModelIndex zModelInd(scatterPlot_, data.row, scatterPlot_->zColumn(), data.parent);
 
         //---
 
@@ -1517,18 +1517,18 @@ draw3D()
         //---
 
         auto modelValue = [&](const ModelIndex &modelInd, double &value, bool &ok, bool isLog) {
-          double defVal = plot_->getModelBadValue(modelInd.column(), data.row);
+          double defVal = scatterPlot_->getModelBadValue(modelInd.column(), data.row);
 
-          ok = plot_->modelMappedReal(modelInd, value, isLog, defVal);
+          ok = scatterPlot_->modelMappedReal(modelInd, value, isLog, defVal);
         };
 
-        modelValue(xModelInd, x, okx, plot_->isLogX());
-        modelValue(yModelInd, y, oky, plot_->isLogY());
+        modelValue(xModelInd, x, okx, scatterPlot_->isLogX());
+        modelValue(yModelInd, y, oky, scatterPlot_->isLogY());
         modelValue(zModelInd, z, okz, /*log*/false   );
 
         //---
 
-        if (plot_->isSkipBad() && (! okx || ! oky || ! okz))
+        if (scatterPlot_->isSkipBad() && (! okx || ! oky || ! okz))
           return State::SKIP;
 
         if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y) || CMathUtil::isNaN(z))
@@ -1542,10 +1542,10 @@ draw3D()
 
         ValueData v(p);
 
-        if (plot_->colorColumn().isValid()) {
+        if (scatterPlot_->colorColumn().isValid()) {
           Color color;
 
-          if (plot_->colorColumnColor(data.row, data.parent, color))
+          if (scatterPlot_->colorColumnColor(data.row, data.parent, color))
             v.color = color;
         }
 
@@ -1555,7 +1555,7 @@ draw3D()
       }
 
      private:
-      const CQChartsScatterPlot3D* plot_    { nullptr };
+      const CQChartsScatterPlot3D* scatterPlot_ { nullptr };
       ValuesData*                  values_;
     };
 
@@ -2278,7 +2278,7 @@ setPlot(CQChartsPlot *plot)
   if (plot_)
     disconnect(plot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  plot_ = dynamic_cast<CQChartsScatterPlot3D *>(plot);
+  scatter3DPlot_ = dynamic_cast<CQChartsScatterPlot3D *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 

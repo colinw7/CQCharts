@@ -953,11 +953,11 @@ loadHier() const
 {
   class RowVisitor : public ModelVisitor {
    public:
-    using Plot = CQChartsTreeMapPlot;
+    using TreeMapPlot = CQChartsTreeMapPlot;
 
    public:
-    RowVisitor(const Plot *plot, HierNode *root) :
-     plot_(plot) {
+    RowVisitor(const TreeMapPlot *treeMapPlot, HierNode *root) :
+     treeMapPlot_(treeMapPlot) {
       hierStack_.push_back(root);
     }
 
@@ -970,7 +970,7 @@ loadHier() const
 
       //---
 
-      auto *hier = plot_->addHierNode("", parentHier(), name, nameInd);
+      auto *hier = treeMapPlot_->addHierNode("", parentHier(), name, nameInd);
 
       //---
 
@@ -987,7 +987,7 @@ loadHier() const
       assert(! hierStack_.empty());
 
       if (hier->hierSize() == 0) {
-        auto *plot = const_cast<Plot *>(plot_);
+        auto *plot = const_cast<TreeMapPlot *>(treeMapPlot_);
 
         plot->removeHierNode(hier);
       }
@@ -1011,12 +1011,12 @@ loadHier() const
 
       //---
 
-      auto *node = plot_->hierAddNode("", parentHier(), name, size, nameInd);
+      auto *node = treeMapPlot_->hierAddNode("", parentHier(), name, size, nameInd);
 
-      if (node && plot_->colorColumn().isValid()) {
+      if (node && treeMapPlot_->colorColumn().isValid()) {
         Color color;
 
-        if (plot_->colorColumnColor(data.row, data.parent, color))
+        if (treeMapPlot_->colorColumnColor(data.row, data.parent, color))
           node->setColor(color);
       }
 
@@ -1033,22 +1033,23 @@ loadHier() const
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
       bool ok;
 
-      ModelIndex nameModelInd(plot_, data.row, plot_->nameColumns().column(), data.parent);
+      ModelIndex nameModelInd(treeMapPlot_, data.row, treeMapPlot_->nameColumns().column(),
+                              data.parent);
 
-      nameInd = plot_->modelIndex(nameModelInd);
+      nameInd = treeMapPlot_->modelIndex(nameModelInd);
 
-      name = plot_->modelString(nameModelInd, ok);
+      name = treeMapPlot_->modelString(nameModelInd, ok);
 
       return ok;
     }
 
     bool getSize(const VisitData &data, double &size) {
-      if (! plot_->valueColumn().isValid())
+      if (! treeMapPlot_->valueColumn().isValid())
         return false;
 
-      ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
+      ModelIndex valueModelInd(treeMapPlot_, data.row, treeMapPlot_->valueColumn(), data.parent);
 
-      if (! plot_->getValueSize(valueModelInd, size))
+      if (! treeMapPlot_->getValueSize(valueModelInd, size))
         return false;
 
       if (size == 0.0)
@@ -1060,8 +1061,8 @@ loadHier() const
    private:
     using HierStack = std::vector<HierNode *>;
 
-    const Plot* plot_ { nullptr };
-    HierStack   hierStack_;
+    const TreeMapPlot* treeMapPlot_ { nullptr };
+    HierStack          hierStack_;
   };
 
   RowVisitor visitor(this, root(""));
@@ -1133,23 +1134,23 @@ loadFlat() const
 {
   class RowVisitor : public ModelVisitor {
    public:
-    using Plot = CQChartsTreeMapPlot;
+    using TreeMapPlot = CQChartsTreeMapPlot;
 
    public:
-    RowVisitor(const Plot *plot) :
-     plot_(plot) {
-      groupColumn_ = plot_->groupColumn();
+    RowVisitor(const TreeMapPlot *treeMapPlot) :
+     treeMapPlot_(treeMapPlot) {
+      groupColumn_ = treeMapPlot_->groupColumn();
 
       if (groupColumn_.isValid()) {
-        for (const auto &c : plot_->nameColumns())
+        for (const auto &c : treeMapPlot_->nameColumns())
           if (c != groupColumn_)
             nameColumns_.addColumn(c);
 
         if (nameColumns_.count() == 0)
-          nameColumns_ = plot_->nameColumns();
+          nameColumns_ = treeMapPlot_->nameColumns();
       }
       else
-        nameColumns_ = plot_->nameColumns();
+        nameColumns_ = treeMapPlot_->nameColumns();
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -1157,10 +1158,10 @@ loadFlat() const
       QStringList   nameStrs;
       QModelIndices nameInds;
 
-      auto sep = plot_->calcSeparator();
+      auto sep = treeMapPlot_->calcSeparator();
 
-      if (! plot_->getHierColumnNames(data.parent, data.row, nameColumns_,
-                                      sep, nameStrs, nameInds))
+      if (! treeMapPlot_->getHierColumnNames(data.parent, data.row, nameColumns_,
+                                             sep, nameStrs, nameInds))
         return State::SKIP;
 
       //---
@@ -1169,11 +1170,11 @@ loadFlat() const
       QString groupName;
 
       if (groupColumn_.isValid()) {
-        ModelIndex groupModelInd(plot_, data.row, groupColumn_, data.parent);
+        ModelIndex groupModelInd(treeMapPlot_, data.row, groupColumn_, data.parent);
 
         bool ok;
 
-        groupName = plot_->modelString(groupModelInd, ok); // hier ?
+        groupName = treeMapPlot_->modelString(groupModelInd, ok); // hier ?
 
         if (groupName == "")
           groupName = "<none>";
@@ -1185,24 +1186,24 @@ loadFlat() const
       QString     name;
       QModelIndex nameInd;
 
-      if (plot_->idColumn().isValid()) {
-        ModelIndex idModelInd(plot_, data.row, plot_->idColumn(), data.parent);
+      if (treeMapPlot_->idColumn().isValid()) {
+        ModelIndex idModelInd(treeMapPlot_, data.row, treeMapPlot_->idColumn(), data.parent);
 
         bool ok;
 
-        name = plot_->modelString(idModelInd, ok);
+        name = treeMapPlot_->modelString(idModelInd, ok);
 
         if (! ok)
           name = nameStrs.back();
 
-        nameInd = plot_->modelIndex(idModelInd);
+        nameInd = treeMapPlot_->modelIndex(idModelInd);
       }
       else {
         name    = nameStrs.back();
         nameInd = nameInds[0];
       }
 
-      auto nameInd1 = plot_->normalizeIndex(nameInd);
+      auto nameInd1 = treeMapPlot_->normalizeIndex(nameInd);
 
       //---
 
@@ -1217,7 +1218,7 @@ loadFlat() const
       //---
 
       // create node
-      auto *node = plot_->flatAddNode(groupName, nameStrs, size, nameInd1, name);
+      auto *node = treeMapPlot_->flatAddNode(groupName, nameStrs, size, nameInd1, name);
 
       if (groupName != "")
         groupNameSet_.insert(groupName);
@@ -1225,10 +1226,10 @@ loadFlat() const
       //---
 
       // set color from color column
-      if (node && plot_->colorColumn().isValid()) {
+      if (node && treeMapPlot_->colorColumn().isValid()) {
         Color color;
 
-        if (plot_->colorColumnColor(data.row, data.parent, color))
+        if (treeMapPlot_->colorColumnColor(data.row, data.parent, color))
           node->setColor(color);
       }
 
@@ -1239,12 +1240,12 @@ loadFlat() const
 
    private:
     bool getSize(const VisitData &data, double &size) const {
-      if (! plot_->valueColumn().isValid())
+      if (! treeMapPlot_->valueColumn().isValid())
         return true;
 
-      ModelIndex valueModelInd(plot_, data.row, plot_->valueColumn(), data.parent);
+      ModelIndex valueModelInd(treeMapPlot_, data.row, treeMapPlot_->valueColumn(), data.parent);
 
-      if (! plot_->getValueSize(valueModelInd, size))
+      if (! treeMapPlot_->getValueSize(valueModelInd, size))
         return false;
 
       if (size <= 0.0) // allow negative ?
@@ -1254,10 +1255,10 @@ loadFlat() const
     }
 
    private:
-    const Plot*  plot_ { nullptr };
-    Column       groupColumn_;
-    Columns      nameColumns_;
-    GroupNameSet groupNameSet_;
+    const TreeMapPlot* treeMapPlot_ { nullptr };
+    Column             groupColumn_;
+    Columns            nameColumns_;
+    GroupNameSet       groupNameSet_;
   };
 
   //---
@@ -2063,7 +2064,7 @@ createCustomControls()
 //------
 
 CQChartsTreeMapHierObj::
-CQChartsTreeMapHierObj(const Plot *plot, HierNode *hier, HierObj *hierObj,
+CQChartsTreeMapHierObj(const TreeMapPlot *plot, HierNode *hier, HierObj *hierObj,
                        const BBox &rect, const ColorInd &is) :
  CQChartsTreeMapNodeObj(plot, hier, hierObj, rect, is), hier_(hier)
 {
@@ -2083,7 +2084,7 @@ QString
 CQChartsTreeMapHierObj::
 calcTipId() const
 {
-  // auto sep = plot_->calcSeparator();
+  // auto sep = treeMapPlot_->calcSeparator();
   //return QString("%1:%2").arg(hier_->hierName(sep)).arg(hier_->hierSize());
   return CQChartsTreeMapNodeObj::calcTipId();
 }
@@ -2134,7 +2135,7 @@ isSelectable() const
   //---
 
   if (hier_->isHierExpanded())
-    return plot_->isHierSelect();
+    return treeMapPlot_->isHierSelect();
 
   return true;
 }
@@ -2150,25 +2151,25 @@ void
 CQChartsTreeMapHierObj::
 getObjSelectIndices(Indices &inds) const
 {
-  return addColumnSelectIndex(inds, plot_->valueColumn());
+  return addColumnSelectIndex(inds, treeMapPlot_->valueColumn());
 }
 
 bool
 CQChartsTreeMapHierObj::
 selectDoubleClick(const Point &, SelMod)
 {
-  auto *plot = const_cast<CQChartsTreeMapPlot *>(plot_);
+  auto *treeMapPlot = const_cast<CQChartsTreeMapPlot *>(treeMapPlot_);
 
-  if (plot->isFollowViewExpand()) {
+  if (treeMapPlot->isFollowViewExpand()) {
     if (modelInd().isValid())
-      plot->expandModelIndex(modelInd(), true);
+      treeMapPlot->expandModelIndex(modelInd(), true);
 
-    plot->drawObjs();
+    treeMapPlot->drawObjs();
   }
   else {
     hierNode()->setExpanded(! hierNode()->isExpanded());
 
-    plot->drawObjs();
+    treeMapPlot->drawObjs();
   }
 
   return true;
@@ -2231,9 +2232,9 @@ CQChartsTreeMapHierObj::
 drawHeader(PaintDevice *device, const BBox &bbox, bool updateState) const
 {
   // get label (name)
-  auto sep = plot_->calcSeparator();
+  auto sep = treeMapPlot_->calcSeparator();
 
-  auto name = (plot_->isTitleHierName() ? hier_->hierName(sep) : hier_->name());
+  auto name = (treeMapPlot_->isTitleHierName() ? hier_->hierName(sep) : hier_->name());
 
   //---
 
@@ -2246,12 +2247,12 @@ drawHeader(PaintDevice *device, const BBox &bbox, bool updateState) const
   // calc text pen
   auto tPenBrush = penBrush;
 
-  auto tc = plot_->interpHeaderTextColor(ColorInd());
+  auto tc = treeMapPlot_->interpHeaderTextColor(ColorInd());
 
-  plot_->setPen(tPenBrush, PenData(true, tc, plot_->headerTextAlpha()));
+  treeMapPlot_->setPen(tPenBrush, PenData(true, tc, treeMapPlot_->headerTextAlpha()));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, tPenBrush);
+    treeMapPlot_->updateObjPenBrushState(this, tPenBrush);
 
   //---
 
@@ -2260,16 +2261,16 @@ drawHeader(PaintDevice *device, const BBox &bbox, bool updateState) const
   //---
 
   // set font
-  plot_->setPainterFont(device, plot_->headerTextFont());
+  treeMapPlot_->setPainterFont(device, treeMapPlot_->headerTextFont());
 
   //---
 
   // check if text visible (font dependent)
-  auto pbbox = plot_->windowToPixel(bbox);
+  auto pbbox = treeMapPlot_->windowToPixel(bbox);
 
   bool visible = true;
 
-  if (plot_->isTitleTextClipped()) {
+  if (treeMapPlot_->isTitleTextClipped()) {
     QFontMetricsF fm(device->font());
 
     double minTextWidth  = fm.horizontalAdvance("X") + 4;
@@ -2282,17 +2283,17 @@ drawHeader(PaintDevice *device, const BBox &bbox, bool updateState) const
 
   if (visible) {
     // get header bbox
-    double m = plot_->titleMargin(); // margin in pixels
+    double m = treeMapPlot_->titleMargin(); // margin in pixels
 
-    double hh = plot_->calcTitleHeight(); // title height in pixels
+    double hh = treeMapPlot_->calcTitleHeight(); // title height in pixels
 
     BBox pbbox1(pbbox.getXMin(), pbbox.getYMin(),
                 pbbox.getXMax(), pbbox.getYMin() + hh);
     BBox pbbox2(pbbox.getXMin() + m, pbbox.getYMin(),
                 pbbox.getXMax() - m, pbbox.getYMin() + hh);
 
-    auto bbox1 = plot_->pixelToWindow(pbbox1);
-    auto bbox2 = plot_->pixelToWindow(pbbox2);
+    auto bbox1 = treeMapPlot_->pixelToWindow(pbbox1);
+    auto bbox2 = treeMapPlot_->pixelToWindow(pbbox2);
 
     //---
 
@@ -2308,19 +2309,19 @@ drawHeader(PaintDevice *device, const BBox &bbox, bool updateState) const
     //---
 
     // draw header label
-    plot_->charts()->setContrastColor(penBrush.brush.color());
+    treeMapPlot_->charts()->setContrastColor(penBrush.brush.color());
 
-    auto textOptions = plot_->headerTextOptions(device);
+    auto textOptions = treeMapPlot_->headerTextOptions(device);
 
-    textOptions.clipped = plot_->isTitleTextClipped();
+    textOptions.clipped = treeMapPlot_->isTitleTextClipped();
 
-    textOptions = plot_->adjustTextOptions(textOptions);
+    textOptions = treeMapPlot_->adjustTextOptions(textOptions);
 
     device->setPen(tPenBrush.pen);
 
     CQChartsDrawUtil::drawTextInBox(device, bbox2, name, textOptions);
 
-    plot_->charts()->resetContrastColor();
+    treeMapPlot_->charts()->resetContrastColor();
   }
 
   //---
@@ -2333,24 +2334,25 @@ CQChartsTreeMapHierObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   if (numColorIds_ < 0)
-    numColorIds_ = plot_->numColorIds(calcGroupName());
+    numColorIds_ = treeMapPlot_->numColorIds(calcGroupName());
 
   // calc stroke and brush
   auto colorInd = calcColorInd();
 
-  auto bc = plot_->interpHierStrokeColor(colorInd);
+  auto bc = treeMapPlot_->interpHierStrokeColor(colorInd);
 
   if (isChildSelected())
     bc.setAlphaF(1.0);
 
-  auto hierColor = hier_->interpColor(plot_, plot_->hierFillColor(), colorInd, numColorIds_);
+  auto hierColor = hier_->interpColor(treeMapPlot_, treeMapPlot_->hierFillColor(),
+                                      colorInd, numColorIds_);
 
   QColor fc;
 
   if (hierNode()->isExpanded()) {
-    if (plot_->hierColorType() != Plot::HierColorType::PARENT_VALUE &&
-        plot_->hierColorType() != Plot::HierColorType::GLOBAL_VALUE) {
-      auto c = plot_->interpHierFillColor(colorInd);
+    if (treeMapPlot_->hierColorType() != TreeMapPlot::HierColorType::PARENT_VALUE &&
+        treeMapPlot_->hierColorType() != TreeMapPlot::HierColorType::GLOBAL_VALUE) {
+      auto c = treeMapPlot_->interpHierFillColor(colorInd);
 
       fc = CQChartsUtil::blendColors(c, hierColor, 0.8);
     }
@@ -2360,10 +2362,11 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   else
     fc = hierColor;
 
-  plot_->setPenBrush(penBrush, plot_->hierPenData(bc), plot_->hierBrushData(fc));
+  treeMapPlot_->setPenBrush(penBrush, treeMapPlot_->hierPenData(bc),
+                            treeMapPlot_->hierBrushData(fc));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    treeMapPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 void
@@ -2372,22 +2375,23 @@ calcHeaderPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto colorInd = calcColorInd();
 
-  auto bc = plot_->interpHeaderStrokeColor(colorInd);
-  auto fc = plot_->interpHeaderFillColor(colorInd);
+  auto bc = treeMapPlot_->interpHeaderStrokeColor(colorInd);
+  auto fc = treeMapPlot_->interpHeaderFillColor(colorInd);
 
-  plot_->setPenBrush(penBrush, plot_->headerPenData(bc), plot_->headerBrushData(fc));
+  treeMapPlot_->setPenBrush(penBrush, treeMapPlot_->headerPenData(bc),
+                            treeMapPlot_->headerBrushData(fc));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    treeMapPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
 
 CQChartsTreeMapNodeObj::
-CQChartsTreeMapNodeObj(const Plot *plot, Node *node, HierObj *hierObj,
+CQChartsTreeMapNodeObj(const TreeMapPlot *treeMapPlot, Node *node, HierObj *hierObj,
                        const BBox &rect, const ColorInd &is) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ColorInd(), ColorInd()),
- plot_(plot), node_(node), hierObj_(hierObj)
+ CQChartsPlotObj(const_cast<TreeMapPlot *>(treeMapPlot), rect, is, ColorInd(), ColorInd()),
+ treeMapPlot_(treeMapPlot), node_(node), hierObj_(hierObj)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -2402,7 +2406,7 @@ calcId() const
 //if (node_->isFiller())
 //  return hierObj_->calcId();
 
-  auto ind1 = plot_->unnormalizeIndex(node_->ind());
+  auto ind1 = treeMapPlot_->unnormalizeIndex(node_->ind());
 
   QString idStr;
 
@@ -2422,38 +2426,39 @@ calcTipId() const
 
   CQChartsTableTip tableTip;
 
-  auto sep = plot_->calcSeparator();
+  auto sep = treeMapPlot_->calcSeparator();
 
-  if (plot_->idColumn().isValid())
+  if (treeMapPlot_->idColumn().isValid())
     tableTip.addTableRow("Name", (node_->isFiller() ?
       node_->parent()->name() : node_->name()));
   else
     tableTip.addTableRow("Name", (node_->isFiller() ?
       node_->parent()->hierName(sep) : node_->hierName(sep)));
 
-  auto ind1 = plot_->unnormalizeIndex(node_->isFiller() ? node_->parent()->ind() : node_->ind());
+  auto ind1 = treeMapPlot_->unnormalizeIndex(node_->isFiller() ?
+                node_->parent()->ind() : node_->ind());
 
   QString valueName;
 
-  if (plot_->valueColumn().isValid())
-    valueName = plot_->columnHeaderName(plot_->valueColumn(), /*tip*/true);
+  if (treeMapPlot_->valueColumn().isValid())
+    valueName = treeMapPlot_->columnHeaderName(treeMapPlot_->valueColumn(), /*tip*/true);
 
   if (valueName == "")
     valueName = "Value";
 
   tableTip.addTableRow(valueName, node_->hierSize());
 
-  if (plot_->colorColumn().isValid()) {
-    ModelIndex colorInd1(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
+  if (treeMapPlot_->colorColumn().isValid()) {
+    ModelIndex colorInd1(treeMapPlot_, ind1.row(), treeMapPlot_->colorColumn(), ind1.parent());
 
     bool ok;
 
-    auto colorStr = plot_->modelString(colorInd1, ok);
+    auto colorStr = treeMapPlot_->modelString(colorInd1, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }
 
-  plot_->addTipColumn(tableTip, plot_->groupColumn(), ind1);
+  treeMapPlot_->addTipColumn(tableTip, treeMapPlot_->groupColumn(), ind1);
 
   //---
 
@@ -2497,10 +2502,10 @@ void
 CQChartsTreeMapNodeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : plot_->nameColumns())
+  for (const auto &c : treeMapPlot_->nameColumns())
     addColumnSelectIndex(inds, c);
 
-  addColumnSelectIndex(inds, plot_->valueColumn());
+  addColumnSelectIndex(inds, treeMapPlot_->valueColumn());
 }
 
 void
@@ -2520,8 +2525,8 @@ draw(PaintDevice *device) const
   if (this->isMinArea())
     return;
 
-  auto p1 = plot_->windowToPixel(Point(node_->x()             , node_->y()             ));
-  auto p2 = plot_->windowToPixel(Point(node_->x() + node_->w(), node_->y() + node_->h()));
+  auto p1 = treeMapPlot_->windowToPixel(Point(node_->x()             , node_->y()             ));
+  auto p2 = treeMapPlot_->windowToPixel(Point(node_->x() + node_->w(), node_->y() + node_->h()));
 
   bool isNodePoint = this->isNodePoint();
 
@@ -2550,9 +2555,9 @@ draw(PaintDevice *device) const
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   if (isNodePoint)
-    device->drawPoint(plot_->pixelToWindow(point));
+    device->drawPoint(treeMapPlot_->pixelToWindow(point));
   else
-    device->drawRect(plot_->pixelToWindow(pbbox));
+    device->drawRect(treeMapPlot_->pixelToWindow(pbbox));
 
   device->resetColorNames();
 
@@ -2563,7 +2568,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  if (plot_->isTextVisible())
+  if (treeMapPlot_->isTextVisible())
     drawText(device, pbbox, updateState);
 }
 
@@ -2576,12 +2581,12 @@ drawText(PaintDevice *device, const BBox &pbbox, bool updateState) const
 
   QString name;
 
-  if (plot_->isHierName()) {
-    auto sep = plot_->calcSeparator();
+  if (treeMapPlot_->isHierName()) {
+    auto sep = treeMapPlot_->calcSeparator();
 
     name = (! node_->isFiller() ? node_->hierName(sep) : node_->parent()->hierName(sep));
 
-    int nh = plot_->numSkipHier();
+    int nh = treeMapPlot_->numSkipHier();
 
     if (nh > 0) {
       auto strs = name.split(sep);
@@ -2601,7 +2606,7 @@ drawText(PaintDevice *device, const BBox &pbbox, bool updateState) const
 
   strs.push_back(name);
 
-  if (plot_->isValueLabel()) {
+  if (treeMapPlot_->isValueLabel()) {
     if (node_->isHier())
       strs.push_back(QString::number(node_->hierSize()));
     else
@@ -2614,7 +2619,7 @@ drawText(PaintDevice *device, const BBox &pbbox, bool updateState) const
 
   calcPenBrushNodePoint(penBrush, /*isNodePoint*/false, updateState);
 
-  plot_->charts()->setContrastColor(penBrush.brush.color());
+  treeMapPlot_->charts()->setContrastColor(penBrush.brush.color());
 
   //---
 
@@ -2623,12 +2628,12 @@ drawText(PaintDevice *device, const BBox &pbbox, bool updateState) const
 
   PenBrush tPenBrush;
 
-  auto tc = plot_->interpTextColor(colorInd);
+  auto tc = treeMapPlot_->interpTextColor(colorInd);
 
-  plot_->setPen(tPenBrush, PenData(true, tc, plot_->textAlpha()));
+  treeMapPlot_->setPen(tPenBrush, PenData(true, tc, treeMapPlot_->textAlpha()));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, tPenBrush);
+    treeMapPlot_->updateObjPenBrushState(this, tPenBrush);
 
   //---
 
@@ -2637,14 +2642,14 @@ drawText(PaintDevice *device, const BBox &pbbox, bool updateState) const
   //---
 
   // set font
-  plot_->setPainterFont(device, plot_->textFont());
+  treeMapPlot_->setPainterFont(device, treeMapPlot_->textFont());
 
   //---
 
   // check if text visible (font dependent)
   bool visible = true;
 
-  if (plot_->isTextClipped()) {
+  if (treeMapPlot_->isTextClipped()) {
     QFontMetricsF fm(device->font());
 
     double minTextWidth  = fm.horizontalAdvance("X") + 4;
@@ -2657,24 +2662,24 @@ drawText(PaintDevice *device, const BBox &pbbox, bool updateState) const
 
   // draw label
   if (visible) {
-    auto textOptions = plot_->textOptions();
+    auto textOptions = treeMapPlot_->textOptions();
 
-    textOptions.clipped    = plot_->isTextClipped();
-    textOptions.formatSeps = plot_->calcSeparator();
+    textOptions.clipped    = treeMapPlot_->isTextClipped();
+    textOptions.formatSeps = treeMapPlot_->calcSeparator();
 
-    textOptions = plot_->adjustTextOptions(textOptions);
+    textOptions = treeMapPlot_->adjustTextOptions(textOptions);
 
     device->setPen(tPenBrush.pen);
 
     auto ibbox = pbbox.adjusted(3, 3, -3, -3);
 
-    auto bbox1 = plot_->pixelToWindow(ibbox);
+    auto bbox1 = treeMapPlot_->pixelToWindow(ibbox);
 
-    if (! plot_->isValueLabel()) {
+    if (! treeMapPlot_->isValueLabel()) {
       CQChartsDrawUtil::drawTextInBox(device, bbox1, name, textOptions);
     }
     else {
-      if (plot_->isTextClipped())
+      if (treeMapPlot_->isTextClipped())
         device->setClipRect(bbox1);
 
       if (textOptions.formatted) {
@@ -2689,7 +2694,7 @@ drawText(PaintDevice *device, const BBox &pbbox, bool updateState) const
 
   //---
 
-  plot_->charts()->resetContrastColor();
+  treeMapPlot_->charts()->resetContrastColor();
 
   device->restore();
 }
@@ -2708,35 +2713,37 @@ CQChartsTreeMapNodeObj::
 calcPenBrushNodePoint(PenBrush &penBrush, bool isNodePoint, bool updateState) const
 {
   if (numColorIds_ < 0)
-    numColorIds_ = plot_->numColorIds(calcGroupName());
+    numColorIds_ = treeMapPlot_->numColorIds(calcGroupName());
 
   // calc stroke and brush
   auto colorInd = calcColorInd();
 
-  auto bc = plot_->interpStrokeColor(colorInd);
-  auto fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, numColorIds_);
+  auto bc = treeMapPlot_->interpStrokeColor(colorInd);
+  auto fc = node_->interpColor(treeMapPlot_, treeMapPlot_->fillColor(), colorInd, numColorIds_);
 
   // is node single pixel point
   if (isNodePoint) {
-    if      (plot_->isFilled())
-      plot_->setPenBrush(penBrush, PenData(true, fc, plot_->fillAlpha()), plot_->brushData(fc));
-    else if (plot_->isStroked())
-      plot_->setPenBrush(penBrush, plot_->penData(bc), BrushData(true, bc, plot_->strokeAlpha()));
+    if      (treeMapPlot_->isFilled())
+      treeMapPlot_->setPenBrush(penBrush, PenData(true, fc, treeMapPlot_->fillAlpha()),
+                                treeMapPlot_->brushData(fc));
+    else if (treeMapPlot_->isStroked())
+      treeMapPlot_->setPenBrush(penBrush, treeMapPlot_->penData(bc),
+                                BrushData(true, bc, treeMapPlot_->strokeAlpha()));
   }
   // is normal node
   else {
-    plot_->setPenBrush(penBrush, plot_->penData(bc), plot_->brushData(fc));
+    treeMapPlot_->setPenBrush(penBrush, treeMapPlot_->penData(bc), treeMapPlot_->brushData(fc));
   }
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    treeMapPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 bool
 CQChartsTreeMapNodeObj::
 isMinArea() const
 {
-  auto &minArea = plot_->minArea();
+  auto &minArea = treeMapPlot_->minArea();
 
   if (! minArea.isValid())
     return false;
@@ -2745,8 +2752,8 @@ isMinArea() const
     return (minArea.value() > (node_->w()*node_->h()));
   }
   else if (minArea.units() == Units::PIXEL) {
-    auto pw = plot_->windowToPixelWidth (node_->w());
-    auto ph = plot_->windowToPixelHeight(node_->h());
+    auto pw = treeMapPlot_->windowToPixelWidth (node_->w());
+    auto ph = treeMapPlot_->windowToPixelHeight(node_->h());
 
     return (minArea.value() > (pw*ph));
   }
@@ -2758,8 +2765,8 @@ bool
 CQChartsTreeMapNodeObj::
 isNodePoint() const
 {
-  auto p1 = plot_->windowToPixel(Point(node_->x()             , node_->y()             ));
-  auto p2 = plot_->windowToPixel(Point(node_->x() + node_->w(), node_->y() + node_->h()));
+  auto p1 = treeMapPlot_->windowToPixel(Point(node_->x()             , node_->y()             ));
+  auto p2 = treeMapPlot_->windowToPixel(Point(node_->x() + node_->w(), node_->y() + node_->h()));
 
   double pw = std::abs(p2.x - p1.x) - 2;
   double ph = std::abs(p2.y - p1.y) - 2;
@@ -2787,7 +2794,7 @@ isChildSelected() const
 //------
 
 CQChartsTreeMapHierNode::
-CQChartsTreeMapHierNode(const Plot *plot, HierNode *parent, const QString &name,
+CQChartsTreeMapHierNode(const TreeMapPlot *plot, HierNode *parent, const QString &name,
                         const QModelIndex &ind) :
  CQChartsTreeMapNode(plot, parent, name, 0.0, ind)
 {
@@ -2811,9 +2818,9 @@ setExpanded(bool b)
 {
   expanded_ = b;
 
-  auto sep = plot_->calcSeparator();
+  auto sep = treeMapPlot_->calcSeparator();
 
-  const_cast<Plot *>(plot_)->setPathExpanded(hierName(sep), expanded_);
+  const_cast<TreeMapPlot *>(treeMapPlot_)->setPathExpanded(hierName(sep), expanded_);
 }
 
 bool
@@ -2835,7 +2842,7 @@ isHierExpanded() const
 {
   auto groupName = calcGroupName();
 
-  if (plot_->currentRoot(groupName) == this)
+  if (treeMapPlot_->currentRoot(groupName) == this)
     return true;
 
   if (! isExpanded())
@@ -3080,9 +3087,9 @@ removeNode(Node *node)
 
 QColor
 CQChartsTreeMapHierNode::
-interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) const
+interpColor(const TreeMapPlot *plot, const Color &c, const ColorInd &colorInd, int n) const
 {
-  if (plot->hierColorType() == Plot::HierColorType::BLEND) {
+  if (plot->hierColorType() == TreeMapPlot::HierColorType::BLEND) {
     // color is blended from child
     using Colors = std::vector<QColor>;
 
@@ -3102,14 +3109,14 @@ interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) c
 
   ColorInd colorInd1 = colorInd;
 
-  if      (plot->hierColorType() == Plot::HierColorType::PARENT_VALUE) {
+  if      (plot->hierColorType() == TreeMapPlot::HierColorType::PARENT_VALUE) {
     if (parent())
       colorInd1 = ColorInd(hierSize()/parent()->hierSize());
   }
-  else if (plot->hierColorType() == Plot::HierColorType::GLOBAL_VALUE) {
+  else if (plot->hierColorType() == TreeMapPlot::HierColorType::GLOBAL_VALUE) {
     auto groupName = calcGroupName();
 
-    auto *root = plot_->root(groupName);
+    auto *root = treeMapPlot_->root(groupName);
 
     colorInd1 = ColorInd(CMathUtil::norm(hierSize(), 0.0, root->hierSize()));
   }
@@ -3121,8 +3128,8 @@ interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) c
     if (ng_ < 0) {
       auto groupName = calcGroupName();
 
-      ig_ = plot_->groupNum(groupName);
-      ng_ = plot_->numGroups();
+      ig_ = treeMapPlot_->groupNum(groupName);
+      ng_ = treeMapPlot_->numGroups();
     }
 
     //---
@@ -3149,9 +3156,9 @@ calcGroupName() const
 //------
 
 CQChartsTreeMapNode::
-CQChartsTreeMapNode(const Plot *plot, HierNode *parent, const QString &name, double size,
-                    const QModelIndex &ind) :
- plot_(plot), parent_(parent), id_(nextId()), name_(name), size_(size), ind_(ind)
+CQChartsTreeMapNode(const TreeMapPlot *treeMapPlot, HierNode *parent, const QString &name,
+                    double size, const QModelIndex &ind) :
+ treeMapPlot_(treeMapPlot), parent_(parent), id_(nextId()), name_(name), size_(size), ind_(ind)
 {
 }
 
@@ -3162,7 +3169,7 @@ hierName(const QString &sep) const
   if (hierName_ == "" || sep != hierNameSep_) {
     auto groupName = calcGroupName();
 
-    if (parent() && parent() != plot_->root(groupName))
+    if (parent() && parent() != treeMapPlot_->root(groupName))
       hierName_ = parent()->hierName(sep) + sep + name();
     else
       hierName_ = name();
@@ -3208,18 +3215,18 @@ rootNode(HierNode *root) const
 
 QColor
 CQChartsTreeMapNode::
-interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) const
+interpColor(const TreeMapPlot *plot, const Color &c, const ColorInd &colorInd, int n) const
 {
   Color    color1    = c;
   ColorInd colorInd1 = colorInd;
 
   if      (color().isValid())
     color1 = color();
-  else if (plot_->nodeColorType() == Plot::NodeColorType::ID)
+  else if (treeMapPlot_->nodeColorType() == TreeMapPlot::NodeColorType::ID)
     colorInd1 = ColorInd(colorId(), n);
-  else if (plot_->nodeColorType() == Plot::NodeColorType::PARENT_VALUE)
+  else if (treeMapPlot_->nodeColorType() == TreeMapPlot::NodeColorType::PARENT_VALUE)
     colorInd1 = ColorInd(size()/parent()->hierSize());
-  else if (plot_->nodeColorType() == Plot::NodeColorType::GLOBAL_VALUE) {
+  else if (treeMapPlot_->nodeColorType() == TreeMapPlot::NodeColorType::GLOBAL_VALUE) {
     if (plot->hasValueRange())
       colorInd1 = ColorInd(CMathUtil::norm(size(), plot->minValue(), plot->maxValue()));
     else
@@ -3230,8 +3237,8 @@ interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) c
     if (ng_ < 0) {
       auto groupName = calcGroupName();
 
-      ig_ = plot_->groupNum(groupName);
-      ng_ = plot_->numGroups();
+      ig_ = treeMapPlot_->groupNum(groupName);
+      ng_ = treeMapPlot_->numGroups();
     }
 
     //---
@@ -3316,7 +3323,7 @@ void
 CQChartsTreeMapPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<CQChartsTreeMapPlot *>(plot);
+  treeMapPlot_ = dynamic_cast<CQChartsTreeMapPlot *>(plot);
 
   CQChartsHierPlotCustomControls::setPlot(plot);
 }
@@ -3329,9 +3336,9 @@ updateWidgets()
 
   //---
 
-  headerCheck_    ->setChecked(plot_->isTitles());
-  valueCheck_     ->setChecked(plot_->isValueLabel());
-  followViewCheck_->setChecked(plot_->isFollowViewExpand());
+  headerCheck_    ->setChecked(treeMapPlot_->isTitles());
+  valueCheck_     ->setChecked(treeMapPlot_->isValueLabel());
+  followViewCheck_->setChecked(treeMapPlot_->isFollowViewExpand());
 
   CQChartsHierPlotCustomControls::updateWidgets();
 
@@ -3344,33 +3351,33 @@ void
 CQChartsTreeMapPlotCustomControls::
 headerSlot()
 {
-  plot_->setTitles(headerCheck_->isChecked());
+  treeMapPlot_->setTitles(headerCheck_->isChecked());
 }
 
 void
 CQChartsTreeMapPlotCustomControls::
 valueSlot()
 {
-  plot_->setValueLabel(valueCheck_->isChecked());
+  treeMapPlot_->setValueLabel(valueCheck_->isChecked());
 }
 
 void
 CQChartsTreeMapPlotCustomControls::
 followViewSlot()
 {
-  plot_->setFollowViewExpand(followViewCheck_->isChecked());
+  treeMapPlot_->setFollowViewExpand(followViewCheck_->isChecked());
 }
 
 CQChartsColor
 CQChartsTreeMapPlotCustomControls::
 getColorValue()
 {
-  return plot_->fillColor();
+  return treeMapPlot_->fillColor();
 }
 
 void
 CQChartsTreeMapPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setFillColor(c);
+  treeMapPlot_->setFillColor(c);
 }

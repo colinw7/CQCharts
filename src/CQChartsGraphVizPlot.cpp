@@ -2401,9 +2401,10 @@ createCustomControls()
 //------
 
 CQChartsGraphVizNodeObj::
-CQChartsGraphVizNodeObj(const Plot *plot, const BBox &rect, Node *node, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, ColorInd(), ColorInd(), iv),
- plot_(plot), node_(node)
+CQChartsGraphVizNodeObj(const GraphVizPlot *graphVizPlot, const BBox &rect, Node *node,
+                        const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<GraphVizPlot *>(graphVizPlot), rect, ColorInd(), ColorInd(), iv),
+ graphVizPlot_(graphVizPlot), node_(node)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -2523,7 +2524,7 @@ calcTipId() const
 
   auto namedColumn = [&](const QString &name, const QString &defName="") {
     if (edge && edge->hasNamedColumn(name))
-      return plot_->columnHeaderName(edge->namedColumn(name));
+      return graphVizPlot_->columnHeaderName(edge->namedColumn(name));
 
     auto headerName = (defName.length() ? defName : name);
 
@@ -2557,7 +2558,7 @@ calcTipId() const
 
   tableTip.addTableRow("Edges", QString("In:%1, Out:%2").arg(ns).arg(nd));
 
-  if (plot_->groupColumn().isValid())
+  if (graphVizPlot_->groupColumn().isValid())
     tableTip.addTableRow("Group", node()->group());
 
   //---
@@ -2647,7 +2648,7 @@ editMove(const Point &p)
 
   editChanged_ = true;
 
-  const_cast<CQChartsGraphVizPlot *>(plot())->drawObjs();
+  const_cast<CQChartsGraphVizPlot *>(graphVizPlot())->drawObjs();
 
   return true;
 }
@@ -2664,7 +2665,7 @@ CQChartsGraphVizNodeObj::
 editRelease(const Point &)
 {
   if (editChanged_)
-    const_cast<CQChartsGraphVizPlot *>(plot())->invalidateObjTree();
+    const_cast<CQChartsGraphVizPlot *>(graphVizPlot())->invalidateObjTree();
 
   return true;
 }
@@ -2687,7 +2688,7 @@ void
 CQChartsGraphVizNodeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : plot_->modelColumns())
+  for (const auto &c : graphVizPlot_->modelColumns())
     addColumnSelectIndex(inds, c);
 }
 
@@ -2755,15 +2756,15 @@ void
 CQChartsGraphVizNodeObj::
 drawFg(PaintDevice *device) const
 {
-  if (! plot_->isNodeTextVisible())
+  if (! graphVizPlot_->isNodeTextVisible())
     return;
 
-  auto prect = plot_->windowToPixel(rect());
+  auto prect = graphVizPlot_->windowToPixel(rect());
 
   //---
 
   // set font
-  plot_->setPainterFont(device, plot_->nodeTextFont());
+  graphVizPlot_->setPainterFont(device, graphVizPlot_->nodeTextFont());
 
   QFontMetricsF fm(device->font());
 
@@ -2774,9 +2775,9 @@ drawFg(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  auto c = plot_->interpNodeTextColor(ic);
+  auto c = graphVizPlot_->interpNodeTextColor(ic);
 
-  plot_->setPen(penBrush, PenData(true, c, plot_->nodeTextAlpha()));
+  graphVizPlot_->setPen(penBrush, PenData(true, c, graphVizPlot_->nodeTextAlpha()));
 
   device->setPen(penBrush.pen);
 
@@ -2792,18 +2793,18 @@ drawFg(PaintDevice *device) const
 
   double ptw = fm.horizontalAdvance(str);
 
-  double clipLength = plot_->lengthPixelWidth(plot()->nodeTextClipLength());
+  double clipLength = graphVizPlot_->lengthPixelWidth(graphVizPlot()->nodeTextClipLength());
 
   if (clipLength > 0.0)
     ptw = std::min(ptw, clipLength);
 
-  double tw = plot_->pixelToWindowWidth(ptw);
+  double tw = graphVizPlot_->pixelToWindowWidth(ptw);
 
   //---
 
   double textMargin = 4; // pixels
 
-  auto range = plot_->getCalcDataRange();
+  auto range = graphVizPlot_->getCalcDataRange();
 
   double xm = (range.isSet() ? range.xmid() : 0.0);
 
@@ -2811,15 +2812,15 @@ drawFg(PaintDevice *device) const
     prect.getXMax() + textMargin : prect.getXMin() - textMargin - ptw);
   double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
 
-  auto pt = plot_->pixelToWindow(Point(tx, ty));
+  auto pt = graphVizPlot_->pixelToWindow(Point(tx, ty));
 
-  auto *plot = const_cast<CQChartsGraphVizPlot *>(plot_);
+  auto *graphVizPlot = const_cast<CQChartsGraphVizPlot *>(graphVizPlot_);
 
-  if (plot->isNodeTextSingleScale())
+  if (graphVizPlot->isNodeTextSingleScale())
     device->setNull(true);
 
   // only support contrast
-  auto textOptions = plot_->nodeTextOptions(device);
+  auto textOptions = graphVizPlot_->nodeTextOptions(device);
 
   textOptions.angle = Angle();
   textOptions.align = Qt::AlignLeft;
@@ -2833,8 +2834,9 @@ drawFg(PaintDevice *device) const
 
       CQChartsDrawUtil::drawTextInBox(device, rect(), str, textOptions);
 
-      if (plot->isNodeTextSingleScale())
-        plot->addDrawTextData(CQChartsGraphVizPlot::DrawTextData(rect(), str, c, textOptions));
+      if (graphVizPlot->isNodeTextSingleScale())
+        graphVizPlot->addDrawTextData(CQChartsGraphVizPlot::DrawTextData(rect(),
+                                      str, c, textOptions));
     }
   }
   else {
@@ -2842,11 +2844,11 @@ drawFg(PaintDevice *device) const
 
     CQChartsDrawUtil::drawTextAtPoint(device, pt, str, textOptions);
 
-    if (plot->isNodeTextSingleScale())
-      plot->addDrawTextData(CQChartsGraphVizPlot::DrawTextData(pt, str, c, textOptions));
+    if (graphVizPlot->isNodeTextSingleScale())
+      graphVizPlot->addDrawTextData(CQChartsGraphVizPlot::DrawTextData(pt, str, c, textOptions));
   }
 
-  if (plot->isNodeTextSingleScale())
+  if (graphVizPlot->isNodeTextSingleScale())
     device->setNull(false);
 }
 
@@ -2860,30 +2862,30 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   QColor bc;
 
   if (node()->strokeColor().isValid())
-    bc = plot_->interpColor(node()->strokeColor(), ic);
+    bc = graphVizPlot_->interpColor(node()->strokeColor(), ic);
   else
-    bc = plot_->interpNodeStrokeColor(ic);
+    bc = graphVizPlot_->interpNodeStrokeColor(ic);
 
   auto fc = calcFillColor();
 
   auto fillAlpha   = (node()->fillAlpha  ().isValid() ?
-    node()->fillAlpha() : plot_->nodeFillAlpha());
+    node()->fillAlpha() : graphVizPlot_->nodeFillAlpha());
   auto fillPattern = (node()->fillPattern().isValid() ?
-    node()->fillPattern() : plot_->nodeFillPattern());
+    node()->fillPattern() : graphVizPlot_->nodeFillPattern());
 
   auto strokeAlpha = (node()->strokeAlpha().isValid() ?
-    node()->strokeAlpha() : plot_->nodeStrokeAlpha());
+    node()->strokeAlpha() : graphVizPlot_->nodeStrokeAlpha());
   auto strokeWidth = (node()->strokeWidth().isValid() ?
-    node()->strokeWidth() : plot_->nodeStrokeWidth());
+    node()->strokeWidth() : graphVizPlot_->nodeStrokeWidth());
   auto strokeDash  = (node()->strokeDash ().isValid() ?
-    node()->strokeDash () : plot_->nodeStrokeDash());
+    node()->strokeDash () : graphVizPlot_->nodeStrokeDash());
 
-  plot_->setPenBrush(penBrush,
-    plot_->nodePenData  (bc, strokeAlpha, strokeWidth, strokeDash),
-    plot_->nodeBrushData(fc, fillAlpha, fillPattern));
+  graphVizPlot_->setPenBrush(penBrush,
+    graphVizPlot_->nodePenData  (bc, strokeAlpha, strokeWidth, strokeDash),
+    graphVizPlot_->nodeBrushData(fc, fillAlpha, fillPattern));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    graphVizPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 QColor
@@ -2895,9 +2897,9 @@ calcFillColor() const
   auto ic = calcColorInd();
 
   if (fillColor().isValid())
-    fc = plot_->interpColor(fillColor(), ic);
+    fc = graphVizPlot_->interpColor(fillColor(), ic);
   else
-    fc = plot_->interpNodeFillColor(ic);
+    fc = graphVizPlot_->interpNodeFillColor(ic);
 
   return fc;
 }
@@ -2905,8 +2907,9 @@ calcFillColor() const
 //------
 
 CQChartsGraphVizEdgeObj::
-CQChartsGraphVizEdgeObj(const Plot *plot, const BBox &rect, Edge *edge) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect), plot_(plot), edge_(edge)
+CQChartsGraphVizEdgeObj(const GraphVizPlot *graphVizPlot, const BBox &rect, Edge *edge) :
+ CQChartsPlotObj(const_cast<GraphVizPlot *>(graphVizPlot), rect),
+ graphVizPlot_(graphVizPlot), edge_(edge)
 {
   //setDetailHint(DetailHint::MAJOR);
 
@@ -2965,7 +2968,7 @@ calcTipId() const
 {
   auto namedColumn = [&](const QString &name, const QString &defName="") {
     if (edge()->hasNamedColumn(name))
-      return plot_->columnHeaderName(edge()->namedColumn(name));
+      return graphVizPlot_->columnHeaderName(edge()->namedColumn(name));
 
     auto headerName = (defName.length() ? defName : name);
 
@@ -2999,7 +3002,7 @@ calcTipId() const
 
   //---
 
-  plot()->addTipColumns(tableTip, modelInd());
+  graphVizPlot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -3036,7 +3039,7 @@ void
 CQChartsGraphVizEdgeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : plot()->modelColumns())
+  for (const auto &c : graphVizPlot()->modelColumns())
     addColumnSelectIndex(inds, c);
 }
 
@@ -3093,18 +3096,18 @@ draw(PaintDevice *device) const
   auto srcRect  = srcNode ->rect();
   auto destRect = destNode->rect();
 
-  bool isArrow      = plot()->isEdgeArrow();
-  bool isEdgeScaled = (plot_->isEdgeScaled() && edge()->hasValue());
+  bool isArrow      = graphVizPlot()->isEdgeArrow();
+  bool isEdgeScaled = (graphVizPlot_->isEdgeScaled() && edge()->hasValue());
 
   if (! srcRect.isSet() || ! destRect.isSet())
     return;
 
   //---
 
-  bool isCentered = plot()->isEdgeCentered();
-  bool usePath    = plot()->isEdgePath();
+  bool isCentered = graphVizPlot()->isEdgeCentered();
+  bool usePath    = graphVizPlot()->isEdgePath();
 
-  auto orient = plot_->orientation();
+  auto orient = graphVizPlot_->orientation();
 
   //---
 
@@ -3112,7 +3115,7 @@ draw(PaintDevice *device) const
   double edgeScale { 1.0 };
 
   if (isEdgeScaled) {
-    auto maxValue = plot_->maxEdgeValue().realOr(0.0);
+    auto maxValue = graphVizPlot_->maxEdgeValue().realOr(0.0);
 
     edgeScale = (maxValue > 0.0 ? edge()->value().real()/maxValue : 0.0);
   }
@@ -3120,23 +3123,23 @@ draw(PaintDevice *device) const
   double lw;
 
   if (orient == Qt::Horizontal)
-    lw = plot_->lengthPlotHeight(plot()->edgeWidth());
+    lw = graphVizPlot_->lengthPlotHeight(graphVizPlot()->edgeWidth());
   else
-    lw = plot_->lengthPlotWidth(plot()->edgeWidth());
+    lw = graphVizPlot_->lengthPlotWidth(graphVizPlot()->edgeWidth());
 
   lw *= edgeScale;
 
-  bool isLine = (plot()->edgeWidth().value() <= 0.0);
+  bool isLine = (graphVizPlot()->edgeWidth().value() <= 0.0);
 
   //---
 
   double connectGap = 0.0;
 
   if (isArrow) {
-    if (plot()->isSymmetric())
-      connectGap += 1.5*plot_->arrowWidth()*lw;
+    if (graphVizPlot()->isSymmetric())
+      connectGap += 1.5*graphVizPlot_->arrowWidth()*lw;
 
-    connectGap += 1.5*plot_->arrowWidth()*lw;
+    connectGap += 1.5*graphVizPlot_->arrowWidth()*lw;
   }
 
   // get default connection line (no path)
@@ -3242,7 +3245,7 @@ draw(PaintDevice *device) const
     CQChartsArrowData arrowData;
 
     if (isArrow) {
-      if (plot_->isSymmetric())
+      if (graphVizPlot_->isSymmetric())
         arrowData.setFHeadType(CQChartsArrowData::HeadType::ARROW);
       else
         arrowData.setFHeadType(CQChartsArrowData::HeadType::NONE);
@@ -3253,26 +3256,26 @@ draw(PaintDevice *device) const
     QPainterPath path1;
 
     CQChartsArrow::pathAddArrows(epath_, arrowData, lw,
-                                 plot_->arrowWidth(), plot_->arrowWidth(), path_);
+                                 graphVizPlot_->arrowWidth(), graphVizPlot_->arrowWidth(), path_);
   }
   else {
     if (isArrow) {
-      const_cast<CQChartsGraphVizPlot *>(plot())->setUpdatesEnabled(false);
+      const_cast<CQChartsGraphVizPlot *>(graphVizPlot())->setUpdatesEnabled(false);
 
       double startLength = 0.0, endLength = 0.0;
 
       if (! isSelf) {
-        if (plot()->isSymmetric())
-          startLength = 1.5*plot_->arrowWidth()*lw;
+        if (graphVizPlot()->isSymmetric())
+          startLength = 1.5*graphVizPlot_->arrowWidth()*lw;
 
-        endLength = 1.5*plot_->arrowWidth()*lw;
+        endLength = 1.5*graphVizPlot_->arrowWidth()*lw;
 
         CQChartsDrawUtil::curvePath(epath_, srcPoint, destPoint, edgeType, p1.angle, p2.angle,
                                     startLength, endLength);
 
         CQChartsArrowData arrowData;
 
-        if (plot()->isSymmetric())
+        if (graphVizPlot()->isSymmetric())
           arrowData.setFHeadType(CQChartsArrowData::HeadType::ARROW);
         else
           arrowData.setFHeadType(CQChartsArrowData::HeadType::NONE);
@@ -3280,7 +3283,8 @@ draw(PaintDevice *device) const
         arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
 
         CQChartsArrow::pathAddArrows(epath_, arrowData, lw,
-                                     plot_->arrowWidth(), plot_->arrowWidth(), path_);
+                                     graphVizPlot_->arrowWidth(),
+                                     graphVizPlot_->arrowWidth(), path_);
       }
       else {
         CQChartsDrawUtil::selfCurvePath(epath_, srcRect, edgeType, p1.angle);
@@ -3288,7 +3292,7 @@ draw(PaintDevice *device) const
         CQChartsArrow::selfPath(path_, srcRect, /*fhead*/true, /*thead*/true, lw);
       }
 
-      const_cast<CQChartsGraphVizPlot *>(plot())->setUpdatesEnabled(true);
+      const_cast<CQChartsGraphVizPlot *>(graphVizPlot())->setUpdatesEnabled(true);
     }
     else {
       if (! isSelf) {
@@ -3325,7 +3329,7 @@ void
 CQChartsGraphVizEdgeObj::
 drawFg(PaintDevice *device) const
 {
-  if (! plot_->isEdgeTextVisible())
+  if (! graphVizPlot_->isEdgeTextVisible())
     return;
 
   auto str = edge()->label();
@@ -3334,7 +3338,7 @@ drawFg(PaintDevice *device) const
   //---
 
   // set font
-  plot_->setPainterFont(device, plot_->edgeTextFont());
+  graphVizPlot_->setPainterFont(device, graphVizPlot_->edgeTextFont());
 
   QFontMetricsF fm(device->font());
 
@@ -3345,9 +3349,9 @@ drawFg(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  auto c = plot_->interpEdgeTextColor(ic);
+  auto c = graphVizPlot_->interpEdgeTextColor(ic);
 
-  plot_->setPen(penBrush, PenData(true, c, plot_->edgeTextAlpha()));
+  graphVizPlot_->setPen(penBrush, PenData(true, c, graphVizPlot_->edgeTextAlpha()));
 
   device->setPen(penBrush.pen);
 
@@ -3375,20 +3379,20 @@ drawFg(PaintDevice *device) const
 
   auto rect = (isSelf ? srcRect : srcRect + destRect);
 
-  auto prect = plot_->windowToPixel(rect);
+  auto prect = graphVizPlot_->windowToPixel(rect);
 
   //---
 
   double tx = prect.getXMid() - textMargin - ptw/2.0;
   double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
 
-  auto pt = plot_->pixelToWindow(Point(tx, ty));
+  auto pt = graphVizPlot_->pixelToWindow(Point(tx, ty));
 #else
   auto pt = Point(CQChartsDrawUtil::pathMidPoint(epath_));
 #endif
 
   // only support contrast
-  auto textOptions = plot_->edgeTextOptions(device);
+  auto textOptions = graphVizPlot_->edgeTextOptions(device);
 
   textOptions.angle     = Angle();
   textOptions.align     = Qt::AlignCenter;
@@ -3418,17 +3422,17 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   QColor fc;
 
   if (! edge()->fillColor().isValid()) {
-    if (plot()->isBlendEdgeColor()) {
+    if (graphVizPlot()->isBlendEdgeColor()) {
       auto fc1 = srcNode ->obj()->calcFillColor();
       auto fc2 = destNode->obj()->calcFillColor();
 
       fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
     }
     else
-      fc = plot()->interpEdgeFillColor(colorInd);
+      fc = graphVizPlot()->interpEdgeFillColor(colorInd);
   }
   else {
-    fc = plot()->interpColor(edge()->fillColor(), colorInd);
+    fc = graphVizPlot()->interpColor(edge()->fillColor(), colorInd);
   }
 
   //---
@@ -3436,26 +3440,27 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // calc stroke color
   QColor sc;
 
-  if (plot()->isBlendEdgeColor()) {
-    int numNodes = plot_->numNodes();
+  if (graphVizPlot()->isBlendEdgeColor()) {
+    int numNodes = graphVizPlot_->numNodes();
 
     ColorInd ic1(srcNode ->id(), numNodes);
     ColorInd ic2(destNode->id(), numNodes);
 
-    auto sc1 = plot()->interpEdgeStrokeColor(ic1);
-    auto sc2 = plot()->interpEdgeStrokeColor(ic2);
+    auto sc1 = graphVizPlot()->interpEdgeStrokeColor(ic1);
+    auto sc2 = graphVizPlot()->interpEdgeStrokeColor(ic2);
 
     sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
   }
   else {
-    sc = plot()->interpEdgeStrokeColor(colorInd);
+    sc = graphVizPlot()->interpEdgeStrokeColor(colorInd);
   }
 
   //---
 
-  plot_->setPenBrush(penBrush, plot_->edgePenData(sc), plot_->edgeBrushData(fc));
+  graphVizPlot_->setPenBrush(penBrush, graphVizPlot_->edgePenData(sc),
+                             graphVizPlot_->edgeBrushData(fc));
 
-  bool isLine = (plot()->edgeWidth().value() <= 0.0);
+  bool isLine = (graphVizPlot()->edgeWidth().value() <= 0.0);
 
   if (isLine) {
     penBrush.pen  .setColor(fc);
@@ -3463,7 +3468,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   }
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    graphVizPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 //------
@@ -3505,7 +3510,7 @@ void
 CQChartsGraphVizPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<CQChartsGraphVizPlot *>(plot);
+  graphVizPlot_ = dynamic_cast<CQChartsGraphVizPlot *>(plot);
 
   CQChartsConnectionPlotCustomControls::setPlot(plot);
 }
@@ -3529,14 +3534,14 @@ CQChartsColor
 CQChartsGraphVizPlotCustomControls::
 getColorValue()
 {
-  return plot_->nodeFillColor();
+  return graphVizPlot_->nodeFillColor();
 }
 
 void
 CQChartsGraphVizPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setNodeFillColor(c);
+  graphVizPlot_->setNodeFillColor(c);
 }
 
 //---

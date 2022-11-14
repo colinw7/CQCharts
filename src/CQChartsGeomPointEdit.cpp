@@ -24,6 +24,20 @@ CQChartsGeomPointEdit(const Point &value) :
   init(value);
 }
 
+CQChartsView *
+CQChartsGeomPointEdit::
+view() const
+{
+  return view_.data();
+}
+
+CQChartsPlot *
+CQChartsGeomPointEdit::
+plot() const
+{
+  return plot_.data();
+}
+
 void
 CQChartsGeomPointEdit::
 init(const Point &value)
@@ -77,7 +91,7 @@ CQChartsGeomPointEdit::
 setView(View *view)
 {
   view_ = view;
-  plot_ = nullptr;
+  plot_ = PlotP();
 
   regionButton_->setView(view_);
   regionButton_->setVisible(view_);
@@ -88,10 +102,10 @@ CQChartsGeomPointEdit::
 setPlot(Plot *plot)
 {
   plot_ = plot;
-  view_ = nullptr;
+  view_ = ViewP();
 
-  regionButton_->setView(plot_ ? plot_->view() : nullptr);
-  regionButton_->setVisible(plot_);
+  regionButton_->setView(this->plot() ? this->plot()->view() : nullptr);
+  regionButton_->setVisible(this->plot());
 
 }
 

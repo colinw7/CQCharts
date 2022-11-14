@@ -4,6 +4,7 @@
 #include <CQChartsWidgetIFace.h>
 
 #include <QFrame>
+#include <QPointer>
 
 class CQChartsView;
 class CQChartsPropertyViewTree;
@@ -23,7 +24,7 @@ class CQChartsViewPropertiesWidget : public QFrame, public CQChartsWidgetIFace {
  public:
   CQChartsViewPropertiesWidget(View *view=nullptr);
 
-  View *view() const { return view_; }
+  View *view() const;
   void setView(View *view) override;
 
   CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
@@ -35,7 +36,9 @@ class CQChartsViewPropertiesWidget : public QFrame, public CQChartsWidgetIFace {
   void filterStateSlot(bool show, bool focus);
 
  private:
-  View*                               view_         { nullptr };
+  using ViewP = QPointer<View>;
+
+  ViewP                               view_;
   CQChartsPropertyViewTree*           propertyTree_ { nullptr };
   CQChartsPropertyViewTreeFilterEdit* filterEdit_   { nullptr };
 };

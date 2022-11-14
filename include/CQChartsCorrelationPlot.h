@@ -95,10 +95,10 @@ class CQChartsCorrelationCellObj : public CQChartsPlotObj {
   double yColorValue(bool relative) const override;
 
  private:
-  const CorrelationPlot* plot_  { nullptr }; //!< parent plot
-  int                    row_   { -1 };      //!< row
-  int                    col_   { -1 };      //!< column
-  double                 value_ { 0.0 };     //!< value
+  const CorrelationPlot* correlationPlot_ { nullptr }; //!< parent plot
+  int                    row_             { -1 };      //!< row
+  int                    col_             { -1 };      //!< column
+  double                 value_           { 0.0 };     //!< value
 };
 
 //---
@@ -300,7 +300,7 @@ class CQChartsCorrelationPlotCustomControls : public CQChartsPlotCustomControls 
 
   void addOptionsWidgets() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -314,7 +314,7 @@ class CQChartsCorrelationPlotCustomControls : public CQChartsPlotCustomControls 
   void lowerDiagonalTypeSlot();
 
  protected:
-  CQChartsCorrelationPlot* plot_ { nullptr };
+  CQChartsCorrelationPlot* correlationPlot_ { nullptr };
 
   FrameData optionsFrame_;
 

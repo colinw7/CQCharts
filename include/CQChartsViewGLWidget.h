@@ -2,6 +2,7 @@
 #define CQChartsViewGLWidget_H
 
 #include <QGLWidget>
+#include <QPointer>
 
 class CQChartsView;
 
@@ -10,7 +11,10 @@ class CQGLControlToolBar;
 
 class CQChartsViewGLWidget : public QGLWidget {
  public:
-  CQChartsViewGLWidget(CQChartsView *view);
+  using View = CQChartsView;
+
+ public:
+  CQChartsViewGLWidget(View *view);
 
   CQGLControl *control() const { return control_; }
 
@@ -28,7 +32,9 @@ class CQChartsViewGLWidget : public QGLWidget {
   void keyReleaseEvent(QKeyEvent *event) override;
 
  private:
-  CQChartsView*       view_           { nullptr };
+  using ViewP = QPointer<View>;
+
+  ViewP               view_;
   CQGLControl*        control_        { nullptr };
   CQGLControlToolBar* controlToolbar_ { nullptr };
 };

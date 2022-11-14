@@ -1303,10 +1303,10 @@ createCustomControls()
 //------
 
 CQChartsChordSegmentObj::
-CQChartsChordSegmentObj(const CQChartsChordPlot *plot, const BBox &rect, const ChordData &data,
+CQChartsChordSegmentObj(const CQChartsChordPlot *chorPlot, const BBox &rect, const ChordData &data,
                         const ColorInd &ig, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsChordPlot *>(plot), rect, ColorInd(), ig, iv),
- plot_(plot), data_(data)
+ CQChartsPlotObj(const_cast<CQChartsChordPlot *>(chorPlot), rect, ColorInd(), ig, iv),
+ chordPlot_(chorPlot), data_(data)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -1339,14 +1339,14 @@ calcTipId() const
   if (name != "")
     tableTip.addTableRow("Group", name);
 
-  if (! plot_->isSymmetric()) {
+  if (! chordPlot_->isSymmetric()) {
     tableTip.addTableRow("Total (Out)", calcTotal());
     tableTip.addTableRow("Total (In)" , calcAltTotal());
   }
   else
     tableTip.addTableRow("Total", calcTotal());
 
-  if (! plot_->isSymmetric()) {
+  if (! chordPlot_->isSymmetric()) {
     int numIn { 0 }, numOut { 0 };
 
     for (const auto &obj : edgeObjs_) {
@@ -1370,17 +1370,17 @@ calcTipId() const
 #if 0
   plot()->addTipColumns(tableTip, modelInd());
 #else
-  for (const auto &c : plot_->tipColumns().columns()) {
+  for (const auto &c : chordPlot_->tipColumns().columns()) {
     if (! c.isValid()) continue;
 
     if (tableTip.hasColumn(c))
       continue;
 
     bool ok1;
-    auto hname = plot_->modelHHeaderString(c, ok1);
+    auto hname = chordPlot_->modelHHeaderString(c, ok1);
     if (! ok1) continue;
 
-    auto *columnDetails = plot_->columnDetails(c);
+    auto *columnDetails = chordPlot_->columnDetails(c);
     if (! columnDetails) continue;
 
     CQChartsRValues rivals, rovals;
@@ -1388,14 +1388,14 @@ calcTipId() const
 
     for (const auto &obj : edgeObjs_) {
       auto ind  = obj->modelInd();
-      auto ind1 = plot_->unnormalizeIndex(ind);
+      auto ind1 = chordPlot_->unnormalizeIndex(ind);
 
-      ModelIndex tipModelInd(plot_, ind1.row(), c, ind1.parent());
+      ModelIndex tipModelInd(chordPlot_, ind1.row(), c, ind1.parent());
 
       bool ok2;
 
       if (columnDetails->isNumeric()) {
-        auto r = plot_->modelReal(tipModelInd, ok2);
+        auto r = chordPlot_->modelReal(tipModelInd, ok2);
         if (! ok2) continue;
 
         if (obj->toObj() != this)
@@ -1404,7 +1404,7 @@ calcTipId() const
           rivals.addValue(r);
       }
       else {
-        auto str = plot_->modelString(tipModelInd, ok2);
+        auto str = chordPlot_->modelString(tipModelInd, ok2);
         if (! ok2) continue;
 
         if (obj->toObj() != this)
@@ -1415,7 +1415,7 @@ calcTipId() const
     }
 
     if (columnDetails->isNumeric()) {
-      if (! plot_->isSymmetric()) {
+      if (! chordPlot_->isSymmetric()) {
         tableTip.addTableRow(QString("%1 (Out)").arg(hname), rovals.sum());
         tableTip.addTableRow(QString("%1 (In)").arg(hname), rivals.sum());
       }
@@ -1423,7 +1423,7 @@ calcTipId() const
         tableTip.addTableRow(hname, rovals.sum());
     }
     else {
-      if (! plot_->isSymmetric()) {
+      if (! chordPlot_->isSymmetric()) {
         tableTip.addTableRow(QString("%1 (Out)").arg(hname), sovals.numUnique());
         tableTip.addTableRow(QString("%1 (In)").arg(hname), sivals.numUnique());
       }
@@ -1476,8 +1476,8 @@ void
 CQChartsChordSegmentObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->linkColumn ());
-  addColumnSelectIndex(inds, plot_->groupColumn());
+  addColumnSelectIndex(inds, chordPlot_->linkColumn ());
+  addColumnSelectIndex(inds, chordPlot_->groupColumn());
 }
 
 CQChartsChordSegmentObj::PlotObjs
@@ -1490,7 +1490,7 @@ getConnected() const
     if (! value.primary)
       continue;
 
-    auto *toObj = plot_->segmentObject(value.to);
+    auto *toObj = chordPlot_->segmentObject(value.to);
     if (! toObj) continue;
 
     plotObjs.push_back(toObj);
@@ -1545,14 +1545,14 @@ draw(PaintDevice *device) const
 
   //---
 
-  if (plot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
-    plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
+  if (chordPlot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+    chordPlot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
     for (const auto &value : data_.values()) {
       if (! value.primary)
         continue;
 
-      auto *toObj = plot_->edgeObject(data_.from(), value.to);
+      auto *toObj = chordPlot_->edgeObject(data_.from(), value.to);
       if (! toObj) continue;
 
       toObj->setNotificationsEnabled(false);
@@ -1560,7 +1560,7 @@ draw(PaintDevice *device) const
       toObj->setNotificationsEnabled(true);
     }
 
-    plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
+    chordPlot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
   }
 }
 
@@ -1571,14 +1571,14 @@ drawFg(PaintDevice *device) const
   if (dataName() == "")
     return;
 
-  if (! plot_->textBox()->isTextVisible())
+  if (! chordPlot_->textBox()->isTextVisible())
     return;
 
   // get total (skip if zero)
   // when symmetric use max as we overlay from/to connections
   double total;
 
-  if (! plot_->isSymmetric())
+  if (! chordPlot_->isSymmetric())
     total = data_.maxTotal();
   else
     total = data_.total();
@@ -1597,7 +1597,7 @@ drawFg(PaintDevice *device) const
   if (hierObj()) {
     lr = (ri + ro)/2.0;
 
-    auto strs = name.split(plot_->calcSeparator(), Qt::SkipEmptyParts);
+    auto strs = name.split(chordPlot_->calcSeparator(), Qt::SkipEmptyParts);
 
     if (strs.size() > 1)
       name = strs[strs.size() - 1];
@@ -1627,22 +1627,22 @@ drawFg(PaintDevice *device) const
 
   PenBrush lpenBrush;
 
-  auto bg = plot_->interpPaletteColor(colorInd);
+  auto bg = chordPlot_->interpPaletteColor(colorInd);
 
-  plot_->setPen(lpenBrush, PenData(true, bg, Alpha()));
+  chordPlot_->setPen(lpenBrush, PenData(true, bg, Alpha()));
 
   //---
 
   // draw text using line pen
   Point center(0, 0);
 
-  plot_->textBox()->drawConnectedRadialText(device, center, ro, lr, ta, name,
-                                            lpenBrush.pen, plot_->isRotatedText());
+  chordPlot_->textBox()->drawConnectedRadialText(device, center, ro, lr, ta, name,
+                                                 lpenBrush.pen, chordPlot_->isRotatedText());
 
   //---
 
-  if (plot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
-    plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
+  if (chordPlot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+    chordPlot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
     for (const auto &obj : edgeObjs_) {
       obj->setNotificationsEnabled(false);
@@ -1650,7 +1650,7 @@ drawFg(PaintDevice *device) const
       obj->setNotificationsEnabled(true);
     }
 
-    plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
+    chordPlot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
   }
 }
 
@@ -1660,20 +1660,20 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
   // TODO: separate segment stroke/fill control
-  auto segmentStrokeColor = plot_->interpSegmentStrokeColor(ColorInd());
+  auto segmentStrokeColor = chordPlot_->interpSegmentStrokeColor(ColorInd());
 
   auto  fromColor = calcFromColor();
   Alpha fromAlpha;
 
   if (! isInside() && ! isSelected())
-    fromAlpha = plot_->segmentFillAlpha();
+    fromAlpha = chordPlot_->segmentFillAlpha();
 
-  plot_->setPenBrush(penBrush,
-    plot_->segmentPenData(segmentStrokeColor),
-    plot_->segmentBrushData(fromColor, fromAlpha));
+  chordPlot_->setPenBrush(penBrush,
+    chordPlot_->segmentPenData(segmentStrokeColor),
+    chordPlot_->segmentBrushData(fromColor, fromAlpha));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    chordPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 QColor
@@ -1682,43 +1682,44 @@ calcFromColor() const
 {
   auto colorInd = calcColorInd();
 
-  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    if (plot_->colorColumn().isValid() && plot_->colorColumn() == plot_->valueColumn()) {
-      double r = CMathUtil::map(calcTotal(), 0, plot_->maxTotal(), 0.0, 1.0);
+  if (chordPlot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    if (chordPlot_->colorColumn().isValid() &&
+        chordPlot_->colorColumn() == chordPlot_->valueColumn()) {
+      double r = CMathUtil::map(calcTotal(), 0, chordPlot_->maxTotal(), 0.0, 1.0);
 
-      auto color = plot_->normalizedColorMapRealColor(r);
+      auto color = chordPlot_->normalizedColorMapRealColor(r);
 
-      return plot_->interpColor(color, colorInd);
+      return chordPlot_->interpColor(color, colorInd);
     }
 
-    if (plot_->colorColumn().isValid()) {
+    if (chordPlot_->colorColumn().isValid()) {
       double total = 0.0;
 
       for (const auto &obj : edgeObjs_) {
         auto ind  = obj->modelInd();
-        auto ind1 = plot_->unnormalizeIndex(ind);
+        auto ind1 = chordPlot_->unnormalizeIndex(ind);
 
-        ModelIndex colorModelInd(plot_, ind1.row(), plot_->colorColumn(), ind1.parent());
+        ModelIndex colorModelInd(chordPlot_, ind1.row(), chordPlot_->colorColumn(), ind1.parent());
 
         bool ok;
-        double r = plot_->modelReal(colorModelInd, ok);
+        double r = chordPlot_->modelReal(colorModelInd, ok);
         if (! ok) continue;
 
         total += r;
       }
 
-      auto color = plot_->colorMapRealColor(total);
+      auto color = chordPlot_->colorMapRealColor(total);
 
-      return plot_->interpColor(color, colorInd);
+      return chordPlot_->interpColor(color, colorInd);
     }
 
     if (data_.group().isValid())
-      return plot_->blendGroupPaletteColor(data_.group().ivalue(), iv_.value(), 0.1);
+      return chordPlot_->blendGroupPaletteColor(data_.group().ivalue(), iv_.value(), 0.1);
     else
-      return plot_->interpPaletteColor(colorInd);
+      return chordPlot_->interpPaletteColor(colorInd);
   }
   else
-    return plot_->interpPaletteColor(colorInd);
+    return chordPlot_->interpPaletteColor(colorInd);
 }
 
 CQChartsGeom::BBox
@@ -1743,7 +1744,7 @@ textBBox() const
 
   //---
 
-  if (! plot_->textBox()->isTextVisible())
+  if (! chordPlot_->textBox()->isTextVisible())
     return BBox();
 
   double total = calcTotal();
@@ -1765,8 +1766,8 @@ textBBox() const
 
   BBox tbbox;
 
-  plot_->textBox()->calcConnectedRadialTextBBox(center, ro, lr, ta, dataName(),
-                                                plot_->isRotatedText(), tbbox);
+  chordPlot_->textBox()->calcConnectedRadialTextBBox(center, ro, lr, ta, dataName(),
+                                                     chordPlot_->isRotatedText(), tbbox);
 
   return tbbox;
 }
@@ -1775,21 +1776,21 @@ double
 CQChartsChordSegmentObj::
 calcInnerRadius() const
 {
-  return std::min(std::max(plot_->calcInnerRadius(), 0.01), 1.0);
+  return std::min(std::max(chordPlot_->calcInnerRadius(), 0.01), 1.0);
 }
 
 double
 CQChartsChordSegmentObj::
 calcOuterRadius() const
 {
-  return std::min(std::max(plot_->calcOuterRadius(), 0.01), 1.0);
+  return std::min(std::max(chordPlot_->calcOuterRadius(), 0.01), 1.0);
 }
 
 double
 CQChartsChordSegmentObj::
 labelRadius() const
 {
-  return std::max(plot_->labelRadius(), 1.0);
+  return std::max(chordPlot_->labelRadius(), 1.0);
 }
 
 void
@@ -1813,7 +1814,7 @@ valueAngles(int ind, Angle &a, Angle &da, ChordData::PrimaryType primaryType) co
     if (primaryType == ChordData::PrimaryType::NON_PRIMARY && value.primary)
       continue;
 
-    da = Angle(plot_->valueToDegrees(value.value.realOr(0.0)));
+    da = Angle(chordPlot_->valueToDegrees(value.value.realOr(0.0)));
 
     if (ind == value.to)
       return;
@@ -1828,14 +1829,14 @@ double
 CQChartsChordSegmentObj::
 calcTotal() const
 {
-  return data_.total(/*primaryOnly*/ ! plot_->isSymmetric());
+  return data_.total(/*primaryOnly*/ ! chordPlot_->isSymmetric());
 }
 
 double
 CQChartsChordSegmentObj::
 calcAltTotal() const
 {
-  assert(! plot_->isSymmetric());
+  assert(! chordPlot_->isSymmetric());
 
   double t1 = data_.total(/*primaryOnly*/ false);
   double t2 = data_.total(/*primaryOnly*/ true );
@@ -1853,10 +1854,10 @@ calcNumValues() const
 //------
 
 CQChartsChordEdgeObj::
-CQChartsChordEdgeObj(const CQChartsChordPlot *plot, const BBox &rect, const ChordData &data,
+CQChartsChordEdgeObj(const CQChartsChordPlot *chordPlot, const BBox &rect, const ChordData &data,
                      int to, const OptReal &value, const QModelIndex &ind) :
- CQChartsPlotObj(const_cast<CQChartsChordPlot *>(plot), rect, ColorInd(), ColorInd(), ColorInd()),
- plot_(plot), data_(data), to_(to), value_(value)
+ CQChartsPlotObj(const_cast<CQChartsChordPlot *>(chordPlot), rect, ColorInd(), ColorInd(),
+ ColorInd()), chordPlot_(chordPlot), data_(data), to_(to), value_(value)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -1964,7 +1965,7 @@ draw(PaintDevice *device) const
   // get from/to angles
   Angle a1, da1, a2, da2;
 
-  if (! plot_->isSymmetric()) {
+  if (! chordPlot_->isSymmetric()) {
     fromObj->valueAngles(to  (), a1, da1, PrimaryType::PRIMARY    );
     toObj  ->valueAngles(from(), a2, da2, PrimaryType::NON_PRIMARY);
   }
@@ -2003,8 +2004,8 @@ draw(PaintDevice *device) const
 
   //---
 
-  if (plot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
-    plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
+  if (chordPlot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+    chordPlot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
     if (fromObj) {
       fromObj->setNotificationsEnabled(false);
@@ -2018,12 +2019,12 @@ draw(PaintDevice *device) const
       toObj->setNotificationsEnabled(true);
     }
 
-    plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
+    chordPlot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
   }
 
   //---
 
-  if (plot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+  if (chordPlot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
     QPainterPath path;
 
     auto a1c = Angle(a1.value() + da1.value()/2.0);
@@ -2050,7 +2051,7 @@ draw(PaintDevice *device) const
 
     PenBrush arrowPenBrush;
 
-    plot_->setPenBrush(arrowPenBrush, PenData(false), BrushData(true, c));
+    chordPlot_->setPenBrush(arrowPenBrush, PenData(false), BrushData(true, c));
 
     auto strokeWidth = CQChartsLength::pixel(1);
 
@@ -2076,35 +2077,36 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   // set pen and brush
   // TODO: separate arc stroke/fill control
-  auto arcStrokeColor = plot_->interpArcStrokeColor(colorInd);
+  auto arcStrokeColor = chordPlot_->interpArcStrokeColor(colorInd);
 
   //---
 
   // set fill color
   QColor fillColor;
 
-  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    if      (plot_->colorColumn().isValid() && plot_->colorColumn() == plot_->valueColumn()) {
-      double r = CMathUtil::map(value_.realOr(0.0), 0, plot_->maxTotal(), 0.0, 1.0);
+  if (chordPlot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    if      (chordPlot_->colorColumn().isValid() &&
+             chordPlot_->colorColumn() == chordPlot_->valueColumn()) {
+      double r = CMathUtil::map(value_.realOr(0.0), 0, chordPlot_->maxTotal(), 0.0, 1.0);
 
-      auto color = plot_->normalizedColorMapRealColor(r);
+      auto color = chordPlot_->normalizedColorMapRealColor(r);
 
-      fillColor = plot_->interpColor(color, colorInd);
+      fillColor = chordPlot_->interpColor(color, colorInd);
     }
-    else if (modelInd().isValid() && plot_->colorColumn().isValid()) {
+    else if (modelInd().isValid() && chordPlot_->colorColumn().isValid()) {
       Color color;
 
       auto ind  = modelInd();
-      auto ind1 = plot_->unnormalizeIndex(ind);
+      auto ind1 = chordPlot_->unnormalizeIndex(ind);
 
-      if (plot_->colorColumnColor(ind1.row(), ind1.parent(), color))
-        fillColor = plot_->interpColor(color, colorInd);
+      if (chordPlot_->colorColumnColor(ind1.row(), ind1.parent(), color))
+        fillColor = chordPlot_->interpColor(color, colorInd);
     }
   }
 
   if (! fillColor.isValid()) {
-    if (plot_->arcFillColor().isValid()) {
-      fillColor = plot_->interpColor(plot_->arcFillColor(), colorInd);
+    if (chordPlot_->arcFillColor().isValid()) {
+      fillColor = chordPlot_->interpColor(chordPlot_->arcFillColor(), colorInd);
     }
     else {
       auto fromColor = fromObj->calcFromColor();
@@ -2120,37 +2122,37 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   Alpha fillAlpha;
 
   if (! isInside() && ! isSelected())
-    fillAlpha = plot_->arcFillAlpha();
+    fillAlpha = chordPlot_->arcFillAlpha();
 
   //---
 
-  plot_->setPenBrush(penBrush,
-    plot_->arcPenData(arcStrokeColor), plot_->arcBrushData(fillColor, fillAlpha));
+  chordPlot_->setPenBrush(penBrush,
+    chordPlot_->arcPenData(arcStrokeColor), chordPlot_->arcBrushData(fillColor, fillAlpha));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    chordPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 CQChartsChordSegmentObj *
 CQChartsChordEdgeObj::
 fromObj() const
 {
-  return plot_->segmentObject(from());
+  return chordPlot_->segmentObject(from());
 }
 
 CQChartsChordSegmentObj *
 CQChartsChordEdgeObj::
 toObj() const
 {
-  return plot_->segmentObject(to());
+  return chordPlot_->segmentObject(to());
 }
 
 //------
 
 CQChartsChordHierObj::
-CQChartsChordHierObj(const CQChartsChordPlot *plot, const QString &name, const BBox &rect) :
- CQChartsPlotObj(const_cast<CQChartsChordPlot *>(plot), rect, ColorInd(), ColorInd(), ColorInd()),
- plot_(plot), name_(name)
+CQChartsChordHierObj(const CQChartsChordPlot *chordPlot, const QString &name, const BBox &rect) :
+ CQChartsPlotObj(const_cast<CQChartsChordPlot *>(chordPlot), rect, ColorInd(), ColorInd(),
+ ColorInd()), chordPlot_(chordPlot), name_(name)
 {
   setDetailHint(DetailHint::MINOR);
 }
@@ -2170,7 +2172,7 @@ calcTipId() const
 
   tableTip.addTableRow("Name", name());
 
-  if (! plot_->isSymmetric()) {
+  if (! chordPlot_->isSymmetric()) {
     tableTip.addTableRow("Total (Out)", calcTotal());
     tableTip.addTableRow("Total (In)" , calcAltTotal());
   }
@@ -2247,7 +2249,7 @@ drawFg(PaintDevice *device) const
   if (name() == "")
     return;
 
-  if (! plot_->textBox()->isTextVisible())
+  if (! chordPlot_->textBox()->isTextVisible())
     return;
 
   // calc label radius
@@ -2271,7 +2273,7 @@ drawFg(PaintDevice *device) const
 
   auto name = this->name();
 
-  auto strs = name.split(plot_->calcSeparator(), Qt::SkipEmptyParts);
+  auto strs = name.split(chordPlot_->calcSeparator(), Qt::SkipEmptyParts);
 
   if (strs.size() > 1)
     name = strs[strs.size() - 1];
@@ -2284,17 +2286,17 @@ drawFg(PaintDevice *device) const
 
   PenBrush lpenBrush;
 
-  auto bg = plot_->interpPaletteColor(colorInd);
+  auto bg = chordPlot_->interpPaletteColor(colorInd);
 
-  plot_->setPen(lpenBrush, PenData(true, bg, Alpha()));
+  chordPlot_->setPen(lpenBrush, PenData(true, bg, Alpha()));
 
   //---
 
   // draw text using line pen
   Point center(0, 0);
 
-  plot_->textBox()->drawConnectedRadialText(device, center, ro, lr, ta, name,
-                                            lpenBrush.pen, plot_->isRotatedText());
+  chordPlot_->textBox()->drawConnectedRadialText(device, center, ro, lr, ta, name,
+                                                 lpenBrush.pen, chordPlot_->isRotatedText());
 }
 
 void
@@ -2303,28 +2305,29 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set pen and brush
   // TODO: separate arc stroke/fill control
-  auto segmentStrokeColor = plot_->interpSegmentStrokeColor(ColorInd());
+  auto segmentStrokeColor = chordPlot_->interpSegmentStrokeColor(ColorInd());
 
   auto fillColor = this->fillColor();
 
-  plot_->setPenBrush(penBrush,
-    plot_->segmentPenData(segmentStrokeColor), plot_->segmentBrushData(fillColor));
+  chordPlot_->setPenBrush(penBrush,
+    chordPlot_->segmentPenData(segmentStrokeColor), chordPlot_->segmentBrushData(fillColor));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    chordPlot_->updateObjPenBrushState(this, penBrush);
 }
 
 QColor
 CQChartsChordHierObj::
 fillColor() const
 {
-  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    if (plot_->colorColumn().isValid() && plot_->colorColumn() == plot_->valueColumn()) {
-      double r = CMathUtil::map(calcTotal(), 0, plot_->maxTotal(), 0.0, 1.0);
+  if (chordPlot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    if (chordPlot_->colorColumn().isValid() &&
+        chordPlot_->colorColumn() == chordPlot_->valueColumn()) {
+      double r = CMathUtil::map(calcTotal(), 0, chordPlot_->maxTotal(), 0.0, 1.0);
 
-      auto color = plot_->normalizedColorMapRealColor(r);
+      auto color = chordPlot_->normalizedColorMapRealColor(r);
 
-      return plot_->interpColor(color, ColorInd());
+      return chordPlot_->interpColor(color, ColorInd());
     }
   }
 
@@ -2349,7 +2352,7 @@ double
 CQChartsChordHierObj::
 calcInnerRadius() const
 {
-  return plot_->calcOuterRadius() + (childDepth() - 1)*0.1;
+  return chordPlot_->calcOuterRadius() + (childDepth() - 1)*0.1;
 }
 
 double
@@ -2363,7 +2366,7 @@ double
 CQChartsChordHierObj::
 labelRadius() const
 {
-  return std::max(plot_->labelRadius(), 1.0);
+  return std::max(chordPlot_->labelRadius(), 1.0);
 }
 
 void
@@ -2538,7 +2541,7 @@ void
 CQChartsChordPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = dynamic_cast<CQChartsChordPlot *>(plot);
+  chordPlot_ = dynamic_cast<CQChartsChordPlot *>(plot);
 
   CQChartsConnectionPlotCustomControls::setPlot(plot);
 }
@@ -2562,12 +2565,12 @@ CQChartsColor
 CQChartsChordPlotCustomControls::
 getColorValue()
 {
-  return plot_->arcFillColor();
+  return chordPlot_->arcFillColor();
 }
 
 void
 CQChartsChordPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  plot_->setArcFillColor(c);
+  chordPlot_->setArcFillColor(c);
 }

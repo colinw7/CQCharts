@@ -93,8 +93,8 @@ class CQChartsWordObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
-  const WordCloudPlot* plot_ { nullptr }; //!< parent plot
-  QString              name_;             //!< row name
+  const WordCloudPlot* wordCloudPlot_ { nullptr }; //!< parent plot
+  QString              name_;                      //!< row name
 };
 
 //---
@@ -194,7 +194,7 @@ class CQChartsWordCloudPlotCustomControls : public CQChartsPlotCustomControls {
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -212,7 +212,7 @@ class CQChartsWordCloudPlotCustomControls : public CQChartsPlotCustomControls {
   void setColorValue(const CQChartsColor &c) override;
 
  protected:
-  CQChartsWordCloudPlot* plot_ { nullptr };
+  CQChartsWordCloudPlot* wordCloudPlot_ { nullptr };
 };
 
 #endif

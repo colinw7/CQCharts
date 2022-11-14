@@ -8,6 +8,13 @@ CQChartsPaletteCanvas(QWidget *parent) :
 {
 }
 
+CQChartsView *
+CQChartsPaletteCanvas::
+view() const
+{
+  return view_.data();
+}
+
 void
 CQChartsPaletteCanvas::
 setView(CQChartsView *view)

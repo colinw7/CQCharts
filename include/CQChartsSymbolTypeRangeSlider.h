@@ -3,6 +3,8 @@
 
 #include <CQIntRangeSlider.h>
 
+#include <QPointer>
+
 class CQChartsPlot;
 
 class CQChartsSymbolTypeRangeSlider : public CQIntRangeSlider {
@@ -12,9 +14,13 @@ class CQChartsSymbolTypeRangeSlider : public CQIntRangeSlider {
   Q_PROPERTY(QColor strokeColor READ strokeColor WRITE setStrokeColor)
 
  public:
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsSymbolTypeRangeSlider(QWidget *parent=nullptr);
 
-  void setPlot(CQChartsPlot *plot);
+  Plot *plot() const;
+  void setPlot(Plot *plot);
 
   void setSymbolSetName(const QString &name);
 
@@ -27,10 +33,12 @@ class CQChartsSymbolTypeRangeSlider : public CQIntRangeSlider {
   void drawSliderLabels(QPainter *painter) override;
 
  public:
-  CQChartsPlot *plot_          { nullptr };
-  QString       symbolSetName_;
-  QColor        fillColor_;
-  QColor        strokeColor_;
+  using PlotP = QPointer<Plot>;
+
+  PlotP   plot_;
+  QString symbolSetName_;
+  QColor  fillColor_;
+  QColor  strokeColor_;
 };
 
 #endif

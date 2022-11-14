@@ -3,18 +3,25 @@
 
 #include <CQDoubleRangeSlider.h>
 
+#include <QPointer>
+
 class CQChartsPlot;
 
 class CQChartsFontSizeRangeSlider : public CQDoubleRangeSlider {
   Q_OBJECT
 
  public:
-  CQChartsFontSizeRangeSlider(QWidget *parent=nullptr);
-
-  void setPlot(CQChartsPlot *plot);
+  using Plot = CQChartsPlot;
 
  public:
-  CQChartsPlot *plot_ { nullptr };
+  CQChartsFontSizeRangeSlider(QWidget *parent=nullptr);
+
+  void setPlot(Plot *plot);
+
+ public:
+  using PlotP = QPointer<Plot>;
+
+  PlotP plot_;
 };
 
 #endif

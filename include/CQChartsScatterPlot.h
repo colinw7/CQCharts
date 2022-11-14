@@ -63,24 +63,24 @@ class CQChartsScatterPointObj : public CQChartsPlotPointObj {
   Q_PROPERTY(CQChartsFont   font       READ font       WRITE setFont      )
 
  public:
-  using Plot    = CQChartsScatterPlot;
-  using Column  = CQChartsColumn;
-  using Image   = CQChartsImage;
-  using Symbol  = CQChartsSymbol;
-  using Length  = CQChartsLength;
-  using Color   = CQChartsColor;
-  using Font    = CQChartsFont;
-  using Units   = CQChartsUnits::Type;
-  using OptBool = std::optional<bool>;
+  using ScatterPlot = CQChartsScatterPlot;
+  using Column      = CQChartsColumn;
+  using Image       = CQChartsImage;
+  using Symbol      = CQChartsSymbol;
+  using Length      = CQChartsLength;
+  using Color       = CQChartsColor;
+  using Font        = CQChartsFont;
+  using Units       = CQChartsUnits::Type;
+  using OptBool     = std::optional<bool>;
 
  public:
-  CQChartsScatterPointObj(const Plot *plot, int groupInd, const BBox &rect,
+  CQChartsScatterPointObj(const ScatterPlot *plot, int groupInd, const BBox &rect,
                           const Point &p, const ColorInd &is, const ColorInd &ig,
                           const ColorInd &iv);
 
   //---
 
-  const Plot *plot() const { return plot_; }
+  const ScatterPlot *scatterPlot() const { return scatterPlot_; }
 
   int groupInd() const { return groupInd_; }
 
@@ -204,11 +204,11 @@ class CQChartsScatterPointObj : public CQChartsPlotPointObj {
   ExtraData *extraData();
 
  private:
-  const Plot* plot_       { nullptr }; //!< scatter plot
-  int         groupInd_   { -1 };      //!< plot group index
-  ExtraDataP  edata_;                  //!< extra data
-  QString     name_;                   //!< label name
-  Column      nameColumn_;             //!< label name column
+  const ScatterPlot* scatterPlot_ { nullptr }; //!< scatter plot
+  int                groupInd_    { -1 };      //!< plot group index
+  ExtraDataP         edata_;                   //!< extra data
+  QString            name_;                    //!< label name
+  Column             nameColumn_;              //!< label name column
 };
 
 //---
@@ -221,10 +221,10 @@ class CQChartsScatterConnectedObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsScatterPlot;
+  using ScatterPlot = CQChartsScatterPlot;
 
  public:
-  CQChartsScatterConnectedObj(const Plot *plot, int groupInd, const QString &name,
+  CQChartsScatterConnectedObj(const ScatterPlot *plot, int groupInd, const QString &name,
                               const ColorInd &ig, const ColorInd &is, const BBox &rect);
 
   int groupInd() const { return groupInd_; }
@@ -252,9 +252,9 @@ class CQChartsScatterConnectedObj : public CQChartsPlotObj {
   bool drawMouseOver() const override { return false; }
 
  private:
-  const Plot* plot_     { nullptr }; //!< scatter plot
-  int         groupInd_ { -1 };      //!< plot group index
-  QString     name_;                 //!< plot set name
+  const ScatterPlot* scatterPlot_ { nullptr }; //!< scatter plot
+  int                groupInd_    { -1 };      //!< plot group index
+  QString            name_;                    //!< plot set name
 };
 
 //---
@@ -269,11 +269,11 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
   Q_PROPERTY(int count READ numPoints)
 
  public:
-  using Plot   = CQChartsScatterPlot;
-  using Points = std::vector<Point>;
+  using ScatterPlot = CQChartsScatterPlot;
+  using Points      = std::vector<Point>;
 
  public:
-  CQChartsScatterCellObj(const Plot *plot, int groupInd, const BBox &rect,
+  CQChartsScatterCellObj(const ScatterPlot *plot, int groupInd, const BBox &rect,
                          const ColorInd &is, const ColorInd &ig, int ix, int iy,
                          const Points &points, int maxN);
 
@@ -304,12 +304,12 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
   void calcRugPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
  private:
-  const Plot* plot_     { nullptr }; //!< scatter plot
-  int         groupInd_ { -1 };      //!< plot group index
-  int         ix_       { -1 };      //!< x index
-  int         iy_       { -1 };      //!< y index
-  Points      points_;               //!< cell points
-  int         maxN_     { 0 };       //!< max number of points
+  const ScatterPlot* scatterPlot_ { nullptr }; //!< scatter plot
+  int                groupInd_    { -1 };      //!< plot group index
+  int                ix_          { -1 };      //!< x index
+  int                iy_          { -1 };      //!< y index
+  Points             points_;                  //!< cell points
+  int                maxN_        { 0 };       //!< max number of points
 };
 
 //---
@@ -324,11 +324,11 @@ class CQChartsScatterHexObj : public CQChartsPlotObj {
   Q_PROPERTY(int count READ numPoints)
 
  public:
-  using Plot   = CQChartsScatterPlot;
-  using Points = std::vector<Point>;
+  using ScatterPlot = CQChartsScatterPlot;
+  using Points      = std::vector<Point>;
 
  public:
-  CQChartsScatterHexObj(const Plot *plot, int groupInd, const BBox &rect,
+  CQChartsScatterHexObj(const ScatterPlot *plot, int groupInd, const BBox &rect,
                         const ColorInd &is, const ColorInd &ig, int ix, int iy,
                         const Polygon &poly, int n, int maxN);
 
@@ -355,13 +355,13 @@ class CQChartsScatterHexObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
-  const Plot* plot_     { nullptr }; //!< scatter plot
-  int         groupInd_ { -1 };      //!< plot group index
-  int         ix_       { -1 };      //!< x index
-  int         iy_       { -1 };      //!< y index
-  Polygon     poly_;                 //!< polygon
-  int         n_        { 0 };       //!< number of points
-  int         maxN_     { 0 };       //!< max number of points
+  const ScatterPlot* scatterPlot_ { nullptr }; //!< scatter plot
+  int                groupInd_    { -1 };      //!< plot group index
+  int                ix_          { -1 };      //!< x index
+  int                iy_          { -1 };      //!< y index
+  Polygon            poly_;                    //!< polygon
+  int                n_           { 0 };       //!< number of points
+  int                maxN_        { 0 };       //!< max number of points
 };
 
 //---
@@ -374,10 +374,11 @@ class CQChartsScatterDensityObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsScatterPlot;
+  using ScatterPlot = CQChartsScatterPlot;
 
  public:
-  CQChartsScatterDensityObj(const Plot *plot, int groupInd, const QString &name, const BBox &rect);
+  CQChartsScatterDensityObj(const ScatterPlot *plot, int groupInd, const QString &name,
+                            const BBox &rect);
 
   int groupInd() const { return groupInd_; }
 
@@ -404,9 +405,9 @@ class CQChartsScatterDensityObj : public CQChartsPlotObj {
   bool drawMouseOver() const override { return false; }
 
  private:
-  const Plot* plot_     { nullptr }; //!< scatter plot
-  int         groupInd_ { -1 };      //!< plot group index
-  QString     name_;                 //!< name
+  const ScatterPlot* scatterPlot_ { nullptr }; //!< scatter plot
+  int                groupInd_    { -1 };      //!< plot group index
+  QString            name_;                    //!< name
 };
 
 //---
@@ -419,14 +420,15 @@ class CQChartsScatterColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
-  using Plot   = CQChartsScatterPlot;
-  using SelMod = CQChartsSelMod;
-  using Obj    = CQChartsPlotObj;
+  using ScatterPlot = CQChartsScatterPlot;
+  using SelMod      = CQChartsSelMod;
+  using Obj         = CQChartsPlotObj;
 
  public:
-  CQChartsScatterColorKeyItem(Plot *plot, int groupInd, const ColorInd &is, const ColorInd &ig);
+  CQChartsScatterColorKeyItem(ScatterPlot *plot, int groupInd, const ColorInd &is,
+                              const ColorInd &ig);
 
-  Plot *plot() const { return plot_; }
+  ScatterPlot *scatterPlot() const { return scatterPlot_; }
 
   void doSelect(SelMod selMod) override;
 
@@ -450,9 +452,9 @@ class CQChartsScatterColorKeyItem : public CQChartsColorBoxKeyItem {
   ColorInd setIndex() const override;
 
  private:
-  Plot* plot_     { nullptr }; //!< parent plot
-  int   groupInd_ { -1 };      //!< group index
-  Color color_;                //!< custom color
+  ScatterPlot* scatterPlot_ { nullptr }; //!< parent plot
+  int          groupInd_    { -1 };      //!< group index
+  Color        color_;                   //!< custom color
 };
 
 /*!
@@ -463,13 +465,13 @@ class CQChartsScatterGridKeyItem : public CQChartsGradientKeyItem {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsScatterPlot;
+  using ScatterPlot = CQChartsScatterPlot;
 
  public:
-  CQChartsScatterGridKeyItem(Plot *plot, int n);
+  CQChartsScatterGridKeyItem(ScatterPlot *plot, int n);
 
  private:
-  Plot* plot_ { nullptr };
+  ScatterPlot* scatterPlot_ { nullptr };
 };
 
 /*!
@@ -480,13 +482,13 @@ class CQChartsScatterHexKeyItem : public CQChartsGradientKeyItem {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsScatterPlot;
+  using ScatterPlot = CQChartsScatterPlot;
 
  public:
-  CQChartsScatterHexKeyItem(Plot *plot, int n);
+  CQChartsScatterHexKeyItem(ScatterPlot *plot, int n);
 
  private:
-  Plot* plot_ { nullptr };
+  ScatterPlot* scatterPlot_ { nullptr };
 };
 
 //---
@@ -1069,7 +1071,7 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -1108,7 +1110,7 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
   void fontSizeRangeSlot(double, double);
 
  protected:
-  CQChartsScatterPlot* plot_ { nullptr };
+  CQChartsScatterPlot* scatterPlot_ { nullptr };
 
   FrameData optionsFrame_;
 

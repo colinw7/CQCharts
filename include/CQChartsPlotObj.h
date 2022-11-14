@@ -95,7 +95,7 @@ class CQChartsPlotObj : public CQChartsObj,
   //---
 
   //! get parent plot
-  Plot *plot() const { return plot_; }
+  Plot *plot() const;
 
   //---
 
@@ -344,9 +344,10 @@ class CQChartsPlotObj : public CQChartsObj,
   void layerChanged();
 
  protected:
+  using PlotP        = QPointer<Plot>;
   using EditHandlesP = std::unique_ptr<EditHandles>;
 
-  Plot*            plot_        { nullptr };           //!< parent plot
+  PlotP            plot_;                              //!< parent plot
   DetailHint       detailHint_  { DetailHint::MINOR }; //!< interaction detail hint
   DrawLayer        drawLayer_   { DrawLayer::NONE };   //!< draw layer
   bool             filtered_    { false };             //!< is filtered

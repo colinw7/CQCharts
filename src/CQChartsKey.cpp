@@ -375,9 +375,9 @@ doLayout()
     double ph = 0.0;
 
     for (int i = 0; i < numPlots_; ++i) {
-      auto *plot = view()->plot(i);
+      auto *ploti = view()->plot(i);
 
-      auto name = plot->keyText();
+      auto name = ploti->keyText();
 
       double tw = fm.horizontalAdvance(name) + bs + 4;
 
@@ -612,9 +612,9 @@ draw(PaintDevice *device) const
   for (int i = 0; i < numPlots_; ++i) {
     double py2 = py1 + bs + 2;
 
-    auto *plot = view()->plot(i);
+    auto *ploti = view()->plot(i);
 
-    bool checked = plot->isVisible();
+    bool checked = ploti->isVisible();
 
     //---
 
@@ -626,7 +626,7 @@ draw(PaintDevice *device) const
 
     device->setPen(interpTextColor(ColorInd()));
 
-    auto name = plot->keyText();
+    auto name = ploti->keyText();
 
     double px2 = px1 + bs + 2;
 
@@ -744,7 +744,7 @@ void
 CQChartsViewKey::
 doShow(int i, SelMod selMod)
 {
-  auto *plot = view()->plot(i);
+  auto *ploti = view()->plot(i);
 
   View::Plots plots;
 
@@ -752,17 +752,17 @@ doShow(int i, SelMod selMod)
 
   // no modifiers : toggle clicked
   if      (selMod == SelMod::REPLACE) {
-    plot->setVisible(! plot->isVisible());
+    ploti->setVisible(! ploti->isVisible());
   }
   // control: clicked plot only
   else if (selMod == SelMod::ADD) {
     for (auto &plot1 : plots)
-      plot1->setVisible(plot1 == plot);
+      plot1->setVisible(plot1 == ploti);
   }
   // shift: unclicked plots
   else if (selMod == SelMod::REMOVE) {
     for (auto &plot1 : plots)
-      plot1->setVisible(plot1 != plot);
+      plot1->setVisible(plot1 != ploti);
   }
   // control+shift: toggle all on/off
   else if (selMod == SelMod::TOGGLE) {
@@ -959,10 +959,10 @@ updatePlotLocation()
   if (! bbox.isSet()) return;
 
   if (! isInsideX())
-    bbox += plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::NONE);
+    bbox += plot()->calcGroupedYAxisRange(CQChartsAxisSide::Type::NONE);
 
   if (! isInsideY())
-    bbox += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::NONE);
+    bbox += plot()->calcGroupedXAxisRange(CQChartsAxisSide::Type::NONE);
 
   updateLocation(bbox);
 }
@@ -1020,7 +1020,7 @@ updateLocation(const BBox &bbox)
 
       // offset by left y axis width
       //if (yAxis)
-      //  kx -= plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).
+      //  kx -= plot()->calcGroupedYAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).
       //          getOptWidth() + xlm;
     }
   }
@@ -1035,7 +1035,7 @@ updateLocation(const BBox &bbox)
 
       // offset by right y axis width
       //if (yAxis)
-      //  kx += plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).
+      //  kx += plot()->calcGroupedYAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).
       //          getOptWidth() + xrm;
     }
   }
@@ -1048,7 +1048,7 @@ updateLocation(const BBox &bbox)
 
       // offset by top x axis height
       //if (xAxis)
-      //  ky += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).
+      //  ky += plot()->calcGroupedXAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).
       //          getOptHeight() + ytm;
     }
   }
@@ -1063,7 +1063,7 @@ updateLocation(const BBox &bbox)
 
       // offset by bottom x axis height
       //if (xAxis)
-      //  ky -= plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).
+      //  ky -= plot()->calcGroupedXAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).
       //          getOptHeight() + ybm;
     }
   }
@@ -2346,7 +2346,7 @@ CQChartsColumnKey::
 CQChartsColumnKey(CQChartsPlot *plot, const Column &column) :
  CQChartsPlotKey(plot), column_(column)
 {
-  plot_->addFilterColumn(column_);
+  plot->addFilterColumn(column_);
 
   updateItems();
 }
@@ -2354,7 +2354,7 @@ CQChartsColumnKey(CQChartsPlot *plot, const Column &column) :
 CQChartsColumnKey::
 ~CQChartsColumnKey()
 {
-  plot_->removeFilterColumn(column_);
+  plot()->removeFilterColumn(column_);
 }
 
 void
@@ -2362,11 +2362,11 @@ CQChartsColumnKey::
 setColumn(const Column &c)
 {
   if (c != column_) {
-    plot_->removeFilterColumn(column_);
+    plot()->removeFilterColumn(column_);
 
     column_ = c;
 
-    plot_->addFilterColumn(column_);
+    plot()->addFilterColumn(column_);
 
     updateItems();
 
@@ -2417,7 +2417,7 @@ updateItems()
 
   clearItems();
 
-  auto *details = plot_->columnDetails(column_);
+  auto *details = plot()->columnDetails(column_);
   if (! details) return;
 
   int ig = 0;
@@ -2448,10 +2448,17 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 //------
 
 CQChartsKeyItem::
-CQChartsKeyItem(PlotKey *key, const ColorInd &ic) :
- key_(key), ic_(ic)
+CQChartsKeyItem(PlotKey *key, const ColorInd &ic, Plot *plot) :
+ key_(key), ic_(ic), plot_(plot)
 {
   assert(key_);
+}
+
+CQChartsPlot *
+CQChartsKeyItem::
+plot() const
+{
+  return plot_.data();
 }
 
 bool
@@ -2480,7 +2487,7 @@ void
 CQChartsKeyItem::
 doShow(SelMod selMod)
 {
-  auto *plot = key_->plot();
+  auto *keyPlot = key_->plot();
 
   auto ic = setIndex();
 
@@ -2491,12 +2498,12 @@ doShow(SelMod selMod)
   // control: clicked item only
   else if (selMod == SelMod::ADD) {
     for (int i = 0; i < ic.n; ++i)
-      plot->setSetHidden(i, i != ic.i);
+      keyPlot->setSetHidden(i, i != ic.i);
   }
   // shift: unclicked items
   else if (selMod == SelMod::REMOVE) {
     for (int i = 0; i < ic.n; ++i)
-      plot->setSetHidden(i, i == ic.i);
+      keyPlot->setSetHidden(i, i == ic.i);
   }
   // control+shift: toggle all on/off
   else if (selMod == SelMod::TOGGLE) {
@@ -2504,12 +2511,12 @@ doShow(SelMod selMod)
     int num_hidden = 0;
 
     for (int i = 0; i < ic.n; ++i)
-      num_hidden += plot->isSetHidden(i);
+      num_hidden += keyPlot->isSetHidden(i);
 
     bool state = (num_hidden > 0 ? false : true);
 
     for (int i = 0; i < ic.n; ++i)
-      plot->setSetHidden(i, state);
+      keyPlot->setSetHidden(i, state);
   }
 }
 
@@ -2554,18 +2561,18 @@ bool
 CQChartsKeyItem::
 isSetHidden() const
 {
-  auto *plot = key_->plot();
+  auto *keyPlot = key_->plot();
 
-  return plot->isSetHidden(setIndex().i);
+  return keyPlot->isSetHidden(setIndex().i);
 }
 
 void
 CQChartsKeyItem::
 setSetHidden(bool b)
 {
-  auto *plot = key_->plot();
+  auto *keyPlot = key_->plot();
 
-  plot->CQChartsPlot::setSetHidden(setIndex().i, b);
+  keyPlot->CQChartsPlot::setSetHidden(setIndex().i, b);
 }
 
 void
@@ -2586,13 +2593,13 @@ tipText(const Point &, QString &) const
 
 CQChartsGroupKeyItem::
 CQChartsGroupKeyItem(Plot *plot) :
- CQChartsKeyItem(plot->key(), ColorInd()), plot_(plot)
+ CQChartsKeyItem(plot->key(), ColorInd(), plot)
 {
 }
 
 CQChartsGroupKeyItem::
 CQChartsGroupKeyItem(PlotKey *key) :
- CQChartsKeyItem(key, ColorInd()), plot_(key->plot())
+ CQChartsKeyItem(key, ColorInd(), key->plot())
 {
 }
 
@@ -2857,13 +2864,13 @@ draw(PaintDevice *device, const BBox &rect) const
 
 CQChartsTextKeyItem::
 CQChartsTextKeyItem(Plot *plot, const QString &text, const ColorInd &ic) :
- CQChartsKeyItem(plot->key(), ic), plot_(plot), text_(text)
+ CQChartsKeyItem(plot->key(), ic, plot), text_(text)
 {
 }
 
 CQChartsTextKeyItem::
 CQChartsTextKeyItem(PlotKey *key, const QString &text, const ColorInd &ic) :
- CQChartsKeyItem(key, ic), plot_(key->plot()), text_(text)
+ CQChartsKeyItem(key, ic, key->plot()), text_(text)
 {
 }
 
@@ -2871,10 +2878,10 @@ CQChartsGeom::Size
 CQChartsTextKeyItem::
 size() const
 {
-  auto *plot     = key_->plot();
+  auto *keyPlot  = key_->plot();
   auto *drawPlot = key_->drawPlot();
 
-  auto font = plot->view()->plotFont(plot, key_->textFont());
+  auto font = keyPlot->view()->plotFont(keyPlot, key_->textFont());
 
   QFontMetricsF fm(font);
 
@@ -2903,12 +2910,12 @@ void
 CQChartsTextKeyItem::
 draw(PaintDevice *device, const BBox &rect) const
 {
-  auto *plot     = key_->plot();
+  auto *keyPlot  = key_->plot();
 //auto *drawPlot = key_->drawPlot();
 
   //---
 
-  plot->setPainterFont(device, key_->textFont());
+  keyPlot->setPainterFont(device, key_->textFont());
 
   auto tc = interpTextColor(ColorInd());
 
@@ -2916,7 +2923,7 @@ draw(PaintDevice *device, const BBox &rect) const
   bool groupInside = (group_ && ! group_->calcHidden() && group_->isInside());
 
   if (inside || groupInside)
-    tc = plot->insideColor(tc);
+    tc = keyPlot->insideColor(tc);
 
   adjustFillColor(tc);
 
@@ -2924,7 +2931,7 @@ draw(PaintDevice *device, const BBox &rect) const
 
   auto textOptions = key_->textOptions();
 
-  textOptions = plot->adjustTextOptions(textOptions);
+  textOptions = keyPlot->adjustTextOptions(textOptions);
 
   CQChartsDrawUtil::drawTextInBox(device, rect, text_, textOptions);
 }
@@ -2934,7 +2941,7 @@ draw(PaintDevice *device, const BBox &rect) const
 CQChartsColorBoxKeyItem::
 CQChartsColorBoxKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
                         const RangeValue &xv, const RangeValue &yv) :
- CQChartsKeyItem(plot->key(), iv), plot_(plot), is_(is), ig_(ig), iv_(iv), xv_(xv), yv_(yv)
+ CQChartsKeyItem(plot->key(), iv, plot), is_(is), ig_(ig), iv_(iv), xv_(xv), yv_(yv)
 {
   assert(is_.isValid());
   assert(ig_.isValid());
@@ -2946,7 +2953,7 @@ CQChartsColorBoxKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig, cons
 CQChartsColorBoxKeyItem::
 CQChartsColorBoxKeyItem(PlotKey *key, const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
                         const RangeValue &xv, const RangeValue &yv) :
- CQChartsKeyItem(key, iv), plot_(key->plot()), is_(is), ig_(ig), iv_(iv), xv_(xv), yv_(yv)
+ CQChartsKeyItem(key, iv, key->plot()), is_(is), ig_(ig), iv_(iv), xv_(xv), yv_(yv)
 {
   assert(is_.isValid());
   assert(ig_.isValid());
@@ -2966,10 +2973,10 @@ CQChartsGeom::Size
 CQChartsColorBoxKeyItem::
 size() const
 {
-  auto *plot     = key_->plot();
+  auto *keyPlot  = key_->plot();
   auto *drawPlot = key_->drawPlot();
 
-  auto font = plot->view()->plotFont(plot, key_->textFont());
+  auto font = keyPlot->view()->plotFont(keyPlot, key_->textFont());
 
   QFontMetricsF fm(font);
 
@@ -2992,14 +2999,14 @@ selectPress(const Point &w, SelData &selData)
     return false;
 
   if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW) {
-    auto *plot = key_->plot();
+    auto *keyPlot = key_->plot();
 
     if (! plot_->isHideValue(value_))
-      plot->setHideValue(value_);
+      keyPlot->setHideValue(value_);
     else
-      plot->setHideValue(QVariant());
+      keyPlot->setHideValue(QVariant());
 
-    plot->updateRangeAndObjs();
+    keyPlot->updateRangeAndObjs();
   }
   else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT) {
   }
@@ -3020,7 +3027,7 @@ void
 CQChartsColorBoxKeyItem::
 draw(PaintDevice *device, const BBox &rect) const
 {
-  auto *plot     = key_->plot();
+  auto *keyPlot  = key_->plot();
   auto *drawPlot = key_->drawPlot();
 
   auto prect = drawPlot->windowToPixel(rect);
@@ -3040,7 +3047,7 @@ draw(PaintDevice *device, const BBox &rect) const
   bool inside = isInside();
 
   if (inside)
-    penBrush.brush.setColor(plot->insideColor(penBrush.brush.color()));
+    penBrush.brush.setColor(keyPlot->insideColor(penBrush.brush.color()));
 
   auto bbox = drawPlot->pixelToWindow(prect1);
 
@@ -3051,16 +3058,16 @@ QBrush
 CQChartsColorBoxKeyItem::
 fillBrush() const
 {
-  auto *plot = key_->plot();
+  auto *keyPlot = key_->plot();
 
   auto ic = calcColorInd();
 
   QColor c;
 
   if (color_.isValid())
-    c = plot_->interpColor(color_, ic);
+    c = keyPlot->interpColor(color_, ic);
   else
-    c = plot->interpPaletteColor(ic);
+    c = keyPlot->interpPaletteColor(ic);
 
   adjustFillColor(c);
 
@@ -3074,11 +3081,11 @@ calcHidden() const
   bool hidden = false;
 
   if (value_.isValid())
-    hidden = plot_->isHideValue(value_);
+    hidden = plot()->isHideValue(value_);
   else {
     auto ic = calcColorInd();
 
-    hidden = plot_->isSetHidden(ic.i);
+    hidden = plot()->isSetHidden(ic.i);
   }
 
   return hidden;
@@ -3134,10 +3141,10 @@ CQChartsGeom::Size
 CQChartsLineKeyItem::
 size() const
 {
-  auto *plot     = key_->plot();
+  auto *keyPlot  = key_->plot();
   auto *drawPlot = key_->drawPlot();
 
-  auto font = plot->view()->plotFont(plot, key_->textFont());
+  auto font = keyPlot->view()->plotFont(keyPlot, key_->textFont());
 
   QFontMetricsF fm(font);
 
@@ -3161,14 +3168,14 @@ selectPress(const Point &w, SelData &selData)
     return false;
 
   if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW) {
-    auto *plot = key_->plot();
+    auto *keyPlot = key_->plot();
 
-    if (! plot->isHideValue(value_))
-      plot->setHideValue(value_);
+    if (! keyPlot->isHideValue(value_))
+      keyPlot->setHideValue(value_);
     else
-      plot->setHideValue(QVariant());
+      keyPlot->setHideValue(QVariant());
 
-    plot->updateRangeAndObjs();
+    keyPlot->updateRangeAndObjs();
   }
   else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT) {
   }
@@ -3180,7 +3187,7 @@ void
 CQChartsLineKeyItem::
 draw(PaintDevice *device, const BBox &rect) const
 {
-  auto *plot     = key_->plot();
+  auto *keyPlot  = key_->plot();
   auto *drawPlot = key_->drawPlot();
 
   auto prect = drawPlot->windowToPixel(rect);
@@ -3196,18 +3203,18 @@ draw(PaintDevice *device, const BBox &rect) const
   const auto &fillData   = symbolData_.fill();
   const auto &strokeData = symbolData_.stroke();
 
-  auto lc = plot->interpColor(fillData  .color(), ig_);
-  auto fc = plot->interpColor(strokeData.color(), ig_);
+  auto lc = keyPlot->interpColor(fillData  .color(), ig_);
+  auto fc = keyPlot->interpColor(strokeData.color(), ig_);
 
   CQChartsPenBrush penBrush;
 
-  plot->setPenBrush(penBrush, PenData(true, lc), BrushData(true, fc));
+  keyPlot->setPenBrush(penBrush, PenData(true, lc), BrushData(true, fc));
 
   bool inside      = (! calcHidden() && isInside());
   bool groupInside = (group_ && ! group_->calcHidden() && group_->isInside());
 
   if (inside || groupInside)
-    penBrush.brush.setColor(plot->insideColor(penBrush.brush.color()));
+    penBrush.brush.setColor(keyPlot->insideColor(penBrush.brush.color()));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -3224,13 +3231,13 @@ draw(PaintDevice *device, const BBox &rect) const
 
 CQChartsGradientKeyItem::
 CQChartsGradientKeyItem(Plot *plot) :
- CQChartsKeyItem(plot->key(), ColorInd()), plot_(plot)
+ CQChartsKeyItem(plot->key(), ColorInd(), plot)
 {
 }
 
 CQChartsGradientKeyItem::
 CQChartsGradientKeyItem(PlotKey *key) :
- CQChartsKeyItem(key, ColorInd()), plot_(key->plot())
+ CQChartsKeyItem(key, ColorInd(), key->plot())
 {
 }
 
@@ -3239,7 +3246,7 @@ CQChartsGradientKeyItem::
 size() const
 {
   // get char width/height
-  auto font = plot_->view()->plotFont(plot_, key_->textFont());
+  auto font = plot()->view()->plotFont(plot(), key_->textFont());
 
   QFontMetricsF fm(font);
 
@@ -3260,8 +3267,8 @@ size() const
 
   //--
 
-  double ww = plot_->pixelToWindowWidth (2*fw + tw + 6);
-  double wh = plot_->pixelToWindowHeight(7*fh + fh + 4);
+  double ww = plot()->pixelToWindowWidth (2*fw + tw + 6);
+  double wh = plot()->pixelToWindowHeight(7*fh + fh + 4);
 
   return Size(ww, wh);
 }
@@ -3271,7 +3278,7 @@ CQChartsGradientKeyItem::
 draw(PaintDevice *device, const BBox &rect) const
 {
   // get char height
-  plot_->setPainterFont(device, key_->textFont());
+  plot()->setPainterFont(device, key_->textFont());
 
   QFontMetricsF fm(device->font());
 
@@ -3289,13 +3296,13 @@ draw(PaintDevice *device, const BBox &rect) const
   for (const auto &label : labels)
     tw = std::max(tw, fm.horizontalAdvance(label));
 
-  double wtw = plot_->pixelToWindowWidth(tw);
+  double wtw = plot()->pixelToWindowWidth(tw);
 
   //---
 
   // calc margins
-  double wxm = plot_->pixelToWindowWidth (2);
-  double wym = plot_->pixelToWindowHeight(fh/2 + 2);
+  double wxm = plot()->pixelToWindowWidth (2);
+  double wym = plot()->pixelToWindowHeight(fh/2 + 2);
 
   //---
 
@@ -3305,8 +3312,8 @@ draw(PaintDevice *device, const BBox &rect) const
   BBox rrect(rect.getXMax() - wtw - wxm, rect.getYMin() + wym,
              rect.getXMax() - wxm, rect.getYMax() - wym);
 
-  auto lprect = plot_->windowToPixel(lrect);
-  auto rprect = plot_->windowToPixel(rrect);
+  auto lprect = plot()->windowToPixel(lrect);
+  auto rprect = plot()->windowToPixel(rrect);
 
   //---
 
@@ -3321,7 +3328,7 @@ draw(PaintDevice *device, const BBox &rect) const
   if (palette().isValid())
     colorsPalette = palette().palette();
   else
-    colorsPalette = plot_->view()->themePalette();
+    colorsPalette = plot()->view()->themePalette();
 
   colorsPalette->setLinearGradient(lg, 1.0);
 
@@ -3352,9 +3359,9 @@ draw(PaintDevice *device, const BBox &rect) const
   // set text pen
   CQChartsPenBrush penBrush;
 
-  auto tc = plot_->interpThemeColor(ColorInd(1.0));
+  auto tc = plot()->interpThemeColor(ColorInd(1.0));
 
-  plot_->setPen(penBrush, PenData(true, tc, Alpha()));
+  plot()->setPen(penBrush, PenData(true, tc, Alpha()));
 
   device->setPen(penBrush.pen);
 
@@ -3362,7 +3369,7 @@ draw(PaintDevice *device, const BBox &rect) const
 
   // draw labels
   auto drawTextLabel = [&](const Point &p, const QString &label) {
-    auto p1 = plot_->pixelToWindow(p);
+    auto p1 = plot()->pixelToWindow(p);
 
     CQChartsTextOptions options;
 
@@ -3406,7 +3413,7 @@ calcLabels(QStringList &labels) const
 
 CQChartsCheckKeyItem::
 CQChartsCheckKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
- CQChartsKeyItem(plot->key(), iv), plot_(plot), is_(is), ig_(ig), iv_(iv)
+ CQChartsKeyItem(plot->key(), iv, plot), is_(is), ig_(ig), iv_(iv)
 {
   assert(is_.isValid());
   assert(ig_.isValid());
@@ -3417,7 +3424,7 @@ CQChartsCheckKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig, const C
 
 CQChartsCheckKeyItem::
 CQChartsCheckKeyItem(PlotKey *key, const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
- CQChartsKeyItem(key, iv), plot_(key->plot()), is_(is), ig_(ig), iv_(iv)
+ CQChartsKeyItem(key, iv, key->plot()), is_(is), ig_(ig), iv_(iv)
 {
   assert(is_.isValid());
   assert(ig_.isValid());
@@ -3431,7 +3438,7 @@ CQChartsCheckKeyItem::
 size() const
 {
   // get char width/height
-  auto font = plot_->view()->plotFont(plot_, key_->textFont());
+  auto font = plot()->view()->plotFont(plot(), key_->textFont());
 
   QFontMetricsF fm(font);
 
@@ -3440,8 +3447,8 @@ size() const
 
   auto ps = std::max(fw, fh);
 
-  double ww = plot_->pixelToWindowWidth (ps + 4);
-  double wh = plot_->pixelToWindowHeight(ps + 4);
+  double ww = plot()->pixelToWindowWidth (ps + 4);
+  double wh = plot()->pixelToWindowHeight(ps + 4);
 
   return Size(ww, wh);
 }
@@ -3454,11 +3461,11 @@ selectPress(const Point &w, SelData &selData)
     return false;
 
   if      (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SHOW) {
-    auto *plot = key_->plot();
+    auto *keyPlot = key_->plot();
 
     setHidden(! calcHidden());
 
-    plot->updateRangeAndObjs();
+    keyPlot->updateRangeAndObjs();
   }
   else if (key_->pressBehavior().type() == CQChartsKeyPressBehavior::Type::SELECT) {
     if (! value_.isValid())
@@ -3474,14 +3481,14 @@ setHidden(bool hidden)
 {
   if (value_.isValid()) {
     if (hidden)
-      plot_->setHideValue(value_);
+      plot()->setHideValue(value_);
     else
-      plot_->setHideValue(QVariant());
+      plot()->setHideValue(QVariant());
   }
   else {
     auto ic = calcColorInd();
 
-    plot_->setSetHidden(ic.i, hidden);
+    plot()->setSetHidden(ic.i, hidden);
   }
 }
 
@@ -3490,7 +3497,7 @@ CQChartsCheckKeyItem::
 draw(PaintDevice *device, const BBox &rect) const
 {
   // get char height
-  plot_->setPainterFont(device, key_->textFont());
+  plot()->setPainterFont(device, key_->textFont());
 
   QFontMetricsF fm(device->font());
 
@@ -3519,11 +3526,11 @@ calcHidden() const
   bool hidden = false;
 
   if (value_.isValid())
-    hidden = plot_->isHideValue(value_);
+    hidden = plot()->isHideValue(value_);
   else {
     auto ic = calcColorInd();
 
-    hidden = plot_->isSetHidden(ic.i);
+    hidden = plot()->isSetHidden(ic.i);
   }
 
   return hidden;

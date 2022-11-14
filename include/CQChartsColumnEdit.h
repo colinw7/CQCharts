@@ -20,13 +20,14 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
   Q_PROPERTY(bool           proxy       READ isProxy       WRITE setProxy      )
 
  public:
+  using Plot      = CQChartsPlot;
   using ModelData = CQChartsModelData;
   using Column    = CQChartsColumn;
 
  public:
   CQChartsColumnLineEdit(QWidget *parent=nullptr);
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
   //! get/set is model data
   ModelData *modelData() const;

@@ -2,6 +2,46 @@
 #include <CQChartsPlot.h>
 #include <QBuffer>
 
+CQChartsPaintDevice::
+CQChartsPaintDevice(View *view) :
+ view_(view)
+{
+}
+
+CQChartsPaintDevice::
+CQChartsPaintDevice(Plot *plot) :
+ plot_(plot)
+{
+}
+
+CQChartsView *
+CQChartsPaintDevice::
+view() const
+{
+  return view_.data();
+}
+
+void
+CQChartsPaintDevice::
+setView(View *view)
+{
+  view_ = view;
+}
+
+CQChartsPlot *
+CQChartsPaintDevice::
+plot() const
+{
+  return plot_.data();
+}
+
+void
+CQChartsPaintDevice::
+setPlot(Plot *plot)
+{
+  plot_ = plot;
+}
+
 CQCharts *
 CQChartsPaintDevice::
 calcCharts() const

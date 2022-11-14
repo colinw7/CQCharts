@@ -62,16 +62,16 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
   Q_PROPERTY(double y2 READ y2 WRITE setY2)
 
  public:
-  using Plot = CQChartsXYPlot;
+  using XYPlot = CQChartsXYPlot;
 
  public:
-  CQChartsXYBiLineObj(const Plot *plot, int groupInd, const BBox &rect,
+  CQChartsXYBiLineObj(const XYPlot *plot, int groupInd, const BBox &rect,
                       double x, double y1, double y2, const QModelIndex &ind,
                       const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
 
   //---
 
-  const Plot *plot() const { return plot_; }
+  const XYPlot *xyPlot() const { return xyPlot_; }
 
   double x() const { return x_; }
   void setX(double r) { x_ = r; }
@@ -109,11 +109,11 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
   void drawPoints(PaintDevice *device, const Point &p1, const Point &p2) const;
 
  private:
-  const Plot* plot_     { nullptr }; //!< parent plot
-  int         groupInd_ { -1 };      //!< group ind
-  double      x_        { 0.0 };     //!< x
-  double      y1_       { 0.0 };     //!< start y
-  double      y2_       { 0.0 };     //!< end y
+  const XYPlot* xyPlot_   { nullptr }; //!< parent plot
+  int           groupInd_ { -1 };      //!< group ind
+  double        x_        { 0.0 };     //!< x
+  double        y1_       { 0.0 };     //!< start y
+  double        y2_       { 0.0 };     //!< end y
 };
 
 //---
@@ -131,16 +131,16 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
   Q_PROPERTY(double y2   READ y2     WRITE setY2  )
 
  public:
-  using Plot = CQChartsXYPlot;
+  using XYPlot = CQChartsXYPlot;
 
  public:
-  CQChartsXYImpulseLineObj(const Plot *plot, int groupInd, const BBox &rect,
+  CQChartsXYImpulseLineObj(const XYPlot *xyPlot, int groupInd, const BBox &rect,
                            double x, double y1, double y2, const QModelIndex &ind,
                            const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
 
   //---
 
-  const Plot *plot() const { return plot_; }
+  const XYPlot *xyPlot() const { return xyPlot_; }
 
   //---
 
@@ -177,12 +177,12 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
-  const Plot* plot_     { nullptr }; //!< parent plot
-  int         groupInd_ { -1 };      //!< group ind
-  bool        line_     { true };    //!< is line
-  double      x_        { 0.0 };     //!< x
-  double      y1_       { 0.0 };     //!< start y
-  double      y2_       { 0.0 };     //!< end y
+  const XYPlot* xyPlot_   { nullptr }; //!< parent plot
+  int           groupInd_ { -1 };      //!< group ind
+  bool          line_     { true };    //!< is line
+  double        x_        { 0.0 };     //!< x
+  double        y1_       { 0.0 };     //!< start y
+  double        y2_       { 0.0 };     //!< end y
 };
 
 //---
@@ -200,7 +200,7 @@ class CQChartsXYPointObj : public CQChartsPlotPointObj {
   Q_PROPERTY(CQChartsColor  color      READ color      WRITE setColor     )
 
  public:
-  using Plot        = CQChartsXYPlot;
+  using XYPlot      = CQChartsXYPlot;
   using LabelObj    = CQChartsXYLabelObj;
   using PolylineObj = CQChartsXYPolylineObj;
   using Symbol      = CQChartsSymbol;
@@ -211,13 +211,13 @@ class CQChartsXYPointObj : public CQChartsPlotPointObj {
   using Units       = CQChartsUnits::Type;
 
  public:
-  CQChartsXYPointObj(const Plot *plot, int groupInd, const BBox &rect, const Point &p,
+  CQChartsXYPointObj(const XYPlot *xyPlot, int groupInd, const BBox &rect, const Point &p,
                      const QModelIndex &ind, const ColorInd &is, const ColorInd &ig,
                      const ColorInd &iv);
 
   //---
 
-  const Plot *plot() const { return plot_; }
+  const XYPlot *xyPlot() const { return xyPlot_; }
 
   //---
 
@@ -309,7 +309,7 @@ class CQChartsXYPointObj : public CQChartsPlotPointObj {
   ExtraData *extraData();
 
  private:
-  const Plot*        plot_     { nullptr }; //!< parent plot
+  const XYPlot*      xyPlot_   { nullptr }; //!< parent plot
   int                groupInd_ { -1 };      //!< group ind
   ExtraDataP         edata_;                //!< extra data
   const LabelObj*    labelObj_ { nullptr }; //!< label obj
@@ -330,12 +330,12 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
   Q_PROPERTY(QString label READ label WRITE setLabel)
 
  public:
-  using Plot     = CQChartsXYPlot;
+  using XYPlot   = CQChartsXYPlot;
   using Column   = CQChartsColumn;
   using PointObj = CQChartsXYPointObj;
 
  public:
-  CQChartsXYLabelObj(const Plot *plot, int groupInd, const BBox &rect,
+  CQChartsXYLabelObj(const XYPlot *xyPlot, int groupInd, const BBox &rect,
                      double x, double y, const QString &label, const QModelIndex &ind,
                      const ColorInd &is, const ColorInd &iv);
 
@@ -343,7 +343,7 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
 
   //---
 
-  const Plot *plot() const { return plot_; }
+  const XYPlot *xyPlot() const { return xyPlot_; }
 
   double x() const { return pos_.x; }
   void setX(double r) { pos_.setX(r); }
@@ -384,7 +384,7 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
  private:
-  const Plot*     plot_     { nullptr }; //!< parent plot
+  const XYPlot*   xyPlot_   { nullptr }; //!< parent plot
   int             groupInd_ { -1 };      //!< group ind
   Point           pos_;                  //!< position
   QString         label_;                //!< label string
@@ -406,11 +406,11 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   Q_PROPERTY(QString name READ name WRITE setName)
 
  public:
-  using Plot   = CQChartsXYPlot;
+  using XYPlot = CQChartsXYPlot;
   using Column = CQChartsColumn;
 
  public:
-  CQChartsXYPolylineObj(const Plot *plot, int groupInd, const BBox &rect,
+  CQChartsXYPolylineObj(const XYPlot *xyPlot, int groupInd, const BBox &rect,
                         const Polygon &poly, const QString &name, const ColorInd &is,
                         const ColorInd &ig);
 
@@ -418,7 +418,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   //---
 
-  const Plot *plot() const { return plot_; }
+  const XYPlot *xyPlot() const { return xyPlot_; }
 
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
@@ -495,15 +495,15 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   using Hull     = CQChartsGrahamHull;
   using HullP    = std::unique_ptr<Hull>;
 
-  const Plot* plot_     { nullptr }; //!< parent plot
-  int         groupInd_ { -1 };      //!< group ind
-  Polygon     poly_;                 //!< polygon
-  QString     name_;                 //!< name
-  PlotObjs    pointObjs_;            //!< point objects
-  SmoothP     smooth_;               //!< smooth object
-  FitData     bestFit_;              //!< best fit data
-  StatData    statData_;             //!< statistics data
-  HullP       hull_;                 //!< hull
+  const XYPlot* xyPlot_   { nullptr }; //!< parent plot
+  int           groupInd_ { -1 };      //!< group ind
+  Polygon       poly_;                 //!< polygon
+  QString       name_;                 //!< name
+  PlotObjs      pointObjs_;            //!< point objects
+  SmoothP       smooth_;               //!< smooth object
+  FitData       bestFit_;              //!< best fit data
+  StatData      statData_;             //!< statistics data
+  HullP         hull_;                 //!< hull
 };
 
 //---
@@ -518,10 +518,10 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   Q_PROPERTY(QString name READ name WRITE setName)
 
  public:
-  using Plot = CQChartsXYPlot;
+  using XYPlot = CQChartsXYPlot;
 
  public:
-  CQChartsXYPolygonObj(const Plot *plot, int groupInd, const BBox &rect,
+  CQChartsXYPolygonObj(const XYPlot *xyPlot, int groupInd, const BBox &rect,
                        const Polygon &poly, const QString &name, const ColorInd &is,
                        const ColorInd &ig, bool under);
 
@@ -529,7 +529,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   //---
 
-  const Plot *plot() const { return plot_; }
+  const XYPlot *xyPlot() const { return xyPlot_; }
 
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
@@ -575,12 +575,12 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   using Smooth  = CQChartsSmooth;
   using SmoothP = std::unique_ptr<CQChartsSmooth>;
 
-  const Plot* plot_     { nullptr }; //!< parent plot
-  int         groupInd_ { -1 };      //!< group ind
-  Polygon     poly_;                 //!< polygon
-  QString     name_;                 //!< name
-  bool        under_    { false };   //!< has under points
-  SmoothP     smooth_;               //!< smooth object
+  const XYPlot* xyPlot_   { nullptr }; //!< parent plot
+  int           groupInd_ { -1 };      //!< group ind
+  Polygon       poly_;                 //!< polygon
+  QString       name_;                 //!< name
+  bool          under_    { false };   //!< has under points
+  SmoothP       smooth_;               //!< smooth object
 };
 
 //---
@@ -595,14 +595,14 @@ class CQChartsXYColorKeyItem : public CQChartsColorBoxKeyItem {
   Q_OBJECT
 
  public:
-  using Plot   = CQChartsXYPlot;
+  using XYPlot = CQChartsXYPlot;
   using SelMod = CQChartsSelMod;
   using Obj    = CQChartsPlotObj;
 
  public:
-  CQChartsXYColorKeyItem(Plot *plot, const ColorInd &is, const ColorInd &ig);
+  CQChartsXYColorKeyItem(XYPlot *xyPlot, const ColorInd &is, const ColorInd &ig);
 
-  Plot *plot() const { return plot_; }
+  XYPlot *xyPlot() const { return xyPlot_; }
 
   void doSelect(SelMod selMod) override;
 
@@ -618,7 +618,7 @@ class CQChartsXYColorKeyItem : public CQChartsColorBoxKeyItem {
   void drawLine(PaintDevice *device, const BBox &rect) const;
 
  protected:
-  Plot* plot_ { nullptr }; //!< parent plot
+  XYPlot* xyPlot_ { nullptr }; //!< parent plot
 };
 
 /*!
@@ -629,21 +629,22 @@ class CQChartsXYTextKeyItem : public CQChartsTextKeyItem {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsXYPlot;
+  using XYPlot = CQChartsXYPlot;
 
  public:
-  CQChartsXYTextKeyItem(Plot *plot, const QString &text, const ColorInd &is, const ColorInd &ig);
+  CQChartsXYTextKeyItem(XYPlot *xyPlot, const QString &text, const ColorInd &is,
+                        const ColorInd &ig);
 
-  Plot *plot() const { return plot_; }
+  XYPlot *xyPlot() const { return xyPlot_; }
 
   QColor interpTextColor(const ColorInd &ind) const override;
 
   bool calcHidden() const override;
 
  protected:
-  Plot*    plot_ { nullptr }; //!< parent plot
-  ColorInd is_   { 0 };       //!< set color index
-  ColorInd ig_   { 0 };       //!< group color index
+  XYPlot*  xyPlot_ { nullptr }; //!< parent plot
+  ColorInd is_     { 0 };       //!< set color index
+  ColorInd ig_     { 0 };       //!< group color index
 };
 
 //---
@@ -1300,7 +1301,7 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
 
   void init() override;
 
-  void setPlot(CQChartsPlot *plot) override;
+  void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
   void updateWidgets() override;
@@ -1326,7 +1327,7 @@ class CQChartsXYPlotCustomControls : public CQChartsPointPlotCustomControls {
   void movingAverageSlot(int);
 
  protected:
-  CQChartsXYPlot* plot_ { nullptr };
+  CQChartsXYPlot* xyPlot_ { nullptr };
 
   FrameData optionsFrame_;
 
