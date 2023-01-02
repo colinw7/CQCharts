@@ -235,16 +235,16 @@ const CQChartsColumn &
 CQChartsScatterPlot3D::
 symbolTypeColumn() const
 {
-  return symbolTypeData_.column;
+  return symbolTypeData_.column();
 }
 
 void
 CQChartsScatterPlot3D::
 setSymbolTypeColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.column, c, [&]() {
-    updateObjs(); Q_EMIT customDataChanged();
-  } );
+  if (c != symbolTypeColumn()) {
+    symbolTypeData_.setColumn(c); updateObjs(); Q_EMIT customDataChanged();
+  }
 }
 
 const CQChartsColumn &
@@ -267,16 +267,16 @@ const CQChartsColumn &
 CQChartsScatterPlot3D::
 fontSizeColumn() const
 {
-  return fontSizeData_.column;
+  return fontSizeData_.column();
 }
 
 void
 CQChartsScatterPlot3D::
 setFontSizeColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.column, c, [&]() {
-    updateRangeAndObjs(); Q_EMIT customDataChanged();
-  } );
+  if (c != fontSizeColumn()) {
+    fontSizeData_.setColumn(c); updateRangeAndObjs(); Q_EMIT customDataChanged();
+  }
 }
 
 //---

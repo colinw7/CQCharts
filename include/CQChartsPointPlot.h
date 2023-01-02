@@ -159,18 +159,18 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsSymbolTypeMap symbolTypeMap READ symbolTypeMap WRITE setSymbolTypeMap)
 
   // symbol size map
-  Q_PROPERTY(bool          symbolSizeMapped   READ isSymbolSizeMapped WRITE setSymbolSizeMapped  )
-  Q_PROPERTY(double        symbolSizeMapMin   READ symbolSizeMapMin   WRITE setSymbolSizeMapMin  )
-  Q_PROPERTY(double        symbolSizeMapMax   READ symbolSizeMapMax   WRITE setSymbolSizeMapMax  )
-  Q_PROPERTY(CQChartsUnits symbolSizeMapUnits READ symbolSizeMapUnits WRITE setSymbolSizeMapUnits)
+  Q_PROPERTY(bool          symbolSizeMapped   READ isSymbolSizeMapped WRITE setSymbolSizeMapped)
+  Q_PROPERTY(double        symbolSizeMapMin   READ symbolSizeMapMin   WRITE setSymbolSizeMapMin)
+  Q_PROPERTY(double        symbolSizeMapMax   READ symbolSizeMapMax   WRITE setSymbolSizeMapMax)
+  Q_PROPERTY(CQChartsUnits symbolSizeMapUnits READ symbolSizeUnits    WRITE setSymbolSizeUnits )
 
   Q_PROPERTY(CQChartsSymbolSizeMap symbolSizeMap READ symbolSizeMap WRITE setSymbolSizeMap)
 
   // font size map
-  Q_PROPERTY(bool          fontSizeMapped   READ isFontSizeMapped WRITE setFontSizeMapped  )
-  Q_PROPERTY(double        fontSizeMapMin   READ fontSizeMapMin   WRITE setFontSizeMapMin  )
-  Q_PROPERTY(double        fontSizeMapMax   READ fontSizeMapMax   WRITE setFontSizeMapMax  )
-  Q_PROPERTY(CQChartsUnits fontSizeMapUnits READ fontSizeMapUnits WRITE setFontSizeMapUnits)
+  Q_PROPERTY(bool          fontSizeMapped   READ isFontSizeMapped WRITE setFontSizeMapped)
+  Q_PROPERTY(double        fontSizeMapMin   READ fontSizeMapMin   WRITE setFontSizeMapMin)
+  Q_PROPERTY(double        fontSizeMapMax   READ fontSizeMapMax   WRITE setFontSizeMapMax)
+  Q_PROPERTY(CQChartsUnits fontSizeMapUnits READ fontSizeUnits    WRITE setFontSizeUnits )
 
   // text labels
   Q_PROPERTY(bool pointLabels READ isPointLabels WRITE setPointLabels)
@@ -271,25 +271,25 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   // symbol type column and map
   const SymbolTypeData &symbolTypeData() const { return symbolTypeData_; }
 
-  const Column &symbolTypeColumn() const { return symbolTypeData_.column; }
+  const Column &symbolTypeColumn() const { return symbolTypeData_.column(); }
   void setSymbolTypeColumn(const Column &c);
 
-  bool isSymbolTypeMapped() const { return symbolTypeData_.mapped; }
+  bool isSymbolTypeMapped() const { return symbolTypeData_.isMapped(); }
   void setSymbolTypeMapped(bool b);
 
-  long symbolTypeDataMin() const { return symbolTypeData_.data_min; }
-  long symbolTypeDataMax() const { return symbolTypeData_.data_max; }
+  long symbolTypeDataMin() const { return symbolTypeData_.dataMin(); }
+  long symbolTypeDataMax() const { return symbolTypeData_.dataMax(); }
 
-  long symbolTypeMapMin() const { return symbolTypeData_.map_min; }
+  long symbolTypeMapMin() const { return symbolTypeData_.mapMin(); }
   void setSymbolTypeMapMin(long i);
 
-  long symbolTypeMapMax() const { return symbolTypeData_.map_max; }
+  long symbolTypeMapMax() const { return symbolTypeData_.mapMax(); }
   void setSymbolTypeMapMax(long i);
 
-  const QString &symbolTypeSetName() const { return symbolTypeData_.setName; }
+  const QString &symbolTypeSetName() const { return symbolTypeData_.setName(); }
   void setSymbolTypeSetName(const QString &s);
 
-  const CQChartsSymbolTypeMap &symbolTypeMap() const { return symbolTypeData_.typeMap; }
+  const CQChartsSymbolTypeMap &symbolTypeMap() const { return symbolTypeData_.typeMap(); }
   void setSymbolTypeMap(const CQChartsSymbolTypeMap &s);
 
   //---
@@ -318,31 +318,31 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   // symbol size column and map
   const SymbolSizeData &symbolSizeData() const { return symbolSizeData_; }
 
-  const Column &symbolSizeColumn() const { return symbolSizeData_.column; }
+  const Column &symbolSizeColumn() const { return symbolSizeData_.column(); }
   void setSymbolSizeColumn(const Column &c);
 
-  bool isSymbolSizeMapped() const { return symbolSizeData_.mapped; }
+  bool isSymbolSizeMapped() const { return symbolSizeData_.isMapped(); }
   void setSymbolSizeMapped(bool b);
 
-  double symbolSizeDataMin() const { return symbolSizeData_.data_min; }
-  double symbolSizeDataMax() const { return symbolSizeData_.data_max; }
+  double symbolSizeDataMin() const { return symbolSizeData_.dataMin(); }
+  double symbolSizeDataMax() const { return symbolSizeData_.dataMax(); }
 
-  double symbolSizeMapMin() const { return symbolSizeData_.map_min; }
+  double symbolSizeMapMin() const { return symbolSizeData_.mapMin(); }
   void setSymbolSizeMapMin(double r);
 
-  double symbolSizeMapMax() const { return symbolSizeData_.map_max; }
+  double symbolSizeMapMax() const { return symbolSizeData_.mapMax(); }
   void setSymbolSizeMapMax(double r);
 
-  double symbolSizeUserMapMin() const { return symbolSizeData_.user_map_min; }
+  double symbolSizeUserMapMin() const { return symbolSizeData_.userMapMin(); }
   void setSymbolSizeUserMapMin(double r);
 
-  double symbolSizeUserMapMax() const { return symbolSizeData_.user_map_max; }
+  double symbolSizeUserMapMax() const { return symbolSizeData_.userMapMax(); }
   void setSymbolSizeUserMapMax(double r);
 
-  const CQChartsUnits &symbolSizeMapUnits() const { return symbolSizeData_.units; }
-  void setSymbolSizeMapUnits(const CQChartsUnits &u);
+  const CQChartsUnits &symbolSizeUnits() const { return symbolSizeData_.units(); }
+  void setSymbolSizeUnits(const CQChartsUnits &u);
 
-  const CQChartsSymbolSizeMap &symbolSizeMap() const { return symbolSizeData_.sizeMap; }
+  const CQChartsSymbolSizeMap &symbolSizeMap() const { return symbolSizeData_.sizeMap(); }
   void setSymbolSizeMap(const CQChartsSymbolSizeMap &s);
 
   //---
@@ -387,25 +387,25 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   //---
 
   // label font size column and map
-  const Column &fontSizeColumn() const { return fontSizeData_.column; }
+  const Column &fontSizeColumn() const { return fontSizeData_.column(); }
   void setFontSizeColumn(const Column &c);
 
-  bool isFontSizeMapped() const { return fontSizeData_.mapped; }
+  bool isFontSizeMapped() const { return fontSizeData_.isMapped(); }
 
   void setFontSizeMapped(bool b);
 
-  double fontSizeMapMin() const { return fontSizeData_.map_min; }
+  double fontSizeMapMin() const { return fontSizeData_.mapMin(); }
   void setFontSizeMapMin(double r);
-  double fontSizeMapMax() const { return fontSizeData_.map_max; }
+  double fontSizeMapMax() const { return fontSizeData_.mapMax(); }
   void setFontSizeMapMax(double r);
 
-  double fontSizeUserMapMin() const { return fontSizeData_.user_map_min; }
+  double fontSizeUserMapMin() const { return fontSizeData_.userMapMin(); }
   void setFontSizeUserMapMin(double r);
-  double fontSizeUserMapMax() const { return fontSizeData_.user_map_max; }
+  double fontSizeUserMapMax() const { return fontSizeData_.userMapMax(); }
   void setFontSizeUserMapMax(double r);
 
-  const CQChartsUnits &fontSizeMapUnits() const { return fontSizeData_.units; }
-  void setFontSizeMapUnits(const CQChartsUnits &u);
+  const CQChartsUnits &fontSizeUnits() const { return fontSizeData_.units(); }
+  void setFontSizeUnits(const CQChartsUnits &u);
 
   //---
 

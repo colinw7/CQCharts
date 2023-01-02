@@ -63,7 +63,7 @@ class CQChartsOptLengthPropertyViewEditor : public CQChartsOptPropertyViewEditor
  public:
   CQChartsOptLengthPropertyViewEditor() { }
 
-  QWidget *createEdit(QWidget *parent);
+  QWidget *createEdit(QWidget *parent) override;
 };
 
 #endif

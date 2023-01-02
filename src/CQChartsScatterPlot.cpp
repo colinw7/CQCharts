@@ -31,12 +31,21 @@
 #include <CQPerfMonitor.h>
 #include <CQGroupBox.h>
 #include <CQEnumCombo.h>
+#include <CHexMap.h>
 
 #include <QMenu>
 #include <QLabel>
 #include <QCheckBox>
 #include <QVBoxLayout>
 #include <QApplication>
+
+namespace {
+
+using HexMap = CHexMap<void>;
+
+}
+
+//---
 
 CQChartsScatterPlotType::
 CQChartsScatterPlotType()
@@ -759,6 +768,46 @@ interpColor(const Color &c, const ColorInd &ind) const
 
 //---
 
+bool
+CQChartsScatterPlot::
+checkColumns()
+{
+  // check columns
+  columnsValid_ = true;
+
+  if (! checkColumn(xColumn(), "X", xColumnType_, /*required*/true))
+    columnsValid_ = false;
+  if (! checkColumn(yColumn(), "Y", yColumnType_, /*required*/true))
+    columnsValid_ = false;
+
+  if (! checkColumn(nameColumn (), "Name" ))
+    columnsValid_ = false;
+  if (! checkColumn(labelColumn(), "Label"))
+    columnsValid_ = false;
+
+  //---
+
+  simple_ = (isSymbols() && columnsValid_);
+
+  if (simple_) {
+    if (xColumnType() != ColumnType::REAL && xColumnType() != ColumnType::INTEGER)
+      simple_ = false;
+
+    if (yColumnType() != ColumnType::REAL && yColumnType() != ColumnType::INTEGER)
+      simple_ = false;
+
+    if (groupColumn().isValid())
+      simple_ = false;
+
+    if (nameColumn().isValid())
+      simple_ = false;
+  }
+
+  return columnsValid_;
+}
+
+//---
+
 CQChartsGeom::Range
 CQChartsScatterPlot::
 calcRange() const
@@ -779,20 +828,15 @@ calcRange() const
   //---
 
   // check columns
-  bool columnsValid = true;
-
-  if (! checkColumn(xColumn(), "X", th->xColumnType_, /*required*/true))
-    columnsValid = false;
-  if (! checkColumn(yColumn(), "Y", th->yColumnType_, /*required*/true))
-    columnsValid = false;
-
-  if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
-  if (! checkColumn(labelColumn(), "Label")) columnsValid = false;
-
-  if (! columnsValid)
+  if (! th->checkColumns())
     return Range(0.0, 0.0, 1.0, 1.0);
 
   //---
+
+  if (isSimple()) {
+    if (xmin().isSet() && ymin().isSet() && xmax().isSet() && ymax().isSet())
+      return Range(xmin().real(), ymin().real(), xmax().real(), ymax().real());
+  }
 
   initGroupData(Columns(), Column());
 
@@ -1317,7 +1361,14 @@ clearPlotObjects()
   groupInds_        .clear();
   groupNameValues_  .clear();
   groupNameGridData_.clear();
-  groupNameHexData_ .clear();
+
+  for (auto &pg : groupNameHexData_) {
+    for (auto &pn : pg.second) {
+      auto *hexMap = reinterpret_cast<HexMap *>(pn.second);
+
+      delete hexMap;
+    }
+  }
 
   CQChartsPlot::clearPlotObjects();
 }
@@ -1340,8 +1391,13 @@ createObjs(PlotObjs &objs) const
   // init name values
   th->gridData_.setMaxN(0);
 
-  th->hexMap_.clear();
-  th->hexMapMaxN_ = 0;
+  if (th->hexMap_) {
+    auto *hexMap = reinterpret_cast<HexMap *>(th->hexMap_);
+
+    hexMap->clear();
+
+    th->hexMapMaxN_ = 0;
+  }
 
   if (groupInds_.empty())
     addNameValues();
@@ -1862,11 +1918,11 @@ addHexObjects(PlotObjs &objs) const
 
       //---
 
-      const auto &hexMap = pn.second;
+      auto *hexMap = reinterpret_cast<HexMap *>(pn.second);
 
-    //int maxN = hexMap.numData();
+    //int maxN = hexMap->numData();
 
-      for (const auto &px : hexMap.data()) {
+      for (const auto &px : hexMap->data()) {
         if (isInterrupt())
           break;
 
@@ -1888,7 +1944,7 @@ addHexObjects(PlotObjs &objs) const
 
           HexMap::Polygon ipolygon;
 
-          hexMap.indexPolygon(i, j, ipolygon);
+          hexMap->indexPolygon(i, j, ipolygon);
 
           Polygon polygon;
 
@@ -2424,7 +2480,7 @@ addNameValues() const
       ModelIndex yModelInd(scatterPlot_, data.row, scatterPlot_->yColumn(), data.parent);
 
       // get group
-      int groupInd = scatterPlot_->rowGroupInd(xModelInd);
+      int groupInd = (! scatterPlot_->isSimple() ? scatterPlot_->rowGroupInd(xModelInd) : -1);
 
       //---
 
@@ -2480,22 +2536,28 @@ addNameValues() const
 
       //---
 
+      Point p(x, y);
+
+      //---
+
       // get optional grouping name (name column, title, x axis)
       QString name;
 
-      if (scatterPlot_->nameColumn().isValid()) {
-        ModelIndex nameColumnInd(scatterPlot_, data.row, scatterPlot_->nameColumn(), data.parent);
+      if (! scatterPlot_->isSimple()) {
+        if (scatterPlot_->nameColumn().isValid()) {
+          ModelIndex nameColumnInd(scatterPlot_, data.row, scatterPlot_->nameColumn(), data.parent);
 
-        bool ok;
+          bool ok;
 
-        name = scatterPlot_->modelString(nameColumnInd, ok);
+          name = scatterPlot_->modelString(nameColumnInd, ok);
+        }
+
+        if (! name.length() && scatterPlot_->title())
+          name = scatterPlot_->title()->textStr();
+
+        if (! name.length() && scatterPlot_->xAxis())
+          name = scatterPlot_->xAxis()->label().string();
       }
-
-      if (! name.length() && scatterPlot_->title())
-        name = scatterPlot_->title()->textStr();
-
-      if (! name.length() && scatterPlot_->xAxis())
-        name = scatterPlot_->xAxis()->label().string();
 
       //---
 
@@ -2517,17 +2579,13 @@ addNameValues() const
           if (ok && var.isValid())
             plot->addSkipColor(var, data.row);
         }
+
+        if (skipBad)
+          return State::SKIP;
 #endif
       }
 
       //---
-
-      if (skipBad)
-        return State::SKIP;
-
-      //---
-
-      Point p(x, y);
 
       plot->addNameValue(groupInd, name, p, data.row, xInd1, color);
 
@@ -2613,14 +2671,14 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
     auto pn = nameHexData.find(name);
 
     if (pn == nameHexData.end()) {
-      HexMap hexMap;
+      auto *hexMap = new HexMap;
 
       const auto &viewBBox = this->viewBBox();
 
-      hexMap.setRange(viewBBox.getXMin(), viewBBox.getYMin(),
+      hexMap->setRange(viewBBox.getXMin(), viewBBox.getYMin(),
                       viewBBox.getXMax(), viewBBox.getYMax());
 
-      hexMap.setNum(gridData_.nx());
+      hexMap->setNum(gridData_.nx());
 
       pn = nameHexData.insert(pn, NameHexData::value_type(name, hexMap));
     }
@@ -2629,17 +2687,17 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
 
     auto pv = windowToView(gp);
 
-    auto &hexMap = (*pn).second;
+    auto *hexMap = reinterpret_cast<HexMap *>((*pn).second);
 
     HexMap::Point hp(pv.x, pv.y);
 
-    hexMap.addPoint(hp);
+    hexMap->addPoint(hp);
 
     int hi, hj;
 
-    hexMap.pointToPos(hp, hi, hj);
+    hexMap->pointToPos(hp, hi, hj);
 
-    hexMapMaxN_ = std::max(hexMapMaxN_, hexMap.numData(hi, hj));
+    hexMapMaxN_ = std::max(hexMapMaxN_, hexMap->numData(hi, hj));
   }
 
   //---

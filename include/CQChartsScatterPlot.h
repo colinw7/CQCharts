@@ -8,7 +8,6 @@
 #include <CQChartsImage.h>
 #include <CQChartsKey.h>
 #include <CInterval.h>
-#include <CHexMap.h>
 
 class CQChartsScatterPlot;
 class CQChartsBivariateDensity;
@@ -554,9 +553,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //--
 
-  using HexMap = CHexMap<void>;
-
-  using NameHexData      = std::map<QString, HexMap>;
+  using NameHexData      = std::map<QString, void *>;
   using GroupNameHexData = std::map<int, NameHexData>;
 
   //--
@@ -629,6 +626,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   bool isUniqueX() const { return uniqueX_; }
   bool isUniqueY() const { return uniqueY_; }
 
+  bool isSimple() const { return simple_; }
+
   //---
 
   // get x/y axis names
@@ -694,7 +693,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   //---
 
   // hex cells
-  const HexMap &hexMap() const { return hexMap_; }
+  void *hexMap() const { return hexMap_; }
   int hexMapMaxN() const { return hexMapMaxN_; }
 
   //---
@@ -723,6 +722,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void updateProperties() override;
 
   //---
+
+  bool checkColumns();
 
   Range calcRange() const override;
 
@@ -1001,6 +1002,9 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   ColumnType xColumnType_ { ColumnType::NONE }; //!< x column type
   ColumnType yColumnType_ { ColumnType::NONE }; //!< y column type
 
+  bool columnsValid_ { true };
+  bool simple_       { false };
+
   bool uniqueX_ { false }; //!< are x values uniquified (string to int)
   bool uniqueY_ { false }; //!< are y values uniquified (string to int)
 
@@ -1019,10 +1023,10 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   AxisBoxWhisker* yAxisWhisker_ { nullptr }; //!< y axis whisker master object
 
   // plot overlay data
-  DensityMapData densityMapData_;   //!< density map data
-  GridCell       gridData_;         //!< grid data
-  HexMap         hexMap_;           //!< hex map
-  int            hexMapMaxN_ { 0 }; //!< hex map max N
+  DensityMapData densityMapData_;         //!< density map data
+  GridCell       gridData_;               //!< grid data
+  void*          hexMap_     { nullptr }; //!< hex map
+  int            hexMapMaxN_ { 0 };       //!< hex map max N
 
   // group data
   GroupInds         groupInds_;         //!< group indices

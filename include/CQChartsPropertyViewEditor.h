@@ -57,7 +57,7 @@ class CQChartsPropertyViewEditorFactory : public CQPropertyViewEditorFactory {
 
   virtual ~CQChartsPropertyViewEditorFactory() { }
 
-  QWidget *createEdit(QWidget *parent);
+  QWidget *createEdit(QWidget *parent) override;
 
   virtual CQChartsLineEditBase *createPropertyEdit(QWidget *parent) = 0;
 };

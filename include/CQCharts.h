@@ -63,11 +63,15 @@ class QTimer;
  *   + \ref CQChartsBoxPlot
  *   + \ref CQChartsBubblePlot
  *   + \ref CQChartsChordPlot
+ *   + \ref CQChartsContourPlot
  *   + \ref CQChartsDelaunayPlot
  *   + \ref CQChartsDendrogramPlot
  *   + \ref CQChartsDistributionPlot
  *   + \ref CQChartsForceDirectedPlot
  *   + \ref CQChartsGeometryPlot
+ *   + \ref CQChartsGraphPlot
+ *   + \ref CQChartsGraphVizPlot
+ *   + \ref CQChartsGridPlot
  *   + \ref CQChartsHierBubblePlot
  *   + \ref CQChartsHierScatterPlot
  *   + \ref CQChartsImagePlot
@@ -77,9 +81,12 @@ class QTimer;
  *   + \ref CQChartsRadarPlot
  *   + \ref CQChartsSankeyPlot
  *   + \ref CQChartsScatterPlot
+ *   + \ref CQChartsStripPlot
  *   + \ref CQChartsSunburstPlot
  *   + \ref CQChartsTablePlot
  *   + \ref CQChartsTreeMapPlot
+ *   + \ref CQChartsWheelPlot
+ *   + \ref CQChartsWordCloudPlot
  *   + \ref CQChartsXYPlot
  */
 
@@ -171,15 +178,18 @@ class CQCharts : public QObject {
 
   //---
 
-  CQChartsPlotTypeMgr *plotTypeMgr() const { return plotTypeMgr_.get(); }
+  CQChartsPlotTypeMgr *plotTypeMgr() const {
+    assert(plotTypeMgr_); return plotTypeMgr_.get(); }
 
   //---
 
-  CQChartsColumnTypeMgr *columnTypeMgr() const { return columnTypeMgr_.get(); }
+  CQChartsColumnTypeMgr *columnTypeMgr() const {
+    assert(columnTypeMgr_); return columnTypeMgr_.get(); }
 
   //---
 
-  CQChartsSymbolSetMgr *symbolSetMgr() const { return symbolSetMgr_.get(); }
+  CQChartsSymbolSetMgr *symbolSetMgr() const {
+    assert(symbolSetMgr_); return symbolSetMgr_.get(); }
 
   //---
 

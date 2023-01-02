@@ -21,6 +21,10 @@
 #include <CQChartsUtil.h>
 #include <CQChartsModelTypes.h>
 #include <CQChartsPaletteName.h>
+#include <CQChartsColorColumnData.h>
+#include <CQChartsSymbolTypeData.h>
+#include <CQChartsSymbolSizeData.h>
+#include <CQChartsFontSizeData.h>
 
 #include <QObject>
 #include <QString>
@@ -627,7 +631,8 @@ class CQChartsColumnStyleType : public CQChartsColumnType {
  */
 class CQChartsColumnColorType : public CQChartsColumnType {
  public:
-  using PaletteName = CQChartsPaletteName;
+  using ColorColumnData = CQChartsColorColumnData;
+  using PaletteName     = CQChartsPaletteName;
 
  public:
   CQChartsColumnColorType();
@@ -643,6 +648,9 @@ class CQChartsColumnColorType : public CQChartsColumnType {
   QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                     const QVariant &var, const ModelTypeData &typeData,
                     bool &converted) const override;
+
+  bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
+                  const NameValues &nameValues, ColorColumnData &colorColumnData) const;
 
   bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                   const NameValues &nameValues, bool &mapped,
@@ -708,6 +716,9 @@ class CQChartsColumnImageType : public CQChartsColumnType {
  */
 class CQChartsColumnSymbolTypeType : public CQChartsColumnType {
  public:
+  using SymbolTypeData = CQChartsSymbolTypeData;
+
+ public:
   CQChartsColumnSymbolTypeType();
 
   QString desc() const override;
@@ -721,6 +732,9 @@ class CQChartsColumnSymbolTypeType : public CQChartsColumnType {
   QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                     const QVariant &var, const ModelTypeData &typeData,
                     bool &converted) const override;
+
+  bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
+                  const NameValues &nameValues, SymbolTypeData &symbolTypeData) const;
 
   bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                   const NameValues &nameValues, bool &mapped,
@@ -742,6 +756,9 @@ class CQChartsColumnSymbolTypeType : public CQChartsColumnType {
  */
 class CQChartsColumnSymbolSizeType : public CQChartsColumnType {
  public:
+  using SymbolSizeData = CQChartsSymbolSizeData;
+
+ public:
   CQChartsColumnSymbolSizeType();
 
   QString desc() const override;
@@ -755,6 +772,9 @@ class CQChartsColumnSymbolSizeType : public CQChartsColumnType {
   QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                     const QVariant &var, const ModelTypeData &typeData,
                     bool &converted) const override;
+
+  bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
+                  const NameValues &nameValues, SymbolSizeData &symbolSizeData) const;
 
   bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                   const NameValues &nameValues, bool &mapped,
@@ -776,6 +796,9 @@ class CQChartsColumnSymbolSizeType : public CQChartsColumnType {
  */
 class CQChartsColumnFontSizeType : public CQChartsColumnType {
  public:
+  using FontSizeData = CQChartsFontSizeData;
+
+ public:
   CQChartsColumnFontSizeType();
 
   QString desc() const override;
@@ -789,6 +812,9 @@ class CQChartsColumnFontSizeType : public CQChartsColumnType {
   QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                     const QVariant &var, const ModelTypeData &typeData,
                     bool &converted) const override;
+
+  bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
+                  const NameValues &nameValues, FontSizeData &fontSizeData) const;
 
   bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                   const NameValues &nameValues, bool &mapped,
@@ -834,6 +860,13 @@ class CQChartsColumnTypeMgr : public QObject {
 #endif
 
   const ColumnType *getType(Type type) const;
+
+  template<typename T>
+  const T *getTypeT(Type type) const {
+    auto *t = dynamic_cast<const T *>(getType(type));
+    assert(t);
+    return t;
+  }
 
   const ColumnType *getNamedType(const QString &name) const;
 

@@ -1939,6 +1939,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual void clearPlotObjects();
   virtual void clearInsideObjects();
 
+  virtual void clearPlotObjList();
+
   virtual void invalidateObjTree();
 
   virtual bool updateInsideObjects(const Point &w, Constraints constraints);
@@ -2036,13 +2038,13 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   const Column &imageColumn() const { return imageColumn_; }
   void setImageColumn(const Column &column);
 
-  const Column &colorColumn() const { return colorColumnData_.column; };
+  const Column &colorColumn() const { return colorColumnData_.column(); };
   virtual void setColorColumn(const Column &c);
 
   const Column &colorLabelColumn() const { return colorLabelColumn_; };
   virtual void setColorLabelColumn(const Column &c);
 
-  const Column &alphaColumn() const { return alphaColumnData_.column; };
+  const Column &alphaColumn() const { return alphaColumnData_.column(); };
   void setAlphaColumn(const Column &c);
 
   const Column &fontColumn() const { return fontColumn_; };
@@ -2063,51 +2065,51 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // coloring
   const ColorColumnData &colorColumnData() const { return colorColumnData_; }
 
-  ColorType colorType() const { return static_cast<ColorType>(colorColumnData_.colorType); }
+  ColorType colorType() const { return static_cast<ColorType>(colorColumnData_.colorType()); }
   void setColorType(const ColorType &t);
 
-  bool isColorMapped() const { return colorColumnData_.mapped; }
+  bool isColorMapped() const { return colorColumnData_.isMapped(); }
   void setColorMapped(bool b);
 
-  double colorMapMin() const { return colorColumnData_.map_min; }
+  double colorMapMin() const { return colorColumnData_.mapMin(); }
   void setColorMapMin(double r);
 
-  double colorMapMax() const { return colorColumnData_.map_max; }
+  double colorMapMax() const { return colorColumnData_.mapMax(); }
   void setColorMapMax(double r);
 
-  const ColumnType &colorMapType() const { return colorColumnData_.modelType; }
+  const ColumnType &colorMapType() const { return colorColumnData_.modelType(); }
 
-  const PaletteName &colorMapPalette() const { return colorColumnData_.palette; }
+  const PaletteName &colorMapPalette() const { return colorColumnData_.palette(); }
   void setColorMapPalette(const PaletteName &name);
 
-  const ColorStops &colorXStops() const { return colorColumnData_.xStops; }
+  const ColorStops &colorXStops() const { return colorColumnData_.xStops(); }
   void setColorXStops(const ColorStops &s);
 
-  const ColorStops &colorYStops() const { return colorColumnData_.yStops; }
+  const ColorStops &colorYStops() const { return colorColumnData_.yStops(); }
   void setColorYStops(const ColorStops &s);
 
-  const CQChartsColorMap &colorMap() const { return colorColumnData_.colorMap; }
+  const CQChartsColorMap &colorMap() const { return colorColumnData_.colorMap(); }
   void setColorMap(const CQChartsColorMap &s);
 
  protected:
-  double colorMapDataMin() const { return colorColumnData_.data_min; }
-  double colorMapDataMax() const { return colorColumnData_.data_max; }
+  double colorMapDataMin() const { return colorColumnData_.dataMin(); }
+  double colorMapDataMax() const { return colorColumnData_.dataMax(); }
 
   //---
 
  public:
-  bool isAlphaMapped() const { return alphaColumnData_.mapped; }
+  bool isAlphaMapped() const { return alphaColumnData_.isMapped(); }
   void setAlphaMapped(bool b);
 
-  double alphaMapMin() const { return alphaColumnData_.map_min; }
+  double alphaMapMin() const { return alphaColumnData_.mapMin(); }
   void setAlphaMapMin(double r);
 
-  double alphaMapMax() const { return alphaColumnData_.map_max; }
+  double alphaMapMax() const { return alphaColumnData_.mapMax(); }
   void setAlphaMapMax(double r);
 
  protected:
-  double alphaMapDataMin() const { return alphaColumnData_.data_min; }
-  double alphaMapDataMax() const { return alphaColumnData_.data_max; }
+  double alphaMapDataMin() const { return alphaColumnData_.dataMin(); }
+  double alphaMapDataMax() const { return alphaColumnData_.dataMax(); }
 
  public:
   // color column
@@ -3251,6 +3253,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // emitted when parent view changed
   void parentViewChanged();
+
+  // emitted on anim
+  void updateAnimData();
 
  protected:
   //! \brief RAII class to enable/disable no update state

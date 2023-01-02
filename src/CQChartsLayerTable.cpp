@@ -20,7 +20,7 @@ class CQChartsViewSettingsLayerImage : public QDialog {
     setFixedSize(image_.size());
   }
 
-  void paintEvent(QPaintEvent *) {
+  void paintEvent(QPaintEvent *) override {
     QPainter p(this);
 
     p.drawImage(0, 0, image_);

@@ -328,43 +328,45 @@ void
 CQChartsPointPlot::
 setSymbolTypeColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.column, c, [&]() {
-    symbolTypeData_.valid = false; updateRangeAndObjs(); Q_EMIT symbolTypeDetailsChanged();
-  } );
+  if (c != symbolTypeColumn()) {
+    symbolTypeData_.setColumn(c); updateRangeAndObjs(); Q_EMIT symbolTypeDetailsChanged();
+  }
 }
 
 void
 CQChartsPointPlot::
 setSymbolTypeMapped(bool b)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.mapped, b, [&]() {
-    symbolTypeData_.valid = false; updateRangeAndObjs(); Q_EMIT symbolTypeDetailsChanged();
-  } );
+  if (b != isSymbolTypeMapped()) {
+    symbolTypeData_.setMapped(b); updateRangeAndObjs(); Q_EMIT symbolTypeDetailsChanged();
+  }
 }
 
 void
 CQChartsPointPlot::
 setSymbolTypeMapMin(long i)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.map_min, i, [&]() {
-    symbolTypeData_.valid = false; updateRangeAndObjs(); Q_EMIT symbolTypeDetailsChanged();
-  } );
+  if (i != symbolTypeMapMin()) {
+    symbolTypeData_.setMapMin(i); updateRangeAndObjs(); Q_EMIT symbolTypeDetailsChanged();
+  }
 }
 
 void
 CQChartsPointPlot::
 setSymbolTypeMapMax(long i)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.map_max, i, [&]() {
-    symbolTypeData_.valid = false; updateRangeAndObjs(); Q_EMIT symbolTypeDetailsChanged();
-  } );
+  if (i != symbolTypeMapMax()) {
+    symbolTypeData_.setMapMax(i); updateRangeAndObjs(); Q_EMIT symbolTypeDetailsChanged();
+  }
 }
 
 void
 CQChartsPointPlot::
 setSymbolTypeSetName(const QString &name)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.setName, name, [&]() {
+  if (name != symbolTypeSetName()) {
+    symbolTypeData_.setSetName(name);
+
     auto *symbolSetMgr = charts()->symbolSetMgr();
     auto *symbolSet    = symbolSetMgr->symbolSet(name);
 
@@ -380,16 +382,16 @@ setSymbolTypeSetName(const QString &name)
     updateObjs();
 
     Q_EMIT symbolTypeDetailsChanged();
-  } );
+  }
 }
 
 void
 CQChartsPointPlot::
 setSymbolTypeMap(const CQChartsSymbolTypeMap &typeMap)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.typeMap, typeMap, [&]() {
-    symbolTypeData_.valid = false; updateRangeAndObjs(); Q_EMIT symbolTypeDetailsChanged();
-  } );
+  if (typeMap != symbolTypeMap()) {
+    symbolTypeData_.setTypeMap(typeMap); updateRangeAndObjs(); Q_EMIT symbolTypeDetailsChanged();
+  }
 }
 
 //---
@@ -398,74 +400,74 @@ void
 CQChartsPointPlot::
 setSymbolSizeColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.column, c, [&]() {
-    symbolSizeData_.valid = false; updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
-  } );
+  if (c != symbolSizeColumn()) {
+    symbolSizeData_.setColumn(c); updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
+  }
 }
 
 void
 CQChartsPointPlot::
 setSymbolSizeMapped(bool b)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.mapped, b, [&]() {
-    symbolSizeData_.valid = false; updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
-  } );
+  if (b != isSymbolSizeMapped()) {
+    symbolSizeData_.setMapped(b); updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
+  }
 }
 
 void
 CQChartsPointPlot::
 setSymbolSizeMapMin(double r)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.map_min, r, [&]() {
-    symbolSizeData_.user_map_min = symbolSizeData_.map_min;
-    symbolSizeData_.valid = false; updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
-  } );
+  if (r != symbolSizeMapMin()) {
+    symbolSizeData_.setMapMin(r); symbolSizeData_.setUserMapMin(r);
+    updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
+  }
 }
 
 void
 CQChartsPointPlot::
 setSymbolSizeMapMax(double r)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.map_max, r, [&]() {
-    symbolSizeData_.user_map_max = symbolSizeData_.map_max;
-    symbolSizeData_.valid = false; updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
-  } );
+  if (r != symbolSizeMapMax()) {
+    symbolSizeData_.setMapMax(r); symbolSizeData_.setUserMapMax(r);
+    updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
+  }
 }
 
 void
 CQChartsPointPlot::
 setSymbolSizeUserMapMin(double r)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.user_map_min, r, [&]() {
-    symbolSizeData_.valid = false; updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
-  } );
+  if (r != symbolSizeUserMapMin()) {
+    symbolSizeData_.setUserMapMin(r); updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
+  }
 }
 
 void
 CQChartsPointPlot::
 setSymbolSizeUserMapMax(double r)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.user_map_max, r, [&]() {
-    symbolSizeData_.valid = false; updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
-  } );
+  if (r != symbolSizeUserMapMax()) {
+    symbolSizeData_.setUserMapMax(r); updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
+  }
 }
 
 void
 CQChartsPointPlot::
-setSymbolSizeMapUnits(const CQChartsUnits &u)
+setSymbolSizeUnits(const CQChartsUnits &u)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.units, u, [&]() {
-    symbolSizeData_.valid = false; updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
-  } );
+  if (u != symbolSizeUnits()) {
+    symbolSizeData_.setUnits(u); updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
+  }
 }
 
 void
 CQChartsPointPlot::
 setSymbolSizeMap(const CQChartsSymbolSizeMap &sizeMap)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.sizeMap, sizeMap, [&]() {
-    symbolSizeData_.valid = false; updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
-  } );
+  if (sizeMap != symbolSizeMap()) {
+    symbolSizeData_.setSizeMap(sizeMap); updateRangeAndObjs(); Q_EMIT symbolSizeDetailsChanged();
+  }
 }
 
 //---
@@ -474,65 +476,67 @@ void
 CQChartsPointPlot::
 setFontSizeColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.column, c, [&]() {
-    updateRangeAndObjs(); Q_EMIT fontSizeDetailsChanged();
-  } );
+  if (c != fontSizeColumn()) {
+    fontSizeData_.setColumn(c); updateRangeAndObjs(); Q_EMIT fontSizeDetailsChanged();
+  }
 }
 
 void
 CQChartsPointPlot::
 setFontSizeMapped(bool b)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.mapped, b, [&]() {
-    updateRangeAndObjs(); Q_EMIT fontSizeDetailsChanged();
-  } );
+  if (b != isFontSizeMapped()) {
+    fontSizeData_.setMapped(b); updateRangeAndObjs(); Q_EMIT fontSizeDetailsChanged();
+  }
 }
 
 void
 CQChartsPointPlot::
 setFontSizeMapMin(double r)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.map_min, r, [&]() {
-    fontSizeData_.user_map_min = fontSizeData_.map_min;
+  if (r != fontSizeMapMin()) {
+    fontSizeData_.setMapMin(r); fontSizeData_.setUserMapMin(r);
     updateRangeAndObjs(); Q_EMIT fontSizeDetailsChanged();
-  } );
+  }
 }
 
 void
 CQChartsPointPlot::
 setFontSizeMapMax(double r)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.map_max, r, [&]() {
-    fontSizeData_.user_map_max = fontSizeData_.map_max;
+  if (r != fontSizeMapMax()) {
+    fontSizeData_.setMapMax(r); fontSizeData_.setUserMapMax(r);
     updateRangeAndObjs(); Q_EMIT fontSizeDetailsChanged();
-  } );
+  }
 }
 
 void
 CQChartsPointPlot::
 setFontSizeUserMapMin(double r)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.user_map_min, r, [&]() {
+  if (r != fontSizeUserMapMin()) {
+    fontSizeData_.setUserMapMin(r);
     updateRangeAndObjs(); Q_EMIT fontSizeDetailsChanged();
-  } );
+  }
 }
 
 void
 CQChartsPointPlot::
 setFontSizeUserMapMax(double r)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.user_map_max, r, [&]() {
+  if (r != fontSizeUserMapMax()) {
+    fontSizeData_.setUserMapMax(r);
     updateRangeAndObjs(); Q_EMIT fontSizeDetailsChanged();
-  } );
+  }
 }
 
 void
 CQChartsPointPlot::
-setFontSizeMapUnits(const CQChartsUnits &u)
+setFontSizeUnits(const CQChartsUnits &u)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.units, u, [&]() {
-    updateRangeAndObjs(); Q_EMIT fontSizeDetailsChanged();
-  } );
+  if (u != fontSizeUnits()) {
+    fontSizeData_.setUnits(u); updateRangeAndObjs(); Q_EMIT fontSizeDetailsChanged();
+  }
 }
 
 //---
@@ -1395,7 +1399,8 @@ updateSymbolSizeMapKey() const
   QVariantList uniqueValues;
   QVariantList uniqueCounts;
 
-  auto *columnDetails = this->columnDetails(symbolSizeColumn());
+  auto *columnDetails = (symbolSizeColumn().isValid() ?
+    this->columnDetails(symbolSizeColumn()) : nullptr);
 
   if (columnDetails) {
     if      (columnDetails->type() == CQBaseModelType::REAL ||
@@ -1406,7 +1411,7 @@ updateSymbolSizeMapKey() const
     else if (columnDetails->type() == CQBaseModelType::SYMBOL_SIZE)
       isSymbolSize = true;
     else if (columnDetails->type() == CQBaseModelType::STRING)
-      isMapped = symbolTypeData_.mapped;
+      isMapped = isSymbolTypeMapped();
 
     if (! isNumeric && ! isSymbolSize) {
       numUnique    = columnDetails->numUnique();
@@ -1463,8 +1468,8 @@ symbolSizeFilterNames() const
 {
   int n = (symbolSizeMapKey_ ? symbolSizeMapKey_->uniqueValues().size() : 0);
 
-  auto mapMin = symbolSizeData_.map_min;
-  auto mapMax = symbolSizeData_.map_max;
+  auto mapMin = symbolSizeMapMin();
+  auto mapMax = symbolSizeMapMax();
 
   using LengthSize = std::map<Length, QString>;
 
@@ -1475,7 +1480,7 @@ symbolSizeFilterNames() const
 
     Length length;
 
-    if (! symbolSizeData_.sizeMap.valueToLength(name, length))
+    if (! symbolSizeMap().valueToLength(name, length))
       length = Length::pixel(CMathUtil::map(i, 0, n - 1, mapMin, mapMax));
 
     lengthSize[length] = name;
@@ -1502,7 +1507,7 @@ setSymbolSizeFilterNames(const QStringList &names)
   for (const auto &name : names) {
     Length length;
 
-    if (symbolSizeData_.sizeMap.valueToLength(name, length))
+    if (symbolSizeMap().valueToLength(name, length))
       symbolSizeFilter_.insert(length);
   }
 
@@ -1607,7 +1612,8 @@ updateSymbolTypeMapKey() const
   QVariantList uniqueValues;
   QVariantList uniqueCounts;
 
-  auto *columnDetails = this->columnDetails(symbolTypeColumn());
+  auto *columnDetails = (symbolTypeColumn().isValid() ?
+    this->columnDetails(symbolTypeColumn()) : nullptr);
 
   if (columnDetails) {
     if      (columnDetails->type() == CQBaseModelType::REAL ||
@@ -1618,7 +1624,7 @@ updateSymbolTypeMapKey() const
     else if (columnDetails->type() == CQBaseModelType::SYMBOL)
       isSymbolType = true;
     else if (columnDetails->type() == CQBaseModelType::STRING)
-      isMapped = symbolTypeData_.mapped;
+      isMapped = isSymbolTypeMapped();
 
     if (! isNumeric && ! isSymbolType) {
       numUnique    = columnDetails->numUnique();
@@ -1672,12 +1678,12 @@ symbolTypeFilterNames() const
 {
   const auto *symbolSetMgr = charts()->symbolSetMgr();
 
-  auto *symbolSet = symbolSetMgr->symbolSet(symbolTypeData_.setName);
+  auto *symbolSet = symbolSetMgr->symbolSet(symbolTypeSetName());
 
   int n = (symbolTypeMapKey_ ? symbolTypeMapKey_->uniqueValues().size() : 0);
 
-  auto mapMin = symbolTypeData_.map_min;
-  auto mapMax = symbolTypeData_.map_max;
+  auto mapMin = symbolTypeMapMin();
+  auto mapMax = symbolTypeMapMax();
 
   using SymbolName = std::map<Symbol, QString>;
 
@@ -1688,7 +1694,7 @@ symbolTypeFilterNames() const
 
     Symbol symbol;
 
-    if (! symbolTypeData_.typeMap.valueToSymbol(name, symbol)) {
+    if (! symbolTypeMap().valueToSymbol(name, symbol)) {
       if (symbolSet)
         symbol = symbolSet->interpI(int(i + mapMin), int(mapMin), int(mapMax)).symbol;
       else
@@ -1719,7 +1725,7 @@ setSymbolTypeFilterNames(const QStringList &names)
   for (const auto &name : names) {
     Symbol symbol;
 
-    if (symbolTypeData_.typeMap.valueToSymbol(name, symbol))
+    if (symbolTypeMap().valueToSymbol(name, symbol))
       symbolTypeFilter_.insert(symbol);
   }
 

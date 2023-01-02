@@ -2456,6 +2456,26 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
 bool
 CQChartsColumnColorType::
+getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
+           const NameValues &nameValues, ColorColumnData &colorColumnData) const
+{
+  auto mapped  = colorColumnData.isMapped();
+  auto map_min = colorColumnData.mapMin();
+  auto map_max = colorColumnData.mapMax();
+  auto palette = colorColumnData.palette();
+
+  if (! getMapData(charts, model, column, nameValues, mapped, map_min, map_max, palette))
+    return false;
+
+  colorColumnData.setMapped  (mapped);
+  colorColumnData.setMapRange(map_min, map_max);
+  colorColumnData.setPalette (palette);
+
+  return true;
+}
+
+bool
+CQChartsColumnColorType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
            const NameValues &nameValues, bool &mapped,
            double &map_min, double &map_max, PaletteName &paletteName) const
@@ -2704,6 +2724,28 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 bool
 CQChartsColumnSymbolTypeType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
+           const NameValues &nameValues, SymbolTypeData &symbolTypeData) const
+{
+  auto mapped   = symbolTypeData.isMapped();
+  auto map_min  = symbolTypeData.mapMin();
+  auto map_max  = symbolTypeData.mapMax();
+  auto data_min = symbolTypeData.dataMin();
+  auto data_max = symbolTypeData.dataMax();
+
+  if (! getMapData(charts, model, column, nameValues,
+                   mapped, map_min, map_max, data_min, data_max))
+    return false;
+
+  symbolTypeData.setMapped   (mapped);
+  symbolTypeData.setMapRange (map_min, map_max);
+  symbolTypeData.setDataRange(data_min, data_max);
+
+  return true;
+}
+
+bool
+CQChartsColumnSymbolTypeType::
+getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
            const NameValues &nameValues, bool &mapped, long &map_min, long &map_max,
            long &data_min, long &data_max) const
 {
@@ -2835,6 +2877,28 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 bool
 CQChartsColumnSymbolSizeType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
+           const NameValues &nameValues, SymbolSizeData &symbolSizeData) const
+{
+  auto mapped   = symbolSizeData.isMapped();
+  auto map_min  = symbolSizeData.mapMin();
+  auto map_max  = symbolSizeData.mapMax();
+  auto data_min = symbolSizeData.dataMin();
+  auto data_max = symbolSizeData.dataMax();
+
+  if (! getMapData(charts, model, column, nameValues,
+                   mapped, map_min, map_max, data_min, data_max))
+    return false;
+
+  symbolSizeData.setMapped   (mapped);
+  symbolSizeData.setMapRange (map_min, map_max);
+  symbolSizeData.setDataRange(data_min, data_max);
+
+  return true;
+}
+
+bool
+CQChartsColumnSymbolSizeType::
+getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
            const NameValues &nameValues, bool &mapped, double &map_min, double &map_max,
            double &data_min, double &data_max) const
 {
@@ -2961,6 +3025,28 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   //---
 
   return CQChartsUtil::formatReal(r);
+}
+
+bool
+CQChartsColumnFontSizeType::
+getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
+           const NameValues &nameValues, FontSizeData &fontSizeData) const
+{
+  auto mapped   = fontSizeData.isMapped();
+  auto map_min  = fontSizeData.mapMin();
+  auto map_max  = fontSizeData.mapMax();
+  auto data_min = fontSizeData.dataMin();
+  auto data_max = fontSizeData.dataMax();
+
+  if (! getMapData(charts, model, column, nameValues,
+                   mapped, map_min, map_max, data_min, data_max))
+    return false;
+
+  fontSizeData.setMapped   (mapped);
+  fontSizeData.setMapRange (map_min, map_max);
+  fontSizeData.setDataRange(data_min, data_max);
+
+  return true;
 }
 
 bool

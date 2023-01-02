@@ -25,10 +25,10 @@ class CQChartsLayerTableControl : public QFrame, public CQChartsWidgetIFace {
   CQChartsLayerTableControl(QWidget *parent=nullptr);
 
   View *view() const;
-  void setView(View *view);
+  void setView(View *view) override;
 
   Plot *plot() const;
-  void setPlot(Plot *plot);
+  void setPlot(Plot *plot) override;
 
  private Q_SLOTS:
   void viewLayerImageSlot();

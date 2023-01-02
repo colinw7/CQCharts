@@ -76,7 +76,7 @@ class CQChartsCreatePlotDlg : public QDialog {
 
   void setViewName(const QString &viewName);
 
-  int exec();
+  int exec() override;
 
   Plot *plot() const;
 

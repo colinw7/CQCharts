@@ -51,13 +51,13 @@ class CQChartsLineDashEditIconEngine : public QIconEngine {
    dash_(dash), bg_(bg) {
   }
 
-  QSize actualSize(const QSize & size, QIcon::Mode mode, QIcon::State state);
+  QSize actualSize(const QSize & size, QIcon::Mode mode, QIcon::State state) override;
 
-  QPixmap pixmap(const QSize & size, QIcon::Mode mode, QIcon::State state);
+  QPixmap pixmap(const QSize & size, QIcon::Mode mode, QIcon::State state) override;
 
-  void paint(QPainter *painter, const QRect &rect, QIcon::Mode mode, QIcon::State state);
+  void paint(QPainter *painter, const QRect &rect, QIcon::Mode mode, QIcon::State state) override;
 
-  QIconEngine *clone() const { return new CQChartsLineDashEditIconEngine(dash_, bg_); }
+  QIconEngine *clone() const override { return new CQChartsLineDashEditIconEngine(dash_, bg_); }
 
  private:
   CQChartsLineDash dash_;

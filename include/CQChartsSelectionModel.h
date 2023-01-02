@@ -23,9 +23,9 @@ class CQChartsSelectionModel : public CQChartsSelectionModelBase {
   CQChartsSelectionModel(QAbstractItemView *view, CQChartsModelData *modelData);
   CQChartsSelectionModel(QAbstractItemView *view, QAbstractItemModel *model);
 
-  void select(const QModelIndex &ind, SelectionFlags flags);
+  void select(const QModelIndex &ind, SelectionFlags flags) override;
 
-  void select(const QItemSelection &selection, SelectionFlags flags);
+  void select(const QItemSelection &selection, SelectionFlags flags) override;
 
  private:
   SelectionFlags adjustFlags(SelectionFlags flags) const;

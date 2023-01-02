@@ -1894,8 +1894,7 @@ calcType()
   if (! column_.isValid())
     return false;
 
-  if (column_.type() == Column::Type::DATA ||
-      column_.type() == Column::Type::DATA_INDEX) {
+  if (column_.type() == Column::Type::DATA || column_.type() == Column::Type::DATA_INDEX) {
     int icolumn = column_.column();
 
     int numColumns = details_->numColumns();

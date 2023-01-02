@@ -14,7 +14,7 @@ class CQChartsReadLine : public CReadLine {
    test_(test) {
   }
 
-  void timeout() {
+  void timeout() override {
     test_->timeout();
   }
 

@@ -123,7 +123,10 @@ updateWidgets()
 
     //---
 
-    auto *details = groupPlot_->columnDetails(groupPlot_->groupColumn());
+    CQChartsModelColumnDetails *details = nullptr;
+
+    if (groupPlot_->groupColumn().isValid())
+      details = groupPlot_->columnDetails(groupPlot_->groupColumn());
 
     bool isUnique   = groupPlot_->isExactBucketValue();
     bool isString   = (details && details->type() == CQBaseModelType::STRING);

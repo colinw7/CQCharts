@@ -502,6 +502,8 @@ void
 CQChartsPlot::
 animateStep()
 {
+  Q_EMIT updateAnimData();
+
   for (auto &annotation : annotations())
     annotation->animateStep();
 }
@@ -4653,7 +4655,7 @@ updateColorMapKey() const
   auto *columnDetails = this->columnDetails(colorColumn());
 
   if (columnDetails) {
-    isMapped = colorColumnData_.mapped;
+    isMapped = colorColumnData_.isMapped();
 
     if      (columnDetails->type() == CQBaseModelType::REAL)
       isReal = true;
@@ -4855,15 +4857,15 @@ colorFilterNames() const
 {
   CQColorsPalette *colorsPalette = nullptr;
 
-  if (colorColumnData_.palette.isValid())
-    colorsPalette = colorColumnData_.palette.palette();
+  if (colorColumnData_.palette().isValid())
+    colorsPalette = colorColumnData_.palette().palette();
   else
     colorsPalette = view()->themePalette();
 
   int n = (colorMapKey_ ? colorMapKey_->uniqueValues().size() : 0);
 
-  auto mapMin = colorColumnData_.map_min;
-  auto mapMax = colorColumnData_.map_max;
+  auto mapMin = colorColumnData_.mapMin();
+  auto mapMax = colorColumnData_.mapMax();
 
   using ColorName = std::map<Color, QString>;
 
@@ -4874,7 +4876,7 @@ colorFilterNames() const
 
     Color color;
 
-    if (! colorColumnData_.colorMap.valueToColor(name, color)) {
+    if (! colorColumnData_.colorMap().valueToColor(name, color)) {
       double r = CMathUtil::map(i, 0, n - 1, mapMin, mapMax);
 
       color = Color(colorsPalette->getColor(r));
@@ -4904,7 +4906,7 @@ setColorFilterNames(const QStringList &names)
   for (const auto &name : names) {
     Color color;
 
-    if (colorColumnData_.colorMap.valueToColor(name, color))
+    if (colorColumnData_.colorMap().valueToColor(name, color))
       colorFilter_.insert(color);
   }
 
@@ -6811,6 +6813,13 @@ clearPlotObjects1()
 
   objTreeData_.tree->clearObjects();
 
+  clearPlotObjList();
+}
+
+void
+CQChartsPlot::
+clearPlotObjList()
+{
   PlotObjs plotObjs;
 
   std::swap(plotObjs, plotObjs_);
@@ -9497,9 +9506,9 @@ void
 CQChartsPlot::
 setColorColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.column, c, [&]() {
-    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
-  } );
+  if (c != colorColumnData_.column()) {
+    colorColumnData_.setColumn(c); updateObjs(); Q_EMIT colorDetailsChanged();
+  }
 }
 
 void
@@ -9517,72 +9526,72 @@ setColorType(const ColorType &t)
 {
   auto t1 = static_cast<CQChartsColorType>(t);
 
-  CQChartsUtil::testAndSet(colorColumnData_.colorType, t1, [&]() {
-    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
-  } );
+  if (t1 != colorColumnData_.colorType()) {
+    colorColumnData_.setColorType(t1); updateObjs(); Q_EMIT colorDetailsChanged();
+  }
 }
 
 void
 CQChartsPlot::
 setColorMapped(bool b)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.mapped, b, [&]() {
-    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
-  } );
+  if (b != colorColumnData_.isMapped()) {
+    colorColumnData_.setMapped(b); updateObjs(); Q_EMIT colorDetailsChanged();
+  }
 }
 
 void
 CQChartsPlot::
 setColorMapMin(double r)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.map_min, r, [&]() {
-    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
-  } );
+  if (r != colorColumnData_.mapMin()) {
+    colorColumnData_.setMapMin(r); updateObjs(); Q_EMIT colorDetailsChanged();
+  }
 }
 
 void
 CQChartsPlot::
 setColorMapMax(double r)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.map_max, r, [&]() {
-    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
-  } );
+  if (r != colorColumnData_.mapMax()) {
+    colorColumnData_.setMapMax(r); updateObjs(); Q_EMIT colorDetailsChanged();
+  }
 }
 
 void
 CQChartsPlot::
 setColorMapPalette(const PaletteName &name)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.palette, name, [&]() {
-    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
-  } );
+  if (name != colorColumnData_.palette()) {
+    colorColumnData_.setPalette(name); updateObjs(); Q_EMIT colorDetailsChanged();
+  }
 }
 
 void
 CQChartsPlot::
 setColorXStops(const ColorStops &s)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.xStops, s, [&]() {
-    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
-  } );
+  if (s != colorColumnData_.xStops()) {
+    colorColumnData_.setXStops(s); updateObjs(); Q_EMIT colorDetailsChanged();
+  }
 }
 
 void
 CQChartsPlot::
 setColorYStops(const ColorStops &s)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.yStops, s, [&]() {
-    colorColumnData_.valid = false; updateObjs(); Q_EMIT colorDetailsChanged();
-  } );
+  if (s != colorColumnData_.yStops()) {
+    colorColumnData_.setYStops(s); updateObjs(); Q_EMIT colorDetailsChanged();
+  }
 }
 
 void
 CQChartsPlot::
 setColorMap(const CQChartsColorMap &colorMap)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.colorMap, colorMap, [&]() {
-    colorColumnData_.valid = false; updateRangeAndObjs(); Q_EMIT colorDetailsChanged();
-  } );
+  if (colorMap != colorColumnData_.colorMap()) {
+    colorColumnData_.setColorMap(colorMap); updateRangeAndObjs(); Q_EMIT colorDetailsChanged();
+  }
 }
 
 //---
@@ -9597,7 +9606,7 @@ initColorColumnData()
 
   //---
 
-  colorColumnData_.valid = false;
+  colorColumnData_.setValid(false);
 
   if (! colorColumn().isValid())
     return;
@@ -9608,21 +9617,15 @@ initColorColumnData()
   if (! columnDetails) return;
 
   if (colorColumn().isGroup()) {
-    colorColumnData_.data_min = 0.0;
-    colorColumnData_.data_max = std::max(numGroups() - 1, 0);
+    colorColumnData_.setDataRange(0.0, std::max(numGroups() - 1, 0));
   }
   else {
-    if (colorColumnData_.mapped) {
+    if (colorColumnData_.isMapped()) {
       auto minVar = columnDetails->minValue();
       auto maxVar = columnDetails->maxValue();
 
-      bool ok;
-
-      colorColumnData_.data_min = CQChartsVariant::toReal(minVar, ok);
-      if (! ok) colorColumnData_.data_min = 0.0;
-
-      colorColumnData_.data_max = CQChartsVariant::toReal(maxVar, ok);
-      if (! ok) colorColumnData_.data_max = 1.0;
+      colorColumnData_.setDataRange(CQChartsVariant::toRealOr(minVar, 0.0),
+                                    CQChartsVariant::toRealOr(maxVar, 1.0));
     }
 
     ModelTypeData columnTypeData;
@@ -9637,15 +9640,13 @@ initColorColumnData()
       assert(colorType);
 
       colorType->getMapData(charts(), model().data(), colorColumn(),
-                            columnTypeData.nameValues, colorColumnData_.mapped,
-                            colorColumnData_.data_min, colorColumnData_.data_max,
-                            colorColumnData_.palette);
+                            columnTypeData.nameValues, colorColumnData_);
     }
 
-    colorColumnData_.modelType = columnTypeData.type;
+    colorColumnData_.setModelType(columnTypeData.type);
   }
 
-  colorColumnData_.valid = true;
+  colorColumnData_.setValid(true);
 }
 
 // get color from colorColumn at specified row
@@ -9823,28 +9824,36 @@ void
 CQChartsPlot::
 setAlphaColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(alphaColumnData_.column, c, [&]() { updateObjs(); } );
+  if (c != alphaColumnData_.column()) {
+    alphaColumnData_.setColumn(c); updateObjs();
+  }
 }
 
 void
 CQChartsPlot::
 setAlphaMapped(bool b)
 {
-  CQChartsUtil::testAndSet(alphaColumnData_.mapped, b, [&]() { updateObjs(); } );
+  if (b != alphaColumnData_.isMapped()) {
+    alphaColumnData_.setMapped(b); updateObjs();
+  }
 }
 
 void
 CQChartsPlot::
 setAlphaMapMin(double r)
 {
-  CQChartsUtil::testAndSet(alphaColumnData_.map_min, r, [&]() { updateObjs(); } );
+  if (r != alphaColumnData_.mapMin()) {
+    alphaColumnData_.setMapMin(r); updateObjs();
+  }
 }
 
 void
 CQChartsPlot::
 setAlphaMapMax(double r)
 {
-  CQChartsUtil::testAndSet(alphaColumnData_.map_max, r, [&]() { updateObjs(); } );
+  if (r != alphaColumnData_.mapMax()) {
+    alphaColumnData_.setMapMax(r); updateObjs();
+  }
 }
 
 //---
@@ -9996,51 +10005,42 @@ void
 CQChartsPlot::
 initSymbolTypeData(SymbolTypeData &symbolTypeData) const
 {
-  symbolTypeData.valid = false;
+  symbolTypeData.setValid(false);
 
-  if (! symbolTypeData.column.isValid())
+  if (! symbolTypeData.column().isValid())
     return;
 
-  auto *columnDetails = this->columnDetails(symbolTypeData.column);
+  auto *columnDetails = this->columnDetails(symbolTypeData.column());
   if (! columnDetails) return;
 
-  if (symbolTypeData.column.isGroup()) {
-    symbolTypeData.data_min = 0;
-    symbolTypeData.data_max = std::max(numGroups() - 1, 0);
+  if (symbolTypeData.column().isGroup()) {
+    symbolTypeData.setDataRange(0, std::max(numGroups() - 1, 0));
   }
   else {
-    if (symbolTypeData.mapped) {
+    if (symbolTypeData.isMapped()) {
       auto minVar = columnDetails->minValue();
       auto maxVar = columnDetails->maxValue();
 
-      bool ok;
-
-      symbolTypeData.data_min = int(CQChartsVariant::toReal(minVar, ok));
-      if (! ok) symbolTypeData.data_min = 0;
-
-      symbolTypeData.data_max = int(CQChartsVariant::toReal(maxVar, ok));
-      if (! ok) symbolTypeData.data_max = 1;
+      symbolTypeData.setDataRange(long(CQChartsVariant::toRealOr(minVar, 0.0)),
+                                  long(CQChartsVariant::toRealOr(maxVar, 1.0)));
     }
 
     ModelTypeData columnTypeData;
 
-    (void) modelColumnValueType(symbolTypeData.column, columnTypeData);
+    (void) modelColumnValueType(symbolTypeData.column(), columnTypeData);
 
     if (columnTypeData.type == ColumnType::SYMBOL) {
       auto *columnTypeMgr = charts()->columnTypeMgr();
 
-      const auto *symbolTypeType = dynamic_cast<const CQChartsColumnSymbolTypeType *>(
-        columnTypeMgr->getType(columnTypeData.type));
-      assert(symbolTypeType);
+      auto *symbolTypeType =
+        columnTypeMgr->getTypeT<CQChartsColumnSymbolTypeType>(columnTypeData.type);
 
-      symbolTypeType->getMapData(charts(), model().data(), symbolTypeData.column,
-                                 columnTypeData.nameValues, symbolTypeData.mapped,
-                                 symbolTypeData.map_min, symbolTypeData.map_max,
-                                 symbolTypeData.data_min, symbolTypeData.data_max);
+      symbolTypeType->getMapData(charts(), model().data(), symbolTypeData.column(),
+                                 columnTypeData.nameValues, symbolTypeData);
     }
   }
 
-  symbolTypeData.valid = true;
+  symbolTypeData.setValid(true);
 }
 
 bool
@@ -10048,12 +10048,12 @@ CQChartsPlot::
 columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbolTypeData,
                  Symbol &symbolType) const
 {
-  if (! symbolTypeData.valid)
+  if (! symbolTypeData.isValid())
     return false;
 
   auto *th = const_cast<Plot *>(this);
 
-  ModelIndex symbolTypeModelInd(th, row, symbolTypeData.column, parent);
+  ModelIndex symbolTypeModelInd(th, row, symbolTypeData.column(), parent);
 
   bool ok;
 
@@ -10072,7 +10072,7 @@ varSymbolType(const QVariant &var, const SymbolTypeData &symbolTypeData, Symbol 
 
     // use index of value in unique values to generate value in range
     // (CQChartsSymbolType::minValue, CQChartsSymbolType::maxValue)
-    auto *columnDetails = this->columnDetails(symbolTypeData.column);
+    auto *columnDetails = this->columnDetails(symbolTypeData.column());
 
     if (columnDetails) {
       // use unique index/count of edit values (which may have been converted)
@@ -10088,7 +10088,7 @@ varSymbolType(const QVariant &var, const SymbolTypeData &symbolTypeData, Symbol 
   //---
 
   auto *symbolSetMgr = charts()->symbolSetMgr();
-  auto *symbolSet    = symbolSetMgr->symbolSet(symbolTypeData.setName);
+  auto *symbolSet    = symbolSetMgr->symbolSet(symbolTypeData.setName());
 
   // map symbol index into symbol set range
   auto interpInd = [&](long i) {
@@ -10097,20 +10097,20 @@ varSymbolType(const QVariant &var, const SymbolTypeData &symbolTypeData, Symbol 
     if (symbolSet) {
       CQChartsSymbolSet::SymbolData symbolData;
 
-      if (symbolTypeData.mapped)
-        symbolData = symbolSet->interpI(int(i + symbolTypeData.map_min),
-                                        int(symbolTypeData.map_min),
-                                        int(symbolTypeData.map_max));
+      if (symbolTypeData.isMapped())
+        symbolData = symbolSet->interpI(int(i + symbolTypeData.mapMin()),
+                                        int(symbolTypeData.mapMin()),
+                                        int(symbolTypeData.mapMax()));
       else
         symbolData = symbolSet->interpI(int(i));
 
       symbolType = symbolData.symbol;
     }
     else {
-      if (symbolTypeData.mapped)
-        symbolType = Symbol::interpOutlineWrap(int(i + symbolTypeData.map_min),
-                                               int(symbolTypeData.map_min),
-                                               int(symbolTypeData.map_max));
+      if (symbolTypeData.isMapped())
+        symbolType = Symbol::interpOutlineWrap(int(i + symbolTypeData.mapMin()),
+                                               int(symbolTypeData.mapMin()),
+                                               int(symbolTypeData.mapMax()));
       else
         symbolType = Symbol::interpOutlineWrap(int(i + CQChartsSymbolType::minOutlineValue()));
     }
@@ -10118,11 +10118,11 @@ varSymbolType(const QVariant &var, const SymbolTypeData &symbolTypeData, Symbol 
     return symbolType;
   };
 
-  // map value in range (imin, imax) to (symbolTypeData.map_min, symbolTypeData.map_max)
+  // map value in range (imin, imax) to (symbolTypeData.mapMin(), symbolTypeData.mapMax())
   auto mapData = [&](long i, long imin, long imax) {
     return CMathRound::Round(
              CMathUtil::map(double(i), double(imin), double(imax),
-                            double(symbolTypeData.map_min), double(symbolTypeData.map_max)));
+                            double(symbolTypeData.mapMin()), double(symbolTypeData.mapMax())));
   };
 
   //---
@@ -10141,10 +10141,10 @@ varSymbolType(const QVariant &var, const SymbolTypeData &symbolTypeData, Symbol 
 
     //---
 
-    if (symbolTypeData.mapped) {
+    if (symbolTypeData.isMapped()) {
       // map integer value in column range (map min/max) to symbol range (data min/max)
-      symbolType = interpInd(mapData(i, int(symbolTypeData.data_min),
-                                        int(symbolTypeData.data_max)));
+      symbolType = interpInd(mapData(i, int(symbolTypeData.dataMin()),
+                                        int(symbolTypeData.dataMax())));
     }
     else {
       // use integer value directly (no column range map)
@@ -10157,8 +10157,8 @@ varSymbolType(const QVariant &var, const SymbolTypeData &symbolTypeData, Symbol 
     symbolType = CQChartsVariant::toSymbol(var, ok);
   }
   else {
-    if (symbolTypeData.mapped) {
-      if (! symbolTypeData.typeMap.valueToSymbol(var, symbolType)) {
+    if (symbolTypeData.isMapped()) {
+      if (! symbolTypeData.typeMap().valueToSymbol(var, symbolType)) {
         // get unique id of value
         auto ind = uniqueInd();
 
@@ -10198,64 +10198,54 @@ void
 CQChartsPlot::
 initSymbolSizeData(SymbolSizeData &symbolSizeData) const
 {
-  bool initMap = ! symbolSizeData.valid;
+  bool initMap = ! symbolSizeData.isValid();
 
-  symbolSizeData.valid = false;
+  symbolSizeData.setValid(false);
 
-  if (! symbolSizeData.column.isValid())
+  if (! symbolSizeData.column().isValid())
     return;
 
-  auto *columnDetails = this->columnDetails(symbolSizeData.column);
+  auto *columnDetails = this->columnDetails(symbolSizeData.column());
   if (! columnDetails) return;
 
-  if (symbolSizeData.column.isGroup()) {
-    symbolSizeData.data_min  = 0.0;
-    symbolSizeData.data_max  = std::max(numGroups() - 1, 0);
-    symbolSizeData.data_mean = symbolSizeData.data_max/2.0;
+  if (symbolSizeData.column().isGroup()) {
+    symbolSizeData.setDataRange(0.0, std::max(numGroups() - 1, 0));
+    symbolSizeData.setDataMean(symbolSizeData.dataMax()/2.0);
   }
   else {
-    if (symbolSizeData.mapped) {
+    if (symbolSizeData.isMapped()) {
       auto minVar  = columnDetails->minValue();
       auto maxVar  = columnDetails->maxValue();
       auto meanVar = columnDetails->meanValue();
 
-      bool ok;
+      symbolSizeData.setDataRange(CQChartsVariant::toRealOr(minVar, 0.0),
+                                  CQChartsVariant::toRealOr(maxVar, 1.0));
 
-      symbolSizeData.data_min = CQChartsVariant::toReal(minVar, ok);
-      if (! ok) symbolSizeData.data_min = 0.0;
-
-      symbolSizeData.data_max = CQChartsVariant::toReal(maxVar, ok);
-      if (! ok) symbolSizeData.data_max = 1.0;
-
-      symbolSizeData.data_mean = CQChartsVariant::toReal(meanVar, ok);
-      if (! ok) symbolSizeData.data_mean =
-                  CMathUtil::avg(symbolSizeData.data_min, symbolSizeData.data_max);
+      symbolSizeData.setDataMean(CQChartsVariant::toRealOr(meanVar,
+        CMathUtil::avg(symbolSizeData.dataMin(), symbolSizeData.dataMax())));
     }
 
     ModelTypeData columnTypeData;
 
-    (void) modelColumnValueType(symbolSizeData.column, columnTypeData);
+    (void) modelColumnValueType(symbolSizeData.column(), columnTypeData);
 
     if (columnTypeData.type == ColumnType::SYMBOL_SIZE) {
       auto *columnTypeMgr = charts()->columnTypeMgr();
 
-      const auto *symbolSizeType = dynamic_cast<const CQChartsColumnSymbolSizeType *>(
-        columnTypeMgr->getType(columnTypeData.type));
-      assert(symbolSizeType);
+      auto *symbolSizeType =
+        columnTypeMgr->getTypeT<CQChartsColumnSymbolSizeType>(columnTypeData.type);
 
-      symbolSizeType->getMapData(charts(), model().data(), symbolSizeData.column,
-                                 columnTypeData.nameValues, symbolSizeData.mapped,
-                                 symbolSizeData.map_min, symbolSizeData.map_max,
-                                 symbolSizeData.data_min, symbolSizeData.data_max);
+      symbolSizeType->getMapData(charts(), model().data(), symbolSizeData.column(),
+                                 columnTypeData.nameValues, symbolSizeData);
     }
   }
 
   if (initMap) {
-    symbolSizeData.user_map_min = symbolSizeData.map_min;
-    symbolSizeData.user_map_max = symbolSizeData.map_max;
+    symbolSizeData.setUserMapMin(symbolSizeData.mapMin());
+    symbolSizeData.setUserMapMax(symbolSizeData.mapMax());
   }
 
-  symbolSizeData.valid = true;
+  symbolSizeData.setValid(true);
 }
 
 bool
@@ -10263,12 +10253,12 @@ CQChartsPlot::
 columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbolSizeData,
                  Length &symbolSize, Qt::Orientation &sizeDir) const
 {
-  if (! symbolSizeData.valid)
+  if (! symbolSizeData.isValid())
     return false;
 
   auto *th = const_cast<Plot *>(this);
 
-  ModelIndex symbolSizeModelInd(th, row, symbolSizeData.column, parent);
+  ModelIndex symbolSizeModelInd(th, row, symbolSizeData.column(), parent);
 
   bool ok;
 
@@ -10288,7 +10278,7 @@ varSymbolSize(const QVariant &var, const SymbolSizeData &symbolSizeData,
 
     // use index of value in unique values to generate value in range
     // (CQChartsSymbolSize::minValue, CQChartsSymbolSize::maxValue)
-    auto *columnDetails = this->columnDetails(symbolSizeData.column);
+    auto *columnDetails = this->columnDetails(symbolSizeData.column());
 
     if (columnDetails) {
       // use unique index/count of edit values (which may have been converted)
@@ -10301,23 +10291,23 @@ varSymbolSize(const QVariant &var, const SymbolSizeData &symbolSizeData,
     return std::pair<int, int>(i, n);
   };
 
-  /// map value in range (min, max) to (symbolSizeData.user_map_min, symbolSizeData.user_map_max)
+  /// map value in range (min, max) to (symbolSizeData.userMapMin(), symbolSizeData.userMapMax())
   auto mapData = [&](double r, double min, double max) {
-    return CMathUtil::map(r, min, max, symbolSizeData.user_map_min, symbolSizeData.user_map_max);
+    return CMathUtil::map(r, min, max, symbolSizeData.userMapMin(), symbolSizeData.userMapMax());
   };
 
   //---
 
-  auto units = symbolSizeData.units;
+  auto units = symbolSizeData.units();
 
   // interpolate size from number in column range to size
   if      (CQChartsVariant::isNumeric(var)) {
-    if (symbolSizeData.mapped) {
-      // map value in range (symbolSizeData.data_min, symbolSizeData.data_max) to
-      // (symbolSizeData.user_map_min, symbolSizeData.user_map_max)
+    if (symbolSizeData.isMapped()) {
+      // map value in range (symbolSizeData.dataMin(), symbolSizeData.dataMax()) to
+      // (symbolSizeData.userMapMin(), symbolSizeData.userMapMax())
       bool ok;
       double r  = CQChartsVariant::toReal(var, ok);
-      double r1 = mapData(r, symbolSizeData.data_min, symbolSizeData.data_max);
+      double r1 = mapData(r, symbolSizeData.dataMin(), symbolSizeData.dataMax());
 
       symbolSize = Length(r1, units.type());
     }
@@ -10333,8 +10323,8 @@ varSymbolSize(const QVariant &var, const SymbolSizeData &symbolSizeData,
     symbolSize = CQChartsVariant::toLength(var, ok);
   }
   else {
-    if (symbolSizeData.mapped) {
-      if (! symbolSizeData.sizeMap.valueToLength(var, symbolSize)) {
+    if (symbolSizeData.isMapped()) {
+      if (! symbolSizeData.sizeMap().valueToLength(var, symbolSize)) {
         // get unique id of value
         auto ind = uniqueInd();
 
@@ -10351,7 +10341,7 @@ varSymbolSize(const QVariant &var, const SymbolSizeData &symbolSizeData,
     }
   }
 
-  sizeDir = symbolSizeData.direction;
+  sizeDir = symbolSizeData.direction();
 
   return symbolSize.isValid();
 }
@@ -10362,37 +10352,31 @@ void
 CQChartsPlot::
 initFontSizeData(FontSizeData &fontSizeData) const
 {
-  bool initMap = ! fontSizeData.valid;
+  bool initMap = ! fontSizeData.isValid();
 
-  fontSizeData.valid = false;
+  fontSizeData.setValid(false);
 
-  if (! fontSizeData.column.isValid())
+  if (! fontSizeData.column().isValid())
     return;
 
-  auto *columnDetails = this->columnDetails(fontSizeData.column);
+  auto *columnDetails = this->columnDetails(fontSizeData.column());
   if (! columnDetails) return;
 
-  if (fontSizeData.column.isGroup()) {
-    fontSizeData.data_min = 0.0;
-    fontSizeData.data_max = std::max(numGroups() - 1, 0);
+  if (fontSizeData.column().isGroup()) {
+    fontSizeData.setDataRange(0.0, std::max(numGroups() - 1, 0));
   }
   else {
-    if (fontSizeData.mapped) {
+    if (fontSizeData.isMapped()) {
       auto minVar = columnDetails->minValue();
       auto maxVar = columnDetails->maxValue();
 
-      bool ok;
-
-      fontSizeData.data_min = CQChartsVariant::toReal(minVar, ok);
-      if (! ok) fontSizeData.data_min = 0.0;
-
-      fontSizeData.data_max = CQChartsVariant::toReal(maxVar, ok);
-      if (! ok) fontSizeData.data_max = 1.0;
+      fontSizeData.setDataRange(CQChartsVariant::toRealOr(minVar, 0.0),
+                                CQChartsVariant::toRealOr(maxVar, 1.0));
     }
 
     ModelTypeData columnTypeData;
 
-    (void) modelColumnValueType(fontSizeData.column, columnTypeData);
+    (void) modelColumnValueType(fontSizeData.column(), columnTypeData);
 
     if (columnTypeData.type == ColumnType::FONT_SIZE) {
       auto *columnTypeMgr = charts()->columnTypeMgr();
@@ -10401,19 +10385,17 @@ initFontSizeData(FontSizeData &fontSizeData) const
         columnTypeMgr->getType(columnTypeData.type));
       assert(fontSizeType);
 
-      fontSizeType->getMapData(charts(), model().data(), fontSizeData.column,
-                               columnTypeData.nameValues, fontSizeData.mapped,
-                               fontSizeData.map_min, fontSizeData.map_max,
-                               fontSizeData.data_min, fontSizeData.data_max);
+      fontSizeType->getMapData(charts(), model().data(), fontSizeData.column(),
+                               columnTypeData.nameValues, fontSizeData);
     }
   }
 
   if (initMap) {
-    fontSizeData.user_map_min = fontSizeData.map_min;
-    fontSizeData.user_map_max = fontSizeData.map_max;
+    fontSizeData.setUserMapMin(fontSizeData.mapMin());
+    fontSizeData.setUserMapMax(fontSizeData.mapMax());
   }
 
-  fontSizeData.valid = true;
+  fontSizeData.setValid(true);
 }
 
 bool
@@ -10421,14 +10403,14 @@ CQChartsPlot::
 columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeData,
                Length &fontSize, Qt::Orientation &sizeDir) const
 {
-  if (! fontSizeData.valid)
+  if (! fontSizeData.isValid())
     return false;
 
   auto *th = const_cast<Plot *>(this);
 
-  auto units = fontSizeData.units;
+  auto units = fontSizeData.units();
 
-  ModelIndex fontSizeModelInd(th, row, fontSizeData.column, parent);
+  ModelIndex fontSizeModelInd(th, row, fontSizeData.column(), parent);
 
   bool ok;
 
@@ -10436,13 +10418,13 @@ columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeD
   if (! ok || ! var.isValid()) return false;
 
   if      (CQChartsVariant::isNumeric(var)) {
-    if (fontSizeData.mapped) {
-      // map value in range (fontSizeData.data_min, fontSizeData.data_max) to
-      // (fontSizeData.user_map_min, fontSizeData.user_map_max)
+    if (fontSizeData.isMapped()) {
+      // map value in range (fontSizeData.dataMin(), fontSizeData.dataMax()) to
+      // (fontSizeData.userMapMin(), fontSizeData.userMapMax())
       double r = CQChartsVariant::toReal(var, ok);
 
-      double r1 = CMathUtil::map(r, fontSizeData.data_min, fontSizeData.data_max,
-                                 fontSizeData.user_map_min, fontSizeData.user_map_max);
+      double r1 = CMathUtil::map(r, fontSizeData.dataMin(), fontSizeData.dataMax(),
+                                 fontSizeData.userMapMin(), fontSizeData.userMapMax());
 
       fontSize = Length(r1, units.type());
     }
@@ -10456,10 +10438,10 @@ columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeD
     fontSize = CQChartsVariant::toLength(var, ok);
   }
   else {
-    if (fontSizeData.mapped) {
+    if (fontSizeData.isMapped()) {
       // use index of value in unique values to generate value in range
       // (CQChartsFontSize::minValue, CQChartsFontSize::maxValue)
-      auto *columnDetails = this->columnDetails(fontSizeData.column);
+      auto *columnDetails = this->columnDetails(fontSizeData.column());
       if (! columnDetails) return false;
 
       // use unique index/count of edit values (which may have been converted)
@@ -10471,7 +10453,7 @@ columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeD
 //    double r = CMathUtil::map(i, 0, n - 1, CQChartsFontSize::minValue(),
 //                              CQChartsFontSize::maxValue());
       double r = CMathUtil::map(i, 0, n - 1,
-                                fontSizeData.user_map_min, fontSizeData.user_map_max);
+                                fontSizeData.userMapMin(), fontSizeData.userMapMax());
 
       fontSize = Length(r, units.type());
     }
@@ -10482,7 +10464,7 @@ columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeD
     }
   }
 
-  sizeDir = fontSizeData.direction;
+  sizeDir = fontSizeData.direction();
 
   return fontSize.isValid();
 }
@@ -16589,6 +16571,8 @@ CQChartsModelColumnDetails *
 CQChartsPlot::
 columnDetails(const Column &column) const
 {
+  assert(column.isValid());
+
   auto *details = modelDetails();
   if (! details) return nullptr;
 

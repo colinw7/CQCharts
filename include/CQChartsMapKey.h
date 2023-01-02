@@ -348,20 +348,20 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   void setData(const ColorData &data) { colorData_ = data; }
 
   // data range
-  double dataMin() const { return colorData_.data_min; }
-  void setDataMin(double r) { colorData_.data_min = r; invalidate(); }
+  double dataMin() const { return colorData_.dataMin(); }
+  void setDataMin(double r) { colorData_.setDataMin(r); invalidate(); }
 
-  double dataMax() const { return colorData_.data_max; }
-  void setDataMax(double r) { colorData_.data_max = r; invalidate(); }
+  double dataMax() const { return colorData_.dataMax(); }
+  void setDataMax(double r) { colorData_.setDataMax(r); invalidate(); }
 
   //---
 
   // map range
-  double mapMin() const { return colorData_.map_min; }
-  void setMapMin(double r) { colorData_.map_min = r; invalidate(); }
+  double mapMin() const { return colorData_.mapMin(); }
+  void setMapMin(double r) { colorData_.setMapMin(r); invalidate(); }
 
-  double mapMax() const { return colorData_.map_max; }
-  void setMapMax(double r) { colorData_.map_max = r; invalidate(); }
+  double mapMax() const { return colorData_.mapMax(); }
+  void setMapMax(double r) { colorData_.setMapMax(r); invalidate(); }
 
   //---
 
@@ -501,20 +501,20 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey,
   void setData(const SymbolSizeData &data) { symbolSizeData_ = data; }
 
   // data range
-  double dataMin() const { return symbolSizeData_.data_min; }
-  void setDataMin(double r) { symbolSizeData_.data_min = r; invalidate(); }
+  double dataMin() const { return symbolSizeData_.dataMin(); }
+  void setDataMin(double r) { symbolSizeData_.setDataMin(r); invalidate(); }
 
-  double dataMax() const { return symbolSizeData_.data_max; }
-  void setDataMax(double r) { symbolSizeData_.data_max = r; invalidate(); }
+  double dataMax() const { return symbolSizeData_.dataMax(); }
+  void setDataMax(double r) { symbolSizeData_.setDataMax(r); invalidate(); }
 
   //---
 
   // map range
-  double mapMin() const { return symbolSizeData_.map_min; }
-  void setMapMin(double r) { symbolSizeData_.map_min = r; invalidate(); }
+  double mapMin() const { return symbolSizeData_.mapMin(); }
+  void setMapMin(double r) { symbolSizeData_.setMapMin(r); invalidate(); }
 
-  double mapMax() const { return symbolSizeData_.map_max; }
-  void setMapMax(double r) { symbolSizeData_.map_max = r; invalidate(); }
+  double mapMax() const { return symbolSizeData_.mapMax(); }
+  void setMapMax(double r) { symbolSizeData_.setMapMax(r); invalidate(); }
 
   //---
 
@@ -680,26 +680,26 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   void setData(const SymbolTypeData &data) { symbolTypeData_ = data; }
 
   // data range
-  long dataMin() const { return symbolTypeData_.data_min; }
-  void setDataMin(long i) { symbolTypeData_.data_min = i; invalidate(); }
+  long dataMin() const { return symbolTypeData_.dataMin(); }
+  void setDataMin(long i) { symbolTypeData_.setDataMin(i); invalidate(); }
 
-  long dataMax() const { return symbolTypeData_.data_max; }
-  void setDataMax(long i) { symbolTypeData_.data_max = i; invalidate(); }
+  long dataMax() const { return symbolTypeData_.dataMax(); }
+  void setDataMax(long i) { symbolTypeData_.setDataMax(i); invalidate(); }
 
   //---
 
   // map range
-  long mapMin() const { return symbolTypeData_.map_min; }
-  void setMapMin(long i) { symbolTypeData_.map_min = i; invalidate(); }
+  long mapMin() const { return symbolTypeData_.mapMin(); }
+  void setMapMin(long i) { symbolTypeData_.setMapMin(i); invalidate(); }
 
-  long mapMax() const { return symbolTypeData_.map_max; }
-  void setMapMax(long i) { symbolTypeData_.map_max = i; invalidate(); }
+  long mapMax() const { return symbolTypeData_.mapMax(); }
+  void setMapMax(long i) { symbolTypeData_.setMapMax(i); invalidate(); }
 
   //---
 
   // symbol set
-  const QString &symbolSet() const { return symbolTypeData_.setName; }
-  void setSymbolSet(const QString &s) { symbolTypeData_.setName = s; invalidate(); }
+  const QString &symbolSet() const { return symbolTypeData_.setName(); }
+  void setSymbolSet(const QString &s) { symbolTypeData_.setSetName(s); invalidate(); }
 
   //---
 

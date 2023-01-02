@@ -548,7 +548,7 @@ CQChartsGroupPlot::
 initGroupBucketer()
 {
   // update default grouping from group column details
-  auto *details = columnDetails(groupColumn());
+  auto *details = (groupColumn().isValid() ? columnDetails(groupColumn()) : nullptr);
   if (! details) return;
 
   setUpdatesEnabled(false);

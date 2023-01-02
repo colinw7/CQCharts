@@ -21,7 +21,7 @@ class CQChartsInterfaceControl : public QFrame, public CQChartsWidgetIFace {
   CQChartsInterfaceControl(QWidget *parent);
 
   View *view() const;
-  void setView(View *view);
+  void setView(View *view) override;
 
   void updateState();
 

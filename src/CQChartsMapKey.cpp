@@ -1001,7 +1001,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
     Color  color;
     QColor c;
 
-    if (! colorData_.colorMap.valueToColor(name, color)) {
+    if (! colorData_.colorMap().valueToColor(name, color)) {
       double r = CMathUtil::map(i, 0, n - 1, mapMin, mapMax);
 
       c = colorsPalette->getColor(r);
@@ -1046,7 +1046,7 @@ uniqueValueColor(int i, int n, const QString &name, double mapMin, double mapMax
     c = color.color();
   }
   else {
-    if (! colorData_.colorMap.valueToColor(name, color)) {
+    if (! colorData_.colorMap().valueToColor(name, color)) {
       auto *colorsPalette = this->colorsPalette();
 
       double r = CMathUtil::map(i, 0, n - 1, mapMin, mapMax);
@@ -1684,7 +1684,7 @@ drawDiscreet(PaintDevice *device, DrawType drawType)
     Length  l;
     QString lstr;
 
-    if (! symbolSizeData_.sizeMap.valueToLength(name, l)) {
+    if (! symbolSizeData_.sizeMap().valueToLength(name, l)) {
       double r = CMathUtil::map(i, 0, n - 1, mapMin, mapMax);
 
       l    = Length::pixel(r);
@@ -1981,7 +1981,7 @@ calcDiscreetSize() const
 
     Length l;
 
-    if (! symbolSizeData_.sizeMap.valueToLength(name, l)) {
+    if (! symbolSizeData_.sizeMap().valueToLength(name, l)) {
       double r = CMathUtil::map(i, 0, n - 1, mapMin, mapMax);
 
       mappedValues.push_back(r);
@@ -2007,7 +2007,7 @@ calcDiscreetSize() const
     Length  l;
     QString lstr;
 
-    if (! symbolSizeData_.sizeMap.valueToLength(name, l)) {
+    if (! symbolSizeData_.sizeMap().valueToLength(name, l)) {
       auto r = mappedValues[size_t(i)];
 
       lstr = QString("%1").arg(r, 0, 'f', ndp_);
@@ -2607,7 +2607,7 @@ draw(PaintDevice *device, const DrawData &drawData, DrawType drawType)
       CQChartsSymbolSet::SymbolData symbolData;
 
       if (isMapped()) {
-        if (! symbolTypeData_.typeMap.valueToSymbol(name, symbolData.symbol)) {
+        if (! symbolTypeData_.typeMap().valueToSymbol(name, symbolData.symbol)) {
           if (symbolSet)
             symbolData = symbolSet->interpI(int(i + mapMin()), int(mapMin()), int(mapMax()));
           else

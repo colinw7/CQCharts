@@ -38,6 +38,13 @@ inline bool isReal(const QVariant &var) {
 bool toReal(const QVariant &var, double &r);
 double toReal(const QVariant &var, bool &ok);
 
+inline double toRealOr(const QVariant &var, double defReal) {
+  double r;
+  if (! toReal(var, r))
+    r = defReal;
+  return r;
+}
+
 double toConvertedReal(const QVariant &var, bool &ok, bool &converted);
 
 inline QVariant fromReal(double r) {

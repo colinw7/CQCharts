@@ -63,7 +63,7 @@ class CQChartsOptRectPropertyViewEditor : public CQChartsOptPropertyViewEditor {
  public:
   CQChartsOptRectPropertyViewEditor() { }
 
-  QWidget *createEdit(QWidget *parent);
+  QWidget *createEdit(QWidget *parent) override;
 };
 
 #endif

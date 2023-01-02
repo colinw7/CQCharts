@@ -33,7 +33,7 @@ class CQChartsAppWindow : public CQAppWindow {
 
   void addMenus();
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
  public Q_SLOTS:
   void closeSlot();

@@ -125,7 +125,7 @@ class CQChartsWidgetAction : public QWidgetAction {
 
   QWidget *widget() const { return w_; }
 
-  QWidget *createWidget(QWidget *parent) {
+  QWidget *createWidget(QWidget *parent) override {
     w_->setParent(parent);
 
     return w_;

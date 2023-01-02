@@ -23,7 +23,7 @@ class CQChartsPaletteControl : public QFrame, public CQChartsWidgetIFace {
   CQChartsPaletteControl(QWidget *parent);
 
   View *view() const;
-  void setView(View *view);
+  void setView(View *view) override;
 
   void updatePalettes();
 

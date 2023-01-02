@@ -275,9 +275,10 @@ void
 CQChartsDendrogramPlot::
 setColorColumn(const Column &c)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.column, c, [&]() {
+  if (c != colorColumnData_.column()) {
+    colorColumnData_.setColumn(c);
     cacheData_.needsReload = true; updateRangeAndObjs(); Q_EMIT customDataChanged();
-  } );
+  }
 }
 
 void

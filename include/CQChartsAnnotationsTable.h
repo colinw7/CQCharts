@@ -58,7 +58,7 @@ class CQChartsAnnotationsControl : public QFrame, public CQChartsWidgetIFace {
   CQChartsAnnotationsControl(QWidget *parent=nullptr);
 
   View *view() const;
-  void setView(View *view);
+  void setView(View *view) override;
 
   Plot *plot() const;
   void setPlot(Plot *plot) override;
@@ -96,7 +96,7 @@ class CQChartsViewAnnotationsControl : public QFrame, public CQChartsWidgetIFace
   CQChartsViewAnnotationsControl(QWidget *parent=nullptr);
 
   View *view() const;
-  void setView(View *view);
+  void setView(View *view) override;
 
  private:
   CQChartsAnnotation *getSelectedViewAnnotation() const;

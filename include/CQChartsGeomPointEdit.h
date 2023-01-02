@@ -117,13 +117,13 @@ class CQChartsGeomPointPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsGeomPointPropertyViewEditor();
 
-  QWidget *createEdit(QWidget *parent);
+  QWidget *createEdit(QWidget *parent) override;
 
-  void connect(QWidget *w, QObject *obj, const char *method);
+  void connect(QWidget *w, QObject *obj, const char *method) override;
 
-  QVariant getValue(QWidget *w);
+  QVariant getValue(QWidget *w) override;
 
-  void setValue(QWidget *w, const QVariant &var);
+  void setValue(QWidget *w, const QVariant &var) override;
 };
 
 #endif
