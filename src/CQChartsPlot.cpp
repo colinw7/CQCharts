@@ -4652,7 +4652,7 @@ updateColorMapKey() const
   QVariantList uniqueValues;
   QVariantList uniqueCounts;
 
-  auto *columnDetails = this->columnDetails(colorColumn());
+  auto *columnDetails = (colorColumn().isValid() ? this->columnDetails(colorColumn()) : nullptr);
 
   if (columnDetails) {
     isMapped = colorColumnData_.isMapped();

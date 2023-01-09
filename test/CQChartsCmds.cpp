@@ -6268,6 +6268,7 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
     bool hasModel      = (nameValues.find("model"     ) != nameValues.end());
     bool hasView       = (nameValues.find("view"      ) != nameValues.end());
     bool hasPlot       = (nameValues.find("plot"      ) != nameValues.end());
+    bool hasObject     = (nameValues.find("object"    ) != nameValues.end());
     bool hasType       = (nameValues.find("type"      ) != nameValues.end());
     bool hasAnnotation = (nameValues.find("annotation") != nameValues.end());
 
@@ -6298,12 +6299,19 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
       return names;
     }
     else if (hasPlot) {
-      static auto names = QStringList() <<
-       "model" << "view" << "value" << "map" << "annotations" << "objects" <<
-       "selected_objects" << "inds" << "plot_width" << "plot_height" << "pixel_width" <<
-       "pixel_height" << "pixel_position" << "properties" << "set_hidden" << "errors" <<
-       "color_filter" << "symbol_type_filter" << "symbol_size_filter";
-      return names;
+      if (! hasObject) {
+        static auto names = QStringList() <<
+         "model" << "view" << "value" << "map" << "annotations" << "objects" <<
+         "selected_objects" << "inds" << "plot_width" << "plot_height" << "pixel_width" <<
+         "pixel_height" << "pixel_position" << "properties" << "set_hidden" << "errors" <<
+         "color_filter" << "symbol_type_filter" << "symbol_size_filter";
+        return names;
+      }
+      else {
+        static auto names = QStringList() <<
+          "inds" << "rows" << "connected";
+        return names;
+      }
     }
     else if (hasAnnotation) {
       static auto names = QStringList() << "view" << "plot" << "properties";
@@ -7307,6 +7315,7 @@ execCmd(CQChartsCmdArgs &argv)
     }
     else if (name == "?") {
       NameValueMap nameValues; nameValues["plot"] = "";
+      if (objectId.length()) nameValues["object"] = "";
 
       return cmdBase_->setCmdRc(getArgValues("name", nameValues));
     }
@@ -7529,7 +7538,7 @@ addCmdArgs(CQChartsCmdArgs &argv)
 
 QStringList
 CQChartsSetChartsDataCmd::
-getArgValues(const QString &arg, const NameValueMap &)
+getArgValues(const QString &arg, const NameValueMap &nameValues)
 {
   if      (arg == "model"     ) return cmds()->modelArgValues();
   else if (arg == "view"      ) return cmds()->viewArgValues();
@@ -7537,6 +7546,55 @@ getArgValues(const QString &arg, const NameValueMap &)
   else if (arg == "type"      ) return cmds()->plotTypeArgValues();
   else if (arg == "annotation") return cmds()->annotationArgValues(nullptr, nullptr);
   else if (arg == "role"      ) return cmds()->roleArgValues(nullptr);
+  else if (arg == "name"      ) {
+    bool hasModel      = (nameValues.find("model"     ) != nameValues.end());
+    bool hasView       = (nameValues.find("view"      ) != nameValues.end());
+    bool hasPlot       = (nameValues.find("plot"      ) != nameValues.end());
+    bool hasObject     = (nameValues.find("object"    ) != nameValues.end());
+    bool hasType       = (nameValues.find("type"      ) != nameValues.end());
+    bool hasAnnotation = (nameValues.find("annotation") != nameValues.end());
+
+    if      (hasModel) {
+      auto names = QStringList() <<
+        "value" << "column_type" << "header_type" << "meta" << "name" <<
+        "process_expression" << "size" << "read_only" << "details.parameter";
+
+      return names;
+    }
+    else if (hasView) {
+      static auto names = QStringList() <<
+       "fit" << "zoom_full" << "script_select_proc";
+      return names;
+    }
+    else if (hasType) {
+      static auto names = QStringList();
+      return names;
+    }
+    else if (hasPlot) {
+      if (! hasObject) {
+        static auto names = QStringList() <<
+         "fit" << "zoom_full" << "updates_enabled" << "set_hidden" << "model" <<
+         "color_filter" << "symbol_type_filter" << "symbol_size_filter";
+        return names;
+      }
+      else {
+        static auto names = QStringList() <<
+          "select" << "tick_label";
+        return names;
+      }
+    }
+    else if (hasAnnotation) {
+      static auto names = QStringList() <<
+        "tick_label" << "fit";
+      return names;
+    }
+    else {
+      static auto names = QStringList() <<
+       "path_list" << "view_key" << "max_symbol_size" << "max_font_size" <<
+       "max_line_width";
+      return names;
+    }
+  }
 
   return QStringList();
 }
@@ -7788,10 +7846,9 @@ execCmd(CQChartsCmdArgs &argv)
         return errorMsg(QString("Invalid column details name '%1'").arg(name));
     }
     else if (name == "?") {
-      static auto names = QStringList() <<
-       "value" << "column_type" << "meta" << "name" <<
-       "process_expression" /* << "property.<name>" */ << "read_only";
-      return cmdBase_->setCmdRc(names);
+      NameValueMap nameValues; nameValues["model"] = "";
+
+      return cmdBase_->setCmdRc(getArgValues("name", nameValues));
     }
     else
       return errorMsg("Invalid model value name '" + name + "' specified");
@@ -7813,8 +7870,9 @@ execCmd(CQChartsCmdArgs &argv)
       view->setScriptSelectProc(value);
     }
     else if (name == "?") {
-      static auto names = QStringList() << "fit" << "zoom_full" << "script_select_proc";
-      return cmdBase_->setCmdRc(names);
+      NameValueMap nameValues; nameValues["view"] = "";
+
+      return cmdBase_->setCmdRc(getArgValues("name", nameValues));
     }
     else
       return errorMsg("Invalid view name '" + name + "' specified");
@@ -7927,10 +7985,10 @@ execCmd(CQChartsCmdArgs &argv)
     }
     // plot object property
     else if (name == "?") {
-      static auto names = QStringList() << "fit" << "zoom_full" << "updates_enabled" <<
-        "set_hidden" << "select" << "model" << "tick_label" <<
-        "color_filter" << "symbol_type_filter" << "symbol_size_filter";
-      return cmdBase_->setCmdRc(names);
+      NameValueMap nameValues; nameValues["plot"] = "";
+      if (objectId.length()) nameValues["object"] = "";
+
+      return cmdBase_->setCmdRc(getArgValues("name", nameValues));
     }
     else
       return errorMsg("Invalid plot name '" + name + "' specified");
@@ -7969,8 +8027,9 @@ execCmd(CQChartsCmdArgs &argv)
       annotationGroup->doLayout();
     }
     else if (name == "?") {
-      static auto names = QStringList() << "tick_label" << "fit";
-      return cmdBase_->setCmdRc(names);
+      NameValueMap nameValues; nameValues["annotation"] = "";
+
+      return cmdBase_->setCmdRc(getArgValues("name", nameValues));
     }
     else
       return errorMsg("Invalid annotation name '" + name + "' specified");
@@ -8010,9 +8069,9 @@ execCmd(CQChartsCmdArgs &argv)
       charts->setMaxLineWidth(r);
     }
     else if (name == "?") {
-      static auto names = QStringList() << "path_list" << "view_key" <<
-        "max_symbol_size" << "max_font_size" << "max_line_width";
-      return cmdBase_->setCmdRc(names);
+      NameValueMap nameValues;
+
+      return cmdBase_->setCmdRc(getArgValues("name", nameValues));
     }
     else
       return errorMsg("Invalid global name '" + name + "' specified");
