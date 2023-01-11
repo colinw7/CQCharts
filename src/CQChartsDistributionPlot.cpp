@@ -5497,6 +5497,8 @@ bucketRadioGroupSlot(QAbstractButton *button)
     if (distributionPlot_->bucketType() != CQBucketer::Type::STRING)
       distributionPlot_->setExactBucketValue(true);
   }
+
+  updateWidgets();
 }
 
 void
