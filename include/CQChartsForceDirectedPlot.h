@@ -353,6 +353,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
+  void initEdgeValueName(const Column &c);
+
+  //---
+
   void processNodeNameValues(ConnectionsData &connectionsData,
                              const NameValues &nameValues) const;
   void processNodeNameValue(ConnectionsData &connectionsData, const QString &name,

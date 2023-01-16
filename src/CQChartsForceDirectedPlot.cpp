@@ -1023,6 +1023,14 @@ initFromToObjs() const
 {
   CQPerfTrace trace("CQChartsForceDirectedPlot::initFromToObjs");
 
+  //---
+
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
+
+  th->initEdgeValueName(valueColumn());
+
+  //---
+
   CQChartsConnectionPlot::initFromToObjs();
 
   return true;
@@ -1152,12 +1160,7 @@ initLinkConnectionObjs() const
 
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
-  th->edgeValueName_ = "";
-
-  if (valueColumn().isValid()) {
-    bool ok;
-    th->edgeValueName_ = modelHHeaderString(valueColumn(), ok);
-  }
+  th->initEdgeValueName(valueColumn());
 
   //---
 
@@ -1474,6 +1477,20 @@ initTableObjs() const
   }
 
   return true;
+}
+
+//---
+
+void
+CQChartsForceDirectedPlot::
+initEdgeValueName(const Column &c)
+{
+  edgeValueName_ = "";
+
+  if (c.isValid()) {
+    bool ok;
+    edgeValueName_ = modelHHeaderString(c, ok);
+  }
 }
 
 //---

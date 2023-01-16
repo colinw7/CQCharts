@@ -121,12 +121,12 @@ void *
 CGLUtil::
 fontToBitmap(CFontPtr font)
 {
-  if (! font.isValid())
+  if (! font)
     return GLUT_BITMAP_HELVETICA_12;
 
   const string &family = font->getFamily();
 
-  int size = font->getISize();
+  int size = int(font->getISize());
 
   if      (family == "helvetica") {
     if (size <= 10) { return GLUT_BITMAP_HELVETICA_10; }
@@ -147,12 +147,12 @@ int
 CGLUtil::
 fontWidth(CFontPtr font)
 {
-  if (! font.isValid())
+  if (! font)
     return 8;
 
   const string &family = font->getFamily();
 
-  int size = font->getISize();
+  int size = int(font->getISize());
 
   if      (family == "helvetica") {
     if (size <= 10) { return 8; }
@@ -173,12 +173,12 @@ int
 CGLUtil::
 fontAscent(CFontPtr font)
 {
-  if (! font.isValid())
+  if (! font)
     return 10;
 
   const string &family = font->getFamily();
 
-  int size = font->getISize();
+  int size = int(font->getISize());
 
   if      (family == "helvetica") {
     if (size <= 10) { return 8; }
@@ -199,12 +199,12 @@ int
 CGLUtil::
 fontDescent(CFontPtr font)
 {
-  if (! font.isValid())
+  if (! font)
     return 2;
 
   const string &family = font->getFamily();
 
-  int size = font->getISize();
+  int size = int(font->getISize());
 
   if      (family == "helvetica") {
     if (size <= 10) { return 2; }
