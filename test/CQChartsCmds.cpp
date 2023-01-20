@@ -6274,7 +6274,8 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
 
     if      (hasModel) {
       auto names = QStringList() <<
-        "value" << "meta" << "num_rows" << "num_columns" << "hierarchical" <<
+        "value" << "meta_names" << "meta_kets" << "meta_data" <<
+        "num_rows" << "num_columns" << "hierarchical" <<
         "header" << "row" << "column" << "map" << "duplicates" << "column_index" <<
         "title" << "expr_model" << "data_model" << "base_model" <<
         "name" << "ind" << "find" /* << "property.<name>" */ << "read_only";
@@ -6464,20 +6465,44 @@ execCmd(CQChartsCmdArgs &argv)
 
       return cmdBase_->setCmdRc(var);
     }
+    // get meta names
+    else if (name == "meta_names") {
+      auto names = CQChartsModelUtil::modelMetaNames(model.data());
+
+      return cmdBase_->setCmdRc(names);
+    }
     // get meta data
-    else if (name == "meta") {
+    else if (name == "meta_keys") {
+      auto metaName = argv.getParseStr("data");
+
+      auto keys = CQChartsModelUtil::modelMetaNameKeys(model.data(), metaName);
+
+      return cmdBase_->setCmdRc(keys);
+    }
+    // get meta data
+    else if (name == "meta_data") {
       auto data = argv.getParseStr("data");
 
-      auto var = CQChartsModelUtil::getModelMetaValue(model.data(), data);
+      QStringList strs;
 
-      if (! var.isValid()) {
+      if (! CQTcl::splitList(data, strs) || strs.length() < 1)
+        return errorMsg(QString("Invalid data string '%1'").arg(data));
+
+      strs.push_back("");
+
+      auto metaName = strs[0];
+      auto metaKey  = strs[1];
+
+      auto metaValue = CQChartsModelUtil::getModelMetaValue(model.data(), metaName, metaKey);
+
+      if (! metaValue.isValid()) {
         if (quiet)
           return cmdBase_->setCmdRc(QString());
 
         return errorMsg("Invalid meta data");
       }
 
-      return cmdBase_->setCmdRc(var);
+      return cmdBase_->setCmdRc(metaValue);
     }
     // number of rows, number of columns, hierarchical
     else if (name == "num_rows" || name == "num_columns" || name == "hierarchical") {
@@ -7556,7 +7581,7 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
 
     if      (hasModel) {
       auto names = QStringList() <<
-        "value" << "column_type" << "header_type" << "meta" << "name" <<
+        "value" << "column_type" << "header_type" << "meta_data" << "name" <<
         "process_expression" << "size" << "read_only" << "details.parameter";
 
       return names;
@@ -7728,10 +7753,20 @@ execCmd(CQChartsCmdArgs &argv)
       }
     }
     // set meta data
-    else if (name == "meta") {
+    else if (name == "meta_data") {
       auto data = argv.getParseStr("data");
 
-      CQChartsModelUtil::setModelMetaValue(model.data(), data, value);
+      QStringList strs;
+
+      if (! CQTcl::splitList(data, strs) || strs.length() < 1)
+        return errorMsg(QString("Invalid data string '%1'").arg(data));
+
+      strs.push_back("");
+
+      auto metaName = strs[0];
+      auto metaKey  = strs[1];
+
+      CQChartsModelUtil::setModelMetaValue(model.data(), metaName, metaKey, value);
     }
     // set model name
     else if (name == "name") {

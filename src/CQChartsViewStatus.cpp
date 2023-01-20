@@ -283,7 +283,17 @@ setText(const QString &text)
   else
     text_.clear();
 
-  QLabel::setText("<b>Sel:</b> " + text_);
+  setToolTip(text_);
+
+  auto labelText = text_;
+
+  if (labelText.length() > 64) {
+    QFontMetrics fm(font());
+
+    labelText = fm.elidedText(labelText, Qt::ElideRight, fm.horizontalAdvance("X")*64);
+  }
+
+  QLabel::setText("<b>Sel:</b> " + labelText);
 }
 
 void

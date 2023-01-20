@@ -155,8 +155,17 @@ void getProxyModels(QAbstractItemModel *model, std::vector<QAbstractProxyModel *
 //bool getProperty(const QAbstractItemModel *model, const QString &name, QVariant &value);
 //bool setProperty(QAbstractItemModel *model, const QString &name, const QVariant &value);
 
-QVariant getModelMetaValue(const QAbstractItemModel *model, const QString &name);
-bool setModelMetaValue(QAbstractItemModel *model, const QString &name, const QVariant &value);
+//---
+
+QVariant getModelMetaValue(const QAbstractItemModel *model, const QString &name,
+                           const QString &key);
+
+bool setModelMetaValue(QAbstractItemModel *model, const QString &name,
+                       const QString &key, const QVariant &value);
+
+QStringList modelMetaNames(QAbstractItemModel *model);
+
+QStringList modelMetaNameKeys(QAbstractItemModel *model, const QString &name);
 
 }
 

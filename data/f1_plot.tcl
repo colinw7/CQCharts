@@ -106,8 +106,8 @@ proc show_plot { n } {
   set tplot [lindex $::tplots [expr {$n - 1}]]
   set model [lindex $::models [expr {$n - 1}]]
 
-  set loc  [get_charts_data -model $model -name meta -data location]
-  set year [get_charts_data -model $model -name meta -data year]
+  set loc  [get_charts_data -model $model -name meta_data -data location]
+  set year [get_charts_data -model $model -name meta_data -data year]
 
   set_charts_property -plot $splot -name title.text.string \
     -value "Formula 1 Standings (Round $n) - $loc ($year)"

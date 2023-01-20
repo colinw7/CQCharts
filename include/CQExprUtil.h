@@ -27,7 +27,7 @@ inline bool variantToValue(CExpr *expr, const QVariant &var, CExprValuePtr &valu
 }
 
 inline QVariant valueToVariant(CExpr *, const CExprValuePtr &value) {
-  if (! value.isValid())
+  if (! value)
     return QVariant();
 
   if      (value->isRealValue()) {

@@ -1426,3 +1426,6 @@
  + add split groups to hier bubble plot
 # 10/9/2022
  + improve color control in tree map
+# 1/19/2023
+ + force directed rect select
+ + improve meta data handling

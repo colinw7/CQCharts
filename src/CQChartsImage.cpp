@@ -5,11 +5,111 @@
 #include <QSvgRenderer>
 #include <QPainter>
 
-using NamedImages = std::map<QString, QImage>;
-using NamedIcons  = std::map<QString, QIcon>;
+#include <future>
 
-static NamedImages s_namedImages;
-static NamedIcons  s_namedIcons;
+class CQChartsImageMgr {
+ public:
+  static CQChartsImageMgr *instance() {
+    static CQChartsImageMgr *inst;
+
+    if (! inst)
+      inst = new CQChartsImageMgr;
+
+    return inst;
+  }
+
+  QImage getImage(const QString &filename) {
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    auto p = namedImages_.find(filename);
+
+    return (p != namedImages_.end() ? (*p).second : QImage());
+  }
+
+  QImage loadImage(const QString &filename) {
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    auto p = namedImages_.find(filename);
+
+    if (p == namedImages_.end()) {
+      QImage image;
+
+      if (image.load(filename))
+        namedImages_[filename] = image;
+    }
+
+    return (*p).second;
+  }
+
+  void setImage(const QString &name, const QImage &image) {
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    namedImages_[name] = image;
+  }
+
+  uint numImages() const { return uint(namedImages_.size()); }
+
+ private:
+  using NamedImages = std::map<QString, QImage>;
+
+  NamedImages namedImages_;
+  std::mutex  mutex_;
+};
+
+#define CQChartsImageMgrInst CQChartsImageMgr::instance()
+
+//---
+
+class CQChartsIconMgr {
+ public:
+  static CQChartsIconMgr *instance() {
+    static CQChartsIconMgr *inst;
+
+    if (! inst)
+      inst = new CQChartsIconMgr;
+
+    return inst;
+  }
+
+  QIcon getIcon(const QString &filename) {
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    auto p = namedIcons_.find(filename);
+
+    return (p != namedIcons_.end() ? (*p).second : QIcon());
+  }
+
+  QIcon loadIcon(const QString &filename) {
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    auto p = namedIcons_.find(filename);
+
+    if (p == namedIcons_.end()) {
+      QIcon icon(filename);
+
+      if (! icon.isNull())
+        namedIcons_[filename] = icon;
+    }
+
+    return (*p).second;
+  }
+
+  void setIcon(const QString &name, const QIcon &icon) {
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    namedIcons_[name] = icon;
+  }
+
+  uint numIcons() const { return uint(namedIcons_.size()); }
+
+ private:
+  using NamedIcons = std::map<QString, QIcon>;
+
+  NamedIcons namedIcons_;
+  std::mutex mutex_;
+};
+
+#define CQChartsIconMgrInst CQChartsIconMgr::instance()
 
 //---
 
@@ -35,9 +135,9 @@ CQChartsImage(const QImage &image) :
   filename_ = image.text("filename");
 
   if (filename_ == "") {
-    filename_ = QString("@image.%1").arg(s_namedImages.size() + 1);
+    filename_ = QString("@image.%1").arg(CQChartsImageMgrInst->numImages() + 1);
 
-    s_namedImages[filename_] = image;
+    CQChartsImageMgrInst->setImage(filename_, image);
   }
 
   image_.setText("", filename_);
@@ -163,10 +263,10 @@ toString() const
     return QString("svg:%1@%2x%3").arg(filename_).arg(width()).arg(height());
   }
   else if (type() == Type::IMAGE) {
-    auto p = s_namedImages.find(filename_);
+    auto image = CQChartsImageMgrInst->getImage(filename_);
 
-    int w = (p != s_namedImages.end() ? (*p).second.width () : 100);
-    int h = (p != s_namedImages.end() ? (*p).second.height() : 100);
+    int w = (! image.isNull() ? image.width () : 100);
+    int h = (! image.isNull() ? image.height() : 100);
 
     if (w != width() || h != height())
       return QString("image:%1@%2x%3").arg(filename_).arg(width()).arg(height());
@@ -248,17 +348,9 @@ fromString(const QString &s, Type type)
     image_ = QImage();
 
     if (filename_ != "") {
-      auto p = s_namedImages.find(filename_);
+      image_ = CQChartsImageMgrInst->loadImage(filename_);
 
-      if (p == s_namedImages.end()) {
-        if (image_.load(filename_)) {
-          s_namedImages[filename_] = image_;
-
-          resolved_ = true;
-        }
-      }
-      else
-        image_ = (*p).second;
+      resolved_ = true;
 
       if (w > 0 && h > 0) {
         if (! image_.isNull())
@@ -270,19 +362,9 @@ fromString(const QString &s, Type type)
     icon_ = QIcon();
 
     if (filename_ != "") {
-      auto p = s_namedIcons.find(filename_);
+      icon_ = CQChartsIconMgrInst->loadIcon(filename_);
 
-      if (p == s_namedIcons.end()) {
-        icon_ = QIcon(filename_);
-
-        if (! icon_.isNull()) {
-          s_namedIcons[filename_] = icon_;
-
-          resolved_ = true;
-        }
-      }
-      else
-        icon_ = (*p).second;
+      resolved_ = true;
     }
 
     if (w < 0) w = 100;

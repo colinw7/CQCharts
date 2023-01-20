@@ -1,5 +1,9 @@
+# META_DATA
+#  global,QtrPv,long_name,Long Name One
+#  global,Vtt,long_name,Long Name Two
+# END_META_DATA
 From,To,Value,Group,Attributes
-QtrPv,Vtt,60,2,"src_value=36,dest_value=42"
+QtrPv,Vtt,60,2,"src_value=36,dest_value=42,src_label=Long Name One"
 QtrPv,XsTVYy,54,2,"dest_value=47"
 QtrPv,Gwk,35,2,"dest_value=68"
 QtrPv,ihLBc,4,2,"dest_value=24"
@@ -26,7 +30,7 @@ QtrPv,BUNc,70,2,"dest_value=61"
 QtrPv,wBnWAK,64,2,"dest_value=33"
 QtrPv,eqz,1,2,"dest_value=50"
 QtrPv,AEw,60,2,"dest_value=6"
-kmGL,Vtt,59,7,"src_value=54"
+kmGL,Vtt,59,7,"src_value=54,src_label=Long Name Two"
 kmGL,XsTVYy,41,7
 kmGL,Gwk,71,7
 kmGL,ihLBc,96,7
@@ -60,7 +64,7 @@ kmGL,elK,28,7,"dest_value=51"
 kmGL,ins,66,7,"dest_value=31"
 kmGL,dKfT,61,7,"dest_value=95"
 kmGL,VxR,60,7,"dest_value=88"
-KLtYrJ,Vtt,87,1,"src_value=97"
+KLtYrJ,Vtt,87,1,"src_value=97,src_label=Long Name Three"
 KLtYrJ,XsTVYy,74,1
 KLtYrJ,Gwk,97,1
 KLtYrJ,ihLBc,6,1
@@ -86,8 +90,8 @@ KLtYrJ,TAs,71,1
 KLtYrJ,BUNc,42,1
 KLtYrJ,wBnWAK,37,1
 KLtYrJ,eqz,34,1
-fFvx,Vtt,39,5,"src_value=24"
-tDuhGc,Vtt,23,8,"src_value=93"
+fFvx,Vtt,39,5,"src_value=24,src_label=Long Name Four"
+tDuhGc,Vtt,23,8,"src_value=93,src_label=Long Name Five"
 tDuhGc,XsTVYy,77,8
 tDuhGc,Gwk,93,8
 tDuhGc,ihLBc,56,8
@@ -98,7 +102,7 @@ tDuhGc,kiIcqF,2,8
 tDuhGc,fTZkdp,47,8
 tDuhGc,zICWlM,92,8
 tDuhGc,qsIvMD,60,8
-Ilcg,Vtt,70,6,"src_value=24"
+Ilcg,Vtt,70,6,"src_value=24,src_label=Long Name Six"
 Ilcg,XsTVYy,49,6
 Ilcg,Gwk,8,6
 Ilcg,ihLBc,20,6

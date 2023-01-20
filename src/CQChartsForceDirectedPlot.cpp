@@ -1872,13 +1872,13 @@ autoFitUpdate()
 
 bool
 CQChartsForceDirectedPlot::
-handleSelectPress(const Point &p, SelMod /*selMod*/)
+handleSelectPress(const Point &p, SelMod selMod)
 {
   setCurrentNode(p);
 
   pressed_ = true;
 
-  selectAt(p);
+  selectPoint(p, selMod);
 
   drawObjs();
 
@@ -1967,6 +1967,23 @@ handleEditRelease(const Point &, const Point &p)
 
 //---
 
+bool
+CQChartsForceDirectedPlot::
+rectSelect(const BBox &r, SelMod selMod)
+{
+  auto p = r.getCenter();
+
+  setCurrentNode(p);
+
+  selectRect(r, selMod, view()->isSelectInside());
+
+  drawObjs();
+
+  return true;
+}
+
+//---
+
 void
 CQChartsForceDirectedPlot::
 setCurrentNode(const Point &p)
@@ -1987,61 +2004,129 @@ resetCurrentNode()
 
 bool
 CQChartsForceDirectedPlot::
-selectAt(const Point &p)
+selectRect(const BBox &r, SelMod selMod, bool inside)
 {
-  using NodeSet = std::set<Node *>;
-  using EdgeSet = std::set<Edge *>;
+  return selectGeom(r, r.getCenter(), selMod, inside, true);
+}
 
+bool
+CQChartsForceDirectedPlot::
+selectPoint(const Point &p, SelMod selMod)
+{
+  return selectGeom(BBox(), p, selMod, false, false);
+}
+
+bool
+CQChartsForceDirectedPlot::
+selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRect)
+{
+  // get currently selected nodes and edges
   NodeSet selectedNodes;
-
-  for (auto &node : forceDirected_->nodes()) {
-    auto *snode = dynamic_cast<Node *>(node.get());
-    assert(snode);
-
-    if (snode->isSelected())
-      selectedNodes.insert(snode);
-  }
-
   EdgeSet selectedEdges;
 
-  for (auto &edge : forceDirected_->edges()) {
-    auto *sedge = dynamic_cast<Edge *>(edge.get());
-    assert(sedge);
+  selectedNodesAndEdges(selectedNodes, selectedEdges);
 
-    if (sedge->isSelected())
-      selectedEdges.insert(sedge);
+  //---
+
+  // get new selection
+  NodeSet newSelectedNodes;
+  EdgeSet newSelectedEdges;
+
+  if (selMod == SelMod::ADD || selMod == SelMod::REMOVE) {
+    newSelectedNodes = selectedNodes;
+    newSelectedEdges = selectedEdges;
+  }
+
+  if (! isRect) {
+    Node *selectedNode = nullptr;
+    Edge *selectedEdge = nullptr;
+
+    nearestNodeEdge(p, selectedNode, selectedEdge);
+
+    if (selectedNode) {
+      if (selMod == SelMod::REMOVE)
+        newSelectedNodes.erase(selectedNode);
+      else
+        newSelectedNodes.insert(selectedNode);
+    }
+
+    if (selectedEdge) {
+      if (selMod == SelMod::REMOVE)
+        newSelectedEdges.erase(selectedEdge);
+      else
+        newSelectedEdges.insert(selectedEdge);
+    }
+  }
+  else {
+    if (selMod == SelMod::REMOVE) {
+      NodeSet insideNodes;
+      EdgeSet insideEdges;
+
+      insideNodesAndEdges(r, insideNodes, insideEdges, inside);
+
+      for (auto *node : insideNodes)
+        newSelectedNodes.erase(node);
+
+      for (auto *edge : insideEdges)
+        newSelectedEdges.erase(edge);
+    }
+    else {
+      insideNodesAndEdges(r, newSelectedNodes, newSelectedEdges, inside);
+    }
   }
 
   //---
 
-  Node *selectedNode = nullptr;
-  Edge *selectedEdge = nullptr;
+  // check if match original selection
+  if (selectedNodes.size() == newSelectedNodes.size() &&
+      selectedEdges.size() == newSelectedEdges.size()) {
+    bool match = true;
 
-  nearestNodeEdge(p, selectedNode, selectedEdge);
+    auto pn1 = selectedNodes   .begin();
+    auto pn2 = newSelectedNodes.begin();
 
-  if (selectedNode) {
-    if (selectedNodes.size() == 1 && *selectedNodes.begin() == selectedNode)
+    while (match && pn1 != selectedNodes.end()) {
+      if (*pn1 != *pn2)
+        match = false;
+
+      ++pn1;
+      ++pn2;
+    }
+
+    auto pe1 = selectedEdges   .begin();
+    auto pe2 = newSelectedEdges.begin();
+
+    while (match && pe1 != selectedEdges.end()) {
+      if (*pe1 != *pe2)
+        match = false;
+
+      ++pe1;
+      ++pe2;
+    }
+
+    if (match)
       return false;
   }
-  else if (selectedEdge) {
-    if (selectedEdges.size() == 1 && *selectedEdges.begin() == selectedEdge)
-      return false;
-  }
-  else {
-    if (selectedNodes.empty() && selectedEdges.empty())
-      return false;
-  }
 
+  //---
+
+  // deselect old nodes and edges
   for (auto *node : selectedNodes)
     node->setSelected(false);
 
   for (auto *edge : selectedEdges)
     edge->setSelected(false);
 
-  if      (selectedNode)
-    selectedNode->setSelected(true);
-  else if (selectedEdge)
-    selectedEdge->setSelected(true);
+  //---
+
+  // select new nodes and edghhs
+  for (auto *node : newSelectedNodes)
+    node->setSelected(true);
+
+  for (auto *edge : newSelectedEdges)
+    edge->setSelected(true);
+
+  //---
 
   updateSelText();
 
@@ -2049,10 +2134,12 @@ selectAt(const Point &p)
 
   //---
 
-  if      (selectedNode)
-    Q_EMIT objIdPressed(selectedNode->stringId());
-  else if (selectedEdge)
-    Q_EMIT objIdPressed(selectedEdge->stringId());
+  // send pressed signals
+  for (auto *node : newSelectedNodes)
+    Q_EMIT objIdPressed(node->stringId());
+
+  for (auto *edge : newSelectedEdges)
+    Q_EMIT objIdPressed(edge->stringId());
 
   return true;
 }
@@ -2061,9 +2148,6 @@ bool
 CQChartsForceDirectedPlot::
 updateInside(const Point &p)
 {
-  using NodeSet = std::set<Node *>;
-  using EdgeSet = std::set<Edge *>;
-
   NodeSet insideNodes;
 
   for (auto &node : forceDirected_->nodes()) {
@@ -2122,46 +2206,59 @@ updateInside(const Point &p)
 
 void
 CQChartsForceDirectedPlot::
-updateSelText()
+selectedNodesAndEdges(NodeSet &selectedNodes, EdgeSet &selectedEdges) const
 {
-  Node *selectedNode = nullptr;
-  Edge *selectedEdge = nullptr;
-
+  // get selected nodes and edges
   for (auto &node : forceDirected_->nodes()) {
     auto *snode = dynamic_cast<Node *>(node.get());
     assert(snode);
 
-    if (snode->isSelected()) {
-      selectedNode = snode;
-      break;
-    }
+    if (snode->isSelected())
+      selectedNodes.insert(snode);
   }
 
-  if (! selectedNode) {
-    for (auto &edge : forceDirected_->edges()) {
-      auto *sedge = dynamic_cast<Edge *>(edge.get());
-      assert(sedge);
+  for (auto &edge : forceDirected_->edges()) {
+    auto *sedge = dynamic_cast<Edge *>(edge.get());
+    assert(sedge);
 
-      if (sedge->isSelected()) {
-        selectedEdge = sedge;
-        break;
-      }
-    }
+    if (sedge->isSelected())
+      selectedEdges.insert(sedge);
   }
+}
+
+void
+CQChartsForceDirectedPlot::
+updateSelText()
+{
+  // get selected nodes and edges
+  NodeSet selectedNodes;
+  EdgeSet selectedEdges;
+
+  selectedNodesAndEdges(selectedNodes, selectedEdges);
 
   //---
 
   QString selText;
 
-  if      (selectedNode)
-    selText = calcNodeLabel(selectedNode);
-  else if (selectedEdge) {
-    auto *snode = dynamic_cast<Node *>(selectedEdge->source().get());
-    auto *tnode = dynamic_cast<Node *>(selectedEdge->target().get());
+  auto addText = [&](const QString &text) {
+    if (selText != "")
+      selText += ", ";
+
+    selText += text;
+  };
+
+  for (auto *node : selectedNodes)
+    addText(calcNodeLabel(node));
+
+  for (auto *edge : selectedEdges) {
+    auto *snode = dynamic_cast<Node *>(edge->source().get());
+    auto *tnode = dynamic_cast<Node *>(edge->target().get());
 
     if (snode && tnode)
-      selText = QString("%1 -> %2").arg(calcNodeLabel(snode)).arg(calcNodeLabel(tnode));
+      addText(QString("%1 -> %2").arg(calcNodeLabel(snode)).arg(calcNodeLabel(tnode)));
   }
+
+  //---
 
   view()->setSelText(selText);
 }
@@ -2230,7 +2327,10 @@ nodeTipText(Node *node, CQChartsTableTip &tableTip) const
   if (pc != connectionNodes_.end()) {
     auto &connectionsData = getConnections((*pc).second);
 
-    auto label = (connectionsData.name.length() ? connectionsData.name : calcNodeLabel(node));
+    auto label = (connectionsData.label.length() ? connectionsData.label : connectionsData.name);
+
+    if (! label.length())
+      label = calcNodeLabel(node);
 
     if (label.length()) {
       auto nameLabel = (nodeTipNameLabel() != "" ? nodeTipNameLabel() : "Label");
@@ -2334,6 +2434,45 @@ nearestNodeEdge(const Point &p, Node* &insideNode, Edge* &insideEdge) const
 
     if (pd < 4)
       insideEdge = insideLineEdge;
+  }
+}
+
+void
+CQChartsForceDirectedPlot::
+insideNodesAndEdges(const BBox &r, NodeSet &insideNodes, EdgeSet &insideEdges, bool inside) const
+{
+  for (auto &node : forceDirected_->nodes()) {
+    auto *snode = dynamic_cast<Node *>(node.get());
+    assert(snode);
+
+    if (inside) {
+      if (r.inside(snode->bbox()))
+        insideNodes.insert(snode);
+    }
+    else {
+      if (r.overlaps(snode->bbox()))
+        insideNodes.insert(snode);
+    }
+  }
+
+  QPainterPath path1;
+
+  path1.addRect(r.qrect());
+
+  for (auto &edge : forceDirected_->edges()) {
+    auto *sedge = dynamic_cast<Edge *>(edge.get());
+    assert(sedge);
+
+    auto path = sedge->curvePath();
+
+    if (inside) {
+      if (path1.contains(path))
+        insideEdges.insert(sedge);
+    }
+    else {
+      if (path.intersects(r.qrect()))
+        insideEdges.insert(sedge);
+    }
   }
 }
 

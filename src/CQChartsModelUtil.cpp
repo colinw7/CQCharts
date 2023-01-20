@@ -1174,23 +1174,50 @@ setProperty(QAbstractItemModel *model, const QString &name, const QVariant &valu
 //---
 
 QVariant
-getModelMetaValue(const QAbstractItemModel *model, const QString &name)
+getModelMetaValue(const QAbstractItemModel *model, const QString &name, const QString &key)
 {
   const auto *dataModel = getDataModel(model);
   if (! dataModel) return QVariant();
 
-  return dataModel->nameValue(name);
+  return dataModel->metaNameValue(name, key);
 }
 
 bool
-setModelMetaValue(QAbstractItemModel *model, const QString &name, const QVariant &value)
+setModelMetaValue(QAbstractItemModel *model, const QString &name, const QString &key,
+                  const QVariant &value)
 {
   auto *dataModel = getDataModel(model);
   if (! dataModel) return false;
 
-  dataModel->setNameValue(name, value);
+  dataModel->setMetaNameValue(name, key, value);
 
   return true;
+}
+
+QStringList
+modelMetaNames(QAbstractItemModel *model)
+{
+  QStringList names;
+
+  auto *dataModel = getDataModel(model);
+
+  if (dataModel)
+    names = dataModel->metaNames();
+
+  return names;
+}
+
+QStringList
+modelMetaNameKeys(QAbstractItemModel *model, const QString &name)
+{
+  QStringList keys;
+
+  auto *dataModel = getDataModel(model);
+
+  if (dataModel)
+    keys = dataModel->metaNameKeys(name);
+
+  return keys;
 }
 
 }

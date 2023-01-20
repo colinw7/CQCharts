@@ -28,7 +28,7 @@ class CQChartsForceDirectedPlotType : public CQChartsConnectionPlotType {
 
   bool canProbe() const override { return false; }
 
-  bool canRectSelect() const override { return false; }
+//bool canRectSelect() const override { return false; }
 
   bool canEqualScale() const override { return true; }
 
@@ -152,6 +152,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     Node::Shape shape;
     BBox        bbox;
   };
+
+  using NodeSet = std::set<Node *>;
+  using EdgeSet = std::set<Edge *>;
 
  public:
   CQChartsForceDirectedPlot(View *view, const ModelP &model);
@@ -389,14 +392,21 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool handleEditMove   (const Point &p, const Point &w, bool first=false) override;
   bool handleEditRelease(const Point &p, const Point &w) override;
 
+  bool rectSelect(const BBox &r, SelMod selMod) override;
+
   //---
 
   void setCurrentNode(const Point &p);
   void resetCurrentNode();
 
-  bool selectAt(const Point &p);
+  bool selectPoint(const Point &p, SelMod selMod);
+  bool selectRect(const BBox &r, SelMod selMod, bool inside);
+
+  bool selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRect);
 
   bool updateInside(const Point &p);
+
+  void selectedNodesAndEdges(NodeSet &selectedNodes, EdgeSet &selectedEdges) const;
 
   void updateSelText();
 
@@ -410,6 +420,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   void edgeTipText(Edge *edge, CQChartsTableTip &tableTip) const;
 
   void nearestNodeEdge(const Point &p, Node* &insideNode, Edge* &insideEdge) const;
+
+  void insideNodesAndEdges(const BBox &r, NodeSet &insideNodes,
+                           EdgeSet &insideEdges, bool inside) const;
 
   //---
 

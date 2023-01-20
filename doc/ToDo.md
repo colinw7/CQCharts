@@ -73,8 +73,8 @@ TODO:
    + Split Groups
      + x margin (fixed/auto)
  + Force directed
+   + select while running
    + custom tooltips
-   + max iterations, min delta, auto stop
    + custom tooltip for node/edge
    + no split undirected (symmetric true)
    + auto stop on stable (auto start on move)
