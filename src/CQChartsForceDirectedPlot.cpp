@@ -3,6 +3,7 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsAnalyzeModelData.h>
+#include <CQChartsModelUtil.h>
 #include <CQCharts.h>
 #include <CQChartsNamePair.h>
 #include <CQChartsValueSet.h>
@@ -16,6 +17,7 @@
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
+#include <CQBusyButton.h>
 
 #include <QCheckBox>
 #include <QPushButton>
@@ -182,6 +184,8 @@ setAnimating(bool b)
   if (b != isAnimating()) {
     CQChartsPlot::setAnimating(b);
 
+    updateBusyButton();
+
     Q_EMIT customDataChanged();
   }
 }
@@ -205,6 +209,61 @@ CQChartsForceDirectedPlot::
 setStepSize(double s)
 {
   CQChartsUtil::testAndSet(stepSize_, s, [&]() { } );
+}
+
+void
+CQChartsForceDirectedPlot::
+setShowBusyButton(bool b)
+{
+  showBusyButton_ = b;
+
+  updateBusyButton();
+}
+
+void
+CQChartsForceDirectedPlot::
+updateBusyButton()
+{
+  if (isShowBusyButton()) {
+    if (isAnimating() && ! busyButton_) {
+      busyButton_ = new CQBusyButton(view());
+
+      connect(busyButton_, SIGNAL(busyStateChanged(bool)), this, SLOT(busyButtonSlot(bool)));
+    }
+
+    if (busyButton_) {
+      busyButton_->setVisible(isAnimating());
+      busyButton_->setBusy(isAnimating());
+    }
+
+    placeBusyButton();
+  }
+  else {
+    if (busyButton_)
+      busyButton_->setVisible(false);
+  }
+}
+
+void
+CQChartsForceDirectedPlot::
+placeBusyButton()
+{
+  if (busyButton_) {
+    busyButton_->setVisible(isAnimating());
+
+    if (busyButton_->isVisible()) {
+      auto bbox = view()->windowToPixel(calcViewBBox());
+
+      busyButton_->move(bbox.getXMin() + 4, bbox.getYMin() + 4);
+    }
+  }
+}
+
+void
+CQChartsForceDirectedPlot::
+busyButtonSlot(bool b)
+{
+  setAnimating(b);
 }
 
 //---
@@ -544,6 +603,10 @@ createObjs(PlotObjs &) const
 
   //---
 
+  processMetaData();
+
+  //---
+
   th->filterObjs();
 
   addIdConnections();
@@ -571,7 +634,59 @@ execInitSteps()
 
   doAutoFit();
 
+  updateBusyButton();
+
   drawObjs();
+}
+
+void
+CQChartsForceDirectedPlot::
+processMetaData() const
+{
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
+
+  auto *pmodel = th->model().data();
+
+  auto names = CQChartsModelUtil::modelMetaNames(pmodel);
+
+  for (const auto &name : names) {
+    auto keys = CQChartsModelUtil::modelMetaNameKeys(pmodel, name);
+
+    for (const auto &key : keys) {
+      auto value = CQChartsModelUtil::getModelMetaValue(pmodel, name, key);
+
+      bool handled = false;
+
+      if (key.left(5) == "node_") {
+        auto key1 = key.mid(5);
+
+        auto &connectionsData = th->getConnections(name);
+
+        if (key1 == "value") {
+          bool ok;
+          auto r = CQChartsVariant::toReal(value, ok);
+
+          if (ok)
+            connectionsData.value = OptReal(r);
+
+          handled = true;
+        }
+        else if (key1 == "label") {
+          connectionsData.label = value.toString();
+
+          handled = true;
+        }
+      }
+
+      if (! handled) {
+        std::cerr << "Unhandled:";
+        std::cerr << " name=" << name.toStdString();
+        std::cerr << " key=" << key.toStdString();
+        std::cerr << " value=" << value.toString().toStdString();
+        std::cerr << "\n";
+      }
+    }
+  }
 }
 
 void
@@ -648,8 +763,8 @@ addIdConnections() const
     if (connectionsData.shapeType != NodeShape::NONE)
       snode->setShape(static_cast<Node::Shape>(connectionsData.shapeType));
 
-    if (connectionsData.fillColor.isValid())
-      snode->setFillColor(connectionsData.fillColor);
+    if (connectionsData.fillData.color.isValid())
+      snode->setFillColor(connectionsData.fillData.color);
 
     th->nodes_          [id         ] = node;
     th->connectionNodes_[snode->id()] = id;
@@ -675,9 +790,9 @@ addIdConnections() const
     auto srcNode = (*pn).second;
     assert(srcNode);
 
-    for (const auto &connection : connectionsData.connections) {
+    for (const auto &connectionData : connectionsData.connections) {
       // get dest node
-      auto pn1 = nodes_.find(connection.destNode);
+      auto pn1 = nodes_.find(connectionData.destNode);
       if (pn1 == nodes_.end()) continue;
 
       auto dstNode = (*pn1).second;
@@ -696,8 +811,8 @@ addIdConnections() const
       // set edge value
       double value = 0.0;
 
-      if (connection.value.isSet())
-        value = connection.value.real();
+      if (connectionData.value.isSet())
+        value = connectionData.value.real();
 
       sedge->setLength(value > 0.0 ? 1.0/value : 1.0);
       sedge->setValue(value);
@@ -705,18 +820,18 @@ addIdConnections() const
       //---
 
       // set edge attributes (label, shape, fill color)
-      if (connection.label.length())
-        sedge->setLabel(connection.label.toStdString());
+      if (connectionData.label.length())
+        sedge->setLabel(connectionData.label.toStdString());
 
-      if (connection.shapeType != EdgeShape::NONE)
-        sedge->setShape(static_cast<Edge::Shape>(connection.shapeType));
+      if (connectionData.shapeType != EdgeShape::NONE)
+        sedge->setShape(static_cast<Edge::Shape>(connectionData.shapeType));
 
-      if (connection.fillColor.isValid())
-        sedge->setFillColor(connection.fillColor);
+      if (connectionData.fillData.color.isValid())
+        sedge->setFillColor(connectionData.fillData.color);
 
       //---
 
-      sedge->setInd(connection.ind);
+      sedge->setInd(connectionData.ind);
 
       //---
 
@@ -1064,7 +1179,7 @@ addFromToValue(const FromToData &fromToData) const
     Color c;
 
     if (colorColumnColor(fromToData.fromModelInd.row(), fromToData.fromModelInd.parent(), c))
-      srcConnectionsData.fillColor = c;
+      srcConnectionsData.fillData.color = c;
 
     //---
 
@@ -1125,7 +1240,7 @@ addFromToValue(const FromToData &fromToData) const
     Color c;
 
     if (colorColumnColor(fromToData.fromModelInd.row(), fromToData.fromModelInd.parent(), c))
-      connection->fillColor = c;
+      connection->fillData.color = c;
 
     //---
 
@@ -1512,7 +1627,7 @@ CQChartsForceDirectedPlot::
 processNodeNameValue(ConnectionsData &connectionsData, const QString &name,
                      const QString &valueStr) const
 {
-  // shape
+  // custom shape
   if      (name == "shape") {
     NodeShape shapeType;
 
@@ -1520,34 +1635,40 @@ processNodeNameValue(ConnectionsData &connectionsData, const QString &name,
 
     connectionsData.shapeType = shapeType;
   }
-  // shape num sides
+  // custom label
   else if (name == "label") {
     connectionsData.label = valueStr;
   }
+  // custom value
   else if (name == "value") {
     bool ok;
-
     auto r = CQChartsUtil::toReal(valueStr, ok);
 
     if (ok)
       connectionsData.value = OptReal(r);
   }
+  // custom fill color
   else if (name == "fill_color" || name == "color") {
-    connectionsData.fillColor = Color(valueStr);
+    connectionsData.fillData.color = Color(valueStr);
   }
+  // custom fill alpha
   else if (name == "fill_alpha" || name == "alpha") {
     //connectionsData.fillAlpha = CQChartsUtil::toReal(valueStr, ok);
   }
+  // custom stroke color
   else if (name == "stroke_color") {
     //connectionsData.strokeColor = Color(valueStr);
   }
+  // custom stroke alpha
   else if (name == "stroke_alpha") {
     //connectionsData.strokeAlpha = CQChartsUtil::toReal(valueStr, ok);
   }
 #if 0
+  // custom stroke width
   else if (name == "stroke_width" || name == "width") {
     node->setStrokeWidth(CQChartsLength(valueStr));
   }
+  // custom stroke dash
   else if (name == "stroke_dash" || name == "dash") {
     node->setStrokeDash(CQChartsLineDash(valueStr));
   }
@@ -1567,6 +1688,7 @@ processEdgeNameValues(Connection *connection, const NameValues &nameValues) cons
     const auto &name     = nv.first;
     auto        valueStr = nv.second.toString();
 
+    // custom shape
     if      (name == "shape") {
       EdgeShape shapeType;
 
@@ -1574,18 +1696,22 @@ processEdgeNameValues(Connection *connection, const NameValues &nameValues) cons
 
       connection->shapeType = shapeType;
     }
-    if      (name == "label") {
+    // custom label
+    else if (name == "label") {
       connection->label = valueStr;
     }
-    else if (name == "color") {
-      connection->fillColor = CQChartsColor(valueStr);
+    // custom fill color
+    else if (name == "fill_color" || name == "color") {
+      connection->fillData.color = CQChartsColor(valueStr);
     }
+    // handle custom value for source node
     else if (name.left(4) == "src_") {
       auto &srcConnections =
         const_cast<ConnectionsData &>(getConnections(connection->srcNode));
 
       processNodeNameValue(srcConnections, name.mid(4), valueStr);
     }
+    // handle custom value for destination node
     else if (name.left(5) == "dest_") {
       auto &destConnections =
         const_cast<ConnectionsData &>(getConnections(connection->destNode));
@@ -2029,8 +2155,8 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
   //---
 
   // get new selection
-  NodeSet newSelectedNodes;
-  EdgeSet newSelectedEdges;
+  NodeSet newSelectedNodes, pressedNodes;
+  EdgeSet newSelectedEdges, pressedEdges;
 
   if (selMod == SelMod::ADD || selMod == SelMod::REMOVE) {
     newSelectedNodes = selectedNodes;
@@ -2044,6 +2170,8 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
     nearestNodeEdge(p, selectedNode, selectedEdge);
 
     if (selectedNode) {
+      pressedNodes.insert(selectedNode);
+
       if (selMod == SelMod::REMOVE)
         newSelectedNodes.erase(selectedNode);
       else
@@ -2051,19 +2179,25 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
     }
 
     if (selectedEdge) {
+      pressedEdges.insert(selectedEdge);
+
       if (selMod == SelMod::REMOVE)
         newSelectedEdges.erase(selectedEdge);
       else
         newSelectedEdges.insert(selectedEdge);
     }
+
   }
   else {
+    NodeSet insideNodes;
+    EdgeSet insideEdges;
+
+    insideNodesAndEdges(r, insideNodes, insideEdges, inside);
+
+    pressedNodes = insideNodes;
+    pressedEdges = insideEdges;
+
     if (selMod == SelMod::REMOVE) {
-      NodeSet insideNodes;
-      EdgeSet insideEdges;
-
-      insideNodesAndEdges(r, insideNodes, insideEdges, inside);
-
       for (auto *node : insideNodes)
         newSelectedNodes.erase(node);
 
@@ -2071,16 +2205,22 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
         newSelectedEdges.erase(edge);
     }
     else {
-      insideNodesAndEdges(r, newSelectedNodes, newSelectedEdges, inside);
+      for (auto *node : insideNodes)
+        newSelectedNodes.insert(node);
+
+      for (auto *edge : insideEdges)
+        newSelectedEdges.insert(edge);
     }
   }
 
   //---
 
   // check if match original selection
+  bool match = false;
+
   if (selectedNodes.size() == newSelectedNodes.size() &&
       selectedEdges.size() == newSelectedEdges.size()) {
-    bool match = true;
+    match = true;
 
     auto pn1 = selectedNodes   .begin();
     auto pn2 = newSelectedNodes.begin();
@@ -2103,28 +2243,27 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
       ++pe1;
       ++pe2;
     }
-
-    if (match)
-      return false;
   }
 
   //---
 
-  // deselect old nodes and edges
-  for (auto *node : selectedNodes)
-    node->setSelected(false);
+  if (! match) {
+    // deselect old nodes and edges
+    for (auto *node : selectedNodes)
+      node->setSelected(false);
 
-  for (auto *edge : selectedEdges)
-    edge->setSelected(false);
+    for (auto *edge : selectedEdges)
+      edge->setSelected(false);
 
-  //---
+    //---
 
-  // select new nodes and edghhs
-  for (auto *node : newSelectedNodes)
-    node->setSelected(true);
+    // select new nodes and edghhs
+    for (auto *node : newSelectedNodes)
+      node->setSelected(true);
 
-  for (auto *edge : newSelectedEdges)
-    edge->setSelected(true);
+    for (auto *edge : newSelectedEdges)
+      edge->setSelected(true);
+  }
 
   //---
 
@@ -2135,10 +2274,10 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
   //---
 
   // send pressed signals
-  for (auto *node : newSelectedNodes)
+  for (auto *node : pressedNodes)
     Q_EMIT objIdPressed(node->stringId());
 
-  for (auto *edge : newSelectedEdges)
+  for (auto *edge : pressedEdges)
     Q_EMIT objIdPressed(edge->stringId());
 
   return true;
@@ -2974,7 +3113,18 @@ postResize()
   setNeedsAutoFit(true);
 
   drawObjs();
+
+  placeBusyButton();
 }
+
+void
+CQChartsForceDirectedPlot::
+visibleChanged(bool)
+{
+  placeBusyButton();
+}
+
+//---
 
 CQChartsForceDirectedPlot::Node::Shape
 CQChartsForceDirectedPlot::

@@ -1,7 +1,3 @@
-# META_DATA
-#  global,QtrPv,long_name,Long Name One
-#  global,Vtt,long_name,Long Name Two
-# END_META_DATA
 From,To,Value,Group,Attributes
 QtrPv,Vtt,60,2,"src_value=36,dest_value=42,src_label=Long Name One"
 QtrPv,XsTVYy,54,2,"dest_value=47"

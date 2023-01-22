@@ -839,6 +839,11 @@ class CQChartsView : public QFrame,
 
   //---
 
+  void showEvent(QShowEvent *) override;
+  void hideEvent(QHideEvent *) override;
+
+  //---
+
   double limitLineWidth(double w) const;
 
   //---

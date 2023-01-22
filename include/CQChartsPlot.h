@@ -2411,6 +2411,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  // called in view visible changed (show/hide)
+  virtual void visibleChanged(bool) { }
+
+  //---
+
   virtual void updateTitlePosition();
 
   //---

@@ -8,6 +8,9 @@ set model [load_charts_model -csv data/connections3.csv -first_line_header]
 set plot [create_charts_plot -model $model -type forcedirected \
   -columns {{from 0} {to 1} {value 2} {group 3} {attributes 4}}]
 
+set_charts_property -plot $plot -name animation.minDelta -value -1.0
+set_charts_property -plot $plot -name animation.maxSteps -value -1
+
 set_charts_property -plot $plot -name coloring.defaultPalette -value moreland
 
 set_charts_property -plot $plot -name edge.arrow -value {true}

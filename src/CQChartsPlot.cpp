@@ -12217,8 +12217,8 @@ drawBusy(QPainter *painter, const UpdateState &updateState) const
 
   //---
 
-  double x = (p1.x + p2.x)/2.0;
-  double y = (p1.y + p2.y)/2.0;
+  double xc = (p1.x + p2.x)/2.0;
+  double yc = (p1.y + p2.y)/2.0;
 
   int ind = updateData_.drawBusy.ind/updateData_.drawBusy.multiple;
 
@@ -12242,7 +12242,7 @@ drawBusy(QPainter *painter, const UpdateState &updateState) const
 
     double r = i1*(r2 - r3)/(updateData_.drawBusy.count - 1) + r3;
 
-    Point c(x, y);
+    Point c(xc, yc);
 
     auto p1 = circlePoint(c, r1, a);
 
@@ -12281,8 +12281,8 @@ drawBusy(QPainter *painter, const UpdateState &updateState) const
     double tw = fm.horizontalAdvance(text);
     double ta = fm.ascent();
 
-    double tx = x - tw/2.0;
-    double ty = y + r1 + r3 + 4 + ta;
+    double tx = xc - tw/2.0;
+    double ty = yc + r1 + r3 + 4 + ta;
 
     painter->drawText(int(tx), int(ty), text);
   }

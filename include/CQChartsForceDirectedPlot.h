@@ -8,6 +8,8 @@
 #include <CQChartsForceDirected.h>
 #include <CForceDirected.h>
 
+class CQBusyButton;
+
 /*!
  * \brief Force Directed plot type
  * \ingroup Charts
@@ -99,6 +101,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   // text visible on mouse inside/selected (when text invisible)
   Q_PROPERTY(bool insideTextVisible   READ isInsideTextVisible   WRITE setInsideTextVisible  )
   Q_PROPERTY(bool selectedTextVisible READ isSelectedTextVisible WRITE setSelectedTextVisible)
+
+  // busy state
+  Q_PROPERTY(bool showBusyButton READ isShowBusyButton WRITE setShowBusyButton)
 
   // info
   Q_PROPERTY(int numNodes READ numNodes)
@@ -285,6 +290,11 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
+  bool isShowBusyButton() const { return showBusyButton_; }
+  void setShowBusyButton(bool b);
+
+  //---
+
   double maxNodeValue() const { return maxNodeValue_; }
   double maxEdgeValue() const { return maxEdgeValue_; }
 
@@ -378,6 +388,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   void filterObjs();
 
+  void processMetaData() const;
+
   void addIdConnections() const;
 
   //---
@@ -446,6 +458,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
+  void visibleChanged(bool) override;
+
+  //---
+
   QString calcNodeLabel(Node *nodes) const;
 
   //---
@@ -457,15 +473,19 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   void autoFitUpdate() override;
 
  private:
+  struct FillData {
+    Color color;
+  };
+
   // connection between nodes (edge)
   struct Connection {
-    int         srcNode   { -1 };
-    int         destNode  { -1 };
-    OptReal     value;
-    QString     label;
+    int         srcNode   { -1 };              //!< source node index
+    int         destNode  { -1 };              //!< destination node index
+    OptReal     value;                         //!< custom value
+    QString     label;                         //!< custom label
     EdgeShape   shapeType { EdgeShape::NONE }; //!< edge shape
-    Color       fillColor;
-    QModelIndex ind;
+    FillData    fillData;                      //!< fill data
+    QModelIndex ind;                           //!< model index
 
     Connection() = default;
 
@@ -489,7 +509,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     bool        visible      { true };            //!< is visible
     int         parentId     { -1 };              //!< parent
     NodeShape   shapeType    { NodeShape::NONE }; //!< shape
-    Color       fillColor;                        //!< fillColor
+    FillData    fillData;                         //!< fill data
     Connections connections;                      //!< connections
   };
 
@@ -534,7 +554,13 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   bool addMenuItems(QMenu *menu, const Point &p) override;
 
+ private Q_SLOTS:
+  void busyButtonSlot(bool);
+
  protected:
+  void updateBusyButton();
+  void placeBusyButton();
+
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
@@ -585,6 +611,11 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   // mouse inside/selected text visible
   bool insideTextVisible_   { false }; //!< is inside text visble (when text invisible)
   bool selectedTextVisible_ { false }; //!< is selected text visble (when text invisible)
+
+  // show busy button
+  bool showBusyButton_ { true };
+
+  CQBusyButton *busyButton_ { nullptr };
 
   // connection data
   IdConnectionsData idConnections_;          //!< id connections

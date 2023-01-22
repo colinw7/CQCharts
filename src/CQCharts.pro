@@ -415,6 +415,8 @@ CQIntRangeSlider.cpp \
 CQTimeRangeSlider.cpp \
 CQRangeSlider.cpp \
 \
+CQBusyButton.cpp \
+\
 CQFillTexture.cpp \
 CQCommand.cpp \
 CQFloatTip.cpp \
@@ -887,6 +889,8 @@ HEADERS += \
 ../include/CGLUtil.h \
 ../include/CGLTexture.h \
 ../include/Springy.h \
+\
+CQBusyButton.h \
 \
 CCircleFactor.h \
 

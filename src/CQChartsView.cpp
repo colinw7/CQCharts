@@ -5124,6 +5124,24 @@ drawRuler(PaintDevice *device)
 
 void
 CQChartsView::
+showEvent(QShowEvent *)
+{
+  for (auto &plot : plots())
+    plot->visibleChanged(true);
+}
+
+void
+CQChartsView::
+hideEvent(QHideEvent *)
+{
+  for (auto &plot : plots())
+    plot->visibleChanged(false);
+}
+
+//---
+
+void
+CQChartsView::
 propertyItemChanged(QObject *, const QString &)
 {
 }
