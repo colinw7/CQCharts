@@ -2984,7 +2984,9 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
   //---
 
   // draw text
-  charts()->setContrastColor(penBrush.brush.color());
+  auto contrastColor = penBrush.brush.color();
+
+  charts()->setContrastColor(contrastColor);
 
   if (isNodeTextVisible() ||
       (snode->isInside  () && isInsideTextVisible()) ||
@@ -3018,6 +3020,8 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
 
     textData.textOptions.angle = Angle();
     textData.textOptions.align = Qt::AlignCenter;
+
+    textData.contrastColor = contrastColor;
 
     // add to draw list
     drawTextDatas_.push_back(textData);
@@ -3053,19 +3057,38 @@ void
 CQChartsForceDirectedPlot::
 drawTextData(PaintDevice *device, const DrawTextData &textData) const
 {
+  device->save();
+
+  device->setContrastColor(textData.contrastColor);
+
+  //---
+
+  // set font
   setPainterFont(device, textData.font);
+
+  //---
+
+  // clip text
+  auto strs1 = clipTextsToLength(device, textData.strs, textData.bbox,
+                                 textData.textOptions.clipLength, textData.textOptions.clipElide,
+                                 textData.textOptions.scaled);
+
+  //---
 
   device->setPen(textData.penBrush.pen);
 
   if      (textData.shape == NodeShape::NONE)
-    CQChartsDrawUtil::drawTextsAtPoint(device, textData.point, textData.strs,
-                                       textData.textOptions);
+    CQChartsDrawUtil::drawTextsAtPoint(device, textData.point, strs1, textData.textOptions);
   else if (textData.shape == NodeShape::CIRCLE)
-    CQChartsDrawUtil::drawStringsInCircle(device, textData.bbox, textData.strs,
-                                          textData.textOptions);
+    CQChartsDrawUtil::drawStringsInCircle(device, textData.bbox, strs1, textData.textOptions);
   else
-    CQChartsDrawUtil::drawStringsInBox(device, textData.bbox, textData.strs,
-                                       textData.textOptions);
+    CQChartsDrawUtil::drawStringsInBox(device, textData.bbox, strs1, textData.textOptions);
+
+  //---
+
+  device->resetContrastColor();
+
+  device->restore();
 }
 
 //---

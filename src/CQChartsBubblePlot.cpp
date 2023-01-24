@@ -1273,15 +1273,18 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
 
   strs.push_back(name);
 
-  if (bubblePlot_->isValueLabel() && ! node_->isFiller()) {
+  if (bubblePlot_->isValueLabel() && ! node_->isFiller())
     strs.push_back(QString::number(node_->size()));
-  }
+
+  //---
+
+  device->save();
+
+  bubblePlot_->charts()->setContrastColor(brushColor);
 
   //---
 
   // calc text pen
-  bubblePlot_->charts()->setContrastColor(brushColor);
-
   auto colorInd = calcColorInd();
 
   PenBrush tPenBrush;
@@ -1295,58 +1298,17 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
 
   //---
 
-  device->save();
+  // set font
+  bubblePlot_->setPainterFont(device, bubblePlot_->textFont());
 
   //---
 
-  // set font
+  // clip text
   auto clipLength = bubblePlot_->lengthPixelWidth(bubblePlot_->textClipLength());
   auto clipElide  = bubblePlot_->textClipElide();
 
-  bubblePlot_->setPainterFont(device, bubblePlot_->textFont());
-
-  QStringList strs1;
-
-  if (bubblePlot_->isTextScaled()) {
-    // calc text size
-    QFontMetricsF fm(device->font());
-
-    double tw = 0.0;
-
-    for (int i = 0; i < strs.size(); ++i) {
-      auto str1 = CQChartsDrawUtil::clipTextToLength(strs[i], device->font(),
-                                                     clipLength, clipElide);
-
-      tw = std::max(tw, fm.horizontalAdvance(str1));
-
-      strs1.push_back(str1);
-    }
-
-    double th = strs1.size()*fm.height();
-
-    //---
-
-    // calc scale factor
-    auto pbbox = bubblePlot_->windowToPixel(bbox);
-
-    double sx = (tw > 0 ? pbbox.getWidth ()/tw : 1.0);
-    double sy = (th > 0 ? pbbox.getHeight()/th : 1.0);
-
-    double s = std::min(sx, sy);
-
-    //---
-
-    // scale font
-    device->setFont(CQChartsUtil::scaleFontSize(device->font(), s), /*scale*/false);
-  }
-  else {
-    for (int i = 0; i < strs.size(); ++i) {
-      auto str1 = CQChartsDrawUtil::clipTextToLength(strs[i], device->font(),
-                                                     clipLength, clipElide);
-
-      strs1.push_back(str1);
-    }
-  }
+  auto strs1 = bubblePlot_->clipTextsToLength(device, strs, bbox, clipLength, clipElide,
+                                              bubblePlot_->isTextScaled());
 
   //---
 
@@ -1376,30 +1338,9 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
 
   CQChartsDrawUtil::drawTextsAtPoint(device, bubblePlot_->pixelToWindow(pc), strs1, textOptions);
 
-#if 0
-  if      (strs1.size() == 1) {
-    CQChartsDrawUtil::drawTextAtPoint(device, bubblePlot_->pixelToWindow(pc),
-                                      strs1[0], textOptions);
-  }
-  else if (strs1.size() == 2) {
-    QFontMetricsF fm(device->font());
-
-    double th = fm.height();
-
-    auto tp1 = bubblePlot_->pixelToWindow(Point(pc.x, pc.y - th/2));
-    auto tp2 = bubblePlot_->pixelToWindow(Point(pc.x, pc.y + th/2));
-
-    CQChartsDrawUtil::drawTextAtPoint(device, tp1, strs1[0], textOptions);
-    CQChartsDrawUtil::drawTextAtPoint(device, tp2, strs1[1], textOptions);
-  }
-  else {
-    assert(false);
-  }
-#endif
+  //---
 
   bubblePlot_->charts()->resetContrastColor();
-
-  //---
 
   device->restore();
 }

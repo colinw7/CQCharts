@@ -242,6 +242,12 @@ class CQChartsPaintDevice {
   bool isNull() const { return isNull_; }
   void setNull(bool b) { isNull_ = b; }
 
+  //---
+
+  const QColor &contrastColor() const { return contrastColor_; }
+  void setContrastColor(const QColor &c) { contrastColor_ = c; }
+  void resetContrastColor() { contrastColor_ = QColor(); }
+
  protected:
   using ViewP = QPointer<View>;
   using PlotP = QPointer<Plot>;
@@ -251,6 +257,7 @@ class CQChartsPaintDevice {
   PlotP     plot_;
   bool      zoomFont_ { false };
   bool      isNull_   { false };
+  QColor    contrastColor_;
 };
 
 #endif

@@ -2712,6 +2712,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void drawOverlayFade(PaintDevice *device) const;
 
+  QStringList clipTextsToLength(PaintDevice *device, const QStringList &strs, const BBox &bbox,
+                                double clipLength, const Qt::TextElideMode &clipElide,
+                                bool isScaled) const;
+
   //---
 
   // draw background rects

@@ -12926,6 +12926,60 @@ drawOverlayFade(PaintDevice *device) const
 
 //---
 
+QStringList
+CQChartsPlot::
+clipTextsToLength(PaintDevice *device, const QStringList &strs, const BBox &bbox,
+                  double clipLength, const Qt::TextElideMode &clipElide,
+                  bool isScaled) const
+{
+  QStringList strs1;
+
+  if (isScaled) {
+    // calc text size
+    QFontMetricsF fm(device->font());
+
+    double tw = 0.0;
+
+    for (int i = 0; i < strs.size(); ++i) {
+      auto str1 = CQChartsDrawUtil::clipTextToLength(strs[i], device->font(),
+                                                     clipLength, clipElide);
+
+      tw = std::max(tw, fm.horizontalAdvance(str1));
+
+      strs1.push_back(str1);
+    }
+
+    double th = strs1.size()*fm.height();
+
+    //---
+
+    // calc scale factor
+    auto pbbox = this->windowToPixel(bbox);
+
+    double sx = (tw > 0 ? pbbox.getWidth ()/tw : 1.0);
+    double sy = (th > 0 ? pbbox.getHeight()/th : 1.0);
+
+    double s = std::min(sx, sy);
+
+    //---
+
+    // scale font
+    device->setFont(CQChartsUtil::scaleFontSize(device->font(), s), /*scale*/false);
+  }
+  else {
+    for (int i = 0; i < strs.size(); ++i) {
+      auto str1 = CQChartsDrawUtil::clipTextToLength(strs[i], device->font(),
+                                                     clipLength, clipElide);
+
+      strs1.push_back(str1);
+    }
+  }
+
+  return strs1;
+}
+
+//---
+
 bool
 CQChartsPlot::
 hasBackgroundRects() const

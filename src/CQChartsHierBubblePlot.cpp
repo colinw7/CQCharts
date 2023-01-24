@@ -2187,9 +2187,13 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
 
   //---
 
-  // calc text pen
+  device->save();
+
   hierBubblePlot_->charts()->setContrastColor(brushColor);
 
+  //---
+
+  // calc text pen
   auto colorInd = calcColorInd();
 
   PenBrush tPenBrush;
@@ -2203,58 +2207,17 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
 
   //---
 
-  device->save();
+  // set font
+  hierBubblePlot_->setPainterFont(device, hierBubblePlot_->textFont());
 
   //---
 
-  // set font
+  // clip text
   auto clipLength = hierBubblePlot_->lengthPixelWidth(hierBubblePlot_->textClipLength());
   auto clipElide  = hierBubblePlot_->textClipElide();
 
-  hierBubblePlot_->setPainterFont(device, hierBubblePlot_->textFont());
-
-  QStringList strs1;
-
-  if (hierBubblePlot_->isTextScaled()) {
-    // calc text size
-    QFontMetricsF fm(device->font());
-
-    double tw = 0;
-
-    for (int i = 0; i < strs.size(); ++i) {
-      auto str1 = CQChartsDrawUtil::clipTextToLength(strs[i], device->font(),
-                                                     clipLength, clipElide);
-
-      tw = std::max(tw, fm.horizontalAdvance(str1));
-
-      strs1.push_back(str1);
-    }
-
-    double th = strs.size()*fm.height();
-
-    //---
-
-    // calc scale factor
-    auto pbbox = hierBubblePlot_->windowToPixel(bbox);
-
-    double sx = (tw > 0 ? pbbox.getWidth ()/tw : 1.0);
-    double sy = (th > 0 ? pbbox.getHeight()/th : 1.0);
-
-    double s = std::min(sx, sy);
-
-    //---
-
-    // scale font
-    device->setFont(CQChartsUtil::scaleFontSize(device->font(), s), /*scale*/false);
-  }
-  else {
-    for (int i = 0; i < strs.size(); ++i) {
-      auto str1 = CQChartsDrawUtil::clipTextToLength(strs[i], device->font(),
-                                                     clipLength, clipElide);
-
-      strs1.push_back(str1);
-    }
-  }
+  auto strs1 = hierBubblePlot_->clipTextsToLength(device, strs, bbox, clipLength, clipElide,
+                                                  hierBubblePlot_->isTextScaled());
 
   //---
 
@@ -2285,32 +2248,9 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
   CQChartsDrawUtil::drawTextsAtPoint(device, hierBubblePlot_->pixelToWindow(pc),
                                      strs1, textOptions);
 
-#if 0
-  if      (strs1.size() == 1) {
-    CQChartsDrawUtil::drawTextAtPoint(device, hierBubblePlot_->pixelToWindow(pc),
-                                      strs1[0], textOptions);
-  }
-  else if (strs1.size() == 2) {
-    QFontMetricsF fm(device->font());
-
-    double th = fm.height();
-
-    Point tp1(pc.x, pc.y - th/2);
-    Point tp2(pc.x, pc.y + th/2);
-
-    CQChartsDrawUtil::drawTextAtPoint(device, hierBubblePlot_->pixelToWindow(tp1),
-                                      strs1[0], textOptions);
-    CQChartsDrawUtil::drawTextAtPoint(device, hierBubblePlot_->pixelToWindow(tp2),
-                                      strs1[1], textOptions);
-  }
-  else {
-    assert(false);
-  }
-#endif
+  //---
 
   hierBubblePlot_->charts()->resetContrastColor();
-
-  //---
 
   device->restore();
 }

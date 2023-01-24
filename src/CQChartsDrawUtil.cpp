@@ -739,19 +739,28 @@ drawContrastText(PaintDevice *device, const Point &p, const QString &text, const
 
   //---
 
-  // set contrast color
+  // set contrast outline color
   // TODO: allow set type (invert, bw) and alpha
-//auto icolor = CQChartsUtil::invColor(pen.color());
-  auto icolor = CQChartsUtil::bwColor(pen.color());
+//auto outlineColor = CQChartsUtil::invColor(pen.color());
+  auto outlineColor = CQChartsUtil::bwColor(pen.color());
 
-  setColorAlpha(icolor, alpha);
+  auto cc = device->contrastColor();
+
+  if (cc.isValid()) {
+    int d = std::abs(CQChartsUtil::grayValue(cc) - CQChartsUtil::grayValue(outlineColor));
+
+    if (d < 64)
+      outlineColor = QColor(128, 128, 128);
+  }
+
+  setColorAlpha(outlineColor, alpha);
 
   //---
 
   auto pp = device->windowToPixel(p);
 
   // draw contrast outline
-  device->setPen(icolor);
+  device->setPen(outlineColor);
 
   for (int dy = -2; dy <= 2; ++dy) {
     for (int dx = -2; dx <= 2; ++dx) {

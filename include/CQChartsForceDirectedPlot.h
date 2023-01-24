@@ -144,6 +144,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     BBox                bbox;
     QStringList         strs;
     NodeShape           shape { NodeShape::NONE };
+    QColor              contrastColor;
   };
 
  private:
