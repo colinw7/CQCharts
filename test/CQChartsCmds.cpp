@@ -291,6 +291,8 @@ addCommand(const QString &name, CQChartsCmdProc *proc)
 
 //------
 
+// load_charts_model command
+
 void
 CQChartsLoadChartsModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -535,6 +537,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// process_charts_model command
 
 void
 CQChartsProcessChartsModelCmd::
@@ -942,6 +946,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// define_charts_proc command
+
 void
 CQChartsDefineChartsProcCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -1008,6 +1014,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// measure_charts_text command
 
 void
 CQChartsMeasureChartsTextCmd::
@@ -1139,6 +1147,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// encode_charts_text command
+
 void
 CQChartsEncodeChartsTextCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -1188,6 +1198,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// bucket_charts_values command
 
 void
 CQChartsBucketChartsValuesCmd::
@@ -1272,6 +1284,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_view command
+
 void
 CQChartsCreateChartsViewCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -1313,6 +1327,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// remove_charts_view command
 
 void
 CQChartsRemoveChartsViewCmd::
@@ -1360,6 +1376,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_plot command
 
 void
 CQChartsCreateChartsPlotCmd::
@@ -1680,6 +1698,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// remove_charts_plot command
+
 void
 CQChartsRemoveChartsPlotCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -1743,6 +1763,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// get_charts_property command
 
 void
 CQChartsGetChartsPropertyCmd::
@@ -2182,6 +2204,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// set_charts_property command
+
 void
 CQChartsSetChartsPropertyCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -2341,6 +2365,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_palette command
+
 void
 CQChartsCreateChartsPaletteCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -2406,6 +2432,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// get_charts_palette command
 
 void
 CQChartsGetChartsPaletteCmd::
@@ -2680,6 +2708,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// set_charts_palette command
 
 void
 CQChartsSetChartsPaletteCmd::
@@ -3034,6 +3064,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_symbol_set command
+
 void
 CQChartsCreateChartsSymbolSetCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -3081,6 +3113,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// add_charts_symbol command
 
 void
 CQChartsAddChartsSymbolCmd::
@@ -3196,6 +3230,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// group_charts_plots command
 
 void
 CQChartsGroupChartsPlotsCmd::
@@ -3357,6 +3393,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// place_charts_plots command
+
 void
 CQChartsPlaceChartsPlotsCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -3441,6 +3479,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// fold_charts_model command
 
 void
 CQChartsFoldChartsModelCmd::
@@ -3550,6 +3590,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// connection_charts_model command
 
 void
 CQChartsConnectionChartsModelCmd::
@@ -3670,6 +3712,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// flatten_charts_model command
 
 void
 CQChartsFlattenChartsModelCmd::
@@ -3846,7 +3890,9 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
-// copy model to new model
+// copy_charts_model command
+//   copy model to new model
+
 void
 CQChartsCopyChartsModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -3926,8 +3972,9 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
-// Command: join_charts_model
-// Desc   : Join models to create new model
+// join_charts_model command
+//   Join models to create new model
+
 void
 CQChartsJoinChartsModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -4100,7 +4147,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
-// join models to create new model
+// group_charts_model command
+
 void
 CQChartsGroupChartsModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -4175,7 +4223,9 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// write_charts_model command
 // TODO: combine with export. Support vertical header
+
 void
 CQChartsWriteChartsModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -4596,6 +4646,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// sort_charts_model command
+
 void
 CQChartsSortChartsModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -4664,6 +4716,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// filter_charts_model command
 
 void
 CQChartsFilterChartsModelCmd::
@@ -4788,6 +4842,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_correlation_model command
+
 void
 CQChartsCreateChartsCorrelationModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -4873,6 +4929,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_folded_model command
 
 void
 CQChartsCreateChartsFoldedModelCmd::
@@ -4992,6 +5050,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_bucket_model command
 
 void
 CQChartsCreateChartsBucketModelCmd::
@@ -5113,6 +5173,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_subset_model command
+
 void
 CQChartsCreateChartsSubsetModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -5197,6 +5259,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_transpose_model command
+
 void
 CQChartsCreateChartsTransposeModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -5257,6 +5321,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_summary_model command
 
 void
 CQChartsCreateChartsSummaryModelCmd::
@@ -5375,6 +5441,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_collapse_model command
 
 void
 CQChartsCreateChartsCollapseModelCmd::
@@ -5516,6 +5584,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_pivot_model command
 
 void
 CQChartsCreateChartsPivotModelCmd::
@@ -5708,6 +5778,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_stats_model command
 
 void
 CQChartsCreateChartsStatsModelCmd::
@@ -5926,6 +5998,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_data_model command
+
 void
 CQChartsCreateChartsDataModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -5984,6 +6058,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_fractal_model command
 
 void
 CQChartsCreateChartsFractalModelCmd::
@@ -6073,6 +6149,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// export_charts_model command
 
 void
 CQChartsExportChartsModelCmd::
@@ -6166,6 +6244,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// remove_charts_model command
+
 void
 CQChartsRemoveChartsModelCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -6222,7 +6302,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
-// get charts data
+// get_charts_data command
+
 void
 CQChartsGetChartsDataCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -7533,6 +7614,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// set_charts_data command
+
 void
 CQChartsSetChartsDataCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -8117,6 +8200,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// print_charts_variant command
+
 void
 CQChartsPrintChartsVariantCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -8161,6 +8246,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// execute_charts_slot command
 
 void
 CQChartsExecuteChartsSlotCmd::
@@ -8259,6 +8346,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_annotation_group command
 
 void
 CQChartsCreateChartsAnnotationGroupCmd::
@@ -8368,6 +8457,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_annotation command
 
 void
 CQChartsCreateChartsAnnotationCmd::
@@ -8481,6 +8572,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_arc_annotation command
 
 void
 CQChartsCreateChartsArcAnnotationCmd::
@@ -8601,6 +8694,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_arc_connector_annotation command
+
 void
 CQChartsCreateChartsArcConnectorAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -8716,6 +8811,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_arrow_annotation command
 
 void
 CQChartsCreateChartsArrowAnnotationCmd::
@@ -9019,6 +9116,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_axis_annotation command
+
 void
 CQChartsCreateChartsAxisAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -9144,6 +9243,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_button_annotation command
 
 void
 CQChartsCreateChartsButtonAnnotationCmd::
@@ -9282,6 +9383,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_ellipse_annotation command
 
 void
 CQChartsCreateChartsEllipseAnnotationCmd::
@@ -9447,6 +9550,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_image_annotation command
+
 void
 CQChartsCreateChartsImageAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -9611,6 +9716,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_path_annotation command
+
 void
 CQChartsCreateChartsPathAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -9732,6 +9839,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_key_annotation command
+
 void
 CQChartsCreateChartsKeyAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -9852,6 +9961,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_pie_slice_annotation command
 
 void
 CQChartsCreateChartsPieSliceAnnotationCmd::
@@ -9984,6 +10095,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_point_annotation command
 
 void
 CQChartsCreateChartsPointAnnotationCmd::
@@ -10144,6 +10257,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_point_set_annotation command
+
 void
 CQChartsCreateChartsPointSetAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -10282,6 +10397,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_point3d_set_annotation command
+
 void
 CQChartsCreateChartsPoint3DSetAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -10404,6 +10521,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_polygon_annotation command
 
 void
 CQChartsCreateChartsPolygonAnnotationCmd::
@@ -10554,6 +10673,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_polyline_annotation command
+
 void
 CQChartsCreateChartsPolylineAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -10702,6 +10823,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_rectangle_annotation command
 
 void
 CQChartsCreateChartsRectangleAnnotationCmd::
@@ -10900,6 +11023,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_shape_annotation command
+
 void
 CQChartsCreateChartsShapeAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -11097,6 +11222,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_text_annotation command
+
 void
 CQChartsCreateChartsTextAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -11292,6 +11419,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_value_set_annotation command
+
 void
 CQChartsCreateChartsValueSetAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -11409,6 +11538,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// create_charts_widget_annotation command
 
 void
 CQChartsCreateChartsWidgetAnnotationCmd::
@@ -11556,6 +11687,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_symbol_map_key_annotation command
+
 void
 CQChartsCreateChartsSymbolMapKeyAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -11653,6 +11786,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// remove_charts_annotation command
+
 void
 CQChartsRemoveChartsAnnotationCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -11736,6 +11871,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// add_charts_key_item command
 
 void
 CQChartsAddChartsKeyItemCmd::
@@ -11989,6 +12126,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// connect_charts_signal command
+
 void
 CQChartsConnectChartsSignalCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -12089,9 +12228,14 @@ execCmd(CQChartsCmdArgs &argv)
       cmds()->connect(plot, SIGNAL(selectPressSignal(const CQChartsGeom::Point &)),
                       createCmdsSlot(), SLOT(selectPress(const CQChartsGeom::Point &)));
     }
+    else if (fromName == "animateStateChanged") {
+      cmds()->connect(plot, SIGNAL(animateStateChanged(bool)),
+                      createCmdsSlot(), SLOT(animateStateChanged(bool)));
+    }
     else if (fromName == "?") {
       static auto names = QStringList() <<
-        "objIdPressed" << "annotationIdPressed" << "plotObjsAdded" << "selectionChanged";
+        "objIdPressed" << "annotationIdPressed" << "plotObjsAdded" << "selectionChanged" <<
+        "selectPress" << "animateStateChanged";
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -12154,6 +12298,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// print_charts_image command
 
 void
 CQChartsPrintChartsImageCmd::
@@ -12234,6 +12380,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// write_charts_data command
 
 void
 CQChartsWriteChartsDataCmd::
@@ -12356,6 +12504,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// write_charts_stats command
+
 void
 CQChartsWriteChartsStatsCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -12431,6 +12581,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// show_charts_load_model_dlg command
+
 void
 CQChartsShowChartsLoadModelDlgCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -12474,6 +12626,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// show_charts_manage_models_dlg command
+
 void
 CQChartsShowChartsManageModelsDlgCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -12516,6 +12670,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// show_charts_create_plot_dlg command
 
 void
 CQChartsShowChartsCreatePlotDlgCmd::
@@ -12586,6 +12742,8 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// show_charts_text_dlg command
+
 void
 CQChartsShowChartsTextDlgCmd::
 addCmdArgs(CQChartsCmdArgs &)
@@ -12625,6 +12783,8 @@ execCmd(CQChartsCmdArgs &argv)
 }
 
 //------
+
+// show_charts_help_dlg command
 
 void
 CQChartsShowChartsHelpDlgCmd::
@@ -12685,6 +12845,8 @@ execCmd(CQChartsCmdArgs &argv)
 #include <CQChartsSymbolTypeEdit.h>
 #include <CQChartsTextDataEdit.h>
 #include <CQChartsTextBoxDataEdit.h>
+
+// test_charts_edit command
 
 void
 CQChartsTestEditCmd::
@@ -12919,6 +13081,8 @@ execCmd(CQChartsCmdArgs &argv)
 //------
 
 #ifdef CQCHARTS_DATA_FRAME
+// data_frame command
+
 void
 CQChartsDataFrameCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -13331,7 +13495,10 @@ getViewByName(const QString &viewName) const
   CQChartsView *view = nullptr;
 
   if (viewName != "") {
-    view = charts_->getView(viewName);
+    if (viewName == "current")
+      view = charts_->currentView();
+    else
+      view = charts_->getView(viewName);
 
     if (! view) {
       charts_->errorMsg("No view '" + viewName + "'");
@@ -13416,6 +13583,13 @@ CQChartsPlot *
 CQChartsCmds::
 getPlotByName(CQChartsView *view, const QString &plotName) const
 {
+  if (plotName == "current") {
+    if (! view)
+      view = charts_->currentView();
+
+    return (view ? view->currentPlot() : nullptr);
+  }
+
   if (view) {
     auto *plot = view->getPlotForId(plotName);
 

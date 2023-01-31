@@ -1874,6 +1874,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual void initObjTree();
 
  protected:
+  virtual bool useObjTree() const { return true; }
+
   void execInitObjTree();
 
  public:
@@ -2712,6 +2714,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void drawOverlayFade(PaintDevice *device) const;
 
+  //---
+
   QStringList clipTextsToLength(PaintDevice *device, const QStringList &strs, const BBox &bbox,
                                 double clipLength, const Qt::TextElideMode &clipElide,
                                 bool isScaled) const;
@@ -3199,6 +3203,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // layers changed (active, valid)
   void layersChanged();
+
+  // animate state changed
+  void animateStateChanged(bool);
 
   // control columns changed
   void controlColumnsChanged();

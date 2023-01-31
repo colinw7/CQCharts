@@ -264,7 +264,7 @@ initPropertiesFrame(QFrame *propertiesFrame)
   //--
 
   // Add Quick control Split Frame
-  quickControlFrame_ = CQUtil::makeWidget<CQChartsPlotControlFrame>("quickControlFrame");
+  quickControlFrame_ = CQUtil::makeWidget<CQChartsPlotControlFrame>(this, "quickControlFrame");
 
   propertiesWidgets_.propertiesSplit->addWidget(quickControlFrame_, "Quick Controls");
 

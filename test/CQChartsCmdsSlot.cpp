@@ -119,6 +119,17 @@ selectPress(const CQChartsGeom::Point &p)
 
 void
 CQChartsCmdsSlot::
+animateStateChanged(bool b)
+{
+  auto cmd = getTclCmd();
+
+  cmd += QString(" %1").arg(b);
+
+  evalCmd(cmd);
+}
+
+void
+CQChartsCmdsSlot::
 themeChanged()
 {
   disconnect(cmds_->charts(), SIGNAL(themeChanged()), this, SLOT(themeChanged()));

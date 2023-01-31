@@ -443,6 +443,8 @@ setAnimating(bool b)
       stopAnimateTimer();
     else
       startAnimateTimer();
+
+    Q_EMIT animateStateChanged(isAnimating());
   }
 }
 
@@ -4339,7 +4341,7 @@ void
 CQChartsPlot::
 getObjectPropertyNames(PlotObj *plotObj, QStringList &names) const
 {
-  names = CQUtil::getPropertyList(plotObj, /*inherited*/ false);
+  plotObj->getPropertyNames(names);
 }
 
 void
@@ -6787,7 +6789,7 @@ execInitObjTree()
   if (objTreeData_.init) {
     objTreeData_.init = false;
 
-    if (! isPreview())
+    if (! isPreview() && useObjTree())
       objTreeData_.tree->addObjects();
   }
 }
@@ -6901,6 +6903,8 @@ CQChartsPlot::
 findEmptyBBox(double w, double h) const
 {
   assert(! isComposite());
+
+  assert(useObjTree());
 
   return objTreeData_.tree->findEmptyBBox(w, h);
 }
@@ -11527,6 +11531,8 @@ plotObjsAtPoint(const Point &p, PlotObjs &plotObjs, const Constraints &constrain
 {
   assert(! isComposite());
 
+  assert(useObjTree());
+
   // get all objects at point from quad tree
   PlotObjs plotObjs1;
 
@@ -11648,6 +11654,8 @@ plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside,
 {
   assert(! isComposite());
 
+  assert(useObjTree());
+
   // get all objects intersecting rect from quad tree
   PlotObjs plotObjs1;
 
@@ -11747,6 +11755,8 @@ objNearestPoint(const Point &p, PlotObj* &obj) const
   obj = nullptr;
 
   assert(! isComposite());
+
+  assert(useObjTree());
 
   double tx = dataRange().xsize()/32.0;
   double ty = dataRange().ysize()/32.0;
@@ -12390,7 +12400,8 @@ drawBackgroundParts(QPainter *painter) const
 
       painter1->setPen(Qt::black);
 
-      objTreeData_.tree->draw(painter1);
+      if (useObjTree())
+        objTreeData_.tree->draw(painter1);
     }
   }
 
@@ -14608,6 +14619,8 @@ CQChartsPlot::
 execWaitTree()
 {
   assert(! isComposite());
+
+  assert(useObjTree());
 
   if (! isPlotObjTreeSet()) {
     objTreeData_.tree->waitTree();

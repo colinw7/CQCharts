@@ -48,7 +48,7 @@ description() const
      p("If the name columns is a hierarchical path then the separator can be specified width "
        "the " + B("Separator") + " option (default '/').").
     h3("Options").
-     p("The " + B("valueLabel") + " option determines if box label includes the value").
+     p("The " + B("valueLabel") + " option determines if bubble label includes the value").
     h3("Limitations").
      p("This plot does not support a user specified range, axes, logarithm scales, "
        "or probing.").

@@ -49,7 +49,6 @@ updateTip()
   tip += "Variables:\n";
   tip += "  @<N>      : Value of column N\n";
   tip += "  @#<N>     : Stringify Value of column N\n";
-  tip += "  @#<N>     : Stringify Value of column N\n";
   tip += "  @c        : column number\n";
   tip += "  @r        : row number\n";
   tip += "  @nc       : column count\n";

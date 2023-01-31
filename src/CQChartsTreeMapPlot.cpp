@@ -106,7 +106,6 @@ init()
   setHierFillColor(Color::makeInterfaceValue(0.4));
   setHierStrokeAlpha(Alpha(0.5));
 
-
   //---
 
   // hier header style

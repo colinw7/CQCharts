@@ -732,7 +732,7 @@ termVisit(GroupModelInds &groupInds) const
 
     //---
 
-    // grup group name
+    // get group name
     auto groupName = this->groupIndName(groupInd, /*hier*/false);
 
     auto *pnode = parentVisitHier(data);

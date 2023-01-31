@@ -275,6 +275,8 @@ class CQChartsPlotObj : public CQChartsObj,
   //! add properties
   virtual void addProperties(CQPropertyViewModel *model, const QString &path);
 
+  virtual void getPropertyNames(QStringList &names, bool hidden=false) const;
+
   //---
 
   //! handle select press

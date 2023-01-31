@@ -755,4 +755,3 @@ setPlot(Plot *plot)
 {
   plot_ = plot;
 }
-

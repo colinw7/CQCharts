@@ -174,6 +174,16 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path, this, "editable"  )->setDesc("Is Editable");
 }
 
+void
+CQChartsPlotObj::
+getPropertyNames(QStringList &names, bool /*hidden*/) const
+{
+  names = CQUtil::getPropertyList(this, /*inherited*/ false);
+
+  names << "id" << "rect" << "tipId" <<
+    "visible" << "selected" << "inside" << "selectable" << "editable" << "clickable";
+}
+
 //---
 
 bool

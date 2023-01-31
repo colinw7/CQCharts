@@ -425,13 +425,14 @@ addProperties()
   //---
 
   // animation data
-  addProp("animation", "initSteps"   , "", "Initial steps");
-  addProp("animation", "animateSteps", "", "Animate steps");
-  addProp("animation", "numSteps"    , "", "Number of steps");
-  addProp("animation", "stepSize"    , "", "Step size");
-  addProp("animation", "rangeSize"   , "", "Range size");
-  addProp("animation", "minDelta"    , "", "Min delta change");
-  addProp("animation", "maxSteps"    , "", "Max animation steps");
+  addProp("animation", "initSteps"     , "", "Initial steps");
+  addProp("animation", "animateSteps"  , "", "Animate steps");
+  addProp("animation", "numSteps"      , "", "Number of steps");
+  addProp("animation", "stepSize"      , "", "Step size");
+  addProp("animation", "rangeSize"     , "", "Range size");
+  addProp("animation", "minDelta"      , "", "Min delta change");
+  addProp("animation", "maxSteps"      , "", "Max animation steps");
+  addProp("animation", "showBusyButton", "", "Show busy button");
 
   // node
   addProp("node", "nodeShape"        , "shapeType"    , "Node shape type");
@@ -503,8 +504,14 @@ addProperties()
   //---
 
   // text
-  addProp("text", "insideTextVisible"  , "insideVisible"  , "Inside text label visible");
-  addProp("text", "selectedTextVisible", "selectedVisible", "Selected text label visible");
+  addProp("text/inside"  , "insideTextVisible"  , "visible", "Inside text label visible");
+  addProp("text/selected", "selectedTextVisible", "visible", "Selected text label visible");
+
+  addProp("text/inside"  , "insideTextNoClip"  , "noClip", "Inside text label no clip");
+  addProp("text/selected", "selectedTextNoClip", "noClip", "Selected text label no clip");
+
+  addProp("text/inside"  , "insideTextNoScale"  , "noScale", "Inside text label no scale");
+  addProp("text/selected", "selectedTextNoScale", "noScale", "Selected text label no scale");
 
   //---
 
@@ -550,6 +557,15 @@ calcRange() const
 
 //------
 
+void
+CQChartsForceDirectedPlot::
+clearPlotObjList()
+{
+  std::unique_lock<std::mutex> lock(createMutex_);
+
+  CQChartsPlot::clearPlotObjList();
+}
+
 bool
 CQChartsForceDirectedPlot::
 createObjs(PlotObjs &) const
@@ -565,6 +581,11 @@ createObjs(PlotObjs &) const
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
   //th->stopAnimateTimer();
+
+  //---
+
+  if (! isAnimating())
+    th->removePlotObjects();
 
   //---
 
@@ -617,9 +638,62 @@ createObjs(PlotObjs &) const
 
   th->execInitSteps();
 
+  return true;
+}
+
+void
+CQChartsForceDirectedPlot::
+addPlotObjects()
+{
+  if (isAnimating())
+    return;
+
+  auto no = forceDirected_->nodes().size() + forceDirected_->edges().size();
+
+  if (plotObjs_.size() >= no)
+    return;
+
   //---
 
-  return true;
+  removePlotObjects();
+
+  //---
+
+  // add node objects
+  for (auto &node : forceDirected_->nodes()) {
+    auto *snode = dynamic_cast<Node *>(node.get());
+    assert(snode);
+
+    auto bbox = nodeBBox(node, snode);
+
+    auto *obj = createNodeObj(node, bbox);
+
+    plotObjs_.push_back(obj);
+  }
+
+  // add edge objects
+  for (auto &edge : forceDirected_->edges()) {
+    auto *sedge = dynamic_cast<Edge *>(edge.get());
+    assert(sedge);
+
+    auto bbox = edgeBBox(edge, sedge);
+
+    auto *obj = createEdgeObj(edge, bbox);
+
+    plotObjs_.push_back(obj);
+  }
+}
+
+void
+CQChartsForceDirectedPlot::
+removePlotObjects()
+{
+  PlotObjs plotObjs;
+
+  std::swap(plotObjs, plotObjs_);
+
+  for (const auto &plotObj : plotObjs)
+    delete plotObj;
 }
 
 void
@@ -841,8 +915,8 @@ addIdConnections() const
       auto *dstNode1 = dynamic_cast<Node *>(dstNode.get());
       assert(dstNode1);
 
-      srcNode1->addOutEdge();
-      dstNode1->addInEdge();
+      srcNode1->addOutEdge(sedge);
+      dstNode1->addInEdge (sedge);
     }
   }
 
@@ -2186,7 +2260,6 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
       else
         newSelectedEdges.insert(selectedEdge);
     }
-
   }
   else {
     NodeSet insideNodes;
@@ -2248,6 +2321,8 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
   //---
 
   if (! match) {
+    startSelection();
+
     // deselect old nodes and edges
     for (auto *node : selectedNodes)
       node->setSelected(false);
@@ -2263,6 +2338,8 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
 
     for (auto *edge : newSelectedEdges)
       edge->setSelected(true);
+
+    endSelection();
   }
 
   //---
@@ -2651,6 +2728,12 @@ void
 CQChartsForceDirectedPlot::
 drawDeviceParts(PaintDevice *device) const
 {
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
+
+  th->addPlotObjects();
+
+  //--
+
   device->save();
 
   setClipRect(device);
@@ -2922,6 +3005,14 @@ drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
       textData.textOptions.angle = Angle();
       textData.textOptions.align = Qt::AlignCenter;
 
+      if ((sedge->isInside  () && isInsideTextNoClip()) ||
+          (sedge->isSelected() && isSelectedTextNoClip()))
+        textData.textOptions.clipLength = -1;
+
+      if ((sedge->isInside  () && isInsideTextNoScale()) ||
+          (sedge->isSelected() && isSelectedTextNoScale()))
+        textData.textOptions.scaled = false;
+
       // data to draw list
       drawTextDatas_.push_back(textData);
     }
@@ -3023,6 +3114,14 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
 
     textData.contrastColor = contrastColor;
 
+    if ((snode->isInside  () && isInsideTextNoClip()) ||
+        (snode->isSelected() && isSelectedTextNoClip()))
+      textData.textOptions.clipLength = -1;
+
+    if ((snode->isInside  () && isInsideTextNoScale()) ||
+        (snode->isSelected() && isSelectedTextNoScale()))
+      textData.textOptions.scaled = false;
+
     // add to draw list
     drawTextDatas_.push_back(textData);
   }
@@ -3077,12 +3176,16 @@ drawTextData(PaintDevice *device, const DrawTextData &textData) const
 
   device->setPen(textData.penBrush.pen);
 
+  auto textOptions = textData.textOptions;
+
+  textOptions.scaled = false;
+
   if      (textData.shape == NodeShape::NONE)
-    CQChartsDrawUtil::drawTextsAtPoint(device, textData.point, strs1, textData.textOptions);
+    CQChartsDrawUtil::drawTextsAtPoint(device, textData.point, strs1, textOptions);
   else if (textData.shape == NodeShape::CIRCLE)
-    CQChartsDrawUtil::drawStringsInCircle(device, textData.bbox, strs1, textData.textOptions);
+    CQChartsDrawUtil::drawStringsInCircle(device, textData.bbox, strs1, textOptions);
   else
-    CQChartsDrawUtil::drawStringsInBox(device, textData.bbox, strs1, textData.textOptions);
+    CQChartsDrawUtil::drawStringsInBox(device, textData.bbox, strs1, textOptions);
 
   //---
 
@@ -3195,6 +3298,19 @@ nodeBBox(const CForceDirected::NodeP &node, Node *snode) const
   return BBox(p1.x() - xmn/2.0, p1.y() - ymn/2.0, p1.x() + xmn/2.0, p1.y() + ymn/2.0);
 }
 
+CQChartsGeom::BBox
+CQChartsForceDirectedPlot::
+edgeBBox(const CForceDirected::EdgeP &, Edge *sedge) const
+{
+  auto *snode = dynamic_cast<Node *>(sedge->source().get());
+  auto *tnode = dynamic_cast<Node *>(sedge->target().get());
+
+  auto sbbox = nodeBBox(sedge->source(), snode);
+  auto tbbox = nodeBBox(sedge->target(), tnode);
+
+  return sbbox + tbbox;
+}
+
 CQChartsForceDirectedPlot::OptReal
 CQChartsForceDirectedPlot::
 calcNodeValue(Node *node) const
@@ -3295,6 +3411,22 @@ calcNormalizedEdgeValue(Edge *edge) const
 
 //---
 
+CQChartsForceDirectedNodeObj *
+CQChartsForceDirectedPlot::
+createNodeObj(CForceDirected::NodeP node, const BBox &bbox) const
+{
+  return new NodeObj(this, node, bbox);
+}
+
+CQChartsForceDirectedEdgeObj *
+CQChartsForceDirectedPlot::
+createEdgeObj(CForceDirected::EdgeP edge, const BBox &bbox) const
+{
+  return new EdgeObj(this, edge, bbox);
+}
+
+//---
+
 CQChartsPlotCustomControls *
 CQChartsForceDirectedPlot::
 createCustomControls()
@@ -3308,6 +3440,141 @@ createCustomControls()
   controls->updateWidgets();
 
   return controls;
+}
+
+//------
+
+CQChartsForceDirectedNodeObj::
+CQChartsForceDirectedNodeObj(const ForceDirectedPlot *forceDirectedPlot,
+                             CForceDirected::NodeP node, const BBox &bbox) :
+ CQChartsPlotObj(const_cast<ForceDirectedPlot *>(forceDirectedPlot), bbox,
+                 ColorInd(), ColorInd(), ColorInd()),
+ forceDirectedPlot_(forceDirectedPlot), node_(node)
+{
+  setDetailHint(DetailHint::MAJOR);
+
+  auto *snode = dynamic_cast<Node *>(node_.get());
+
+  if (snode) {
+#if 0
+    if (snode->ind().isValid())
+      addModelInd(snode->ind());
+    else {
+#endif
+      for (auto *sedge : snode->inEdges()) {
+        if (sedge->ind().isValid())
+          addModelInd(sedge->ind());
+      }
+
+      for (auto *sedge : snode->outEdges()) {
+        if (sedge->ind().isValid())
+          addModelInd(sedge->ind());
+      }
+#if 0
+    }
+#endif
+  }
+}
+
+QString
+CQChartsForceDirectedNodeObj::
+label() const
+{
+  auto *snode = dynamic_cast<Node *>(node_.get());
+
+  return forceDirectedPlot_->calcNodeLabel(snode);
+}
+
+QString
+CQChartsForceDirectedNodeObj::
+calcId() const
+{
+  auto *snode = dynamic_cast<Node *>(node_.get());
+
+  return (snode ? snode->stringId() : "null_node");
+}
+
+QString
+CQChartsForceDirectedNodeObj::
+calcTipId() const
+{
+  return calcId();
+}
+
+bool
+CQChartsForceDirectedNodeObj::
+isSelected() const
+{
+  auto *snode = dynamic_cast<Node *>(node_.get());
+
+  return (snode && snode->isSelected());
+}
+
+void
+CQChartsForceDirectedNodeObj::
+getObjSelectIndices(Indices &inds) const
+{
+  for (const auto &c : forceDirectedPlot_->modelColumns())
+    addColumnSelectIndex(inds, c);
+}
+
+//------
+
+CQChartsForceDirectedEdgeObj::
+CQChartsForceDirectedEdgeObj(const ForceDirectedPlot *forceDirectedPlot,
+                             CForceDirected::EdgeP edge, const BBox &bbox) :
+ CQChartsPlotObj(const_cast<ForceDirectedPlot *>(forceDirectedPlot), bbox,
+                 ColorInd(), ColorInd(), ColorInd()),
+ forceDirectedPlot_(forceDirectedPlot), edge_(edge)
+{
+  setDetailHint(DetailHint::MAJOR);
+
+  auto *sedge = dynamic_cast<Edge *>(edge_.get());
+
+  if (sedge && sedge->ind().isValid())
+    addModelInd(sedge->ind());
+}
+
+QString
+CQChartsForceDirectedEdgeObj::
+label() const
+{
+  auto *sedge = dynamic_cast<Edge *>(edge_.get());
+
+  return (sedge ? QString::fromStdString(sedge->label()) : "no_edge");
+}
+
+QString
+CQChartsForceDirectedEdgeObj::
+calcId() const
+{
+  auto *sedge = dynamic_cast<Edge *>(edge_.get());
+
+  return (sedge ? sedge->stringId() : "no_edge");
+}
+
+QString
+CQChartsForceDirectedEdgeObj::
+calcTipId() const
+{
+  return calcId();
+}
+
+bool
+CQChartsForceDirectedEdgeObj::
+isSelected() const
+{
+  auto *sedge = dynamic_cast<Edge *>(edge_.get());
+
+  return (sedge ? sedge->isSelected() : false);
+}
+
+void
+CQChartsForceDirectedEdgeObj::
+getObjSelectIndices(Indices &inds) const
+{
+  for (const auto &c : forceDirectedPlot_->modelColumns())
+    addColumnSelectIndex(inds, c);
 }
 
 //------

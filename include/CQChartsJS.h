@@ -2,6 +2,7 @@
 #define CQChartsJS_H
 
 #include <CQChartsPaintDevice.h>
+#include <CQCharts.h>
 #include <iostream>
 
 namespace CQChartsJS {
@@ -13,6 +14,47 @@ namespace CQChartsJS {
     os << "<meta charset=\"UTF-8\">\n";
     os << "<title>" << title.toStdString() << "</title>\n";
   }
+
+  inline void initStyle(std::ostream &os) {
+    os << "<style>\n";
+  }
+
+  inline void termStyle(std::ostream &os) {
+    os << "</style>\n";
+  }
+
+  inline void initScript(std::ostream &os, bool strict=true) {
+    os << "<script type=\"text/javascript\">\n";
+
+    if (strict)
+      os << "'use strict';\n";
+  }
+
+  inline void termScript(std::ostream &os) {
+    os << "</script>\n";
+  }
+
+  inline void startBody(std::ostream &os) {
+    os << "</head>\n";
+    os << "<body>\n";
+  }
+
+  inline void endBody(std::ostream &os) {
+    os << "</body>\n";
+    os << "</html>\n";
+  }
+
+  inline void startSVG(std::ostream &os, int w, int h) {
+    os << "<svg xmlns=\"http://www.w3.org/2000/svg\""
+        " xmlns:xlink=\"http://www.w3.org/1999/xlink\" version=\"1.2\""
+        " width=\"" << w << "\" height=\"" << h << "\">\n";
+  }
+
+  inline void endSVG(std::ostream &os) {
+    os << "</svg>\n";
+  }
+
+  //---
 
   inline void writeToolTipCSS(std::ostream &os) {
     os << "#tooltip {\n";
@@ -66,12 +108,30 @@ namespace CQChartsJS {
     os << "\n";
   }
 
+  inline void addToolTipDiv(std::ostream &os) {
+    os << "<div id=\"tooltip\" display=\"none\" style=\"position: absolute; display: none;\">";
+    os << "</div>\n";
+    os << "\n";
+  }
+
+  //---
+
   inline void writeLogProc(std::ostream &os) {
     os << "Charts.prototype.log = function(s) {\n";
     os << "  document.getElementById(\"log_message\").innerHTML = s;\n";
     os << "}\n";
     os << "\n";
   }
+
+  inline void addLogParagraph(std::ostream &os, bool top=false, int pos=100) {
+    if (top)
+      os << "<p style=\"position: absolute; top: " << pos << "px; left: 0px;\""
+            " id=\"log_message\"></p>\n";
+    else
+      os << "<p id=\"log_message\"></p>\n";
+  }
+
+  //---
 
   inline void writeWindowFunctions(std::ostream &os) {
     os <<
@@ -454,6 +514,8 @@ namespace CQChartsJS {
   }
 
   inline void writeInsideProcs(std::ostream &os) {
+    os << "\n";
+
     os <<
     "Charts.prototype.pointInsideRect = function(px, py, xmin, ymin, xmax, ymax) {\n"
     "  var pxmin = this.plotXToPixel(xmin);\n"
@@ -596,6 +658,10 @@ namespace CQChartsJS {
 
     return id1;
   }
+
+  //---
+
+  void writeProcs(std::ostream &os, const CQCharts::Procs &procs);
 };
 
 #endif

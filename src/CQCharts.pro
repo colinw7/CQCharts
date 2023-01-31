@@ -285,6 +285,8 @@ CQChartsValueInd.cpp \
 CQChartsNameValues.cpp \
 CQChartsEnv.cpp \
 \
+CQChartsJS.cpp \
+\
 CQChartsHtmlPaintDevice.cpp \
 CQChartsScriptPaintDevice.cpp \
 CQChartsSVGPaintDevice.cpp \

@@ -33,6 +33,7 @@ class CQChartsCmdsSlot : public QObject {
   void plotObjsAdded        ();
   void selectionChanged     ();
   void selectPress          (const CQChartsGeom::Point &);
+  void animateStateChanged  (bool);
   void themeChanged         ();
   void interfaceThemeChanged();
   void keyEventPress        (const QString &);

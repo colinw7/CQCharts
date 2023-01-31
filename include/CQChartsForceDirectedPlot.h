@@ -49,6 +49,84 @@ class CQChartsForceDirectedPlotType : public CQChartsConnectionPlotType {
 
 //---
 
+class CQChartsForceDirectedPlot;
+
+/*!
+ * \brief Force Directed Plot Node object
+ * \ingroup Charts
+ */
+class CQChartsForceDirectedNodeObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+  Q_PROPERTY(QString label READ label)
+
+ public:
+  using ForceDirectedPlot = CQChartsForceDirectedPlot;
+  using Node              = CQChartsForceDirectedNode;
+
+ public:
+  CQChartsForceDirectedNodeObj(const ForceDirectedPlot *plot, CForceDirected::NodeP node,
+                               const BBox &bbox);
+
+  virtual ~CQChartsForceDirectedNodeObj() { }
+
+  QString typeName() const override { return "node"; }
+
+  QString label() const;
+
+  QString calcId() const override;
+  QString calcTipId() const override;
+
+  bool isSelected() const override;
+
+  void getObjSelectIndices(Indices &inds) const override;
+
+  void calcPenBrush(PenBrush & /*penBrush*/, bool /*updateState*/) const override { }
+
+ protected:
+  const ForceDirectedPlot* forceDirectedPlot_ { nullptr }; //!< parent plot
+  CForceDirected::NodeP    node_;                          //!< associated node
+};
+
+/*!
+ * \brief Force Directed Plot Edge object
+ * \ingroup Charts
+ */
+class CQChartsForceDirectedEdgeObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+  Q_PROPERTY(QString label READ label)
+
+ public:
+  using ForceDirectedPlot = CQChartsForceDirectedPlot;
+  using Edge              = CQChartsForceDirectedEdge;
+
+ public:
+  CQChartsForceDirectedEdgeObj(const ForceDirectedPlot *plot, CForceDirected::EdgeP edge,
+                               const BBox &bbox);
+
+  virtual ~CQChartsForceDirectedEdgeObj() { }
+
+  QString typeName() const override { return "edge"; }
+
+  QString label() const;
+
+  QString calcId() const override;
+  QString calcTipId() const override;
+
+  bool isSelected() const override;
+
+  void getObjSelectIndices(Indices &inds) const override;
+
+  void calcPenBrush(PenBrush & /*penBrush*/, bool /*updateState*/) const override { }
+
+ protected:
+  const ForceDirectedPlot* forceDirectedPlot_ { nullptr }; //!< parent plot
+  CForceDirected::EdgeP    edge_;                          //!< associated edge
+};
+
+//---
+
 /*!
  * \brief Force Directed Plot
  * \ingroup Charts
@@ -102,6 +180,14 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool insideTextVisible   READ isInsideTextVisible   WRITE setInsideTextVisible  )
   Q_PROPERTY(bool selectedTextVisible READ isSelectedTextVisible WRITE setSelectedTextVisible)
 
+  // text no clip on mouse inside/selected (when text clipped)
+  Q_PROPERTY(bool insideTextNoClip   READ isInsideTextNoClip   WRITE setInsideTextNoClip  )
+  Q_PROPERTY(bool selectedTextNoClip READ isSelectedTextNoClip WRITE setSelectedTextNoClip)
+
+  // text no scale on mouse inside/selected (when text scaled)
+  Q_PROPERTY(bool insideTextNoScale   READ isInsideTextNoScale   WRITE setInsideTextNoScale  )
+  Q_PROPERTY(bool selectedTextNoScale READ isSelectedTextNoScale WRITE setSelectedTextNoScale)
+
   // busy state
   Q_PROPERTY(bool showBusyButton READ isShowBusyButton WRITE setShowBusyButton)
 
@@ -127,6 +213,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     ARC         = int(CQChartsEdgeType::ARC)
   };
 
+  using NodeObj   = CQChartsForceDirectedNodeObj;
+  using EdgeObj   = CQChartsForceDirectedEdgeObj;
   using Length    = CQChartsLength;
   using Color     = CQChartsColor;
   using Alpha     = CQChartsAlpha;
@@ -174,6 +262,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   //---
 
   bool isBufferLayers() const override { return false; }
+
+  bool useObjTree() const override { return false; }
 
   //----
 
@@ -289,6 +379,22 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool isSelectedTextVisible() const { return selectedTextVisible_; }
   void setSelectedTextVisible(bool b) { selectedTextVisible_ = b; }
 
+  //! text no clip on inside (when text clipped)
+  bool isInsideTextNoClip() const { return insideTextNoClip_; }
+  void setInsideTextNoClip(bool b) { insideTextNoClip_ = b; }
+
+  //! text no clip on selected (when text clipped)
+  bool isSelectedTextNoClip() const { return selectedTextNoClip_; }
+  void setSelectedTextNoClip(bool b) { selectedTextNoClip_ = b; }
+
+  //! text no scale on inside (when text scaled)
+  bool isInsideTextNoScale() const { return insideTextNoScale_; }
+  void setInsideTextNoScale(bool b) { insideTextNoScale_ = b; }
+
+  //! text no scale on selected (when text scaled)
+  bool isSelectedTextNoScale() const { return selectedTextNoScale_; }
+  void setSelectedTextNoScale(bool b) { selectedTextNoScale_ = b; }
+
   //---
 
   bool isShowBusyButton() const { return showBusyButton_; }
@@ -325,7 +431,12 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //--
 
+  void clearPlotObjList() override;
+
   bool createObjs(PlotObjs &objs) const override;
+
+  void addPlotObjects();
+  void removePlotObjects();
 
   //---
 
@@ -542,6 +653,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Edge::Shape calcEdgeShape(Edge *sedge) const;
 
   BBox nodeBBox(const CForceDirected::NodeP &node, Node *snode) const;
+  BBox edgeBBox(const CForceDirected::EdgeP &edge, Edge *sedge) const;
 
   OptReal calcNodeValue(Node *node) const;
   OptReal calcNormalizedNodeValue(Node *node) const;
@@ -554,6 +666,17 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   //---
 
   bool addMenuItems(QMenu *menu, const Point &p) override;
+
+  //---
+
+  virtual NodeObj *createNodeObj(CForceDirected::NodeP node, const BBox &bbox) const;
+  virtual EdgeObj *createEdgeObj(CForceDirected::EdgeP edge, const BBox &bbox) const;
+
+ public:
+  using ForceDirected  = CQChartsForceDirected;
+  using ForceDirectedP = std::unique_ptr<ForceDirected>;
+
+  const ForceDirectedP &forceDirected() const { return forceDirected_; }
 
  private Q_SLOTS:
   void busyButtonSlot(bool);
@@ -569,8 +692,6 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   using EdgeP           = CForceDirected::EdgeP;
   using NodeMap         = std::map<int, NodeP>;
   using ConnectionNodes = std::map<int, int>;
-  using ForceDirected   = CQChartsForceDirected;
-  using ForceDirectedP  = std::unique_ptr<ForceDirected>;
   using StringIndMap    = std::map<QString, int>;
   using IndStringMap    = std::map<int, QString>;
 
@@ -610,8 +731,16 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   EdgeDrawData edgeDrawData_; //!< edge draw data
 
   // mouse inside/selected text visible
-  bool insideTextVisible_   { false }; //!< is inside text visble (when text invisible)
-  bool selectedTextVisible_ { false }; //!< is selected text visble (when text invisible)
+  bool insideTextVisible_   { false }; //!< is inside text visible (when text invisible)
+  bool selectedTextVisible_ { false }; //!< is selected text visible (when text invisible)
+
+  // mouse inside/selected text no clip
+  bool insideTextNoClip_   { false }; //!< is inside text no clip (when text clipped)
+  bool selectedTextNoClip_ { false }; //!< is selected text no clip (when text clipped)
+
+  // mouse inside/selected text no scale
+  bool insideTextNoScale_   { false }; //!< is inside text no scale (when text scaled)
+  bool selectedTextNoScale_ { false }; //!< is selected text no scale (when text scaled)
 
   // show busy button
   bool showBusyButton_ { true };

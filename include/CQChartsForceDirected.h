@@ -4,6 +4,8 @@
 #include <CQChartsTypes.h>
 #include <CForceDirected.h>
 
+class CQChartsForceDirectedEdge;
+
 //---
 
 /*!
@@ -18,6 +20,8 @@ class CQChartsForceDirectedNode : public Springy::Node {
   using BBox    = CQChartsGeom::BBox;
 
   using Slots = std::set<int>;
+
+  using EdgeSet = std::set<CQChartsForceDirectedEdge *>;
 
  public:
   explicit CQChartsForceDirectedNode(int id) :
@@ -54,11 +58,13 @@ class CQChartsForceDirectedNode : public Springy::Node {
   void clearOccupiedSlots() { occupiedSlots_.clear(); }
   void addOccupiedSlot(int slot) { occupiedSlots_.insert(slot); }
 
-  int numInEdges() const { return numInEdges_; }
-  void addInEdge() { ++numInEdges_; }
+  int numInEdges() const { return inEdges_.size(); }
+  void addInEdge(CQChartsForceDirectedEdge *edge) { inEdges_.insert(edge); }
+  const EdgeSet &inEdges() const { return inEdges_; }
 
-  int numOutEdges() const { return numOutEdges_; }
-  void addOutEdge() { ++numOutEdges_; }
+  int numOutEdges() const { return outEdges_.size(); }
+  void addOutEdge(CQChartsForceDirectedEdge *edge) { outEdges_.insert(edge); }
+  const EdgeSet &outEdges() const { return outEdges_; }
 
  private:
   int         group_    { -1 };
@@ -71,8 +77,8 @@ class CQChartsForceDirectedNode : public Springy::Node {
   bool        inside_   { false };
   Slots       occupiedSlots_;
 
-  int numInEdges_  { 0 };
-  int numOutEdges_ { 0 };
+  EdgeSet inEdges_;
+  EdgeSet outEdges_;
 };
 
 /*!

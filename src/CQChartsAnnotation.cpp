@@ -7520,7 +7520,7 @@ class CQChartsCircleMgr : public CCircleFactor::CircleMgr {
 
       // set target to center (TODO: target size)
       circle.data.xc   = 0.0;
-      circle.data.xc   = 0.0;
+      circle.data.yc   = 0.0;
       circle.data.size = 0.1;
       circle.data.c    = QColor(0, 0, 0, 0);
 

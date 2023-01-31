@@ -7182,17 +7182,16 @@ writeSVG(const QString &filename, Plot *plot)
 
   //---
 
-  os << "<style>\n";
-
   // css (tooltip)
+  CQChartsJS::initStyle(os);
+
   CQChartsJS::writeToolTipCSS(os);
 
-  os << "</style>\n";
+  CQChartsJS::termStyle(os);
 
   //---
 
-  os << "<script type=\"text/javascript\">\n";
-  os << "'use strict';\n";
+  CQChartsJS::initScript(os);
 
   //---
 
@@ -7202,26 +7201,15 @@ writeSVG(const QString &filename, Plot *plot)
   //---
 
   // write defined SVG procs
-  os << "\n";
-
-  for (const auto &pp : charts()->procs(CQCharts::ProcType::SVG)) {
-    const auto &proc = pp.second;
-
-    os << "function " << proc.name.toStdString() << "(" << proc.args.toStdString() << ") {\n";
-    os << "  " << proc.body.toStdString() << "\n";
-    os << "}\n";
-    os << "\n";
-  }
+  CQChartsJS::writeProcs(os, charts()->procs(CQCharts::ProcType::SVG));
 
   //---
 
-  os << "</script>\n";
+  CQChartsJS::termScript(os);
 
   //---
 
-  os << "</head>\n";
-
-  os << "<body>\n";
+  CQChartsJS::startBody(os);
 
   //---
 
@@ -7258,9 +7246,7 @@ writeSVG(const QString &filename, Plot *plot)
   //---
 
   // svg block
-  os << "<svg xmlns=\"http://www.w3.org/2000/svg\""
-        " xmlns:xlink=\"http://www.w3.org/1999/xlink\" version=\"1.2\""
-        " width=\"" << width() << "\" height=\"" << height() << "\">\n";
+  CQChartsJS::startSVG(os, width(), height());
 
   //---
 
@@ -7294,24 +7280,21 @@ writeSVG(const QString &filename, Plot *plot)
     }
   }
 
-  os << "</svg>\n";
+  CQChartsJS::endSVG(os);
 
   //---
 
   // tooltip div
-  os << "<div id=\"tooltip\" display=\"none\" style=\"position: absolute; display: none;\">";
-  os << "</div>\n";
-  os << "\n";
+  CQChartsJS::addToolTipDiv(os);
 
   //---
 
   // log text
-  os << "<p id=\"log_message\"></p>\n";
+  CQChartsJS::addLogParagraph(os);
 
   //---
 
-  os << "</body>\n";
-  os << "</html>\n";
+  CQChartsJS::endBody(os);
 
   return true;
 }
@@ -7328,18 +7311,17 @@ writeScript(const QString &filename, Plot *plot)
 
   //---
 
-  os << "<style>\n";
+  CQChartsJS::initStyle(os);
 
   // css (canvas, tooltip)
   CQChartsJS::writeCanvasCSS (os);
   CQChartsJS::writeToolTipCSS(os);
 
-  os << "</style>\n";
+  CQChartsJS::termStyle(os);
 
   //---
 
-  os << "<script type=\"text/javascript\">\n";
-  os << "'use strict';\n";
+  CQChartsJS::initScript(os);
 
   //---
 
@@ -7349,14 +7331,7 @@ writeScript(const QString &filename, Plot *plot)
   //---
 
   // write defined SCRIPT procs
-  for (const auto &pp : charts()->procs(CQCharts::ProcType::SCRIPT)) {
-    const auto &proc = pp.second;
-
-    os << "function " << proc.name.toStdString() << "(" << proc.args.toStdString() << ") {\n";
-    os << "  " << proc.body.toStdString() << "\n";
-    os << "}\n";
-    os << "\n";
-  }
+  CQChartsJS::writeProcs(os, charts()->procs(CQCharts::ProcType::SCRIPT));
 
   //---
 
@@ -7447,8 +7422,6 @@ writeScript(const QString &filename, Plot *plot)
   CQChartsJS::writeDrawProcs (os);
 
   //---
-
-  os << "\n";
 
   CQChartsJS::writeInsideProcs(os);
 
@@ -7556,13 +7529,11 @@ writeScript(const QString &filename, Plot *plot)
 
   //---
 
-  os << "</script>\n";
+  CQChartsJS::termScript(os);
 
   //---
 
-  os << "</head>\n";
-
-  os << "<body>\n";
+  CQChartsJS::startBody(os);
 
   //---
 
@@ -7602,20 +7573,16 @@ writeScript(const QString &filename, Plot *plot)
   //---
 
   // tooltip div
-  os << "<div id=\"tooltip\" display=\"none\" style=\"position: absolute; display: none;\">";
-  os << "</div>\n";
-  os << "\n";
+  CQChartsJS::addToolTipDiv(os);
 
   //---
 
   // log text
-  os << "<p style=\"position: absolute; top: " << ch << "px; left: 0px;\""
-        " id=\"log_message\"></p>\n";
+  CQChartsJS::addLogParagraph(os, /*top*/true, ch);
 
   //---
 
-  os << "</body>\n";
-  os << "</html>\n";
+  CQChartsJS::endBody(os);
 
   return true;
 }

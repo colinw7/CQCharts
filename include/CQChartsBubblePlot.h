@@ -574,7 +574,6 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   double defaultSize() const { return defaultSize_; }
 
-
   //---
 
   void addProperties() override;
