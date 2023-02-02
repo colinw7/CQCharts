@@ -182,9 +182,13 @@ CQChartsForceDirectedPlot::
 setAnimating(bool b)
 {
   if (b != isAnimating()) {
-    CQChartsPlot::setAnimating(b);
+    setAnimating1(b);
+
+    addPlotObjects();
 
     updateBusyButton();
+
+    Q_EMIT animateStateChanged(isAnimating());
 
     Q_EMIT customDataChanged();
   }
@@ -227,6 +231,8 @@ updateBusyButton()
   if (isShowBusyButton()) {
     if (isAnimating() && ! busyButton_) {
       busyButton_ = new CQBusyButton(view());
+
+      busyButton_->setToolTip("Busy calculating placement : Click to stop");
 
       connect(busyButton_, SIGNAL(busyStateChanged(bool)), this, SLOT(busyButtonSlot(bool)));
     }
@@ -3243,6 +3249,13 @@ postResize()
   placeBusyButton();
 }
 
+bool
+CQChartsForceDirectedPlot::
+postResizeUpdateRange()
+{
+  return false;
+}
+
 void
 CQChartsForceDirectedPlot::
 visibleChanged(bool)
@@ -3482,7 +3495,7 @@ label() const
 {
   auto *snode = dynamic_cast<Node *>(node_.get());
 
-  return forceDirectedPlot_->calcNodeLabel(snode);
+  return (snode ? forceDirectedPlot_->calcNodeLabel(snode) : "");
 }
 
 QString

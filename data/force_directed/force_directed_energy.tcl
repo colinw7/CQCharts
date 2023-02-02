@@ -1,5 +1,9 @@
 proc animateStateChanged { view plot b } {
   echo "animateStateChanged $view $plot $b"
+
+  set objs [get_charts_data -plot $plot -name objects]
+
+  echo $objs
 }
 
 proc selectionChanged { view plot } {

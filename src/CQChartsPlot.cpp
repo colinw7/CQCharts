@@ -437,15 +437,22 @@ CQChartsPlot::
 setAnimating(bool b)
 {
   if (b != animateData_.running) {
-    animateData_.running = b;
-
-    if (! isAnimating())
-      stopAnimateTimer();
-    else
-      startAnimateTimer();
+    setAnimating1(b);
 
     Q_EMIT animateStateChanged(isAnimating());
   }
+}
+
+void
+CQChartsPlot::
+setAnimating1(bool b)
+{
+  animateData_.running = b;
+
+  if (! isAnimating())
+    stopAnimateTimer();
+  else
+    startAnimateTimer();
 }
 
 void
@@ -11839,11 +11846,7 @@ postResize()
 
   //--
 
-  applyDataRange();
-
-  if (isEqualScale()) {
-    resetDataRange(/*updateRange*/true, /*updateObjs*/false);
-  }
+  bool updated = postResizeUpdateRange();
 
 #if 0
   // TODO: does obj postResize need range set ?
@@ -11852,12 +11855,25 @@ postResize()
 #endif
 
   // TODO: does key position need range set ?
-  updateKeyPosition(/*force*/true);
+  if (updated)
+    updateKeyPosition(/*force*/true);
 
   if (! isOverview() && isAutoFit())
     setNeedsAutoFit(true);
 
   drawObjs();
+}
+
+bool
+CQChartsPlot::
+postResizeUpdateRange()
+{
+  applyDataRange();
+
+  if (isEqualScale())
+    resetDataRange(/*updateRange*/true, /*updateObjs*/false);
+
+  return true;
 }
 
 void

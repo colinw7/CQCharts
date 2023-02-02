@@ -568,6 +568,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   void postResize() override;
 
+  bool postResizeUpdateRange() override;
+
   //---
 
   void visibleChanged(bool) override;

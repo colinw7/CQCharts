@@ -1217,8 +1217,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual void animateStep();
 
+ protected:
+  void setAnimating1(bool);
+
   //---
 
+ public:
   // properties
   const PropertyModel *propertyModel() const;
   PropertyModel *propertyModel();
@@ -2410,6 +2414,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // called after resize
   virtual void postResize();
+
+  virtual bool postResizeUpdateRange();
 
   //---
 
