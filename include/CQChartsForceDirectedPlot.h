@@ -78,6 +78,7 @@ class CQChartsForceDirectedNodeObj : public CQChartsPlotObj {
   QString calcTipId() const override;
 
   bool isSelected() const override;
+  void setSelected(bool b) override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -115,6 +116,7 @@ class CQChartsForceDirectedEdgeObj : public CQChartsPlotObj {
   QString calcTipId() const override;
 
   bool isSelected() const override;
+  void setSelected(bool b) override;
 
   void getObjSelectIndices(Indices &inds) const override;
 

@@ -3525,6 +3525,18 @@ isSelected() const
 
 void
 CQChartsForceDirectedNodeObj::
+setSelected(bool b)
+{
+  CQChartsPlotObj::setSelected(b);
+
+  auto *snode = dynamic_cast<Node *>(node_.get());
+
+  if (snode)
+    snode->setSelected(b);
+}
+
+void
+CQChartsForceDirectedNodeObj::
 getObjSelectIndices(Indices &inds) const
 {
   for (const auto &c : forceDirectedPlot_->modelColumns())
@@ -3580,6 +3592,18 @@ isSelected() const
   auto *sedge = dynamic_cast<Edge *>(edge_.get());
 
   return (sedge ? sedge->isSelected() : false);
+}
+
+void
+CQChartsForceDirectedEdgeObj::
+setSelected(bool b)
+{
+  CQChartsPlotObj::setSelected(b);
+
+  auto *sedge = dynamic_cast<Edge *>(edge_.get());
+
+  if (sedge)
+    sedge->setSelected(b);
 }
 
 void

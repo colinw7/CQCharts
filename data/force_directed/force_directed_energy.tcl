@@ -2,8 +2,33 @@ proc animateStateChanged { view plot b } {
   echo "animateStateChanged $view $plot $b"
 
   set objs [get_charts_data -plot $plot -name objects]
-
   echo $objs
+
+  set node1 {}
+  set edge1 {}
+
+  foreach obj $objs {
+    set type [get_charts_property -plot $plot -object $obj -name typeName]
+
+    if       {$type == "node"} {
+      if {$node1 == ""} {
+        set node1 $obj
+      }
+    } elseif {$type == "edge"} {
+      if {$edge1 == ""} {
+        set edge1 $obj
+      }
+    }
+
+    if {$node1 != "" && $edge1 != ""} {
+      break
+    }
+  }
+    
+  echo "Node: $node1, Edge $edge1"
+    
+  set_charts_data -plot $plot -object $node1 -name select -value 1
+  set_charts_data -plot $plot -object $edge1 -name select -value 1
 }
 
 proc selectionChanged { view plot } {
