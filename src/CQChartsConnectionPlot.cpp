@@ -59,19 +59,7 @@ addParameters()
 
   startParameterGroup("General");
 
-  addColumnParameter("depth", "Depth", "depthColumn").setBasic().
-    setNumericColumn().setPropPath("columns.depth").setTip("Connection depth");
-#ifdef CQCHARTS_GRAPH_PATH_ID
-  addColumnParameter("pathId", "PathId", "pathIdColumn").
-    setStringColumn().setPropPath("columns.pathId").setTip("Path Id");
-#endif
-  addColumnParameter("attributes", "Attributes", "attributesColumn").
-    setStringColumn().setPropPath("columns.attributes").setTip("Node/Edge attributes");
-
-  addColumnParameter("group", "Group", "groupColumn").
-    setNumericColumn().setPropPath("columns.group").setTip("Group column");
-  addColumnParameter("name", "Name", "nameColumn").
-    setStringColumn().setPropPath("columns.name").setTip("Optional node name");
+  addGeneralParameters();
 
   endParameterGroup();
 
@@ -83,6 +71,27 @@ addParameters()
   //---
 
   CQChartsPlotType::addParameters();
+}
+
+void
+CQChartsConnectionPlotType::
+addGeneralParameters()
+{
+  if (hasDepthColumn())
+    addColumnParameter("depth", "Depth", "depthColumn").setBasic().
+      setNumericColumn().setPropPath("columns.depth").setTip("Connection depth");
+
+#ifdef CQCHARTS_GRAPH_PATH_ID
+  addColumnParameter("pathId", "PathId", "pathIdColumn").
+    setStringColumn().setPropPath("columns.pathId").setTip("Path Id");
+#endif
+  addColumnParameter("attributes", "Attributes", "attributesColumn").
+    setStringColumn().setPropPath("columns.attributes").setTip("Node/Edge attributes");
+
+  addColumnParameter("group", "Group", "groupColumn").
+    setNumericColumn().setPropPath("columns.group").setTip("Group column");
+  addColumnParameter("name", "Name", "nameColumn").
+    setStringColumn().setPropPath("columns.name").setTip("Optional node name");
 }
 
 bool
@@ -232,6 +241,9 @@ CQChartsConnectionPlot::
 CQChartsConnectionPlot(View *view, PlotType *plotType, const ModelP &model) :
  CQChartsPlot(view, plotType, model)
 {
+  auto *collectionPlotType = dynamic_cast<CQChartsConnectionPlotType *>(plotType);
+
+  hasDepthColumn_ = (collectionPlotType ? collectionPlotType->hasDepthColumn() : false);
 }
 
 CQChartsConnectionPlot::
@@ -474,7 +486,9 @@ addProperties()
   addProp("columns", "fromColumn" , "from" , "From column");
   addProp("columns", "toColumn"   , "to"   , "To column");
   addProp("columns", "valueColumn", "value", "Value column");
-  addProp("columns", "depthColumn", "depth", "Depth column");
+
+  if (hasDepthColumn())
+    addProp("columns", "depthColumn", "depth", "Depth column");
 
 #ifdef CQCHARTS_GRAPH_PATH_ID
   addProp("columns", "pathIdColumn"    , "pathId"    , "Path Id column");
@@ -635,10 +649,12 @@ checkColumns() const
     columnsValid = false;
 
   // depth optional
-  if (checkColumn(depthColumn(), "Depth"))
-    modelColumns_.push_back(depthColumn());
-  else
-    columnsValid = false;
+  if (hasDepthColumn()) {
+    if (checkColumn(depthColumn(), "Depth"))
+      modelColumns_.push_back(depthColumn());
+    else
+      columnsValid = false;
+  }
 
   // group, name optional
   if (checkColumn(groupColumn(), "Group"))
@@ -650,6 +666,10 @@ checkColumns() const
     modelColumns_.push_back(nameColumn());
   else
     columnsValid = false;
+
+  //---
+
+  checkExtraColumns(columnsValid);
 
   return columnsValid;
 }
@@ -738,15 +758,18 @@ initLinkObjs() const
       //---
 
       // Get depth value
-      if (connectionPlot_->depthColumn().isValid()) {
-        linkConnectionData.depthModelInd =
-          ModelIndex(connectionPlot_, data.row, connectionPlot_->depthColumn(), data.parent);
+      if (connectionPlot_->hasDepthColumn()) {
+        if (connectionPlot_->depthColumn().isValid()) {
+          linkConnectionData.depthModelInd =
+            ModelIndex(connectionPlot_, data.row, connectionPlot_->depthColumn(), data.parent);
 
-        bool ok2;
-        long depth = connectionPlot_->modelInteger(linkConnectionData.depthModelInd, ok2);
-        if (! ok2) return addDataError(linkConnectionData.depthModelInd, "Non-integer depth value");
+          bool ok2;
+          long depth = connectionPlot_->modelInteger(linkConnectionData.depthModelInd, ok2);
+          if (! ok2) return addDataError(linkConnectionData.depthModelInd,
+                                         "Non-integer depth value");
 
-        linkConnectionData.depth = static_cast<int>(depth);
+          linkConnectionData.depth = static_cast<int>(depth);
+        }
       }
 
       //---
@@ -1237,15 +1260,17 @@ initFromToObjs() const
       //---
 
       // Get depth value
-      if (connectionPlot_->depthColumn().isValid()) {
-        fromToData.depthModelInd =
-          ModelIndex(connectionPlot_, data.row, connectionPlot_->depthColumn(), data.parent);
+      if (connectionPlot_->hasDepthColumn()) {
+        if (connectionPlot_->depthColumn().isValid()) {
+          fromToData.depthModelInd =
+            ModelIndex(connectionPlot_, data.row, connectionPlot_->depthColumn(), data.parent);
 
-        bool ok3;
-        long depth = connectionPlot_->modelInteger(fromToData.depthModelInd, ok3);
-        if (! ok3) return addDataError(fromToData.depthModelInd, "Non-integer depth value");
+          bool ok3;
+          long depth = connectionPlot_->modelInteger(fromToData.depthModelInd, ok3);
+          if (! ok3) return addDataError(fromToData.depthModelInd, "Non-integer depth value");
 
-        fromToData.depth = static_cast<int>(depth);
+          fromToData.depth = static_cast<int>(depth);
+        }
       }
 
       //---
@@ -1554,6 +1579,9 @@ CQChartsConnectionPlotCustomControls::
 CQChartsConnectionPlotCustomControls(CQCharts *charts, const QString &plotType) :
  CQChartsPlotCustomControls(charts, plotType)
 {
+  auto *collectionPlotType = dynamic_cast<CQChartsConnectionPlotType *>(this->plotType());
+
+  hasDepthColumn_ = (collectionPlotType ? collectionPlotType->hasDepthColumn() : false);
 }
 
 void
@@ -1575,9 +1603,13 @@ addConnectionColumnWidgets()
   //---
 
   // value columns
-  static auto columnNames = QStringList() <<
-   "group" << "node" << "connections" << "link" << "path" << "from" << "to" <<
-   "value" << "depth" << "name";
+  auto columnNames = QStringList() <<
+   "group" << "node" << "connections" << "link" << "path" << "from" << "to" << "value" << "name";
+
+  if (hasDepthColumn_)
+    columnNames << "depth";
+
+  addExtraColumnNames(columnNames);
 
   addNamedColumnWidgets(columnNames, connectionsFrame);
 
@@ -1623,24 +1655,28 @@ updateWidgets()
 
   auto type = connectionPlot_->calcColumnDataType();
 
-  if      (type == CQChartsConnectionPlot::ColumnDataType::HIER) {
-    showColumnWidgets(QStringList() << "link" << "value");
-  }
+  QStringList names;
+
+  if      (type == CQChartsConnectionPlot::ColumnDataType::HIER)
+    names = (QStringList() << "link" << "value");
   else if (type == CQChartsConnectionPlot::ColumnDataType::LINK) {
-    showColumnWidgets(QStringList() << "group" << "link" << "value" << "name" << "depth");
+    names = (QStringList() << "group" << "link" << "value" << "name");
+    if (hasDepthColumn_) names << "depth";
   }
-  else if (type == CQChartsConnectionPlot::ColumnDataType::CONNECTIONS) {
-    showColumnWidgets(QStringList() << "group" << "node" << "connections" << "name");
-  }
-  else if (type == CQChartsConnectionPlot::ColumnDataType::PATH) {
-    showColumnWidgets(QStringList() << "path" << "value");
-  }
+  else if (type == CQChartsConnectionPlot::ColumnDataType::CONNECTIONS)
+    names = (QStringList() << "group" << "node" << "connections" << "name");
+  else if (type == CQChartsConnectionPlot::ColumnDataType::PATH)
+    names = (QStringList() << "path" << "value");
   else if (type == CQChartsConnectionPlot::ColumnDataType::FROM_TO) {
-    showColumnWidgets(QStringList() << "group" << "from" << "to" << "value" << "depth");
+    names = (QStringList() << "group" << "from" << "to" << "value");
+    if (hasDepthColumn_) names << "depth";
   }
-  else if (type == CQChartsConnectionPlot::ColumnDataType::TABLE) {
-    showColumnWidgets(QStringList() << "group" << "link");
-  }
+  else if (type == CQChartsConnectionPlot::ColumnDataType::TABLE)
+    names = (QStringList() << "group" << "link");
+
+  addExtraShowColumns(names);
+
+  showColumnWidgets(names);
 
   //---
 

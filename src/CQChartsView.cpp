@@ -5502,18 +5502,19 @@ updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &colorInd,
 
 void
 CQChartsView::
-updatePenBrushState(const ColorInd &colorInd, PenBrush &penBrush, bool selected, bool inside)
+updatePenBrushState(const ColorInd &colorInd, PenBrush &penBrush, bool selected, bool inside,
+                    DrawType drawType) const
 {
   if      (inside) {
     if (selected) {
-      updateSelectedPenBrushState(colorInd, penBrush);
-      updateInsidePenBrushState  (colorInd, penBrush);
+      updateSelectedPenBrushState(colorInd, penBrush, drawType);
+      updateInsidePenBrushState  (colorInd, penBrush, /*outline*/false, drawType);
     }
     else
-      updateInsidePenBrushState(colorInd, penBrush);
+      updateInsidePenBrushState(colorInd, penBrush, /*outline*/false, drawType);
   }
   else if (selected)
-    updateSelectedPenBrushState(colorInd, penBrush);
+    updateSelectedPenBrushState(colorInd, penBrush, drawType);
 }
 
 void

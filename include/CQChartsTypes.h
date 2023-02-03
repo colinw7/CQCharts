@@ -42,6 +42,7 @@ enum class CQChartsResizeSide {
 enum class CQChartsObjDrawType {
   LINE,
   BOX,
+  ARC,
   SYMBOL,
   TEXT,
   IMAGE

@@ -34,6 +34,16 @@ addParameters()
   CQChartsConnectionPlotType::addParameters();
 }
 
+void
+CQChartsForceDirectedPlotType::
+addGeneralParameters()
+{
+  CQChartsConnectionPlotType::addGeneralParameters();
+
+  addColumnParameter("edgeWidth", "Edge Width", "edgeWidthColumn").setBasic().
+    setNumericColumn().setPropPath("columns.edgeWidth").setTip("Edge Width");
+}
+
 QString
 CQChartsForceDirectedPlotType::
 description() const
@@ -179,6 +189,39 @@ term()
 
 void
 CQChartsForceDirectedPlot::
+setEdgeWidthColumn(const Column &c)
+{
+  CQChartsUtil::testAndSet(edgeWidthColumn_, c, [&]() {
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
+//---
+
+CQChartsColumn
+CQChartsForceDirectedPlot::
+getNamedColumn(const QString &name) const
+{
+  if (name == "edgeWidth")
+    return this->edgeWidthColumn();
+
+  return CQChartsConnectionPlot::getNamedColumn(name);
+}
+
+void
+CQChartsForceDirectedPlot::
+setNamedColumn(const QString &name, const Column &c)
+{
+  if (name == "edgeWidth")
+    return this->setEdgeWidthColumn(c);
+
+  CQChartsConnectionPlot::setNamedColumn(name, c);
+}
+
+//---
+
+void
+CQChartsForceDirectedPlot::
 setAnimating(bool b)
 {
   if (b != isAnimating()) {
@@ -226,6 +269,15 @@ setShowBusyButton(bool b)
 
 void
 CQChartsForceDirectedPlot::
+setAutoHideBusyButton(bool b)
+{
+  autoHideBusyButton_ = b;
+
+  updateBusyButton();
+}
+
+void
+CQChartsForceDirectedPlot::
 updateBusyButton()
 {
   if (isShowBusyButton()) {
@@ -238,7 +290,7 @@ updateBusyButton()
     }
 
     if (busyButton_) {
-      busyButton_->setVisible(isAnimating());
+      busyButton_->setVisible(isAutoHideBusyButton() ? isAnimating() : true);
       busyButton_->setBusy(isAnimating());
     }
 
@@ -255,7 +307,7 @@ CQChartsForceDirectedPlot::
 placeBusyButton()
 {
   if (busyButton_) {
-    busyButton_->setVisible(isAnimating());
+    busyButton_->setVisible(isAutoHideBusyButton() ? isAnimating() : true);
 
     if (busyButton_->isVisible()) {
       auto bbox = view()->windowToPixel(calcViewBBox());
@@ -311,16 +363,16 @@ setNodeValueColored(bool b)
 
 void
 CQChartsForceDirectedPlot::
-setNodeMouseColoring(bool b)
+setNodeValueLabel(bool b)
 {
-  CQChartsUtil::testAndSet(nodeDrawData_.mouseColoring, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(nodeDrawData_.valueLabel, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsForceDirectedPlot::
-setNodeValueLabel(bool b)
+setNodeMouseColoring(bool b)
 {
-  CQChartsUtil::testAndSet(nodeDrawData_.valueLabel, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(nodeDrawData_.mouseColoring, b, [&]() { drawObjs(); } );
 }
 
 //---
@@ -369,6 +421,13 @@ setEdgeValueColored(bool b)
 
 void
 CQChartsForceDirectedPlot::
+setEdgeValueLabel(bool b)
+{
+  CQChartsUtil::testAndSet(edgeDrawData_.valueLabel, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsForceDirectedPlot::
 setEdgeMouseColoring(bool b)
 {
   CQChartsUtil::testAndSet(edgeDrawData_.mouseColoring, b, [&]() { drawObjs(); } );
@@ -376,10 +435,11 @@ setEdgeMouseColoring(bool b)
 
 void
 CQChartsForceDirectedPlot::
-setEdgeValueLabel(bool b)
+setEdgeMouseValue(bool b)
 {
-  CQChartsUtil::testAndSet(edgeDrawData_.valueLabel, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(edgeDrawData_.mouseValue, b, [&]() { drawObjs(); } );
 }
+
 
 //---
 
@@ -430,15 +490,19 @@ addProperties()
 
   //---
 
+  // columns
+  addProp("columns", "edgeWidthColumn", "edgeWidth", "Edge width column");
+
   // animation data
-  addProp("animation", "initSteps"     , "", "Initial steps");
-  addProp("animation", "animateSteps"  , "", "Animate steps");
-  addProp("animation", "numSteps"      , "", "Number of steps");
-  addProp("animation", "stepSize"      , "", "Step size");
-  addProp("animation", "rangeSize"     , "", "Range size");
-  addProp("animation", "minDelta"      , "", "Min delta change");
-  addProp("animation", "maxSteps"      , "", "Max animation steps");
-  addProp("animation", "showBusyButton", "", "Show busy button");
+  addProp("animation", "initSteps"         , "", "Initial steps");
+  addProp("animation", "animateSteps"      , "", "Animate steps");
+  addProp("animation", "numSteps"          , "", "Number of steps");
+  addProp("animation", "stepSize"          , "", "Step size");
+  addProp("animation", "rangeSize"         , "", "Range size");
+  addProp("animation", "minDelta"          , "", "Min delta change");
+  addProp("animation", "maxSteps"          , "", "Max animation steps");
+  addProp("animation", "showBusyButton"    , "", "Show busy button");
+  addProp("animation", "autoHideBusyButton", "", "Auto hide busy button");
 
   // node
   addProp("node", "nodeShape"        , "shapeType"    , "Node shape type");
@@ -446,8 +510,8 @@ addProperties()
   addProp("node", "nodeSize"         , "size"         , "Node size (ignore if <= 0)");
   addProp("node", "minNodeSize"      , "minSize"      , "Node min size (ignore if <= 0)");
   addProp("node", "nodeValueColored" , "valueColored" , "Node colored by value");
-  addProp("node", "nodeMouseColoring", "mouseColoring", "Color node edges on mouse over");
   addProp("node", "nodeValueLabel"   , "valueLabel"   , "Draw node value as label");
+  addProp("node", "nodeMouseColoring", "mouseColoring", "Color node edges on mouse over");
   addProp("node", "nodeTipNameLabel" , "tipNameLabel" , "Label for node name tip");
   addProp("node", "nodeTipValueLabel", "tipValueLabel", "Label for node value tip");
 
@@ -469,8 +533,9 @@ addProperties()
   addProp("edge", "edgeWidth"        , "width"        , "Max edge width");
   addProp("edge", "arrowWidth"       , "arrowWidth"   , "Directed edge arrow width factor");
   addProp("edge", "edgeValueColored" , "valueColored" , "Edge colored by value");
-  addProp("edge", "edgeMouseColoring", "mouseColoring", "Color edge nodes on mouse over");
   addProp("edge", "edgeValueLabel"   , "valueLabel"   , "Draw edge value as label");
+  addProp("edge", "edgeMouseColoring", "mouseColoring", "Color edge nodes on mouse over");
+  addProp("edge", "edgeMouseValue"   , "mouseValue"   , "Show edge value on mouse over");
 
   // edge style
   addProp("edge/stroke", "edgeStroked", "visible", "Edge stroke visible");
@@ -524,6 +589,19 @@ addProperties()
   // info
   addProp("stats", "numNodes", "", "Number of nodes");
   addProp("stats", "numEdges", "", "Number of edges");
+}
+
+//---
+
+void
+CQChartsForceDirectedPlot::
+checkExtraColumns(bool &columnsValid) const
+{
+  // edge width optional
+  if (checkColumn(edgeWidthColumn(), "Edge Width"))
+    modelColumns_.push_back(edgeWidthColumn());
+  else
+    columnsValid = false;
 }
 
 //---
@@ -778,8 +856,9 @@ addIdConnections() const
   //---
 
   // calc max group and max edge value for all connections
-  th->maxGroup_     = 0;
-  th->maxEdgeValue_ = 0.0;
+  th->maxGroup_          = 0;
+  th->maxEdgeValue_      = 0.0;
+  th->maxEdgeWidthValue_ = 0.0;
 
   for (const auto &idConnections : idConnections_) {
     const auto &connectionsData = idConnections.second;
@@ -791,13 +870,17 @@ addIdConnections() const
     for (const auto &connection : connectionsData.connections) {
       if (connection.value.isSet())
         th->maxEdgeValue_ = std::max(th->maxEdgeValue_, connection.value.real());
+
+      if (connection.edgeWidth.isSet())
+        th->maxEdgeWidthValue_ = std::max(th->maxEdgeWidthValue_, connection.edgeWidth.real());
     }
   }
 
   if (th->maxGroup_ <= 0)
     th->maxGroup_ = 1;
 
-  th->edgeScale_ = (maxEdgeValue() > 0.0 ? 1.0/maxEdgeValue() : 1.0);
+  th->edgeScale_      = (maxEdgeValue     () > 0.0 ? 1.0/maxEdgeValue     () : 1.0);
+  th->edgeWidthScale_ = (maxEdgeWidthValue() > 0.0 ? 1.0/maxEdgeWidthValue() : 1.0);
 
   //---
 
@@ -905,6 +988,9 @@ addIdConnections() const
 
       if (connectionData.shapeType != EdgeShape::NONE)
         sedge->setShape(static_cast<Edge::Shape>(connectionData.shapeType));
+
+      if (connectionData.edgeWidth.isSet())
+        sedge->setEdgeWidth(connectionData.edgeWidth);
 
       if (connectionData.fillData.color.isValid())
         sedge->setFillColor(connectionData.fillData.color);
@@ -1324,6 +1410,16 @@ addFromToValue(const FromToData &fromToData) const
 
     //---
 
+    if (edgeWidthColumn().isValid()) {
+      ModelIndex edgeWidthModelInd(this, fromToData.fromModelInd.row(),
+                                   edgeWidthColumn(), fromToData.fromModelInd.parent());
+
+      bool ok1;
+      auto edgeWidth = modelReal(edgeWidthModelInd, ok1);
+      if (ok1)
+        connection->edgeWidth = OptReal(edgeWidth);
+    }
+
     // set edge name values (attribute column)
     processEdgeNameValues(connection, fromToData.nameValues);
   }
@@ -1404,7 +1500,8 @@ initLinkConnectionObjs() const
           return State::SKIP;
       }
       else {
-        assert(false);
+        //assert(false);
+        return State::SKIP;
       }
 
       return State::OK;
@@ -2795,13 +2892,13 @@ drawDeviceParts(PaintDevice *device) const
 
   // draw inside
   for (const auto &pe : insideDrawEdges_) {
-    CQChartsDrawUtil::setPenBrush(device, pe.second);
+    CQChartsDrawUtil::setPenBrush(device, pe.second.penBrush);
 
     drawEdgeNodes(device, pe.first);
   }
 
   for (const auto &pn : insideDrawNodes_) {
-    CQChartsDrawUtil::setPenBrush(device, pn.second);
+    CQChartsDrawUtil::setPenBrush(device, pn.second.penBrush);
 
     drawNodeEdges(device, pn.first);
   }
@@ -2827,36 +2924,13 @@ CQChartsForceDirectedPlot::
 drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
          const ColorInd &colorInd) const
 {
-  // calc pen and brush
-  PenBrush penBrush;
+  bool   isLine = false;
+  double lw     = 1.0;
 
-  QColor fillColor;
+  auto penBrush = calcEdgePenBrush(sedge, colorInd, isLine, lw);
 
-  if (isEdgeValueColored()) {
-    auto value = calcNormalizedEdgeValue(sedge);
-
-    double rvalue = (value.isSet() ? value.real() : 0.0);
-
-    fillColor = interpColor(edgeFillColor(), ColorInd(rvalue));
-  }
-  else {
-    if (sedge->fillColor().isValid())
-      fillColor = interpColor(sedge->fillColor(), colorInd);
-    else
-      fillColor = interpEdgeFillColor(colorInd);
-  }
-
-  auto strokeColor = interpEdgeStrokeColor(colorInd);
-
-  if (sedge->isInside())
-    fillColor = insideColor(fillColor);
-
-  auto penData   = edgePenData(strokeColor);
-  auto brushData = edgeBrushData(fillColor);
-
-  setPenBrush(penBrush, penData, brushData);
-
-  view()->updatePenBrushState(colorInd, penBrush, sedge->isSelected(), sedge->isInside());
+  view()->updatePenBrushState(colorInd, penBrush, sedge->isSelected(), sedge->isInside(),
+                              (isLine ? DrawType::LINE : DrawType::ARC));
 
   //---
 
@@ -2906,22 +2980,10 @@ drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
 
   // calc edge paths
   bool isArrow = isEdgeArrow();
-  bool isLine  = false;
 
   QPainterPath edgePath, curvePath;
 
-  double edgeWidth = lengthPixelWidth(this->edgeWidth());
-
-  double lw = edgeWidth;
-
-  if (isEdgeScaled() && sedge->value()) {
-    auto value = calcNormalizedEdgeValue(sedge);
-
-    if (value.isSet())
-      lw = edgeWidth*value.real();
-  }
-
-  if (lw > 0.5) {
+  if (! isLine) {
     double lww = pixelToWindowWidth(lw);
 
     CQChartsDrawUtil::curvePath(edgePath, ep1.p, ep2.p, edgeType, ep1.angle, ep2.angle);
@@ -2941,8 +3003,6 @@ drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
   }
   else {
     CQChartsDrawUtil::linePath(edgePath, ep1.p, ep2.p);
-
-    isLine = true;
   }
 
   //---
@@ -2978,57 +3038,170 @@ drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
 
   //---
 
-  // draw text
-  auto edgeStr = QString::fromStdString(sedge->label());
-
-  if (isEdgeTextVisible() ||
-      (sedge->isInside  () && isInsideTextVisible()) ||
-      (sedge->isSelected() && isSelectedTextVisible())) {
-    DrawTextData textData;
-
-    // set text
-    if (edgeStr.length())
-      textData.strs << edgeStr;
-
-    if (isEdgeValueLabel() && sedge->value())
-      textData.strs << QString("%1").arg(*sedge->value());
-
-    if (textData.strs.length()) {
-      // set font
-      textData.font = edgeTextFont();
-
-      // set text pen
-      auto c = interpEdgeTextColor(colorInd);
-
-      setPen(textData.penBrush, PenData(true, c, edgeTextAlpha()));
-
-      // set position
-      textData.point = Point(CQChartsDrawUtil::pathMidPoint(edgePath));
-
-      // set text options
-      textData.textOptions = edgeTextOptions(device);
-
-      textData.textOptions.angle = Angle();
-      textData.textOptions.align = Qt::AlignCenter;
-
-      if ((sedge->isInside  () && isInsideTextNoClip()) ||
-          (sedge->isSelected() && isSelectedTextNoClip()))
-        textData.textOptions.clipLength = -1;
-
-      if ((sedge->isInside  () && isInsideTextNoScale()) ||
-          (sedge->isSelected() && isSelectedTextNoScale()))
-        textData.textOptions.scaled = false;
-
-      // data to draw list
-      drawTextDatas_.push_back(textData);
-    }
-  }
+  drawEdgeText(device, sedge, colorInd, /*mouseOver*/false);
 
   //---
 
   if (sedge->isInside()) {
-    if (isEdgeMouseColoring())
+    if (isEdgeMouseColoring() || isEdgeMouseValue())
       insideDrawEdges_[edge] = penBrush;
+  }
+}
+
+bool
+CQChartsForceDirectedPlot::
+isEdgeLine(Edge *sedge, double &lw, double tol) const
+{
+  useRawRange_ = true;
+  auto pedgeWidth = lengthPlotWidth(this->edgeWidth());
+  useRawRange_ = false;
+
+  double edgeWidth = lengthPixelWidth(Length::plot(pedgeWidth));
+
+  lw = edgeWidth;
+
+  if (isEdgeScaled() && hasEdgeWidth(sedge)) {
+    auto value = calcNormalizedEdgeWidth(sedge);
+
+    if (value.isSet())
+      lw = edgeWidth*value.real();
+  }
+
+  if (lw < tol)
+    return true;
+
+  return false;
+}
+
+CQChartsPenBrush
+CQChartsForceDirectedPlot::
+calcEdgePenBrush(Edge *sedge, const ColorInd &colorInd, bool &isLine, double &lw) const
+{
+  // calc pen and brush
+  PenBrush penBrush;
+
+  QColor fillColor;
+  auto   fillAlpha = edgeFillAlpha();
+
+  if (isEdgeValueColored()) {
+    auto value = calcNormalizedEdgeWidth(sedge);
+
+    double rvalue = (value.isSet() ? value.real() : 0.0);
+
+    fillColor = interpColor(edgeFillColor(), ColorInd(rvalue));
+  }
+  else {
+    if (sedge->fillColor().isValid())
+      fillColor = interpColor(sedge->fillColor(), colorInd);
+    else
+      fillColor = interpEdgeFillColor(colorInd);
+  }
+
+  auto strokeColor = interpEdgeStrokeColor(colorInd);
+  auto strokeAlpha = edgeStrokeAlpha();
+
+  if (sedge->isInside()) {
+    isLine = isEdgeLine(sedge, lw, 2.0);
+
+    fillColor = insideColor(fillColor);
+
+    if (isLine) {
+      strokeColor = fillColor;
+      strokeAlpha = fillAlpha;
+    }
+  }
+  else {
+    isLine = isEdgeLine(sedge, lw, 1.0);
+  }
+
+  auto penData   = edgePenData(strokeColor, strokeAlpha);
+  auto brushData = edgeBrushData(fillColor, fillAlpha);
+
+  setPenBrush(penBrush, penData, brushData);
+
+  return penBrush;
+}
+
+void
+CQChartsForceDirectedPlot::
+drawEdgeText(PaintDevice *device, Edge *sedge, const ColorInd &colorInd, bool mouseOver) const
+{
+  auto edgePath = sedge->edgePath();
+
+  // draw text
+  auto edgeStr = QString::fromStdString(sedge->label());
+
+  bool visible = false;
+
+  if (! mouseOver) {
+    visible = (isEdgeTextVisible() ||
+               (sedge->isInside  () && isInsideTextVisible()) ||
+               (sedge->isSelected() && isSelectedTextVisible()));
+  }
+  else
+    visible = true;
+
+  if (! visible)
+    return;
+
+  //---
+
+  DrawTextData textData;
+
+  //---
+
+  // add edge label text
+  if (edgeStr.length())
+    textData.strs << edgeStr;
+
+  // add edge value text
+  bool valueVisible = false;
+
+  if (sedge->value()) {
+    if (! mouseOver)
+      valueVisible = isEdgeValueLabel();
+    else
+      valueVisible = isEdgeMouseValue();
+  }
+
+  if (valueVisible)
+    textData.strs << QString("%1").arg(*sedge->value());
+
+  //---
+
+  if (textData.strs.length()) {
+    // set font
+    textData.font = edgeTextFont();
+
+    // set text pen
+    auto c = interpEdgeTextColor(colorInd);
+
+    setPen(textData.penBrush, PenData(true, c, edgeTextAlpha()));
+
+    // set position
+    textData.point = Point(CQChartsDrawUtil::pathMidPoint(edgePath));
+
+    // set text options
+    textData.textOptions = edgeTextOptions(device);
+
+    textData.textOptions.angle = Angle();
+    textData.textOptions.align = Qt::AlignCenter;
+
+    if ((sedge->isInside  () && isInsideTextNoClip()) ||
+        (sedge->isSelected() && isSelectedTextNoClip()))
+      textData.textOptions.clipLength = -1;
+
+    if ((sedge->isInside  () && isInsideTextNoScale()) ||
+        (sedge->isSelected() && isSelectedTextNoScale()))
+      textData.textOptions.scaled = false;
+
+    if (mouseOver) {
+      drawTextData(device, textData);
+    }
+    else {
+      // add data to draw list
+      drawTextDatas_.push_back(textData);
+    }
   }
 }
 
@@ -3232,6 +3405,12 @@ drawEdgeNodes(PaintDevice *device, const EdgeP &edge) const
 
   drawNodeShape(device, nodeShapes_[snode1->id()]);
   drawNodeShape(device, nodeShapes_[snode2->id()]);
+
+  if (isEdgeMouseValue() && ! isEdgeValueLabel()) {
+    auto *sedge = dynamic_cast<Edge *>(edge.get());
+
+    drawEdgeText(device, sedge, ColorInd(), /*mouseOver*/true);
+  }
 }
 
 //---
@@ -3412,11 +3591,25 @@ calcNodeFillColor(Node *node) const
   return fc;
 }
 
-CQChartsForceDirectedPlot::OptReal
+//---
+
+bool
 CQChartsForceDirectedPlot::
-calcNormalizedEdgeValue(Edge *edge) const
+hasEdgeWidth(Edge *edge) const
 {
   if (edge->value())
+    return true;
+
+  return false;
+}
+
+CQChartsForceDirectedPlot::OptReal
+CQChartsForceDirectedPlot::
+calcNormalizedEdgeWidth(Edge *edge) const
+{
+  if      (edge->edgeWidth().isSet())
+    return OptReal(edgeWidthScale_*edge->edgeWidth().real());
+  else if (edge->value())
     return OptReal(edgeScale_*edge->value().value());
   else
     return OptReal();
@@ -3639,11 +3832,23 @@ addWidgets()
 {
   addConnectionColumnWidgets();
 
-  addColorColumnWidgets("Point Color");
-
   addOptionsWidgets();
 
   addRunWidgets();
+}
+
+void
+CQChartsForceDirectedPlotCustomControls::
+addExtraColumnNames(QStringList &names)
+{
+  names << "edgeWidth";
+}
+
+void
+CQChartsForceDirectedPlotCustomControls::
+addExtraShowColumns(QStringList &names)
+{
+  names << "edgeWidth";
 }
 
 void

@@ -25,6 +25,7 @@ class CQChartsForceDirectedPlotType : public CQChartsConnectionPlotType {
   QString desc() const override { return "ForceDirected"; }
 
   void addParameters() override;
+  void addGeneralParameters() override;
 
   bool hasAxes() const override { return false; }
 
@@ -39,6 +40,10 @@ class CQChartsForceDirectedPlotType : public CQChartsConnectionPlotType {
   //---
 
   bool isColumnForParameter(ColumnDetails *columnDetails, Parameter *parameter) const override;
+
+  bool hasDepthColumn() const override { return false; }
+
+  //---
 
   void analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData) override;
 
@@ -140,6 +145,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
  public CQChartsObjEdgeTextData <CQChartsForceDirectedPlot> {
   Q_OBJECT
 
+  // columns
+  Q_PROPERTY(CQChartsColumn edgeWidthColumn READ edgeWidthColumn WRITE setEdgeWidthColumn)
+
   // animation
   Q_PROPERTY(int    initSteps    READ initSteps    WRITE setInitSteps)
   Q_PROPERTY(int    animateSteps READ animateSteps WRITE setAnimateSteps)
@@ -155,8 +163,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(CQChartsLength nodeSize          READ nodeSize            WRITE setNodeSize         )
   Q_PROPERTY(CQChartsLength minNodeSize       READ minNodeSize         WRITE setMinNodeSize      )
   Q_PROPERTY(bool           nodeValueColored  READ isNodeValueColored  WRITE setNodeValueColored )
-  Q_PROPERTY(bool           nodeMouseColoring READ isNodeMouseColoring WRITE setNodeMouseColoring)
   Q_PROPERTY(bool           nodeValueLabel    READ isNodeValueLabel    WRITE setNodeValueLabel   )
+  Q_PROPERTY(bool           nodeMouseColoring READ isNodeMouseColoring WRITE setNodeMouseColoring)
   Q_PROPERTY(QString        nodeTipNameLabel  READ nodeTipNameLabel    WRITE setNodeTipNameLabel )
   Q_PROPERTY(QString        nodeTipValueLabel READ nodeTipValueLabel   WRITE setNodeTipValueLabel)
 
@@ -167,8 +175,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(CQChartsLength edgeWidth         READ edgeWidth           WRITE setEdgeWidth        )
   Q_PROPERTY(double         arrowWidth        READ arrowWidth          WRITE setArrowWidth       )
   Q_PROPERTY(bool           edgeValueColored  READ isEdgeValueColored  WRITE setEdgeValueColored )
-  Q_PROPERTY(bool           edgeMouseColoring READ isEdgeMouseColoring WRITE setEdgeMouseColoring)
   Q_PROPERTY(bool           edgeValueLabel    READ isEdgeValueLabel    WRITE setEdgeValueLabel   )
+  Q_PROPERTY(bool           edgeMouseColoring READ isEdgeMouseColoring WRITE setEdgeMouseColoring)
+  Q_PROPERTY(bool           edgeMouseValue    READ isEdgeMouseValue    WRITE setEdgeMouseValue   )
 
   // node/edge shape data
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
@@ -191,7 +200,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool selectedTextNoScale READ isSelectedTextNoScale WRITE setSelectedTextNoScale)
 
   // busy state
-  Q_PROPERTY(bool showBusyButton READ isShowBusyButton WRITE setShowBusyButton)
+  Q_PROPERTY(bool showBusyButton     READ isShowBusyButton     WRITE setShowBusyButton    )
+  Q_PROPERTY(bool autoHideBusyButton READ isAutoHideBusyButton WRITE setAutoHideBusyButton)
 
   // info
   Q_PROPERTY(int numNodes READ numNodes)
@@ -269,6 +279,17 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //----
 
+  //! get/set edge width column
+  const Column &edgeWidthColumn() const { return edgeWidthColumn_; }
+  void setEdgeWidthColumn(const Column &c);
+
+  //---
+
+  Column getNamedColumn(const QString &name) const override;
+  void setNamedColumn(const QString &name, const Column &c) override;
+
+  //--
+
   //! set animating
   void setAnimating(bool b) override;
 
@@ -321,13 +342,13 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool isNodeValueColored() const { return nodeDrawData_.valueColored; }
   void setNodeValueColored(bool b);
 
-  //! get/set node edges colored on mouse over
-  bool isNodeMouseColoring() const { return nodeDrawData_.mouseColoring; }
-  void setNodeMouseColoring(bool b);
-
   //! get/set node value label
   bool isNodeValueLabel() const { return nodeDrawData_.valueLabel; }
   void setNodeValueLabel(bool b);
+
+  //! get/set node edges colored on mouse over
+  bool isNodeMouseColoring() const { return nodeDrawData_.mouseColoring; }
+  void setNodeMouseColoring(bool b);
 
   //! get/set node tip name label
   const QString &nodeTipNameLabel() const { return nodeDrawData_.tipNameLabel; }
@@ -363,13 +384,17 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool isEdgeValueColored() const { return edgeDrawData_.valueColored; }
   void setEdgeValueColored(bool b);
 
+  //! get/set edge value label
+  bool isEdgeValueLabel() const { return edgeDrawData_.valueLabel; }
+  void setEdgeValueLabel(bool b);
+
   //! get/set edge nodes colored on mouse over
   bool isEdgeMouseColoring() const { return edgeDrawData_.mouseColoring; }
   void setEdgeMouseColoring(bool b);
 
-  //! get/set edge value label
-  bool isEdgeValueLabel() const { return edgeDrawData_.valueLabel; }
-  void setEdgeValueLabel(bool b);
+  //! get/set show edge value on mouse over
+  bool isEdgeMouseValue() const { return edgeDrawData_.mouseValue; }
+  void setEdgeMouseValue(bool b);
 
   //---
 
@@ -402,10 +427,15 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool isShowBusyButton() const { return showBusyButton_; }
   void setShowBusyButton(bool b);
 
+  bool isAutoHideBusyButton() const { return autoHideBusyButton_; }
+  void setAutoHideBusyButton(bool b);
+
   //---
 
   double maxNodeValue() const { return maxNodeValue_; }
   double maxEdgeValue() const { return maxEdgeValue_; }
+
+  double maxEdgeWidthValue() const { return maxEdgeWidthValue_; }
 
   //---
 
@@ -426,6 +456,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   // add properties
   void addProperties() override;
+
+  //---
+
+  void checkExtraColumns(bool &columnsValid) const override;
 
   //---
 
@@ -556,17 +590,36 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   void drawDeviceParts(PaintDevice *device) const;
 
+  //---
+
   void drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
                 const ColorInd &colorInd) const;
+
+  bool isEdgeLine(Edge *sedge, double &lw, double tol) const;
+
+  PenBrush calcEdgePenBrush(Edge *sedge, const ColorInd &colorInd,
+                            bool &isLine, double &lw) const;
+
+  void drawEdgeText(PaintDevice *device, Edge *sedge, const ColorInd &colorInd,
+                    bool mouseOver) const;
+
+  //---
+
   void drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
                 const ColorInd &colorInd) const;
 
   void drawNodeShape(PaintDevice *device, const NodeShapeBBox &nodeShape) const;
 
+  //---
+
   void drawNodeEdges(PaintDevice *device, const CForceDirected::NodeP &node) const;
   void drawEdgeNodes(PaintDevice *device, const CForceDirected::EdgeP &edge) const;
 
+  //---
+
   void drawTextData(PaintDevice *device, const DrawTextData &textData) const;
+
+  //---
 
   void postResize() override;
 
@@ -598,6 +651,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     int         srcNode   { -1 };              //!< source node index
     int         destNode  { -1 };              //!< destination node index
     OptReal     value;                         //!< custom value
+    OptReal     edgeWidth;                     //!< custom edge width
     QString     label;                         //!< custom label
     EdgeShape   shapeType { EdgeShape::NONE }; //!< edge shape
     FillData    fillData;                      //!< fill data
@@ -665,7 +719,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   QColor calcNodeFillColor(Node *node) const;
 
-  OptReal calcNormalizedEdgeValue(Edge *edge) const;
+  //---
+
+  bool hasEdgeWidth(Edge *edge) const;
+  OptReal calcNormalizedEdgeWidth(Edge *edge) const;
 
   //---
 
@@ -675,12 +732,6 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   virtual NodeObj *createNodeObj(CForceDirected::NodeP node, const BBox &bbox) const;
   virtual EdgeObj *createEdgeObj(CForceDirected::EdgeP edge, const BBox &bbox) const;
-
- public:
-  using ForceDirected  = CQChartsForceDirected;
-  using ForceDirectedP = std::unique_ptr<ForceDirected>;
-
-  const ForceDirectedP &forceDirected() const { return forceDirected_; }
 
  private Q_SLOTS:
   void busyButtonSlot(bool);
@@ -696,8 +747,13 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   using EdgeP           = CForceDirected::EdgeP;
   using NodeMap         = std::map<int, NodeP>;
   using ConnectionNodes = std::map<int, int>;
+  using ForceDirected   = CQChartsForceDirected;
+  using ForceDirectedP  = std::unique_ptr<ForceDirected>;
   using StringIndMap    = std::map<QString, int>;
   using IndStringMap    = std::map<int, QString>;
+
+  // columns
+  Column edgeWidthColumn_; //!< edge width column
 
   // animation data
   int         initSteps_    { 500 };  //!< initial steps
@@ -712,8 +768,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     Length    size          { Length::plot(1) };   //!< node size
     Length    minSize       { Length::plot(0.1) }; //!< min node size
     bool      valueColored  { false };             //!< is node colored by value
-    bool      mouseColoring { false };             //!< is node edges colored on mouse over
     bool      valueLabel    { false };             //!< show value as label
+    bool      mouseColoring { false };             //!< is node edges colored on mouse over
     QString   tipNameLabel;                        //!< tip label for node name
     QString   tipValueLabel;                       //!< tip label for node value
   };
@@ -728,8 +784,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     Length    width         { Length::pixel(16) }; //!< max edge width
     double    arrowWidth    { 1.0 };               //!< edge arrow size factorr
     bool      valueColored  { false };             //!< is edge colored by value
-    bool      mouseColoring { false };             //!< is edge nodes colored on mouse over
     bool      valueLabel    { false };             //!< show value as label
+    bool      mouseColoring { false };             //!< is edge nodes colored on mouse over
+    bool      mouseValue    { false };             //!< show edge value on mouse over
   };
 
   EdgeDrawData edgeDrawData_; //!< edge draw data
@@ -746,20 +803,22 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool insideTextNoScale_   { false }; //!< is inside text no scale (when text scaled)
   bool selectedTextNoScale_ { false }; //!< is selected text no scale (when text scaled)
 
-  // show busy button
-  bool showBusyButton_ { true };
+  // busy button data
+  bool showBusyButton_     { true }; //!< show busy button when animating
+  bool autoHideBusyButton_ { true }; //!< auto hide busy button when not animating
 
-  CQBusyButton *busyButton_ { nullptr };
+  CQBusyButton *busyButton_ { nullptr }; //!< bust button
 
   // connection data
-  IdConnectionsData idConnections_;          //!< id connections
-  StringIndMap      nameIdMap_;              //!< node name index map
-  IndStringMap      idNameMap_;              //!< node name index map
-  NodeMap           nodes_;                  //!< force directed nodes
-  ConnectionNodes   connectionNodes_;        //!< ids of force directed nodes
-  int               maxGroup_       { 0 };   //!< max group
-  double            maxNodeValue_   { 0.0 }; //!< max node value
-  double            maxEdgeValue_   { 0.0 }; //!< max edge value
+  IdConnectionsData idConnections_;             //!< id connections
+  StringIndMap      nameIdMap_;                 //!< node name index map
+  IndStringMap      idNameMap_;                 //!< node name index map
+  NodeMap           nodes_;                     //!< force directed nodes
+  ConnectionNodes   connectionNodes_;           //!< ids of force directed nodes
+  int               maxGroup_          { 0 };   //!< max group
+  double            maxNodeValue_      { 0.0 }; //!< max node value
+  double            maxEdgeValue_      { 0.0 }; //!< max edge value
+  double            maxEdgeWidthValue_ { 0.0 }; //!< max edge value
 
   ForceDirectedP forceDirected_; //!< force directed class
 
@@ -767,13 +826,14 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   QString edgeValueName_;
 
   // state
-  bool   pressed_      { false }; //!< is pressed
-  double rangeSize_    { 20.0 };  //!< range size
-  double nodeMass_     { 1.0 };   //!< node mass
-  double edgeScale_    { 1.0 };   //!< edge scale
-  int    maxNodeDepth_ { 0 };     //!< max node depth
-  double minDelta_     { 0.01 };  //!< min delta
-  int    maxSteps_     { -1 };    //!< max steps
+  bool   pressed_        { false }; //!< is pressed
+  double rangeSize_      { 20.0 };  //!< range size
+  double nodeMass_       { 1.0 };   //!< node mass
+  double edgeScale_      { 1.0 };   //!< edge scale
+  double edgeWidthScale_ { 1.0 };   //!< edge scale
+  int    maxNodeDepth_   { 0 };     //!< max node depth
+  double minDelta_       { 0.01 };  //!< min delta
+  int    maxSteps_       { -1 };    //!< max steps
 
   mutable std::mutex createMutex_; //!< create mutex
 
@@ -793,8 +853,15 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
-  using InsideDrawEdges = std::map<EdgeP, PenBrush>;
-  using InsideDrawNodes = std::map<NodeP, PenBrush>;
+  struct InsideDrawData {
+    PenBrush penBrush;
+
+    InsideDrawData() { }
+    InsideDrawData(const PenBrush &p) : penBrush(p) { }
+  };
+
+  using InsideDrawEdges = std::map<EdgeP, InsideDrawData>;
+  using InsideDrawNodes = std::map<NodeP, InsideDrawData>;
 
   mutable InsideDrawEdges insideDrawEdges_;
   mutable InsideDrawNodes insideDrawNodes_;
@@ -821,6 +888,9 @@ class CQChartsForceDirectedPlotCustomControls : public CQChartsConnectionPlotCus
 
  protected:
   void addWidgets() override;
+
+  void addExtraColumnNames(QStringList &) override;
+  void addExtraShowColumns(QStringList &) override;
 
   void addOptionsWidgets() override;
 

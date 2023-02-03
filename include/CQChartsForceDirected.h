@@ -87,10 +87,11 @@ class CQChartsForceDirectedNode : public Springy::Node {
  */
 class CQChartsForceDirectedEdge : public Springy::Edge {
  public:
-  using Shape = CQChartsEdgeType;
-  using Color = CQChartsColor;
-  using NodeP = Springy::NodeP;
-  using Point = CQChartsGeom::Point;
+  using Shape   = CQChartsEdgeType;
+  using OptReal = CQChartsOptReal;
+  using Color   = CQChartsColor;
+  using NodeP   = Springy::NodeP;
+  using Point   = CQChartsGeom::Point;
 
  public:
   CQChartsForceDirectedEdge(int id, NodeP node1=NodeP(), NodeP node2=NodeP()) :
@@ -101,6 +102,9 @@ class CQChartsForceDirectedEdge : public Springy::Edge {
 
   const Shape &shape() const { return shape_; }
   void setShape(const Shape &s) { shape_ = s; }
+
+  const OptReal &edgeWidth() const { return edgeWidth_; }
+  void setEdgeWidth(const OptReal &v) { edgeWidth_ = v; }
 
   const Color &fillColor() const { return fillColor_; }
   void setFillColor(const Color &c) { fillColor_ = c; }
@@ -131,6 +135,7 @@ class CQChartsForceDirectedEdge : public Springy::Edge {
 
  private:
   Shape        shape_    { Shape::NONE };
+  OptReal      edgeWidth_;
   Color        fillColor_;
   bool         isLine_   { true };
   Point        startPoint_;

@@ -24,12 +24,18 @@ class CQChartsConnectionPlotType : public CQChartsPlotType {
 
   void addParameters() override;
 
+  virtual void addGeneralParameters();
+
   bool allowXLog() const override { return false; }
   bool allowYLog() const override { return false; }
 
   //---
 
   bool isColumnForParameter(ColumnDetails *columnDetails, Parameter *parameter) const override;
+
+  virtual bool hasDepthColumn() const { return true; }
+
+  //---
 
   void analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData) override;
 };
@@ -184,6 +190,8 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //---
 
+  bool hasDepthColumn() const { return hasDepthColumn_; }
+
   const ColumnArray &modelColumns() const { return modelColumns_; }
 
   //---
@@ -247,6 +255,8 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   //---
 
   bool checkColumns() const;
+
+  virtual void checkExtraColumns(bool &) const { }
 
   //---
 
@@ -572,6 +582,8 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   ColumnType linkColumnType_ { ColumnType::NONE };        //!< link column type
   Column     nameColumn_;                                 //!< name column
 
+  bool hasDepthColumn_ { true }; //!< has depth column
+
   ColumnDataType defaultColumnDataType_ { ColumnDataType::LINK };
 
   mutable ColumnArray modelColumns_; //!< used columns
@@ -607,6 +619,9 @@ class CQChartsConnectionPlotCustomControls : public CQChartsPlotCustomControls {
 
   void addConnectionColumnWidgets();
 
+  virtual void addExtraColumnNames(QStringList &) { }
+  virtual void addExtraShowColumns(QStringList &) { }
+
  public Q_SLOTS:
   void updateWidgets() override;
 
@@ -618,6 +633,7 @@ class CQChartsConnectionPlotCustomControls : public CQChartsPlotCustomControls {
 
  protected:
   CQChartsConnectionPlot* connectionPlot_   { nullptr };
+  bool                    hasDepthColumn_   { true };
   CQEnumCombo*            columnsTypeCombo_ { nullptr };
 };
 
