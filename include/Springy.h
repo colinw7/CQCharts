@@ -690,13 +690,38 @@ namespace Springy {
       for (auto n : graph_->nodes()) {
         auto point = this->nodePoint(n);
 
-        const Vector &p = point->p();
+        const auto &p = point->p();
 
         xmin = std::min(xmin, p.x());
         ymin = std::min(ymin, p.y());
         xmax = std::max(xmax, p.x());
         ymax = std::max(ymax, p.y());
       }
+    }
+
+    void adjustRange(double &xmin, double &ymin, double &xmax, double &ymax) {
+      double xmin1, ymin1, xmax1, ymax1;
+
+      calcRange(xmin1, ymin1, xmax1, ymax1);
+
+      double xc1 = (xmin1 + xmax1)/2.0;
+      double yc1 = (ymin1 + ymax1)/2.0;
+
+      for (auto n : graph_->nodes()) {
+        auto point = this->nodePoint(n);
+
+        const auto &p = point->p();
+
+        auto x1 = p.x() - xc1;
+        auto y1 = p.y() - yc1;
+
+        point->setP(Vector(x1, y1));
+      }
+
+      xmin = xmin1 - xc1;
+      ymin = ymin1 - yc1;
+      xmax = xmax1 - xc1;
+      ymax = ymax1 - yc1;
     }
 
    private:

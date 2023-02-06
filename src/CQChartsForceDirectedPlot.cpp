@@ -375,6 +375,13 @@ setNodeMouseColoring(bool b)
   CQChartsUtil::testAndSet(nodeDrawData_.mouseColoring, b, [&]() { drawObjs(); } );
 }
 
+void
+CQChartsForceDirectedPlot::
+setNodeMouseValue(bool b)
+{
+  CQChartsUtil::testAndSet(nodeDrawData_.mouseValue, b, [&]() { drawObjs(); } );
+}
+
 //---
 
 void
@@ -439,7 +446,6 @@ setEdgeMouseValue(bool b)
 {
   CQChartsUtil::testAndSet(edgeDrawData_.mouseValue, b, [&]() { drawObjs(); } );
 }
-
 
 //---
 
@@ -512,6 +518,7 @@ addProperties()
   addProp("node", "nodeValueColored" , "valueColored" , "Node colored by value");
   addProp("node", "nodeValueLabel"   , "valueLabel"   , "Draw node value as label");
   addProp("node", "nodeMouseColoring", "mouseColoring", "Color node edges on mouse over");
+  addProp("node", "nodeMouseValue"   , "mouseValue"   , "Show node value on mouse over");
   addProp("node", "nodeTipNameLabel" , "tipNameLabel" , "Label for node name tip");
   addProp("node", "nodeTipValueLabel", "tipValueLabel", "Label for node value tip");
 
@@ -2130,8 +2137,6 @@ CQChartsForceDirectedPlot::
 doAutoFit()
 {
   if (isAutoFit()) {
-    double xmin { 0.0 }, ymin { 0.0 }, xmax { 0.0 }, ymax { 0.0 };
-
     double s = lengthPlotWidth(nodeSize());
 
     auto minSize = pixelToWindowWidth(3.0);
@@ -2139,6 +2144,8 @@ doAutoFit()
     double xm = std::max(s, minSize);
     double ym = xm;
 
+    double xmin { -1.0 }, ymin { -1.0 }, xmax { 1.0 }, ymax { 1.0 };
+  //forceDirected_->adjustRange(xmin, ymin, xmax, ymax);
     forceDirected_->calcRange(xmin, ymin, xmax, ymax);
 
     calcDataRange_ = Range();
@@ -2234,7 +2241,7 @@ handleEditMove(const Point &, const Point &p, bool)
 {
   if (pressed_) {
     if (forceDirected_->currentPoint())
-      forceDirected_->currentPoint()->setP(Springy::Vector(p.x, p.y));
+      forceDirected_->currentPoint()->setP(SpringVec(p.x, p.y));
 
     drawObjs();
 
@@ -2257,7 +2264,7 @@ CQChartsForceDirectedPlot::
 handleEditRelease(const Point &, const Point &p)
 {
   if (forceDirected_->currentPoint())
-    forceDirected_->currentPoint()->setP(Springy::Vector(p.x, p.y));
+    forceDirected_->currentPoint()->setP(SpringVec(p.x, p.y));
 
   resetCurrentNode();
 
@@ -2291,7 +2298,7 @@ void
 CQChartsForceDirectedPlot::
 setCurrentNode(const Point &p)
 {
-  auto nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
+  auto nodePoint = forceDirected_->nearest(SpringVec(p.x, p.y));
 
   forceDirected_->setCurrentNode (nodePoint.first );
   forceDirected_->setCurrentPoint(nodePoint.second);
@@ -2607,7 +2614,7 @@ plotTipText(const Point &p, QString &tip, bool /*single*/) const
     CQChartsTableTip tableTip;
 
 #if 0
-    auto nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
+    auto nodePoint = forceDirected_->nearest(SpringVec(p.x, p.y));
 
     auto *node = dynamic_cast<Node *>(nodePoint.first.get());
     if (! node) return false;
@@ -2894,13 +2901,13 @@ drawDeviceParts(PaintDevice *device) const
   for (const auto &pe : insideDrawEdges_) {
     CQChartsDrawUtil::setPenBrush(device, pe.second.penBrush);
 
-    drawEdgeNodes(device, pe.first);
+    drawEdgeInside(device, pe.first);
   }
 
   for (const auto &pn : insideDrawNodes_) {
     CQChartsDrawUtil::setPenBrush(device, pn.second.penBrush);
 
-    drawNodeEdges(device, pn.first);
+    drawNodeInside(device, pn.first);
   }
 
   //--
@@ -2921,7 +2928,7 @@ drawDeviceParts(PaintDevice *device) const
 
 void
 CQChartsForceDirectedPlot::
-drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
+drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge,
          const ColorInd &colorInd) const
 {
   bool   isLine = false;
@@ -2929,15 +2936,30 @@ drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
 
   auto penBrush = calcEdgePenBrush(sedge, colorInd, isLine, lw);
 
+  auto lww = pixelToWindowWidth(lw);
+
   view()->updatePenBrushState(colorInd, penBrush, sedge->isSelected(), sedge->isInside(),
                               (isLine ? DrawType::LINE : DrawType::ARC));
 
   //---
 
-  // get connection rect of source and destination object
+  // get edge type
+  auto edgeType      = calcEdgeShape(sedge);
+  bool isRectilinear = (edgeType == CQChartsDrawUtil::EdgeType::RECTILINEAR);
+
   auto *snode = dynamic_cast<Node *>(sedge->source().get());
   auto *tnode = dynamic_cast<Node *>(sedge->target().get());
+  assert(snode && tnode);
 
+  auto sshape = calcNodeShape(snode);
+  auto tshape = calcNodeShape(tnode);
+
+  bool isCircleS = (sshape == Node::Shape::CIRCLE || sshape == Node::Shape::DOUBLE_CIRCLE);
+  bool isCircleT = (tshape == Node::Shape::CIRCLE || tshape == Node::Shape::DOUBLE_CIRCLE);
+
+  ///--
+
+  // get connection rect of source and destination object
   auto sbbox = nodeBBox(sedge->source(), snode);
   auto tbbox = nodeBBox(sedge->target(), tnode);
 
@@ -2946,37 +2968,83 @@ drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
   CQChartsDrawUtil::RectConnectData   rectConnectData;
   CQChartsDrawUtil::CircleConnectData circleConnectData;
 
-  auto sshape = calcNodeShape(snode);
-  auto tshape = calcNodeShape(tnode);
-
   auto sc = sbbox.getCenter(); auto sr = sbbox.getWidth()/2.0;
   auto tc = tbbox.getCenter(); auto tr = tbbox.getWidth()/2.0;
 
-  if (sshape == Node::Shape::CIRCLE || sshape == Node::Shape::DOUBLE_CIRCLE) {
-    circleConnectData.numSlots      = 16;
-    circleConnectData.occupiedSlots = snode->occupiedSlots();
+  const int NodeSlots = 16; // balance between available and angle separation
+
+  if (isCircleS) {
+    circleConnectData.numSlots = NodeSlots;
+
+    for (const auto &ps : snode->occupiedSlots())
+      circleConnectData.occupiedSlots.insert(ps.first);
 
     CQChartsDrawUtil::circleConnectionPoint(sc, sr, tc, tr, ep1, circleConnectData);
 
-    snode->addOccupiedSlot(ep1.slot);
+    snode->addOccupiedSlot(ep1.slot, sedge);
   }
   else
     CQChartsDrawUtil::rectConnectionPoint(sbbox, tbbox, ep1, rectConnectData);
 
-  if (tshape == Node::Shape::CIRCLE || tshape == Node::Shape::DOUBLE_CIRCLE) {
-    circleConnectData.numSlots      = 16;
-    circleConnectData.occupiedSlots = tnode->occupiedSlots();
+  if (isCircleT) {
+    circleConnectData.numSlots = NodeSlots;
+
+    for (const auto &ps : tnode->occupiedSlots())
+      circleConnectData.occupiedSlots.insert(ps.first);
 
     CQChartsDrawUtil::circleConnectionPoint(tc, tr, ep1.p, 0.0, ep2, circleConnectData);
 
-    tnode->addOccupiedSlot(ep2.slot);
+    //---
+
+    int saveSlot = ep2.slot;
+
+    if (isCircleS) {
+      while (true) {
+        bool intersect = false;
+
+        QPainterPath edgePath;
+
+        CQChartsDrawUtil::curvePath(edgePath, ep1.p, ep2.p, edgeType, ep1.angle, ep2.angle);
+
+        for (const auto &ps : tnode->occupiedSlots()) {
+          for (auto *oedge : ps.second) {
+            const auto &opath = edgePaths_[oedge->id()];
+
+            if (edgePath.intersects(opath)) {
+              intersect = true;
+              break;
+            }
+          }
+
+          if (intersect)
+            break;
+        }
+
+        if (! intersect)
+          break;
+
+        //std::cerr << "Path intersect\n";
+
+        circleConnectData.occupiedSlots.insert(ep2.slot);
+
+        CQChartsDrawUtil::circleConnectionPoint(tc, tr, ep1.p, 0.0, ep2, circleConnectData);
+
+        if (ep2.slot == -1) {
+          //std::cerr << "No non-intersect found\n";
+          ep2.slot = saveSlot;
+          break;
+        }
+      }
+    }
+
+    //---
+
+    tnode->addOccupiedSlot(ep2.slot, sedge);
   }
   else
     CQChartsDrawUtil::rectConnectionPoint(tbbox, sbbox, ep2, rectConnectData);
 
   //---
-
-  auto edgeType = calcEdgeShape(sedge);
 
   // calc edge paths
   bool isArrow = isEdgeArrow();
@@ -2984,8 +3052,6 @@ drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
   QPainterPath edgePath, curvePath;
 
   if (! isLine) {
-    double lww = pixelToWindowWidth(lw);
-
     CQChartsDrawUtil::curvePath(edgePath, ep1.p, ep2.p, edgeType, ep1.angle, ep2.angle);
 
     if (isArrow) {
@@ -3013,7 +3079,7 @@ drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
   if (isLine)
     edgePath1 = edgePath;
   else {
-    if (edgeType == CQChartsDrawUtil::EdgeType::RECTILINEAR)
+    if (isRectilinear)
       edgePath1 = curvePath.simplified();
     else
       edgePath1 = curvePath;
@@ -3100,18 +3166,15 @@ calcEdgePenBrush(Edge *sedge, const ColorInd &colorInd, bool &isLine, double &lw
   auto strokeColor = interpEdgeStrokeColor(colorInd);
   auto strokeAlpha = edgeStrokeAlpha();
 
-  if (sedge->isInside()) {
-    isLine = isEdgeLine(sedge, lw, 2.0);
+  isLine = isEdgeLine(sedge, lw, 1.0);
 
+  if (sedge->isInside()) {
     fillColor = insideColor(fillColor);
 
     if (isLine) {
       strokeColor = fillColor;
       strokeAlpha = fillAlpha;
     }
-  }
-  else {
-    isLine = isEdgeLine(sedge, lw, 1.0);
   }
 
   auto penData   = edgePenData(strokeColor, strokeAlpha);
@@ -3133,11 +3196,10 @@ drawEdgeText(PaintDevice *device, Edge *sedge, const ColorInd &colorInd, bool mo
 
   bool visible = false;
 
-  if (! mouseOver) {
+  if (! mouseOver)
     visible = (isEdgeTextVisible() ||
                (sedge->isInside  () && isInsideTextVisible()) ||
                (sedge->isSelected() && isSelectedTextVisible()));
-  }
   else
     visible = true;
 
@@ -3207,30 +3269,13 @@ drawEdgeText(PaintDevice *device, Edge *sedge, const ColorInd &colorInd, bool mo
 
 void
 CQChartsForceDirectedPlot::
-drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
+drawNode(PaintDevice *device, const ForceNodeP &node, Node *snode,
          const ColorInd &colorInd) const
 {
   // calc pen and brush
   PenBrush penBrush;
 
-  auto pc = interpNodeStrokeColor(colorInd);
-
-  QColor fc;
-
-  if (isNodeValueColored()) {
-    auto value = calcNormalizedNodeValue(snode);
-
-    double rvalue = (value.isSet() ? value.real() : 0.0);
-
-    fc = interpColor(nodeFillColor(), ColorInd(rvalue));
-  }
-  else
-    fc = calcNodeFillColor(snode);
-
-  auto brushData = nodeBrushData(fc);
-  auto penData   = nodePenData(pc);
-
-  setPenBrush(penBrush, penData, brushData);
+  calcNodePenBrush(snode, colorInd, penBrush);
 
   view()->updatePenBrushState(colorInd, penBrush, snode->isSelected(), snode->isInside());
 
@@ -3253,69 +3298,131 @@ drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
 
   //---
 
+  snode->setBBox(ebbox);
+
+  //---
+
   // draw text
   auto contrastColor = penBrush.brush.color();
 
   charts()->setContrastColor(contrastColor);
 
-  if (isNodeTextVisible() ||
-      (snode->isInside  () && isInsideTextVisible()) ||
-      (snode->isSelected() && isSelectedTextVisible())) {
-    DrawTextData textData;
-
-    // set text
-    textData.strs << calcNodeLabel(snode);
-
-    if (isNodeValueLabel()) {
-      auto value = calcNodeValue(snode);
-
-      if (value.isSet())
-        textData.strs << QString("%1").arg(value.real());
-    }
-
-    // set font
-    textData.font = nodeTextFont();
-
-    // set text pen
-    auto c = interpNodeTextColor(colorInd);
-
-    setPen(textData.penBrush, PenData(true, c, nodeTextAlpha()));
-
-    // set shape and bbox
-    textData.shape = static_cast<CQChartsForceDirectedPlot::NodeShape>(shape);
-    textData.bbox  = ebbox;
-
-    // set text options
-    textData.textOptions = nodeTextOptions(device);
-
-    textData.textOptions.angle = Angle();
-    textData.textOptions.align = Qt::AlignCenter;
-
-    textData.contrastColor = contrastColor;
-
-    if ((snode->isInside  () && isInsideTextNoClip()) ||
-        (snode->isSelected() && isSelectedTextNoClip()))
-      textData.textOptions.clipLength = -1;
-
-    if ((snode->isInside  () && isInsideTextNoScale()) ||
-        (snode->isSelected() && isSelectedTextNoScale()))
-      textData.textOptions.scaled = false;
-
-    // add to draw list
-    drawTextDatas_.push_back(textData);
-  }
+  drawNodeText(device, snode, colorInd, /*mouseOver*/false);
 
   charts()->resetContrastColor();
 
   //---
 
-  snode->setBBox(ebbox);
+  if (snode->isInside()) {
+    if (isNodeMouseColoring() || isNodeMouseValue())
+      insideDrawNodes_[node] = penBrush;
+  }
+}
+
+void
+CQChartsForceDirectedPlot::
+calcNodePenBrush(Node *snode, const ColorInd &colorInd, PenBrush &penBrush) const
+{
+  // calc pen and brush
+  auto pc = interpNodeStrokeColor(colorInd);
+
+  QColor fc;
+
+  if (isNodeValueColored()) {
+    auto value = calcNormalizedNodeValue(snode);
+
+    double rvalue = (value.isSet() ? value.real() : 0.0);
+
+    fc = interpColor(nodeFillColor(), ColorInd(rvalue));
+  }
+  else
+    fc = calcNodeFillColor(snode);
+
+  auto brushData = nodeBrushData(fc);
+  auto penData   = nodePenData(pc);
+
+  setPenBrush(penBrush, penData, brushData);
+}
+
+void
+CQChartsForceDirectedPlot::
+drawNodeText(PaintDevice *device, Node *snode, const ColorInd &colorInd, bool mouseOver) const
+{
+  bool visible = false;
+
+  if (! mouseOver)
+    visible = (isNodeTextVisible() ||
+               (snode->isInside  () && isInsideTextVisible()) ||
+               (snode->isSelected() && isSelectedTextVisible()));
+  else
+    visible = true;
+
+  if (! visible)
+    return;
 
   //---
 
-  if (snode->isInside()) {
-    if (isNodeMouseColoring())
-      insideDrawNodes_[node] = penBrush;
+  DrawTextData textData;
+
+  // set text
+  textData.strs << calcNodeLabel(snode);
+
+  bool valueVisible = false;
+
+  auto value = calcNodeValue(snode);
+
+  if (value.isSet()) {
+    if (! mouseOver)
+      valueVisible = isNodeValueLabel();
+    else
+      valueVisible = isNodeMouseValue();
+  }
+
+  if (valueVisible)
+    textData.strs << QString("%1").arg(value.real());
+
+  //---
+
+  // set font
+  textData.font = nodeTextFont();
+
+  // set text pen
+  auto c = interpNodeTextColor(colorInd);
+
+  setPen(textData.penBrush, PenData(true, c, nodeTextAlpha()));
+
+  // set shape and bbox
+  auto shape = calcNodeShape(snode);
+
+  textData.shape = static_cast<CQChartsForceDirectedPlot::NodeShape>(shape);
+  textData.bbox  = snode->bbox();
+
+  // set text options
+  textData.textOptions = nodeTextOptions(device);
+
+  textData.textOptions.angle = Angle();
+  textData.textOptions.align = Qt::AlignCenter;
+
+  textData.contrastColor = charts()->contrastColor();
+
+  if ((snode->isInside  () && isInsideTextNoClip()) ||
+      (snode->isSelected() && isSelectedTextNoClip()))
+    textData.textOptions.clipLength = -1;
+
+  if ((snode->isInside  () && isInsideTextNoScale()) ||
+      (snode->isSelected() && isSelectedTextNoScale()))
+    textData.textOptions.scaled = false;
+
+  if (mouseOver) {
+    drawTextData(device, textData);
+  }
+  else {
+    // node name and value will be drawn later
+    if (snode->isInside() && isNodeMouseValue())
+      return;
+
+    // add to draw list
+    drawTextDatas_.push_back(textData);
   }
 }
 
@@ -3377,10 +3484,15 @@ drawTextData(PaintDevice *device, const DrawTextData &textData) const
 
 void
 CQChartsForceDirectedPlot::
-drawNodeEdges(PaintDevice *device, const NodeP &node) const
+drawNodeInside(PaintDevice *device, const ForceNodeP &node) const
 {
   if (! forceDirected_)
     return;
+
+  auto *snode = dynamic_cast<Node *>(node.get());
+  assert(snode);
+
+  drawNodeText(device, snode, ColorInd(), /*mouseOver*/true);
 
   auto edges = forceDirected_->getEdges(node);
 
@@ -3394,20 +3506,25 @@ drawNodeEdges(PaintDevice *device, const NodeP &node) const
 
 void
 CQChartsForceDirectedPlot::
-drawEdgeNodes(PaintDevice *device, const EdgeP &edge) const
+drawEdgeInside(PaintDevice *device, const ForceEdgeP &edge) const
 {
   if (! forceDirected_)
     return;
 
-  auto *snode1 = dynamic_cast<Node *>(edge->source().get());
-  auto *snode2 = dynamic_cast<Node *>(edge->target().get());
-  assert(snode1 && snode2);
+  // draw connected edges if edge coloring
+  if (isEdgeMouseColoring()) {
+    auto *snode1 = dynamic_cast<Node *>(edge->source().get());
+    auto *snode2 = dynamic_cast<Node *>(edge->target().get());
+    assert(snode1 && snode2);
 
-  drawNodeShape(device, nodeShapes_[snode1->id()]);
-  drawNodeShape(device, nodeShapes_[snode2->id()]);
+    drawNodeShape(device, nodeShapes_[snode1->id()]);
+    drawNodeShape(device, nodeShapes_[snode2->id()]);
+  }
 
+  // draw edge value if mouse value and not already displayed
   if (isEdgeMouseValue() && ! isEdgeValueLabel()) {
     auto *sedge = dynamic_cast<Edge *>(edge.get());
+    assert(sedge);
 
     drawEdgeText(device, sedge, ColorInd(), /*mouseOver*/true);
   }
@@ -3464,7 +3581,7 @@ calcEdgeShape(Edge *sedge) const
 
 CQChartsGeom::BBox
 CQChartsForceDirectedPlot::
-nodeBBox(const CForceDirected::NodeP &node, Node *snode) const
+nodeBBox(const ForceNodeP &node, Node *snode) const
 {
   OptReal optValue;
 
@@ -3492,10 +3609,11 @@ nodeBBox(const CForceDirected::NodeP &node, Node *snode) const
 
 CQChartsGeom::BBox
 CQChartsForceDirectedPlot::
-edgeBBox(const CForceDirected::EdgeP &, Edge *sedge) const
+edgeBBox(const ForceEdgeP &, Edge *sedge) const
 {
   auto *snode = dynamic_cast<Node *>(sedge->source().get());
   auto *tnode = dynamic_cast<Node *>(sedge->target().get());
+  assert(snode && tnode);
 
   auto sbbox = nodeBBox(sedge->source(), snode);
   auto tbbox = nodeBBox(sedge->target(), tnode);
@@ -3619,14 +3737,14 @@ calcNormalizedEdgeWidth(Edge *edge) const
 
 CQChartsForceDirectedNodeObj *
 CQChartsForceDirectedPlot::
-createNodeObj(CForceDirected::NodeP node, const BBox &bbox) const
+createNodeObj(ForceNodeP node, const BBox &bbox) const
 {
   return new NodeObj(this, node, bbox);
 }
 
 CQChartsForceDirectedEdgeObj *
 CQChartsForceDirectedPlot::
-createEdgeObj(CForceDirected::EdgeP edge, const BBox &bbox) const
+createEdgeObj(ForceEdgeP edge, const BBox &bbox) const
 {
   return new EdgeObj(this, edge, bbox);
 }
@@ -3652,7 +3770,7 @@ createCustomControls()
 
 CQChartsForceDirectedNodeObj::
 CQChartsForceDirectedNodeObj(const ForceDirectedPlot *forceDirectedPlot,
-                             CForceDirected::NodeP node, const BBox &bbox) :
+                             ForceNodeP node, const BBox &bbox) :
  CQChartsPlotObj(const_cast<ForceDirectedPlot *>(forceDirectedPlot), bbox,
                  ColorInd(), ColorInd(), ColorInd()),
  forceDirectedPlot_(forceDirectedPlot), node_(node)
@@ -3740,7 +3858,7 @@ getObjSelectIndices(Indices &inds) const
 
 CQChartsForceDirectedEdgeObj::
 CQChartsForceDirectedEdgeObj(const ForceDirectedPlot *forceDirectedPlot,
-                             CForceDirected::EdgeP edge, const BBox &bbox) :
+                             ForceEdgeP edge, const BBox &bbox) :
  CQChartsPlotObj(const_cast<ForceDirectedPlot *>(forceDirectedPlot), bbox,
                  ColorInd(), ColorInd(), ColorInd()),
  forceDirectedPlot_(forceDirectedPlot), edge_(edge)

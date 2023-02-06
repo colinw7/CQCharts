@@ -121,6 +121,12 @@ class CForceDirected {
     layout_->calcRange(xmin, ymin, xmax, ymax);
   }
 
+  void adjustRange(double &xmin, double &ymin, double &xmax, double &ymax) {
+    init();
+
+    layout_->adjustRange(xmin, ymin, xmax, ymax);
+  }
+
  protected:
   void init() const {
     if (! initialized_) {

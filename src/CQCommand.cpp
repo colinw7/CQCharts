@@ -37,6 +37,8 @@ init()
 
   connect(command_, SIGNAL(executeCommand(const QString &)),
           this, SIGNAL(executeCommand(const QString &)));
+  connect(command_, SIGNAL(keyPress(const QString &)),
+          this, SIGNAL(keyPress(const QString &)));
 
   connect(command_, SIGNAL(scrollEnd()), this, SLOT(updateScroll()));
 
@@ -558,6 +560,8 @@ keyPressEvent(QKeyEvent *event)
   auto key = event->key();
   auto mod = event->modifiers();
 
+  QKeySequence ks(event->key() | event->modifiers());
+
   if (key == Qt::Key_Return || key == Qt::Key_Enter) {
     auto str = getText(); // copy as entry is cleared
 
@@ -566,9 +570,9 @@ keyPressEvent(QKeyEvent *event)
 
       entry_.clear();
 
-      emit executeCommand(str);
+      Q_EMIT executeCommand(str);
 
-      emit scrollEnd();
+      Q_EMIT scrollEnd();
 
       commands_.push_back(str);
 
@@ -681,6 +685,8 @@ keyPressEvent(QKeyEvent *event)
   }
 
   update();
+
+  Q_EMIT keyPress(ks.toString());
 }
 
 void
@@ -954,6 +960,13 @@ completionCancelledSlot()
     eventLoop_->exit();
 }
 
+void
+CommandWidget::
+clearEntry()
+{
+  entry_.clear();
+}
+
 //------
 
 CommandWidget::Line::
@@ -1054,7 +1067,7 @@ event(QEvent *e)
     QKeyEvent *ke = static_cast<QKeyEvent *>(e);
 
     if      (ke->key() == Qt::Key_Escape) {
-      emit itemCancelled();
+      Q_EMIT itemCancelled();
 
       hide();
 
@@ -1064,7 +1077,7 @@ event(QEvent *e)
     }
     else if (ke->key() == Qt::Key_Return || ke->key() == Qt::Key_Enter) {
       if (currentItem())
-        emit itemSelected(currentItem()->text());
+        Q_EMIT itemSelected(currentItem()->text());
 
       hide();
 

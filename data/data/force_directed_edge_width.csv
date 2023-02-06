@@ -1,4 +1,4 @@
-From,To,Value,Width
-A,B,10,2000
-B,C,100,200
-C,A,1000,20
+From,To,Value,Width,Attributes
+A,B,10,2000,src_value=300
+B,C,100,200,src_value=250
+C,A,1000,20,src_value=100

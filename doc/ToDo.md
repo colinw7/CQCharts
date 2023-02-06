@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + better mouse/select coloring
+
  + animate objects (specify key and animate new/old)
  + support CSV with multiple tables
  + axis fit stability with large labels (use clip length if fixed ?)

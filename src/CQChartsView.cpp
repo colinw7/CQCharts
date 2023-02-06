@@ -5597,22 +5597,42 @@ updateInsidePenBrushState(const ColorInd &colorInd, PenBrush &penBrush,
   }
   // just stroke
   else {
-    auto pc = penBrush.pen.color();
+    if      (insideMode() == CQChartsView::HighlightDataMode::OUTLINE) {
+      auto pc = penBrush.pen.color();
 
-    charts()->setContrastColor(pc);
+      charts()->setContrastColor(pc);
 
-    QColor opc;
+      QColor opc;
 
-    if (isInsideStroked())
-      opc = interpInsideStrokeColor(colorInd);
-    else
-      opc = CQChartsUtil::invColor(pc);
+      if (isInsideStroked())
+        opc = interpInsideStrokeColor(colorInd);
+      else
+        opc = CQChartsUtil::invColor(pc);
 
-    Alpha alpha(pc.alphaF());
+      Alpha alpha(pc.alphaF());
 
-    setPen(penBrush, PenData(true, opc, alpha, insideStrokeWidth(), insideStrokeDash()));
+      setPen(penBrush, PenData(true, opc, alpha, insideStrokeWidth(), insideStrokeDash()));
 
-    charts()->resetContrastColor();
+      charts()->resetContrastColor();
+    }
+    else if (insideMode() == CQChartsView::HighlightDataMode::FILL) {
+      auto bc = penBrush.brush.color();
+
+      charts()->setContrastColor(bc);
+
+      QColor obc;
+
+      if (isInsideFilled())
+        obc = interpInsideFillColor(colorInd);
+      else
+        obc = CQChartsUtil::invColor(bc);
+
+      Alpha alpha(bc.alphaF());
+
+      setPen(penBrush, PenData(true, obc, alpha, insideStrokeWidth(), insideStrokeDash()));
+
+      charts()->resetContrastColor();
+    }
   }
 }
 

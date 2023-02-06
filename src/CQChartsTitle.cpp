@@ -255,7 +255,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
     setDesc("Subtitle text string");
 
   subTitle_->addTextDataProperties(model, subTitlePath, "Subtitle",
-                                   PropertyType::VISIBLE | PropertyType::ALIGN);
+    (PropertyType::VISIBLE | PropertyType::BASIC | PropertyType::ALIGN) & ~PropertyType::ANGLE);
 }
 
 CQChartsGeom::Point

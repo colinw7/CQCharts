@@ -1658,21 +1658,21 @@ updateWidgets()
   QStringList names;
 
   if      (type == CQChartsConnectionPlot::ColumnDataType::HIER)
-    names = (QStringList() << "link" << "value");
+    names << "link" << "value";
   else if (type == CQChartsConnectionPlot::ColumnDataType::LINK) {
-    names = (QStringList() << "group" << "link" << "value" << "name");
+    names << "group" << "link" << "value" << "name";
     if (hasDepthColumn_) names << "depth";
   }
   else if (type == CQChartsConnectionPlot::ColumnDataType::CONNECTIONS)
-    names = (QStringList() << "group" << "node" << "connections" << "name");
+    names << "group" << "node" << "connections" << "name";
   else if (type == CQChartsConnectionPlot::ColumnDataType::PATH)
-    names = (QStringList() << "path" << "value");
+    names << "path" << "value";
   else if (type == CQChartsConnectionPlot::ColumnDataType::FROM_TO) {
-    names = (QStringList() << "group" << "from" << "to" << "value");
+    names << "group" << "from" << "to" << "value";
     if (hasDepthColumn_) names << "depth";
   }
   else if (type == CQChartsConnectionPlot::ColumnDataType::TABLE)
-    names = (QStringList() << "group" << "link");
+    names << "group" << "link";
 
   addExtraShowColumns(names);
 

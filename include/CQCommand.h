@@ -23,6 +23,13 @@ enum class LineType {
 
 //---
 
+// Scroll Area containing command widget
+//
+// Override createCommandWidget API to provide own dervied class for command widget
+//
+// Call init after construction to setup
+//
+// Connected to executeCommand signal to execute entered command
 class ScrollArea : public CQScrollArea {
   Q_OBJECT
 
@@ -46,8 +53,9 @@ class ScrollArea : public CQScrollArea {
  public Q_SLOTS:
   void updateScroll();
 
- signals:
+ Q_SIGNALS:
   void executeCommand(const QString &);
+  void keyPress(const QString &);
 
  private:
   CommandWidget *command_     { nullptr };
@@ -56,6 +64,13 @@ class ScrollArea : public CQScrollArea {
 
 //---
 
+// Command Widget containing terminal prompt and output
+//
+// Override textChanged to handle text changes (before enter)
+//
+// Override posColor to provide syntax highlighting
+//
+// Override complete to provide command completion
 class CommandWidget : public QFrame {
   Q_OBJECT
 
@@ -220,6 +235,8 @@ class CommandWidget : public QFrame {
 
   virtual void textChanged() { }
 
+  //---
+
   virtual QColor posColor(int /*pos*/) const { return QColor(); }
 
   virtual bool isCompleteLine(const QString &str) const;
@@ -234,6 +251,8 @@ class CommandWidget : public QFrame {
   QString showCompletionChooser(const QStringList &strs, bool modal=true);
 
   //---
+
+  void clearEntry();
 
  protected:
   const QString &getText() const;
@@ -265,8 +284,9 @@ class CommandWidget : public QFrame {
 
   QString selectedText() const;
 
- signals:
+ Q_SIGNALS:
   void executeCommand(const QString &);
+  void keyPress(const QString &);
 
   void scrollEnd();
 
@@ -339,7 +359,7 @@ class CompletionList : public QListWidget {
 
   bool event(QEvent *event) override;
 
- signals:
+ Q_SIGNALS:
   void itemSelected(const QString &);
   void itemCancelled();
 

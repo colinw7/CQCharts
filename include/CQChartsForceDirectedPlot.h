@@ -68,10 +68,10 @@ class CQChartsForceDirectedNodeObj : public CQChartsPlotObj {
  public:
   using ForceDirectedPlot = CQChartsForceDirectedPlot;
   using Node              = CQChartsForceDirectedNode;
+  using ForceNodeP        = CForceDirected::NodeP;
 
  public:
-  CQChartsForceDirectedNodeObj(const ForceDirectedPlot *plot, CForceDirected::NodeP node,
-                               const BBox &bbox);
+  CQChartsForceDirectedNodeObj(const ForceDirectedPlot *plot, ForceNodeP node, const BBox &bbox);
 
   virtual ~CQChartsForceDirectedNodeObj() { }
 
@@ -91,7 +91,7 @@ class CQChartsForceDirectedNodeObj : public CQChartsPlotObj {
 
  protected:
   const ForceDirectedPlot* forceDirectedPlot_ { nullptr }; //!< parent plot
-  CForceDirected::NodeP    node_;                          //!< associated node
+  ForceNodeP               node_;                          //!< associated node
 };
 
 /*!
@@ -106,10 +106,11 @@ class CQChartsForceDirectedEdgeObj : public CQChartsPlotObj {
  public:
   using ForceDirectedPlot = CQChartsForceDirectedPlot;
   using Edge              = CQChartsForceDirectedEdge;
+  using ForceEdgeP        = CForceDirected::EdgeP;
+  using ForceNodeP        = CForceDirected::NodeP;
 
  public:
-  CQChartsForceDirectedEdgeObj(const ForceDirectedPlot *plot, CForceDirected::EdgeP edge,
-                               const BBox &bbox);
+  CQChartsForceDirectedEdgeObj(const ForceDirectedPlot *plot, ForceEdgeP edge, const BBox &bbox);
 
   virtual ~CQChartsForceDirectedEdgeObj() { }
 
@@ -129,7 +130,7 @@ class CQChartsForceDirectedEdgeObj : public CQChartsPlotObj {
 
  protected:
   const ForceDirectedPlot* forceDirectedPlot_ { nullptr }; //!< parent plot
-  CForceDirected::EdgeP    edge_;                          //!< associated edge
+  ForceEdgeP               edge_;                          //!< associated edge
 };
 
 //---
@@ -165,6 +166,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool           nodeValueColored  READ isNodeValueColored  WRITE setNodeValueColored )
   Q_PROPERTY(bool           nodeValueLabel    READ isNodeValueLabel    WRITE setNodeValueLabel   )
   Q_PROPERTY(bool           nodeMouseColoring READ isNodeMouseColoring WRITE setNodeMouseColoring)
+  Q_PROPERTY(bool           nodeMouseValue    READ isNodeMouseValue    WRITE setNodeMouseValue   )
   Q_PROPERTY(QString        nodeTipNameLabel  READ nodeTipNameLabel    WRITE setNodeTipNameLabel )
   Q_PROPERTY(QString        nodeTipValueLabel READ nodeTipValueLabel   WRITE setNodeTipValueLabel)
 
@@ -225,16 +227,19 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     ARC         = int(CQChartsEdgeType::ARC)
   };
 
-  using NodeObj   = CQChartsForceDirectedNodeObj;
-  using EdgeObj   = CQChartsForceDirectedEdgeObj;
-  using Length    = CQChartsLength;
-  using Color     = CQChartsColor;
-  using Alpha     = CQChartsAlpha;
-  using Angle     = CQChartsAngle;
-  using PenBrush  = CQChartsPenBrush;
-  using PenData   = CQChartsPenData;
-  using BrushData = CQChartsBrushData;
-  using ColorInd  = CQChartsUtil::ColorInd;
+  using NodeObj    = CQChartsForceDirectedNodeObj;
+  using EdgeObj    = CQChartsForceDirectedEdgeObj;
+  using SpringVec  = Springy::Vector;
+  using ForceEdgeP = CForceDirected::EdgeP;
+  using ForceNodeP = CForceDirected::NodeP;
+  using Length     = CQChartsLength;
+  using Color      = CQChartsColor;
+  using Alpha      = CQChartsAlpha;
+  using Angle      = CQChartsAngle;
+  using PenBrush   = CQChartsPenBrush;
+  using PenData    = CQChartsPenData;
+  using BrushData  = CQChartsBrushData;
+  using ColorInd   = CQChartsUtil::ColorInd;
 
   struct DrawTextData {
     CQChartsFont        font;
@@ -349,6 +354,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   //! get/set node edges colored on mouse over
   bool isNodeMouseColoring() const { return nodeDrawData_.mouseColoring; }
   void setNodeMouseColoring(bool b);
+
+  //! get/set show node value on mouse over
+  bool isNodeMouseValue() const { return nodeDrawData_.mouseValue; }
+  void setNodeMouseValue(bool b);
 
   //! get/set node tip name label
   const QString &nodeTipNameLabel() const { return nodeDrawData_.tipNameLabel; }
@@ -592,7 +601,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
-  void drawEdge(PaintDevice *device, const CForceDirected::EdgeP &edge, Edge *sedge,
+  void drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge,
                 const ColorInd &colorInd) const;
 
   bool isEdgeLine(Edge *sedge, double &lw, double tol) const;
@@ -605,15 +614,21 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
-  void drawNode(PaintDevice *device, const CForceDirected::NodeP &node, Node *snode,
+  void drawNode(PaintDevice *device, const ForceNodeP &node, Node *snode,
                 const ColorInd &colorInd) const;
+
+  void calcNodePenBrush(Node *snode, const ColorInd &colorInd,
+                        PenBrush &penBrush) const;
+
+  void drawNodeText(PaintDevice *device, Node *snode, const ColorInd &colorInd,
+                    bool mouseOver) const;
 
   void drawNodeShape(PaintDevice *device, const NodeShapeBBox &nodeShape) const;
 
   //---
 
-  void drawNodeEdges(PaintDevice *device, const CForceDirected::NodeP &node) const;
-  void drawEdgeNodes(PaintDevice *device, const CForceDirected::EdgeP &edge) const;
+  void drawNodeInside(PaintDevice *device, const ForceNodeP &node) const;
+  void drawEdgeInside(PaintDevice *device, const ForceEdgeP &edge) const;
 
   //---
 
@@ -710,8 +725,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Node::Shape calcNodeShape(Node *snode) const;
   Edge::Shape calcEdgeShape(Edge *sedge) const;
 
-  BBox nodeBBox(const CForceDirected::NodeP &node, Node *snode) const;
-  BBox edgeBBox(const CForceDirected::EdgeP &edge, Edge *sedge) const;
+  BBox nodeBBox(const ForceNodeP &node, Node *snode) const;
+  BBox edgeBBox(const ForceEdgeP &edge, Edge *sedge) const;
 
   OptReal calcNodeValue(Node *node) const;
   OptReal calcNormalizedNodeValue(Node *node) const;
@@ -730,8 +745,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
-  virtual NodeObj *createNodeObj(CForceDirected::NodeP node, const BBox &bbox) const;
-  virtual EdgeObj *createEdgeObj(CForceDirected::EdgeP edge, const BBox &bbox) const;
+  virtual NodeObj *createNodeObj(ForceNodeP node, const BBox &bbox) const;
+  virtual EdgeObj *createEdgeObj(ForceEdgeP edge, const BBox &bbox) const;
 
  private Q_SLOTS:
   void busyButtonSlot(bool);
@@ -743,9 +758,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
-  using NodeP           = CForceDirected::NodeP;
-  using EdgeP           = CForceDirected::EdgeP;
-  using NodeMap         = std::map<int, NodeP>;
+  using NodeMap         = std::map<int, ForceNodeP>;
   using ConnectionNodes = std::map<int, int>;
   using ForceDirected   = CQChartsForceDirected;
   using ForceDirectedP  = std::unique_ptr<ForceDirected>;
@@ -770,6 +783,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     bool      valueColored  { false };             //!< is node colored by value
     bool      valueLabel    { false };             //!< show value as label
     bool      mouseColoring { false };             //!< is node edges colored on mouse over
+    bool      mouseValue    { false };             //!< show node value on mouse over
     QString   tipNameLabel;                        //!< tip label for node name
     QString   tipValueLabel;                       //!< tip label for node value
   };
@@ -807,7 +821,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool showBusyButton_     { true }; //!< show busy button when animating
   bool autoHideBusyButton_ { true }; //!< auto hide busy button when not animating
 
-  CQBusyButton *busyButton_ { nullptr }; //!< bust button
+  CQBusyButton *busyButton_ { nullptr }; //!< busy button
 
   // connection data
   IdConnectionsData idConnections_;             //!< id connections
@@ -860,8 +874,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     InsideDrawData(const PenBrush &p) : penBrush(p) { }
   };
 
-  using InsideDrawEdges = std::map<EdgeP, InsideDrawData>;
-  using InsideDrawNodes = std::map<NodeP, InsideDrawData>;
+  using InsideDrawEdges = std::map<ForceEdgeP, InsideDrawData>;
+  using InsideDrawNodes = std::map<ForceNodeP, InsideDrawData>;
 
   mutable InsideDrawEdges insideDrawEdges_;
   mutable InsideDrawNodes insideDrawNodes_;

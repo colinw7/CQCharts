@@ -7904,6 +7904,9 @@ CQChartsObj *
 CQChartsPlot::
 objectsSelectDoubleClick(const Point &w, SelMod selMod)
 {
+  if (! useObjTree())
+    return nullptr;
+
   // get selectable objects and annotations at point
   Objs objs;
 

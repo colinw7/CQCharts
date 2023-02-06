@@ -290,30 +290,36 @@ bool intersectLines(double x11, double y11, double x21, double y21,
 
 namespace CQChartsUtil {
 
+// get gray value of color (integer 0-255) (ignoring alpha)
 int grayValue(const QColor &c) {
   return qGray(c.red(), c.green(), c.blue());
 }
 
+// get gray color of color (QColor) (ignoring alpha)
 QColor grayColor(const QColor &c) {
   int g = grayValue(c);
 
   return QColor(g, g, g);
 }
 
+// get black or white color nearest to color (ignoring alpha)
 QColor bwColor(const QColor &c) {
   int g = qGray(c.red(), c.green(), c.blue());
 
   return (g > 128 ? QColor(Qt::black) : QColor(Qt::white));
 }
 
+// get inverted color (r,g,b only)
 QColor invColor(const QColor &c) {
-  return QColor(255 - c.red(), 255 - c.green(), 255 - c.blue());
+  return QColor(255 - c.red(), 255 - c.green(), 255 - c.blue(), c.alpha());
 }
 
+// blend two colors using specified alpha as factor
 QColor blendColors(const QColor &c1, const QColor &c2, const CQChartsAlpha &a) {
   return blendColors(c1, c2, a.value());
 }
 
+// blend two colors using specified factor (0-1) (first color is f, second is 1-f)
 QColor blendColors(const QColor &c1, const QColor &c2, double f) {
   double f1 = 1.0 - f;
 
@@ -325,6 +331,7 @@ QColor blendColors(const QColor &c1, const QColor &c2, double f) {
   return rgbaToColor(r, g, b, a);
 }
 
+// blend list of colors (no alpha), factor is evenly spread
 QColor blendColors(const std::vector<QColor> &colors) {
   if (colors.empty())
     return QColor();
@@ -344,12 +351,14 @@ QColor blendColors(const std::vector<QColor> &colors) {
   return rgbToColor(r, g, b);
 }
 
+// QColor from r, g, b (0-1)
 QColor rgbToColor(double r, double g, double b) {
   return QColor(CMathUtil::clamp(int(255*r), 0, 255),
                 CMathUtil::clamp(int(255*g), 0, 255),
                 CMathUtil::clamp(int(255*b), 0, 255));
 }
 
+// QColor from r, g, b, a (0-1)
 QColor rgbaToColor(double r, double g, double b, double a) {
   return QColor(CMathUtil::clamp(int(255*r), 0, 255),
                 CMathUtil::clamp(int(255*g), 0, 255),
@@ -357,6 +366,7 @@ QColor rgbaToColor(double r, double g, double b, double a) {
                 CMathUtil::clamp(int(255*a), 0, 255));
 }
 
+// QColor from string (HTML color names)
 QColor stringToColor(const QString &str) {
   // TODO: X11 colors ?
   return QColor(str);

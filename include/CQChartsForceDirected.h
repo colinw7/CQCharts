@@ -14,14 +14,14 @@ class CQChartsForceDirectedEdge;
  */
 class CQChartsForceDirectedNode : public Springy::Node {
  public:
+  using Edge    = CQChartsForceDirectedEdge;
   using Shape   = CQChartsNodeType;
   using Color   = CQChartsColor;
   using OptReal = CQChartsOptReal;
   using BBox    = CQChartsGeom::BBox;
 
-  using Slots = std::set<int>;
-
-  using EdgeSet = std::set<CQChartsForceDirectedEdge *>;
+  using EdgeSet = std::set<Edge *>;
+  using Slots   = std::map<int, EdgeSet>;
 
  public:
   explicit CQChartsForceDirectedNode(int id) :
@@ -56,14 +56,17 @@ class CQChartsForceDirectedNode : public Springy::Node {
 
   const Slots &occupiedSlots() { return occupiedSlots_; }
   void clearOccupiedSlots() { occupiedSlots_.clear(); }
-  void addOccupiedSlot(int slot) { occupiedSlots_.insert(slot); }
+
+  void addOccupiedSlot(int slot, Edge *edge) {
+    occupiedSlots_[slot].insert(edge);
+  }
 
   int numInEdges() const { return inEdges_.size(); }
-  void addInEdge(CQChartsForceDirectedEdge *edge) { inEdges_.insert(edge); }
+  void addInEdge(Edge *edge) { inEdges_.insert(edge); }
   const EdgeSet &inEdges() const { return inEdges_; }
 
   int numOutEdges() const { return outEdges_.size(); }
-  void addOutEdge(CQChartsForceDirectedEdge *edge) { outEdges_.insert(edge); }
+  void addOutEdge(Edge *edge) { outEdges_.insert(edge); }
   const EdgeSet &outEdges() const { return outEdges_; }
 
  private:

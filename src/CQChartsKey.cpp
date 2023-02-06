@@ -471,17 +471,18 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   addHeaderProp("header", "string", "string");
 
-  addHeaderStyleProp("headerTextColor"     , "color"     , "header text color");
-  addHeaderStyleProp("headerTextAlpha"     , "alpha"     , "header text alpha");
-  addHeaderStyleProp("headerTextFont"      , "font"      , "header text font");
-//addHeaderStyleProp("headerTextAngle"     , "angle"     , "header text angle");
-  addHeaderStyleProp("headerTextContrast"  , "contrast"  , "header text contrast");
-  addHeaderStyleProp("headerTextAlign"     , "align"     , "header text align");
-  addHeaderStyleProp("headerTextFormatted" , "formatted" , "header text formatted to fit box");
-  addHeaderStyleProp("headerTextScaled"    , "scaled"    , "header text scaled to box");
-  addHeaderStyleProp("headerTextHtml"      , "html"      , "header text is html");
-  addHeaderStyleProp("headerTextClipLength", "clipLength", "header text clipped to length");
-  addHeaderStyleProp("headerTextClipElide" , "clipElide" , "header text clip elide");
+  addHeaderStyleProp("headerTextColor"        , "color"        , "color");
+  addHeaderStyleProp("headerTextAlpha"        , "alpha"        , "alpha");
+  addHeaderStyleProp("headerTextFont"         , "font"         , "font");
+//addHeaderStyleProp("headerTextAngle"        , "angle"        , "angle");
+  addHeaderStyleProp("headerTextContrast"     , "contrast"     , "contrast");
+  addHeaderStyleProp("headerTextContrastAlpha", "contrastAlpha", "contrast alpha");
+  addHeaderStyleProp("headerTextAlign"        , "align"        , "align");
+  addHeaderStyleProp("headerTextFormatted"    , "formatted"    , "formatted to fit box");
+  addHeaderStyleProp("headerTextScaled"       , "scaled"       , "scaled to box");
+  addHeaderStyleProp("headerTextHtml"         , "html"         , "is html");
+  addHeaderStyleProp("headerTextClipLength"   , "clipLength"   , "clipped to length");
+  addHeaderStyleProp("headerTextClipElide"    , "clipElide"    , "clip elide");
 
   //---
 
@@ -510,17 +511,18 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   //---
 
-  addTextStyleProp("textColor"     , "color"     , "text color");
-  addTextStyleProp("textAlpha"     , "alpha"     , "text alpha");
-  addTextStyleProp("textFont"      , "font"      , "text font");
-//addTextStyleProp("textAngle"     , "angle"     , "text angle");
-  addTextStyleProp("textContrast"  , "contrast"  , "text contrast");
-  addTextStyleProp("textAlign"     , "align"     , "text align");
-  addTextStyleProp("textFormatted" , "formatted" , "text formatted to fit box");
-  addTextStyleProp("textScaled"    , "scaled"    , "text scaled to box");
-  addTextStyleProp("textHtml"      , "html"      , "text is html");
-  addTextStyleProp("textClipLength", "clipLength", "text clipped to length");
-  addTextStyleProp("textClipElide" , "clipElide" , "text clip elide");
+  addTextStyleProp("textColor"        , "color"        , "color");
+  addTextStyleProp("textAlpha"        , "alpha"        , "alpha");
+  addTextStyleProp("textFont"         , "font"         , "font");
+//addTextStyleProp("textAngle"        , "angle"        , "angle");
+  addTextStyleProp("textContrast"     , "contrast"     , "contrast");
+  addTextStyleProp("textContrastAlpha", "contrastAlpha", "contrast alpha");
+  addTextStyleProp("textAlign"        , "align"        , "align");
+  addTextStyleProp("textFormatted"    , "formatted"    , "formatted to fit box");
+  addTextStyleProp("textScaled"       , "scaled"       , "scaled to box");
+  addTextStyleProp("textHtml"         , "html"         , "is html");
+  addTextStyleProp("textClipLength"   , "clipLength"   , "clipped to length");
+  addTextStyleProp("textClipElide"    , "clipElide"    , "clip elide");
 }
 
 int
@@ -1171,17 +1173,18 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   addHeaderProp("header", "string", "string");
 
-  addHeaderStyleProp("headerTextColor"     , "color"     , "header text color");
-  addHeaderStyleProp("headerTextAlpha"     , "alpha"     , "header text alpha");
-  addHeaderStyleProp("headerTextFont"      , "font"      , "header text font");
-//addHeaderStyleProp("headerTextAngle"     , "angle"     , "header text angle");
-  addHeaderStyleProp("headerTextContrast"  , "contrast"  , "header text contrast");
-  addHeaderStyleProp("headerTextAlign"     , "align"     , "header text align");
-  addHeaderStyleProp("headerTextFormatted" , "formatted" , "header text formatted to fit box");
-  addHeaderStyleProp("headerTextScaled"    , "scaled"    , "header text scaled to box");
-  addHeaderStyleProp("headerTextHtml"      , "html"      , "header text is html");
-  addHeaderStyleProp("headerTextClipLength", "clipLength", "header text clipped to length");
-  addHeaderStyleProp("headerTextClipElide" , "clipElide" , "header text clip elide");
+  addHeaderStyleProp("headerTextColor"        , "color"        , "color");
+  addHeaderStyleProp("headerTextAlpha"        , "alpha"        , "alpha");
+  addHeaderStyleProp("headerTextFont"         , "font"         , "font");
+//addHeaderStyleProp("headerTextAngle"        , "angle"        , "angle");
+  addHeaderStyleProp("headerTextContrast"     , "contrast"     , "contrast");
+  addHeaderStyleProp("headerTextContrastAlpha", "contrastAlpha", "contrast alpha");
+  addHeaderStyleProp("headerTextAlign"        , "align"        , "align");
+  addHeaderStyleProp("headerTextFormatted"    , "formatted"    , "formatted to fit box");
+  addHeaderStyleProp("headerTextScaled"       , "scaled"       , "scaled to box");
+  addHeaderStyleProp("headerTextHtml"         , "html"         , "is html");
+  addHeaderStyleProp("headerTextClipLength"   , "clipLength"   , "clipped to length");
+  addHeaderStyleProp("headerTextClipElide"    , "clipElide"    , "clip elide");
 
   //---
 
@@ -1210,17 +1213,18 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   //---
 
-  addTextStyleProp("textColor"     , "color"     , "text color");
-  addTextStyleProp("textAlpha"     , "alpha"     , "text alpha");
-  addTextStyleProp("textFont"      , "font"      , "text font");
-//addTextStyleProp("textAngle"     , "angle"     , "text angle");
-  addTextStyleProp("textContrast"  , "contrast"  , "text contrast");
-  addTextStyleProp("textAlign"     , "align"     , "text align");
-  addTextStyleProp("textFormatted" , "formatted" , "text formatted to fit box");
-  addTextStyleProp("textScaled"    , "scaled"    , "text scaled to box");
-  addTextStyleProp("textHtml"      , "html"      , "text is html");
-  addTextStyleProp("textClipLength", "clipLength", "text clipped to length");
-  addTextStyleProp("textClipElide" , "clipElide" , "text clip elide");
+  addTextStyleProp("textColor"        , "color"        , "color");
+  addTextStyleProp("textAlpha"        , "alpha"        , "alpha");
+  addTextStyleProp("textFont"         , "font"         , "font");
+//addTextStyleProp("textAngle"        , "angle"        , "angle");
+  addTextStyleProp("textContrast"     , "contrast"     , "contrast");
+  addTextStyleProp("textContrastAlpha", "contrastAlpha", "contrast alpha");
+  addTextStyleProp("textAlign"        , "align"        , "align");
+  addTextStyleProp("textFormatted"    , "formatted"    , "formatted to fit box");
+  addTextStyleProp("textScaled"       , "scaled"       , "scaled to box");
+  addTextStyleProp("textHtml"         , "html"         , "is html");
+  addTextStyleProp("textClipLength"   , "clipLength"   , "clipped to length");
+  addTextStyleProp("textClipElide"    , "clipElide"    , "clip elide");
 }
 
 void
