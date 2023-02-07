@@ -5641,7 +5641,7 @@ CQChartsView::
 updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawType drawType) const
 {
   // fill and stroke
-  if      (drawType != DrawType::LINE) {
+  if (drawType != DrawType::LINE) {
     // outline box, symbol
     if      (selectedMode() == CQChartsView::HighlightDataMode::OUTLINE) {
       QColor opc;
@@ -5710,23 +5710,45 @@ updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawTy
     }
   }
   // just stroke
-  else if (penBrush.pen.style() != Qt::NoPen) {
-    auto pc = penBrush.pen.color();
+  else {
+    if      (selectedMode() == CQChartsView::HighlightDataMode::OUTLINE) {
+      if (penBrush.pen.style() != Qt::NoPen) {
+        auto pc = penBrush.pen.color();
 
-    charts()->setContrastColor(pc);
+        charts()->setContrastColor(pc);
 
-    QColor opc;
+        QColor opc;
 
-    if (isSelectedStroked())
-      opc = interpSelectedStrokeColor(colorInd);
-    else
-      opc = CQChartsUtil::invColor(pc);
+        if (isSelectedStroked())
+          opc = interpSelectedStrokeColor(colorInd);
+        else
+          opc = CQChartsUtil::invColor(pc);
 
-    Alpha alpha(pc.alphaF());
+        Alpha alpha(pc.alphaF());
 
-    setPen(penBrush, PenData(true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
+        setPen(penBrush, PenData(true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
 
-    charts()->resetContrastColor();
+        charts()->resetContrastColor();
+      }
+    }
+    else if (selectedMode() == CQChartsView::HighlightDataMode::FILL) {
+      auto bc = penBrush.brush.color();
+
+      charts()->setContrastColor(bc);
+
+      QColor obc;
+
+      if (isSelectedFilled())
+        obc = interpSelectedFillColor(colorInd);
+      else
+        obc = CQChartsUtil::invColor(bc);
+
+      Alpha alpha(bc.alphaF());
+
+      setPen(penBrush, PenData(true, obc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
+
+      charts()->resetContrastColor();
+    }
   }
 }
 

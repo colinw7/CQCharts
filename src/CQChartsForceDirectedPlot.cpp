@@ -2789,7 +2789,12 @@ insideNodesAndEdges(const BBox &r, NodeSet &insideNodes, EdgeSet &insideEdges, b
     auto *sedge = dynamic_cast<Edge *>(edge.get());
     assert(sedge);
 
-    auto path = sedge->curvePath();
+    QPainterPath path;
+
+    if (sedge->getIsLine())
+      path = sedge->edgePath();
+    else
+      path = sedge->curvePath();
 
     if (inside) {
       if (path1.contains(path))

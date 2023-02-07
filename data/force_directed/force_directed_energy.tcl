@@ -21,7 +21,13 @@ set_charts_property -plot $plot -name edge.mouseValue -value 1
 
 set_charts_property -view current -name inside.insideColor -value red
 set_charts_property -view current -name inside.insideAlpha -value 1
+
 set_charts_property -view current -name inside.highlight.mode -value FILL
 set_charts_property -view current -name inside.highlight.fill.color -value red
 set_charts_property -view current -name inside.highlight.stroke.color -value red
 set_charts_property -view current -name inside.highlight.stroke.width -value 4px
+
+set_charts_property -view current -name select.highlight.mode -value FILL
+set_charts_property -view current -name select.highlight.fill.color -value red
+set_charts_property -view current -name select.highlight.stroke.color -value red
+set_charts_property -view current -name select.highlight.stroke.width -value 4px
