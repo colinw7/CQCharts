@@ -165,10 +165,12 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(CQChartsLength minNodeSize       READ minNodeSize         WRITE setMinNodeSize      )
   Q_PROPERTY(bool           nodeValueColored  READ isNodeValueColored  WRITE setNodeValueColored )
   Q_PROPERTY(bool           nodeValueLabel    READ isNodeValueLabel    WRITE setNodeValueLabel   )
-  Q_PROPERTY(bool           nodeMouseColoring READ isNodeMouseColoring WRITE setNodeMouseColoring)
-  Q_PROPERTY(bool           nodeMouseValue    READ isNodeMouseValue    WRITE setNodeMouseValue   )
-  Q_PROPERTY(QString        nodeTipNameLabel  READ nodeTipNameLabel    WRITE setNodeTipNameLabel )
-  Q_PROPERTY(QString        nodeTipValueLabel READ nodeTipValueLabel   WRITE setNodeTipValueLabel)
+
+  Q_PROPERTY(bool          nodeMouseColoring  READ isNodeMouseColoring WRITE setNodeMouseColoring )
+  Q_PROPERTY(NodeColorType nodeMouseColorType READ nodeMouseColorType  WRITE setNodeMouseColorType)
+  Q_PROPERTY(bool          nodeMouseValue     READ isNodeMouseValue    WRITE setNodeMouseValue    )
+  Q_PROPERTY(QString       nodeTipNameLabel   READ nodeTipNameLabel    WRITE setNodeTipNameLabel  )
+  Q_PROPERTY(QString       nodeTipValueLabel  READ nodeTipValueLabel   WRITE setNodeTipValueLabel )
 
   // edge data
   Q_PROPERTY(EdgeShape      edgeShape         READ edgeShape           WRITE setEdgeShape        )
@@ -212,6 +214,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_ENUMS(NodeShape)
   Q_ENUMS(EdgeShape)
 
+  Q_ENUMS(NodeColorType)
+
  public:
   enum class NodeShape {
     NONE          = int(CQChartsNodeType::NONE),
@@ -225,6 +229,12 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     LINE        = int(CQChartsEdgeType::LINE),
     RECTILINEAR = int(CQChartsEdgeType::RECTILINEAR),
     ARC         = int(CQChartsEdgeType::ARC)
+  };
+
+  enum class NodeColorType {
+    SRC,
+    DEST,
+    SRC_DEST
   };
 
   using NodeObj    = CQChartsForceDirectedNodeObj;
@@ -354,6 +364,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   //! get/set node edges colored on mouse over
   bool isNodeMouseColoring() const { return nodeDrawData_.mouseColoring; }
   void setNodeMouseColoring(bool b);
+
+  //! get/set node edges colored on mouse over
+  NodeColorType nodeMouseColorType() const { return nodeDrawData_.mouseColorType; }
+  void setNodeMouseColorType(const NodeColorType &type);
 
   //! get/set show node value on mouse over
   bool isNodeMouseValue() const { return nodeDrawData_.mouseValue; }
@@ -776,16 +790,17 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   // node data
   struct NodeDrawData {
-    NodeShape shape         { NodeShape::CIRCLE }; //!< node shape
-    bool      scaled        { true };              //!< is node scaled
-    Length    size          { Length::plot(1) };   //!< node size
-    Length    minSize       { Length::plot(0.1) }; //!< min node size
-    bool      valueColored  { false };             //!< is node colored by value
-    bool      valueLabel    { false };             //!< show value as label
-    bool      mouseColoring { false };             //!< is node edges colored on mouse over
-    bool      mouseValue    { false };             //!< show node value on mouse over
-    QString   tipNameLabel;                        //!< tip label for node name
-    QString   tipValueLabel;                       //!< tip label for node value
+    NodeShape     shape          { NodeShape::CIRCLE };   //!< node shape
+    bool          scaled         { true };                //!< is node scaled
+    Length        size           { Length::plot(1) };     //!< node size
+    Length        minSize        { Length::plot(0.1) };   //!< min node size
+    bool          valueColored   { false };               //!< is node colored by value
+    bool          valueLabel     { false };               //!< show value as label
+    bool          mouseColoring  { false };               //!< is node edges colored on mouse over
+    NodeColorType mouseColorType { NodeColorType::DEST }; //!< node coloring type
+    bool          mouseValue     { false };               //!< show node value on mouse over
+    QString       tipNameLabel;                           //!< tip label for node name
+    QString       tipValueLabel;                          //!< tip label for node value
   };
 
   NodeDrawData nodeDrawData_; //!< node draw data

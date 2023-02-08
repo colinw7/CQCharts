@@ -377,6 +377,13 @@ setNodeMouseColoring(bool b)
 
 void
 CQChartsForceDirectedPlot::
+setNodeMouseColorType(const NodeColorType &type)
+{
+  CQChartsUtil::testAndSet(nodeDrawData_.mouseColorType, type, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsForceDirectedPlot::
 setNodeMouseValue(bool b)
 {
   CQChartsUtil::testAndSet(nodeDrawData_.mouseValue, b, [&]() { drawObjs(); } );
@@ -511,16 +518,17 @@ addProperties()
   addProp("animation", "autoHideBusyButton", "", "Auto hide busy button");
 
   // node
-  addProp("node", "nodeShape"        , "shapeType"    , "Node shape type");
-  addProp("node", "nodeScaled"       , "scaled"       , "Node scaled by value");
-  addProp("node", "nodeSize"         , "size"         , "Node size (ignore if <= 0)");
-  addProp("node", "minNodeSize"      , "minSize"      , "Node min size (ignore if <= 0)");
-  addProp("node", "nodeValueColored" , "valueColored" , "Node colored by value");
-  addProp("node", "nodeValueLabel"   , "valueLabel"   , "Draw node value as label");
-  addProp("node", "nodeMouseColoring", "mouseColoring", "Color node edges on mouse over");
-  addProp("node", "nodeMouseValue"   , "mouseValue"   , "Show node value on mouse over");
-  addProp("node", "nodeTipNameLabel" , "tipNameLabel" , "Label for node name tip");
-  addProp("node", "nodeTipValueLabel", "tipValueLabel", "Label for node value tip");
+  addProp("node", "nodeShape"         , "shapeType"     , "Node shape type");
+  addProp("node", "nodeScaled"        , "scaled"        , "Node scaled by value");
+  addProp("node", "nodeSize"          , "size"          , "Node size (ignore if <= 0)");
+  addProp("node", "minNodeSize"       , "minSize"       , "Node min size (ignore if <= 0)");
+  addProp("node", "nodeValueColored"  , "valueColored"  , "Node colored by value");
+  addProp("node", "nodeValueLabel"    , "valueLabel"    , "Draw node value as label");
+  addProp("node", "nodeMouseColoring" , "mouseColoring" , "Color node edges on mouse over");
+  addProp("node", "nodeMouseColorType", "mouseColorType", "node mouse color type");
+  addProp("node", "nodeMouseValue"    , "mouseValue"    , "Show node value on mouse over");
+  addProp("node", "nodeTipNameLabel"  , "tipNameLabel"  , "Label for node name tip");
+  addProp("node", "nodeTipValueLabel" , "tipValueLabel" , "Label for node value tip");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -2962,7 +2970,7 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge,
   bool isCircleS = (sshape == Node::Shape::CIRCLE || sshape == Node::Shape::DOUBLE_CIRCLE);
   bool isCircleT = (tshape == Node::Shape::CIRCLE || tshape == Node::Shape::DOUBLE_CIRCLE);
 
-  ///--
+  //--
 
   // get connection rect of source and destination object
   auto sbbox = nodeBBox(sedge->source(), snode);
@@ -3499,6 +3507,7 @@ drawNodeInside(PaintDevice *device, const ForceNodeP &node) const
 
   drawNodeText(device, snode, ColorInd(), /*mouseOver*/true);
 
+#if 0
   auto edges = forceDirected_->getEdges(node);
 
   for (const auto &edge : edges) {
@@ -3507,6 +3516,31 @@ drawNodeInside(PaintDevice *device, const ForceNodeP &node) const
 
     device->drawPath(edgePaths_[sedge->id()]);
   }
+#endif
+
+  device->save();
+
+  auto brush = device->brush();
+  auto pen   = device->pen();
+
+  pen.setColor(brush.color());
+  pen.setWidth(4);
+
+  device->setPen(pen);
+
+  if (nodeMouseColorType() == NodeColorType::SRC ||
+      nodeMouseColorType() == NodeColorType::SRC_DEST) {
+    for (auto *sedge : snode->inEdges())
+      device->drawPath(edgePaths_[sedge->id()]);
+  }
+
+  if (nodeMouseColorType() == NodeColorType::DEST ||
+      nodeMouseColorType() == NodeColorType::SRC_DEST) {
+    for (auto *sedge : snode->outEdges())
+      device->drawPath(edgePaths_[sedge->id()]);
+  }
+
+  device->restore();
 }
 
 void
