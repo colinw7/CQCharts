@@ -525,7 +525,7 @@ addProperties()
   addProp("node", "nodeValueColored"  , "valueColored"  , "Node colored by value");
   addProp("node", "nodeValueLabel"    , "valueLabel"    , "Draw node value as label");
   addProp("node", "nodeMouseColoring" , "mouseColoring" , "Color node edges on mouse over");
-  addProp("node", "nodeMouseColorType", "mouseColorType", "node mouse color type");
+  addProp("node", "nodeMouseColorType", "mouseColorType", "Node mouse color type");
   addProp("node", "nodeMouseValue"    , "mouseValue"    , "Show node value on mouse over");
   addProp("node", "nodeTipNameLabel"  , "tipNameLabel"  , "Label for node name tip");
   addProp("node", "nodeTipValueLabel" , "tipValueLabel" , "Label for node value tip");
@@ -2888,7 +2888,9 @@ drawDeviceParts(PaintDevice *device) const
 
     ColorInd colorInd(edgeNum++, numEdges);
 
-    drawEdge(device, edge, sedge, colorInd);
+    sedge->setColorInd(colorInd);
+
+    drawEdge(device, edge, sedge);
   }
 
   //--
@@ -2905,8 +2907,21 @@ drawDeviceParts(PaintDevice *device) const
 
     auto colorInd = ColorInd(nodeNum++, numNodes);
 
-    drawNode(device, node, snode, colorInd);
+    snode->setColorInd(colorInd);
+
+    drawNode(device, node, snode);
   }
+
+  //--
+
+  // draw texts
+  for (const auto &textData : drawTextDatas_)
+    drawTextData(device, textData);
+
+  //---
+
+  if (hasTitle())
+    drawTitle(device);
 
   //--
 
@@ -2923,17 +2938,6 @@ drawDeviceParts(PaintDevice *device) const
     drawNodeInside(device, pn.first);
   }
 
-  //--
-
-  // draw texts
-  for (const auto &textData : drawTextDatas_)
-    drawTextData(device, textData);
-
-  //---
-
-  if (hasTitle())
-    drawTitle(device);
-
   //---
 
   device->restore();
@@ -2941,9 +2945,14 @@ drawDeviceParts(PaintDevice *device) const
 
 void
 CQChartsForceDirectedPlot::
-drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge,
-         const ColorInd &colorInd) const
+drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
 {
+  bool colorInside = (sedge->isInside() && (isEdgeMouseColoring() || isEdgeMouseValue()));
+
+  //---
+
+  auto colorInd = sedge->colorInd();
+
   bool   isLine = false;
   double lw     = 1.0;
 
@@ -3086,26 +3095,6 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge,
 
   //---
 
-  // draw path
-  QPainterPath edgePath1;
-
-  if (isLine)
-    edgePath1 = edgePath;
-  else {
-    if (isRectilinear)
-      edgePath1 = curvePath.simplified();
-    else
-      edgePath1 = curvePath;
-  }
-
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-  device->drawPath(edgePath1);
-
-  edgePaths_[sedge->id()] = edgePath1;
-
-  //---
-
   // set edge draw geometry
   sedge->setIsLine(isLine);
 
@@ -3117,14 +3106,37 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge,
 
   //---
 
+  // calc edge draw path
+  QPainterPath edgePath1;
+
+  if (sedge->getIsLine())
+    edgePath1 = edgePath;
+  else {
+    if (isRectilinear)
+      edgePath1 = curvePath.simplified();
+    else
+      edgePath1 = curvePath;
+  }
+
+  edgePaths_[sedge->id()] = edgePath1;
+
+  //---
+
+  // draw edge path
+  if (! colorInside) {
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    device->drawPath(edgePath1);
+  }
+
+  //---
+
   drawEdgeText(device, sedge, colorInd, /*mouseOver*/false);
 
   //---
 
-  if (sedge->isInside()) {
-    if (isEdgeMouseColoring() || isEdgeMouseValue())
-      insideDrawEdges_[edge] = penBrush;
-  }
+  if (colorInside)
+    insideDrawEdges_[edge] = penBrush;
 }
 
 bool
@@ -3282,9 +3294,14 @@ drawEdgeText(PaintDevice *device, Edge *sedge, const ColorInd &colorInd, bool mo
 
 void
 CQChartsForceDirectedPlot::
-drawNode(PaintDevice *device, const ForceNodeP &node, Node *snode,
-         const ColorInd &colorInd) const
+drawNode(PaintDevice *device, const ForceNodeP &node, Node *snode) const
 {
+  bool colorInside = (snode->isInside() && (isNodeMouseColoring() || isNodeMouseValue()));
+
+  //---
+
+  auto colorInd = snode->colorInd();
+
   // calc pen and brush
   PenBrush penBrush;
 
@@ -3292,11 +3309,9 @@ drawNode(PaintDevice *device, const ForceNodeP &node, Node *snode,
 
   view()->updatePenBrushState(colorInd, penBrush, snode->isSelected(), snode->isInside());
 
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
   //---
 
-  // draw node
+  // set node shape
   auto shape = calcNodeShape(snode);
   auto ebbox = nodeBBox(node, snode);
 
@@ -3305,13 +3320,17 @@ drawNode(PaintDevice *device, const ForceNodeP &node, Node *snode,
   nodeShape.shape = shape;
   nodeShape.bbox  = ebbox;
 
-  drawNodeShape(device, nodeShape);
-
   nodeShapes_[snode->id()] = nodeShape;
+
+  snode->setBBox(ebbox);
 
   //---
 
-  snode->setBBox(ebbox);
+  if (! colorInside) {
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    drawNodeShape(device, nodeShape);
+  }
 
   //---
 
@@ -3326,10 +3345,8 @@ drawNode(PaintDevice *device, const ForceNodeP &node, Node *snode,
 
   //---
 
-  if (snode->isInside()) {
-    if (isNodeMouseColoring() || isNodeMouseValue())
-      insideDrawNodes_[node] = penBrush;
-  }
+  if (colorInside)
+    insideDrawNodes_[node] = penBrush;
 }
 
 void
@@ -3505,8 +3522,15 @@ drawNodeInside(PaintDevice *device, const ForceNodeP &node) const
   auto *snode = dynamic_cast<Node *>(node.get());
   assert(snode);
 
+  // draw node shape
+  drawNodeShape(device, nodeShapes_[snode->id()]);
+
+  // draw node shape
   drawNodeText(device, snode, ColorInd(), /*mouseOver*/true);
 
+  //---
+
+  // draw connected edges
 #if 0
   auto edges = forceDirected_->getEdges(node);
 
@@ -3550,7 +3574,15 @@ drawEdgeInside(PaintDevice *device, const ForceEdgeP &edge) const
   if (! forceDirected_)
     return;
 
-  // draw connected edges if edge coloring
+  // draw edge path
+  auto *sedge = dynamic_cast<Edge *>(edge.get());
+  assert(sedge);
+
+  device->drawPath(edgePaths_[sedge->id()]);
+
+  //---
+
+  // draw connected nodes if edge coloring
   if (isEdgeMouseColoring()) {
     auto *snode1 = dynamic_cast<Node *>(edge->source().get());
     auto *snode2 = dynamic_cast<Node *>(edge->target().get());
@@ -3561,12 +3593,8 @@ drawEdgeInside(PaintDevice *device, const ForceEdgeP &edge) const
   }
 
   // draw edge value if mouse value and not already displayed
-  if (isEdgeMouseValue() && ! isEdgeValueLabel()) {
-    auto *sedge = dynamic_cast<Edge *>(edge.get());
-    assert(sedge);
-
+  if (isEdgeMouseValue() && ! isEdgeValueLabel())
     drawEdgeText(device, sedge, ColorInd(), /*mouseOver*/true);
-  }
 }
 
 //---

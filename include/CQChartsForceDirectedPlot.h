@@ -615,8 +615,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
-  void drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge,
-                const ColorInd &colorInd) const;
+  void drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const;
 
   bool isEdgeLine(Edge *sedge, double &lw, double tol) const;
 
@@ -628,8 +627,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
-  void drawNode(PaintDevice *device, const ForceNodeP &node, Node *snode,
-                const ColorInd &colorInd) const;
+  void drawNode(PaintDevice *device, const ForceNodeP &node, Node *snode) const;
 
   void calcNodePenBrush(Node *snode, const ColorInd &colorInd,
                         PenBrush &penBrush) const;
@@ -859,7 +857,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   double rangeSize_      { 20.0 };  //!< range size
   double nodeMass_       { 1.0 };   //!< node mass
   double edgeScale_      { 1.0 };   //!< edge scale
-  double edgeWidthScale_ { 1.0 };   //!< edge scale
+  double edgeWidthScale_ { 1.0 };   //!< edge width scale
   int    maxNodeDepth_   { 0 };     //!< max node depth
   double minDelta_       { 0.01 };  //!< min delta
   int    maxSteps_       { -1 };    //!< max steps

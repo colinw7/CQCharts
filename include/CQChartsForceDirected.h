@@ -14,11 +14,12 @@ class CQChartsForceDirectedEdge;
  */
 class CQChartsForceDirectedNode : public Springy::Node {
  public:
-  using Edge    = CQChartsForceDirectedEdge;
-  using Shape   = CQChartsNodeType;
-  using Color   = CQChartsColor;
-  using OptReal = CQChartsOptReal;
-  using BBox    = CQChartsGeom::BBox;
+  using Edge     = CQChartsForceDirectedEdge;
+  using Shape    = CQChartsNodeType;
+  using Color    = CQChartsColor;
+  using ColorInd = CQChartsUtil::ColorInd;
+  using OptReal  = CQChartsOptReal;
+  using BBox     = CQChartsGeom::BBox;
 
   using EdgeSet = std::set<Edge *>;
   using Slots   = std::map<int, EdgeSet>;
@@ -48,6 +49,9 @@ class CQChartsForceDirectedNode : public Springy::Node {
   const BBox &bbox() const { return bbox_; }
   void setBBox(const BBox &b) { bbox_ = b; }
 
+  const ColorInd &colorInd() const { return colorInd_; }
+  void setColorInd(const ColorInd &v) { colorInd_ = v; }
+
   bool isSelected() const { return selected_; }
   void setSelected(bool b) { selected_ = b; }
 
@@ -76,6 +80,7 @@ class CQChartsForceDirectedNode : public Springy::Node {
   OptReal     nodeValue_;
   QModelIndex ind_;
   BBox        bbox_;
+  ColorInd    colorInd_;
   bool        selected_ { false };
   bool        inside_   { false };
   Slots       occupiedSlots_;
@@ -90,11 +95,12 @@ class CQChartsForceDirectedNode : public Springy::Node {
  */
 class CQChartsForceDirectedEdge : public Springy::Edge {
  public:
-  using Shape   = CQChartsEdgeType;
-  using OptReal = CQChartsOptReal;
-  using Color   = CQChartsColor;
-  using NodeP   = Springy::NodeP;
-  using Point   = CQChartsGeom::Point;
+  using Shape    = CQChartsEdgeType;
+  using OptReal  = CQChartsOptReal;
+  using Color    = CQChartsColor;
+  using ColorInd = CQChartsUtil::ColorInd;
+  using NodeP    = Springy::NodeP;
+  using Point    = CQChartsGeom::Point;
 
  public:
   CQChartsForceDirectedEdge(int id, NodeP node1=NodeP(), NodeP node2=NodeP()) :
@@ -130,6 +136,9 @@ class CQChartsForceDirectedEdge : public Springy::Edge {
   const QPainterPath &curvePath() const { return curvePath_; }
   void setCurvePath(const QPainterPath &p) { curvePath_ = p; }
 
+  const ColorInd &colorInd() const { return colorInd_; }
+  void setColorInd(const ColorInd &v) { colorInd_ = v; }
+
   bool isSelected() const { return selected_; }
   void setSelected(bool b) { selected_ = b; }
 
@@ -146,6 +155,7 @@ class CQChartsForceDirectedEdge : public Springy::Edge {
   QModelIndex  ind_;
   QPainterPath edgePath_;
   QPainterPath curvePath_;
+  ColorInd     colorInd_;
   bool         selected_ { false };
   bool         inside_   { false };
 };
