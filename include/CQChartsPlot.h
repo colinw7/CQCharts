@@ -2291,6 +2291,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void resetObjTips();
 
+  // handle point select
+  virtual bool pointSelect(const Point &p, SelMod selMod);
+
   // handle rect select
   virtual bool rectSelect(const BBox &r, SelMod selMod);
 

@@ -9,6 +9,7 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsVariant.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsAnnotation.h>
 #include <CQChartsArrow.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsTip.h>
@@ -2287,6 +2288,19 @@ handleEditRelease(const Point &, const Point &p)
 
 bool
 CQChartsForceDirectedPlot::
+pointSelect(const Point &p, SelMod selMod)
+{
+  setCurrentNode(p);
+
+  selectPoint(p, selMod);
+
+  drawObjs();
+
+  return true;
+}
+
+bool
+CQChartsForceDirectedPlot::
 rectSelect(const BBox &r, SelMod selMod)
 {
   auto p = r.getCenter();
@@ -2338,11 +2352,19 @@ bool
 CQChartsForceDirectedPlot::
 selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRect)
 {
+  using AnnotationSet = std::set<Annotation *>;
+
   // get currently selected nodes and edges
   NodeSet selectedNodes;
   EdgeSet selectedEdges;
 
   selectedNodesAndEdges(selectedNodes, selectedEdges);
+
+  AnnotationSet selectedAnnotations;
+
+  for (const auto &annotation : annotations())
+    if (annotation->isSelected())
+      selectedAnnotations.insert(annotation);
 
   //---
 
@@ -2350,10 +2372,41 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
   NodeSet newSelectedNodes, pressedNodes;
   EdgeSet newSelectedEdges, pressedEdges;
 
+  AnnotationSet newSelectedAnnotations, pressedAnnotations;
+
   if (selMod == SelMod::ADD || selMod == SelMod::REMOVE) {
     newSelectedNodes = selectedNodes;
     newSelectedEdges = selectedEdges;
+
+    newSelectedAnnotations = selectedAnnotations;
   }
+
+  //---
+
+  auto addSelectedNode = [&](Node *node) {
+    if (selMod == SelMod::REMOVE)
+      newSelectedNodes.erase(node);
+    else
+      newSelectedNodes.insert(node);
+  };
+
+  auto addSelectedEdge = [&](Edge *edge) {
+    if (selMod == SelMod::REMOVE)
+      newSelectedEdges.erase(edge);
+    else
+      newSelectedEdges.insert(edge);
+  };
+
+  auto addSelectedAnnotation = [&](Annotation *annotation) {
+    if (! annotation->isSelectable()) return;
+
+    if (selMod == SelMod::REMOVE)
+      newSelectedAnnotations.erase(annotation);
+    else
+      newSelectedAnnotations.insert(annotation);
+  };
+
+  //---
 
   if (! isRect) {
     Node *selectedNode = nullptr;
@@ -2361,22 +2414,24 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
 
     nearestNodeEdge(p, selectedNode, selectedEdge);
 
-    if (selectedNode) {
+    if      (selectedNode) {
       pressedNodes.insert(selectedNode);
 
-      if (selMod == SelMod::REMOVE)
-        newSelectedNodes.erase(selectedNode);
-      else
-        newSelectedNodes.insert(selectedNode);
+      addSelectedNode(selectedNode);
     }
-
-    if (selectedEdge) {
+    else if (selectedEdge) {
       pressedEdges.insert(selectedEdge);
 
-      if (selMod == SelMod::REMOVE)
-        newSelectedEdges.erase(selectedEdge);
-      else
-        newSelectedEdges.insert(selectedEdge);
+      addSelectedEdge(selectedEdge);
+    }
+    else {
+      for (const auto &annotation : annotations()) {
+        if (annotation->contains(p)) {
+          pressedAnnotations.insert(annotation);
+
+          addSelectedAnnotation(annotation);
+        }
+      }
     }
   }
   else {
@@ -2388,20 +2443,11 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
     pressedNodes = insideNodes;
     pressedEdges = insideEdges;
 
-    if (selMod == SelMod::REMOVE) {
-      for (auto *node : insideNodes)
-        newSelectedNodes.erase(node);
+    for (auto *node : insideNodes)
+      addSelectedNode(node);
 
-      for (auto *edge : insideEdges)
-        newSelectedEdges.erase(edge);
-    }
-    else {
-      for (auto *node : insideNodes)
-        newSelectedNodes.insert(node);
-
-      for (auto *edge : insideEdges)
-        newSelectedEdges.insert(edge);
-    }
+    for (auto *edge : insideEdges)
+      addSelectedEdge(edge);
   }
 
   //---
@@ -2409,8 +2455,9 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
   // check if match original selection
   bool match = false;
 
-  if (selectedNodes.size() == newSelectedNodes.size() &&
-      selectedEdges.size() == newSelectedEdges.size()) {
+  if (selectedNodes      .size() == newSelectedNodes      .size() &&
+      selectedEdges      .size() == newSelectedEdges      .size() &&
+      selectedAnnotations.size() == newSelectedAnnotations.size()) {
     match = true;
 
     auto pn1 = selectedNodes   .begin();
@@ -2434,6 +2481,17 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
       ++pe1;
       ++pe2;
     }
+
+    auto pa1 = selectedAnnotations   .begin();
+    auto pa2 = newSelectedAnnotations.begin();
+
+    while (match && pa1 != selectedAnnotations.end()) {
+      if (*pa1 != *pa2)
+        match = false;
+
+      ++pa1;
+      ++pa2;
+    }
   }
 
   //---
@@ -2448,14 +2506,20 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
     for (auto *edge : selectedEdges)
       edge->setSelected(false);
 
+    for (auto *annotation : selectedAnnotations)
+      annotation->setSelected(false);
+
     //---
 
-    // select new nodes and edghhs
+    // select new nodes and edges
     for (auto *node : newSelectedNodes)
       node->setSelected(true);
 
     for (auto *edge : newSelectedEdges)
       edge->setSelected(true);
+
+    for (auto *annotation : newSelectedAnnotations)
+      annotation->setSelected(true);
 
     endSelection();
   }
@@ -2474,6 +2538,11 @@ selectGeom(const BBox &r, const Point &p, SelMod selMod, bool inside, bool isRec
 
   for (auto *edge : pressedEdges)
     Q_EMIT objIdPressed(edge->stringId());
+
+  for (auto *annotation : pressedAnnotations) {
+    Q_EMIT annotationPressed  (annotation);
+    Q_EMIT annotationIdPressed(annotation->id());
+  }
 
   return true;
 }
@@ -2844,7 +2913,19 @@ drawParts(QPainter *painter) const
 
   CQChartsPlotPaintDevice device(th, painter);
 
+  BackgroundParts bgParts;
+
+  bgParts.annotations = hasGroupedAnnotations(Layer::Type::BG_ANNOTATION);
+
+  drawBackgroundDeviceParts(&device, bgParts);
+
   drawDeviceParts(&device);
+
+  ForegroundParts fgParts;
+
+  fgParts.annotations = hasGroupedAnnotations(Layer::Type::FG_ANNOTATION);
+
+  drawForegroundDeviceParts(&device, fgParts);
 }
 
 void
@@ -3329,7 +3410,7 @@ drawNode(PaintDevice *device, const ForceNodeP &node, Node *snode) const
   if (! colorInside) {
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    drawNodeShape(device, nodeShape);
+    drawNodeShape(device, snode);
   }
 
   //---
@@ -3458,8 +3539,10 @@ drawNodeText(PaintDevice *device, Node *snode, const ColorInd &colorInd, bool mo
 
 void
 CQChartsForceDirectedPlot::
-drawNodeShape(PaintDevice *device, const NodeShapeBBox &nodeShape) const
+drawNodeShape(PaintDevice *device, Node *snode) const
 {
+  const auto &nodeShape = nodeShapes_[snode->id()];
+
   if      (nodeShape.shape == Node::Shape::DOUBLE_CIRCLE)
     CQChartsDrawUtil::drawDoubleEllipse(device, nodeShape.bbox);
   else if (nodeShape.shape == Node::Shape::CIRCLE)
@@ -3523,10 +3606,7 @@ drawNodeInside(PaintDevice *device, const ForceNodeP &node) const
   assert(snode);
 
   // draw node shape
-  drawNodeShape(device, nodeShapes_[snode->id()]);
-
-  // draw node shape
-  drawNodeText(device, snode, ColorInd(), /*mouseOver*/true);
+  drawNodeShape(device, snode);
 
   //---
 
@@ -3565,6 +3645,11 @@ drawNodeInside(PaintDevice *device, const ForceNodeP &node) const
   }
 
   device->restore();
+
+  //---
+
+  // draw node text
+  drawNodeText(device, snode, snode->colorInd(), /*mouseOver*/true);
 }
 
 void
@@ -3588,13 +3673,18 @@ drawEdgeInside(PaintDevice *device, const ForceEdgeP &edge) const
     auto *snode2 = dynamic_cast<Node *>(edge->target().get());
     assert(snode1 && snode2);
 
-    drawNodeShape(device, nodeShapes_[snode1->id()]);
-    drawNodeShape(device, nodeShapes_[snode2->id()]);
+    // draw node shapes
+    drawNodeShape(device, snode1);
+    drawNodeShape(device, snode2);
+
+    // draw node texts
+    drawNodeText(device, snode1, snode1->colorInd(), /*mouseOver*/true);
+    drawNodeText(device, snode1, snode2->colorInd(), /*mouseOver*/true);
   }
 
   // draw edge value if mouse value and not already displayed
   if (isEdgeMouseValue() && ! isEdgeValueLabel())
-    drawEdgeText(device, sedge, ColorInd(), /*mouseOver*/true);
+    drawEdgeText(device, sedge, sedge->colorInd(), /*mouseOver*/true);
 }
 
 //---

@@ -575,6 +575,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool handleEditMove   (const Point &p, const Point &w, bool first=false) override;
   bool handleEditRelease(const Point &p, const Point &w) override;
 
+  bool pointSelect(const Point &p, SelMod selMod) override;
   bool rectSelect(const BBox &r, SelMod selMod) override;
 
   //---
@@ -635,7 +636,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   void drawNodeText(PaintDevice *device, Node *snode, const ColorInd &colorInd,
                     bool mouseOver) const;
 
-  void drawNodeShape(PaintDevice *device, const NodeShapeBBox &nodeShape) const;
+  void drawNodeShape(PaintDevice *device, Node *snode) const;
 
   //---
 

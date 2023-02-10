@@ -1194,12 +1194,20 @@ setMode(const Mode &mode)
     for (auto &probeBand : probeData_.bands)
       probeBand->hide();
 
+    bool deselect = true;
+
     if (mode == Mode::EDIT && lastMode == Mode::SELECT) {
       invalidateOverlay();
 
       updatePlots();
+
+      deselect = false;
     }
-    else
+
+    if ((mode == Mode::ZOOM_IN || mode == Mode::ZOOM_OUT) && lastMode == Mode::SELECT)
+      deselect = false;
+
+    if (deselect)
       deselectAll();
 
     clearRulerSlot();

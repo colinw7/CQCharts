@@ -4605,14 +4605,19 @@ draw(PaintDevice *device) const
 
     auto ps = scatterPlot()->windowToPixel(point());
 
-    auto pbbox = BBox(ps.x - sx, ps.y - sy, ps.x + 2*sx, ps.y + 2*sy);
+    auto pbbox = BBox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
     device->drawImageInRect(scatterPlot()->pixelToWindow(pbbox), image);
   }
 
   if (scatterPlot()->drawLayerType() == CQChartsLayer::Type::SELECTION) {
-    if (isSelected() && scatterPlot()->isOutlineSelected())
-      CQChartsDrawUtil::drawSelectedOutline(device, rect());
+    if (isSelected() && scatterPlot()->isOutlineSelected()) {
+      auto ps = scatterPlot()->windowToPixel(point());
+
+      auto pbbox = BBox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
+
+      CQChartsDrawUtil::drawSelectedOutline(device, scatterPlot()->pixelToWindow(pbbox));
+    }
   }
 
   device->resetColorNames();

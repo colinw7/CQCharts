@@ -6644,6 +6644,8 @@ initObjs()
 
   Q_EMIT customDataChanged();
 
+  view_->updateSelText();
+
   return true;
 }
 
@@ -9132,6 +9134,13 @@ editObjs(Objs &objs)
 
   if (isYAxisVisible())
     objs.push_back(yAxis());
+}
+
+bool
+CQChartsPlot::
+pointSelect(const Point &p, SelMod selMod)
+{
+  return objectsSelectPress(p, selMod);
 }
 
 bool
