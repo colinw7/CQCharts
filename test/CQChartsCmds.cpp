@@ -7050,13 +7050,7 @@ execCmd(CQChartsCmdArgs &argv)
     else if (name == "mouse_modifier") {
       auto mod = view->mouseClickMod();
 
-      QString res;
-
-      if      (mod == CQChartsSelMod::REPLACE) res = "replace";
-      else if (mod == CQChartsSelMod::ADD    ) res = "add";
-      else if (mod == CQChartsSelMod::REMOVE ) res = "remove";
-      else if (mod == CQChartsSelMod::TOGGLE ) res = "toggle";
-      else                                     res = "none";
+      auto res = CQChartsUtil::selModToString(mod);
 
       return cmdBase_->setCmdRc(res);
     }
@@ -8040,8 +8034,14 @@ execCmd(CQChartsCmdArgs &argv)
         auto *obj = plot->getObject(objectId);
         if (! obj) return errorMsg("Invalid plot object id '" + objectId + "'");
 
-        plot->selectOneObj(obj, /*allObjs*/false);
+        auto selMod = CQChartsUtil::stringToSelMod(value);
+        if (selMod == CQChartsSelMod::NONE) selMod = CQChartsSelMod::REPLACE;
+
+        plot->selectOneObj(obj, selMod);
       }
+    }
+    else if (name == "deselect") {
+      plot->deselectAllObjs();
     }
     else if (name == "model") {
       // get model

@@ -7576,7 +7576,7 @@ annotationsSelectPress(const Point &w, SelMod selMod)
     if (! annotation->selectPress(w, selData))
       continue;
 
-    selectOneObj(annotation, /*allObjs*/true);
+    selectOneObj(annotation, SelMod::REPLACE);
 
     drawForeground();
 
@@ -8251,7 +8251,7 @@ keyEditSelect(CQChartsPlotKey *key, const Point &w)
 
   // select/deselect key
   if (! key->isSelected()) {
-    selectOneObj(key, /*allObjs*/true);
+    selectOneObj(key, SelMod::REPLACE);
     return true;
   }
 
@@ -8277,7 +8277,7 @@ mapKeyEditSelect(const Point &w)
 
     // select/deselect key
     if (! mapKey->isSelected()) {
-      selectOneObj(mapKey, /*allObjs*/true);
+      selectOneObj(mapKey, SelMod::REPLACE);
       return true;
     }
 
@@ -8306,7 +8306,7 @@ axisEditSelect(CQChartsAxis *axis, const Point &w)
 
   // select/deselect x axis
   if (! axis->isSelected()) {
-    selectOneObj(axis, /*allObjs*/true);
+    selectOneObj(axis, SelMod::REPLACE);
     return true;
   }
 
@@ -8334,7 +8334,7 @@ titleEditSelect(CQChartsTitle *title, const Point &w)
 
   // select/deselect title
   if (! title->isSelected()) {
-    selectOneObj(title, /*allObjs*/true);
+    selectOneObj(title, SelMod::REPLACE);
     return true;
   }
 
@@ -8364,7 +8364,7 @@ annotationsEditSelect(const Point &w)
       continue;
 
     if (! annotation->isSelected()) {
-      selectOneObj(annotation, /*allObjs*/true);
+      selectOneObj(annotation, SelMod::REPLACE);
       return true;
     }
 
@@ -8421,7 +8421,7 @@ objectsEditSelect(const Point &w, bool inside)
         continue;
 
       if (! plotObj->isSelected()) {
-        selectOneObj(plotObj, /*allObjs*/true);
+        selectOneObj(plotObj, SelMod::REPLACE);
         return true;
       }
 
@@ -8439,7 +8439,7 @@ objectsEditSelect(const Point &w, bool inside)
         continue;
 
       if (! annotation->isSelected()) {
-        selectOneObj(annotation, /*allObjs*/true);
+        selectOneObj(annotation, SelMod::REPLACE);
         return true;
       }
 
@@ -8486,14 +8486,15 @@ objectsEditSelect(const Point &w, bool inside)
 
 void
 CQChartsPlot::
-selectOneObj(Obj *obj, bool allObjs)
+selectOneObj(Obj *obj, SelMod selMod)
 {
   startSelection();
 
-  if (allObjs)
+  if (selMod == SelMod::REPLACE) {
     deselectAllObjs();
 
-  view()->deselectAll();
+    view()->deselectAll(/*propagate*/false);
+  }
 
   obj->setSelected(true);
 
@@ -8502,6 +8503,7 @@ selectOneObj(Obj *obj, bool allObjs)
   invalidateOverlay();
 }
 
+// deselect all plot objects
 void
 CQChartsPlot::
 deselectAllObjs()
@@ -8528,6 +8530,7 @@ deselectAllObjs()
   endSelection();
 }
 
+// deselect all plot objects, and other plot objects (title, key, axes, annotations, ...)
 void
 CQChartsPlot::
 deselectAll()

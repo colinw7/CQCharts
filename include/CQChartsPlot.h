@@ -2269,7 +2269,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //--
 
-  void selectOneObj(Obj *obj, bool allObjs);
+  void selectOneObj(Obj *obj, SelMod selMod);
 
   void deselectAllObjs();
 

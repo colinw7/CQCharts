@@ -646,9 +646,9 @@ class CQChartsView : public QFrame,
   //---
 
   // select
-  void selectOneObj(CQChartsObj *obj);
+  void selectOneObj(CQChartsObj *obj, SelMod selMod);
 
-  void deselectAll();
+  void deselectAll(bool propagate=true);
 
   void startSelection();
   void endSelection();

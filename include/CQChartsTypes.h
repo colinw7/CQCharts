@@ -3,6 +3,7 @@
 
 // selection modifier type
 enum class CQChartsSelMod {
+  NONE,
   REPLACE,
   ADD,
   REMOVE,

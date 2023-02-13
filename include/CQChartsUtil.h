@@ -110,6 +110,32 @@ inline Range bboxRange(const BBox &bbox) {
 
 //------
 
+namespace CQChartsUtil {
+
+inline QString selModToString(CQChartsSelMod mod) {
+  QString res;
+  if      (mod == CQChartsSelMod::REPLACE) res = "replace";
+  else if (mod == CQChartsSelMod::ADD    ) res = "add";
+  else if (mod == CQChartsSelMod::REMOVE ) res = "remove";
+  else if (mod == CQChartsSelMod::TOGGLE ) res = "toggle";
+  else                                     res = "none";
+  return res;
+}
+
+inline CQChartsSelMod stringToSelMod(const QString &str) {
+  auto lstr = str.toLower();
+  auto mod = CQChartsSelMod::NONE;
+  if      (lstr == "replace") mod = CQChartsSelMod::REPLACE;
+  else if (lstr == "add"    ) mod = CQChartsSelMod::ADD;
+  else if (lstr == "remove" ) mod = CQChartsSelMod::REMOVE;
+  else if (lstr == "toggle" ) mod = CQChartsSelMod::TOGGLE;
+  return mod;
+}
+
+}
+
+//------
+
 // formatting
 
 namespace CQChartsUtil {

@@ -1239,11 +1239,12 @@ setSelectMode(const SelectMode &selectMode)
 
 void
 CQChartsView::
-selectOneObj(CQChartsObj *obj)
+selectOneObj(CQChartsObj *obj, SelMod selMod)
 {
   startSelection();
 
-  deselectAll();
+  if (selMod == SelMod::REPLACE)
+    deselectAll();
 
   obj->setSelected(true);
 
@@ -1254,15 +1255,17 @@ selectOneObj(CQChartsObj *obj)
 
 void
 CQChartsView::
-deselectAll()
+deselectAll(bool propagate)
 {
   startSelection();
 
   //---
 
-  // deselect plots and their objects
-  for (auto &plot : plots())
-    plot->deselectAll();
+  if (propagate) {
+    // deselect plots and their objects
+    for (auto &plot : plots())
+      plot->deselectAll();
+  }
 
   //---
 
@@ -3264,7 +3267,7 @@ editMousePress()
 
     //---
 
-    selectOneObj(selAnnotation);
+    selectOneObj(selAnnotation, SelMod::REPLACE);
 
     mouseData_.dragObj = DragObj::ANNOTATION;
 
@@ -3278,7 +3281,7 @@ editMousePress()
   // select/deselect key
   if (key() && key()->contains(w)) {
     if (! key()->isSelected()) {
-      selectOneObj(key());
+      selectOneObj(key(), SelMod::REPLACE);
 
       doUpdate();
 
@@ -3823,7 +3826,7 @@ selectPointPress()
     if (! selAnnotation->selectPress(w, selData))
       continue;
 
-    selectOneObj(selAnnotation);
+    selectOneObj(selAnnotation, SelMod::REPLACE);
 
     doUpdate();
 
@@ -4181,7 +4184,7 @@ cycleEdit()
 
   //---
 
-  selectOneObj(selObj);
+  selectOneObj(selObj, SelMod::REPLACE);
 
   doUpdate();
 }

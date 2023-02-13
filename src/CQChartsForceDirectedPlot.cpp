@@ -3679,7 +3679,7 @@ drawEdgeInside(PaintDevice *device, const ForceEdgeP &edge) const
 
     // draw node texts
     drawNodeText(device, snode1, snode1->colorInd(), /*mouseOver*/true);
-    drawNodeText(device, snode1, snode2->colorInd(), /*mouseOver*/true);
+    drawNodeText(device, snode2, snode2->colorInd(), /*mouseOver*/true);
   }
 
   // draw edge value if mouse value and not already displayed
