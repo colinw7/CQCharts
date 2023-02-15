@@ -205,6 +205,10 @@ class CQChartsMapKey : public CQChartsBoxObj,
 
   //---
 
+  void connectDisconnectDataChanged(bool b, const QObject *obj, const char *slotName);
+
+  //---
+
   QFont calcDrawFont(const Font &textFont) const;
 
   void setDrawPainterFont(PaintDevice *device, const Font &textFont);
@@ -248,6 +252,9 @@ class CQChartsMapKey : public CQChartsBoxObj,
   QColor bgColor(PaintDevice *device) const;
 
   void setEditHandlesBBox() const override;
+
+ Q_SIGNALS:
+  void dataChanged();
 
  protected:
   virtual void invalidate() = 0;
@@ -414,8 +421,6 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   QSize calcDiscreetSize() const;
 
  Q_SIGNALS:
-  void dataChanged();
-
   void itemSelected(const QColor &color, bool visible);
 
  private:
@@ -588,8 +593,6 @@ class CQChartsSymbolSizeMapKey : public CQChartsMapKey,
   QSize calcDiscreetSize() const;
 
  Q_SIGNALS:
-  void dataChanged();
-
   void itemSelected(const CQChartsLength &size, bool visible);
 
  private:
@@ -745,8 +748,6 @@ class CQChartsSymbolTypeMapKey : public CQChartsMapKey {
   void invalidate() override;
 
  Q_SIGNALS:
-  void dataChanged();
-
   void itemSelected(const CQChartsSymbol &symbol, bool visible);
 
  private:

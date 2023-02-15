@@ -45,7 +45,7 @@ init()
 
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
-  connect(dataLabel_.get(), SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
+  dataLabel_->connectDataChanged(this, SLOT(dataLabelChanged()));
 
   //---
 

@@ -774,7 +774,7 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
 
     auto *pointObj = createPointObj(bbox, p, iv);
 
-    connect(pointObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+    pointObj->connectDataChanged(this, SLOT(updateSlot()));
 
     //---
 

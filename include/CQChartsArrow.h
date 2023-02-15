@@ -205,6 +205,10 @@ class CQChartsArrow : public QObject,
 
   //---
 
+  void connectDisconnectDataChanged(bool b, const QObject *obj, const char *slotName) const;
+
+  //---
+
   //! draw arrow
   void draw(PaintDevice *device) const;
 

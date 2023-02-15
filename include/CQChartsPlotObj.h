@@ -244,7 +244,9 @@ class CQChartsPlotObj : public CQChartsObj,
 
   //---
 
-  void dataInvalidate() override { Q_EMIT dataChanged(); }
+  void connectDataChanged(const QObject *obj, const char *slotName) const;
+
+  void dataInvalidate(int dataType) override { Q_EMIT dataChanged(dataType); }
 
   //---
 
@@ -342,7 +344,8 @@ class CQChartsPlotObj : public CQChartsObj,
   virtual void writeScriptInsideColor(ScriptPaintDevice *device, bool isSave) const;
 
  Q_SIGNALS:
-  void dataChanged();
+  void dataChanged(int dataType);
+
   void layerChanged();
 
  protected:

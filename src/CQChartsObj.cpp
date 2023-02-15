@@ -32,7 +32,7 @@ setId(const QString &s)
 {
   id_ = s;
 
-  dataInvalidate();
+  dataInvalidate(DataType::ID);
 
   Q_EMIT idChanged();
 }
@@ -70,5 +70,5 @@ setTipId(const QString &s)
 {
   tipId_ = s;
 
-  dataInvalidate();
+  dataInvalidate(DataType::TIP);
 }

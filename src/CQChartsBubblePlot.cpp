@@ -439,7 +439,7 @@ initNodeObjs(HierNode *hier, HierObj *parentObj, int depth, PlotObjs &objs) cons
 
     hierObj = createHierObj(hier, parentObj, rect, is);
 
-    connect(hierObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+    hierObj->connectDataChanged(this, SLOT(updateSlot()));
 
     objs.push_back(hierObj);
   }
@@ -465,7 +465,7 @@ initNodeObjs(HierNode *hier, HierObj *parentObj, int depth, PlotObjs &objs) cons
 
     auto *obj = createNodeObj(node, parentObj, rect, is);
 
-    connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+    obj->connectDataChanged(this, SLOT(updateSlot()));
 
     objs.push_back(obj);
   }

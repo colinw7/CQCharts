@@ -785,24 +785,6 @@ checkColumns()
   if (! checkColumn(labelColumn(), "Label"))
     columnsValid_ = false;
 
-  //---
-
-  simple_ = (isSymbols() && columnsValid_);
-
-  if (simple_) {
-    if (xColumnType() != ColumnType::REAL && xColumnType() != ColumnType::INTEGER)
-      simple_ = false;
-
-    if (yColumnType() != ColumnType::REAL && yColumnType() != ColumnType::INTEGER)
-      simple_ = false;
-
-    if (groupColumn().isValid())
-      simple_ = false;
-
-    if (nameColumn().isValid())
-      simple_ = false;
-  }
-
   return columnsValid_;
 }
 
@@ -832,11 +814,6 @@ calcRange() const
     return Range(0.0, 0.0, 1.0, 1.0);
 
   //---
-
-  if (isSimple()) {
-    if (xmin().isSet() && ymin().isSet() && xmax().isSet() && ymax().isSet())
-      return Range(xmin().real(), ymin().real(), xmax().real(), ymax().real());
-  }
 
   initGroupData(Columns(), Column());
 
@@ -1614,7 +1591,7 @@ addPointObjects(PlotObjs &objs) const
 
         auto *pointObj = createPointObj(groupInd, gbbox, gp, is1, ig1, iv1);
 
-        connect(pointObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+        pointObj->connectDataChanged(this, SLOT(updateSlot()));
 
         if (valuePoint.ind.isValid())
           pointObj->setModelInd(valuePoint.ind);
@@ -1854,7 +1831,7 @@ addGridObjects(PlotObjs &objs) const
 
           auto *cellObj = createCellObj(groupInd, bbox, is1, ig1, ix, iy, points, maxN);
 
-          connect(cellObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+          cellObj->connectDataChanged(this, SLOT(updateSlot()));
 
           objs.push_back(cellObj);
         }
@@ -1965,7 +1942,7 @@ addHexObjects(PlotObjs &objs) const
 
           auto *hexObj = createHexObj(groupInd, bbox, is1, ig1, i, j, polygon, n, maxN);
 
-          connect(hexObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+          hexObj->connectDataChanged(this, SLOT(updateSlot()));
 
           objs.push_back(hexObj);
         }
@@ -1996,7 +1973,7 @@ addConnectedObjects(PlotObjs &objs) const
                              const ColorInd &is, const BBox &bbox) {
     auto *connectedObj = createConnectedObj(groupInd, name, ig, is, bbox);
 
-    connect(connectedObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+    connectedObj->connectDataChanged(this, SLOT(updateSlot()));
 
     //connectedObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(connectedLayer()));
 
@@ -2080,7 +2057,7 @@ addBestFitObjects(PlotObjs &objs) const
 
       auto *bestFitObj = createBestFitObj(groupInd, "", ColorInd(ig, ng), ColorInd(), gbbox);
 
-      connect(bestFitObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+      bestFitObj->connectDataChanged(this, SLOT(updateSlot()));
 
       bestFitObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(bestFitLayer()));
 
@@ -2100,7 +2077,7 @@ addBestFitObjects(PlotObjs &objs) const
     for (const auto &nameValue : nameValues) {
       auto *bestFitObj = createBestFitObj(-1, nameValue.first, ColorInd(), ColorInd(is, ns), bbox);
 
-      connect(bestFitObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+      bestFitObj->connectDataChanged(this, SLOT(updateSlot()));
 
       bestFitObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(bestFitLayer()));
 
@@ -2129,7 +2106,7 @@ addHullObjects(PlotObjs &objs) const
                         const ColorInd &is, const BBox &bbox) {
     auto *hullObj = createHullObj(groupInd, name, ig, is, bbox);
 
-    connect(hullObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+    hullObj->connectDataChanged(this, SLOT(updateSlot()));
 
     hullObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(hullLayer()));
 
@@ -2208,7 +2185,7 @@ addDensityObjects(PlotObjs &objs) const
 
       auto *densityObj = createDensityObj(groupInd, name, gbbox);
 
-      connect(densityObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+      densityObj->connectDataChanged(this, SLOT(updateSlot()));
 
       densityObj->setDrawLayer(static_cast<CQChartsPlotObj::DrawLayer>(densityMapLayer()));
 
@@ -2480,7 +2457,7 @@ addNameValues() const
       ModelIndex yModelInd(scatterPlot_, data.row, scatterPlot_->yColumn(), data.parent);
 
       // get group
-      int groupInd = (! scatterPlot_->isSimple() ? scatterPlot_->rowGroupInd(xModelInd) : -1);
+      int groupInd = scatterPlot_->rowGroupInd(xModelInd);
 
       //---
 
@@ -2543,21 +2520,19 @@ addNameValues() const
       // get optional grouping name (name column, title, x axis)
       QString name;
 
-      if (! scatterPlot_->isSimple()) {
-        if (scatterPlot_->nameColumn().isValid()) {
-          ModelIndex nameColumnInd(scatterPlot_, data.row, scatterPlot_->nameColumn(), data.parent);
+      if (scatterPlot_->nameColumn().isValid()) {
+        ModelIndex nameColumnInd(scatterPlot_, data.row, scatterPlot_->nameColumn(), data.parent);
 
-          bool ok;
+        bool ok;
 
-          name = scatterPlot_->modelString(nameColumnInd, ok);
-        }
-
-        if (! name.length() && scatterPlot_->title())
-          name = scatterPlot_->title()->textStr();
-
-        if (! name.length() && scatterPlot_->xAxis())
-          name = scatterPlot_->xAxis()->label().string();
+        name = scatterPlot_->modelString(nameColumnInd, ok);
       }
+
+      if (! name.length() && scatterPlot_->title())
+        name = scatterPlot_->title()->textStr();
+
+      if (! name.length() && scatterPlot_->xAxis())
+        name = scatterPlot_->xAxis()->label().string();
 
       //---
 

@@ -701,7 +701,7 @@ createObjs(PlotObjs &objs) const
 
     auto *geomObj = createGeometryObj(bbox, geometry.polygons, geometry.ind, iv);
 
-    connect(geomObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+    geomObj->connectDataChanged(this, SLOT(updateSlot()));
 
     geomObj->setName (geometry.name);
 //  geomObj->setColor(geometry.color);

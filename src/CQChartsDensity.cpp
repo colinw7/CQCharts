@@ -333,6 +333,15 @@ eval(double x) const
 
 void
 CQChartsDensity::
+connectDataChanged(const QObject *obj, const char *slotName) const
+{
+  connect(this, SIGNAL(dataChanged()), obj, slotName);
+}
+
+//---
+
+void
+CQChartsDensity::
 draw(const CQChartsPlot *plot, PaintDevice *device, const BBox &rect,
      const DrawData &drawData)
 {

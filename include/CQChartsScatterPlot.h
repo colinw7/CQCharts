@@ -626,8 +626,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   bool isUniqueX() const { return uniqueX_; }
   bool isUniqueY() const { return uniqueY_; }
 
-  bool isSimple() const { return simple_; }
-
   //---
 
   // get x/y axis names
@@ -1003,7 +1001,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   ColumnType yColumnType_ { ColumnType::NONE }; //!< y column type
 
   bool columnsValid_ { true };
-  bool simple_       { false };
 
   bool uniqueX_ { false }; //!< are x values uniquified (string to int)
   bool uniqueY_ { false }; //!< are y values uniquified (string to int)

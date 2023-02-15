@@ -56,7 +56,7 @@ class CQChartsAxisRug : public CQChartsObj,
 
   BBox calcBBox() const;
 
-  void dataInvalidate() override;
+  void dataInvalidate(int dataType) override;
 
   void draw(PaintDevice *device, double delta=0.0);
 

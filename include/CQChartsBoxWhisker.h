@@ -302,7 +302,7 @@ class CQChartsAxisBoxWhisker : public CQChartsObj {
   bool contains(const Point &p) const override;
 
   //! handle data invalidation
-  void dataInvalidate() override;
+  void dataInvalidate(int dataType) override;
 
   //! add properties
   void addProperties(const QString &path, const QString &desc);
@@ -407,7 +407,7 @@ class CQChartsAxisDensity : public CQChartsObj {
   bool contains(const Point &p) const override;
 
   //! handle data invalidation
-  void dataInvalidate() override;
+  void dataInvalidate(int dataType) override;
 
   //! add properties
   void addProperties(const QString &path, const QString &desc);

@@ -344,6 +344,15 @@ propertyId() const
 
 void
 CQChartsAnnotation::
+connectDataChanged(const QObject *obj, const char *slotName) const
+{
+  connect(this, SIGNAL(dataChanged()), obj, slotName);
+}
+
+//---
+
+void
+CQChartsAnnotation::
 invalidate()
 {
   if      (plot()) {
@@ -4580,7 +4589,7 @@ init()
   else
     arrow_ = std::make_unique<CQChartsArrow>(view());
 
-  connect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+  arrow()->connectDisconnectDataChanged(true, this, SIGNAL(dataChanged()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 
@@ -4936,13 +4945,14 @@ draw(PaintDevice *device)
     drawPath_ = arrowPath;
   }
   else {
-    CQChartsWidgetUtil::AutoDisconnect
-      autoDisconnect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+    arrow()->connectDisconnectDataChanged(false, this, SIGNAL(dataChanged()));
 
     arrow()->setFrom(start);
     arrow()->setTo  (end  );
 
     arrow()->draw(device, penBrush);
+
+    arrow()->connectDisconnectDataChanged(true, this, SIGNAL(dataChanged()));
   }
 
   //---
@@ -7737,7 +7747,7 @@ updateValues()
 
     density_->setDrawType(CQChartsDensity::DrawType::WHISKER);
 
-    connect(density_.get(), SIGNAL(dataChanged()), this, SLOT(invalidateSlot()));
+    density_->connectDataChanged(this, SLOT(invalidateSlot()));
   }
 
   calcReals();
@@ -8861,7 +8871,7 @@ CQChartsSymbolSizeMapKeyAnnotation(Plot *plot) :
 
   key_ = new CQChartsSymbolSizeMapKey(plot);
 
-  connect(key_, SIGNAL(dataChanged()), this, SLOT(invalidateSlot()));
+  key_->connectDisconnectDataChanged(true, this, SLOT(invalidateSlot()));
 }
 
 CQChartsSymbolSizeMapKeyAnnotation::
@@ -8953,14 +8963,14 @@ draw(PaintDevice *device)
   //---
 
   // set position
-  disconnect(key_, SIGNAL(dataChanged()), this, SLOT(invalidateSlot()));
+  key_->connectDisconnectDataChanged(false, this, SLOT(invalidateSlot()));
 
   if (position_.isSet())
     key_->setPosition(position_);
   else
     key_->setPosition(Position());
 
-  connect(key_, SIGNAL(dataChanged()), this, SLOT(invalidateSlot()));
+  key_->connectDisconnectDataChanged(true, this, SLOT(invalidateSlot()));
 
   //---
 

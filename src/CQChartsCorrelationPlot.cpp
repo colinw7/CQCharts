@@ -434,7 +434,7 @@ addCellObj(int row, int col, double x, double y, double dx, double dy, double va
 
   auto *cellObj = createCellObj(bbox, row, col, value, ind);
 
-  connect(cellObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  cellObj->connectDataChanged(this, SLOT(updateSlot()));
 
   objs.push_back(cellObj);
 }

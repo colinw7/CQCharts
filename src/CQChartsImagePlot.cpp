@@ -452,7 +452,7 @@ addImageObj(int row, int col, const BBox &bbox, double value,
 
   auto *imageObj = createImageObj(bbox, row, col, value, ind1, colorInd);
 
-  connect(imageObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  imageObj->connectDataChanged(this, SLOT(updateSlot()));
 
   objs.push_back(imageObj);
 
@@ -468,7 +468,7 @@ addImageObj(int row, int col, const BBox &bbox, const CQChartsImage &image,
 
   auto *imageObj = createImageObj(bbox, row, col, image, ind1);
 
-  connect(imageObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  imageObj->connectDataChanged(this, SLOT(updateSlot()));
 
   objs.push_back(imageObj);
 

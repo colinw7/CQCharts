@@ -116,6 +116,10 @@ class CQChartsDensity : public QObject {
 
   //---
 
+  void connectDataChanged(const QObject *obj, const char *slotName) const;
+
+  //---
+
   void draw(const Plot *plot, PaintDevice *device, const BBox &rect,
             const DrawData &drawData=DrawData());
 
@@ -169,6 +173,7 @@ class CQChartsDensity : public QObject {
   void init();
 
  Q_SIGNALS:
+  //! emitted when data changed
   void dataChanged();
 
  public:

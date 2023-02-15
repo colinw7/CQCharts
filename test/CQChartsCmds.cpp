@@ -8041,7 +8041,7 @@ execCmd(CQChartsCmdArgs &argv)
       }
     }
     else if (name == "deselect") {
-      plot->deselectAllObjs();
+      plot->deselectAll();
     }
     else if (name == "model") {
       // get model

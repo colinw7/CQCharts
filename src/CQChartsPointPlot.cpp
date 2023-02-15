@@ -92,7 +92,7 @@ init()
   dataLabel_->setMoveClipped(false);
   dataLabel_->setSendSignal(true);
 
-  connect(dataLabel_.get(), SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
+  dataLabel_->connectDataChanged(this, SLOT(dataLabelChanged()));
 
   //---
 
@@ -1275,7 +1275,8 @@ addSymbolSizeMapKey()
   symbolSizeMapKey_->setVisible(false);
   symbolSizeMapKey_->setAlign(Qt::AlignHCenter | Qt::AlignBottom);
 
-  connect(symbolSizeMapKey_.get(), SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  symbolSizeMapKey_->connectDisconnectDataChanged(true, this, SLOT(updateSlot()));
+
   connect(symbolSizeMapKey_.get(), SIGNAL(itemSelected(const CQChartsLength &, bool)),
           this, SLOT(symbolSizeSelected(const CQChartsLength &, bool)));
 
@@ -1527,7 +1528,8 @@ addSymbolTypeMapKey()
   symbolTypeMapKey_->setVisible(false);
   symbolTypeMapKey_->setAlign(Qt::AlignRight | Qt::AlignBottom);
 
-  connect(symbolTypeMapKey_.get(), SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  symbolTypeMapKey_->connectDisconnectDataChanged(true, this, SLOT(updateSlot()));
+
   connect(symbolTypeMapKey_.get(), SIGNAL(itemSelected(const CQChartsSymbol &, bool)),
           this, SLOT(symbolTypeSelected(const CQChartsSymbol &, bool)));
 

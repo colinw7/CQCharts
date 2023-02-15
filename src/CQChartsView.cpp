@@ -1264,7 +1264,7 @@ deselectAll(bool propagate)
   if (propagate) {
     // deselect plots and their objects
     for (auto &plot : plots())
-      plot->deselectAll();
+      plot->deselectAll(Plot::SelectTypes::ALL);
   }
 
   //---
@@ -1750,8 +1750,9 @@ addAnnotationI(Annotation *annotation)
 {
   annotations_.push_back(annotation);
 
+  annotation->connectDataChanged(this, SLOT(updateAnnotationSlot()));
+
   connect(annotation, SIGNAL(idChanged()), this, SLOT(updateAnnotationSlot()));
-  connect(annotation, SIGNAL(dataChanged()), this, SLOT(updateAnnotationSlot()));
 
   annotation->addProperties(propertyModel(), "annotations");
 
@@ -5533,114 +5534,172 @@ CQChartsView::
 updateInsidePenBrushState(const ColorInd &colorInd, PenBrush &penBrush,
                           bool outline, DrawType drawType) const
 {
-  // fill and stroke
+  // solid shape (fill and stroke)
   if (drawType != DrawType::LINE) {
-    // outline box, symbol
+    // just draw outline (leave existing fill intact)
     if      (insideMode() == CQChartsView::HighlightDataMode::OUTLINE) {
-      QColor opc;
-      Alpha  alpha;
+      // set contast color (from existing line color)
+      QColor cc;
 
-      if (penBrush.pen.style() != Qt::NoPen) {
-        auto pc = penBrush.pen.color();
+      if (penBrush.pen.style() != Qt::NoPen)
+        cc = penBrush.pen.color();
+      else
+        cc = penBrush.brush.color();
 
-        charts()->setContrastColor(pc);
+      charts()->setContrastColor(cc);
 
-        if (isInsideStroked())
-          opc = interpInsideStrokeColor(colorInd);
-        else
-          opc = CQChartsUtil::invColor(pc);
+      //---
 
-      //alpha = Alpha(pc.alphaF());
+      // get pen color and alpha from preference or fallback values
+      QColor           outlineColor;
+      Alpha            outlineAlpha;
+      Length           outlineWidth;
+      CQChartsLineDash outlineDash;
+
+      if (isInsideStroked()) {
+        outlineColor = interpInsideStrokeColor(colorInd);
+        outlineAlpha = insideStrokeAlpha();
+        outlineWidth = insideStrokeWidth();
+        outlineDash  = insideStrokeDash();
       }
       else {
-        auto bc = penBrush.brush.color();
-
-        charts()->setContrastColor(bc);
-
-        if (isInsideStroked())
-          opc = interpInsideStrokeColor(colorInd);
-        else
-          opc = CQChartsUtil::invColor(bc);
+        outlineColor = calcInsideColor(cc);
+        outlineAlpha = Alpha(1.0);
+        outlineWidth = Length::pixel(2);
       }
 
-      setPen(penBrush, PenData(true, opc, alpha, insideStrokeWidth(), insideStrokeDash()));
+      setPen(penBrush, PenData(true, outlineColor, outlineAlpha, outlineWidth, outlineDash));
 
+      // don't fill if just outlining
       if (outline)
         setBrush(penBrush, BrushData(false));
 
       charts()->resetContrastColor();
     }
-    // fill box, symbol
+    // draw fill and/or stroke (if neither fill using default)
     else if (insideMode() == CQChartsView::HighlightDataMode::FILL) {
+      bool hasProp = (isInsideFilled() || isInsideStroked());
+
+      // set contast color (from fill color)
       auto bc = penBrush.brush.color();
 
       charts()->setContrastColor(bc);
 
-      QColor ibc;
+      //---
 
-      if (isInsideFilled()) {
-        auto ic1 = colorInd; ic1.c = bc;
+      // get fill color and alpha
+      QColor              fillColor;
+      Alpha               fillAlpha;
+      CQChartsFillPattern fillPattern;
 
-        ibc = interpInsideFillColor(ic1);
-      }
-      else
-        ibc = calcInsideColor(bc);
+      if (hasProp) {
+        if (isInsideFilled()) {
+          fillColor = interpInsideFillColor(colorInd);
 
-      Alpha alpha;
+          if (isInsideBlend())
+            fillAlpha = Alpha(insideFillAlpha().value()*bc.alphaF());
+          else
+            fillAlpha = insideFillAlpha();
 
-      if (isBufferLayers() && isInsideFilled()) {
-        if (isInsideBlend())
-          alpha = Alpha(insideFillAlpha().value()*bc.alphaF());
-        else
-          alpha = insideFillAlpha();
+          fillPattern = insideFillPattern();
+
+          setBrush(penBrush, BrushData(true, fillColor, fillAlpha, fillPattern));
+        }
       }
       else {
+        fillColor = calcInsideColor(bc);
+
         if (isInsideBlend())
-          alpha = Alpha(bc.alphaF());
+          fillAlpha = Alpha(bc.alphaF());
         else
-          alpha = Alpha();
+          fillAlpha = Alpha(1.0);
+
+        fillPattern = CQChartsFillPattern::makeSolid();
+
+        setBrush(penBrush, BrushData(true, fillColor, fillAlpha, fillPattern));
       }
 
-      setBrush(penBrush, BrushData(true, ibc, alpha, insideFillPattern()));
+      if (isInsideStroked()) {
+        auto outlineColor = interpInsideStrokeColor(colorInd);
+        auto outlineAlpha = insideStrokeAlpha();
+        auto outlineWidth = insideStrokeWidth();
+        auto outlineDash  = insideStrokeDash();
+
+        setPen(penBrush, PenData(true, outlineColor, outlineAlpha, outlineWidth, outlineDash));
+      }
 
       charts()->resetContrastColor();
     }
   }
-  // just stroke
+  // line shape
   else {
+    // just draw outline
     if      (insideMode() == CQChartsView::HighlightDataMode::OUTLINE) {
-      auto pc = penBrush.pen.color();
+      // set contast color (from existing line color)
+      QColor cc;
 
-      charts()->setContrastColor(pc);
-
-      QColor opc;
-
-      if (isInsideStroked())
-        opc = interpInsideStrokeColor(colorInd);
+      if (penBrush.pen.style() != Qt::NoPen)
+        cc = penBrush.pen.color();
       else
-        opc = CQChartsUtil::invColor(pc);
+        cc = penBrush.brush.color();
 
-      Alpha alpha(pc.alphaF());
+      charts()->setContrastColor(cc);
 
-      setPen(penBrush, PenData(true, opc, alpha, insideStrokeWidth(), insideStrokeDash()));
+      //---
+
+      // get pen color and alpha from preference or fallback values
+      QColor           outlineColor;
+      Alpha            outlineAlpha;
+      Length           outlineWidth;
+      CQChartsLineDash outlineDash;
+
+      if (isInsideStroked()) {
+        outlineColor = interpInsideStrokeColor(colorInd);
+        outlineAlpha = insideStrokeAlpha();
+        outlineWidth = insideStrokeWidth();
+        outlineDash  = insideStrokeDash();
+      }
+      else {
+        outlineColor = calcInsideColor(cc);
+        outlineAlpha = Alpha(1.0);
+        outlineWidth = Length::pixel(2);
+      }
+
+      setPen(penBrush, PenData(true, outlineColor, outlineAlpha, outlineWidth, outlineDash));
 
       charts()->resetContrastColor();
     }
+    // use fill data to draw outline
     else if (insideMode() == CQChartsView::HighlightDataMode::FILL) {
-      auto bc = penBrush.brush.color();
+      // set contast color (from existing line color)
+      QColor cc;
 
-      charts()->setContrastColor(bc);
-
-      QColor obc;
-
-      if (isInsideFilled())
-        obc = interpInsideFillColor(colorInd);
+      if (penBrush.brush.style() != Qt::NoBrush)
+        cc = penBrush.brush.color();
       else
-        obc = CQChartsUtil::invColor(bc);
+        cc = penBrush.pen.color();
 
-      Alpha alpha(bc.alphaF());
+      charts()->setContrastColor(cc);
 
-      setPen(penBrush, PenData(true, obc, alpha, insideStrokeWidth(), insideStrokeDash()));
+      //---
+
+      // get pen color and alpha from preference or fallback values
+      QColor           outlineColor;
+      Alpha            outlineAlpha;
+      Length           outlineWidth;
+      CQChartsLineDash outlineDash;
+
+      if (isInsideFilled()) {
+        outlineColor = interpInsideFillColor(colorInd);
+        outlineAlpha = insideFillAlpha();
+      }
+      else {
+        outlineColor = calcInsideColor(cc);
+        outlineAlpha = Alpha(1.0);
+        outlineWidth = Length::pixel(2);
+      }
+
+      setPen(penBrush, PenData(true, outlineColor, outlineAlpha, outlineWidth, outlineDash));
 
       charts()->resetContrastColor();
     }
@@ -5651,112 +5710,168 @@ void
 CQChartsView::
 updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawType drawType) const
 {
-  // fill and stroke
+  // solid shape (fill and stroke)
   if (drawType != DrawType::LINE) {
-    // outline box, symbol
+    // just draw outline (leave existing fill intact)
     if      (selectedMode() == CQChartsView::HighlightDataMode::OUTLINE) {
-      QColor opc;
-      Alpha  alpha;
+      // set contast color (from existing line color)
+      QColor cc;
 
-      if (penBrush.pen.style() != Qt::NoPen) {
-        auto pc = penBrush.pen.color();
+      if (penBrush.pen.style() != Qt::NoPen)
+        cc = penBrush.pen.color();
+      else
+        cc = penBrush.brush.color();
 
-        charts()->setContrastColor(pc);
+      charts()->setContrastColor(cc);
 
-        if (isSelectedStroked())
-          opc = interpSelectedStrokeColor(colorInd);
-        else
-          opc = calcSelectedColor(pc);
+      //---
 
-        alpha = Alpha(pc.alphaF());
+      // get pen color and alpha from preference or fallback values
+      QColor           outlineColor;
+      Alpha            outlineAlpha;
+      Length           outlineWidth;
+      CQChartsLineDash outlineDash;
+
+      if (isSelectedStroked()) {
+        outlineColor = interpSelectedStrokeColor(colorInd);
+        outlineAlpha = selectedStrokeAlpha();
+        outlineWidth = selectedStrokeWidth();
+        outlineDash  = selectedStrokeDash();
       }
       else {
-        auto bc = penBrush.brush.color();
-
-        charts()->setContrastColor(bc);
-
-        if (isSelectedStroked())
-          opc = interpSelectedStrokeColor(colorInd);
-        else
-          opc = CQChartsUtil::invColor(bc);
+        outlineColor = calcSelectedColor(cc);
+        outlineAlpha = Alpha(1.0);
+        outlineWidth = Length::pixel(2);
       }
 
-      setPen(penBrush, PenData(true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
-
-      setBrush(penBrush, BrushData(false));
+      setPen(penBrush, PenData(true, outlineColor, outlineAlpha, outlineWidth, outlineDash));
 
       charts()->resetContrastColor();
     }
-    // fill box, symbol
+    // draw fill (leave existing stroke intact)
     else if (selectedMode() == CQChartsView::HighlightDataMode::FILL) {
+      bool hasProp = (isSelectedFilled() || isSelectedStroked());
+
+      // set contast color (from fill color)
       auto bc = penBrush.brush.color();
 
       charts()->setContrastColor(bc);
 
-      QColor ibc;
+      //---
 
-      if (isSelectedFilled())
-        ibc = interpSelectedFillColor(colorInd);
-      else
-        ibc = calcSelectedColor(bc);
+      // get fill color and alpha
+      QColor              fillColor;
+      Alpha               fillAlpha;
+      CQChartsFillPattern fillPattern;
 
-      Alpha alpha;
+      if (hasProp) {
+        if (isSelectedFilled()) {
+          fillColor = interpSelectedFillColor(colorInd);
 
-      if (isBufferLayers() && isSelectedFilled()) {
-        if (isInsideBlend())
-          alpha = Alpha(selectedFillAlpha().value()*bc.alphaF());
-        else
-          alpha = selectedFillAlpha();
+          if (isSelectedBlend())
+            fillAlpha = Alpha(selectedFillAlpha().value()*bc.alphaF());
+          else
+            fillAlpha = selectedFillAlpha();
+
+          fillPattern = selectedFillPattern();
+
+          setBrush(penBrush, BrushData(true, fillColor, fillAlpha, fillPattern));
+        }
       }
       else {
-        if (isInsideBlend())
-          alpha = Alpha(bc.alphaF());
+        fillColor = calcSelectedColor(bc);
+
+        if (isSelectedBlend())
+          fillAlpha = Alpha(bc.alphaF());
         else
-          alpha = Alpha();
+          fillAlpha = Alpha(1.0);
+
+        fillPattern = CQChartsFillPattern::makeSolid();
+
+        setBrush(penBrush, BrushData(true, fillColor, fillAlpha, fillPattern));
       }
 
-      setBrush(penBrush, BrushData(true, ibc, alpha, selectedFillPattern()));
+      if (isSelectedStroked()) {
+        auto outlineColor = interpSelectedStrokeColor(colorInd);
+        auto outlineAlpha = selectedStrokeAlpha();
+        auto outlineWidth = selectedStrokeWidth();
+        auto outlineDash  = selectedStrokeDash();
+
+        setPen(penBrush, PenData(true, outlineColor, outlineAlpha, outlineWidth, outlineDash));
+      }
 
       charts()->resetContrastColor();
     }
   }
-  // just stroke
+  // line shape
   else {
+    // just draw outline
     if      (selectedMode() == CQChartsView::HighlightDataMode::OUTLINE) {
-      if (penBrush.pen.style() != Qt::NoPen) {
-        auto pc = penBrush.pen.color();
+      // set contast color (from existing line color)
+      QColor cc;
 
-        charts()->setContrastColor(pc);
-
-        QColor opc;
-
-        if (isSelectedStroked())
-          opc = interpSelectedStrokeColor(colorInd);
-        else
-          opc = CQChartsUtil::invColor(pc);
-
-        Alpha alpha(pc.alphaF());
-
-        setPen(penBrush, PenData(true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
-
-        charts()->resetContrastColor();
-      }
-    }
-    else if (selectedMode() == CQChartsView::HighlightDataMode::FILL) {
-      auto bc = penBrush.brush.color();
-
-      charts()->setContrastColor(bc);
-
-      QColor obc;
-
-      if (isSelectedFilled())
-        obc = interpSelectedFillColor(colorInd);
+      if (penBrush.pen.style() != Qt::NoPen)
+        cc = penBrush.pen.color();
       else
-        obc = CQChartsUtil::invColor(bc);
+        cc = penBrush.brush.color();
 
-      Alpha alpha(bc.alphaF());
+      charts()->setContrastColor(cc);
 
-      setPen(penBrush, PenData(true, obc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
+      //---
+
+      // get pen color and alpha from preference or fallback values
+      QColor           outlineColor;
+      Alpha            outlineAlpha;
+      Length           outlineWidth;
+      CQChartsLineDash outlineDash;
+
+      if (isSelectedStroked()) {
+        outlineColor = interpSelectedStrokeColor(colorInd);
+        outlineAlpha = selectedStrokeAlpha();
+        outlineWidth = selectedStrokeWidth();
+        outlineDash  = selectedStrokeDash();
+      }
+      else {
+        outlineColor = calcSelectedColor(cc);
+        outlineAlpha = Alpha(1.0);
+        outlineWidth = Length::pixel(2);
+      }
+
+      setPen(penBrush, PenData(true, outlineColor, outlineAlpha, outlineWidth, outlineDash));
+
+      charts()->resetContrastColor();
+    }
+    // use fill data to draw outline
+    else if (selectedMode() == CQChartsView::HighlightDataMode::FILL) {
+      // set contast color (from existing line color)
+      QColor cc;
+
+      if (penBrush.brush.style() != Qt::NoBrush)
+        cc = penBrush.brush.color();
+      else
+        cc = penBrush.pen.color();
+
+      charts()->setContrastColor(cc);
+
+      //---
+
+      // get pen color and alpha from preference or fallback values
+      QColor           outlineColor;
+      Alpha            outlineAlpha;
+      Length           outlineWidth;
+      CQChartsLineDash outlineDash;
+
+      if (isSelectedFilled()) {
+        outlineColor = interpSelectedFillColor(colorInd);
+        outlineAlpha = selectedFillAlpha();
+      }
+      else {
+        outlineColor = calcSelectedColor(cc);
+        outlineAlpha = Alpha(1.0);
+        outlineWidth = Length::pixel(2);
+      }
+
+      setPen(penBrush, PenData(true, outlineColor, outlineAlpha, outlineWidth, outlineDash));
 
       charts()->resetContrastColor();
     }
@@ -5786,6 +5901,7 @@ QColor
 CQChartsView::
 calcSelectedColor(const QColor &c) const
 {
+  // use selected Color and Alpha if set otherwise use contrast color
   QColor c1;
 
   if (selectedColor().isValid()) {

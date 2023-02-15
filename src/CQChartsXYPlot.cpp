@@ -262,7 +262,7 @@ init()
 
   arrowObj_->setVisible(false);
 
-  connect(arrowObj_.get(), SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  arrowObj_->connectDisconnectDataChanged(true, this, SLOT(updateSlot()));
 
   //---
 

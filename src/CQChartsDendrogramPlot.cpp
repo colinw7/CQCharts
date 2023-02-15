@@ -1234,7 +1234,7 @@ addNodeObj(Node *node, PlotObjs &objs, bool isHier) const
 
   obj->setInd(cacheData_.nodeInd++);
 
-  connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  obj->connectDataChanged(this, SLOT(updateSlot()));
 
   obj->setHier(isHier);
 

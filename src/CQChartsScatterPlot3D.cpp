@@ -151,7 +151,7 @@ init()
 
   dataLabel_->setSendSignal(true);
 
-  connect(dataLabel_, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
+  dataLabel_->connectDataChanged(this, SLOT(dataLabelChanged()));
 
   connect(this, SIGNAL(colorDetailsChanged()), this, SLOT(colorChanged()));
 

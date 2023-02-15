@@ -152,6 +152,8 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //---
 
+  void connectDataChanged(const QObject *obj, const char *slotName) const;
+
   void textBoxObjInvalidate() override;
 
   //---
@@ -163,6 +165,7 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   void write(std::ostream &os, const QString &varName) const;
 
  Q_SIGNALS:
+  //! emitted when data changed
   void dataChanged();
 
  private:

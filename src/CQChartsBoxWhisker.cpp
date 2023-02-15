@@ -207,42 +207,42 @@ void
 CQChartsAxisBoxWhisker::
 setSide(const Side &s)
 {
-  CQChartsUtil::testAndSet(side_, s, [&]() { dataInvalidate(); } );
+  CQChartsUtil::testAndSet(side_, s, [&]() { dataInvalidate(DataType::SIDE); } );
 }
 
 void
 CQChartsAxisBoxWhisker::
 setDirection(const Qt::Orientation &o)
 {
-  CQChartsUtil::testAndSet(direction_, o, [&]() { dataInvalidate(); } );
+  CQChartsUtil::testAndSet(direction_, o, [&]() { dataInvalidate(DataType::DIRECTION); } );
 }
 
 void
 CQChartsAxisBoxWhisker::
 setWidth(const Length &l)
 {
-  CQChartsUtil::testAndSet(width_, l, [&]() { dataInvalidate(); } );
+  CQChartsUtil::testAndSet(width_, l, [&]() { dataInvalidate(DataType::WIDTH); } );
 }
 
 void
 CQChartsAxisBoxWhisker::
 setMargin(const Length &l)
 {
-  CQChartsUtil::testAndSet(margin_, l, [&]() { dataInvalidate(); } );
+  CQChartsUtil::testAndSet(margin_, l, [&]() { dataInvalidate(DataType::MARGIN); } );
 }
 
 void
 CQChartsAxisBoxWhisker::
 setAlpha(const Alpha &a)
 {
-  CQChartsUtil::testAndSet(alpha_, a, [&]() { dataInvalidate(); } );
+  CQChartsUtil::testAndSet(alpha_, a, [&]() { dataInvalidate(DataType::ALPHA); } );
 }
 
 void
 CQChartsAxisBoxWhisker::
 setDrawType(const DrawType &t)
 {
-  CQChartsUtil::testAndSet(drawType_, t, [&]() { dataInvalidate(); } );
+  CQChartsUtil::testAndSet(drawType_, t, [&]() { dataInvalidate(DataType::DRAW_TYPE); } );
 }
 
 CQChartsGeom::BBox
@@ -341,7 +341,7 @@ contains(const Point &p) const
 
 void
 CQChartsAxisBoxWhisker::
-dataInvalidate()
+dataInvalidate(int)
 {
   plot()->resetExtraFitBBox();
 
@@ -446,35 +446,35 @@ void
 CQChartsAxisDensity::
 setSide(const Side &s)
 {
-  CQChartsUtil::testAndSet(side_, s, [&]() { dataInvalidate(); } );
+  CQChartsUtil::testAndSet(side_, s, [&]() { dataInvalidate(DataType::SIDE); } );
 }
 
 void
 CQChartsAxisDensity::
 setDirection(const Qt::Orientation &o)
 {
-  CQChartsUtil::testAndSet(direction_, o, [&]() { dataInvalidate(); } );
+  CQChartsUtil::testAndSet(direction_, o, [&]() { dataInvalidate(DataType::DIRECTION); } );
 }
 
 void
 CQChartsAxisDensity::
 setWidth(const Length &l)
 {
-  CQChartsUtil::testAndSet(width_, l, [&]() { dataInvalidate(); } );
+  CQChartsUtil::testAndSet(width_, l, [&]() { dataInvalidate(DataType::WIDTH); } );
 }
 
 void
 CQChartsAxisDensity::
 setAlpha(const Alpha &a)
 {
-  CQChartsUtil::testAndSet(alpha_, a, [&]() { dataInvalidate(); } );
+  CQChartsUtil::testAndSet(alpha_, a, [&]() { dataInvalidate(DataType::ALPHA); } );
 }
 
 void
 CQChartsAxisDensity::
 setDrawType(const DrawType &t)
 {
-  CQChartsUtil::testAndSet(drawType_, t, [&]() { dataInvalidate(); } );
+  CQChartsUtil::testAndSet(drawType_, t, [&]() { dataInvalidate(DataType::DRAW_TYPE); } );
 }
 
 CQChartsGeom::BBox
@@ -539,7 +539,7 @@ contains(const Point &p) const
 
 void
 CQChartsAxisDensity::
-dataInvalidate()
+dataInvalidate(int)
 {
   plot()->resetExtraFitBBox();
 

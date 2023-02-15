@@ -35,6 +35,15 @@ CQChartsPlotObj::
 
 void
 CQChartsPlotObj::
+connectDataChanged(const QObject *obj, const char *slotName) const
+{
+  connect(this, SIGNAL(dataChanged(int)), obj, slotName);
+}
+
+//---
+
+void
+CQChartsPlotObj::
 setDrawLayer(const DrawLayer &l)
 {
   drawLayer_ = l;

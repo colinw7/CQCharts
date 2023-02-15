@@ -797,7 +797,7 @@ initTableObjs(PlotObjs &objs) const
 
     auto *segmentObj = createSegmentObj(rect, data, ig, iv);
 
-    connect(segmentObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+    segmentObj->connectDataChanged(this, SLOT(updateSlot()));
 
     objs.push_back(segmentObj);
 
@@ -813,7 +813,7 @@ initTableObjs(PlotObjs &objs) const
 
       auto *edgeObj = createEdgeObj(rect, data, value.to, value.value, value.ind);
 
-      connect(edgeObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+      edgeObj->connectDataChanged(this, SLOT(updateSlot()));
 
       edgeObj->setIv(ColorInd(ind, int(nv)));
 
@@ -1100,7 +1100,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
     auto *segmentObj = createSegmentObj(rect, data, ig, iv);
 
-    connect(segmentObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+    segmentObj->connectDataChanged(this, SLOT(updateSlot()));
 
     objs.push_back(segmentObj);
 
@@ -1116,7 +1116,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
       auto *edgeObj = createEdgeObj(rect, data, value.to, value.value, value.ind);
 
-      connect(edgeObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+      edgeObj->connectDataChanged(this, SLOT(updateSlot()));
 
       edgeObj->setIv(ColorInd(ind, int(nv)));
 
@@ -1152,7 +1152,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
         if (! parentHierObj) {
           parentHierObj = createHierObj(parentName, rect);
 
-          connect(parentHierObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+          parentHierObj->connectDataChanged(this, SLOT(updateSlot()));
 
           objs.push_back(parentHierObj);
 

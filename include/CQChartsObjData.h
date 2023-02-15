@@ -1556,49 +1556,49 @@ class CQChartsObj##UNAME##ShapeData { \
   bool is##UNAME##Stroked() const { return LNAME##ShapeData_.stroke().isVisible(); } \
   void set##UNAME##Stroked(bool b) { \
     if (b != LNAME##ShapeData_.stroke().isVisible()) { \
-      LNAME##ShapeData_.stroke().setVisible(b); LNAME##ShapeDataInvalidate(); } \
+      LNAME##ShapeData_.stroke().setVisible(b); LNAME##ShapeDataInvalidateI(); } \
   } \
 \
   const Color &LNAME##StrokeColor() const { return LNAME##ShapeData_.stroke().color(); } \
   void set##UNAME##StrokeColor(const Color &c) { \
     if (c != LNAME##ShapeData_.stroke().color()) { \
-      LNAME##ShapeData_.stroke().setColor(c); LNAME##ShapeDataInvalidate(); } \
+      LNAME##ShapeData_.stroke().setColor(c); LNAME##ShapeDataInvalidateI(); } \
   } \
 \
   const Alpha &LNAME##StrokeAlpha() const { return LNAME##ShapeData_.stroke().alpha(); } \
   void set##UNAME##StrokeAlpha(const Alpha &a) { \
     if (a != LNAME##ShapeData_.stroke().alpha()) { \
-      LNAME##ShapeData_.stroke().setAlpha(a); LNAME##ShapeDataInvalidate(); } \
+      LNAME##ShapeData_.stroke().setAlpha(a); LNAME##ShapeDataInvalidateI(); } \
   } \
 \
   const Length &LNAME##StrokeWidth() const { return LNAME##ShapeData_.stroke().width(); } \
   void set##UNAME##StrokeWidth(const Length &l) { \
     if (l != LNAME##ShapeData_.stroke().width()) { \
-      LNAME##ShapeData_.stroke().setWidth(l); LNAME##ShapeDataInvalidate(); } \
+      LNAME##ShapeData_.stroke().setWidth(l); LNAME##ShapeDataInvalidateI(); } \
   } \
 \
   const LineDash &LNAME##StrokeDash() const { return LNAME##ShapeData_.stroke().dash(); } \
   void set##UNAME##StrokeDash(const LineDash &d) { \
     if (d != LNAME##ShapeData_.stroke().dash()) { \
-      LNAME##ShapeData_.stroke().setDash(d); LNAME##ShapeDataInvalidate(); } \
+      LNAME##ShapeData_.stroke().setDash(d); LNAME##ShapeDataInvalidateI(); } \
   } \
 \
   const LineCap &LNAME##StrokeCap() const { return LNAME##ShapeData_.stroke().lineCap(); } \
   void set##UNAME##StrokeCap(const LineCap &c) { \
     if (c != LNAME##ShapeData_.stroke().lineCap()) { \
-      LNAME##ShapeData_.stroke().setLineCap(c); LNAME##ShapeDataInvalidate(); } \
+      LNAME##ShapeData_.stroke().setLineCap(c); LNAME##ShapeDataInvalidateI(); } \
   } \
 \
   const LineJoin &LNAME##StrokeJoin() const { return LNAME##ShapeData_.stroke().lineJoin(); } \
   void set##UNAME##StrokeJoin(const LineJoin &j) { \
     if (j != LNAME##ShapeData_.stroke().lineJoin()) { \
-      LNAME##ShapeData_.stroke().setLineJoin(j); LNAME##ShapeDataInvalidate(); } \
+      LNAME##ShapeData_.stroke().setLineJoin(j); LNAME##ShapeDataInvalidateI(); } \
   } \
 \
   const Length &LNAME##CornerSize() const { return LNAME##ShapeData_.stroke().cornerSize(); } \
   void set##UNAME##CornerSize(const Length &l) { \
     if (l != LNAME##ShapeData_.stroke().cornerSize()) { \
-      LNAME##ShapeData_.stroke().setCornerSize(l); LNAME##ShapeDataInvalidate(); } \
+      LNAME##ShapeData_.stroke().setCornerSize(l); LNAME##ShapeDataInvalidateI(); } \
   } \
 \
   QColor interp##UNAME##StrokeColor(const ColorInd &ind) const { \
@@ -1608,27 +1608,26 @@ class CQChartsObj##UNAME##ShapeData { \
   bool is##UNAME##Filled() const { return LNAME##ShapeData_.fill().isVisible(); } \
   void set##UNAME##Filled(bool b) { \
     if (b != LNAME##ShapeData_.fill().isVisible()) { \
-      LNAME##ShapeData_.fill().setVisible(b); \
-      LNAME##ShapeDataInvalidate(is##UNAME##ReloadObj()); } \
+      LNAME##ShapeData_.fill().setVisible(b); LNAME##ShapeDataInvalidateI(); } \
   } \
 \
   const Color &LNAME##FillColor() const { return LNAME##ShapeData_.fill().color(); } \
   void set##UNAME##FillColor(const Color &c) { \
     if (c != LNAME##ShapeData_.fill().color()) { \
-      LNAME##ShapeData_.fill().setColor(c); LNAME##ShapeDataInvalidate(); } \
+      LNAME##ShapeData_.fill().setColor(c); LNAME##ShapeDataInvalidateI(); } \
   } \
 \
   const Alpha &LNAME##FillAlpha() const { return LNAME##ShapeData_.fill().alpha(); } \
   void set##UNAME##FillAlpha(const Alpha &a) { \
     if (a != LNAME##ShapeData_.fill().alpha()) { \
-      LNAME##ShapeData_.fill().setAlpha(a); LNAME##ShapeDataInvalidate(); } \
+      LNAME##ShapeData_.fill().setAlpha(a); LNAME##ShapeDataInvalidateI(); } \
   } \
 \
   const FillPattern &LNAME##FillPattern() const { \
     return LNAME##ShapeData_.fill().pattern(); } \
   void set##UNAME##FillPattern(const FillPattern &p) { \
     if (p != LNAME##ShapeData_.fill().pattern()) { \
-      LNAME##ShapeData_.fill().setPattern(p); LNAME##ShapeDataInvalidate(); } \
+      LNAME##ShapeData_.fill().setPattern(p); LNAME##ShapeDataInvalidateI(); } \
   } \
 \
   QColor interp##UNAME##FillColor(const ColorInd &ind) const { \
@@ -1638,7 +1637,7 @@ class CQChartsObj##UNAME##ShapeData { \
   const ShapeData &LNAME##ShapeData() const { return LNAME##ShapeData_; } \
 \
   void set##UNAME##ShapeData(const ShapeData &data) { \
-    LNAME##ShapeData_ = data; LNAME##ShapeDataInvalidate(); \
+    LNAME##ShapeData_ = data; LNAME##ShapeDataInvalidateI(); \
   } \
 \
   PenData LNAME##PenData(const ColorInd &colorInd) const { \
@@ -1685,6 +1684,10 @@ class CQChartsObj##UNAME##ShapeData { \
   } \
 \
  private: \
+  virtual void LNAME##ShapeDataInvalidateI() { \
+    LNAME##ShapeDataInvalidate(is##UNAME##ReloadObj()); \
+  } \
+\
   virtual void LNAME##ShapeDataInvalidate(bool reload=false) { \
     LNAME##PInvalidator_ ? LNAME##PInvalidator_->invalidate(reload) : \
                            LNAME##Invalidator_.invalidate(reload); \

@@ -349,6 +349,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
+  void connectDataChanged(const QObject *obj, const char *slotName) const;
+
   //! handle box obj data changed
   void boxObjInvalidate() override { emitDataChanged(); }
 

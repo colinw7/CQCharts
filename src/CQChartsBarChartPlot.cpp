@@ -1361,7 +1361,7 @@ createObjs(PlotObjs &objs) const
     auto *barObj = createBarObj(brect, /*valueSet*/true, iv,
                                 ColorInd(), ColorInd(iv, nv), ColorInd(), ind.ind);
 
-    connect(barObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+    barObj->connectDataChanged(this, SLOT(updateSlot()));
 
     objs.push_back(barObj);
 
@@ -1509,7 +1509,7 @@ createObjs(PlotObjs &objs) const
 
     auto *barObj = createBarObj(brect, /*valueSet*/false, iv, cis, cig, civ, minInd.ind);
 
-    connect(barObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+    barObj->connectDataChanged(this, SLOT(updateSlot()));
 
     if (color.isValid())
       barObj->setColor(color);

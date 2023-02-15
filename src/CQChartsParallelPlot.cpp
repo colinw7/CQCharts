@@ -783,7 +783,7 @@ createObjs(PlotObjs &objs) const
 
     auto *lineObj = createLineObj(bbox, poly, xind1, is);
 
-    connect(lineObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+    lineObj->connectDataChanged(this, SLOT(updateSlot()));
 
     objs.push_back(lineObj);
 
@@ -841,7 +841,7 @@ createObjs(PlotObjs &objs) const
 
       auto *pointObj = createPointObj(bbox, p.y, Point(x, y), yind1, is, iv);
 
-      connect(pointObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+      pointObj->connectDataChanged(this, SLOT(updateSlot()));
 
       objs.push_back(pointObj);
     }

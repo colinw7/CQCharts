@@ -619,6 +619,15 @@ textAlignment(const Position &position)
   return align;
 }
 
+//---
+
+void
+CQChartsDataLabel::
+connectDataChanged(const QObject *obj, const char *slotName) const
+{
+  connect(this, SIGNAL(dataChanged()), obj, slotName);
+}
+
 void
 CQChartsDataLabel::
 textBoxObjInvalidate()

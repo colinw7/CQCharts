@@ -740,7 +740,7 @@ createObjs(PlotObjs &objs) const
         }
 
         if (obj) {
-          connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+          obj->connectDataChanged(this, SLOT(updateSlot()));
 
           objs.push_back(obj);
         }
@@ -824,7 +824,7 @@ createObjs(PlotObjs &objs) const
 
       auto *obj = createLineObj(rect, inds, ic, polygon, name);
 
-      connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+      obj->connectDataChanged(this, SLOT(updateSlot()));
 
       objs.push_back(obj);
     }
@@ -875,7 +875,7 @@ createObjs(PlotObjs &objs) const
 
         auto *obj = createPointObj(rect, inds, ir, ic, p, value);
 
-        connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+        obj->connectDataChanged(this, SLOT(updateSlot()));
 
         objs.push_back(obj);
       }
@@ -928,7 +928,7 @@ createObjs(PlotObjs &objs) const
 
         auto *obj = createCellObj(rect, inds, ir, ic, name, value, hnorm, vnorm, ok);
 
-        connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+        obj->connectDataChanged(this, SLOT(updateSlot()));
 
         objs.push_back(obj);
       }

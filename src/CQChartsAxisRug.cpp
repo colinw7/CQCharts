@@ -23,14 +23,14 @@ void
 CQChartsAxisRug::
 setSide(const Side &s)
 {
-  CQChartsUtil::testAndSet(side_, s, [&]() { dataInvalidate(); } );
+  CQChartsUtil::testAndSet(side_, s, [&]() { dataInvalidate(DataType::SIDE); } );
 }
 
 void
 CQChartsAxisRug::
 setDirection(const Qt::Orientation &o)
 {
-  CQChartsUtil::testAndSet(direction_, o, [&]() { dataInvalidate(); } );
+  CQChartsUtil::testAndSet(direction_, o, [&]() { dataInvalidate(DataType::DIRECTION); } );
 }
 
 void
@@ -104,7 +104,7 @@ contains(const Point &p) const
 
 void
 CQChartsAxisRug::
-dataInvalidate()
+dataInvalidate(int)
 {
   plot()->resetExtraFitBBox();
 

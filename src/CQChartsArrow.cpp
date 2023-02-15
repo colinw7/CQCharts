@@ -281,6 +281,20 @@ isSolid() const
   return (! isFrontSolid && ! isTailSolid);
 }
 
+//---
+
+void
+CQChartsArrow::
+connectDisconnectDataChanged(bool b, const QObject *obj, const char *slotName) const
+{
+  if (b)
+    connect(this, SIGNAL(dataChanged()), obj, slotName);
+  else
+    disconnect(this, SIGNAL(dataChanged()), obj, slotName);
+}
+
+//---
+
 void
 CQChartsArrow::
 draw(PaintDevice *device) const

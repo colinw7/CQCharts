@@ -40,6 +40,21 @@ class CQChartsObj : public QObject {
   Q_PROPERTY(int                priority   READ priority     WRITE setPriority  )
 
  public:
+  enum DataType {
+    ID,
+    RECT,
+    TIP,
+    VISIBLE,
+    SELECTED,
+    INSIDE,
+    SIDE,
+    DIRECTION,
+    WIDTH,
+    MARGIN,
+    ALPHA,
+    DRAW_TYPE
+  };
+
   using BBox  = CQChartsGeom::BBox;
   using Size  = CQChartsGeom::Size;
   using Point = CQChartsGeom::Point;
@@ -72,7 +87,7 @@ class CQChartsObj : public QObject {
 
   //! get set rect
   const BBox &rect() const { return rect_; }
-  virtual void setRect(const BBox &r) { rect_ = r; dataInvalidate(); }
+  virtual void setRect(const BBox &r) { rect_ = r; dataInvalidate(DataType::RECT); }
 
   //---
 
@@ -91,8 +106,8 @@ class CQChartsObj : public QObject {
   const QString &tipId() const;
   void setTipId(const QString &s);
 
-  //! reset tip id (force recalc(
-  void resetTipId() { tipId_ = OptString(); dataInvalidate(); }
+  //! reset tip id (force recalc)
+  void resetTipId() { tipId_ = OptString(); dataInvalidate(DataType::TIP); }
 
   //! calculate tip id (on demand)
   virtual QString calcTipId() const { return calcId(); }
@@ -101,15 +116,18 @@ class CQChartsObj : public QObject {
 
   //! get/set visible
   virtual bool isVisible() const { return visible_; }
-  virtual void setVisible(bool b) { visible_ = b; if (notificationsEnabled_) dataInvalidate(); }
+  virtual void setVisible(bool b) {
+    visible_ = b; if (notificationsEnabled_) dataInvalidate(DataType::VISIBLE); }
 
   //! set/get selected
   virtual bool isSelected() const { return selected_; }
-  virtual void setSelected(bool b) { selected_ = b; if (notificationsEnabled_) dataInvalidate(); }
+  virtual void setSelected(bool b) {
+    selected_ = b; if (notificationsEnabled_) dataInvalidate(DataType::SELECTED); }
 
   //! set/get inside
   virtual bool isInside() const { return inside_; }
-  virtual void setInside(bool b) { inside_ = b; if (notificationsEnabled_) dataInvalidate(); }
+  virtual void setInside(bool b) {
+    inside_ = b; if (notificationsEnabled_) dataInvalidate(DataType::INSIDE); }
 
   //---
 
@@ -145,7 +163,7 @@ class CQChartsObj : public QObject {
 
   //! handle data change
   //! TODO: signal ?
-  virtual void dataInvalidate() { }
+  virtual void dataInvalidate(int) { }
 
  Q_SIGNALS:
   //! emitted when object id changed

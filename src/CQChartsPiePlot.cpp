@@ -1193,7 +1193,7 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
 
     obj = createPieObj(rect, dataInd1, ig);
 
-    connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+    obj->connectDataChanged(this, SLOT(updateSlot()));
 
     if (hidden)
       obj->setVisible(false);

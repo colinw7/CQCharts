@@ -408,6 +408,20 @@ updateProperties(PropertyModel *, const QString &path)
   setItemEnabled("align", isAbsolutePos);
 }
 
+//---
+
+void
+CQChartsMapKey::
+connectDisconnectDataChanged(bool b, const QObject *obj, const char *slotName)
+{
+  if (b)
+    connect(this, SIGNAL(dataChanged()), obj, slotName);
+  else
+    disconnect(this, SIGNAL(dataChanged()), obj, slotName);
+}
+
+//---
+
 QFont
 CQChartsMapKey::
 calcDrawFont(const Font &textFont) const

@@ -1903,7 +1903,7 @@ createObjFromNode(Node *node) const
 
   auto *nodeObj = createNodeObj(node->rect(), node, ig, iv);
 
-  connect(nodeObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  nodeObj->connectDataChanged(this, SLOT(updateSlot()));
 
   nodeObj->setHierName(node->str());
 
@@ -2018,7 +2018,7 @@ addEdgeObj(Edge *edge) const
 
   auto *edgeObj = createEdgeObj(rect, edge);
 
-  connect(edgeObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  edgeObj->connectDataChanged(this, SLOT(updateSlot()));
 
   // add model indices
   for (const auto &modelInd : edge->modelInds())

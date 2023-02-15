@@ -366,6 +366,19 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     CLIP
   };
 
+  enum SelectTypes {
+    PLOT       = (1<<0),
+    PLOT_OBJ   = (1<<1),
+    ANNOTATION = (1<<2),
+    TITLE      = (1<<3),
+    KEY        = (1<<4),
+    AXIS       = (1<<5),
+    MAP_KEY    = (1<<6),
+
+    NONE = 0,
+    ALL  = (PLOT | PLOT_OBJ | ANNOTATION | TITLE | KEY | AXIS | MAP_KEY)
+  };
+
   using Plot = CQChartsPlot;
 
   using Point    = CQChartsGeom::Point;
@@ -479,6 +492,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using PlotKeyItem   = CQChartsKeyItem;
   using EditHandles   = CQChartsEditHandles;
   using PlotParameter = CQChartsPlotParameter;
+  using MapKey        = CQChartsMapKey;
   using PropertyModel = CQPropertyViewModel;
 
   using Font        = CQChartsFont;
@@ -2271,9 +2285,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void selectOneObj(Obj *obj, SelMod selMod);
 
-  void deselectAllObjs();
+  void deselectAllPlotObjs();
 
-  void deselectAll();
+  void deselectAll(SelectTypes selectTypes=SelectTypes::ALL);
 
   // handle key press
   virtual bool keyPress(int key, int modifier);
@@ -2646,7 +2660,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   QString insideObjectText1() const;
 
-  void deselectAll1(bool &changed);
+  void deselectAll1(SelectTypes selectTypes, bool &changed);
 
   //---
 
@@ -2901,7 +2915,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  virtual void updateMapKey(CQChartsMapKey *key) const;
+  virtual void updateMapKey(MapKey *key) const;
 
   //---
 
@@ -3226,7 +3240,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void keyPressed(CQChartsPlotKey *);
   void keyIdPressed(const QString &);
 
-  void mapKeyPressed(CQChartsMapKey *);
+  void mapKeyPressed(MapKey *);
 
   // title signals (title changed)
   void titleChanged();
@@ -3668,7 +3682,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // color map key
   using ColorMapKeyP = std::unique_ptr<CQChartsColorMapKey>;
-  using MapKeys      = std::vector<CQChartsMapKey *>;
+  using MapKeys      = std::vector<MapKey *>;
 
   ColorMapKeyP colorMapKey_; //!< color map key
 

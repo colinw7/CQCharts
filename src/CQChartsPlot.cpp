@@ -76,6 +76,9 @@ CQChartsPlot(View *view, PlotType *type, const ModelP &model) :
  CQChartsObjFitShapeData <CQChartsPlot>(this),
  view_(view), type_(type), model_(model)
 {
+  CQChartsObjPlotShapeData<CQChartsPlot>::setPlotReloadObj(false);
+  CQChartsObjDataShapeData<CQChartsPlot>::setDataReloadObj(false);
+  CQChartsObjFitShapeData <CQChartsPlot>::setFitReloadObj(false);
 }
 
 CQChartsPlot::
@@ -554,8 +557,8 @@ selectionSlot(QItemSelectionModel *sm)
 
   startSelection();
 
-  // deselect all objects
-  deselectAllObjs();
+  // deselect all plot objects
+  deselectAllPlotObjs();
 
   // select objects with matching indices
   for (auto &plotObj : plotObjects()) {
@@ -4466,7 +4469,7 @@ resetPlotKeyItems(CQChartsPlot *plot, bool add)
 
 void
 CQChartsPlot::
-doAddKeyItems(CQChartsPlotKey *key)
+doAddKeyItems(PlotKey *key)
 {
   // add key items from color column
   if (isColorKey()) {
@@ -4479,7 +4482,7 @@ doAddKeyItems(CQChartsPlotKey *key)
 
 bool
 CQChartsPlot::
-addColorKeyItems(CQChartsPlotKey *key)
+addColorKeyItems(PlotKey *key)
 {
   int row = (! key->isHorizontal() ? key->maxRow() : 0);
   int col = (! key->isHorizontal() ? 0 : key->maxCol());
@@ -4567,7 +4570,8 @@ addColorMapKey()
   colorMapKey_->setVisible(false);
   colorMapKey_->setAlign(Qt::AlignLeft | Qt::AlignBottom);
 
-  connect(colorMapKey_.get(), SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  colorMapKey_->connectDisconnectDataChanged(true, this, SLOT(updateSlot()));
+
   connect(colorMapKey_.get(), SIGNAL(itemSelected(const QColor &, bool)),
           this, SLOT(colorSelected(const QColor &, bool)));
 
@@ -4642,7 +4646,7 @@ drawColorMapKey(PaintDevice *device) const
 
 void
 CQChartsPlot::
-updateMapKey(CQChartsMapKey *key) const
+updateMapKey(MapKey *key) const
 {
   if (key == colorMapKey())
     updateColorMapKey();
@@ -7462,7 +7466,7 @@ tabbedPressPlot(const Point &w, Plots &plots) const
 
 bool
 CQChartsPlot::
-keySelectPress(CQChartsPlotKey *key, const Point &w, SelMod selMod)
+keySelectPress(PlotKey *key, const Point &w, SelMod selMod)
 {
   // select key
   if (key && key->contains(w)) {
@@ -7520,7 +7524,7 @@ mapKeySelectPress(const Point &w, SelMod selMod)
     if (! mapKey->isVisible())
       continue;
 
-    if (mapKey->inside(w, CQChartsMapKey::DrawType::VIEW)) {
+    if (mapKey->inside(w, MapKey::DrawType::VIEW)) {
       CQChartsSelectableIFace::SelData selData(selMod);
 
       bool handled = mapKey->selectPress(w, selData);
@@ -8064,7 +8068,7 @@ handleEditPress(const Point &p, const Point &w, bool inside)
 
 bool
 CQChartsPlot::
-keyEditPress(CQChartsPlotKey *key, const Point &w)
+keyEditPress(PlotKey *key, const Point &w)
 {
   if (! key || ! key->isEditable() || ! key->isSelected())
     return false;
@@ -8241,7 +8245,7 @@ editHandlePress(CQChartsObj *obj, const Point &w, const DragObjType &dragObjType
 
 bool
 CQChartsPlot::
-keyEditSelect(CQChartsPlotKey *key, const Point &w)
+keyEditSelect(PlotKey *key, const Point &w)
 {
   if (! key || ! key->isEditable())
     return false;
@@ -8272,7 +8276,7 @@ mapKeyEditSelect(const Point &w)
     if (! mapKey->isEditable())
       continue;
 
-    if (! mapKey->inside(w, CQChartsMapKey::DrawType::VIEW))
+    if (! mapKey->inside(w, MapKey::DrawType::VIEW))
       continue;
 
     // select/deselect key
@@ -8490,13 +8494,53 @@ selectOneObj(Obj *obj, SelMod selMod)
 {
   startSelection();
 
-  if (selMod == SelMod::REPLACE) {
-    deselectAllObjs();
+  //---
 
-    view()->deselectAll(/*propagate*/false);
+  // for add, deselect all but specified object's type
+  // for replace, deselect all objects
+  auto deselectTypes1 = SelectTypes::ALL;
+
+  if (selMod != SelMod::REPLACE) {
+    auto *plot       = dynamic_cast<Plot       *>(obj);
+    auto *plotObj    = dynamic_cast<PlotObj    *>(obj);
+    auto *annotation = dynamic_cast<Annotation *>(obj);
+    auto *title      = dynamic_cast<Title      *>(obj);
+    auto *key        = dynamic_cast<PlotKey    *>(obj);
+    auto *axis       = dynamic_cast<Axis       *>(obj);
+    auto *mapKey     = dynamic_cast<MapKey     *>(obj);
+
+    auto removeType = [&](SelectTypes type) {
+      auto types = uint(deselectTypes1);
+      types &= ~uint(type);
+      return SelectTypes(types);
+    };
+
+    if      (plot)
+      deselectTypes1 = removeType(SelectTypes::PLOT);
+    else if (plotObj)
+      deselectTypes1 = removeType(SelectTypes::PLOT_OBJ);
+    else if (annotation)
+      deselectTypes1 = removeType(SelectTypes::ANNOTATION);
+    else if (title)
+      deselectTypes1 = removeType(SelectTypes::TITLE);
+    else if (key)
+      deselectTypes1 = removeType(SelectTypes::KEY);
+    else if (axis)
+      deselectTypes1 = removeType(SelectTypes::AXIS);
+    else if (mapKey)
+      deselectTypes1 = removeType(SelectTypes::MAP_KEY);
   }
 
+  view()->deselectAll(/*propagate*/ false);
+
+  deselectAll(deselectTypes1);
+
+  //---
+
+  // select object
   obj->setSelected(true);
+
+  //---
 
   endSelection();
 
@@ -8506,7 +8550,7 @@ selectOneObj(Obj *obj, SelMod selMod)
 // deselect all plot objects
 void
 CQChartsPlot::
-deselectAllObjs()
+deselectAllPlotObjs()
 {
   startSelection();
 
@@ -8533,19 +8577,20 @@ deselectAllObjs()
 // deselect all plot objects, and other plot objects (title, key, axes, annotations, ...)
 void
 CQChartsPlot::
-deselectAll()
+deselectAll(SelectTypes selectTypes)
 {
   bool changed = false;
 
   //---
 
+  // note: will call startSelection if changed
   if (isOverlay()) {
     processOverlayPlots([&](Plot *plot) {
-      plot->deselectAll1(changed);
+      plot->deselectAll1(selectTypes, changed);
     });
   }
   else {
-    deselectAll1(changed);
+    deselectAll1(selectTypes, changed);
   }
 
   //---
@@ -8559,13 +8604,13 @@ deselectAll()
 
 void
 CQChartsPlot::
-deselectAll1(bool &changed)
+deselectAll1(SelectTypes selectTypes, bool &changed)
 {
   auto updateChanged = [&] {
     if (! changed) { startSelection(); changed = true; }
   };
 
-  auto deselectObjs = [&](std::initializer_list<Obj *> objs) {
+  auto deselectObjs = [&](const std::vector<Obj *> &objs) {
     for (const auto &obj : objs) {
       if (obj && obj->isSelected()) {
         obj->setSelected(false);
@@ -8575,38 +8620,53 @@ deselectAll1(bool &changed)
     }
   };
 
-  deselectObjs({key(), xAxis(), yAxis(), title()});
+  std::vector<Obj *> objs;
+
+  if (selectTypes & SelectTypes::KEY  ) { objs.push_back(key()); }
+  if (selectTypes & SelectTypes::AXIS ) { objs.push_back(xAxis()); objs.push_back(yAxis()); }
+  if (selectTypes & SelectTypes::TITLE) { objs.push_back(title()); }
+
+  deselectObjs(objs);
 
   //---
 
-  for (auto *mapKey : mapKeys_) {
-    if (mapKey->isSelected()) {
-      mapKey->setSelected(false);
+  if (selectTypes & SelectTypes::MAP_KEY) {
+    for (auto *mapKey : mapKeys_) {
+      if (mapKey->isSelected()) {
+        mapKey->setSelected(false);
 
-      updateChanged();
+        updateChanged();
+      }
     }
   }
 
-  for (auto &annotation : annotations()) {
-    if (annotation->isSelected()) {
-      annotation->setSelected(false);
+  if (selectTypes & SelectTypes::ANNOTATION) {
+    for (auto &annotation : annotations()) {
+      if (annotation->isSelected()) {
+        annotation->setSelected(false);
 
-      updateChanged();
+        updateChanged();
+      }
     }
   }
 
-  for (auto &plotObj : plotObjects()) {
-    if (plotObj->isSelected()) {
-      plotObj->setSelected(false);
+  // deselect all plot objects
+  if (selectTypes & SelectTypes::PLOT_OBJ) {
+    for (auto &plotObj : plotObjects()) {
+      if (plotObj->isSelected()) {
+        plotObj->setSelected(false);
 
-      updateChanged();
+        updateChanged();
+      }
     }
   }
 
-  if (isSelected()) {
-    setSelected(false);
+  if (selectTypes & SelectTypes::PLOT) {
+    if (isSelected()) {
+      setSelected(false);
 
-    updateChanged();
+      updateChanged();
+    }
   }
 }
 
@@ -9274,7 +9334,7 @@ selectObjs(const PlotObjs &objs, bool exportSel)
 
   //---
 
-  deselectAllObjs();
+  deselectAllPlotObjs();
 
   for (const auto &obj : objs) {
     if (! isSelectable())
@@ -11928,7 +11988,7 @@ updatePlotKeyPosition(Plot *plot, bool force)
     auto *keyAnnotation = dynamic_cast<CQChartsKeyAnnotation *>(annotation);
     if (! keyAnnotation) continue;
 
-    auto *key = dynamic_cast<CQChartsPlotKey *>(keyAnnotation->key());
+    auto *key = dynamic_cast<PlotKey *>(keyAnnotation->key());
     if (! key) continue;
 
     if (force)
@@ -13309,7 +13369,7 @@ hasGroupedBgKey() const
   if (isOverview())
     return false;
 
-  CQChartsPlotKey *key1 = nullptr;
+  PlotKey *key1 = nullptr;
 
   if (isOverlay()) {
     // only draw key under first plot - use first plot key (for overlay)
@@ -13989,7 +14049,7 @@ hasGroupedFgKey() const
   if (isOverview())
     return false;
 
-  CQChartsPlotKey *key1 = nullptr;
+  PlotKey *key1 = nullptr;
 
   if (isOverlay()) {
     // only draw fg key on last plot - use first plot key (for overlay)
@@ -15393,7 +15453,8 @@ addAnnotationI(Annotation *annotation)
   annotations_.push_back(annotation);
 
   connect(annotation, SIGNAL(idChanged()), this, SLOT(updateAnnotationSlot()));
-  connect(annotation, SIGNAL(dataChanged()), this, SLOT(updateAnnotationSlot()));
+
+  annotation->connectDataChanged(this, SLOT(updateAnnotationSlot()));
 
   annotation->addProperties(propertyModel(), "annotations");
 

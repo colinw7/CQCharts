@@ -2942,7 +2942,11 @@ drawDeviceParts(PaintDevice *device) const
 
   setClipRect(device);
 
-  //--
+  //---
+
+  drawBackgroundRects(device);
+
+  //---
 
   // reset node slots
   for (auto &node : forceDirected_->nodes()) {

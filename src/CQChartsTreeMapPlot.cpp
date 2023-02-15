@@ -742,7 +742,7 @@ initNodeObjs(HierNode *hier, const QString &groupName, HierObj *parentObj,
 
     hierObj = createHierObj(hier, parentObj, rect, is);
 
-    connect(hierObj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+    hierObj->connectDataChanged(this, SLOT(updateSlot()));
 
     hierObj->setInd(nextGroupInd(groupName));
 
@@ -770,7 +770,7 @@ initNodeObjs(HierNode *hier, const QString &groupName, HierObj *parentObj,
 
     auto *obj = createNodeObj(node, hierObj, rect, is);
 
-    connect(obj, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+    obj->connectDataChanged(this, SLOT(updateSlot()));
 
     obj->setInd(nextValueInd(groupName));
 
