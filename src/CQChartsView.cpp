@@ -1310,6 +1310,8 @@ endSelection()
     Q_EMIT selectionChanged();
 
     updateSelText();
+
+    update();
   }
 }
 
@@ -5464,27 +5466,25 @@ updateObjPenBrushState(const CQChartsObj *obj, PenBrush &penBrush, DrawType draw
   updateObjPenBrushState(obj, ColorInd(), penBrush, drawType);
 }
 
+// update pen/brush state from object state
 void
 CQChartsView::
 updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &colorInd,
                        PenBrush &penBrush, DrawType drawType) const
 {
-  if (isOverlayFade())
-    return;
-
-  //---
-
   if (! isBufferLayers()) {
-    // inside and selected
+    // draw to single layer (no separate mouse over, selection layer)
+
+    // if both inside and selected then use selected and adjust with inside (keep selected fill)
     if      (obj->isInside() && obj->isSelected()) {
       updateSelectedPenBrushState(colorInd, penBrush, drawType);
       updateInsidePenBrushState  (colorInd, penBrush, /*outline*/false, drawType);
     }
-    // inside
+    // just inside
     else if (obj->isInside()) {
       updateInsidePenBrushState(colorInd, penBrush, /*outline*/true, drawType);
     }
-    // selected
+    // just selected
     else if (obj->isSelected()) {
       updateSelectedPenBrushState(colorInd, penBrush, drawType);
     }
@@ -5493,6 +5493,10 @@ updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &colorInd,
     }
   }
   else {
+    // if fade over no inside/select ?
+    if (isOverlayFade())
+      return;
+
     // inside
     if      (drawLayerType() == CQChartsLayer::Type::MOUSE_OVER ||
              drawLayerType() == CQChartsLayer::Type::MOUSE_OVER_EXTRA) {
@@ -5512,21 +5516,25 @@ updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &colorInd,
   }
 }
 
+// update pen/brush state from explicit selected/inside
 void
 CQChartsView::
 updatePenBrushState(const ColorInd &colorInd, PenBrush &penBrush, bool selected, bool inside,
                     DrawType drawType) const
 {
-  if      (inside) {
-    if (selected) {
-      updateSelectedPenBrushState(colorInd, penBrush, drawType);
-      updateInsidePenBrushState  (colorInd, penBrush, /*outline*/false, drawType);
-    }
-    else
-      updateInsidePenBrushState(colorInd, penBrush, /*outline*/false, drawType);
-  }
-  else if (selected)
+  // if both inside and selected then use selected and adjust with inside (keep selected fill)
+  if      (inside && selected) {
     updateSelectedPenBrushState(colorInd, penBrush, drawType);
+    updateInsidePenBrushState  (colorInd, penBrush, /*outline*/false, drawType);
+  }
+  // inside
+  else if (inside) {
+    updateInsidePenBrushState(colorInd, penBrush, /*outline*/true, drawType);
+  }
+  // selected
+  else if (selected) {
+    updateSelectedPenBrushState(colorInd, penBrush, drawType);
+  }
 }
 
 void
@@ -5547,6 +5555,11 @@ updateInsidePenBrushState(const ColorInd &colorInd, PenBrush &penBrush,
         cc = penBrush.brush.color();
 
       charts()->setContrastColor(cc);
+
+      auto colorInd1 = colorInd;
+
+      if (! colorInd1.c.isValid())
+        colorInd1.c = cc;
 
       //---
 
@@ -5585,6 +5598,11 @@ updateInsidePenBrushState(const ColorInd &colorInd, PenBrush &penBrush,
 
       charts()->setContrastColor(bc);
 
+      auto colorInd1 = colorInd;
+
+      if (! colorInd1.c.isValid())
+        colorInd1.c = bc;
+
       //---
 
       // get fill color and alpha
@@ -5592,14 +5610,22 @@ updateInsidePenBrushState(const ColorInd &colorInd, PenBrush &penBrush,
       Alpha               fillAlpha;
       CQChartsFillPattern fillPattern;
 
+      auto calcBlendColor = [&]() {
+        if (insideColor().isValid()) {
+          auto ic = interpColor(insideColor(), colorInd1);
+          fillColor = CQChartsUtil::blendColors(fillColor, ic, insideAlpha());
+          fillAlpha = Alpha(1.0);
+        }
+      };
+
       if (hasProp) {
         if (isInsideFilled()) {
-          fillColor = interpInsideFillColor(colorInd);
+          fillColor = interpInsideFillColor(colorInd1);
+          fillAlpha = insideFillAlpha();
 
+          // blend fill color with inside color and alpha
           if (isInsideBlend())
-            fillAlpha = Alpha(insideFillAlpha().value()*bc.alphaF());
-          else
-            fillAlpha = insideFillAlpha();
+            calcBlendColor();
 
           fillPattern = insideFillPattern();
 
@@ -5608,11 +5634,11 @@ updateInsidePenBrushState(const ColorInd &colorInd, PenBrush &penBrush,
       }
       else {
         fillColor = calcInsideColor(bc);
+        fillAlpha = Alpha(1.0);
 
+        // blend fill color with inside color and alpha
         if (isInsideBlend())
-          fillAlpha = Alpha(bc.alphaF());
-        else
-          fillAlpha = Alpha(1.0);
+          calcBlendColor();
 
         fillPattern = CQChartsFillPattern::makeSolid();
 
@@ -5620,7 +5646,7 @@ updateInsidePenBrushState(const ColorInd &colorInd, PenBrush &penBrush,
       }
 
       if (isInsideStroked()) {
-        auto outlineColor = interpInsideStrokeColor(colorInd);
+        auto outlineColor = interpInsideStrokeColor(colorInd1);
         auto outlineAlpha = insideStrokeAlpha();
         auto outlineWidth = insideStrokeWidth();
         auto outlineDash  = insideStrokeDash();
@@ -5645,6 +5671,11 @@ updateInsidePenBrushState(const ColorInd &colorInd, PenBrush &penBrush,
 
       charts()->setContrastColor(cc);
 
+      auto colorInd1 = colorInd;
+
+      if (! colorInd1.c.isValid())
+        colorInd1.c = cc;
+
       //---
 
       // get pen color and alpha from preference or fallback values
@@ -5654,7 +5685,7 @@ updateInsidePenBrushState(const ColorInd &colorInd, PenBrush &penBrush,
       CQChartsLineDash outlineDash;
 
       if (isInsideStroked()) {
-        outlineColor = interpInsideStrokeColor(colorInd);
+        outlineColor = interpInsideStrokeColor(colorInd1);
         outlineAlpha = insideStrokeAlpha();
         outlineWidth = insideStrokeWidth();
         outlineDash  = insideStrokeDash();
@@ -5681,6 +5712,11 @@ updateInsidePenBrushState(const ColorInd &colorInd, PenBrush &penBrush,
 
       charts()->setContrastColor(cc);
 
+      auto colorInd1 = colorInd;
+
+      if (! colorInd1.c.isValid())
+        colorInd1.c = cc;
+
       //---
 
       // get pen color and alpha from preference or fallback values
@@ -5690,7 +5726,7 @@ updateInsidePenBrushState(const ColorInd &colorInd, PenBrush &penBrush,
       CQChartsLineDash outlineDash;
 
       if (isInsideFilled()) {
-        outlineColor = interpInsideFillColor(colorInd);
+        outlineColor = interpInsideFillColor(colorInd1);
         outlineAlpha = insideFillAlpha();
       }
       else {
@@ -5724,6 +5760,11 @@ updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawTy
 
       charts()->setContrastColor(cc);
 
+      auto colorInd1 = colorInd;
+
+      if (! colorInd1.c.isValid())
+        colorInd1.c = cc;
+
       //---
 
       // get pen color and alpha from preference or fallback values
@@ -5733,7 +5774,7 @@ updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawTy
       CQChartsLineDash outlineDash;
 
       if (isSelectedStroked()) {
-        outlineColor = interpSelectedStrokeColor(colorInd);
+        outlineColor = interpSelectedStrokeColor(colorInd1);
         outlineAlpha = selectedStrokeAlpha();
         outlineWidth = selectedStrokeWidth();
         outlineDash  = selectedStrokeDash();
@@ -5748,7 +5789,7 @@ updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawTy
 
       charts()->resetContrastColor();
     }
-    // draw fill (leave existing stroke intact)
+    // draw fill and/or stroke (if neither fill using default)
     else if (selectedMode() == CQChartsView::HighlightDataMode::FILL) {
       bool hasProp = (isSelectedFilled() || isSelectedStroked());
 
@@ -5757,6 +5798,11 @@ updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawTy
 
       charts()->setContrastColor(bc);
 
+      auto colorInd1 = colorInd;
+
+      if (! colorInd1.c.isValid())
+        colorInd1.c = bc;
+
       //---
 
       // get fill color and alpha
@@ -5764,14 +5810,22 @@ updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawTy
       Alpha               fillAlpha;
       CQChartsFillPattern fillPattern;
 
+      auto calcBlendColor = [&]() {
+        if (selectedColor().isValid()) {
+          auto ic = interpColor(selectedColor(), colorInd1);
+          fillColor = CQChartsUtil::blendColors(fillColor, ic, selectedAlpha());
+          fillAlpha = Alpha(1.0);
+        }
+      };
+
       if (hasProp) {
         if (isSelectedFilled()) {
-          fillColor = interpSelectedFillColor(colorInd);
+          fillColor = interpSelectedFillColor(colorInd1);
+          fillAlpha = selectedFillAlpha();
 
+          // blend fill color with selected color and alpha
           if (isSelectedBlend())
-            fillAlpha = Alpha(selectedFillAlpha().value()*bc.alphaF());
-          else
-            fillAlpha = selectedFillAlpha();
+            calcBlendColor();
 
           fillPattern = selectedFillPattern();
 
@@ -5780,11 +5834,11 @@ updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawTy
       }
       else {
         fillColor = calcSelectedColor(bc);
+        fillAlpha = Alpha(1.0);
 
+        // blend fill color with selected color and alpha
         if (isSelectedBlend())
-          fillAlpha = Alpha(bc.alphaF());
-        else
-          fillAlpha = Alpha(1.0);
+          calcBlendColor();
 
         fillPattern = CQChartsFillPattern::makeSolid();
 
@@ -5792,7 +5846,7 @@ updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawTy
       }
 
       if (isSelectedStroked()) {
-        auto outlineColor = interpSelectedStrokeColor(colorInd);
+        auto outlineColor = interpSelectedStrokeColor(colorInd1);
         auto outlineAlpha = selectedStrokeAlpha();
         auto outlineWidth = selectedStrokeWidth();
         auto outlineDash  = selectedStrokeDash();
@@ -5817,6 +5871,11 @@ updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawTy
 
       charts()->setContrastColor(cc);
 
+      auto colorInd1 = colorInd;
+
+      if (! colorInd1.c.isValid())
+        colorInd1.c = cc;
+
       //---
 
       // get pen color and alpha from preference or fallback values
@@ -5826,7 +5885,7 @@ updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawTy
       CQChartsLineDash outlineDash;
 
       if (isSelectedStroked()) {
-        outlineColor = interpSelectedStrokeColor(colorInd);
+        outlineColor = interpSelectedStrokeColor(colorInd1);
         outlineAlpha = selectedStrokeAlpha();
         outlineWidth = selectedStrokeWidth();
         outlineDash  = selectedStrokeDash();
@@ -5853,6 +5912,11 @@ updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawTy
 
       charts()->setContrastColor(cc);
 
+      ColorInd colorInd1;
+
+      if (! colorInd1.c.isValid())
+        colorInd1.c = cc;
+
       //---
 
       // get pen color and alpha from preference or fallback values
@@ -5862,7 +5926,7 @@ updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawTy
       CQChartsLineDash outlineDash;
 
       if (isSelectedFilled()) {
-        outlineColor = interpSelectedFillColor(colorInd);
+        outlineColor = interpSelectedFillColor(colorInd1);
         outlineAlpha = selectedFillAlpha();
       }
       else {
