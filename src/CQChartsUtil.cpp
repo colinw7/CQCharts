@@ -388,9 +388,8 @@ void penSetLineDash(QPen &pen, const CQChartsLineDash &dash) {
 
     QVector<qreal> dashes;
 
-    double w = pen.widthF();
-
-    if (w <= 0.0) w = 1.0;
+    //double w = pen.widthF();
+    //if (w <= 0.0) w = 1.0;
 
     for (int i = 0; i < num; ++i)
       dashes << dash.getLength(i);

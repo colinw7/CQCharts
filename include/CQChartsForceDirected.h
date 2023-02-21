@@ -136,6 +136,9 @@ class CQChartsForceDirectedEdge : public Springy::Edge {
   const QPainterPath &curvePath() const { return curvePath_; }
   void setCurvePath(const QPainterPath &p) { curvePath_ = p; }
 
+  const QPainterPath &selectPath() const { return selectPath_; }
+  void setSelectPath(const QPainterPath &p) { selectPath_ = p; }
+
   const ColorInd &colorInd() const { return colorInd_; }
   void setColorInd(const ColorInd &v) { colorInd_ = v; }
 
@@ -155,6 +158,7 @@ class CQChartsForceDirectedEdge : public Springy::Edge {
   QModelIndex  ind_;
   QPainterPath edgePath_;
   QPainterPath curvePath_;
+  QPainterPath selectPath_;
   ColorInd     colorInd_;
   bool         selected_ { false };
   bool         inside_   { false };

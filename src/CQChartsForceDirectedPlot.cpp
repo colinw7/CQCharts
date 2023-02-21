@@ -396,6 +396,7 @@ setNodeMouseEdgeColor(bool b)
 {
   CQChartsUtil::testAndSet(nodeDrawData_.mouseEdgeColor, b, [&]() { drawObjs(); } );
 }
+
 //---
 
 void
@@ -559,6 +560,7 @@ addProperties()
   addProp("edge", "edgeValueLabel"   , "valueLabel"   , "Draw edge value as label");
   addProp("edge", "edgeMouseColoring", "mouseColoring", "Color edge nodes on mouse over");
   addProp("edge", "edgeMouseValue"   , "mouseValue"   , "Show edge value on mouse over");
+  addProp("edge", "edgeMinWidth"     , "minWidth"     , "Min width for non-line edge");
 
   // edge style
   addProp("edge/stroke", "edgeStroked", "visible", "Edge stroke visible");
@@ -2831,7 +2833,7 @@ nearestNodeEdge(const Point &p, Node* &insideNode, Edge* &insideEdge) const
       }
     }
     else {
-      if (! insideSolidEdge && sedge->curvePath().contains(p.qpoint()))
+      if (! insideSolidEdge && sedge->selectPath().contains(p.qpoint()))
         insideSolidEdge = sedge;
     }
   }
@@ -2877,7 +2879,7 @@ insideNodesAndEdges(const BBox &r, NodeSet &insideNodes, EdgeSet &insideEdges, b
     if (sedge->getIsLine())
       path = sedge->edgePath();
     else
-      path = sedge->curvePath();
+      path = sedge->selectPath();
 
     if (inside) {
       if (path1.contains(path))
@@ -3041,9 +3043,9 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
   bool   isLine = false;
   double lw     = 1.0;
 
-  auto drawType = (isLine ? DrawType::LINE : DrawType::ARC);
-
   auto penBrush = calcEdgePenBrush(sedge, colorInd, isLine, lw);
+
+  auto drawType = (isLine ? DrawType::LINE : DrawType::ARC);
 
   auto insidePenBrush = penBrush;
 
@@ -3160,7 +3162,7 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
   // calc edge paths
   bool isArrow = isEdgeArrow();
 
-  QPainterPath edgePath, curvePath;
+  QPainterPath edgePath, curvePath, selectPath;
 
   if (! isLine) {
     CQChartsDrawUtil::curvePath(edgePath, ep1.p, ep2.p, edgeType, ep1.angle, ep2.angle);
@@ -3177,9 +3179,19 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
     else {
       CQChartsDrawUtil::edgePath(curvePath, ep1.p, ep2.p, lww, edgeType, ep1.angle, ep2.angle);
     }
+
+    if (lw < 3) {
+      auto lww1 = pixelToWindowWidth(3);
+
+      CQChartsDrawUtil::edgePath(selectPath, ep1.p, ep2.p, lww1, edgeType, ep1.angle, ep2.angle);
+    }
+    else
+      selectPath = curvePath;
   }
   else {
     CQChartsDrawUtil::linePath(edgePath, ep1.p, ep2.p);
+
+    selectPath = edgePath;
   }
 
   //---
@@ -3190,8 +3202,9 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
   sedge->setStartPoint(ep1.p);
   sedge->setEndPoint  (ep2.p);
 
-  sedge->setCurvePath(curvePath);
-  sedge->setEdgePath (edgePath);
+  sedge->setCurvePath (curvePath);
+  sedge->setEdgePath  (edgePath);
+  sedge->setSelectPath(selectPath);
 
   //---
 
@@ -3282,7 +3295,7 @@ calcEdgePenBrush(Edge *sedge, const ColorInd &colorInd, bool &isLine, double &lw
   auto strokeColor = interpEdgeStrokeColor(colorInd);
   auto strokeAlpha = edgeStrokeAlpha();
 
-  isLine = isEdgeLine(sedge, lw, 1.0);
+  isLine = isEdgeLine(sedge, lw, edgeMinWidth());
 
   if (sedge->isInside()) {
     fillColor = insideColor(fillColor);

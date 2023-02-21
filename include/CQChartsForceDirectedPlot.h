@@ -183,6 +183,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool           edgeValueLabel    READ isEdgeValueLabel    WRITE setEdgeValueLabel   )
   Q_PROPERTY(bool           edgeMouseColoring READ isEdgeMouseColoring WRITE setEdgeMouseColoring)
   Q_PROPERTY(bool           edgeMouseValue    READ isEdgeMouseValue    WRITE setEdgeMouseValue   )
+  Q_PROPERTY(double         edgeMinWidth      READ edgeMinWidth        WRITE setEdgeMinWidth     )
 
   // node/edge shape data
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
@@ -436,6 +437,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   //! get/set show edge value on mouse over
   bool isEdgeMouseValue() const { return edgeDrawData_.mouseValue; }
   void setEdgeMouseValue(bool b);
+
+  //! get/set edge min width
+  double edgeMinWidth() const { return edgeMinWidth_; }
+  void setEdgeMinWidth(double r) { edgeMinWidth_ = r; }
 
   //---
 
@@ -840,6 +845,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   };
 
   EdgeDrawData edgeDrawData_; //!< edge draw data
+
+  double edgeMinWidth_ { 0.0 };
 
   // mouse inside/selected text visible
   bool insideTextVisible_   { false }; //!< is inside text visible (when text invisible)

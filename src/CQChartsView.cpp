@@ -5624,7 +5624,7 @@ updateInsidePenBrushState(const ColorInd &colorInd, PenBrush &penBrush,
       CQChartsLineDash outlineDash;
 
       if (isInsideStroked()) {
-        outlineColor = interpInsideStrokeColor(colorInd);
+        outlineColor = interpInsideStrokeColor(colorInd1);
         outlineAlpha = insideStrokeAlpha();
         outlineWidth = insideStrokeWidth();
         outlineDash  = insideStrokeDash();
@@ -5966,7 +5966,7 @@ updateSelectedPenBrushState(const ColorInd &colorInd, PenBrush &penBrush, DrawTy
 
       charts()->setContrastColor(cc);
 
-      ColorInd colorInd1;
+      ColorInd colorInd1 = colorInd;
 
       if (! colorInd1.c.isValid())
         colorInd1.c = cc;
