@@ -27,12 +27,11 @@ invalidate(bool reload)
   CQChartsObjUtil::getObjData(obj_, objData);
 
   if      (objData.plot) {
-    //if (objData.plot->isUpdatesEnabled()) {
-      if (reload)
-        objData.plot->updateRangeAndObjs();
-      else
-        objData.plot->drawObjs();
-    //}
+    // plot automatically defers updates if updates disabled
+    if (reload)
+      objData.plot->updateRangeAndObjs();
+    else
+      objData.plot->drawObjs();
 
     auto *key = qobject_cast<CQChartsPlotKey *>(obj_);
 
@@ -42,9 +41,12 @@ invalidate(bool reload)
     }
   }
   else if (objData.view) {
-    objData.view->invalidateObjects();
+    if (objData.view->isUpdatesEnabled()) {
+      if (reload)
+        objData.view->invalidateObjects();
 
-    objData.view->doUpdate();
+      objData.view->doUpdate();
+    }
   }
 }
 

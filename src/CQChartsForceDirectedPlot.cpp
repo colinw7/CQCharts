@@ -390,6 +390,12 @@ setNodeMouseValue(bool b)
   CQChartsUtil::testAndSet(nodeDrawData_.mouseValue, b, [&]() { drawObjs(); } );
 }
 
+void
+CQChartsForceDirectedPlot::
+setNodeMouseEdgeColor(bool b)
+{
+  CQChartsUtil::testAndSet(nodeDrawData_.mouseEdgeColor, b, [&]() { drawObjs(); } );
+}
 //---
 
 void
@@ -526,8 +532,9 @@ addProperties()
   addProp("node", "nodeValueColored"  , "valueColored"  , "Node colored by value");
   addProp("node", "nodeValueLabel"    , "valueLabel"    , "Draw node value as label");
   addProp("node", "nodeMouseColoring" , "mouseColoring" , "Color node edges on mouse over");
-  addProp("node", "nodeMouseColorType", "mouseColorType", "Node mouse color type");
+  addProp("node", "nodeMouseColorType", "mouseColorType", "Node mouse edge color type");
   addProp("node", "nodeMouseValue"    , "mouseValue"    , "Show node value on mouse over");
+  addProp("node", "nodeMouseEdgeColor", "mouseEdgeColor", "Show mouse over edges in node color");
   addProp("node", "nodeTipNameLabel"  , "tipNameLabel"  , "Label for node name tip");
   addProp("node", "nodeTipValueLabel" , "tipValueLabel" , "Label for node value tip");
 
@@ -2154,7 +2161,6 @@ doAutoFit()
     double ym = xm;
 
     double xmin { -1.0 }, ymin { -1.0 }, xmax { 1.0 }, ymax { 1.0 };
-  //forceDirected_->adjustRange(xmin, ymin, xmax, ymax);
     forceDirected_->calcRange(xmin, ymin, xmax, ymax);
 
     calcDataRange_ = Range();
@@ -2915,6 +2921,7 @@ drawParts(QPainter *painter) const
 
   BackgroundParts bgParts;
 
+  bgParts.rects       = hasBackgroundRects();
   bgParts.annotations = hasGroupedAnnotations(Layer::Type::BG_ANNOTATION);
 
   drawBackgroundDeviceParts(&device, bgParts);
@@ -2944,10 +2951,6 @@ drawDeviceParts(PaintDevice *device) const
 
   //---
 
-  drawBackgroundRects(device);
-
-  //---
-
   // reset node slots
   for (auto &node : forceDirected_->nodes()) {
     auto *snode = dynamic_cast<Node *>(node.get());
@@ -2960,6 +2963,9 @@ drawDeviceParts(PaintDevice *device) const
 
   insideDrawEdges_.clear();
   insideDrawNodes_.clear();
+
+  insideEdgeData_.clear();
+  insideNodeData_.clear();
 
   //---
 
@@ -3001,7 +3007,7 @@ drawDeviceParts(PaintDevice *device) const
 
   // draw texts
   for (const auto &textData : drawTextDatas_)
-    drawTextData(device, textData);
+    drawTextData(device, textData, MouseOver::NONE);
 
   //---
 
@@ -3011,17 +3017,11 @@ drawDeviceParts(PaintDevice *device) const
   //--
 
   // draw inside
-  for (const auto &pe : insideDrawEdges_) {
-    CQChartsDrawUtil::setPenBrush(device, pe.second.penBrush);
+  for (const auto &pe : insideDrawEdges_)
+    drawEdgeInside(device, pe.first, pe.second);
 
-    drawEdgeInside(device, pe.first);
-  }
-
-  for (const auto &pn : insideDrawNodes_) {
-    CQChartsDrawUtil::setPenBrush(device, pn.second.penBrush);
-
-    drawNodeInside(device, pn.first);
-  }
+  for (const auto &pn : insideDrawNodes_)
+    drawNodeInside(device, pn.first, pn.second);
 
   //---
 
@@ -3041,12 +3041,16 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
   bool   isLine = false;
   double lw     = 1.0;
 
+  auto drawType = (isLine ? DrawType::LINE : DrawType::ARC);
+
   auto penBrush = calcEdgePenBrush(sedge, colorInd, isLine, lw);
 
-  auto lww = pixelToWindowWidth(lw);
+  auto insidePenBrush = penBrush;
 
-  view()->updatePenBrushState(colorInd, penBrush, sedge->isSelected(), sedge->isInside(),
-                              (isLine ? DrawType::LINE : DrawType::ARC));
+  view()->updatePenBrushState(colorInd, insidePenBrush, false, true, drawType);
+  view()->updatePenBrushState(colorInd, penBrush, sedge->isSelected(), sedge->isInside(), drawType);
+
+  auto lww = pixelToWindowWidth(lw);
 
   //---
 
@@ -3216,12 +3220,14 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
 
   //---
 
-  drawEdgeText(device, sedge, colorInd, /*mouseOver*/false);
+  drawEdgeText(device, sedge, colorInd, MouseOver::NONE);
 
   //---
 
   if (colorInside)
-    insideDrawEdges_[edge] = penBrush;
+    insideDrawEdges_[edge] = insidePenBrush;
+
+  insideEdgeData_[edge] = insidePenBrush;
 }
 
 bool
@@ -3297,7 +3303,8 @@ calcEdgePenBrush(Edge *sedge, const ColorInd &colorInd, bool &isLine, double &lw
 
 void
 CQChartsForceDirectedPlot::
-drawEdgeText(PaintDevice *device, Edge *sedge, const ColorInd &colorInd, bool mouseOver) const
+drawEdgeText(PaintDevice *device, Edge *sedge, const ColorInd &colorInd,
+             const MouseOver &mouseOver) const
 {
   auto edgePath = sedge->edgePath();
 
@@ -3306,7 +3313,7 @@ drawEdgeText(PaintDevice *device, Edge *sedge, const ColorInd &colorInd, bool mo
 
   bool visible = false;
 
-  if (! mouseOver)
+  if (mouseOver == MouseOver::NONE)
     visible = (isEdgeTextVisible() ||
                (sedge->isInside  () && isInsideTextVisible()) ||
                (sedge->isSelected() && isSelectedTextVisible()));
@@ -3330,9 +3337,9 @@ drawEdgeText(PaintDevice *device, Edge *sedge, const ColorInd &colorInd, bool mo
   bool valueVisible = false;
 
   if (sedge->value()) {
-    if (! mouseOver)
-      valueVisible = isEdgeValueLabel();
-    else
+    valueVisible = isEdgeValueLabel();
+
+    if (mouseOver == MouseOver::EDGE && ! valueVisible)
       valueVisible = isEdgeMouseValue();
   }
 
@@ -3341,39 +3348,41 @@ drawEdgeText(PaintDevice *device, Edge *sedge, const ColorInd &colorInd, bool mo
 
   //---
 
-  if (textData.strs.length()) {
-    // set font
-    textData.font = edgeTextFont();
+  if (! textData.strs.length())
+    return;
 
-    // set text pen
-    auto c = interpEdgeTextColor(colorInd);
+  // set font
+  textData.font = edgeTextFont();
 
+  // set text pen
+  auto c = interpEdgeTextColor(colorInd);
+
+  if (mouseOver == MouseOver::NONE)
     setPen(textData.penBrush, PenData(true, c, edgeTextAlpha()));
 
-    // set position
-    textData.point = Point(CQChartsDrawUtil::pathMidPoint(edgePath));
+  // set position
+  textData.point = Point(CQChartsDrawUtil::pathMidPoint(edgePath));
 
-    // set text options
-    textData.textOptions = edgeTextOptions(device);
+  // set text options
+  textData.textOptions = edgeTextOptions(device);
 
-    textData.textOptions.angle = Angle();
-    textData.textOptions.align = Qt::AlignCenter;
+  textData.textOptions.angle = Angle();
+  textData.textOptions.align = Qt::AlignCenter;
 
-    if ((sedge->isInside  () && isInsideTextNoClip()) ||
-        (sedge->isSelected() && isSelectedTextNoClip()))
-      textData.textOptions.clipLength = -1;
+  if ((sedge->isInside  () && isInsideTextNoClip()) ||
+      (sedge->isSelected() && isSelectedTextNoClip()))
+    textData.textOptions.clipLength = -1;
 
-    if ((sedge->isInside  () && isInsideTextNoScale()) ||
-        (sedge->isSelected() && isSelectedTextNoScale()))
-      textData.textOptions.scaled = false;
+  if ((sedge->isInside  () && isInsideTextNoScale()) ||
+      (sedge->isSelected() && isSelectedTextNoScale()))
+    textData.textOptions.scaled = false;
 
-    if (mouseOver) {
-      drawTextData(device, textData);
-    }
-    else {
-      // add data to draw list
-      drawTextDatas_.push_back(textData);
-    }
+  if (mouseOver != MouseOver::NONE) {
+    drawTextData(device, textData, mouseOver);
+  }
+  else {
+    // add data to draw list
+    drawTextDatas_.push_back(textData);
   }
 }
 
@@ -3392,6 +3401,9 @@ drawNode(PaintDevice *device, const ForceNodeP &node, Node *snode) const
 
   calcNodePenBrush(snode, colorInd, penBrush);
 
+  auto insidePenBrush = penBrush;
+
+  view()->updatePenBrushState(colorInd, insidePenBrush, false, true);
   view()->updatePenBrushState(colorInd, penBrush, snode->isSelected(), snode->isInside());
 
   //---
@@ -3424,14 +3436,16 @@ drawNode(PaintDevice *device, const ForceNodeP &node, Node *snode) const
 
   charts()->setContrastColor(contrastColor);
 
-  drawNodeText(device, snode, colorInd, /*mouseOver*/false);
+  drawNodeText(device, snode, colorInd, MouseOver::NONE);
 
   charts()->resetContrastColor();
 
   //---
 
   if (colorInside)
-    insideDrawNodes_[node] = penBrush;
+    insideDrawNodes_[node] = insidePenBrush;
+
+  insideNodeData_[node] = insidePenBrush;
 }
 
 void
@@ -3461,11 +3475,12 @@ calcNodePenBrush(Node *snode, const ColorInd &colorInd, PenBrush &penBrush) cons
 
 void
 CQChartsForceDirectedPlot::
-drawNodeText(PaintDevice *device, Node *snode, const ColorInd &colorInd, bool mouseOver) const
+drawNodeText(PaintDevice *device, Node *snode, const ColorInd &colorInd,
+             const MouseOver &mouseOver) const
 {
   bool visible = false;
 
-  if (! mouseOver)
+  if (mouseOver == MouseOver::NONE)
     visible = (isNodeTextVisible() ||
                (snode->isInside  () && isInsideTextVisible()) ||
                (snode->isSelected() && isSelectedTextVisible()));
@@ -3487,9 +3502,9 @@ drawNodeText(PaintDevice *device, Node *snode, const ColorInd &colorInd, bool mo
   auto value = calcNodeValue(snode);
 
   if (value.isSet()) {
-    if (! mouseOver)
-      valueVisible = isNodeValueLabel();
-    else
+    valueVisible = isNodeValueLabel();
+
+    if (mouseOver == MouseOver::NODE && ! valueVisible)
       valueVisible = isNodeMouseValue();
   }
 
@@ -3504,7 +3519,8 @@ drawNodeText(PaintDevice *device, Node *snode, const ColorInd &colorInd, bool mo
   // set text pen
   auto c = interpNodeTextColor(colorInd);
 
-  setPen(textData.penBrush, PenData(true, c, nodeTextAlpha()));
+  //if (mouseOver == MouseOver::NONE)
+    setPen(textData.penBrush, PenData(true, c, nodeTextAlpha()));
 
   // set shape and bbox
   auto shape = calcNodeShape(snode);
@@ -3528,8 +3544,8 @@ drawNodeText(PaintDevice *device, Node *snode, const ColorInd &colorInd, bool mo
       (snode->isSelected() && isSelectedTextNoScale()))
     textData.textOptions.scaled = false;
 
-  if (mouseOver) {
-    drawTextData(device, textData);
+  if (mouseOver != MouseOver::NONE) {
+    drawTextData(device, textData, mouseOver);
   }
   else {
     // node name and value will be drawn later
@@ -3557,7 +3573,8 @@ drawNodeShape(PaintDevice *device, Node *snode) const
 
 void
 CQChartsForceDirectedPlot::
-drawTextData(PaintDevice *device, const DrawTextData &textData) const
+drawTextData(PaintDevice *device, const DrawTextData &textData,
+             const MouseOver & /*mouseOver*/) const
 {
   device->save();
 
@@ -3577,7 +3594,8 @@ drawTextData(PaintDevice *device, const DrawTextData &textData) const
 
   //---
 
-  device->setPen(textData.penBrush.pen);
+  //if (mouseOver == MouseOver::NONE)
+    device->setPen(textData.penBrush.pen);
 
   auto textOptions = textData.textOptions;
 
@@ -3601,10 +3619,12 @@ drawTextData(PaintDevice *device, const DrawTextData &textData) const
 
 void
 CQChartsForceDirectedPlot::
-drawNodeInside(PaintDevice *device, const ForceNodeP &node) const
+drawNodeInside(PaintDevice *device, const ForceNodeP &node, const InsideDrawData &drawData) const
 {
   if (! forceDirected_)
     return;
+
+  CQChartsDrawUtil::setPenBrush(device, drawData.penBrush);
 
   auto *snode = dynamic_cast<Node *>(node.get());
   assert(snode);
@@ -3628,24 +3648,48 @@ drawNodeInside(PaintDevice *device, const ForceNodeP &node) const
 
   device->save();
 
-  auto brush = device->brush();
-  auto pen   = device->pen();
+  //---
 
-  pen.setColor(brush.color());
-  pen.setWidth(4);
+  // adjust pen for edge highlight
+  if (isNodeMouseEdgeColor()) {
+    auto pen   = device->pen();
+    auto brush = device->brush();
 
-  device->setPen(pen);
+    pen.setColor(brush.color());
+    pen.setWidth(4);
+
+    device->setPen(pen);
+  }
+
+  //---
+
+  auto getEdgeInsidePenBrush = [&](CQChartsForceDirectedEdge *sedge) {
+    for (const auto &pe : insideEdgeData_) {
+      if (pe.first.get() == sedge)
+        return pe.second.penBrush;
+    }
+    assert(false);
+    return drawData.penBrush;
+  };
 
   if (nodeMouseColorType() == NodeColorType::SRC ||
       nodeMouseColorType() == NodeColorType::SRC_DEST) {
-    for (auto *sedge : snode->inEdges())
+    for (auto *sedge : snode->inEdges()) {
+      if (! isNodeMouseEdgeColor())
+        CQChartsDrawUtil::setPenBrush(device, getEdgeInsidePenBrush(sedge));
+
       device->drawPath(edgePaths_[sedge->id()]);
+    }
   }
 
   if (nodeMouseColorType() == NodeColorType::DEST ||
       nodeMouseColorType() == NodeColorType::SRC_DEST) {
-    for (auto *sedge : snode->outEdges())
+    for (auto *sedge : snode->outEdges()) {
+      if (! isNodeMouseEdgeColor())
+        CQChartsDrawUtil::setPenBrush(device, getEdgeInsidePenBrush(sedge));
+
       device->drawPath(edgePaths_[sedge->id()]);
+    }
   }
 
   device->restore();
@@ -3653,42 +3697,73 @@ drawNodeInside(PaintDevice *device, const ForceNodeP &node) const
   //---
 
   // draw node text
-  drawNodeText(device, snode, snode->colorInd(), /*mouseOver*/true);
+  CQChartsDrawUtil::setPenBrush(device, drawData.penBrush);
+
+  drawNodeText(device, snode, snode->colorInd(), MouseOver::NODE);
 }
 
 void
 CQChartsForceDirectedPlot::
-drawEdgeInside(PaintDevice *device, const ForceEdgeP &edge) const
+drawEdgeInside(PaintDevice *device, const ForceEdgeP &edge, const InsideDrawData &drawData) const
 {
   if (! forceDirected_)
     return;
 
-  // draw edge path
+  CQChartsDrawUtil::setPenBrush(device, drawData.penBrush);
+
   auto *sedge = dynamic_cast<Edge *>(edge.get());
   assert(sedge);
 
+  // draw edge path
   device->drawPath(edgePaths_[sedge->id()]);
 
   //---
 
   // draw connected nodes if edge coloring
   if (isEdgeMouseColoring()) {
+    auto getNodeInsidePenBrush = [&](CQChartsForceDirectedNode *snode) {
+      for (const auto &pn : insideNodeData_) {
+        if (pn.first.get() == snode)
+          return pn.second.penBrush;
+      }
+      assert(false);
+      return drawData.penBrush;
+    };
+
     auto *snode1 = dynamic_cast<Node *>(edge->source().get());
     auto *snode2 = dynamic_cast<Node *>(edge->target().get());
     assert(snode1 && snode2);
 
     // draw node shapes
+    PenBrush insidePenBrush1 = getNodeInsidePenBrush(snode1);
+    PenBrush insidePenBrush2 = getNodeInsidePenBrush(snode2);
+
+    CQChartsDrawUtil::setPenBrush(device, insidePenBrush1);
+
     drawNodeShape(device, snode1);
+
+    CQChartsDrawUtil::setPenBrush(device, insidePenBrush2);
+
     drawNodeShape(device, snode2);
 
+    //---
+
     // draw node texts
-    drawNodeText(device, snode1, snode1->colorInd(), /*mouseOver*/true);
-    drawNodeText(device, snode2, snode2->colorInd(), /*mouseOver*/true);
+    CQChartsDrawUtil::setPenBrush(device, insidePenBrush1);
+
+    drawNodeText(device, snode1, snode1->colorInd(), MouseOver::EDGE);
+
+    CQChartsDrawUtil::setPenBrush(device, insidePenBrush2);
+
+    drawNodeText(device, snode2, snode2->colorInd(), MouseOver::EDGE);
   }
 
   // draw edge value if mouse value and not already displayed
-  if (isEdgeMouseValue() && ! isEdgeValueLabel())
-    drawEdgeText(device, sedge, sedge->colorInd(), /*mouseOver*/true);
+  if (isEdgeMouseValue()) {
+    CQChartsDrawUtil::setPenBrush(device, drawData.penBrush);
+
+    drawEdgeText(device, sedge, sedge->colorInd(), MouseOver::EDGE);
+  }
 }
 
 //---

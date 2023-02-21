@@ -72,27 +72,41 @@ typeDescription(const QString &type)
 {
   if      (type == "CSV") {
     return CQChartsHtml().
-     h2("CSV");
+     h2("CSV").
+     p("CSV (Command Separated Values) uses rows of comma separated values to define "
+       "the model data. An optional header can be specified using the first row or the "
+       "first commented line (using #).").
+     p("CSV can also have meta data in comments to provide extra data");
   }
   else if (type == "TSV") {
     return CQChartsHtml().
-     h2("CSV");
+     h2("TSV").
+     p("TSV (Tabbed Separated Values) uses rows of tab separated values to define "
+       "the model data. An optional header can be specified using the first row or the "
+       "first commented line (using #).");
   }
   else if (type == "Json") {
     return CQChartsHtml().
-     h2("Json");
+     h2("Json").
+     p("Json (Javascript object notation) provides a structured, hierarchical or flat "
+       "data structure for the model values.");
   }
   else if (type == "Data") {
     return CQChartsHtml().
-     h2("Data");
+     h2("Data").
+     p("Data models are GNU Plot like data files where rows of space separated values to define "
+       "the model data.");
   }
   else if (type == "Expr") {
     return CQChartsHtml().
-     h2("Expr");
+     h2("Expr").
+     p("Expr models derived from an existing model and add extra columns using tcl expressions "
+       "to define how the new columns are generated from existing values.");
   }
   else if (type == "Vars") {
     return CQChartsHtml().
-     h2("Vars");
+     h2("Vars").
+     p("Vars models use a list of tcl variables to defined the columns or rows of the model.");
   }
   else {
     return CQChartsHtml();

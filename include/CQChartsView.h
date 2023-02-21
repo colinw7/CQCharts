@@ -350,6 +350,12 @@ class CQChartsView : public QFrame,
 
   //---
 
+  //! get/set updates enabled
+  bool isUpdatesEnabled() const { return updatesEnabled_; }
+  void setUpdatesEnabled(bool b, bool update=false);
+
+  //---
+
   //! get/set current plot index
   int currentPlotInd() const { return currentPlotInd_; }
   void setCurrentPlotInd(int i);
@@ -1477,6 +1483,26 @@ class CQChartsView : public QFrame,
   void pixelToWindowI(double px, double py, double &wx, double &wy) const;
 
  private:
+  //! \brief RAII class to enable/disable no update state
+  struct NoUpdate {
+    NoUpdate(const View *view, bool update=false) :
+     view_(const_cast<View *>(view)), update_(update) {
+      view_->setUpdatesEnabled(false);
+    }
+
+    NoUpdate(View *view, bool update=false) :
+     view_(view), update_(update) {
+      view_->setUpdatesEnabled(false);
+    }
+
+   ~NoUpdate() { view_->setUpdatesEnabled(true, update_); }
+
+    View* view_   { nullptr };
+    bool  update_ { false };
+  };
+
+  //---
+
   //! process all mouse point plots using lambda
   template<typename FUNCTION, typename DATA=int>
   bool processMouseDataPlots(FUNCTION f, const DATA &data=DATA()) const {
@@ -1666,6 +1692,8 @@ class CQChartsView : public QFrame,
 
   bool                  is3D_     { false }; //!< is 3D
   CQChartsViewGLWidget *glWidget_ { nullptr };
+
+  bool updatesEnabled_ { true };
 
   // child objects
   QString     title_;                 //!< view title (TODO: object)

@@ -66,9 +66,43 @@ description()
 {
   return CQChartsHtml().
    h2("View").
+   h3("Overview").
    p("A view is a container for one or more plots").
-   p("Plots can be placed side by side or in a grid or overlaid with shared x and/or "
-     "coordinates.");
+   p("Plots can be placed side by side, in a grid, or overlaid with shared x and/or y"
+     "coordinates.").
+   p("The view has it's own coordinate system. By default this is (0, 0) to (100, 100) "
+     "but can be changed as needed.").
+   p("The view can have a title width is shown on in the window manager title.").
+   h3("Theme").
+   p("The view controls the theme used to draw its child plots (dark or light).").
+   p("The default palette, and text style, used by the child plots can be defined.").
+   p("The default background color can be defined.").
+   h3("Tip").
+   p("The placement of the tooltip can be defined.").
+   h3("Probe").
+   p("The probe line can be configured.").
+   h3("Overview").
+   p("The plot overview can be configured.").
+   h3("Sizing").
+   p("The resize behavior can be configured.").
+   h3("Select and Inside").
+   p("When selecting with mouse the user can select the nearest object to a point or "
+     "objects inside or touching a rectangle.").
+   p("When a plot object is selected or highlighted (when mouse is inside) the objects "
+     "is redraw with a distinct style (fill and/or stroke). The view controls the configuration "
+     "of this style using a select and inside properties.").
+   p("When the selection or highlight mode is 'outline' just the outline of the object "
+     "is draw using the stroke style. When the selection or highlight mode is 'fill' the "
+     "object is drawn with the stroke and fill style. The stoke and/or fill can be disabled "
+     "if both are disable for 'fill' mode, or stroke is disabled for 'outline' mode then "
+     "the default selected/inside color and alpha are used.").
+   p("The plot fade on mouse over can be enabled.").
+   h3("Key").
+   p("A key of the child plots can be added and configured (placed and styled).").
+   h3("Annotations").
+   p("The view can have it's own annotations.").
+   h3("Objects Table").
+   p("The objects shown in the objects table can be configured.");
 }
 
 //---
@@ -84,6 +118,9 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
  charts_(charts),
  viewSizeHint_(defSizeHint_)
 {
+  CQChartsObjSelectedShapeData<CQChartsView>::setSelectedReloadObj(false);
+  CQChartsObjInsideShapeData  <CQChartsView>::setInsideReloadObj(false);
+
   init();
 }
 
@@ -99,6 +136,10 @@ void
 CQChartsView::
 init()
 {
+  NoUpdate noUpdate(this);
+
+  //---
+
   setObjectName("view");
 
   setMouseTracking(true);
@@ -259,6 +300,19 @@ term()
   delete tipData_.floatTip;
 }
 
+void
+CQChartsView::
+setUpdatesEnabled(bool b, bool update)
+{
+  updatesEnabled_ = b;
+
+  if (updatesEnabled_ && update) {
+    invalidateObjects();
+
+    doUpdate();
+  }
+}
+
 //---
 
 void
@@ -375,19 +429,30 @@ addProperties()
   addStyleProp("text", "fontFactor", "factor", "Global text scale factor")->setMinValue(0.001);
   addStyleProp("text", "font"      , "font"  , "Global text font");
 
+  // background fill
+  addStyleProp("background/fill", "backgroundFillData"   , "style"  , "Fill style"  , true);
+  addStyleProp("background/fill", "backgroundFillColor"  , "color"  , "Fill color"  );
+  addStyleProp("background/fill", "backgroundFillAlpha"  , "alpha"  , "Fill alpha"  , true);
+  addStyleProp("background/fill", "backgroundFillPattern", "pattern", "Fill pattern", true);
+
+  // handdrawn
+  addStyleProp("handdrawn", "handDrawn"    , "enabled"  , "Enable handdraw painter");
+  addStyleProp("handdrawn", "handRoughness", "roughness", "Handdraw roughness");
+  addStyleProp("handdrawn", "handFillDelta", "fillDelta", "Handdraw fill delta");
+
   // tip
   addStyleProp("tip", "floatTip", "float", "Use floating tip");
   addStyleProp("tip", "tipFont" , "font" , "Tip font");
   addStyleProp("tip", "tipDelay", "delay", "Tip hide delay");
   addStyleProp("tip", "tipAlign", "align", "Tip align");
 
+  // probe
+  addProp("probe", "probeObjects", "objects", "Probe nearest object");
+  addProp("probe", "probeNamed"  , "named"  , "Show value name");
+  addProp("probe", "probePos"    , "pos"    , "Probe value position");
+
   // plot separators
   addStyleProp("options", "plotSeparators", "", "Show plot separators");
-
-  // handdrawn
-  addStyleProp("handdrawn", "handDrawn"    , "enabled"  , "Enable handdraw painter");
-  addStyleProp("handdrawn", "handRoughness", "roughness", "Handdraw roughness");
-  addStyleProp("handdrawn", "handFillDelta", "fillDelta", "Handdraw fill delta");
 
   // overview
   addStyleProp("overview", "overviewXSize"     , "xSize"     , "Overview X Size");
@@ -398,12 +463,6 @@ addProperties()
   // sizing
   addProp("sizing", "autoSize" , "auto"     , "Auto scale to view size");
   addProp("sizing", "fixedSize", "fixedSize", "Fixed view size");
-
-  // background fill
-  addStyleProp("background/fill", "backgroundFillData"   , "style"  , "Fill style"  , true);
-  addStyleProp("background/fill", "backgroundFillColor"  , "color"  , "Fill color"  );
-  addStyleProp("background/fill", "backgroundFillAlpha"  , "alpha"  , "Fill alpha"  , true);
-  addStyleProp("background/fill", "backgroundFillPattern", "pattern", "Fill pattern", true);
 
   // select mode
   addProp("select", "selectMode"  , "mode"  , "Selection mode");
@@ -460,7 +519,7 @@ addProperties()
   addStyleProp("inside", "insideColor", "insideColor", "Inside Color");
   addStyleProp("inside", "insideAlpha", "insideAlpha", "Inside Alpha");
 
-  // fade
+  // fade on inside
   addStyleProp("fade", "overlayFade"     , "enabled", "Fade non-overlay");
   addStyleProp("fade", "overlayFadeAlpha", "alpha"  , "Fade alpha");
 
@@ -475,11 +534,6 @@ addProperties()
 
   if (key())
     key()->addProperties(propertyModel(), "key");
-
-  // probe
-  addProp("probe", "probeObjects", "objects", "Probe nearest object");
-  addProp("probe", "probeNamed"  , "named"  , "Show value name");
-  addProp("probe", "probePos"    , "pos"    , "Probe value position");
 
   // view settings objects tab
   addProp("objects_tab", "viewSettingsMajorObjects", "major", "Show major objects");
@@ -5529,7 +5583,7 @@ updatePenBrushState(const ColorInd &colorInd, PenBrush &penBrush, bool selected,
   }
   // inside
   else if (inside) {
-    updateInsidePenBrushState(colorInd, penBrush, /*outline*/true, drawType);
+    updateInsidePenBrushState(colorInd, penBrush, /*outline*/false, drawType);
   }
   // selected
   else if (selected) {
