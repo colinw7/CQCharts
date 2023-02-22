@@ -5564,6 +5564,7 @@ updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &colorInd,
         updateSelectedPenBrushState(colorInd, penBrush, drawType);
       }
       else {
+        // NEEDED ?
         updateSelectedPenBrushState(colorInd, penBrush, drawType);
       }
     }

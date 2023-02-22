@@ -255,6 +255,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(CQChartsLength outerMarginRight  READ outerMarginRight  WRITE setOuterMarginRight )
   Q_PROPERTY(CQChartsLength outerMarginBottom READ outerMarginBottom WRITE setOuterMarginBottom)
 
+  Q_PROPERTY(double pixelMarginSize READ pixelMarginSize WRITE setPixelMarginSize)
+
   // title and associated filename (if any)
   Q_PROPERTY(QString title    READ titleStr WRITE setTitleStr)
   Q_PROPERTY(QString filename READ filename WRITE setFileName)
@@ -1006,6 +1008,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   const Length &outerMarginBottom() const { return outerMargin().bottom(); }
   void setOuterMarginBottom(const Length &b);
+
+  double pixelMarginSize() const { return pixelMarginSize_; }
+  void setPixelMarginSize(double r);
 
   //---
 
@@ -3616,6 +3621,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   BBox          innerViewBBox_  { 0, 0, 1, 1 }; //!< inner view box
   PlotMargin    innerMargin_;                   //!< inner margin
   PlotMargin    outerMargin_;                   //!< outer margin
+  double        pixelMarginSize_ { 8 };         //!< extra pixel margin around plot
   DisplayRangeP displayRange_;                  //!< value range mapping
   DisplayRangeP rawDisplayRange_;               //!< value range mapping (non zoom)
   mutable bool  useRawRange_    { false };      //!< use raw display range

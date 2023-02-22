@@ -3044,6 +3044,15 @@ setOuterMargin(const PlotMargin &m)
   if (m != outerMargin_) { outerMargin_ = m; updateMargins(); }
 }
 
+void
+CQChartsPlot::
+setPixelMarginSize(double r)
+{
+  assert(! isComposite());
+
+  if (r != pixelMarginSize_) { pixelMarginSize_ = r; updateMargins(); }
+}
+
 //---
 
 void
@@ -3836,6 +3845,8 @@ addBaseProperties()
   addProp("margins/fit", "fitMarginTop"   , "top"   , "Size of fit margin at top of plot");
   addProp("margins/fit", "fitMarginRight" , "right" , "Size of fit margin at right of plot");
   addProp("margins/fit", "fitMarginBottom", "bottom", "Size of fit margin at bottom of plot");
+
+  addProp("margins", "pixelMarginSize", "pixelMargin", "Extra margin around plot in pixels");
 
   //---
 
@@ -14981,10 +14992,12 @@ setFitBBox(const BBox &bbox)
     auto ymargin = top + bottom;
 
     auto size = std::max(xmargin, ymargin);
+
     auto xf = (size > 0 ? xmargin/size : 1.0);
     auto yf = (size > 0 ? ymargin/size : 1.0);
-    left   /= xf; right /= xf;
-    bottom /= yf; top   /= yf;
+
+    if (xf > 1E-6) { left   /= xf; right /= xf; }
+    if (yf > 1E-6) { bottom /= yf; top   /= yf; }
 #endif
   }
 
@@ -15018,7 +15031,7 @@ fitBBox() const
   //---
 
   // add margin (TODO: config pixel margin size)
-  auto marginSize = pixelToWindowSize(Size(8, 8));
+  auto marginSize = pixelToWindowSize(Size(pixelMarginSize(), pixelMarginSize()));
 
   bbox.expand(-marginSize.width(), -marginSize.height(),
                marginSize.width(),  marginSize.height());
