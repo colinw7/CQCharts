@@ -1,3 +1,43 @@
+proc animateStateChanged { view plot b } {
+  echo "animateStateChanged $view $plot $b"
+
+  set objs [get_charts_data -plot $plot -name objects]
+  echo $objs
+
+  set node1 {}
+  set node2 {}
+  set edge1 {}
+
+  foreach obj $objs {
+    set type [get_charts_property -plot $plot -object $obj -name typeName]
+
+    if       {$type == "node"} {
+      if       {$node1 == ""} {
+        set node1 $obj
+      } elseif {$node2 == ""} {
+        set node2 $obj
+      }
+    } elseif {$type == "edge"} {
+      if {$edge1 == ""} {
+        set edge1 $obj
+      }
+    }
+
+    if {$node1 != "" && $edge1 != ""} {
+      break
+    }
+  }
+
+  echo "Node: $node1, Edge $edge1"
+  echo "Node: $node2"
+
+  #set_charts_data -plot $plot -object $node1 -name select -value 1
+  #set_charts_data -plot $plot -object $edge1 -name select -value 1
+
+  set edge [create_charts_arrow_annotation -plot $plot -id edge \
+    -start [list "@(${node1})" 0 0] -end [list "@(${node2})" 0 0]]
+}
+
 proc objPressed { view plot id } {
   echo "$view $plot $id"
 
@@ -30,4 +70,5 @@ connect_charts_signal -plot $plot -from objIdPressed -to objPressed
 set button [create_charts_button_annotation -plot $plot -id button \
               -position {5 5 V} -text "Button"]
 
+connect_charts_signal -plot $plot -from animateStateChanged -to animateStateChanged
 connect_charts_signal -plot $plot -from annotationIdPressed -to plotAnnotationSlot

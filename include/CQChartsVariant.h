@@ -263,6 +263,10 @@ std::vector<double> toReals(const QVariant &var, bool &ok);
 // point
 namespace CQChartsVariant {
 
+inline bool isPointF(const QVariant &var) {
+  return (var.type() == QVariant::PointF);
+}
+
 using Point = CQChartsGeom::Point;
 
 Point toPoint(const QVariant &var, bool &ok);

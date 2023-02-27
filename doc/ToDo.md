@@ -4,7 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- . test inside/select with buffer layers (used ?)
+ + sub values of point, rect column
+ + test inside/select with buffer layers (used ?)
  + cleanup selection code
    + select object, point, rect, notifications
    + only redraw needed on select change (dataChanged signal)

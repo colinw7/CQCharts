@@ -7,7 +7,6 @@
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
-#include <CQChartsNamePair.h>
 #include <CQChartsConnectionList.h>
 #include <CQChartsTip.h>
 #include <CQChartsValueSet.h>

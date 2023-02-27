@@ -24,12 +24,28 @@ class CQChartsObjRefPos :
  public:
   using ObjRef   = CQChartsObjRef;
   using Position = CQChartsPosition;
+  using Units    = CQChartsUnits::Type;
+  using Point    = CQChartsGeom::Point;
+
+ public:
+  static CQChartsObjRefPos plot(const Point &p) {
+    return CQChartsObjRefPos(Position(p, Units::PLOT)); }
+  static CQChartsObjRefPos plot(const QString &str) {
+    return CQChartsObjRefPos(Position(str, Units::PLOT)); }
 
  public:
   CQChartsObjRefPos() = default;
 
   CQChartsObjRefPos(const ObjRef &objRef, const Position &position) :
    objRef_(objRef), position_(position) {
+  }
+
+  CQChartsObjRefPos(const Position &position) :
+   position_(position) {
+  }
+
+  CQChartsObjRefPos(const QString &s, const Units &units=Units::PLOT) {
+    setObjRef(s, units);
   }
 
   //---
@@ -40,10 +56,29 @@ class CQChartsObjRefPos :
   const Position &position() const { return position_; }
   void setPosition(const Position &p) { position_ = p; }
 
+  bool setObjRef(const QString &str, const Units &units=Units::PLOT) {
+    ObjRef   objRef;
+    Position position;
+
+    if (! decodeString(str, objRef, position, units))
+      return false;
+
+    objRef_   = objRef;
+    position_ = position;
+
+    return true;
+  }
+
   //---
 
   QString toString() const;
-  bool fromString(const QString &s);
+
+  bool fromString(const QString &s) {
+    return setObjRef(s);
+  }
+
+  bool decodeString(const QString &str, ObjRef &objRef, Position &position,
+                    const Units &units=Units::PLOT);
 
   //---
 

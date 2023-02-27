@@ -171,25 +171,26 @@ class CQCharts##NAME##Cmd : public CQChartsCmdProc { \
   using CmdGroup = CQTclCmd::CmdGroup; \
 \
   enum class ArgType { \
-    None     = int(CmdArg::Type::None), \
-    Boolean  = int(CmdArg::Type::Boolean), \
-    Integer  = int(CmdArg::Type::Integer), \
-    Real     = int(CmdArg::Type::Real), \
-    String   = int(CmdArg::Type::String), \
-    SBool    = int(CmdArg::Type::SBool), \
-    Enum     = int(CmdArg::Type::Enum), \
-    Color    = int(CmdArg::Type::Extra) + 1, \
-    Font     = int(CmdArg::Type::Extra) + 2, \
-    LineDash = int(CmdArg::Type::Extra) + 3, \
-    Length   = int(CmdArg::Type::Extra) + 4, \
-    Position = int(CmdArg::Type::Extra) + 5, \
-    Rect     = int(CmdArg::Type::Extra) + 6, \
-    Polygon  = int(CmdArg::Type::Extra) + 7, \
-    Align    = int(CmdArg::Type::Extra) + 8, \
-    Sides    = int(CmdArg::Type::Extra) + 9, \
-    Column   = int(CmdArg::Type::Extra) + 10, \
-    Row      = int(CmdArg::Type::Extra) + 11, \
-    Reals    = int(CmdArg::Type::Extra) + 12 \
+    None      = int(CmdArg::Type::None), \
+    Boolean   = int(CmdArg::Type::Boolean), \
+    Integer   = int(CmdArg::Type::Integer), \
+    Real      = int(CmdArg::Type::Real), \
+    String    = int(CmdArg::Type::String), \
+    SBool     = int(CmdArg::Type::SBool), \
+    Enum      = int(CmdArg::Type::Enum), \
+    Color     = int(CmdArg::Type::Extra) + 1, \
+    Font      = int(CmdArg::Type::Extra) + 2, \
+    LineDash  = int(CmdArg::Type::Extra) + 3, \
+    Length    = int(CmdArg::Type::Extra) + 4, \
+    Position  = int(CmdArg::Type::Extra) + 5, \
+    Rect      = int(CmdArg::Type::Extra) + 6, \
+    Polygon   = int(CmdArg::Type::Extra) + 7, \
+    Align     = int(CmdArg::Type::Extra) + 8, \
+    Sides     = int(CmdArg::Type::Extra) + 9, \
+    Column    = int(CmdArg::Type::Extra) + 10, \
+    Row       = int(CmdArg::Type::Extra) + 11, \
+    Reals     = int(CmdArg::Type::Extra) + 12, \
+    ObjRefPos = int(CmdArg::Type::Extra) + 13, \
   }; \
 \
  public: \

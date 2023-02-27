@@ -23,13 +23,13 @@ class CForceDirected {
   virtual ~CForceDirected() { }
 
   double stiffness() const { return stiffness_; }
-  void setStiffness(double r) { stiffness_ = r; }
+  void setStiffness(double r) { stiffness_ = r; if (layout_) layout_->setStiffness(stiffness_); }
 
   double repulsion() const { return repulsion_; }
-  void setRepulsion(double r) { repulsion_ = r; }
+  void setRepulsion(double r) { repulsion_ = r; if (layout_) layout_->setRepulsion(repulsion_); }
 
   double damping() const { return damping_; }
-  void setDamping(double r) { damping_ = r; }
+  void setDamping(double r) { damping_ = r; if (layout_) layout_->setDamping(damping_); }
 
   void reset() {
     initialized_ = false;

@@ -7,7 +7,6 @@
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
-#include <CQChartsNamePair.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>

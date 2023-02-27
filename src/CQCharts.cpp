@@ -107,6 +107,7 @@
 // types
 #include <CQChartsPolygonList.h>
 #include <CQChartsNamePair.h>
+#include <CQChartsNameValues.h>
 #include <CQChartsSides.h>
 #include <CQChartsFillUnder.h>
 #include <CQChartsWindow.h>
@@ -516,6 +517,7 @@ CQCharts()
   CQChartsModelColumn           ::registerMetaType();
   CQChartsModelIndex            ::registerMetaType();
   CQChartsNamePair              ::registerMetaType();
+  CQChartsNameValues            ::registerMetaType();
   CQChartsObjRefPos             ::registerMetaType();
   CQChartsObjRef                ::registerMetaType();
   CQChartsPaletteName           ::registerMetaType();
@@ -655,6 +657,7 @@ init()
   columnTypeMgr()->addTypeT<CQChartsColumnTimeType          >(CQBaseModelType::TIME           );
   columnTypeMgr()->addTypeT<CQChartsColumnColorType         >(CQBaseModelType::COLOR          );
   columnTypeMgr()->addTypeT<CQChartsColumnFontType          >(CQBaseModelType::FONT           );
+  columnTypeMgr()->addTypeT<CQChartsColumnPointType         >(CQBaseModelType::POINT          );
   columnTypeMgr()->addTypeT<CQChartsColumnRectType          >(CQBaseModelType::RECT           );
   columnTypeMgr()->addTypeT<CQChartsColumnLengthType        >(CQBaseModelType::LENGTH         );
   columnTypeMgr()->addTypeT<CQChartsColumnPolygonType       >(CQBaseModelType::POLYGON        );
@@ -666,6 +669,7 @@ init()
   columnTypeMgr()->addTypeT<CQChartsColumnPathType          >(CQBaseModelType::PATH           );
   columnTypeMgr()->addTypeT<CQChartsColumnStyleType         >(CQBaseModelType::STYLE          );
   columnTypeMgr()->addTypeT<CQChartsColumnNamePairType      >(CQBaseModelType::NAME_PAIR      );
+  columnTypeMgr()->addTypeT<CQChartsColumnNameValuesType    >(CQBaseModelType::NAME_VALUES    );
   columnTypeMgr()->addTypeT<CQChartsColumnConnectionListType>(CQBaseModelType::CONNECTION_LIST);
 
   //---

@@ -7,6 +7,8 @@
 /*!
  * \brief Name Pair class
  * \ingroup Charts
+ *
+ * pair of separated names (default /)
  */
 class CQChartsNamePair {
  public:
@@ -27,30 +29,17 @@ class CQChartsNamePair {
   };
 
  public:
-  CQChartsNamePair(const QString &str=QString(), const QString &separator="/") {
-    setValue(str, separator);
-  }
+  CQChartsNamePair(const QString &str=QString(), const QString &separator="/");
+  CQChartsNamePair(const CQChartsNamePair &rhs);
 
-  CQChartsNamePair(const CQChartsNamePair &rhs) :
-   names_(rhs.names_) {
-  }
-
-  CQChartsNamePair &operator=(const CQChartsNamePair &rhs) {
-    names_ = rhs.names_;
-
-    return *this;
-  }
+  CQChartsNamePair &operator=(const CQChartsNamePair &rhs);
 
   bool isValid() const { return names_.valid; }
 
   const QString &name1() const { return names_.name1; }
   const QString &name2() const { return names_.name2; }
 
-  bool setValue(const QString &str, const QString &separator="/") {
-    separator_ = separator;
-
-    return stringToNames(str, names_, separator_);
-  }
+  bool setValue(const QString &str, const QString &separator="/");
 
   const QString &separator() const { return separator_; }
   void setSeparator(const QString &c) { separator_ = c; }

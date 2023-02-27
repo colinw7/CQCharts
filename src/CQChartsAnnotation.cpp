@@ -4556,16 +4556,28 @@ CQChartsConnectorAnnotationBase::
 //------
 
 CQChartsArrowAnnotation::
-CQChartsArrowAnnotation(View *view, const Position &start, const Position &end) :
- CQChartsConnectorAnnotationBase(view, Type::ARROW), start_(start), end_(end)
+CQChartsArrowAnnotation(View *view, const ObjRefPos &start, const ObjRefPos &end) :
+ CQChartsConnectorAnnotationBase(view, Type::ARROW), start_(start.position()), end_(end.position())
 {
+  if (start.objRef().isValid())
+    setStartObjRef(start.objRef());
+
+  if (end.objRef().isValid())
+    setEndObjRef(end.objRef());
+
   init();
 }
 
 CQChartsArrowAnnotation::
-CQChartsArrowAnnotation(Plot *plot, const Position &start, const Position &end) :
- CQChartsConnectorAnnotationBase(plot, Type::ARROW), start_(start), end_(end)
+CQChartsArrowAnnotation(Plot *plot, const ObjRefPos &start, const ObjRefPos &end) :
+ CQChartsConnectorAnnotationBase(plot, Type::ARROW), start_(start.position()), end_(end.position())
 {
+  if (start.objRef().isValid())
+    setStartObjRef(start.objRef());
+
+  if (end.objRef().isValid())
+    setEndObjRef(end.objRef());
+
   init();
 }
 

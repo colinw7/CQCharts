@@ -1657,7 +1657,7 @@ addAnnotationGroup()
 
 CQChartsArrowAnnotation *
 CQChartsView::
-addArrowAnnotation(const Position &start, const Position &end)
+addArrowAnnotation(const CQChartsObjRefPos &start, const CQChartsObjRefPos &end)
 {
   return addAnnotationT<ArrowAnnotation>(new ArrowAnnotation(this, start, end));
 }

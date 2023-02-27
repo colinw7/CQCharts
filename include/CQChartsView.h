@@ -7,6 +7,7 @@
 #include <CQChartsSymbol.h>
 #include <CQChartsLineDash.h>
 #include <CQChartsPosition.h>
+#include <CQChartsObjRefPos.h>
 #include <CQChartsLength.h>
 #include <CQChartsRect.h>
 #include <CQChartsPolygon.h>
@@ -286,6 +287,7 @@ class CQChartsView : public QFrame,
   using Image       = CQChartsImage;
   using Path        = CQChartsPath;
   using Widget      = CQChartsWidget;
+  using ObjRefPos   = CQChartsObjRefPos;
   using Font        = CQChartsFont;
   using Color       = CQChartsColor;
   using Alpha       = CQChartsAlpha;
@@ -697,7 +699,7 @@ class CQChartsView : public QFrame,
   // TODO: remove custom add annotation routines
   AnnotationGroup     *addAnnotationGroup    ();
   ArcAnnotation       *addArcAnnotation      (const Position &start, const Position &end);
-  ArrowAnnotation     *addArrowAnnotation    (const Position &start, const Position &end);
+  ArrowAnnotation     *addArrowAnnotation    (const ObjRefPos &start, const ObjRefPos &end);
   ButtonAnnotation    *addButtonAnnotation   (const Position &pos, const QString &text);
   EllipseAnnotation   *addEllipseAnnotation  (const Position &center, const Length &xRadius,
                                               const Length &yRadius);

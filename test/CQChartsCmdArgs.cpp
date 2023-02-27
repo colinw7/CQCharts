@@ -236,6 +236,17 @@ handleParseArg(CQTclCmd::CmdArg *cmdArg, const QString &opt)
       return valueError(opt);
     }
   }
+  // handle position option (string)
+  else if (cmdArg->type() == int(Type::ObjRefPos)) {
+    QString str;
+
+    if (getOptValue(str)) {
+      parseStr_[opt].push_back(str);
+    }
+    else {
+      return valueError(opt);
+    }
+  }
   // invalid type (assert ?)
   else {
     if (CQTclCmd::CmdArgs::handleParseArg(cmdArg, opt))
@@ -597,4 +608,12 @@ CQChartsCmdArgs::
 getParseReals(const QString &name, const CQChartsReals &def) const
 {
   return getParseValue<CQChartsReals>(name, def);
+}
+
+CQChartsObjRefPos
+CQChartsCmdArgs::
+getParseObjRefPos(CQChartsView *view, CQChartsPlot *plot, const QString &name,
+                  const CQChartsObjRefPos &def) const
+{
+  return getParseValue<CQChartsObjRefPos>(view, plot, name, def);
 }

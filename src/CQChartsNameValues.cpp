@@ -1,7 +1,21 @@
 #include <CQChartsNameValues.h>
+#include <CQPropertyView.h>
 
 #include <CQChartsVariant.h>
 #include <CQUtil.h>
+
+CQUTIL_DEF_META_TYPE(CQChartsNameValues, toString, fromString)
+
+int CQChartsNameValues::metaTypeId;
+
+void
+CQChartsNameValues::
+registerMetaType()
+{
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsNameValues);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsNameValues", "name_values");
+}
 
 CQChartsNameValues::
 CQChartsNameValues()

@@ -1429,3 +1429,5 @@
 # 1/19/2023
  + force directed rect select
  + improve meta data handling
+# 2/27/2023
+ + add support for annotation obj ref in tcl commands and improve string syntax

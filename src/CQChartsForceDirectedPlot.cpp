@@ -139,6 +139,10 @@ init()
 
   forceDirected_ = std::make_unique<CQChartsForceDirected>();
 
+  forceDirected_->setStiffness(stiffness_);
+  forceDirected_->setRepulsion(repulsion_);
+  forceDirected_->setDamping(damping_);
+
   //---
 
   auto bg = Color::makePalette();
@@ -487,6 +491,38 @@ setMaxSteps(int n)
 
 //---
 
+void
+CQChartsForceDirectedPlot::
+setStiffness(double r)
+{
+  stiffness_ = r;
+
+  if (forceDirected_)
+    forceDirected_->setStiffness(stiffness_);
+}
+
+void
+CQChartsForceDirectedPlot::
+setRepulsion(double r)
+{
+  repulsion_ = r;
+
+  if (forceDirected_)
+    forceDirected_->setRepulsion(repulsion_);
+}
+
+void
+CQChartsForceDirectedPlot::
+setDamping(double r)
+{
+  damping_ = r;
+
+  if (forceDirected_)
+    forceDirected_->setDamping(damping_);
+}
+
+//---
+
 int
 CQChartsForceDirectedPlot::
 numNodes() const
@@ -608,6 +644,12 @@ addProperties()
 
   addProp("text/inside"  , "insideTextNoScale"  , "noScale", "Inside text label no scale");
   addProp("text/selected", "selectedTextNoScale", "noScale", "Selected text label no scale");
+
+  //---
+
+  addProp("placement", "stiffness", "", "Force directed stiffness");
+  addProp("placement", "repulsion", "", "Force directed repulsion");
+  addProp("placement", "damping"  , "", "Force directed damping");
 
   //---
 
@@ -2261,6 +2303,20 @@ handleEditMove(const Point &, const Point &p, bool)
       forceDirected_->currentPoint()->setP(SpringVec(p.x, p.y));
 
     drawObjs();
+
+    for (auto *plotObj : plotObjs_) {
+      auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
+      if (! nodeObj) continue;
+
+      if (nodeObj->node() == forceDirected_->currentNode()) {
+        auto *snode = dynamic_cast<Node *>(nodeObj->node().get());
+        assert(snode);
+
+        nodeObj->setRect(snode->bbox());
+
+        break;
+      }
+    }
 
     return true;
   }

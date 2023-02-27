@@ -6,7 +6,6 @@
 #include <CQChartsAnalyzeModelData.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsNamePair.h>
 #include <CQChartsConnectionList.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsVariant.h>

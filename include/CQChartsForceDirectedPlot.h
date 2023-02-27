@@ -77,6 +77,8 @@ class CQChartsForceDirectedNodeObj : public CQChartsPlotObj {
 
   QString typeName() const override { return "node"; }
 
+  const ForceNodeP &node() const { return node_; }
+
   QString label() const;
 
   QString calcId() const override;
@@ -157,6 +159,11 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(int    numSteps     READ numSteps)
   Q_PROPERTY(double minDelta     READ minDelta     WRITE setMinDelta)
   Q_PROPERTY(int    maxSteps     READ maxSteps     WRITE setMaxSteps)
+
+  // placement
+  Q_PROPERTY(double stiffness READ stiffness WRITE setStiffness)
+  Q_PROPERTY(double repulsion READ repulsion WRITE setRepulsion)
+  Q_PROPERTY(double damping   READ damping   WRITE setDamping)
 
   // node data
   Q_PROPERTY(NodeShape      nodeShape         READ nodeShape           WRITE setNodeShape        )
@@ -351,6 +358,20 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   void setMaxSteps(int n);
 
   //----
+
+  //! get/set placement stiffness
+  double stiffness() const { return stiffness_; }
+  void setStiffness(double r);
+
+  //! get/set placement repulsion
+  double repulsion() const { return repulsion_; }
+  void setRepulsion(double r);
+
+  //! get/set placement damping
+  double damping() const { return damping_; }
+  void setDamping(double r);
+
+  //---
 
   //! get/set node shape
   NodeShape nodeShape() const { return nodeDrawData_.shape; }
@@ -891,6 +912,13 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   int    maxNodeDepth_   { 0 };     //!< max node depth
   double minDelta_       { 0.001 }; //!< min delta
   int    maxSteps_       { -1 };    //!< max steps
+
+  // placement
+  double stiffness_ { 400.0 };
+  double repulsion_ { 400.0 };
+  double damping_   { 0.5 };
+
+  //---
 
   mutable std::mutex createMutex_; //!< create mutex
 

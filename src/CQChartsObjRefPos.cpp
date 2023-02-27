@@ -23,11 +23,13 @@ toString() const
   QString str;
 
   if (objRef_.isValid()) {
-    str += "@";
+    str += "@(";
 
     auto strs = objRef_.toStrings();
 
     str += strs[0] + " " + strs[1];
+
+    str += ")";
   }
 
   if (position_.isValid()) {
@@ -42,28 +44,41 @@ toString() const
 
 bool
 CQChartsObjRefPos::
-fromString(const QString &str)
+decodeString(const QString &str, ObjRef &objRef, Position &position, const Units &defUnits)
 {
   CQStrParse parse(str);
 
   parse.skipSpace();
 
-  if (parse.isChar('@')) {
+  if (parse.isString("@(")) {
+    parse.skipChars(2);
+
+    auto pos = parse.getPos();
+
+    while (! parse.isChar(')'))
+      parse.skipChar();
+
+    auto str1 = parse.getAt(pos, parse.getPos() - pos);
+
     parse.skipChar();
+
+    CQStrParse parse1(str1);
+
+    parse1.skipSpace();
+
+    QStringList objStrs;
 
     QString word1, word2;
 
-    if (! parse.readNonSpace(word1))
-      return false;
+    if (parse1.readNonSpace(word1))
+      objStrs << word1;
 
     parse.skipSpace();
 
-    if (! parse.readNonSpace(word2))
-      return false;
+    if (parse1.readNonSpace(word2))
+      objStrs << word2;
 
-    auto strs = QStringList() << word1 << word2;
-
-    if (! objRef_.fromStrings(strs))
+    if (! objRef.fromStrings(objStrs))
       return false;
 
     parse.skipSpace();
@@ -71,7 +86,7 @@ fromString(const QString &str)
 
   auto rhs = parse.getAt();
 
-  if (! position_.fromString(rhs))
+  if (! position.fromString(rhs, defUnits))
     return false;
 
   return true;

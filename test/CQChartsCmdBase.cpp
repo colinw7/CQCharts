@@ -1086,6 +1086,8 @@ execCmd(CQChartsCmdArgs &argv)
       else if (type == int(ArgType::String)) {
         strs = proc->getArgValues(option, nameValueMap);
       }
+      else if (type == int(ArgType::ObjRefPos)) {
+      }
       else {
         return cmdBase_->setCmdRc(strs);
       }

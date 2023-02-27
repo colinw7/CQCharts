@@ -2169,6 +2169,9 @@ getModelBadValue(const Column &column, int row) const
   if (isBadUseRow())
     return double(row);
 
+  if (! column.isValid())
+    return this->badValue();
+
   auto *details = columnDetails(column);
 
   if ( details) {
@@ -15195,7 +15198,7 @@ addAnnotationGroup()
 
 CQChartsArrowAnnotation *
 CQChartsPlot::
-addArrowAnnotation(const Position &start, const Position &end)
+addArrowAnnotation(const CQChartsObjRefPos &start, const CQChartsObjRefPos &end)
 {
   return addAnnotationT<ArrowAnnotation>(new ArrowAnnotation(this, start, end));
 }

@@ -4,7 +4,6 @@
 #include <CQChartsModelData.h>
 #include <CQChartsAnalyzeModelData.h>
 #include <CQCharts.h>
-#include <CQChartsNamePair.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsVariant.h>
 #include <CQChartsViewPlotPaintDevice.h>

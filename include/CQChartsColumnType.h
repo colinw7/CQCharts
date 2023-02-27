@@ -118,8 +118,9 @@ class CQChartsColumnTypeParam {
  */
 class CQChartsColumnType {
  public:
-  using Type   = CQBaseModelType;
-  using Params = std::vector<CQChartsColumnTypeParam *>;
+  using Type            = CQBaseModelType;
+  using ColumnTypeParam = CQChartsColumnTypeParam;
+  using Params          = std::vector<ColumnTypeParam *>;
 
   enum class DrawType {
     NORMAL,
@@ -127,24 +128,26 @@ class CQChartsColumnType {
     HEATMAP
   };
 
-  using Column          = CQChartsColumn;
-  using NameValues      = CQChartsNameValues;
-  using ColumnTypeParam = CQChartsColumnTypeParam;
-  using ModelTypeData   = CQChartsModelTypeData;
-  using Color           = CQChartsColor;
-  using ColorStops      = CQChartsColorStops;
-  using ColumnDetails   = CQChartsModelColumnDetails;
+  using Column        = CQChartsColumn;
+  using NameValues    = CQChartsNameValues;
+  using ModelTypeData = CQChartsModelTypeData;
+  using Color         = CQChartsColor;
+  using ColorStops    = CQChartsColorStops;
+  using ColumnDetails = CQChartsModelColumnDetails;
 
  public:
   explicit CQChartsColumnType(Type type);
 
   virtual ~CQChartsColumnType();
 
+  // get type
   Type type() const { return type_; }
 
+  // get/set index
   int ind() const { return ind_; }
   void setInd(int i) { ind_ = i; }
 
+  // get name
   virtual QString name() const;
 
   // help methods for compatibility with basic data types
@@ -153,6 +156,7 @@ class CQChartsColumnType {
   virtual bool isBoolean () const { return false; }
   virtual bool isTime    () const { return false; }
 
+  // get/set hidden
   bool isHidden() const { return hidden_; }
   void setHidden(bool hidden) { hidden_ = hidden; }
 
@@ -209,7 +213,7 @@ class CQChartsColumnType {
   ColorStops drawStops     (const NameValues &nameValues) const;
 
   QVariant remapNamedValue(CQCharts *charts, const QAbstractItemModel *model,
-                           const CQChartsColumn &column, const QVariant &var) const;
+                           const Column &column, const QVariant &var) const;
 
   NameValues namedValues(const NameValues &nameValues) const;
   NameValues namedColors(const NameValues &nameValues) const;
@@ -427,6 +431,33 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
 //---
 
 /*!
+ * \brief point column type class
+ * \ingroup Charts
+ */
+class CQChartsColumnPointType : public CQChartsColumnType {
+ public:
+  CQChartsColumnPointType();
+
+  QString desc() const override;
+
+  // input variant to data variant for edit
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
+                    const QVariant &var, const ModelTypeData &typeData,
+                    bool &converted) const override;
+
+  // data variant to output variant (string) for display
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
+                    const QVariant &var, const ModelTypeData &typeData,
+                    bool &converted) const override;
+
+  QVariant indexVar(const QVariant &var, const QString &ind) const override;
+
+  Type indexType(const QString &) const override;
+};
+
+//---
+
+/*!
  * \brief rect column type class
  * \ingroup Charts
  */
@@ -445,6 +476,10 @@ class CQChartsColumnRectType : public CQChartsColumnType {
   QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                     const QVariant &var, const ModelTypeData &typeData,
                     bool &converted) const override;
+
+  QVariant indexVar(const QVariant &var, const QString &ind) const override;
+
+  Type indexType(const QString &) const override;
 };
 
 //---
@@ -491,6 +526,10 @@ class CQChartsColumnPolygonType : public CQChartsColumnType {
   QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                     const QVariant &var, const ModelTypeData &typeData,
                     bool &converted) const override;
+
+  QVariant indexVar(const QVariant &var, const QString &ind) const override;
+
+  Type indexType(const QString &) const override;
 };
 
 //---
@@ -569,6 +608,36 @@ class CQChartsColumnNamePairType : public CQChartsColumnType {
 
  private:
   bool isNamePairVariant(const QVariant &var) const;
+};
+
+//---
+
+/*!
+ * \brief name pair column type class
+ * \ingroup Charts
+ */
+class CQChartsColumnNameValuesType : public CQChartsColumnType {
+ public:
+  CQChartsColumnNameValuesType();
+
+  QString desc() const override;
+
+  // input variant to data variant for edit
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
+                    const QVariant &var, const ModelTypeData &typeData,
+                    bool &converted) const override;
+
+  // data variant to output variant (string) for display
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
+                    const QVariant &var, const ModelTypeData &typeData,
+                    bool &converted) const override;
+
+  QVariant indexVar(const QVariant &var, const QString &ind) const override;
+
+  Type indexType(const QString &) const override;
+
+ private:
+  bool isNameValuesVariant(const QVariant &var) const;
 };
 
 //---

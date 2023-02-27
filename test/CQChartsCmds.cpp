@@ -8828,8 +8828,8 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-id" , ArgType::String, "annotation id" );
   addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  addArg(argv, "-start", ArgType::Position, "start position");
-  addArg(argv, "-end"  , ArgType::Position, "end position");
+  addArg(argv, "-start", ArgType::ObjRefPos, "start position");
+  addArg(argv, "-end"  , ArgType::ObjRefPos, "end position");
 
   addArg(argv, "-line_width", ArgType::Length, "connecting line width");
 
@@ -8907,8 +8907,8 @@ execCmd(CQChartsCmdArgs &argv)
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
-  auto start = argv.getParsePosition(view, plot, "start");
-  auto end   = argv.getParsePosition(view, plot, "end"  );
+  auto start = argv.getParseObjRefPos(view, plot, "start");
+  auto end   = argv.getParseObjRefPos(view, plot, "end"  );
 
   CQChartsArrowData arrowData;
 

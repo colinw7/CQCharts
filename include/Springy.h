@@ -469,6 +469,15 @@ namespace Springy {
 
     Graph *graph() const { return graph_; }
 
+    double stiffness() const { return stiffness_; }
+    void setStiffness(double r) { stiffness_ = r; };
+
+    double repulsion() const { return repulsion_; }
+    void setRepulsion(double r) { repulsion_ = r; };
+
+    double damping() const { return damping_; }
+    void setDamping(double r) { damping_ = r; };
+
     PointP nodePoint(NodeP node) const {
       auto *th = const_cast<Layout *>(this);
 
@@ -548,7 +557,7 @@ namespace Springy {
 
         spring->setLength(edge->length());
 
-        spring->setK(stiffness_);
+        spring->setK(stiffness());
 
         edgeSprings_[edge->id()] = spring;
       }
@@ -575,8 +584,8 @@ namespace Springy {
             Vector direction = d.normalise();
 
             // apply force to each end point
-            point1->applyForce(direction.multiply(repulsion_).divide(distance*distance* 0.5));
-            point2->applyForce(direction.multiply(repulsion_).divide(distance*distance*-0.5));
+            point1->applyForce(direction.multiply(repulsion()).divide(distance*distance* 0.5));
+            point2->applyForce(direction.multiply(repulsion()).divide(distance*distance*-0.5));
           }
         }
       }
@@ -607,7 +616,7 @@ namespace Springy {
 
         Vector direction = point->p().multiply(-1.0);
 
-        point->applyForce(direction.multiply(repulsion_/50.0));
+        point->applyForce(direction.multiply(repulsion()/50.0));
       }
     }
 
@@ -617,7 +626,7 @@ namespace Springy {
 
         // Is this, along with updatePosition below, the only places that your
         // integration code exist?
-        point->setV(point->v().add(point->a().multiply(timestep)).multiply(damping_));
+        point->setV(point->v().add(point->a().multiply(timestep)).multiply(damping()));
         point->setA(Vector(0, 0));
       }
     }

@@ -510,6 +510,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using Image       = CQChartsImage;
   using Path        = CQChartsPath;
   using Widget      = CQChartsWidget;
+  using ObjRefPos   = CQChartsObjRefPos;
 
   using PaintDevice       = CQChartsPaintDevice;
   using ScriptPaintDevice = CQChartsScriptPaintDevice;
@@ -2537,7 +2538,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
                                                     const Angle &srcSpanAngle,
                                                     const Angle &destStartAngle,
                                                     const Angle &destSpanAngle, bool self);
-  ArrowAnnotation        *addArrowAnnotation       (const Position &start, const Position &end);
+  ArrowAnnotation        *addArrowAnnotation       (const ObjRefPos &start, const ObjRefPos &end);
   AxisAnnotation         *addAxisAnnotation        (Qt::Orientation direction, double start,
                                                     double end);
   ButtonAnnotation       *addButtonAnnotation      (const Position &pos, const QString &text);

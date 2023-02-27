@@ -23,6 +23,7 @@
 #include <CQChartsModelIndex.h>
 #include <CQChartsCirclePack.h>
 #include <CQChartsOptReal.h>
+#include <CQChartsObjRefPos.h>
 
 class CQChartsAnnotationGroup;
 class CQChartsSmooth;
@@ -1507,12 +1508,13 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
   using ArrowData = CQChartsArrowData;
   using Position  = CQChartsPosition;
   using Path      = CQChartsPath;
+  using ObjRefPos = CQChartsObjRefPos;
 
  public:
-  CQChartsArrowAnnotation(View *view, const Position &start=Position::plot(Point(0, 0)),
-                          const Position &end=Position::plot(Point(1, 1)));
-  CQChartsArrowAnnotation(Plot *plot, const Position &start=Position::plot(Point(0, 0)),
-                          const Position &end=Position::plot(Point(1, 1)));
+  CQChartsArrowAnnotation(View *view, const ObjRefPos &start=ObjRefPos::plot(Point(0, 0)),
+                          const ObjRefPos &end=ObjRefPos::plot(Point(1, 1)));
+  CQChartsArrowAnnotation(Plot *plot, const ObjRefPos &start=ObjRefPos::plot(Point(0, 0)),
+                          const ObjRefPos &end=ObjRefPos::plot(Point(1, 1)));
 
   virtual ~CQChartsArrowAnnotation();
 

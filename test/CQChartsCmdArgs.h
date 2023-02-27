@@ -13,6 +13,7 @@
 #include <CQChartsPoints.h>
 #include <CQChartsReals.h>
 #include <CQChartsAngle.h>
+#include <CQChartsObjRefPos.h>
 
 #include <CQTclCmd.h>
 //#include <CQTclUtil.h>
@@ -40,25 +41,26 @@ class CQChartsCmdBaseArgs : public CQTclCmd::CmdArgs {
 
   //! types
   enum class Type {
-    None     = int(CQTclCmd::CmdArg::Type::None),
-    Boolean  = int(CQTclCmd::CmdArg::Type::Boolean),
-    Integer  = int(CQTclCmd::CmdArg::Type::Integer),
-    Real     = int(CQTclCmd::CmdArg::Type::Real),
-    String   = int(CQTclCmd::CmdArg::Type::String),
-    SBool    = int(CQTclCmd::CmdArg::Type::SBool),
-    Enum     = int(CQTclCmd::CmdArg::Type::Enum),
-    Color    = int(CQTclCmd::CmdArg::Type::Extra) + 1,
-    Font     = int(CQTclCmd::CmdArg::Type::Extra) + 2,
-    LineDash = int(CQTclCmd::CmdArg::Type::Extra) + 3,
-    Length   = int(CQTclCmd::CmdArg::Type::Extra) + 4,
-    Position = int(CQTclCmd::CmdArg::Type::Extra) + 5,
-    Rect     = int(CQTclCmd::CmdArg::Type::Extra) + 6,
-    Polygon  = int(CQTclCmd::CmdArg::Type::Extra) + 7,
-    Align    = int(CQTclCmd::CmdArg::Type::Extra) + 8,
-    Sides    = int(CQTclCmd::CmdArg::Type::Extra) + 9,
-    Column   = int(CQTclCmd::CmdArg::Type::Extra) + 10,
-    Row      = int(CQTclCmd::CmdArg::Type::Extra) + 11,
-    Reals    = int(CQTclCmd::CmdArg::Type::Extra) + 12
+    None      = int(CQTclCmd::CmdArg::Type::None),
+    Boolean   = int(CQTclCmd::CmdArg::Type::Boolean),
+    Integer   = int(CQTclCmd::CmdArg::Type::Integer),
+    Real      = int(CQTclCmd::CmdArg::Type::Real),
+    String    = int(CQTclCmd::CmdArg::Type::String),
+    SBool     = int(CQTclCmd::CmdArg::Type::SBool),
+    Enum      = int(CQTclCmd::CmdArg::Type::Enum),
+    Color     = int(CQTclCmd::CmdArg::Type::Extra) + 1,
+    Font      = int(CQTclCmd::CmdArg::Type::Extra) + 2,
+    LineDash  = int(CQTclCmd::CmdArg::Type::Extra) + 3,
+    Length    = int(CQTclCmd::CmdArg::Type::Extra) + 4,
+    Position  = int(CQTclCmd::CmdArg::Type::Extra) + 5,
+    Rect      = int(CQTclCmd::CmdArg::Type::Extra) + 6,
+    Polygon   = int(CQTclCmd::CmdArg::Type::Extra) + 7,
+    Align     = int(CQTclCmd::CmdArg::Type::Extra) + 8,
+    Sides     = int(CQTclCmd::CmdArg::Type::Extra) + 9,
+    Column    = int(CQTclCmd::CmdArg::Type::Extra) + 10,
+    Row       = int(CQTclCmd::CmdArg::Type::Extra) + 11,
+    Reals     = int(CQTclCmd::CmdArg::Type::Extra) + 12,
+    ObjRefPos = int(CQTclCmd::CmdArg::Type::Extra) + 13,
   };
 
  public:
@@ -193,6 +195,12 @@ viewPlotStringToValue(const QString &str, CQChartsView *view, CQChartsPlot *) {
 }
 
 template<>
+inline CQChartsObjRefPos
+viewPlotStringToValue(const QString &str, CQChartsView *view, CQChartsPlot *) {
+  return CQChartsObjRefPos(str, (view ? CQChartsUnits::Type::VIEW : CQChartsUnits::Type::PLOT));
+}
+
+template<>
 inline CQChartsRow
 plotStringToValue(const QString &str, CQChartsPlot *plot) {
   QString rowName = str;
@@ -271,6 +279,9 @@ class CQChartsCmdArgs : public CQChartsCmdBaseArgs {
 
   CQChartsPoints getParsePoints(CQChartsView *view, CQChartsPlot *plot, const QString &name,
                                 const CQChartsPoints &def=CQChartsPoints()) const;
+
+  CQChartsObjRefPos getParseObjRefPos(CQChartsView *view, CQChartsPlot *plot, const QString &name,
+                                      const CQChartsObjRefPos &def=CQChartsObjRefPos()) const;
 
   //---
 

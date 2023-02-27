@@ -693,10 +693,10 @@ void
 CQChartsColumnEdit::
 setNoFocus()
 {
-  nameEdit_      ->setFocusPolicy(Qt::NoFocus);
-  roleEdit_      ->setFocusPolicy(Qt::NoFocus);
-  indexEdit_     ->setFocusPolicy(Qt::NoFocus);
-  expressionEdit_->setFocusPolicy(Qt::NoFocus);
+//nameEdit_      ->setFocusPolicy(Qt::NoFocus);
+//roleEdit_      ->setFocusPolicy(Qt::NoFocus);
+//indexEdit_     ->setFocusPolicy(Qt::NoFocus);
+//expressionEdit_->setFocusPolicy(Qt::NoFocus);
 }
 
 void

@@ -2,6 +2,7 @@
 #define CQChartsNameValues_H
 
 #include <CQModelNameValues.h>
+#include <CQUtilMeta.h>
 
 class CQChartsColor;
 class CQChartsFont;
@@ -9,8 +10,19 @@ class CQChartsFont;
 /*!
  * \brief Name Values class
  * \ingroup Charts
+ *
+ * Comma separater list of name/value pairs (<name>=<value>)
  */
 class CQChartsNameValues : public CQModelNameValues {
+ public:
+  static void registerMetaType();
+
+  static int metaTypeId;
+
+  //---
+
+  CQUTIL_DEF_META_CONVERSIONS(CQChartsNameValues, metaTypeId)
+
  public:
   CQChartsNameValues();
 
@@ -28,5 +40,9 @@ class CQChartsNameValues : public CQModelNameValues {
     return CQModelNameValues::nameValueFont(name, font, ok); }
   bool nameValueFont(const QString &name, CQChartsFont &font, bool &ok) const;
 };
+
+//---
+
+CQUTIL_DCL_META_TYPE(CQChartsNameValues)
 
 #endif
