@@ -8,18 +8,28 @@ class CQChartsForceDirectedEdge;
 
 //---
 
+enum class CQChartsForceDirectedEdgeValueType {
+  NONE,
+  SRC,
+  DEST,
+  SRC_DEST
+};
+
+//---
+
 /*!
  * \brief Spring Node Customization
  * \ingroup Charts
  */
 class CQChartsForceDirectedNode : public Springy::Node {
  public:
-  using Edge     = CQChartsForceDirectedEdge;
-  using Shape    = CQChartsNodeType;
-  using Color    = CQChartsColor;
-  using ColorInd = CQChartsUtil::ColorInd;
-  using OptReal  = CQChartsOptReal;
-  using BBox     = CQChartsGeom::BBox;
+  using Edge          = CQChartsForceDirectedEdge;
+  using EdgeValueType = CQChartsForceDirectedEdgeValueType;
+  using Shape         = CQChartsNodeType;
+  using Color         = CQChartsColor;
+  using ColorInd      = CQChartsUtil::ColorInd;
+  using OptReal       = CQChartsOptReal;
+  using BBox          = CQChartsGeom::BBox;
 
   using EdgeSet = std::set<Edge *>;
   using Slots   = std::map<int, EdgeSet>;
@@ -42,6 +52,12 @@ class CQChartsForceDirectedNode : public Springy::Node {
 
   const OptReal &nodeValue() const { return nodeValue_; }
   void setNodeValue(const OptReal &v) { nodeValue_ = v; }
+
+  const EdgeValueType &totalValueType() const { return totalValueType_; }
+  void setTotalValueType(const EdgeValueType &t) { totalValueType_ = t; }
+
+  const OptReal &totalValue() const { return totalValue_; }
+  void setTotalValue(const OptReal &r) { totalValue_ = r; }
 
   const QModelIndex &ind() const { return ind_; }
   void setInd(const QModelIndex &i) { ind_ = i; }
@@ -84,6 +100,9 @@ class CQChartsForceDirectedNode : public Springy::Node {
   bool        selected_ { false };
   bool        inside_   { false };
   Slots       occupiedSlots_;
+
+  EdgeValueType totalValueType_;
+  OptReal       totalValue_;
 
   EdgeSet inEdges_;
   EdgeSet outEdges_;

@@ -2593,20 +2593,26 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 //------
 
 CQChartsEllipseAnnotation::
-CQChartsEllipseAnnotation(View *view, const Position &center, const Length &xRadius,
+CQChartsEllipseAnnotation(View *view, const ObjRefPos &center, const Length &xRadius,
                           const Length &yRadius) :
- CQChartsShapeAnnotationBase(view, Type::ELLIPSE), center_(center),
+ CQChartsShapeAnnotationBase(view, Type::ELLIPSE), center_(center.position()),
  xRadius_(xRadius), yRadius_(yRadius)
 {
+  if (center.objRef().isValid())
+    setObjRef(center.objRef());
+
   init();
 }
 
 CQChartsEllipseAnnotation::
-CQChartsEllipseAnnotation(Plot *plot, const Position &center, const Length &xRadius,
+CQChartsEllipseAnnotation(Plot *plot, const ObjRefPos &center, const Length &xRadius,
                           const Length &yRadius) :
- CQChartsShapeAnnotationBase(plot, Type::ELLIPSE), center_(center),
+ CQChartsShapeAnnotationBase(plot, Type::ELLIPSE), center_(center.position()),
  xRadius_(xRadius), yRadius_(yRadius)
 {
+  if (center.objRef().isValid())
+    setObjRef(center.objRef());
+
   init();
 }
 
@@ -3371,19 +3377,21 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 //------
 
 CQChartsTextAnnotation::
-CQChartsTextAnnotation(View *view, const Position &position, const QString &textStr) :
+CQChartsTextAnnotation(View *view, const ObjRefPos &position, const QString &textStr) :
  CQChartsAnnotation(view, Type::TEXT)
 {
-  setPosition(position);
+  setPosition(position.position());
+  setObjRef  (position.objRef());
 
   init(textStr);
 }
 
 CQChartsTextAnnotation::
-CQChartsTextAnnotation(Plot *plot, const Position &position, const QString &textStr) :
+CQChartsTextAnnotation(Plot *plot, const ObjRefPos &position, const QString &textStr) :
  CQChartsAnnotation(plot, Type::TEXT)
 {
-  setPosition(position);
+  setPosition(position.position());
+  setObjRef  (position.objRef());
 
   init(textStr);
 }
@@ -3868,19 +3876,21 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 //------
 
 CQChartsImageAnnotation::
-CQChartsImageAnnotation(View *view, const Position &position, const Image &image) :
+CQChartsImageAnnotation(View *view, const ObjRefPos &position, const Image &image) :
  CQChartsShapeAnnotationBase(view, Type::IMAGE), image_(image)
 {
-  setPosition(position);
+  setPosition(position.position());
+  setObjRef  (position.objRef());
 
   init();
 }
 
 CQChartsImageAnnotation::
-CQChartsImageAnnotation(Plot *plot, const Position &position, const Image &image) :
+CQChartsImageAnnotation(Plot *plot, const ObjRefPos &position, const Image &image) :
  CQChartsShapeAnnotationBase(plot, Type::IMAGE), image_(image)
 {
-  setPosition(position);
+  setPosition(position.position());
+  setObjRef  (position.objRef());
 
   init();
 }
@@ -4565,6 +4575,8 @@ CQChartsArrowAnnotation(View *view, const ObjRefPos &start, const ObjRefPos &end
   if (end.objRef().isValid())
     setEndObjRef(end.objRef());
 
+  //---
+
   init();
 }
 
@@ -4577,6 +4589,8 @@ CQChartsArrowAnnotation(Plot *plot, const ObjRefPos &start, const ObjRefPos &end
 
   if (end.objRef().isValid())
     setEndObjRef(end.objRef());
+
+  //---
 
   init();
 }
@@ -5201,16 +5215,32 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 //------
 
 CQChartsArcAnnotation::
-CQChartsArcAnnotation(View *view, const Position &start, const Position &end) :
- CQChartsConnectorAnnotationBase(view, Type::ARC), start_(start), end_(end)
+CQChartsArcAnnotation(View *view, const ObjRefPos &start, const ObjRefPos &end) :
+ CQChartsConnectorAnnotationBase(view, Type::ARC), start_(start.position()), end_(end.position())
 {
+  if (start.objRef().isValid())
+    setStartObjRef(start.objRef());
+
+  if (end.objRef().isValid())
+    setEndObjRef(end.objRef());
+
+  //---
+
   init();
 }
 
 CQChartsArcAnnotation::
-CQChartsArcAnnotation(Plot *plot, const Position &start, const Position &end) :
- CQChartsConnectorAnnotationBase(plot, Type::ARC), start_(start), end_(end)
+CQChartsArcAnnotation(Plot *plot, const ObjRefPos &start, const ObjRefPos &end) :
+ CQChartsConnectorAnnotationBase(plot, Type::ARC), start_(start.position()), end_(end.position())
 {
+  if (start.objRef().isValid())
+    setStartObjRef(start.objRef());
+
+  if (end.objRef().isValid())
+    setEndObjRef(end.objRef());
+
+  //---
+
   init();
 }
 
@@ -5585,14 +5615,19 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 //------
 
 CQChartsArcConnectorAnnotation::
-CQChartsArcConnectorAnnotation(Plot *plot, const Position &center, const Length &radius,
+CQChartsArcConnectorAnnotation(Plot *plot, const ObjRefPos &center, const Length &radius,
                                const Angle &srcStartAngle, const Angle &srcSpanAngle,
                                const Angle &destStartAngle, const Angle &destSpanAngle,
                                bool self) :
- CQChartsConnectorAnnotationBase(plot, Type::ARC_CONNECTOR), center_(center), radius_(radius),
- srcStartAngle_(srcStartAngle), srcSpanAngle_(srcSpanAngle),
+ CQChartsConnectorAnnotationBase(plot, Type::ARC_CONNECTOR), center_(center.position()),
+ radius_(radius), srcStartAngle_(srcStartAngle), srcSpanAngle_(srcSpanAngle),
  destStartAngle_(destStartAngle), destSpanAngle_(destSpanAngle), self_(self)
 {
+  if (self) {
+    setStartObjRef(center.objRef());
+    setEndObjRef  (center.objRef());
+  }
+
   init();
 }
 
@@ -5769,20 +5804,26 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 //------
 
 CQChartsPointAnnotation::
-CQChartsPointAnnotation(View *view, const Position &position, const Symbol &symbol) :
+CQChartsPointAnnotation(View *view, const ObjRefPos &position, const Symbol &symbol) :
  CQChartsAnnotation(view, Type::POINT),
  CQChartsObjPointData<CQChartsPointAnnotation>(this),
- position_(position)
+ position_(position.position())
 {
+  if (position.objRef().isValid())
+    setObjRef(position.objRef());
+
   init(symbol);
 }
 
 CQChartsPointAnnotation::
-CQChartsPointAnnotation(Plot *plot, const Position &position, const Symbol &symbol) :
+CQChartsPointAnnotation(Plot *plot, const ObjRefPos &position, const Symbol &symbol) :
  CQChartsAnnotation(plot, Type::POINT),
  CQChartsObjPointData<CQChartsPointAnnotation>(this),
- position_(position)
+ position_(position.position())
 {
+  if (position.objRef().isValid())
+    setObjRef(position.objRef());
+
   init(symbol);
 }
 
@@ -6030,24 +6071,28 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 //------
 
 CQChartsPieSliceAnnotation::
-CQChartsPieSliceAnnotation(View *view, const Position &position, const Length &innerRadius,
+CQChartsPieSliceAnnotation(View *view, const ObjRefPos &position, const Length &innerRadius,
                            const Length &outerRadius, const Angle &startAngle,
                            const Angle &spanAngle) :
- CQChartsShapeAnnotationBase(view, Type::PIE_SLICE), position_(position),
+ CQChartsShapeAnnotationBase(view, Type::PIE_SLICE), position_(position.position()),
  innerRadius_(innerRadius), outerRadius_(outerRadius),
  startAngle_(startAngle), spanAngle_(spanAngle)
 {
+  setObjRef(position.objRef());
+
   init();
 }
 
 CQChartsPieSliceAnnotation::
-CQChartsPieSliceAnnotation(Plot *plot, const Position &position, const Length &innerRadius,
+CQChartsPieSliceAnnotation(Plot *plot, const ObjRefPos &position, const Length &innerRadius,
                            const Length &outerRadius, const Angle &startAngle,
                            const Angle &spanAngle) :
- CQChartsShapeAnnotationBase(plot, Type::PIE_SLICE), position_(position),
+ CQChartsShapeAnnotationBase(plot, Type::PIE_SLICE), position_(position.position()),
  innerRadius_(innerRadius), outerRadius_(outerRadius),
  startAngle_(startAngle), spanAngle_(spanAngle)
 {
+  setObjRef(position.objRef());
+
   init();
 }
 
@@ -8134,19 +8179,21 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 //------
 
 CQChartsButtonAnnotation::
-CQChartsButtonAnnotation(View *view, const Position &position, const QString &textStr) :
+CQChartsButtonAnnotation(View *view, const ObjRefPos &position, const QString &textStr) :
  CQChartsAnnotation(view, Type::BUTTON)
 {
-  setPosition(position);
+  setPosition(position.position());
+  setObjRef  (position.objRef());
 
   init(textStr);
 }
 
 CQChartsButtonAnnotation::
-CQChartsButtonAnnotation(Plot *plot, const Position &position, const QString &textStr) :
+CQChartsButtonAnnotation(Plot *plot, const ObjRefPos &position, const QString &textStr) :
  CQChartsAnnotation(plot, Type::BUTTON)
 {
-  setPosition(position);
+  setPosition(position.position());
+  setObjRef  (position.objRef());
 
   init(textStr);
 }
@@ -8328,19 +8375,21 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 //------
 
 CQChartsWidgetAnnotation::
-CQChartsWidgetAnnotation(View *view, const Position &position, const Widget &widget) :
+CQChartsWidgetAnnotation(View *view, const ObjRefPos &position, const Widget &widget) :
  CQChartsAnnotation(view, Type::WIDGET), widget_(widget)
 {
-  setPosition(position);
+  setPosition(position.position());
+  setObjRef  (position.objRef());
 
   init();
 }
 
 CQChartsWidgetAnnotation::
-CQChartsWidgetAnnotation(Plot *plot, const Position &position, const Widget &widget) :
+CQChartsWidgetAnnotation(Plot *plot, const ObjRefPos &position, const Widget &widget) :
  CQChartsAnnotation(plot, Type::WIDGET), widget_(widget)
 {
-  setPosition(position);
+  setPosition(position.position());
+  setObjRef  (position.objRef());
 
   init();
 }

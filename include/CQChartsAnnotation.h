@@ -122,6 +122,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   using SelMod      = CQChartsSelMod;
   using ColorInd    = CQChartsUtil::ColorInd;
   using ObjRef      = CQChartsObjRef;
+  using ObjRefPos   = CQChartsObjRefPos;
   using Units       = CQChartsUnits::Type;
   using Alpha       = CQChartsAlpha;
   using PaletteName = CQChartsPaletteName;
@@ -755,7 +756,6 @@ class CQChartsRectangleAnnotation : public CQChartsShapeAnnotationBase {
 
  public:
   using Rect       = CQChartsRect;
-  using Position   = CQChartsPosition;
   using Symbol     = CQChartsSymbol;
   using SymbolType = CQChartsSymbolType;
   using Length     = CQChartsLength;
@@ -849,7 +849,6 @@ class CQChartsShapeAnnotation : public CQChartsShapeAnnotationBase {
 
  public:
   using Rect       = CQChartsRect;
-  using Position   = CQChartsPosition;
   using Symbol     = CQChartsSymbol;
   using SymbolType = CQChartsSymbolType;
   using Length     = CQChartsLength;
@@ -957,15 +956,14 @@ class CQChartsEllipseAnnotation : public CQChartsShapeAnnotationBase {
   Q_PROPERTY(CQChartsLength   yRadius READ yRadius WRITE setYRadius)
 
  public:
-  using Position = CQChartsPosition;
-  using Length   = CQChartsLength;
-  using Units    = CQChartsUnits::Type;
+  using Length = CQChartsLength;
+  using Units  = CQChartsUnits::Type;
 
  public:
-  CQChartsEllipseAnnotation(View *view, const Position &center=Position(),
+  CQChartsEllipseAnnotation(View *view, const ObjRefPos &center=ObjRefPos(),
                             const Length &xRadius=Length::view(1.0),
                             const Length &yRadius=Length::view(1.0));
-  CQChartsEllipseAnnotation(Plot *plot, const Position &center=Position(),
+  CQChartsEllipseAnnotation(Plot *plot, const ObjRefPos &center=ObjRefPos(),
                             const Length &xRadius=Length::plot(1.0),
                             const Length &yRadius=Length::plot(1.0));
 
@@ -1172,12 +1170,11 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
  public:
   using Rect        = CQChartsRect;
   using OptRect     = CQChartsOptRect;
-  using Position    = CQChartsPosition;
   using OptPosition = CQChartsOptPosition;
 
  public:
-  CQChartsTextAnnotation(View *view, const Position &p=Position(), const QString &text=QString());
-  CQChartsTextAnnotation(Plot *plot, const Position &p=Position(), const QString &text=QString());
+  CQChartsTextAnnotation(View *view, const ObjRefPos &p=ObjRefPos(), const QString &text=QString());
+  CQChartsTextAnnotation(Plot *plot, const ObjRefPos &p=ObjRefPos(), const QString &text=QString());
 
   CQChartsTextAnnotation(View *view, const Rect &r, const QString &text=QString());
   CQChartsTextAnnotation(Plot *plot, const Rect &r, const QString &text=QString());
@@ -1281,12 +1278,11 @@ class CQChartsImageAnnotation : public CQChartsShapeAnnotationBase {
   using Image       = CQChartsImage;
   using Rect        = CQChartsRect;
   using OptRect     = CQChartsOptRect;
-  using Position    = CQChartsPosition;
   using OptPosition = CQChartsOptPosition;
 
  public:
-  CQChartsImageAnnotation(View *view, const Position &p=Position(), const Image &image=Image());
-  CQChartsImageAnnotation(Plot *plot, const Position &p=Position(), const Image &image=Image());
+  CQChartsImageAnnotation(View *view, const ObjRefPos &p=ObjRefPos(), const Image &image=Image());
+  CQChartsImageAnnotation(Plot *plot, const ObjRefPos &p=ObjRefPos(), const Image &image=Image());
 
   CQChartsImageAnnotation(View *view, const Rect &r, const Image &image=Image());
   CQChartsImageAnnotation(Plot *plot, const Rect &r, const Image &image=Image());
@@ -1506,9 +1502,7 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
 
  public:
   using ArrowData = CQChartsArrowData;
-  using Position  = CQChartsPosition;
   using Path      = CQChartsPath;
-  using ObjRefPos = CQChartsObjRefPos;
 
  public:
   CQChartsArrowAnnotation(View *view, const ObjRefPos &start=ObjRefPos::plot(Point(0, 0)),
@@ -1632,14 +1626,13 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotationBase {
     DIAMOND  = int(ArrowData::HeadType::DIAMOND)
   };
 
-  using Position = CQChartsPosition;
   using Length   = CQChartsLength;
 
  public:
-  CQChartsArcAnnotation(View *view, const Position &start=Position::plot(Point(0, 0)),
-                        const Position &end=Position::plot(Point(1, 1)));
-  CQChartsArcAnnotation(Plot *plot, const Position &start=Position::plot(Point(0, 0)),
-                        const Position &end=Position::plot(Point(1, 1)));
+  CQChartsArcAnnotation(View *view, const ObjRefPos &start=ObjRefPos::plot(Point(0, 0)),
+                        const ObjRefPos &end=ObjRefPos::plot(Point(1, 1)));
+  CQChartsArcAnnotation(Plot *plot, const ObjRefPos &start=ObjRefPos::plot(Point(0, 0)),
+                        const ObjRefPos &end=ObjRefPos::plot(Point(1, 1)));
 
   virtual ~CQChartsArcAnnotation();
 
@@ -1754,12 +1747,11 @@ class CQChartsArcConnectorAnnotation : public CQChartsConnectorAnnotationBase {
   Q_ENUMS(HeadType)
 
  public:
-  using Position = CQChartsPosition;
-  using Length   = CQChartsLength;
-  using Angle    = CQChartsAngle;
+  using Length = CQChartsLength;
+  using Angle  = CQChartsAngle;
 
  public:
-  CQChartsArcConnectorAnnotation(Plot *plot, const Position &center=Position::plot(Point(0, 0)),
+  CQChartsArcConnectorAnnotation(Plot *plot, const ObjRefPos &center=ObjRefPos::plot(Point(0, 0)),
                                  const Length &radius=Length::plot(1),
                                  const Angle &srcStartAngle=Angle(0.0),
                                  const Angle &srcSpanAngle=Angle(90.0),
@@ -1876,7 +1868,6 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
     EXTRA_HANDLE
   };
 
-  using Position   = CQChartsPosition;
   using Symbol     = CQChartsSymbol;
   using SymbolType = CQChartsSymbolType;
   using PenBrush   = CQChartsPenBrush;
@@ -1885,9 +1876,9 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
   using ColorInd   = CQChartsUtil::ColorInd;
 
  public:
-  CQChartsPointAnnotation(View *view, const Position &p=Position(),
+  CQChartsPointAnnotation(View *view, const ObjRefPos &p=ObjRefPos(),
                           const Symbol &symbol=Symbol::circle());
-  CQChartsPointAnnotation(Plot *plot, const Position &p=Position(),
+  CQChartsPointAnnotation(Plot *plot, const ObjRefPos &p=ObjRefPos(),
                           const Symbol &symbol=Symbol::circle());
 
   virtual ~CQChartsPointAnnotation();
@@ -1974,17 +1965,16 @@ class CQChartsPieSliceAnnotation : public CQChartsShapeAnnotationBase {
     ARC
   };
 
-  using Position = CQChartsPosition;
-  using Length   = CQChartsLength;
-  using Angle    = CQChartsAngle;
+  using Length = CQChartsLength;
+  using Angle  = CQChartsAngle;
 
  public:
-  CQChartsPieSliceAnnotation(View *view, const Position &p=Position(),
+  CQChartsPieSliceAnnotation(View *view, const ObjRefPos &p=ObjRefPos(),
                              const Length &innerRadius=Length(),
                              const Length &outerRadius=Length(),
                              const Angle &startAngle=Angle(0.0),
                              const Angle &spanAngle=Angle(90.0));
-  CQChartsPieSliceAnnotation(Plot *plot, const Position &p=Position(),
+  CQChartsPieSliceAnnotation(Plot *plot, const ObjRefPos &p=ObjRefPos(),
                              const Length &innerRadius=Length(),
                              const Length &outerRadius=Length(),
                              const Angle &startAngle=Angle(0.0),
@@ -2596,12 +2586,9 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(CQChartsObjRef   objRef   READ objRef   WRITE setObjRef  )
 
  public:
-  using Position = CQChartsPosition;
-
- public:
-  CQChartsButtonAnnotation(View *view, const Position &p=Position(),
+  CQChartsButtonAnnotation(View *view, const ObjRefPos &p=ObjRefPos(),
                            const QString &text=QString());
-  CQChartsButtonAnnotation(Plot *plot, const Position &p=Position(),
+  CQChartsButtonAnnotation(Plot *plot, const ObjRefPos &p=ObjRefPos(),
                            const QString &text=QString());
 
   virtual ~CQChartsButtonAnnotation();
@@ -2690,13 +2677,12 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
   using Widget      = CQChartsWidget;
   using Rect        = CQChartsRect;
   using OptRect     = CQChartsOptRect;
-  using Position    = CQChartsPosition;
   using OptPosition = CQChartsOptPosition;
 
  public:
-  CQChartsWidgetAnnotation(View *view, const Position &p=Position(),
+  CQChartsWidgetAnnotation(View *view, const ObjRefPos &p=ObjRefPos(),
                            const Widget &widget=Widget());
-  CQChartsWidgetAnnotation(Plot *plot, const Position &p=Position(),
+  CQChartsWidgetAnnotation(Plot *plot, const ObjRefPos &p=ObjRefPos(),
                            const Widget &widget=Widget());
 
   CQChartsWidgetAnnotation(View *view, const Rect &r, const Widget &widget=Widget());
@@ -2823,8 +2809,7 @@ class CQChartsSymbolSizeMapKeyAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
 
  public:
-  using Key      = CQChartsSymbolSizeMapKey;
-  using Position = CQChartsPosition;
+  using Key = CQChartsSymbolSizeMapKey;
 
  public:
   CQChartsSymbolSizeMapKeyAnnotation(Plot *plot);

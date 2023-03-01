@@ -15205,14 +15205,14 @@ addArrowAnnotation(const CQChartsObjRefPos &start, const CQChartsObjRefPos &end)
 
 CQChartsArcAnnotation *
 CQChartsPlot::
-addArcAnnotation(const Position &start, const Position &end)
+addArcAnnotation(const ObjRefPos &start, const ObjRefPos &end)
 {
   return addAnnotationT<ArcAnnotation>(new ArcAnnotation(this, start, end));
 }
 
 CQChartsArcConnectorAnnotation *
 CQChartsPlot::
-addArcConnectorAnnotation(const Position &center, const Length &radius,
+addArcConnectorAnnotation(const ObjRefPos &center, const Length &radius,
                           const Angle &srcStartAngle, const Angle &srcSpanAngle,
                           const Angle &destStartAngle, const Angle &destSpanAngle, bool self)
 {
@@ -15230,14 +15230,14 @@ addAxisAnnotation(Qt::Orientation direction, double start, double end)
 
 CQChartsEllipseAnnotation *
 CQChartsPlot::
-addEllipseAnnotation(const Position &center, const Length &xRadius, const Length &yRadius)
+addEllipseAnnotation(const ObjRefPos &center, const Length &xRadius, const Length &yRadius)
 {
   return addAnnotationT<EllipseAnnotation>(new EllipseAnnotation(this, center, xRadius, yRadius));
 }
 
 CQChartsImageAnnotation *
 CQChartsPlot::
-addImageAnnotation(const Position &pos, const Image &image)
+addImageAnnotation(const ObjRefPos &pos, const Image &image)
 {
   return addAnnotationT<ImageAnnotation>(new ImageAnnotation(this, pos, image));
 }
@@ -15265,7 +15265,7 @@ addKeyAnnotation(const Column &column)
 
 CQChartsPieSliceAnnotation *
 CQChartsPlot::
-addPieSliceAnnotation(const Position &pos, const Length &innerRadius, const Length &outerRadius,
+addPieSliceAnnotation(const ObjRefPos &pos, const Length &innerRadius, const Length &outerRadius,
                       const Angle &startAngle, const Angle &spanAngle)
 {
   return addAnnotationT<PieSliceAnnotation>(
@@ -15274,7 +15274,7 @@ addPieSliceAnnotation(const Position &pos, const Length &innerRadius, const Leng
 
 CQChartsPointAnnotation *
 CQChartsPlot::
-addPointAnnotation(const Position &pos, const Symbol &type)
+addPointAnnotation(const ObjRefPos &pos, const Symbol &type)
 {
   return addAnnotationT<PointAnnotation>(new PointAnnotation(this, pos, type));
 }
@@ -15323,7 +15323,7 @@ addShapeAnnotation(const Rect &rect)
 
 CQChartsTextAnnotation *
 CQChartsPlot::
-addTextAnnotation(const Position &pos, const QString &text)
+addTextAnnotation(const ObjRefPos &pos, const QString &text)
 {
   return addAnnotationT<TextAnnotation>(new TextAnnotation(this, pos, text));
 }
@@ -15344,14 +15344,14 @@ addValueSetAnnotation(const Rect &rectangle, const CQChartsReals &values)
 
 CQChartsButtonAnnotation *
 CQChartsPlot::
-addButtonAnnotation(const Position &pos, const QString &text)
+addButtonAnnotation(const ObjRefPos &pos, const QString &text)
 {
   return addAnnotationT<ButtonAnnotation>(new ButtonAnnotation(this, pos, text));
 }
 
 CQChartsWidgetAnnotation *
 CQChartsPlot::
-addWidgetAnnotation(const Position &pos, const Widget &widget)
+addWidgetAnnotation(const ObjRefPos &pos, const Widget &widget)
 {
   initWidgetAnnotation(widget);
 

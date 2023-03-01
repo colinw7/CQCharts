@@ -375,6 +375,22 @@ setNodeValueLabel(bool b)
 
 void
 CQChartsForceDirectedPlot::
+setNodeEdgeValueType(const NodeEdgeType &t)
+{
+  CQChartsUtil::testAndSet(nodeEdgeValueType_, t, [&]() { updateMaxNodeValue(); drawObjs(); } );
+}
+
+void
+CQChartsForceDirectedPlot::
+setNodeUseEdgeValue(bool b)
+{
+  CQChartsUtil::testAndSet(nodeUseEdgeValue_, b, [&]() { updateMaxNodeValue(); drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsForceDirectedPlot::
 setNodeMouseColoring(bool b)
 {
   CQChartsUtil::testAndSet(nodeDrawData_.mouseColoring, b, [&]() { drawObjs(); } );
@@ -382,7 +398,7 @@ setNodeMouseColoring(bool b)
 
 void
 CQChartsForceDirectedPlot::
-setNodeMouseColorType(const NodeColorType &type)
+setNodeMouseColorType(const NodeEdgeType &type)
 {
   CQChartsUtil::testAndSet(nodeDrawData_.mouseColorType, type, [&]() { drawObjs(); } );
 }
@@ -568,6 +584,9 @@ addProperties()
   addProp("node", "minNodeSize"       , "minSize"       , "Node min size (ignore if <= 0)");
   addProp("node", "nodeValueColored"  , "valueColored"  , "Node colored by value");
   addProp("node", "nodeValueLabel"    , "valueLabel"    , "Draw node value as label");
+  addProp("node", "nodeEdgeValueType" , "edgeValueType" , "Type of edges used for node value");
+  addProp("node", "nodeUseEdgeValue"  , "useEdgeValue"  , "Use edge value sum for node value");
+
   addProp("node", "nodeMouseColoring" , "mouseColoring" , "Color node edges on mouse over");
   addProp("node", "nodeMouseColorType", "mouseColorType", "Node mouse edge color type");
   addProp("node", "nodeMouseValue"    , "mouseValue"    , "Show node value on mouse over");
@@ -1081,7 +1100,14 @@ addIdConnections() const
 
   //---
 
-  th->maxNodeValue_ = 0.0;
+  th->updateMaxNodeValue();
+}
+
+void
+CQChartsForceDirectedPlot::
+updateMaxNodeValue()
+{
+  maxNodeValue_ = 0.0;
 
   for (auto &node : forceDirected_->nodes()) {
     auto *snode = dynamic_cast<Node *>(node.get());
@@ -1090,7 +1116,7 @@ addIdConnections() const
     auto value = calcNodeValue(snode);
 
     if (value.isSet())
-      th->maxNodeValue_ = std::max(th->maxNodeValue_, value.real());
+      maxNodeValue_ = std::max(maxNodeValue_, value.real());
   }
 }
 
@@ -2190,6 +2216,8 @@ execAnimateStep()
   doAutoFit();
 
   drawObjs();
+
+  updatePlotObjs();
 }
 
 void
@@ -2304,19 +2332,7 @@ handleEditMove(const Point &, const Point &p, bool)
 
     drawObjs();
 
-    for (auto *plotObj : plotObjs_) {
-      auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
-      if (! nodeObj) continue;
-
-      if (nodeObj->node() == forceDirected_->currentNode()) {
-        auto *snode = dynamic_cast<Node *>(nodeObj->node().get());
-        assert(snode);
-
-        nodeObj->setRect(snode->bbox());
-
-        break;
-      }
-    }
+    updatePlotObjs();
 
     return true;
   }
@@ -2345,7 +2361,26 @@ handleEditRelease(const Point &, const Point &p)
 
   drawObjs();
 
+  updatePlotObjs();
+
   return true;
+}
+
+//---
+
+void
+CQChartsForceDirectedPlot::
+updatePlotObjs()
+{
+  for (auto *plotObj : plotObjs_) {
+    auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
+    if (! nodeObj) continue;
+
+    auto *snode = dynamic_cast<Node *>(nodeObj->node().get());
+    assert(snode);
+
+    nodeObj->setRect(snode->bbox());
+  }
 }
 
 //---
@@ -2808,8 +2843,8 @@ nodeTipText(Node *node, CQChartsTableTip &tableTip) const
     if (groupColumn().isValid() && connectionsData.group >= 0)
       tableTip.addTableRow("Group", connectionsData.group);
 
-    if (connectionsData.total.isSet())
-      tableTip.addTableRow("Total", connectionsData.total.real());
+    if (node->totalValue().isSet())
+      tableTip.addTableRow("Total", node->totalValue().real());
 
     // connections
     //tableTip.addTableRow("Outputs", connectionsData.connections.size());
@@ -3741,8 +3776,8 @@ drawNodeInside(PaintDevice *device, const ForceNodeP &node, const InsideDrawData
     return drawData.penBrush;
   };
 
-  if (nodeMouseColorType() == NodeColorType::SRC ||
-      nodeMouseColorType() == NodeColorType::SRC_DEST) {
+  if (nodeMouseColorType() == NodeEdgeType::SRC ||
+      nodeMouseColorType() == NodeEdgeType::SRC_DEST) {
     for (auto *sedge : snode->inEdges()) {
       if (! isNodeMouseEdgeColor())
         CQChartsDrawUtil::setPenBrush(device, getEdgeInsidePenBrush(sedge));
@@ -3751,8 +3786,8 @@ drawNodeInside(PaintDevice *device, const ForceNodeP &node, const InsideDrawData
     }
   }
 
-  if (nodeMouseColorType() == NodeColorType::DEST ||
-      nodeMouseColorType() == NodeColorType::SRC_DEST) {
+  if (nodeMouseColorType() == NodeEdgeType::DEST ||
+      nodeMouseColorType() == NodeEdgeType::SRC_DEST) {
     for (auto *sedge : snode->outEdges()) {
       if (! isNodeMouseEdgeColor())
         CQChartsDrawUtil::setPenBrush(device, getEdgeInsidePenBrush(sedge));
@@ -3930,6 +3965,35 @@ CQChartsForceDirectedPlot::OptReal
 CQChartsForceDirectedPlot::
 calcNodeValue(Node *node) const
 {
+  auto totalValueType = nodeEdgeValueType();
+
+  if (node->totalValueType() != static_cast<CQChartsForceDirectedEdgeValueType>(totalValueType)) {
+    node->setTotalValueType(static_cast<CQChartsForceDirectedEdgeValueType>(totalValueType));
+
+    if (totalValueType != NodeEdgeType::NONE) {
+      double value = 0.0;
+
+      if (totalValueType == NodeEdgeType::SRC || totalValueType == NodeEdgeType::SRC_DEST) {
+        for (auto *sedge : node->inEdges())
+          if (sedge->value())
+            value += sedge->value().value();
+      }
+
+      if (totalValueType == NodeEdgeType::DEST || totalValueType == NodeEdgeType::SRC_DEST) {
+        for (auto *sedge : node->outEdges())
+          if (sedge->value())
+            value += sedge->value().value();
+      }
+
+      node->setTotalValue(OptReal(value));
+    }
+    else
+      node->setTotalValue(OptReal());
+  }
+
+  if (isNodeUseEdgeValue())
+    return node->totalValue();
+
   if      (node->nodeValue().isSet())
     return node->nodeValue();
   else if (node->value())

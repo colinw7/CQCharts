@@ -470,13 +470,20 @@ namespace Springy {
     Graph *graph() const { return graph_; }
 
     double stiffness() const { return stiffness_; }
-    void setStiffness(double r) { stiffness_ = r; };
+
+    void setStiffness(double r) {
+      stiffness_ = r;
+
+      for (const auto &pe : edgeSprings_) {
+        pe.second->setK(stiffness_);
+      }
+    }
 
     double repulsion() const { return repulsion_; }
-    void setRepulsion(double r) { repulsion_ = r; };
+    void setRepulsion(double r) { repulsion_ = r; }
 
     double damping() const { return damping_; }
-    void setDamping(double r) { damping_ = r; };
+    void setDamping(double r) { damping_ = r; }
 
     PointP nodePoint(NodeP node) const {
       auto *th = const_cast<Layout *>(this);
@@ -610,7 +617,7 @@ namespace Springy {
       }
     }
 
-    void attractToCentre() {
+    void attractToCenter() {
       for (auto node : graph_->nodes()) {
         auto point = this->nodePoint(node);
 
@@ -665,7 +672,7 @@ namespace Springy {
     double step(double t) {
       applyCoulombsLaw();
       applyHookesLaw();
-      attractToCentre();
+      attractToCenter();
       updateVelocity(t);
 
       double delta = 0.0;

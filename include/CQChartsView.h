@@ -698,28 +698,28 @@ class CQChartsView : public QFrame,
 
   // TODO: remove custom add annotation routines
   AnnotationGroup     *addAnnotationGroup    ();
-  ArcAnnotation       *addArcAnnotation      (const Position &start, const Position &end);
+  ArcAnnotation       *addArcAnnotation      (const ObjRefPos &start, const ObjRefPos &end);
   ArrowAnnotation     *addArrowAnnotation    (const ObjRefPos &start, const ObjRefPos &end);
-  ButtonAnnotation    *addButtonAnnotation   (const Position &pos, const QString &text);
-  EllipseAnnotation   *addEllipseAnnotation  (const Position &center, const Length &xRadius,
+  ButtonAnnotation    *addButtonAnnotation   (const ObjRefPos &pos, const QString &text);
+  EllipseAnnotation   *addEllipseAnnotation  (const ObjRefPos &center, const Length &xRadius,
                                               const Length &yRadius);
-  ImageAnnotation     *addImageAnnotation    (const Position &pos, const Image &image);
+  ImageAnnotation     *addImageAnnotation    (const ObjRefPos &pos, const Image &image);
   ImageAnnotation     *addImageAnnotation    (const Rect &rect, const Image &image);
   PathAnnotation      *addPathAnnotation     (const Path &path);
   KeyAnnotation       *addKeyAnnotation      ();
-  PieSliceAnnotation  *addPieSliceAnnotation (const Position &pos, const Length &innerRadius,
+  PieSliceAnnotation  *addPieSliceAnnotation (const ObjRefPos &pos, const Length &innerRadius,
                                               const Length &outerRadius, const Angle &startAngle,
                                               const Angle &spanAngle);
-  PointAnnotation     *addPointAnnotation    (const Position &pos, const Symbol &type);
+  PointAnnotation     *addPointAnnotation    (const ObjRefPos &pos, const Symbol &type);
   PointSetAnnotation  *addPointSetAnnotation (const Rect &rect, const CQChartsPoints &values);
   PolygonAnnotation   *addPolygonAnnotation  (const CQChartsPolygon &polygon);
   PolylineAnnotation  *addPolylineAnnotation (const CQChartsPolygon &polygon);
   RectangleAnnotation *addRectangleAnnotation(const Rect &rect);
   ShapeAnnotation     *addShapeAnnotation    (const Rect &rect);
-  TextAnnotation      *addTextAnnotation     (const Position &pos, const QString &text);
+  TextAnnotation      *addTextAnnotation     (const ObjRefPos &pos, const QString &text);
   TextAnnotation      *addTextAnnotation     (const Rect &rect, const QString &text);
   ValueSetAnnotation  *addValueSetAnnotation (const Rect &rect, const CQChartsReals &values);
-  WidgetAnnotation    *addWidgetAnnotation   (const Position &pos, const Widget &widget);
+  WidgetAnnotation    *addWidgetAnnotation   (const ObjRefPos &pos, const Widget &widget);
   WidgetAnnotation    *addWidgetAnnotation   (const Rect &rect, const Widget &widget);
 
   Annotation *addAnnotationI(Annotation *annotation);
