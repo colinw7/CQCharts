@@ -3633,7 +3633,13 @@ drawNodeText(PaintDevice *device, Node *snode, const ColorInd &colorInd,
   textData.bbox  = snode->bbox();
 
   // set text options
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
+
+  th->setRefLength(OptReal(textData.bbox.getWidth()));
+
   textData.textOptions = nodeTextOptions(device);
+
+  th->setRefLength(OptReal());
 
   textData.textOptions.angle = Angle();
   textData.textOptions.align = Qt::AlignCenter;

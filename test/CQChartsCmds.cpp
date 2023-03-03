@@ -8589,8 +8589,8 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-id" , ArgType::String, "annotation id" );
   addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  addArg(argv, "-start", ArgType::Position, "start position");
-  addArg(argv, "-end"  , ArgType::Position, "end position");
+  addArg(argv, "-start", ArgType::ObjRefPos, "start position");
+  addArg(argv, "-end"  , ArgType::ObjRefPos, "end position");
 
   addArg(argv, "-properties", ArgType::String, "name_values");
 }
@@ -8651,16 +8651,18 @@ execCmd(CQChartsCmdArgs &argv)
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
-  auto start = argv.getParsePosition(view, plot, "start");
-  auto end   = argv.getParsePosition(view, plot, "end"  );
+  //---
+
+  auto start = argv.getParseObjRefPos(view, plot, "start");
+  auto end   = argv.getParseObjRefPos(view, plot, "end"  );
 
   if (! start.isValid() || ! end.isValid())
     return errorMsg("Invalid start/end");
 
-  //---
-
   //if (start == end)
   //  return errorMsg("Arc has zero length");
+
+  //---
 
   CQChartsArcAnnotation *annotation = nullptr;
 
@@ -8707,8 +8709,8 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-id" , ArgType::String, "annotation id" );
   addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  addArg(argv, "-center", ArgType::Position, "center");
-  addArg(argv, "-radius", ArgType::Length  , "radius");
+  addArg(argv, "-center", ArgType::ObjRefPos, "center");
+  addArg(argv, "-radius", ArgType::Length   , "radius");
 
   addArg(argv, "-src_start_angle", ArgType::String, "source start angle");
   addArg(argv, "-src_span_angle" , ArgType::String, "source span angle");
@@ -8772,8 +8774,8 @@ execCmd(CQChartsCmdArgs &argv)
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
-  auto center = argv.getParsePosition(nullptr, plot, "center");
-  auto radius = argv.getParseLength  (nullptr, plot, "radius");
+  auto center = argv.getParseObjRefPos(nullptr, plot, "center");
+  auto radius = argv.getParseLength   (nullptr, plot, "radius");
 
   auto srcStartAngle = argv.getParseAngle("src_start_angle");
   auto srcSpanAngle  = argv.getParseAngle("src_span_angle");
@@ -8907,8 +8909,15 @@ execCmd(CQChartsCmdArgs &argv)
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
+  //---
+
   auto start = argv.getParseObjRefPos(view, plot, "start");
   auto end   = argv.getParseObjRefPos(view, plot, "end"  );
+
+  if (! start.isValid() || ! end.isValid())
+    return errorMsg("Invalid start/end");
+
+  //---
 
   CQChartsArrowData arrowData;
 
@@ -9260,7 +9269,7 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-id" , ArgType::String, "annotation id" );
   addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  addArg(argv, "-position", ArgType::Position, "position");
+  addArg(argv, "-position", ArgType::ObjRefPos, "position");
 
   addArg(argv, "-text", ArgType::String, "text");
 
@@ -9340,7 +9349,7 @@ execCmd(CQChartsCmdArgs &argv)
   CQChartsButtonAnnotation *annotation = nullptr;
 
   if      (argv.hasParseArg("position")) {
-    auto pos = argv.getParsePosition(view, plot, "position");
+    auto pos = argv.getParseObjRefPos(view, plot, "position");
 
     if      (plot)
       annotation = plot->addButtonAnnotation(pos, text);
@@ -9348,7 +9357,7 @@ execCmd(CQChartsCmdArgs &argv)
       annotation = view->addButtonAnnotation(pos, text);
   }
   else {
-    auto pos = CQChartsPosition::plot(CQChartsGeom::Point(0, 0));
+    auto pos = CQChartsObjRefPos::plot(CQChartsGeom::Point(0, 0));
 
     if      (plot)
       annotation = plot->addButtonAnnotation(pos, text);
@@ -9400,7 +9409,7 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-id" , ArgType::String, "annotation id" );
   addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  addArg(argv, "-center", ArgType::Position, "center");
+  addArg(argv, "-center", ArgType::ObjRefPos, "center");
 
   addArg(argv, "-rx", ArgType::Length, "x radius");
   addArg(argv, "-ry", ArgType::Length, "y radius");
@@ -9485,7 +9494,14 @@ execCmd(CQChartsCmdArgs &argv)
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
-  auto center = argv.getParsePosition(view, plot, "center");
+  //---
+
+  auto center = argv.getParseObjRefPos(view, plot, "center");
+
+  if (! center.isValid())
+    return errorMsg("Invalid ellipse center");
+
+  //---
 
   auto rx = argv.getParseLength(view, plot, "rx");
   auto ry = argv.getParseLength(view, plot, "ry");
@@ -9506,9 +9522,6 @@ execCmd(CQChartsCmdArgs &argv)
   boxData.setBorderSides(argv.getParseSides("border_sides", boxData.borderSides()));
 
   //---
-
-  if (! center.isValid())
-    return errorMsg("Invalid ellipse center");
 
   if (! rx.isValid() || ! ry.isValid())
     return errorMsg("Invalid ellipse radius");
@@ -9566,8 +9579,8 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-id" , ArgType::String, "annotation id" );
   addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  addArg(argv, "-position" , ArgType::Position, "position");
-  addArg(argv, "-rectangle", ArgType::Rect    , "rectangle bounding box");
+  addArg(argv, "-position" , ArgType::ObjRefPos, "position");
+  addArg(argv, "-rectangle", ArgType::Rect     , "rectangle bounding box");
 
   argv.startCmdGroup(CmdGroup::Type::OneReq);
   addArg(argv, "-image", ArgType::String, "image file");
@@ -9679,10 +9692,10 @@ execCmd(CQChartsCmdArgs &argv)
       annotation = view->addImageAnnotation(rect, image);
   }
   else {
-    auto pos = CQChartsPosition::plot(CQChartsGeom::Point(0, 0));
+    auto pos = CQChartsObjRefPos::plot(CQChartsGeom::Point(0, 0));
 
     if (argv.hasParseArg("position"))
-      pos = argv.getParsePosition(view, plot, "position");
+      pos = argv.getParseObjRefPos(view, plot, "position");
 
     if      (plot)
       annotation = plot->addImageAnnotation(pos, image);
@@ -9978,7 +9991,7 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-id" , ArgType::String, "annotation id" );
   addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  addArg(argv, "-position", ArgType::Position, "point position");
+  addArg(argv, "-position", ArgType::ObjRefPos, "point position");
 
   addArg(argv, "-inner_radius", ArgType::Length, "inner radius");
   addArg(argv, "-outer_radius", ArgType::Length, "outer radius");
@@ -10045,7 +10058,7 @@ execCmd(CQChartsCmdArgs &argv)
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
-  auto pos = argv.getParsePosition(view, plot, "position");
+  auto pos = argv.getParseObjRefPos(view, plot, "position");
 
   if (! pos.isValid())
     return errorMsg("Invalid position");
@@ -10112,7 +10125,7 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-id" , ArgType::String, "annotation id" );
   addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  addArg(argv, "-position", ArgType::Position, "point position");
+  addArg(argv, "-position", ArgType::ObjRefPos, "point position");
 
   addArg(argv, "-symbol", ArgType::String, "symbol");
   addArg(argv, "-size"  , ArgType::Length, "symbol size");
@@ -10191,7 +10204,14 @@ execCmd(CQChartsCmdArgs &argv)
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
-  auto pos = argv.getParsePosition(view, plot, "position");
+  //---
+
+  auto pos = argv.getParseObjRefPos(view, plot, "position");
+
+  if (! pos.isValid())
+    return errorMsg("Invalid position");
+
+  //---
 
   auto symbolStr = argv.getParseStr("symbol");
 
@@ -10219,9 +10239,6 @@ execCmd(CQChartsCmdArgs &argv)
   stroke.setWidth  (argv.getParseLength(view, plot, "stroke_width", stroke.width()));
 
   //---
-
-  if (! pos.isValid())
-    return errorMsg("Invalid position");
 
   CQChartsPointAnnotation *annotation = nullptr;
 
@@ -10842,8 +10859,8 @@ addCmdArgs(CQChartsCmdArgs &argv)
 
   addArg(argv, "-rectangle" , ArgType::Rect, "rectangle bounding box");
 
-  addArg(argv, "-start", ArgType::Position, "start").setHidden();
-  addArg(argv, "-end"  , ArgType::Position, "end"  ).setHidden();
+  addArg(argv, "-start", ArgType::ObjRefPos, "start").setHidden();
+  addArg(argv, "-end"  , ArgType::ObjRefPos, "end"  ).setHidden();
 
   addArg(argv, "-margin" , ArgType::Real, "margin" ).setHidden();
   addArg(argv, "-padding", ArgType::Real, "padding").setHidden();
@@ -10954,10 +10971,10 @@ execCmd(CQChartsCmdArgs &argv)
   CQChartsRectangleAnnotation *annotation = nullptr;
 
   if      (argv.hasParseArg("start") || argv.hasParseArg("end")) {
-    auto start = argv.getParsePosition(view, plot, "start");
-    auto end   = argv.getParsePosition(view, plot, "end"  );
+    auto start = argv.getParseObjRefPos(view, plot, "start");
+    auto end   = argv.getParseObjRefPos(view, plot, "end"  );
 
-    auto rect = CQChartsViewPlotObj::makeRect(view, plot, start, end);
+    auto rect = CQChartsViewPlotObj::makeRect(view, plot, start.position(), end.position());
 
     if (! rect.isValid())
       return errorMsg("Invalid rectangle geometry");
@@ -11041,8 +11058,8 @@ addCmdArgs(CQChartsCmdArgs &argv)
 
   addArg(argv, "-rectangle" , ArgType::Rect, "rectangle bounding box");
 
-  addArg(argv, "-start", ArgType::Position, "start").setHidden();
-  addArg(argv, "-end"  , ArgType::Position, "end"  ).setHidden();
+  addArg(argv, "-start", ArgType::ObjRefPos, "start").setHidden();
+  addArg(argv, "-end"  , ArgType::ObjRefPos, "end"  ).setHidden();
 
   addArg(argv, "-margin" , ArgType::Real, "margin" ).setHidden();
   addArg(argv, "-padding", ArgType::Real, "padding").setHidden();
@@ -11153,10 +11170,10 @@ execCmd(CQChartsCmdArgs &argv)
   CQChartsShapeAnnotation *annotation = nullptr;
 
   if      (argv.hasParseArg("start") || argv.hasParseArg("end")) {
-    auto start = argv.getParsePosition(view, plot, "start");
-    auto end   = argv.getParsePosition(view, plot, "end"  );
+    auto start = argv.getParseObjRefPos(view, plot, "start");
+    auto end   = argv.getParseObjRefPos(view, plot, "end"  );
 
-    auto rect = CQChartsViewPlotObj::makeRect(view, plot, start, end);
+    auto rect = CQChartsViewPlotObj::makeRect(view, plot, start.position(), end.position());
 
     if (! rect.isValid())
       return errorMsg("Invalid rectangle geometry");
@@ -11238,8 +11255,8 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-id" , ArgType::String, "annotation id" );
   addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  addArg(argv, "-position" , ArgType::Position, "position");
-  addArg(argv, "-rectangle", ArgType::Rect    , "rectangle bounding box");
+  addArg(argv, "-position" , ArgType::ObjRefPos, "position");
+  addArg(argv, "-rectangle", ArgType::Rect     , "rectangle bounding box");
 
   addArg(argv, "-text", ArgType::String, "text");
 
@@ -11363,7 +11380,10 @@ execCmd(CQChartsCmdArgs &argv)
   CQChartsTextAnnotation *annotation = nullptr;
 
   if      (argv.hasParseArg("position")) {
-    auto pos = argv.getParsePosition(view, plot, "position");
+    auto pos = argv.getParseObjRefPos(view, plot, "position");
+
+    if (! pos.isValid())
+      return errorMsg("Invalid position");
 
     if      (plot)
       annotation = plot->addTextAnnotation(pos, text);
@@ -11382,7 +11402,7 @@ execCmd(CQChartsCmdArgs &argv)
       annotation = view->addTextAnnotation(rect, text);
   }
   else {
-    auto pos = CQChartsPosition::plot(CQChartsGeom::Point(0, 0));
+    auto pos = CQChartsObjRefPos::plot(CQChartsGeom::Point(0, 0));
 
     if      (plot)
       annotation = plot->addTextAnnotation(pos, text);
@@ -11555,8 +11575,8 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-id" , ArgType::String, "annotation id" );
   addArg(argv, "-tip", ArgType::String, "annotation tip");
 
-  addArg(argv, "-position" , ArgType::Position, "position");
-  addArg(argv, "-rectangle", ArgType::Rect    , "rectangle bounding box");
+  addArg(argv, "-position" , ArgType::ObjRefPos, "position");
+  addArg(argv, "-rectangle", ArgType::Rect     , "rectangle bounding box");
 
   addArg(argv, "-widget", ArgType::String, "widget path");
 
@@ -11650,10 +11670,10 @@ execCmd(CQChartsCmdArgs &argv)
       annotation = view->addWidgetAnnotation(rect, widget);
   }
   else {
-    auto pos = CQChartsPosition::plot(CQChartsGeom::Point(0, 0));
+    auto pos = CQChartsObjRefPos::plot(CQChartsGeom::Point(0, 0));
 
     if (argv.hasParseArg("position"))
-      pos = argv.getParsePosition(view, plot, "position");
+      pos = argv.getParseObjRefPos(view, plot, "position");
 
     if      (plot)
       annotation = plot->addWidgetAnnotation(pos, widget);

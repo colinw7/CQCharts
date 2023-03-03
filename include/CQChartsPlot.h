@@ -1579,6 +1579,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   double lengthPixelWidth (const Length &len) const;
   double lengthPixelHeight(const Length &len) const;
 
+  void percentRefSize(double &refWidth, double &refHeight) const;
+  void percentRefSize(const BBox &pbbox, double &refWidth, double &refHeight) const;
+  void percentPixelRefSize(double &refWidth, double &refHeight) const;
+  void percentPixelRefSize(const BBox &pbbox, double &refWidth, double &refHeight) const;
+
   //---
 
   double windowToViewWidth (double wx) const;
@@ -3127,6 +3132,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  const OptReal &refLength() const { return refLength_; }
+  void setRefLength(const OptReal &v) { refLength_ = v; }
+
+  //---
+
   void update();
 
   //---
@@ -3880,6 +3890,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   QColor plotBgColor_; //!< background fill color
+
+  mutable OptReal refLength_;
 
   //---
 

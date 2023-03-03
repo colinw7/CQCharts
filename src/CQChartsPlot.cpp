@@ -18091,8 +18091,11 @@ positionToPlot(const Position &pos) const
   else if (pos.units() == Units::PERCENT) {
     auto pbbox = (useRawRange_ ? rawDisplayRangeBBox() : displayRangeBBox());
 
-    p1.setX(pbbox.getXMin() + p.getX()*pbbox.getWidth ()/100.0);
-    p1.setY(pbbox.getYMin() + p.getY()*pbbox.getHeight()/100.0);
+    double refWidth, refHeight;
+    percentRefSize(pbbox, refWidth, refHeight);
+
+    p1.setX(pbbox.getXMin() + p.getX()*refWidth /100.0);
+    p1.setY(pbbox.getYMin() + p.getY()*refHeight/100.0);
   }
   else if (pos.units() == Units::EM) {
     double x = pixelToWindowWidth (p.getX()*view()->fontEm());
@@ -18126,8 +18129,11 @@ positionToPixel(const Position &pos) const
   else if (pos.units() == Units::PERCENT) {
     auto pbbox = calcPlotPixelRect();
 
-    p1.setX(pbbox.getXMin() + p.getX()*pbbox.getWidth ()/100.0);
-    p1.setY(pbbox.getYMin() + p.getY()*pbbox.getHeight()/100.0);
+    double refWidth, refHeight;
+    percentPixelRefSize(pbbox, refWidth, refHeight);
+
+    p1.setX(pbbox.getXMin() + p.getX()*refWidth /100.0);
+    p1.setY(pbbox.getYMin() + p.getY()*refHeight/100.0);
   }
   else if (pos.units() == Units::EM) {
     double x = p.getX()*view()->fontEm();
@@ -18163,10 +18169,13 @@ rectToPlot(const Rect &rect) const
   else if (rect.units() == Units::PERCENT) {
     auto pbbox = (useRawRange_ ? rawDisplayRangeBBox() : displayRangeBBox());
 
-    r1.setXMin(pbbox.getXMin() + r.getXMin()*pbbox.getWidth ()/100.0);
-    r1.setYMin(pbbox.getYMin() + r.getYMin()*pbbox.getHeight()/100.0);
-    r1.setXMax(pbbox.getXMin() + r.getXMax()*pbbox.getWidth ()/100.0);
-    r1.setYMax(pbbox.getYMin() + r.getYMax()*pbbox.getHeight()/100.0);
+    double refWidth, refHeight;
+    percentRefSize(pbbox, refWidth, refHeight);
+
+    r1.setXMin(pbbox.getXMin() + r.getXMin()*refWidth /100.0);
+    r1.setYMin(pbbox.getYMin() + r.getYMin()*refHeight/100.0);
+    r1.setXMax(pbbox.getXMin() + r.getXMax()*refWidth /100.0);
+    r1.setYMax(pbbox.getYMin() + r.getYMax()*refHeight/100.0);
   }
   else if (rect.units() == Units::EM) {
     double x1 = pixelToWindowWidth (r.getXMin()*view()->fontEm());
@@ -18204,10 +18213,13 @@ rectToPixel(const Rect &rect) const
   else if (rect.units() == Units::PERCENT) {
     auto pbbox = calcPlotPixelRect();
 
-    r1.setXMin(pbbox.getXMin() + r.getXMin()*pbbox.getWidth ()/100.0);
-    r1.setYMin(pbbox.getYMin() + r.getYMin()*pbbox.getHeight()/100.0);
-    r1.setXMax(pbbox.getXMin() + r.getXMax()*pbbox.getWidth ()/100.0);
-    r1.setYMax(pbbox.getYMin() + r.getYMax()*pbbox.getHeight()/100.0);
+    double refWidth, refHeight;
+    percentPixelRefSize(pbbox, refWidth, refHeight);
+
+    r1.setXMin(pbbox.getXMin() + r.getXMin()*refWidth /100.0);
+    r1.setYMin(pbbox.getYMin() + r.getYMin()*refHeight/100.0);
+    r1.setXMax(pbbox.getXMin() + r.getXMax()*refWidth /100.0);
+    r1.setYMax(pbbox.getYMin() + r.getYMax()*refHeight/100.0);
   }
   else if (rect.units() == Units::EM) {
     double x1 = r.getXMin()*view()->fontEm();
@@ -18251,9 +18263,10 @@ lengthPlotWidth(const Length &len) const
   else if (len.units() == Units::VIEW)
     return pixelToWindowWidth(view()->windowToPixelWidth(len.value()));
   else if (len.units() == Units::PERCENT) {
-    auto pbbox = (useRawRange_ ? rawDisplayRangeBBox() : displayRangeBBox());
+    double refWidth, refHeight;
+    percentRefSize(refWidth, refHeight);
 
-    return len.value()*pbbox.getWidth()/100.0;
+    return len.value()*refWidth/100.0;
   }
   else if (len.units() == Units::EM)
     return pixelToWindowWidth(len.value()*view()->fontEm());
@@ -18276,9 +18289,10 @@ lengthPlotHeight(const Length &len) const
   else if (len.units() == Units::VIEW)
     return pixelToWindowHeight(view()->windowToPixelHeight(len.value()));
   else if (len.units() == Units::PERCENT) {
-    auto pbbox = (useRawRange_ ? rawDisplayRangeBBox() : displayRangeBBox());
+    double refWidth, refHeight;
+    percentRefSize(refWidth, refHeight);
 
-    return len.value()*pbbox.getHeight()/100.0;
+    return len.value()*refHeight/100.0;
   }
   else if (len.units() == Units::EM)
     return pixelToWindowHeight(len.value()*view()->fontEm());
@@ -18301,9 +18315,10 @@ lengthPlotSignedWidth(const Length &len) const
   else if (len.units() == Units::VIEW)
     return pixelToSignedWindowWidth(view()->windowToPixelWidth(len.value()));
   else if (len.units() == Units::PERCENT) {
-    auto pbbox = (useRawRange_ ? rawDisplayRangeBBox() : displayRangeBBox());
+    double refWidth, refHeight;
+    percentRefSize(refWidth, refHeight);
 
-    return len.value()*pbbox.getWidth()/100.0;
+    return len.value()*refWidth/100.0;
   }
   else if (len.units() == Units::EM)
     return pixelToSignedWindowWidth(len.value()*view()->fontEm());
@@ -18326,9 +18341,10 @@ lengthPlotSignedHeight(const Length &len) const
   else if (len.units() == Units::VIEW)
     return pixelToSignedWindowHeight(view()->windowToPixelHeight(len.value()));
   else if (len.units() == Units::PERCENT) {
-    auto pbbox = (useRawRange_ ? rawDisplayRangeBBox() : displayRangeBBox());
+    double refWidth, refHeight;
+    percentRefSize(refWidth, refHeight);
 
-    return len.value()*pbbox.getHeight()/100.0;
+    return len.value()*refHeight/100.0;
   }
   else if (len.units() == Units::EM)
     return pixelToSignedWindowHeight(len.value()*view()->fontEm());
@@ -18357,8 +18373,12 @@ lengthPixelWidth(const Length &len) const
     return windowToPixelWidth(len.value());
   else if (len.units() == Units::VIEW)
     return view()->windowToPixelWidth(len.value());
-  else if (len.units() == Units::PERCENT)
-    return len.value()*calcPlotPixelRect().getWidth()/100.0;
+  else if (len.units() == Units::PERCENT) {
+    double refWidth, refHeight;
+    percentPixelRefSize(refWidth, refHeight);
+
+    return len.value()*refWidth/100.0;
+  }
   else if (len.units() == Units::EM)
     return len.value()*view()->fontEm();
   else if (len.units() == Units::EX)
@@ -18379,14 +18399,62 @@ lengthPixelHeight(const Length &len) const
     return windowToPixelHeight(len.value());
   else if (len.units() == Units::VIEW)
     return view()->windowToPixelHeight(len.value());
-  else if (len.units() == Units::PERCENT)
-    return len.value()*calcPlotPixelRect().getHeight()/100.0;
+  else if (len.units() == Units::PERCENT) {
+    double refWidth, refHeight;
+    percentPixelRefSize(refWidth, refHeight);
+
+    return len.value()*refHeight/100.0;
+  }
   else if (len.units() == Units::EM)
     return len.value()*view()->fontEm();
   else if (len.units() == Units::EX)
     return len.value()*view()->fontEx();
 
   return len.value();
+}
+
+void
+CQChartsPlot::
+percentRefSize(double &refWidth, double &refHeight) const
+{
+  auto pbbox = (useRawRange_ ? rawDisplayRangeBBox() : displayRangeBBox());
+
+  return percentRefSize(pbbox, refWidth, refHeight);
+}
+
+void
+CQChartsPlot::
+percentRefSize(const BBox &pbbox, double &refWidth, double &refHeight) const
+{
+  refWidth  = pbbox.getWidth ();
+  refHeight = pbbox.getHeight();
+
+  if (refLength_.isSet()) {
+    refWidth  = refLength().real();
+    refHeight = refWidth;
+  }
+}
+
+void
+CQChartsPlot::
+percentPixelRefSize(double &refWidth, double &refHeight) const
+{
+  auto pbbox = calcPlotPixelRect();
+
+  percentPixelRefSize(pbbox, refWidth, refHeight);
+}
+
+void
+CQChartsPlot::
+percentPixelRefSize(const BBox &pbbox, double &refWidth, double &refHeight) const
+{
+  refWidth  = pbbox.getWidth ();
+  refHeight = pbbox.getHeight();
+
+  if (refLength_.isSet()) {
+    refWidth  = windowToPixelWidth (refLength().real());
+    refHeight = windowToPixelHeight(refLength().real());
+  }
 }
 
 //------
