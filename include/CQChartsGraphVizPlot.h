@@ -679,7 +679,7 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(CQChartsLength edgeWidth    READ edgeWidth      WRITE setEdgeWidth   )
   Q_PROPERTY(bool           edgeCentered READ isEdgeCentered WRITE setEdgeCentered)
   Q_PROPERTY(bool           edgePath     READ isEdgePath     WRITE setEdgePath    )
-  Q_PROPERTY(double         arrowWidth   READ arrowWidth     WRITE setArrowWidth  )
+  Q_PROPERTY(CQChartsLength arrowWidth   READ arrowWidth     WRITE setArrowWidth  )
   Q_PROPERTY(bool           edgeWeighted READ isEdgeWeighted WRITE setEdgeWeighted)
 
   // options
@@ -813,8 +813,8 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   void setEdgePath(bool b);
 
   //! get/set edge directed arrow width
-  double arrowWidth() const { return arrowWidth_; }
-  void setArrowWidth(double r);
+  const Length &arrowWidth() const { return arrowWidth_; }
+  void setArrowWidth(const Length &w);
 
   //! get/set edge weighted
   bool isEdgeWeighted() const { return edgeWeighted_; }
@@ -1068,13 +1068,13 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   bool nodeTextSingleScale_ { true }; //!< node text single scale factor
 
   // edge data
-  EdgeShape edgeShape_    { EdgeShape::ARC };   //!< edge shape
-  bool      edgeArrow_    { false };            //!< edge arrow
-  bool      edgeScaled_   { false };            //!< scale width by value
-  Length    edgeWidth_    { Length::pixel(8) }; //!< max edge width
-  bool      edgeCentered_ { false };            //!< is edge centered
-  bool      edgePath_     { false };            //!< use edge path
-  double    arrowWidth_   { 1.0 };              //!< edge arrow size factor
+  EdgeShape edgeShape_    { EdgeShape::ARC };       //!< edge shape
+  bool      edgeArrow_    { false };                //!< edge arrow
+  bool      edgeScaled_   { false };                //!< scale width by value
+  Length    edgeWidth_    { Length::pixel(8) };     //!< max edge width
+  bool      edgeCentered_ { false };                //!< is edge centered
+  bool      edgePath_     { false };                //!< use edge path
+  Length    arrowWidth_   { Length::percent(100) }; //!< edge arrow size factor
 
   // plot data
   Qt::Orientation orientation_  { Qt::Vertical };       //!< orientation

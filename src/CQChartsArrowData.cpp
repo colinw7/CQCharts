@@ -71,6 +71,33 @@ setTHeadType(HeadType type)
 
 void
 CQChartsArrowData::
+setMidHeadType(HeadType type)
+{
+  midHeadData_.type = type;
+
+  setMidLineEnds(false);
+  setMidHead    (true);
+
+  if      (midHeadData_.type == HeadType::ARROW    ||
+           midHeadData_.type == HeadType::TRIANGLE ||
+           midHeadData_.type == HeadType::STEALTH  ||
+           midHeadData_.type == HeadType::DIAMOND) {
+    Angle angle, backAngle;
+
+    getTypeAngles(midHeadData_.type, angle, backAngle);
+
+    setMidAngle(angle); setMidBackAngle(backAngle);
+  }
+  else if (midHeadData_.type == HeadType::LINE) {
+    setMidLineEnds(true);
+  }
+  else if (midHeadData_.type == HeadType::NONE) {
+    setMidHead(false);
+  }
+}
+
+void
+CQChartsArrowData::
 updateFrontBackAngle()
 {
   getTypeBackAngle(fheadData_.type, fheadData_.angle, fheadData_.backAngle);
@@ -81,6 +108,13 @@ CQChartsArrowData::
 updateTailBackAngle()
 {
   getTypeBackAngle(theadData_.type, theadData_.angle, theadData_.backAngle);
+}
+
+void
+CQChartsArrowData::
+updateMidBackAngle()
+{
+  getTypeBackAngle(midHeadData_.type, midHeadData_.angle, midHeadData_.backAngle);
 }
 
 QString
@@ -139,6 +173,23 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   if (isTailLineEnds())
     nameValues.setNameValue("tail_line_ends", isTailLineEnds());
+
+  //---
+
+  // TODO: midHead type
+  nameValues.setNameValue("mid_visible", isMidHead());
+
+  if (midAngle().value() > 0)
+    nameValues.setNameValue("mid_angle", midAngle().value());
+
+  if (midBackAngle().value() > 0)
+    nameValues.setNameValue("mid_back_angle", midBackAngle().value());
+
+  if (midLength().isValid())
+    nameValues.setNameValueType<Length>("mid_length", midLength());
+
+  if (isMidLineEnds())
+    nameValues.setNameValue("mid_line_ends", isMidLineEnds());
 }
 
 bool
@@ -177,15 +228,26 @@ getNameValues(const CQChartsNameValues &nameValues)
   (void) nameValues.nameValueBool        ("front_line_ends" , fheadData_.lineEnds , ok1);
   if (! ok1) ok = false;
 
-  (void) nameValues.nameValueBool        ("tail_visible"    , theadData_.visible  , ok1);
+  (void) nameValues.nameValueBool        ("tail_visible"   , theadData_.visible  , ok1);
   if (! ok1) ok = false;
-  (void) nameValueAngle                  ("tail_angle"      , theadData_.angle    , ok1);
+  (void) nameValueAngle                  ("tail_angle"     , theadData_.angle    , ok1);
   if (! ok1) ok = false;
-  (void) nameValueAngle                  ("tail_back_angle" , theadData_.backAngle, ok1);
+  (void) nameValueAngle                  ("tail_back_angle", theadData_.backAngle, ok1);
   if (! ok1) ok = false;
-  (void) nameValues.nameValueType<Length>("tail_length"     , theadData_.length   , ok1);
+  (void) nameValues.nameValueType<Length>("tail_length"    , theadData_.length   , ok1);
   if (! ok1) ok = false;
-  (void) nameValues.nameValueBool        ("tail_line_ends"  , theadData_.lineEnds , ok1);
+  (void) nameValues.nameValueBool        ("tail_line_ends" , theadData_.lineEnds , ok1);
+  if (! ok1) ok = false;
+
+  (void) nameValues.nameValueBool        ("mid_visible"   , midHeadData_.visible  , ok1);
+  if (! ok1) ok = false;
+  (void) nameValueAngle                  ("mid_angle"     , midHeadData_.angle    , ok1);
+  if (! ok1) ok = false;
+  (void) nameValueAngle                  ("mid_back_angle", midHeadData_.backAngle, ok1);
+  if (! ok1) ok = false;
+  (void) nameValues.nameValueType<Length>("mid_length"    , midHeadData_.length   , ok1);
+  if (! ok1) ok = false;
+  (void) nameValues.nameValueBool        ("mid_line_ends" , midHeadData_.lineEnds , ok1);
   if (! ok1) ok = false;
 
   return ok;

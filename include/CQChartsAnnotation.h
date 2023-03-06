@@ -1576,6 +1576,8 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
 
   EditHandles *editHandles() const override;
 
+  void calcBBox();
+
  protected:
   using ArrowP = std::unique_ptr<CQChartsArrow>;
 
@@ -1603,6 +1605,7 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotationBase {
   Q_PROPERTY(EdgeType         edgeType  READ edgeType  WRITE setEdgeType )
   Q_PROPERTY(HeadType         frontType READ frontType WRITE setFrontType)
   Q_PROPERTY(HeadType         tailType  READ tailType  WRITE setTailType )
+  Q_PROPERTY(HeadType         midType   READ midType   WRITE setMidType  )
   Q_PROPERTY(CQChartsLength   lineWidth READ lineWidth WRITE setLineWidth)
   Q_PROPERTY(double           arrowSize READ arrowSize WRITE setArrowSize)
 
@@ -1674,6 +1677,10 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotationBase {
   const HeadType &tailType() const { return tailType_; }
   void setTailType(const HeadType &type);
 
+  //! get/set draw mid arrow head type
+  const HeadType &midType() const { return midType_; }
+  void setMidType(const HeadType &type);
+
   //! get/set line width
   const Length &lineWidth() const { return lineWidth_; }
   void setLineWidth(const Length &l);
@@ -1721,6 +1728,7 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotationBase {
   EdgeType edgeType_  { EdgeType::ARC };                       //!< is rectilinear
   HeadType frontType_ { HeadType::NONE };                      //!< front head type
   HeadType tailType_  { HeadType::NONE };                      //!< tail head type
+  HeadType midType_   { HeadType::NONE };                      //!< mid head type
   Length   lineWidth_ { Length::pixel(16) };                   //!< line width
   double   arrowSize_ { 2.0 };                                 //!< arrow size
 };

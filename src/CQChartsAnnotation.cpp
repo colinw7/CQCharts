@@ -4748,6 +4748,23 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
   //---
 
+  auto midHeadPath = path1 + "/midHead";
+
+  addArrowProp     (midHeadPath, "midVisible"  , "visible",
+                    "Arrow mid head visible", /*hidden*/true);
+  addArrowProp     (midHeadPath, "midType"    , "type",
+                    "Arrow mid head type");
+  addArrowStyleProp(midHeadPath, "midLength"   , "length",
+                    "Arrow mid head length");
+  addArrowStyleProp(midHeadPath, "midAngle"    , "angle",
+                    "Arrow mid head angle");
+  addArrowStyleProp(midHeadPath, "midBackAngle", "backAngle",
+                    "Arrow mid head back angle", /*hidden*/true);
+  addArrowStyleProp(midHeadPath, "midLineEnds" , "line",
+                    "Arrow mid head is drawn using lines", /*hidden*/true);
+
+  //---
+
 #if 0
   addStrokeFillProperties(model, path1);
 #else
@@ -4780,6 +4797,7 @@ getPropertyNames(QStringList &names, bool hidden) const
 
   names << "frontHead.type" << "frontHead.length" << "frontHead.angle";
   names << "tailHead.type"  << "tailHead.length"  << "tailHead.angle";
+  names << "midHead.type"   << "midHead.length"   << "midHead.angle";
 
   names << "fill.visible" << "fill.color" << "fill.alpha";
 
@@ -4879,6 +4897,92 @@ draw(PaintDevice *device)
   //---
 
   // calc box
+  calcBBox();
+
+  //---
+
+  auto start = positionToParent(startObjRef(), this->start());
+  auto end   = positionToParent(endObjRef  (), this->end  ());
+
+  //---
+
+  // set pen and brush
+  PenBrush penBrush;
+
+  auto bgColor     = arrow()->interpFillColor  (ColorInd());
+  auto strokeColor = arrow()->interpStrokeColor(ColorInd());
+
+  if (isCheckable() && ! isChecked()) {
+    double f = uncheckedLighter();
+
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
+  }
+
+  setPenBrush(penBrush,
+    PenData  (arrow()->isStroked(), strokeColor, arrow()->strokeAlpha()),
+    BrushData(arrow()->isFilled (), bgColor, arrow()->fillAlpha(), arrow()->fillPattern()));
+
+  if (arrow()->isSolid())
+    updatePenBrushState(penBrush, CQChartsObjDrawType::BOX);
+  else
+    updatePenBrushState(penBrush, CQChartsObjDrawType::LINE);
+
+  //---
+
+  // draw arrow
+  if (path_.isValid()) {
+    CQChartsArrowData arrowData;
+    QPainterPath      arrowPath;
+
+    arrowData.setFHeadType  (static_cast<CQChartsArrowData::HeadType>(arrow()->frontType()));
+    arrowData.setTHeadType  (static_cast<CQChartsArrowData::HeadType>(arrow()->tailType ()));
+    arrowData.setMidHeadType(static_cast<CQChartsArrowData::HeadType>(arrow()->midType  ()));
+
+    auto lw = device->pixelToWindowWidth(4);
+
+    if (arrow()->lineWidth().isSet() && arrow()->lineWidth().value() > 0)
+      lw = device->lengthWindowWidth(arrow()->lineWidth());
+
+    double frontLen = device->pixelToWindowWidth(4);
+    double tailLen  = frontLen;
+
+    if (arrow()->frontLength().isSet())
+      frontLen = device->lengthWindowWidth(arrow()->frontLength());
+    if (arrow()->tailLength().isSet())
+      tailLen  = device->lengthWindowWidth(arrow()->tailLength());
+
+    CQChartsArrow::pathAddArrows(path_.path(), arrowData, lw,
+                                 CQChartsLength::factor(lw > 0.0 ? frontLen/lw : 1.0),
+                                 CQChartsLength::factor(lw > 0.0 ? tailLen /lw : 1.0),
+                                 arrowPath);
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    device->drawPath(arrowPath);
+
+    drawPath_ = arrowPath;
+  }
+  else {
+    arrow()->connectDisconnectDataChanged(false, this, SIGNAL(dataChanged()));
+
+    arrow()->setFrom(start);
+    arrow()->setTo  (end  );
+
+    arrow()->draw(device, penBrush);
+
+    arrow()->connectDisconnectDataChanged(true, this, SIGNAL(dataChanged()));
+  }
+
+  //---
+
+  drawTerm(device);
+}
+
+void
+CQChartsArrowAnnotation::
+calcBBox()
+{
   auto start = positionToParent(startObjRef(), this->start());
   auto end   = positionToParent(endObjRef  (), this->end  ());
 
@@ -4912,78 +5016,6 @@ draw(PaintDevice *device)
   double h = (y2 - y1) + ybp + ytp + ybm + ytm;
 
   setAnnotationBBox(BBox(x, y, x + w, y + h));
-
-  //---
-
-  // set pen and brush
-  PenBrush penBrush;
-
-  auto bgColor     = arrow()->interpFillColor  (ColorInd());
-  auto strokeColor = arrow()->interpStrokeColor(ColorInd());
-
-  if (isCheckable() && ! isChecked()) {
-    double f = uncheckedLighter();
-
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
-  }
-
-  setPenBrush(penBrush,
-    PenData  (arrow()->isStroked(), strokeColor, arrow()->strokeAlpha()),
-    BrushData(arrow()->isFilled (), bgColor, arrow()->fillAlpha(), arrow()->fillPattern()));
-
-  if (arrow()->isSolid())
-    updatePenBrushState(penBrush, CQChartsObjDrawType::BOX);
-  else
-    updatePenBrushState(penBrush, CQChartsObjDrawType::LINE);
-
-  //---
-
-  // draw arrow
-  if (path_.isValid()) {
-    CQChartsArrowData arrowData;
-    QPainterPath      arrowPath;
-
-    arrowData.setFHeadType(static_cast<CQChartsArrowData::HeadType>(arrow()->frontType()));
-    arrowData.setTHeadType(static_cast<CQChartsArrowData::HeadType>(arrow()->tailType ()));
-
-    auto lw = device->pixelToWindowWidth(4);
-
-    if (arrow()->lineWidth().isSet() && arrow()->lineWidth().value() > 0)
-      lw = device->lengthWindowWidth(arrow()->lineWidth());
-
-    double frontLen = device->pixelToWindowWidth(4);
-    double tailLen  = frontLen;
-
-    if (arrow()->frontLength().isSet())
-      frontLen = device->lengthWindowWidth(arrow()->frontLength());
-    if (arrow()->tailLength().isSet())
-      tailLen  = device->lengthWindowWidth(arrow()->tailLength());
-
-    CQChartsArrow::pathAddArrows(path_.path(), arrowData, lw,
-                                 (lw > 0.0 ? frontLen/lw : 1.0),
-                                 (lw > 0.0 ? tailLen /lw : 1.0), arrowPath);
-
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-    device->drawPath(arrowPath);
-
-    drawPath_ = arrowPath;
-  }
-  else {
-    arrow()->connectDisconnectDataChanged(false, this, SIGNAL(dataChanged()));
-
-    arrow()->setFrom(start);
-    arrow()->setTo  (end  );
-
-    arrow()->draw(device, penBrush);
-
-    arrow()->connectDisconnectDataChanged(true, this, SIGNAL(dataChanged()));
-  }
-
-  //---
-
-  drawTerm(device);
 }
 
 //--
@@ -5046,6 +5078,8 @@ void
 CQChartsArrowAnnotation::
 moveExtraHandle(const QVariant &data, double dx, double dy)
 {
+  auto *editHandles = qobject_cast<CQChartsEditHandles *>(sender());
+
   bool ok;
   long i = CQChartsVariant::toInt(data, ok);
 
@@ -5071,6 +5105,10 @@ moveExtraHandle(const QVariant &data, double dx, double dy)
       end_ = Position(Point(end.x + dx, end.y + dy), end_.units());
     }
   }
+
+  calcBBox();
+
+  editHandles->setBBox(annotationBBox());
 }
 
 //--
@@ -5120,47 +5158,74 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
     os << " -thead 1";
   }
 
+  // mid head data
+  QString midName;
+  bool    midCustom = false;
+
+  if (CQChartsArrowData::dataToName(static_cast<CQChartsArrowData::HeadType>(arrow()->midType()),
+                                    arrow()->isMidLineEnds(), arrow()->isMidVisible(),
+                                    arrow()->midAngle(), arrow()->midBackAngle(), midName)) {
+    os << " -mid_head " << midName.toStdString();
+  }
+  else {
+    midCustom = true;
+
+    os << " -mid_head 1";
+  }
+
   // add angles if custom
-  if      (fcustom && tcustom) {
-    if      (! arrow()->frontAngle().isZero() && ! arrow()->tailAngle().isZero())
-      os << " -angle {" << arrow()->frontAngle().value() << " " <<
-                           arrow()->tailAngle ().value() << "}";
-    else if (! arrow()->frontAngle().isZero())
-      os << " -angle {" << arrow()->frontAngle().value() << " 0.0 }";
-    else if (! arrow()->tailAngle().isZero())
-      os << " -angle {0.0 " << arrow()->tailAngle().value() << "}";
+  if      (fcustom || tcustom || midCustom) {
+    os << " -angle {";
 
-    if      (arrow()->frontBackAngle().value() >= 0.0 &&
-             arrow()->tailBackAngle ().value() >= 0.0) // delta angle
-      os << " -angle {" << arrow()->frontBackAngle().value() << " " <<
-                           arrow()->tailBackAngle ().value() << "}";
-    else if (arrow()->frontBackAngle().value() >= 0.0) // delta angle
-      os << " -angle {" << arrow()->frontBackAngle().value() << " -1}";
-    else if (arrow()->tailBackAngle ().value() >= 0.0) // delta angle
-      os << " -angle {-1 " << arrow()->tailBackAngle().value() << "}";
-  }
-  else if (fcustom) {
     if (! arrow()->frontAngle().isZero())
-      os << " -angle {" << arrow()->frontAngle().value() << " 0.0 }";
+      os << arrow()->frontAngle().value();
+    else
+      os << "0.0";
 
-    if (arrow()->frontBackAngle().value() >= 0.0) // delta angle
-      os << " -angle {" << arrow()->frontBackAngle().value() << " -1}";
-  }
-  else if (tcustom) {
+    if (! arrow()->midAngle().isZero())
+      os << " " << arrow()->midAngle().value();
+
     if (! arrow()->tailAngle().isZero())
-      os << " -angle {0.0 " << arrow()->tailAngle().value() << "}";
+      os << " " << arrow()->tailAngle ().value();
+    else
+      os << " 0.0";
 
-    if (arrow()->tailBackAngle().value() >= 0.0) // delta angle
-      os << " -angle {-1 " << arrow()->tailBackAngle().value() << "}";
+    os << "}";
+
+    os << " -back_angle {";
+
+    if (arrow()->frontBackAngle().value() >= 0.0)
+      os << arrow()->frontBackAngle().value();
+    else
+      os << "-1";
+
+    if (arrow()->midBackAngle().value() >= 0.0)
+      os << " " << arrow()->midBackAngle().value();
+
+    if (arrow()->frontBackAngle().value() >= 0.0)
+      os << " " << arrow()->frontBackAngle ().value();
+    else
+      os << " -1";
+
+    os << "}";
   }
 
-  if      (arrow()->frontLength().isSet() && arrow()->tailLength().isSet())
-    os << " -length {" << arrow()->frontLength().toString().toStdString() <<
-                   " " << arrow()->tailLength ().toString().toStdString() << "}";
-  else if (arrow()->frontLength().isSet())
-    os << " -length {" << arrow()->frontLength().toString().toStdString() << " -1}";
-  else if (arrow()->tailLength().isSet())
-    os << " -length {-1 " << arrow()->tailLength ().toString().toStdString() << "}";
+  os << " -length {";
+
+  if (arrow()->frontLength().isSet())
+    os << arrow()->frontLength().toString().toStdString();
+  else
+    os << "-1";
+
+  if (arrow()->midLength().isSet())
+    os << " " << arrow()->midLength().toString().toStdString();
+
+  if (arrow()->tailLength().isSet())
+    os << " " << arrow()->tailLength().toString().toStdString();
+  else
+    os << " -1";
+
+  os << "}";
 
 #if 0
   if (arrow()->isFilled())
@@ -5309,6 +5374,13 @@ setTailType(const HeadType &type)
 
 void
 CQChartsArcAnnotation::
+setMidType(const HeadType &type)
+{
+  CQChartsUtil::testAndSet(midType_, type, [&]() { invalidate(); } );
+}
+
+void
+CQChartsArcAnnotation::
 setLineWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(lineWidth_, l, [&]() { invalidate(); } );
@@ -5340,6 +5412,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp(model, path1, "edgeType" , "", "Edge type (arc, rectilinear or line)");
   addProp(model, path1, "frontType", "", "Arc front arrow type");
   addProp(model, path1, "tailType" , "", "Arc tail arrow type");
+  addProp(model, path1, "midType"  , "", "Arc mid arrow type");
   addProp(model, path1, "lineWidth", "", "Edge line width");
   addProp(model, path1, "arrowSize", "", "Arrow size factor");
 
@@ -5483,7 +5556,7 @@ calcPath(QPainterPath &path) const
 
   auto drawEdgeType = static_cast<CQChartsDrawUtil::EdgeType>(edgeType());
 
-  auto arrowSize = std::max(this->arrowSize(), 1.0);
+  auto arrowSize = Length::factor(std::max(this->arrowSize(), 1.0));
 
   QPainterPath lpath;
 
@@ -5497,7 +5570,7 @@ calcPath(QPainterPath &path) const
           CQChartsDrawUtil::curvePath(lpath, start, end, drawEdgeType, angle, angle);
 
         // add arrows with line width
-        CQChartsArrow::pathAddArrows(lpath, arrowData, lw, arrowSize, arrowSize, path);
+        CQChartsArrow::pathAddArrows(lpath, arrowData, lw, arrowSize, path);
       }
       else {
         // create line width line (no arrows)
@@ -5516,7 +5589,7 @@ calcPath(QPainterPath &path) const
 
       // add arrows (no line width)
       if (hasArrows)
-        CQChartsArrow::pathAddArrows(lpath, arrowData, -lw, arrowSize, arrowSize, path);
+        CQChartsArrow::pathAddArrows(lpath, arrowData, -lw, arrowSize, path);
       else
         path = lpath;
     }
@@ -5528,7 +5601,7 @@ calcPath(QPainterPath &path) const
         CQChartsDrawUtil::selfCurvePath(lpath, ibbox, drawEdgeType);
 
         // add arrows with line width
-        CQChartsArrow::pathAddArrows(lpath, arrowData, -lw, arrowSize, arrowSize, path);
+        CQChartsArrow::pathAddArrows(lpath, arrowData, -lw, arrowSize, path);
       }
       else
         CQChartsDrawUtil::selfEdgePath(path, ibbox, lw, drawEdgeType);
@@ -5537,7 +5610,7 @@ calcPath(QPainterPath &path) const
       CQChartsDrawUtil::selfCurvePath(lpath, ibbox, drawEdgeType);
 
       if (hasArrows)
-        CQChartsArrow::pathAddArrows(lpath, arrowData, -lw, arrowSize, arrowSize, path);
+        CQChartsArrow::pathAddArrows(lpath, arrowData, -lw, arrowSize, path);
       else
         path = lpath;
     }
@@ -5548,8 +5621,9 @@ void
 CQChartsArcAnnotation::
 setArrowData(CQChartsArrowData &arrowData) const
 {
-  arrowData.setFHeadType(static_cast<CQChartsArrowData::HeadType>(frontType()));
-  arrowData.setTHeadType(static_cast<CQChartsArrowData::HeadType>(tailType ()));
+  arrowData.setFHeadType  (static_cast<CQChartsArrowData::HeadType>(frontType()));
+  arrowData.setTHeadType  (static_cast<CQChartsArrowData::HeadType>(tailType ()));
+  arrowData.setMidHeadType(static_cast<CQChartsArrowData::HeadType>(midType  ()));
 
   double lw = lengthParentHeight(lineWidth());
 

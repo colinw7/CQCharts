@@ -351,9 +351,7 @@ QString clipTextToLength(const QString &text, const QFont &font, double clipLeng
 
 //---
 
-#if DEBUG_LABELS
 void drawPointLabel(PaintDevice *device, const Point &point, const QString &text, bool above);
-#endif
 
 }
 
@@ -427,6 +425,8 @@ class PathVisitor {
   virtual void curveTo(const Point &p1, const Point &p2, const Point &p3) = 0;
 
  public:
+  const QPainterPath *path;
+
   int   i { -1 };
   int   n { 0 };
   Point lastP;

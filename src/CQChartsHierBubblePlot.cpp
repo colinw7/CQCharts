@@ -2213,11 +2213,15 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
   //---
 
   // clip text
+  const_cast<CQChartsHierBubblePlot *>(hierBubblePlot_)->setRefLength(OptReal(bbox.getWidth()));
+
   auto clipLength = hierBubblePlot_->lengthPixelWidth(hierBubblePlot_->textClipLength());
   auto clipElide  = hierBubblePlot_->textClipElide();
 
   auto strs1 = hierBubblePlot_->clipTextsToLength(device, strs, bbox, clipLength, clipElide,
                                                   hierBubblePlot_->isTextScaled());
+
+  const_cast<CQChartsHierBubblePlot *>(hierBubblePlot_)->setRefLength(OptReal());
 
   //---
 

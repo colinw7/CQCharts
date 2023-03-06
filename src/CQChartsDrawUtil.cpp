@@ -2051,7 +2051,6 @@ clipTextToLength(const QString &text, const QFont &font, double clipLength,
 
 //---
 
-#if DEBUG_LABELS
 void
 drawPointLabel(PaintDevice *device, const Point &point, const QString &text, bool above)
 {
@@ -2089,7 +2088,6 @@ drawPointLabel(PaintDevice *device, const Point &point, const QString &text, boo
 
   drawContrastText(device, device->pixelToWindow(ppt), text, CQChartsAlpha(0.5));
 }
-#endif
 
 }
 
@@ -2597,6 +2595,8 @@ namespace CQChartsDrawUtil {
 void
 visitPath(const QPainterPath &path, PathVisitor &visitor)
 {
+  visitor.path = &path;
+
   visitor.n = path.elementCount();
 
   visitor.init();

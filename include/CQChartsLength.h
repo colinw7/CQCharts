@@ -34,6 +34,7 @@ class CQChartsLength :
   static Length view   (double value) { return Length(value, Units::VIEW); }
   static Length plot   (double value) { return Length(value, Units::PLOT); }
   static Length pixel  (double value) { return Length(value, Units::PIXEL); }
+  static Length factor (double value) { return Length(100.0*value, Units::PERCENT); }
   static Length percent(double value) { return Length(value, Units::PERCENT); }
 
   static Length view(const QString &str) { return Length(str, Units::VIEW); }

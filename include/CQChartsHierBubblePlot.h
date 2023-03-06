@@ -329,6 +329,7 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
   using HierObj        = CQChartsHierBubbleHierObj;
   using NodeObj        = CQChartsHierBubbleNodeObj;
   using Angle          = CQChartsAngle;
+  using OptReal        = CQChartsOptReal;
   using Units          = CQChartsUnits::Type;
 
  public:

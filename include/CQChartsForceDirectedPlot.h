@@ -184,10 +184,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   // edge data
   Q_PROPERTY(EdgeShape      edgeShape         READ edgeShape           WRITE setEdgeShape        )
-  Q_PROPERTY(bool           edgeArrow         READ isEdgeArrow         WRITE setEdgeArrow        )
+  Q_PROPERTY(EdgeArrow      edgeArrow         READ edgeArrow           WRITE setEdgeArrow        )
   Q_PROPERTY(bool           edgeScaled        READ isEdgeScaled        WRITE setEdgeScaled       )
   Q_PROPERTY(CQChartsLength edgeWidth         READ edgeWidth           WRITE setEdgeWidth        )
-  Q_PROPERTY(double         arrowWidth        READ arrowWidth          WRITE setArrowWidth       )
+  Q_PROPERTY(CQChartsLength arrowWidth        READ arrowWidth          WRITE setArrowWidth       )
   Q_PROPERTY(bool           edgeValueColored  READ isEdgeValueColored  WRITE setEdgeValueColored )
   Q_PROPERTY(bool           edgeValueLabel    READ isEdgeValueLabel    WRITE setEdgeValueLabel   )
   Q_PROPERTY(bool           edgeMouseColoring READ isEdgeMouseColoring WRITE setEdgeMouseColoring)
@@ -207,8 +207,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool selectedTextVisible READ isSelectedTextVisible WRITE setSelectedTextVisible)
 
   // text no clip on mouse inside/selected (when text clipped)
-  Q_PROPERTY(bool insideTextNoClip   READ isInsideTextNoClip   WRITE setInsideTextNoClip  )
-  Q_PROPERTY(bool selectedTextNoClip READ isSelectedTextNoClip WRITE setSelectedTextNoClip)
+  Q_PROPERTY(bool insideTextNoElide   READ isInsideTextNoElide   WRITE setInsideTextNoElide  )
+  Q_PROPERTY(bool selectedTextNoElide READ isSelectedTextNoElide WRITE setSelectedTextNoElide)
 
   // text no scale on mouse inside/selected (when text scaled)
   Q_PROPERTY(bool insideTextNoScale   READ isInsideTextNoScale   WRITE setInsideTextNoScale  )
@@ -224,6 +224,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   Q_ENUMS(NodeShape)
   Q_ENUMS(EdgeShape)
+  Q_ENUMS(EdgeArrow)
 
   Q_ENUMS(NodeEdgeType)
 
@@ -240,6 +241,12 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     LINE        = int(CQChartsEdgeType::LINE),
     RECTILINEAR = int(CQChartsEdgeType::RECTILINEAR),
     ARC         = int(CQChartsEdgeType::ARC)
+  };
+
+  enum class EdgeArrow {
+    NONE,
+    END,
+    MID
   };
 
   enum class NodeEdgeType {
@@ -441,8 +448,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   void setEdgeShape(const EdgeShape &s);
 
   //! get/set has arrow
-  bool isEdgeArrow() const { return edgeDrawData_.arrow; }
-  void setEdgeArrow(bool b);
+  const EdgeArrow &edgeArrow() const { return edgeDrawData_.arrow; }
+  void setEdgeArrow(const EdgeArrow &arrow);
 
   //! get/set is edge scaled
   bool isEdgeScaled() const { return edgeDrawData_.scaled; }
@@ -453,8 +460,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   void setEdgeWidth(const Length &l);
 
   //! get/set edge directed arrow width
-  double arrowWidth() const { return edgeDrawData_.arrowWidth; }
-  void setArrowWidth(double r);
+  const Length &arrowWidth() const { return edgeDrawData_.arrowWidth; }
+  void setArrowWidth(const Length &w);
 
   //! get/set edge value colored
   bool isEdgeValueColored() const { return edgeDrawData_.valueColored; }
@@ -487,12 +494,12 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   void setSelectedTextVisible(bool b) { selectedTextVisible_ = b; }
 
   //! text no clip on inside (when text clipped)
-  bool isInsideTextNoClip() const { return insideTextNoClip_; }
-  void setInsideTextNoClip(bool b) { insideTextNoClip_ = b; }
+  bool isInsideTextNoElide() const { return insideTextNoElide_; }
+  void setInsideTextNoElide(bool b) { insideTextNoElide_ = b; }
 
   //! text no clip on selected (when text clipped)
-  bool isSelectedTextNoClip() const { return selectedTextNoClip_; }
-  void setSelectedTextNoClip(bool b) { selectedTextNoClip_ = b; }
+  bool isSelectedTextNoElide() const { return selectedTextNoElide_; }
+  void setSelectedTextNoElide(bool b) { selectedTextNoElide_ = b; }
 
   //! text no scale on inside (when text scaled)
   bool isInsideTextNoScale() const { return insideTextNoScale_; }
@@ -876,15 +883,15 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   // edge data
   struct EdgeDrawData {
-    EdgeShape shape         { EdgeShape::LINE };   //!< edge shape
-    bool      arrow         { false };             //!< edge arrow
-    bool      scaled        { true };              //!< scale width by value
-    Length    width         { Length::pixel(16) }; //!< max edge width
-    double    arrowWidth    { 1.0 };               //!< edge arrow size factorr
-    bool      valueColored  { false };             //!< is edge colored by value
-    bool      valueLabel    { false };             //!< show value as label
-    bool      mouseColoring { false };             //!< is edge nodes colored on mouse over
-    bool      mouseValue    { false };             //!< show edge value on mouse over
+    EdgeShape shape         { EdgeShape::LINE };      //!< edge shape
+    EdgeArrow arrow         { EdgeArrow::NONE };      //!< edge arrow
+    bool      scaled        { true };                 //!< scale width by value
+    Length    width         { Length::pixel(16) };    //!< max edge width
+    Length    arrowWidth    { Length::percent(100) }; //!< edge arrow width
+    bool      valueColored  { false };                //!< is edge colored by value
+    bool      valueLabel    { false };                //!< show value as label
+    bool      mouseColoring { false };                //!< is edge nodes colored on mouse over
+    bool      mouseValue    { false };                //!< show edge value on mouse over
   };
 
   EdgeDrawData edgeDrawData_; //!< edge draw data
@@ -896,8 +903,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool selectedTextVisible_ { false }; //!< is selected text visible (when text invisible)
 
   // mouse inside/selected text no clip
-  bool insideTextNoClip_   { false }; //!< is inside text no clip (when text clipped)
-  bool selectedTextNoClip_ { false }; //!< is selected text no clip (when text clipped)
+  bool insideTextNoElide_   { false }; //!< is inside text no clip (when text clipped)
+  bool selectedTextNoElide_ { false }; //!< is selected text no clip (when text clipped)
 
   // mouse inside/selected text no scale
   bool insideTextNoScale_   { false }; //!< is inside text no scale (when text scaled)

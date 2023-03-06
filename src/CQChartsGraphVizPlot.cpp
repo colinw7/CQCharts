@@ -242,7 +242,7 @@ setEdgePath(bool b)
 
 void
 CQChartsGraphVizPlot::
-setArrowWidth(double w)
+setArrowWidth(const Length &w)
 {
   CQChartsUtil::testAndSet(arrowWidth_, w, [&]() { drawObjs(); } );
 }
@@ -3135,10 +3135,17 @@ draw(PaintDevice *device) const
   double connectGap = 0.0;
 
   if (isArrow) {
-    if (graphVizPlot()->isSymmetric())
-      connectGap += 1.5*graphVizPlot_->arrowWidth()*lw;
+    double arrowWidth1;
 
-    connectGap += 1.5*graphVizPlot_->arrowWidth()*lw;
+    if (graphVizPlot_->arrowWidth().units() == Length::Units::PERCENT)
+      arrowWidth1 = graphVizPlot_->arrowWidth().value()*lw/100.0;
+    else
+      arrowWidth1 = graphVizPlot_->lengthPlotWidth(graphVizPlot_->arrowWidth());
+
+    if (graphVizPlot()->isSymmetric())
+      connectGap += 1.5*arrowWidth1;
+
+    connectGap += 1.5*arrowWidth1;
   }
 
   // get default connection line (no path)
@@ -3254,8 +3261,7 @@ draw(PaintDevice *device) const
 
     QPainterPath path1;
 
-    CQChartsArrow::pathAddArrows(epath_, arrowData, lw,
-                                 graphVizPlot_->arrowWidth(), graphVizPlot_->arrowWidth(), path_);
+    CQChartsArrow::pathAddArrows(epath_, arrowData, lw, graphVizPlot_->arrowWidth(), path_);
   }
   else {
     if (isArrow) {
@@ -3264,10 +3270,17 @@ draw(PaintDevice *device) const
       double startLength = 0.0, endLength = 0.0;
 
       if (! isSelf) {
-        if (graphVizPlot()->isSymmetric())
-          startLength = 1.5*graphVizPlot_->arrowWidth()*lw;
+        double arrowWidth1;
 
-        endLength = 1.5*graphVizPlot_->arrowWidth()*lw;
+        if (graphVizPlot()->arrowWidth().units() == Length::Units::PERCENT)
+          arrowWidth1 = graphVizPlot()->arrowWidth().value()*lw/100.0;
+        else
+          arrowWidth1 = graphVizPlot_->lengthPlotWidth(graphVizPlot()->arrowWidth());
+
+        if (graphVizPlot()->isSymmetric())
+          startLength = 1.5*arrowWidth1;
+
+        endLength = 1.5*arrowWidth1;
 
         CQChartsDrawUtil::curvePath(epath_, srcPoint, destPoint, edgeType, p1.angle, p2.angle,
                                     startLength, endLength);
@@ -3281,9 +3294,7 @@ draw(PaintDevice *device) const
 
         arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
 
-        CQChartsArrow::pathAddArrows(epath_, arrowData, lw,
-                                     graphVizPlot_->arrowWidth(),
-                                     graphVizPlot_->arrowWidth(), path_);
+        CQChartsArrow::pathAddArrows(epath_, arrowData, lw, graphVizPlot_->arrowWidth(), path_);
       }
       else {
         CQChartsDrawUtil::selfCurvePath(epath_, srcRect, edgeType, p1.angle);

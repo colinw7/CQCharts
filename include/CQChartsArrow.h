@@ -50,7 +50,15 @@ class CQChartsArrow : public QObject,
   Q_PROPERTY(CQChartsLength tailLength     READ tailLength      WRITE setTailLength)
   Q_PROPERTY(bool           tailLineEnds   READ isTailLineEnds  WRITE setTailLineEnds)
 
-  // front & tail head
+  // mid head
+  Q_PROPERTY(bool           midVisible    READ isMidVisible   WRITE setMidVisible)
+  Q_PROPERTY(HeadType       midType       READ midType        WRITE setMidType)
+  Q_PROPERTY(CQChartsAngle  midAngle      READ midAngle       WRITE setMidAngle)
+  Q_PROPERTY(CQChartsAngle  midBackAngle  READ midBackAngle   WRITE setMidBackAngle)
+  Q_PROPERTY(CQChartsLength midLength     READ midLength      WRITE setMidLength)
+  Q_PROPERTY(bool           midLineEnds   READ isMidLineEnds  WRITE setMidLineEnds)
+
+  // front, tail and mid head
   Q_PROPERTY(CQChartsAngle  angle     READ angle      WRITE setAngle)
   Q_PROPERTY(CQChartsAngle  backAngle READ backAngle  WRITE setBackAngle)
   Q_PROPERTY(CQChartsLength length    READ length     WRITE setLength)
@@ -167,7 +175,28 @@ class CQChartsArrow : public QObject,
 
   //---
 
-  //! get/set tail & head data
+  //! get/set mid head data
+  bool isMidVisible() const { return data_.isMidHead(); }
+  void setMidVisible(bool b);
+
+  HeadType midType() const { return static_cast<HeadType>(data_.theadType()); }
+  void setMidType(const HeadType &type);
+
+  const Angle &midAngle() const { return data_.midAngle(); }
+  void setMidAngle(const Angle &a);
+
+  const Angle &midBackAngle() const { return data_.midBackAngle(); }
+  void setMidBackAngle(const Angle &a);
+
+  const Length &midLength() const { return data_.midLength(); }
+  void setMidLength(const Length &l);
+
+  bool isMidLineEnds() const { return data_.isMidLineEnds(); }
+  void setMidLineEnds(bool b);
+
+  //---
+
+  //! get/set tail, mid and head data
   const Angle &angle() const { return data_.angle(); }
   void setAngle(const Angle &a);
 
@@ -262,9 +291,18 @@ class CQChartsArrow : public QObject,
   static void selfPath(QPainterPath &path, const BBox &rect,
                        bool fhead, bool thead, double lw);
 
-  //! alen is multiple of line width
+  static void pathAddArrows(PaintDevice *device, const QPainterPath &path,
+                            const ArrowData &arrowData, double lw, const Length &arrowLen,
+                            QPainterPath &arrowPath);
+  static void pathAddArrows(PaintDevice *device, const QPainterPath &path,
+                            const ArrowData &arrowData, double lw,
+                            const Length &frontLen, const Length &tailLen,
+                            QPainterPath &arrowPath);
   static void pathAddArrows(const QPainterPath &path, const ArrowData &arrowData,
-                            double lw, double fronLen, double tailLen, QPainterPath &arrowPath);
+                            double lw, const Length &arrowLen, QPainterPath &arrowPath);
+  static void pathAddArrows(const QPainterPath &path, const ArrowData &arrowData,
+                            double lw, const Length &frontLen, const Length &tailLen,
+                            QPainterPath &arrowPath);
 
   static void addWidthToPoint(const Point &p, const ArrowAngle &a, double lw,
                               Point &p1, Point &p2);
@@ -334,6 +372,7 @@ class CQChartsArrow : public QObject,
     Line    midLine;
     Polygon frontPoly;
     Polygon tailPoly;
+    Polygon midPoly;
     Polygon arrowPoly;
 
     QPainterPath path; //!< draw path
@@ -351,6 +390,7 @@ class CQChartsArrow : public QObject,
       midLine   .reset();
       frontPoly .reset();
       tailPoly  .reset();
+      midPoly   .reset();
       arrowPoly .reset();
 
       path = QPainterPath();
@@ -359,6 +399,22 @@ class CQChartsArrow : public QObject,
       pointLabels.clear();
 #endif
     }
+  };
+
+ private:
+  struct GenHeadData {
+    double      len        { 0.0 };
+    ArrowAngle  angle;
+    ArrowAngle  backAngle;
+    double      lineLen    { 0.0 };
+    bool        isLineEnds { false };
+    bool        isPoints   { false };
+    Point       headMid;
+    Point       headMid1, headMid2;
+    GeomPolygon headPoints1;
+    GeomPolygon headPoints2;
+    Point       tipPoint1, tipPoint2;
+    Point       backLine1, backLine2;
   };
 
  private:
@@ -376,6 +432,25 @@ class CQChartsArrow : public QObject,
                        double width, const PenBrush &penBrush);
 
   static double pointLineDistance(const Point &p, const Point &p1, const Point &p2);
+
+  static void calcHeadPolyData(const Point &startPoint, const Point &startPointI,
+                               const ArrowAngle &lineAngle, bool linePoly, double linePixelWidth,
+                               GenHeadData &frontData, const GenHeadData &tailData,
+                               DrawData &drawData);
+  static void calcTailPolyData(const Point &endPoint, const Point &endPointI,
+                               const ArrowAngle &lineAngle, bool linePoly, double linePixelWidth,
+                               const GenHeadData &frontData, GenHeadData &tailData,
+                               DrawData &drawData);
+  static void calcMidPolyData(const Point &startPoint, const Point &endPoint,
+                              const ArrowAngle &lineAngle, bool linePoly, bool swapped,
+                              double linePixelWidth, const Point &headMidR1, const Point &headMidR2,
+                              const GenHeadData &frontData, const GenHeadData &tailData,
+                              GenHeadData &midData, DrawData &drawData);
+
+  static void updateFrontLinePoly(GenHeadData &frontData, const GenHeadData &tailData);
+  static void updateTailLinePoly (const GenHeadData &frontData, GenHeadData &tailData);
+  static void updateMidLinePoly  (GenHeadData &midData, const GenHeadData &frontData,
+                                  const GenHeadData &tailData);
 
  Q_SIGNALS:
   void dataChanged();

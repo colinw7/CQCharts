@@ -11,7 +11,8 @@ class CQChartsNameValues;
  * \brief Arrow Properties
  * \ingroup Charts
  *
- *   line width, front head, tail head, angle, back angle, length and line ends
+ *   line width, front head, tail head, mid head
+ *    angle, back angle, length and line ends
  */
 class CQChartsArrowData {
  public:
@@ -119,7 +120,39 @@ class CQChartsArrowData {
 
   //---
 
-  // consistent tail+head angles
+  // mid head data
+  bool isMidHead() const { return midHeadData_.visible; }
+  void setMidHead(bool b) { midHeadData_.visible = b; }
+
+  HeadType midHeadType() const { return midHeadData_.type; }
+  void setMidHeadType(HeadType type);
+
+  bool calcIsMidHead() const { return (midHeadType() != HeadType::NONE); }
+
+  const Angle &midAngle() const { return midHeadData_.angle; }
+  void setMidAngle(const Angle &a) { midHeadData_.angle = a; updateMidBackAngle(); }
+
+  Angle calcMidAngle() const { return (midAngle().value() > 0 ? midAngle() : Angle(45)); }
+
+  const Angle &midBackAngle() const { return midHeadData_.backAngle; }
+  void setMidBackAngle(const Angle &a) { midHeadData_.backAngle = a; }
+
+  Angle calcMidBackAngle() const {
+    return (midBackAngle().value() > 0 ? midBackAngle() : Angle(90));
+  }
+
+  const Length &midLength() const { return midHeadData_.length; }
+  void setMidLength(const Length &l) { midHeadData_.length = l; }
+
+  Length calcMidLength() const {
+    return (midLength().value() > 0 ? midLength() : Length::pixel(8)); }
+
+  bool isMidLineEnds() const { return midHeadData_.lineEnds; }
+  void setMidLineEnds(bool b) { midHeadData_.lineEnds = b; }
+
+  //---
+
+  // consistent tail, mid and head angles
   const Angle &angle() const { return tailAngle(); }
   void setAngle(const Angle &a) { setFrontAngle(a); setTailAngle(a); }
 
@@ -155,6 +188,7 @@ class CQChartsArrowData {
  private:
   void updateFrontBackAngle();
   void updateTailBackAngle ();
+  void updateMidBackAngle  ();
 
   static bool getTypeBackAngle(const HeadType &type, const Angle &angle, Angle &backAngle);
 
@@ -172,6 +206,7 @@ class CQChartsArrowData {
   Length   lineWidth_  { Length::plot(-1) }; //!< connecting line width
   HeadData fheadData_;                       //!< front head data
   HeadData theadData_;                       //!< tail head data
+  HeadData midHeadData_;                     //!< mid head data
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsArrowData)

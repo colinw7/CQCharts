@@ -101,7 +101,7 @@ class CQChartsForceDirectedNode : public Springy::Node {
   bool        inside_   { false };
   Slots       occupiedSlots_;
 
-  EdgeValueType totalValueType_;
+  EdgeValueType totalValueType_ { EdgeValueType::NONE };
   OptReal       totalValue_;
 
   EdgeSet inEdges_;

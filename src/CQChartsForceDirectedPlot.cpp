@@ -435,9 +435,9 @@ setEdgeScaled(bool b)
 
 void
 CQChartsForceDirectedPlot::
-setEdgeArrow(bool b)
+setEdgeArrow(const EdgeArrow &arrow)
 {
-  CQChartsUtil::testAndSet(edgeDrawData_.arrow, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(edgeDrawData_.arrow, arrow, [&]() { drawObjs(); } );
 }
 
 void
@@ -449,9 +449,9 @@ setEdgeWidth(const Length &l)
 
 void
 CQChartsForceDirectedPlot::
-setArrowWidth(double w)
+setArrowWidth(const Length &l)
 {
-  CQChartsUtil::testAndSet(edgeDrawData_.arrowWidth, w, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(edgeDrawData_.arrowWidth, l, [&]() { drawObjs(); } );
 }
 
 void
@@ -658,8 +658,8 @@ addProperties()
   addProp("text/inside"  , "insideTextVisible"  , "visible", "Inside text label visible");
   addProp("text/selected", "selectedTextVisible", "visible", "Selected text label visible");
 
-  addProp("text/inside"  , "insideTextNoClip"  , "noClip", "Inside text label no clip");
-  addProp("text/selected", "selectedTextNoClip", "noClip", "Selected text label no clip");
+  addProp("text/inside"  , "insideTextNoElide"  , "noElide", "Inside text label no clip");
+  addProp("text/selected", "selectedTextNoElide", "noElide", "Selected text label no clip");
 
   addProp("text/inside"  , "insideTextNoScale"  , "noScale", "Inside text label no scale");
   addProp("text/selected", "selectedTextNoScale", "noScale", "Selected text label no scale");
@@ -852,6 +852,8 @@ addPlotObjects()
 
     plotObjs_.push_back(obj);
   }
+
+  Q_EMIT plotObjsAdded();
 }
 
 void
@@ -3251,7 +3253,7 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
   //---
 
   // calc edge paths
-  bool isArrow = isEdgeArrow();
+  bool isArrow = (edgeArrow() != EdgeArrow::NONE);
 
   QPainterPath edgePath, curvePath, selectPath;
 
@@ -3261,11 +3263,15 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
     if (isArrow) {
       CQChartsArrowData arrowData;
 
-      arrowData.setFHeadType(CQChartsArrowData::HeadType::NONE);  // directional
-      arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
+      if (edgeArrow() == EdgeArrow::END) {
+        arrowData.setFHeadType(CQChartsArrowData::HeadType::NONE);  // directional
+        arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
+      }
+      else {
+        arrowData.setMidHeadType(CQChartsArrowData::HeadType::ARROW);
+     }
 
-      CQChartsArrow::pathAddArrows(edgePath, arrowData, lww,
-                                   arrowWidth(), arrowWidth(), curvePath);
+      CQChartsArrow::pathAddArrows(device, edgePath, arrowData, lww, arrowWidth(), curvePath);
     }
     else {
       CQChartsDrawUtil::edgePath(curvePath, ep1.p, ep2.p, lww, edgeType, ep1.angle, ep2.angle);
@@ -3473,8 +3479,8 @@ drawEdgeText(PaintDevice *device, Edge *sedge, const ColorInd &colorInd,
   textData.textOptions.angle = Angle();
   textData.textOptions.align = Qt::AlignCenter;
 
-  if ((sedge->isInside  () && isInsideTextNoClip()) ||
-      (sedge->isSelected() && isSelectedTextNoClip()))
+  if ((sedge->isInside  () && isInsideTextNoElide()) ||
+      (sedge->isSelected() && isSelectedTextNoElide()))
     textData.textOptions.clipLength = -1;
 
   if ((sedge->isInside  () && isInsideTextNoScale()) ||
@@ -3646,8 +3652,8 @@ drawNodeText(PaintDevice *device, Node *snode, const ColorInd &colorInd,
 
   textData.contrastColor = charts()->contrastColor();
 
-  if ((snode->isInside  () && isInsideTextNoClip()) ||
-      (snode->isSelected() && isSelectedTextNoClip()))
+  if ((snode->isInside  () && isInsideTextNoElide()) ||
+      (snode->isSelected() && isSelectedTextNoElide()))
     textData.textOptions.clipLength = -1;
 
   if ((snode->isInside  () && isInsideTextNoScale()) ||

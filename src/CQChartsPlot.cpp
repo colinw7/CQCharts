@@ -15474,6 +15474,8 @@ addAnnotationI(Annotation *annotation)
 
   annotation->addProperties(propertyModel(), "annotations");
 
+  drawObjs();
+
 //Q_EMIT annotationAdded(annotation->id());
   Q_EMIT annotationsChanged();
 
@@ -15592,6 +15594,8 @@ removeAnnotation(Annotation *annotation)
 
   annotations_.pop_back();
 
+  drawObjs();
+
   Q_EMIT annotationsChanged();
 }
 
@@ -15605,6 +15609,8 @@ removeAllAnnotations()
   annotations_.clear();
 
   propertyModel()->removeProperties("annotations");
+
+  drawObjs();
 
   Q_EMIT annotationsChanged();
 }

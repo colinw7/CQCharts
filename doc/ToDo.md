@@ -4,6 +4,10 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + move percent support for sizing (like force directed text)
+   + bubble plot text scaling to match force directed
+ + better editing of path annotation (guide lines to control points)
+ + support node sizing in dendrogram plot
  + sub values of point, rect column
  + test inside/select with buffer layers (used ?)
  + cleanup selection code

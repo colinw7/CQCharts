@@ -192,11 +192,17 @@ class CQChartsBezier2 {
 #endif
 
   void split(CQChartsBezier2 &bezier1, CQChartsBezier2 &bezier2) const {
-    // split at control point
-    Point p12 = (p1_ + p2_)/2.0;
-    Point p23 = (p2_ + p3_)/2.0;
+    split(0.5, bezier1, bezier2);
+  }
 
-    Point pm = (p12 + p23)/2.0;
+  void split(double t, CQChartsBezier2 &bezier1, CQChartsBezier2 &bezier2) const {
+    // split at t (0 - 1) of curve
+    double u = 1.0 - t;
+
+    Point p12 = u*p1_ + t*p2_;
+    Point p23 = u*p2_ + t*p3_;
+
+    Point pm = u*p12 + t*p23;
 
     bezier1 = CQChartsBezier2(p1_, p12, pm );
     bezier2 = CQChartsBezier2(pm , p23, p3_);
