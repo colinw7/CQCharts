@@ -1715,7 +1715,7 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotationBase {
  protected:
   void init();
 
-  void calcPath(QPainterPath &path) const;
+  void calcPath(PaintDevice *device, QPainterPath &path) const;
 
   void setArrowData(ArrowData &arrowData) const;
 

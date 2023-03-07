@@ -4818,33 +4818,55 @@ void
 CQChartsArrowAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
 {
-  auto start = positionToParent(startObjRef(), this->start());
-  auto end   = positionToParent(endObjRef  (), this->end  ());
+  if (path_.isValid()) {
+    auto bbox1 = path_.bbox();
 
-  double x1 = bbox.getXMin(), y1 = bbox.getYMin();
-  double x2 = bbox.getXMax(), y2 = bbox.getYMax();
+    auto c1 = bbox1.getCenter();
+    auto c2 = bbox .getCenter();
 
-  // get inner padding
-  double xlp, xrp, ytp, ybp;
+    auto w1 = bbox1.getWidth();
+    auto w2 = bbox .getWidth();
 
-  getPaddingValues(xlp, xrp, ytp, ybp);
+    auto h1 = bbox1.getHeight();
+    auto h2 = bbox .getHeight();
 
-  // get outer margin
-  double xlm, xrm, ytm, ybm;
+    double dx = c2.x - c1.x;
+    double dy = c2.y - c1.y;
 
-  getMarginValues(xlm, xrm, ytm, ybm);
+    double sx = (w1 > 0 ? w2/w1 : 1.0);
+    double sy = (h1 > 0 ? h2/h1 : 1.0);
 
-  x1 += xlp + xlm; y1 += ybp + ybm;
-  x2 -= xrp + xrm; y2 -= ytp + ytm;
+    path_.moveScale(dx, dy, sx, sy);
+  }
+  else {
+    auto start = positionToParent(startObjRef(), this->start());
+    auto end   = positionToParent(endObjRef  (), this->end  ());
 
-  if (start.x > end.x) std::swap(x1, x2);
-  if (start.y > end.y) std::swap(y1, y2);
+    double x1 = bbox.getXMin(), y1 = bbox.getYMin();
+    double x2 = bbox.getXMax(), y2 = bbox.getYMax();
 
-  start.setX(x1); end.setX(x2);
-  start.setY(y1); end.setY(y2);
+    // get inner padding
+    double xlp, xrp, ytp, ybp;
 
-  start_ = Position::plot(start);
-  end_   = Position::plot(end  );
+    getPaddingValues(xlp, xrp, ytp, ybp);
+
+    // get outer margin
+    double xlm, xrm, ytm, ybm;
+
+    getMarginValues(xlm, xrm, ytm, ybm);
+
+    x1 += xlp + xlm; y1 += ybp + ybm;
+    x2 -= xrp + xrm; y2 -= ytp + ytm;
+
+    if (start.x > end.x) std::swap(x1, x2);
+    if (start.y > end.y) std::swap(y1, y2);
+
+    start.setX(x1); end.setX(x2);
+    start.setY(y1); end.setY(y2);
+
+    start_ = Position::plot(start);
+    end_   = Position::plot(end  );
+  }
 
   setAnnotationBBox(bbox);
 }
@@ -4952,7 +4974,7 @@ draw(PaintDevice *device)
     if (arrow()->tailLength().isSet())
       tailLen  = device->lengthWindowWidth(arrow()->tailLength());
 
-    CQChartsArrow::pathAddArrows(path_.path(), arrowData, lw,
+    CQChartsArrow::pathAddArrows(device, path_.path(), arrowData, lw,
                                  CQChartsLength::factor(lw > 0.0 ? frontLen/lw : 1.0),
                                  CQChartsLength::factor(lw > 0.0 ? tailLen /lw : 1.0),
                                  arrowPath);
@@ -4983,39 +5005,44 @@ void
 CQChartsArrowAnnotation::
 calcBBox()
 {
-  auto start = positionToParent(startObjRef(), this->start());
-  auto end   = positionToParent(endObjRef  (), this->end  ());
-
-  if (startObjRef().location() == ObjRef::Location::INTERSECT ||
-      endObjRef  ().location() == ObjRef::Location::INTERSECT) {
-    if (startObjRef().location() == ObjRef::Location::INTERSECT)
-      start = intersectObjRef(startObjRef(), start, end);
-
-    if (endObjRef().location() == ObjRef::Location::INTERSECT)
-      end = intersectObjRef(endObjRef(), end, start);
+  if (path_.isValid()) {
+    setAnnotationBBox(path_.bbox());
   }
+  else {
+    auto start = positionToParent(startObjRef(), this->start());
+    auto end   = positionToParent(endObjRef  (), this->end  ());
 
-  // get inner padding
-  double xlp, xrp, ytp, ybp;
+    if (startObjRef().location() == ObjRef::Location::INTERSECT ||
+        endObjRef  ().location() == ObjRef::Location::INTERSECT) {
+      if (startObjRef().location() == ObjRef::Location::INTERSECT)
+        start = intersectObjRef(startObjRef(), start, end);
 
-  getPaddingValues(xlp, xrp, ytp, ybp);
+      if (endObjRef().location() == ObjRef::Location::INTERSECT)
+        end = intersectObjRef(endObjRef(), end, start);
+    }
 
-  // get outer margin
-  double xlm, xrm, ytm, ybm;
+    // get inner padding
+    double xlp, xrp, ytp, ybp;
 
-  getMarginValues(xlm, xrm, ytm, ybm);
+    getPaddingValues(xlp, xrp, ytp, ybp);
 
-  double x1 = std::min(start.x, end.x);
-  double y1 = std::min(start.y, end.y);
-  double x2 = std::max(start.x, end.x);
-  double y2 = std::max(start.y, end.y);
+    // get outer margin
+    double xlm, xrm, ytm, ybm;
 
-  double x = x1 - xlp - xlm; // left
-  double y = y1 - ybp - ybm; // bottom
-  double w = (x2 - x1) + xlp + xrp + xlm + xrm;
-  double h = (y2 - y1) + ybp + ytp + ybm + ytm;
+    getMarginValues(xlm, xrm, ytm, ybm);
 
-  setAnnotationBBox(BBox(x, y, x + w, y + h));
+    double x1 = std::min(start.x, end.x);
+    double y1 = std::min(start.y, end.y);
+    double x2 = std::max(start.x, end.x);
+    double y2 = std::max(start.y, end.y);
+
+    double x = x1 - xlp - xlm; // left
+    double y = y1 - ybp - ybm; // bottom
+    double w = (x2 - x1) + xlp + xrp + xlm + xrm;
+    double h = (y2 - y1) + ybp + ytp + ybm + ytm;
+
+    setAnnotationBBox(BBox(x, y, x + w, y + h));
+  }
 }
 
 //--
@@ -5465,7 +5492,7 @@ inside(const Point &p) const
 {
   QPainterPath path;
 
-  calcPath(path);
+  calcPath(nullptr, path);
 
   // TODO: handle line
   return path.contains(p.qpoint());
@@ -5491,7 +5518,7 @@ draw(PaintDevice *device)
   // draw path
   QPainterPath path;
 
-  calcPath(path);
+  calcPath(device, path);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -5521,7 +5548,7 @@ draw(PaintDevice *device)
 
 void
 CQChartsArcAnnotation::
-calcPath(QPainterPath &path) const
+calcPath(PaintDevice *device, QPainterPath &path) const
 {
   bool isSelf = (startObjRef().isValid() && startObjRef() == endObjRef());
 
@@ -5570,7 +5597,7 @@ calcPath(QPainterPath &path) const
           CQChartsDrawUtil::curvePath(lpath, start, end, drawEdgeType, angle, angle);
 
         // add arrows with line width
-        CQChartsArrow::pathAddArrows(lpath, arrowData, lw, arrowSize, path);
+        CQChartsArrow::pathAddArrows(device, lpath, arrowData, lw, arrowSize, path);
       }
       else {
         // create line width line (no arrows)
@@ -5589,7 +5616,7 @@ calcPath(QPainterPath &path) const
 
       // add arrows (no line width)
       if (hasArrows)
-        CQChartsArrow::pathAddArrows(lpath, arrowData, -lw, arrowSize, path);
+        CQChartsArrow::pathAddArrows(device, lpath, arrowData, -lw, arrowSize, path);
       else
         path = lpath;
     }
@@ -5601,7 +5628,7 @@ calcPath(QPainterPath &path) const
         CQChartsDrawUtil::selfCurvePath(lpath, ibbox, drawEdgeType);
 
         // add arrows with line width
-        CQChartsArrow::pathAddArrows(lpath, arrowData, -lw, arrowSize, path);
+        CQChartsArrow::pathAddArrows(device, lpath, arrowData, -lw, arrowSize, path);
       }
       else
         CQChartsDrawUtil::selfEdgePath(path, ibbox, lw, drawEdgeType);
@@ -5610,7 +5637,7 @@ calcPath(QPainterPath &path) const
       CQChartsDrawUtil::selfCurvePath(lpath, ibbox, drawEdgeType);
 
       if (hasArrows)
-        CQChartsArrow::pathAddArrows(lpath, arrowData, -lw, arrowSize, path);
+        CQChartsArrow::pathAddArrows(device, lpath, arrowData, -lw, arrowSize, path);
       else
         path = lpath;
     }

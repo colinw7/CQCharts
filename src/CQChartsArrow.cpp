@@ -6,7 +6,6 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
 #include <CQChartsSmooth.h>
-#include <CMathGeom2D.h>
 
 #include <CQPropertyViewModel.h>
 
@@ -856,6 +855,12 @@ calcHeadPolyData(const Point &startPoint, const Point &startPointI,
                  const ArrowAngle &lineAngle, bool linePoly, double linePixelWidth,
                  GenHeadData &frontData, const GenHeadData &tailData, DrawData &drawData)
 {
+#if DEBUG_LABELS
+  auto addPointLabel = [&](const Point &point, const QString &text, bool above) {
+    drawData.pointLabels.emplace_back(point, text, above);
+  };
+#endif
+
   // calc front head angle (relative to line)
   auto frontAngle1 = ArrowAngle(lineAngle.angle + frontData.angle.angle);
   auto frontAngle2 = ArrowAngle(lineAngle.angle - frontData.angle.angle);
@@ -961,6 +966,12 @@ calcTailPolyData(const Point &endPoint, const Point &endPointI,
                  const ArrowAngle &lineAngle, bool linePoly, double linePixelWidth,
                  const GenHeadData &frontData, GenHeadData &tailData, DrawData &drawData)
 {
+#if DEBUG_LABELS
+  auto addPointLabel = [&](const Point &point, const QString &text, bool above) {
+    drawData.pointLabels.emplace_back(point, text, above);
+  };
+#endif
+
   // calc tail head angle (relative to line)
   auto tailAngle1 = ArrowAngle(lineAngle.angle + M_PI - tailData.angle.angle);
   auto tailAngle2 = ArrowAngle(lineAngle.angle + M_PI + tailData.angle.angle);
@@ -1068,6 +1079,12 @@ calcMidPolyData(const Point &startPoint, const Point &endPoint,
                 const GenHeadData &frontData, const GenHeadData &tailData,
                 GenHeadData &midData, DrawData &drawData)
 {
+#if DEBUG_LABELS
+  auto addPointLabel = [&](const Point &point, const QString &text, bool above) {
+    drawData.pointLabels.emplace_back(point, text, above);
+  };
+#endif
+
   // calc mid head angle (relative to line)
   ArrowAngle midAngle1, midAngle2;
 
@@ -1143,8 +1160,8 @@ calcMidPolyData(const Point &startPoint, const Point &endPoint,
       intersectLine(frontData.headMid2, tailData.headMid2,
                     midData.tipPoint2, midData.headMid, pmh5, inside);
 
-      auto pmh41 = movePointOnLine(pmh4, midAngle1, -linePixelWidth/2.0);
-      auto pmh42 = movePointOnLine(pmh4, midAngle1,  linePixelWidth/2.0);
+      auto pmh41 = movePointOnLine(pmh4, midAngle1,  linePixelWidth/2.0);
+      auto pmh42 = movePointOnLine(pmh4, midAngle1, -linePixelWidth/2.0);
       auto pmh51 = movePointOnLine(pmh5, midAngle2,  linePixelWidth/2.0);
       auto pmh52 = movePointOnLine(pmh5, midAngle2, -linePixelWidth/2.0);
 
@@ -1159,32 +1176,35 @@ calcMidPolyData(const Point &startPoint, const Point &endPoint,
 
 #if DEBUG_LABELS
       if (drawData.debugLabels) {
+        addPointLabel(pmh4, "pmh4", /*above*/false);
+        addPointLabel(pmh5, "pmh5", /*above*/true );
+
         addPointLabel(pmh11, "pmh11", /*above*/false);
         addPointLabel(pmh12, "pmh12", /*above*/false);
         addPointLabel(pmh21, "pmh21", /*above*/true );
         addPointLabel(pmh22, "pmh22", /*above*/true );
 
-        addPointLabel(pmh41, "pmh41", /*above*/true );
-        addPointLabel(pmh42, "pmh42", /*above*/true );
-        addPointLabel(pmh51, "pmh51", /*above*/false);
-        addPointLabel(pmh52, "pmh52", /*above*/false);
+        addPointLabel(pmh41, "pmh41", /*above*/false);
+        addPointLabel(pmh42, "pmh42", /*above*/false);
+        addPointLabel(pmh51, "pmh51", /*above*/true );
+        addPointLabel(pmh52, "pmh52", /*above*/true );
 
         addPointLabel(pmh43, "pmh43", /*above*/false);
         addPointLabel(pmh44, "pmh44", /*above*/false);
-        addPointLabel(pmh53, "pmh53", /*above*/false);
-        addPointLabel(pmh54, "pmh54", /*above*/false);
+        addPointLabel(pmh53, "pmh53", /*above*/true );
+        addPointLabel(pmh54, "pmh54", /*above*/true );
       }
 #endif
 
-      midData.headPoints1.addPoint(pmh43); // intersect with line bottom
+      midData.headPoints1.addPoint(pmh44); // intersect with line bottom
       midData.headPoints1.addPoint(pmh11); // bottom arrow line end top
       midData.headPoints1.addPoint(pmh12); // bottom arrow line end bottom
-      midData.headPoints1.addPoint(pmh44); // bottom arrow line end bottom
+      midData.headPoints1.addPoint(pmh43); // bottom arrow line end bottom
 
-      midData.headPoints2.addPoint(pmh54); // bottom arrow line end bottom
+      midData.headPoints2.addPoint(pmh53); // bottom arrow line end bottom
       midData.headPoints2.addPoint(pmh22); // top arrow line end top
       midData.headPoints2.addPoint(pmh21); // top arrow line end bottom
-      midData.headPoints2.addPoint(pmh53); // intersect with line top
+      midData.headPoints2.addPoint(pmh54); // intersect with line top
     }
   }
   else {
@@ -1521,7 +1541,8 @@ drawArrow(PaintDevice *device, const Point &from, const Point &to,
 
 void
 CQChartsArrow::
-selfPath(QPainterPath &path, const BBox &rect, bool fhead, bool thead, double lw)
+selfPath(PaintDevice *device, QPainterPath &path, const BBox &rect,
+         bool fhead, bool thead, double lw)
 {
   double xr = rect.getWidth ()/2.0;
   double yr = rect.getHeight()/2.0;
@@ -1551,34 +1572,17 @@ selfPath(QPainterPath &path, const BBox &rect, bool fhead, bool thead, double lw
   arrowData.setFHeadType(fhead ? ArrowData::HeadType::ARROW : ArrowData::HeadType::NONE);
   arrowData.setTHeadType(thead ? ArrowData::HeadType::ARROW : ArrowData::HeadType::NONE);
 
-  pathAddArrows(lpath, arrowData, lw, Length::factor(1.0), path);
+  pathAddArrows(device, lpath, arrowData, lw, Length::factor(1.0), path);
 }
 
 // lw in device units
 // frontLen, tailLen supports percent so can be scaled to line width
 void
 CQChartsArrow::
-pathAddArrows(const QPainterPath &path, const ArrowData &arrowData,
-              double lw, const Length &frontLen, const Length &tailLen,
-              QPainterPath &arrowPath)
-{
-  pathAddArrows(nullptr, path, arrowData, lw, frontLen, tailLen, arrowPath);
-}
-
-void
-CQChartsArrow::
 pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &arrowData,
               double lw, const Length &arrowLen, QPainterPath &arrowPath)
 {
   pathAddArrows(device, path, arrowData, lw, arrowLen, arrowLen, arrowPath);
-}
-
-void
-CQChartsArrow::
-pathAddArrows(const QPainterPath &path, const ArrowData &arrowData,
-              double lw, const Length &arrowLen, QPainterPath &arrowPath)
-{
-  pathAddArrows(nullptr, path, arrowData, lw, arrowLen, arrowLen, arrowPath);
 }
 
 void
@@ -1627,8 +1631,7 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
 
       double d;
 
-      if (CMathGeom2D::PointLineDistance(CPoint2D(midPoint_.x, midPoint_.y),
-            CLine2D(p1_.x, p1_.y, p2_.x, p2_.y).setSegment(true), &d)) {
+      if (CQChartsUtil::PointLineDistance(midPoint_, p1_, p2_, &d)) {
         if (d < 1E-6)
           (void) handleMid();
       }
@@ -1925,7 +1928,7 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
       auto lenPercent = std::min(0.5 + (pathLen > 0.0 ? frontLen_/pathLen : 0.0), 1.0);
 
       Point lp3, lp4;
-      addWidthToPoint(midPoint_, midAngle_, 2*frontLen_, lp4, lp3); // above/below
+      addWidthToPoint(midPoint_, midAngle_, lw_ + frontLen_, lp4, lp3); // above/below
 
       endAngle_ = ArrowAngle(CMathUtil::Deg2Rad(-path->angleAtPercent(lenPercent)));
       endPoint_ = Point(path->pointAtPercent(lenPercent));
@@ -2081,13 +2084,17 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
 
   if (frontLen.units() == Length::Units::PERCENT)
     frontLen1 = frontLen.value()*aw/100.0;
-  else
+  else if (device)
     frontLen1 = device->lengthWindowWidth(frontLen);
+  else
+    frontLen1 = frontLen.value();
 
   if (tailLen.units() == Length::Units::PERCENT)
     tailLen1 = tailLen.value()*aw/100.0;
-  else
+  else if (device)
     tailLen1 = device->lengthWindowWidth(tailLen);
+  else
+    tailLen1 = tailLen.value();
 
   PathVisitor visitor(device, lw, aw, frontLen1, tailLen1, arrowData);
 

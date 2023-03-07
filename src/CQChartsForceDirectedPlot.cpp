@@ -3269,7 +3269,7 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
       }
       else {
         arrowData.setMidHeadType(CQChartsArrowData::HeadType::ARROW);
-     }
+      }
 
       CQChartsArrow::pathAddArrows(device, edgePath, arrowData, lww, arrowWidth(), curvePath);
     }

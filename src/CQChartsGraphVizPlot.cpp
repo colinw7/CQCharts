@@ -366,7 +366,7 @@ addProperties()
   addProp("edge", "edgeWidth"   , "width"     , "Max edge width");
   addProp("edge", "edgeCentered", "centered"  , "Edge is cenetered");
   addProp("edge", "edgePath"    , "usePath"   , "Use Edge path");
-  addProp("edge", "arrowWidth"  , "arrowWidth", "Directed edge arrow width factor");
+  addProp("edge", "arrowWidth"  , "arrowWidth", "Directed edge arrow width");
   addProp("edge", "edgeWeighted", "weighted"  , "Edge is weighted bt value for placement");
 
   // edge style
@@ -3261,7 +3261,8 @@ draw(PaintDevice *device) const
 
     QPainterPath path1;
 
-    CQChartsArrow::pathAddArrows(epath_, arrowData, lw, graphVizPlot_->arrowWidth(), path_);
+    CQChartsArrow::pathAddArrows(device, epath_, arrowData, lw,
+                                 graphVizPlot_->arrowWidth(), path_);
   }
   else {
     if (isArrow) {
@@ -3275,7 +3276,7 @@ draw(PaintDevice *device) const
         if (graphVizPlot()->arrowWidth().units() == Length::Units::PERCENT)
           arrowWidth1 = graphVizPlot()->arrowWidth().value()*lw/100.0;
         else
-          arrowWidth1 = graphVizPlot_->lengthPlotWidth(graphVizPlot()->arrowWidth());
+          arrowWidth1 = graphVizPlot()->lengthPlotWidth(graphVizPlot()->arrowWidth());
 
         if (graphVizPlot()->isSymmetric())
           startLength = 1.5*arrowWidth1;
@@ -3294,12 +3295,13 @@ draw(PaintDevice *device) const
 
         arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
 
-        CQChartsArrow::pathAddArrows(epath_, arrowData, lw, graphVizPlot_->arrowWidth(), path_);
+        CQChartsArrow::pathAddArrows(device, epath_, arrowData, lw,
+                                     graphVizPlot_->arrowWidth(), path_);
       }
       else {
         CQChartsDrawUtil::selfCurvePath(epath_, srcRect, edgeType, p1.angle);
 
-        CQChartsArrow::selfPath(path_, srcRect, /*fhead*/true, /*thead*/true, lw);
+        CQChartsArrow::selfPath(device, path_, srcRect, /*fhead*/true, /*thead*/true, lw);
       }
 
       const_cast<CQChartsGraphVizPlot *>(graphVizPlot())->setUpdatesEnabled(true);

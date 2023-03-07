@@ -5,4 +5,4 @@ set arrowId [create_charts_arrow_annotation -plot $plotId -start {10 90} -end {9
  -stroke_color {palette 0.3} -fill_color {palette 0.3}]
 
 set_charts_property -annotation $arrowId -name line.rectilinear -value 1
-set_charts_property -annotation $arrowId -name debugLabels -value 1
+#set_charts_property -annotation $arrowId -name debugLabels -value 1

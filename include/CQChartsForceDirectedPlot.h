@@ -206,7 +206,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool insideTextVisible   READ isInsideTextVisible   WRITE setInsideTextVisible  )
   Q_PROPERTY(bool selectedTextVisible READ isSelectedTextVisible WRITE setSelectedTextVisible)
 
-  // text no clip on mouse inside/selected (when text clipped)
+  // text no elide on mouse inside/selected (when text clipped)
   Q_PROPERTY(bool insideTextNoElide   READ isInsideTextNoElide   WRITE setInsideTextNoElide  )
   Q_PROPERTY(bool selectedTextNoElide READ isSelectedTextNoElide WRITE setSelectedTextNoElide)
 
@@ -493,11 +493,11 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool isSelectedTextVisible() const { return selectedTextVisible_; }
   void setSelectedTextVisible(bool b) { selectedTextVisible_ = b; }
 
-  //! text no clip on inside (when text clipped)
+  //! text no elide on inside (when text clipped)
   bool isInsideTextNoElide() const { return insideTextNoElide_; }
   void setInsideTextNoElide(bool b) { insideTextNoElide_ = b; }
 
-  //! text no clip on selected (when text clipped)
+  //! text no elide on selected (when text clipped)
   bool isSelectedTextNoElide() const { return selectedTextNoElide_; }
   void setSelectedTextNoElide(bool b) { selectedTextNoElide_ = b; }
 
@@ -902,9 +902,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool insideTextVisible_   { false }; //!< is inside text visible (when text invisible)
   bool selectedTextVisible_ { false }; //!< is selected text visible (when text invisible)
 
-  // mouse inside/selected text no clip
-  bool insideTextNoElide_   { false }; //!< is inside text no clip (when text clipped)
-  bool selectedTextNoElide_ { false }; //!< is selected text no clip (when text clipped)
+  // mouse inside/selected text no elide
+  bool insideTextNoElide_   { false }; //!< is inside text no elide (when text clipped)
+  bool selectedTextNoElide_ { false }; //!< is selected text no elide (when text clipped)
 
   // mouse inside/selected text no scale
   bool insideTextNoScale_   { false }; //!< is inside text no scale (when text scaled)

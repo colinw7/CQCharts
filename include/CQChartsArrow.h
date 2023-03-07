@@ -179,7 +179,7 @@ class CQChartsArrow : public QObject,
   bool isMidVisible() const { return data_.isMidHead(); }
   void setMidVisible(bool b);
 
-  HeadType midType() const { return static_cast<HeadType>(data_.theadType()); }
+  HeadType midType() const { return static_cast<HeadType>(data_.midHeadType()); }
   void setMidType(const HeadType &type);
 
   const Angle &midAngle() const { return data_.midAngle(); }
@@ -288,7 +288,7 @@ class CQChartsArrow : public QObject,
                         const ArrowData &data, const Length &strokeWidth, bool rectilinear,
                         const PenBrush &penBrush);
 
-  static void selfPath(QPainterPath &path, const BBox &rect,
+  static void selfPath(PaintDevice *device, QPainterPath &path, const BBox &rect,
                        bool fhead, bool thead, double lw);
 
   static void pathAddArrows(PaintDevice *device, const QPainterPath &path,
@@ -297,11 +297,6 @@ class CQChartsArrow : public QObject,
   static void pathAddArrows(PaintDevice *device, const QPainterPath &path,
                             const ArrowData &arrowData, double lw,
                             const Length &frontLen, const Length &tailLen,
-                            QPainterPath &arrowPath);
-  static void pathAddArrows(const QPainterPath &path, const ArrowData &arrowData,
-                            double lw, const Length &arrowLen, QPainterPath &arrowPath);
-  static void pathAddArrows(const QPainterPath &path, const ArrowData &arrowData,
-                            double lw, const Length &frontLen, const Length &tailLen,
                             QPainterPath &arrowPath);
 
   static void addWidthToPoint(const Point &p, const ArrowAngle &a, double lw,

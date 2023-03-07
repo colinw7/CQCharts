@@ -1068,13 +1068,13 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   bool nodeTextSingleScale_ { true }; //!< node text single scale factor
 
   // edge data
-  EdgeShape edgeShape_    { EdgeShape::ARC };       //!< edge shape
-  bool      edgeArrow_    { false };                //!< edge arrow
-  bool      edgeScaled_   { false };                //!< scale width by value
-  Length    edgeWidth_    { Length::pixel(8) };     //!< max edge width
-  bool      edgeCentered_ { false };                //!< is edge centered
-  bool      edgePath_     { false };                //!< use edge path
-  Length    arrowWidth_   { Length::percent(100) }; //!< edge arrow size factor
+  EdgeShape edgeShape_    { EdgeShape::ARC };      //!< edge shape
+  bool      edgeArrow_    { false };               //!< edge arrow
+  bool      edgeScaled_   { false };               //!< scale width by value
+  Length    edgeWidth_    { Length::pixel(8) };    //!< max edge width
+  bool      edgeCentered_ { false };               //!< is edge centered
+  bool      edgePath_     { false };               //!< use edge path
+  Length    arrowWidth_   { Length::factor(1.5) }; //!< edge arrow width
 
   // plot data
   Qt::Orientation orientation_  { Qt::Vertical };       //!< orientation
