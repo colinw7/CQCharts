@@ -37,6 +37,7 @@ class CQChartsCmdsSlot : public QObject {
   void themeChanged         ();
   void interfaceThemeChanged();
   void keyEventPress        (const QString &);
+  void viewResized          ();
 
  private:
   CQChartsCmds*       cmds_       { nullptr };

@@ -165,7 +165,7 @@ namespace Springy {
    public:
     explicit Node(int id) :
      id_(id) {
-      pos_ = Vector::random();
+      reset();
     }
 
     virtual ~Node() { }
@@ -186,6 +186,8 @@ namespace Springy {
 
     bool isFixed() const { return fixed_; }
     void setFixed(bool b) { fixed_ = b; }
+
+    void reset() { pos_ = Vector::random(); }
 
    private:
     int         id_     { 0 };     //!< id
@@ -434,6 +436,11 @@ namespace Springy {
         if (x.second.empty())
           adjacency_.erase(x.first);
       }
+    }
+
+    void resetNodes() {
+      for (auto &node : nodes_)
+        node->reset();
     }
 
    public:
@@ -738,6 +745,16 @@ namespace Springy {
       ymin = ymin1 - yc1;
       xmax = xmax1 - xc1;
       ymax = ymax1 - yc1;
+    }
+
+    void resetNodes() {
+      graph_->resetNodes();
+
+      for (auto n : graph_->nodes()) {
+        auto point = this->nodePoint(n);
+
+        point->setP(n->position());
+      }
     }
 
    private:

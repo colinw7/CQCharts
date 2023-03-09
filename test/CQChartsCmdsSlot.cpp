@@ -175,6 +175,21 @@ keyEventPress(const QString &text)
 
 void
 CQChartsCmdsSlot::
+viewResized()
+{
+  if (! view_) return;
+
+  disconnect(view_, SIGNAL(viewResized()), this, SLOT(viewResized()));
+
+  auto cmd = getTclCmd();
+
+  evalCmd(cmd);
+
+  connect(view_, SIGNAL(viewResized()), this, SLOT(viewResized()));
+}
+
+void
+CQChartsCmdsSlot::
 evalCmd(const QString &cmd)
 {
   cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);

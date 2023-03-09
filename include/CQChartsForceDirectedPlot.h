@@ -164,6 +164,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(double stiffness READ stiffness WRITE setStiffness)
   Q_PROPERTY(double repulsion READ repulsion WRITE setRepulsion)
   Q_PROPERTY(double damping   READ damping   WRITE setDamping)
+  Q_PROPERTY(bool   reset     READ isReset   WRITE setReset)
 
   // node data
   Q_PROPERTY(NodeShape      nodeShape         READ nodeShape           WRITE setNodeShape        )
@@ -380,6 +381,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   //! get/set placement damping
   double damping() const { return damping_; }
   void setDamping(double r);
+
+  bool isReset() const { return false; }
+  void setReset(bool b);
 
   //---
 

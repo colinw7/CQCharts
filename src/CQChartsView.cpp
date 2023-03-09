@@ -4727,6 +4727,8 @@ doResize(int w, int h)
 
     plot->postResize();
   }
+
+  Q_EMIT viewResized();
 }
 
 void

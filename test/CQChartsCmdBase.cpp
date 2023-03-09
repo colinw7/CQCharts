@@ -131,6 +131,7 @@ createArgs(const QString &name, const Vars &vars)
 
 //------
 
+// qt_create_widget
 void
 CQChartsBaseCreateWidgetCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -179,8 +180,6 @@ execCmd(CQChartsCmdArgs &argv)
       return errorMsg(QString("No parent '%1'").arg(parentName));
   }
 
-  auto name = argv.getParseStr("name");
-
   if (! CQWidgetFactoryMgrInst->isWidgetFactory(typeName))
     return errorMsg(QString("Invalid type '%1'").arg(typeName));
 
@@ -188,6 +187,8 @@ execCmd(CQChartsCmdArgs &argv)
 
   if (! w)
     return errorMsg(QString("Failed to create '%1'").arg(typeName));
+
+  auto name = argv.getParseStr("name");
 
   if (name != "")
     w->setObjectName(name);
@@ -197,6 +198,7 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// qt_add_child_widget
 void
 CQChartsBaseAddChildWidgetCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -265,6 +267,7 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// qt_add_stretch
 void
 CQChartsBaseAddStretchCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -311,12 +314,14 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// qt_create_layout
 void
 CQChartsBaseCreateLayoutCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
 {
   addArg(argv, "-parent", ArgType::String, "parent name");
   addArg(argv, "-type"  , ArgType::String, "layout type");
+  addArg(argv, "-name"  , ArgType::String, "layout name");
 }
 
 QStringList
@@ -367,11 +372,17 @@ execCmd(CQChartsCmdArgs &argv)
   if (! l)
     return errorMsg(QString("Failed to create '%1'").arg(typeName));
 
-  return true;
+  auto name = argv.getParseStr("name");
+
+  if (name != "")
+    l->setObjectName(name);
+
+  return cmdBase_->setCmdRc(CQUtil::fullName(l));
 }
 
 //------
 
+// qt_connect_widget
 void
 CQChartsBaseConnectWidgetCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -420,6 +431,7 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// qt_activate_slot
 void
 CQChartsBaseActivateSlotCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -464,6 +476,7 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// qt_get_property
 void
 CQChartsBaseGetPropertyCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -508,6 +521,7 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// qt_set_property
 void
 CQChartsBaseSetPropertyCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -566,6 +580,7 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// qt_has_property
 void
 CQChartsBaseHasPropertyCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -613,6 +628,7 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// qt_sync
 void
 CQChartsBaseQtSyncCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -654,6 +670,7 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// qt_timer
 void
 CQChartsBaseTimerCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -702,6 +719,7 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// widget_test
 void
 CQChartsBaseWidgetTestCmd::
 addCmdArgs(CQChartsCmdArgs &)
@@ -737,6 +755,7 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// perf
 void
 CQChartsBasePerfCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -784,6 +803,7 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// assert
 void
 CQChartsBaseAssertCmd::
 addCmdArgs(CQChartsCmdArgs &)
@@ -826,6 +846,7 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// sh
 void
 CQChartsBaseShellCmd::
 addCmdArgs(CQChartsCmdArgs &)
@@ -875,6 +896,7 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// qt_exit
 void
 CQChartsBaseExitCmd::
 addCmdArgs(CQChartsCmdArgs &)
@@ -899,6 +921,7 @@ execCmd(CQChartsCmdArgs &)
 
 //------
 
+// help
 void
 CQChartsBaseHelpCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
@@ -946,6 +969,7 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// complete
 void
 CQChartsBaseCompleteCmd::
 addCmdArgs(CQChartsCmdArgs &argv)

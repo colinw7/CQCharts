@@ -188,7 +188,7 @@ writeKeys(std::ostream &os, const QString &cmd, const QString &parentVarName,
   };
 
   auto annotationName = [&]() {
-    return (varName != "" ? varName : "plot");
+    return (varName != "" ? varName : "annotation");
   };
 
   os << "set " << annotationName().toStdString();
@@ -229,6 +229,10 @@ void
 CQChartsAnnotation::
 writeProperties(std::ostream &os, const QString &varName) const
 {
+  auto annotationName = [&]() {
+    return (varName != "" ? varName : "annotation");
+  };
+
   CQPropertyViewModel::NameValues nameValues;
 
   auto *propertyModel = this->propertyModel();
@@ -250,7 +254,7 @@ writeProperties(std::ostream &os, const QString &varName) const
     if (! CQChartsVariant::toString(value, str))
       str.clear();
 
-    os << "set_charts_property -annotation $" << varName.toStdString();
+    os << "set_charts_property -annotation $" << annotationName().toStdString();
 
     os << " -name " << name.toStdString() << " -value {" << str.toStdString() << "}\n";
   }
@@ -5144,6 +5148,10 @@ void
 CQChartsArrowAnnotation::
 writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
+  auto annotationName = [&]() {
+    return (varName != "" ? varName : "annotation");
+  };
+
   // start/end points
   if (start().isSet())
     os << " -start {" << start().toString().toStdString() << "}";
@@ -5209,13 +5217,13 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
     else
       os << "0.0";
 
-    if (! arrow()->midAngle().isZero())
-      os << " " << arrow()->midAngle().value();
-
     if (! arrow()->tailAngle().isZero())
       os << " " << arrow()->tailAngle ().value();
     else
       os << " 0.0";
+
+    if (! arrow()->midAngle().isZero())
+      os << " " << arrow()->midAngle().value();
 
     os << "}";
 
@@ -5226,13 +5234,13 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
     else
       os << "-1";
 
-    if (arrow()->midBackAngle().value() >= 0.0)
-      os << " " << arrow()->midBackAngle().value();
-
     if (arrow()->frontBackAngle().value() >= 0.0)
       os << " " << arrow()->frontBackAngle ().value();
     else
       os << " -1";
+
+    if (arrow()->midBackAngle().value() >= 0.0)
+      os << " " << arrow()->midBackAngle().value();
 
     os << "}";
   }
@@ -5298,7 +5306,7 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
     if (! CQChartsVariant::toString(value, str))
       str.clear();
 
-    os << "set_charts_property -annotation $" << varName.toStdString();
+    os << "set_charts_property -annotation $" << annotationName().toStdString();
 
     os << " -name " << name.toStdString() << " -value {" << str.toStdString() << "}\n";
   }

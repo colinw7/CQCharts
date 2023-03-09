@@ -31,6 +31,10 @@ class CForceDirected {
   double damping() const { return damping_; }
   void setDamping(double r) { damping_ = r; if (layout_) layout_->setDamping(damping_); }
 
+  void resetPlacement() {
+    layout_->resetNodes();
+  }
+
   void reset() {
     initialized_ = false;
 

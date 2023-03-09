@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + example full width toolbar widget (title, buttons) for force directed
+ + fit with big title, small plot
  + move percent support for sizing (like force directed text)
    + bubble plot text scaling to match force directed
  + better editing of path annotation (guide lines to control points)

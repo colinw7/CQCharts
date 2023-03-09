@@ -537,6 +537,14 @@ setDamping(double r)
     forceDirected_->setDamping(damping_);
 }
 
+void
+CQChartsForceDirectedPlot::
+setReset(bool b)
+{
+  if (forceDirected_ && b)
+    forceDirected_->resetPlacement();
+}
+
 //---
 
 int
@@ -669,6 +677,7 @@ addProperties()
   addProp("placement", "stiffness", "", "Force directed stiffness");
   addProp("placement", "repulsion", "", "Force directed repulsion");
   addProp("placement", "damping"  , "", "Force directed damping");
+  addProp("placement", "reset"    , "", "Reset placement");
 
   //---
 
