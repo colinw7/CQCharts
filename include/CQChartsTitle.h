@@ -95,6 +95,9 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   TextBoxObj *subTitle() const { return subTitle_; }
 
+  int subTitleGap() const { return subTitleGap_; }
+  void setSubTitleGap(int i) { subTitleGap_ = i; }
+
   //---
 
   void boxObjInvalidate() override { updatePlotPosition(); }
@@ -108,9 +111,17 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   Size calcSize();
 
+  void preAutoFit();
+  void postAutoFit();
+
   BBox fitBBox() const;
 
+  bool calcFitHorizontal() const;
+  bool calcFitVertical() const;
+
   void updateLocation();
+
+  void updateBBox();
 
   //---
 
@@ -150,24 +161,36 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   void textBoxObjInvalidate() override;
 
+ private Q_SLOTS:
+  void subTitleChanged();
+
  private:
   struct FitData {
-    bool horizontal { true };
+    bool horizontal { false };
     bool vertical   { true };
   };
 
-  TitleLocation location_;                      //!< location type
-  Position      absolutePosition_;              //!< position (relative to plot box)
-  Rect          absoluteRectangle_;             //!< rect (relative to plot box)
-  bool          insidePlot_        { false };   //!< is placed inside plot
-  bool          expandWidth_       { false };   //!< is width expanded to plot
-  Point         position_          { 0, 0 };    //!< position
-  TextBoxObj*   subTitle_          { nullptr }; //!< subtitle text box
-  Size          textSize_;                      //!< main size (without padding, border)
-  Size          subTitleTextSize_;              //!< subtitle size (without padding, border)
-  Size          allTextSize_;                   //!< combined size (without padding, border)
-  Size          size_;                          //!< size (width padding, border)
-  FitData       fitData_;                       //!< fit data
+  TitleLocation location_;                    //!< location type
+  Position      absolutePosition_;            //!< position (relative to plot box)
+  Rect          absoluteRectangle_;           //!< rect (relative to plot box)
+  bool          insidePlot_        { false }; //!< is placed inside plot
+  bool          expandWidth_       { false }; //!< is width expanded to plot
+  Point         position_          { 0, 0 };  //!< position
+
+  TextBoxObj* subTitle_    { nullptr }; //!< subtitle text box
+  int         subTitleGap_ { 4 };       //!< subtitle gap
+
+  Size textSize_;         //!< main size (without padding, border)
+  Size subTitleTextSize_; //!< subtitle size (without padding, border)
+  Size allTextSize_;      //!< combined size (without padding, border)
+  Size size_;             //!< size (with padding, border)
+
+  FitData fitData_; //!< fit data
+
+  double tx_ { 0 }, ty_ { 0 }, tw_ { 1 }, th_ { 1 };
+
+  bool isTitleInsideX1_ { false };
+  bool isTitleInsideY1_ { false };
 };
 
 #endif

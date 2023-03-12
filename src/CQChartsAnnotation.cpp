@@ -502,35 +502,38 @@ void
 CQChartsAnnotation::
 addTextProperties(PropertyModel *model, const QString &path, uint types)
 {
-  if (types & uint(TextOptions::ValueType::DATA))
+  if (types & static_cast<uint>(TextOptions::ValueType::DATA))
     addStyleProp(model, path, "textData", "style", "Text style", true);
 
   addStyleProp(model, path, "textColor", "color", "Text color");
   addStyleProp(model, path, "textAlpha", "alpha", "Text alpha");
   addStyleProp(model, path, "textFont" , "font" , "Text font");
 
-  if (types & uint(TextOptions::ValueType::ALIGN))
+  if (types & static_cast<uint>(TextOptions::ValueType::ALIGN))
     addStyleProp(model, path, "textAlign", "align", "Text align");
 
-  if (types & uint(TextOptions::ValueType::ANGLE))
+  if (types & static_cast<uint>(TextOptions::ValueType::ANGLE))
     addStyleProp(model, path, "textAngle", "angle", "Text angle");
 
-  if (types & uint(TextOptions::ValueType::CONTRAST))
+  if (types & static_cast<uint>(TextOptions::ValueType::CONTRAST))
     addStyleProp(model, path, "textContrast", "contrast", "Text has contrast");
 
-  if (types & uint(TextOptions::ValueType::FORMATTED))
+  if (types & static_cast<uint>(TextOptions::ValueType::CONTRAST_ALPHA))
+    addStyleProp(model, path, "textContrastAlpha", "contrastAlpha", "Text contrast alpha");
+
+  if (types & static_cast<uint>(TextOptions::ValueType::FORMATTED))
     addStyleProp(model, path, "textFormatted", "formatted", "Text formatted to fit in box");
 
-  if (types & uint(TextOptions::ValueType::SCALED))
+  if (types & static_cast<uint>(TextOptions::ValueType::SCALED))
     addStyleProp(model, path, "textScaled", "scaled", "Text scaled to fit box");
 
-  if (types & uint(TextOptions::ValueType::HTML))
+  if (types & static_cast<uint>(TextOptions::ValueType::HTML))
     addStyleProp(model, path, "textHtml", "html", "Text is HTML");
 
-  if (types & uint(TextOptions::ValueType::CLIP_LENGTH))
+  if (types & static_cast<uint>(TextOptions::ValueType::CLIP_LENGTH))
     addStyleProp(model, path, "textClipLength", "clipLength", "Text clip length");
 
-  if (types & uint(TextOptions::ValueType::CLIP_ELIDE))
+  if (types & static_cast<uint>(TextOptions::ValueType::CLIP_ELIDE))
     addStyleProp(model, path, "textClipElide" , "clipElide" , "Text clip elide");
 }
 

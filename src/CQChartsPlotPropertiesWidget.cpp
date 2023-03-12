@@ -359,6 +359,8 @@ setPlot(CQChartsPlot *plot)
 
   propertyTree_->setObjectName("propertyTree");
 
+  propertyTree_->setPlot(plot);
+
   connect(propertyTree_, SIGNAL(itemSelected(QObject *, const QString &)),
           this, SIGNAL(propertyItemSelected(QObject *, const QString &)));
 

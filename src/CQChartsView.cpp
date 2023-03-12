@@ -207,6 +207,8 @@ init()
 
   tipData_.font.decFontSize(4);
 
+  deviceFont_ = font_.calcFont();
+
   //---
 
   addProperties();
@@ -713,7 +715,9 @@ void
 CQChartsView::
 setFont(const CQChartsFont &f)
 {
-  CQChartsUtil::testAndSet(font_, f, [&]() { updatePlots(); } );
+  CQChartsUtil::testAndSet(font_, f, [&]() {
+    updatePlots(); deviceFont_ = font_.calcFont();
+  } );
 }
 
 double
@@ -965,7 +969,7 @@ CQChartsView::
 viewFont(const CQChartsFont &font) const
 {
   // Calc specified font from view font
-  auto font1 = font.calcFont(font_.font());
+  auto font1 = font.calcFont(deviceFont_);
 
   if (isScaleFont())
     return scaledFont(font1, Size(this->size()));
@@ -991,7 +995,7 @@ plotFont(const Plot *plot, const CQChartsFont &font, bool scaled) const
 {
   // adjust font by plot font and then by view font
   auto font1 = font .calcFont(plot->font());
-  auto font2 = font1.calcFont(font_.font());
+  auto font2 = font1.calcFont(deviceFont_);
 
   if (scaled && isScaleFont())
     return scaledFont(font2, plot->calcPixelSize());
@@ -1259,6 +1263,9 @@ setMode(const Mode &mode)
     }
 
     if ((mode == Mode::ZOOM_IN || mode == Mode::ZOOM_OUT) && lastMode == Mode::SELECT)
+      deselect = false;
+
+    if (mode == Mode::REGION)
       deselect = false;
 
     if (deselect)
@@ -4929,6 +4936,10 @@ paintEvent(QPaintEvent *)
   paint(ipainter_);
 
   QPainter painter(this);
+
+  painter.setFont(font_.font());
+
+  deviceFont_ = painter.font();
 
   painter.drawImage(-sizeData_.xpos, -sizeData_.ypos, *image_);
 

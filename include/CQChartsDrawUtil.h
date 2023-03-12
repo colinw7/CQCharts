@@ -425,7 +425,7 @@ class PathVisitor {
   virtual void curveTo(const Point &p1, const Point &p2, const Point &p3) = 0;
 
  public:
-  const QPainterPath *path;
+  const QPainterPath *path { nullptr };
 
   int   i { -1 };
   int   n { 0 };

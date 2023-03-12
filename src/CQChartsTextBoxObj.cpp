@@ -80,32 +80,44 @@ addTextDataProperties(PropertyView *model, const QString &path, const QString &d
 
   auto desc1 = (desc.length() ? desc + " text" : "Text");
 
-  if (addTypes & static_cast<int>(PropertyType::VISIBLE))
+  if (addTypes & static_cast<uint>(PropertyType::VISIBLE))
     addProp(path, "textVisible", "visible", desc1 + " visible");
 
-  if (addTypes & static_cast<int>(PropertyType::COLOR))
+  if (addTypes & static_cast<uint>(PropertyType::COLOR))
     addStyleProp(path, "textColor", "color", desc1 + " color");
 
-  if (addTypes & static_cast<int>(PropertyType::ALPHA))
+  if (addTypes & static_cast<uint>(PropertyType::ALPHA))
     addStyleProp(path, "textAlpha", "alpha", desc1 + " alpha");
 
-  if (addTypes & static_cast<int>(PropertyType::FONT))
+  if (addTypes & static_cast<uint>(PropertyType::FONT))
     addStyleProp(path, "textFont" , "font" , desc1 + " font");
 
-  if (addTypes & static_cast<int>(PropertyType::ANGLE))
+  if (addTypes & static_cast<uint>(PropertyType::ALIGN))
+    addStyleProp(path, "textAlign", "align", desc1 + " alignment");
+
+  if (addTypes & static_cast<uint>(PropertyType::ANGLE))
     addStyleProp(path, "textAngle", "angle", desc1 + " angle");
 
-  if (addTypes & static_cast<int>(PropertyType::CONTRAST))
+  if (addTypes & static_cast<uint>(PropertyType::CONTRAST))
     addStyleProp(path, "textContrast", "contrast", desc1 + " contrast");
 
-  if (addTypes & static_cast<int>(PropertyType::CONTRAST_ALPHA))
+  if (addTypes & static_cast<uint>(PropertyType::CONTRAST_ALPHA))
     addStyleProp(path, "textContrastAlpha", "contrastAlpha", desc1 + " contrast alpha");
 
-  if (addTypes & static_cast<int>(PropertyType::HTML))
+  if (addTypes & static_cast<uint>(PropertyType::FORMATTED))
+    addStyleProp(path, "textFormatted", "formatted", desc1 + " formatted to fit in box");
+
+  if (addTypes & static_cast<uint>(PropertyType::SCALED))
+    addStyleProp(path, "textScaled", "scaled", desc1 + " scaled to fit box");
+
+  if (addTypes & static_cast<uint>(PropertyType::HTML))
     addStyleProp(path, "textHtml", "html", desc1 + " is HTML");
 
-  if (addTypes & static_cast<int>(PropertyType::ALIGN))
-    addStyleProp(path, "textAlign", "align", desc1 + " alignment");
+  if (addTypes & static_cast<uint>(PropertyType::CLIP_LENGTH))
+    addStyleProp(path, "textClipLength", "clipLength", desc1 + " clip length");
+
+  if (addTypes & static_cast<uint>(PropertyType::CLIP_ELIDE))
+    addStyleProp(path, "textClipElide" , "clipElide" , desc1 + " clip elide");
 }
 
 //---

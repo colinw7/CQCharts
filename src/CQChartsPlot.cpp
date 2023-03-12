@@ -1815,7 +1815,15 @@ double
 CQChartsPlot::
 dataScale() const
 {
-  return CMathUtil::avg(dataScaleX(), dataScaleY());
+  if (! allowZoomX() && ! allowZoomY())
+    return 1.0;
+
+  if      (! allowZoomX())
+    return dataScaleY();
+  else if (! allowZoomY())
+    return dataScaleX();
+  else
+    return CMathUtil::avg(dataScaleX(), dataScaleY());
 }
 
 double
@@ -14932,6 +14940,9 @@ autoFitOne()
 {
   inAutoFit_ = true;
 
+  if (title())
+    title()->preAutoFit();
+
 #if 0
   for (int i = 0; i < 5; ++i) {
     auto bbox = fitBBox();
@@ -14955,6 +14966,9 @@ autoFitOne()
 
   autoFitUpdate();
 #endif
+
+  if (title())
+    title()->postAutoFit();
 
   Q_EMIT zoomPanChanged();
 

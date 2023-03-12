@@ -2,6 +2,7 @@
 #define CQChartsRectEdit_H
 
 #include <CQChartsRect.h>
+#include <CQChartsWidgetIFace.h>
 
 #include <QFrame>
 #include <QPointer>
@@ -15,7 +16,7 @@ class CQChartsUnitsEdit;
  * \brief rectangle edit
  * \ingroup Charts
  */
-class CQChartsRectEdit : public QFrame {
+class CQChartsRectEdit : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsRect rect READ rect WRITE setRect)
@@ -29,14 +30,14 @@ class CQChartsRectEdit : public QFrame {
  public:
   CQChartsRectEdit(QWidget *parent=nullptr);
 
-  View *view() const;
-  void setView(View *view);
-
-  Plot *plot() const;
-  void setPlot(Plot *plot);
-
   const Rect &rect() const { return rect_; }
   void setRect(const Rect &pos);
+
+  View *view() const;
+  void setView(View *view) override;
+
+  Plot *plot() const;
+  void setPlot(Plot *plot) override;
 
   void setRegion(const BBox &bbox);
 

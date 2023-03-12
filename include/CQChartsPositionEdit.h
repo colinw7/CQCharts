@@ -2,6 +2,7 @@
 #define CQChartsPositionEdit_H
 
 #include <CQChartsPosition.h>
+#include <CQChartsWidgetIFace.h>
 
 #include <QFrame>
 #include <QPointer>
@@ -15,7 +16,7 @@ class CQChartsUnitsEdit;
  * \brief position edit
  * \ingroup Charts
  */
-class CQChartsPositionEdit : public QFrame {
+class CQChartsPositionEdit : public QFrame, public CQChartsWidgetIFace {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
@@ -33,10 +34,10 @@ class CQChartsPositionEdit : public QFrame {
   void setPosition(const Position &pos);
 
   View *view() const;
-  void setView(View *view);
+  void setView(View *view) override;
 
   Plot *plot() const;
-  void setPlot(Plot *plot);
+  void setPlot(Plot *plot) override;
 
   void setRegion(const Point &p);
 

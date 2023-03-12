@@ -951,6 +951,78 @@ QString bboxToString(const BBox &bbox) {
 
 //---
 
+bool stringToSize(const QString &str, Size &size) {
+  CQStrParse parse(str);
+
+  return parseSize(parse, size, /*terminated*/ true);
+}
+
+bool parseSize(CQStrParse &parse, Size &size, bool terminated) {
+  // parse bbox:
+  //  w h
+  //  { w h }
+
+  parse.skipSpace();
+
+  // { w h }
+  if (parse.isChar('{')) {
+    QString str1;
+
+    if (! parse.readBracedString(str1))
+      return false;
+
+    CQStrParse parse1(str1);
+
+    if (parseSize(parse1, size, terminated)) {
+      if (terminated) {
+        parse.skipSpace();
+
+        if (parse.eof())
+          return true;
+      }
+      else
+        return true;
+    }
+  }
+
+  //--
+
+  // read width and height values
+  double w = 0.0;
+
+  if (! parse.readReal(&w))
+    return false;
+
+  parse.skipSpace();
+
+  if (parse.isChar(',')) {
+    parse.skipChar();
+
+    parse.skipSpace();
+  }
+
+  double h = 0.0;
+
+  if (! parse.readReal(&h))
+    return false;
+
+  if (terminated) {
+    parse.skipSpace();
+
+    if (! parse.eof())
+      return false;
+  }
+
+  //---
+
+  // return size
+  size = Size(w, h);
+
+  return true;
+}
+
+//---
+
 bool stringToPoint(const QString &str, Point &point) {
   CQStrParse parse(str);
 

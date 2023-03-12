@@ -1975,14 +1975,14 @@ clipTextToLength(const QString &text, const QFont &font, double clipLength,
   if (ellipsisWidth > clipLength)
     return "";
 
-  double clipLength1 = clipLength - ellipsisWidth;
+//double clipLength1 = clipLength - ellipsisWidth;
 
   //---
 
   auto isClipped = [&](const QString &str) {
     double w = fm.horizontalAdvance(str);
 
-    return (w > clipLength1);
+    return (w > clipLength);
   };
 
   auto isLenClipped = [&](const QString &str, int len) {

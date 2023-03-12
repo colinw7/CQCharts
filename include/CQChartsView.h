@@ -1731,6 +1731,7 @@ class CQChartsView : public QFrame,
   double fontFactor_ { 1.0 };  //!< font scale factor
   Font   font_;                //!< font
   Font   saveFont_;            //!< saved font
+  QFont  deviceFont_;          //!< device font
 
   // tip
   struct TipData {

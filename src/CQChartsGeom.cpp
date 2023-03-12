@@ -80,6 +80,34 @@ bool lineIntersectPolygon(const Points &points, const Point &p1, const Point &p2
 
 namespace CQChartsGeom {
 
+QString
+Size::
+toString() const
+{
+  return CQChartsUtil::sizeToString(*this);
+}
+
+bool
+Size::
+fromString(const QString &s)
+{
+  Size size;
+
+  if (! CQChartsUtil::stringToSize(s, size))
+    return false;
+
+  size_ = size.size_;
+  set_  = true;
+
+  return true;
+}
+
+}
+
+//---
+
+namespace CQChartsGeom {
+
 BBox::
 BBox(const Range &range) :
  pmin_(range.xmin(), range.ymin()), pmax_(range.xmax(), range.ymax()), set_(true) {

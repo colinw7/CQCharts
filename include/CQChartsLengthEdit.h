@@ -5,6 +5,7 @@
 #include <QFrame>
 
 class CQChartsUnitsEdit;
+class CQPropertyViewTree;
 class CQRealSpin;
 
 /*!
@@ -23,14 +24,17 @@ class CQChartsLengthEdit : public QFrame {
   CQChartsLengthEdit(QWidget *parent=nullptr);
 
   const CQChartsLength &length() const;
-  void setLength(const CQChartsLength &pos);
+  void setLength(const CQChartsLength &l);
 
  Q_SIGNALS:
   void lengthChanged();
+  void editingFinished();
 
  private Q_SLOTS:
   void editChanged();
   void unitsChanged();
+
+  void spinKeyPress(int, int);
 
  private:
 //void widgetsToLength();
@@ -43,6 +47,44 @@ class CQChartsLengthEdit : public QFrame {
   CQRealSpin*        edit_      { nullptr }; //!< length edit
   CQChartsUnitsEdit* unitsEdit_ { nullptr }; //!< units edit
   bool               connected_ { false };   //!< is connected
+};
+
+//------
+
+#include <CQSwitchLineEdit.h>
+
+class CQChartsSwitchLengthEdit : public CQSwitchLineEdit {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsLength length READ length WRITE setLength)
+
+ public:
+  static bool isAlt() { return isAlt_; }
+
+  CQChartsSwitchLengthEdit(QWidget *parent=nullptr);
+
+  CQChartsLengthEdit *edit() const { return edit_; }
+
+  CQChartsLength length() const;
+  void setLength(const CQChartsLength &l);
+
+  void setPropertyView(CQPropertyViewTree *pv);
+
+  void updatePlacement() override;
+
+ Q_SIGNALS:
+  void lengthChanged();
+  void altEditingFinished();
+
+ private Q_SLOTS:
+  void editSwitched(bool);
+  void textChangedSlot();
+
+ private:
+  static bool isAlt_;
+
+  CQChartsLengthEdit *edit_ { nullptr };
+  CQPropertyViewTree *pv_   { nullptr };
 };
 
 //------

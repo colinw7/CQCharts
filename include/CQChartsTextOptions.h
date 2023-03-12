@@ -12,19 +12,21 @@
  */
 struct CQChartsTextOptions {
   enum ValueType {
-    ANGLE       = (1<<0),
-    CONTRAST    = (1<<1),
-    ALIGN       = (1<<2),
-    FORMATTED   = (1<<3),
-    SCALED      = (1<<4),
-    HTML        = (1<<5),
-    CLIP_LENGTH = (1<<6),
-    CLIP_ELIDE  = (1<<7),
-    DATA        = (1<<8),
+    ANGLE          = (1<<0),
+    CONTRAST       = (1<<1),
+    CONTRAST_ALPHA = (1<<2),
+    ALIGN          = (1<<3),
+    FORMATTED      = (1<<4),
+    SCALED         = (1<<5),
+    HTML           = (1<<6),
+    CLIP_LENGTH    = (1<<7),
+    CLIP_ELIDE     = (1<<8),
+    DATA           = (1<<9),
 
     NONE   = 0,
-    SIMPLE = (ANGLE | CONTRAST | HTML),
-    ALL    = (ANGLE | CONTRAST | ALIGN | FORMATTED | SCALED | HTML | CLIP_LENGTH | CLIP_ELIDE)
+    SIMPLE = (ANGLE | CONTRAST | CONTRAST_ALPHA | HTML),
+    ALL    = (ANGLE | CONTRAST | CONTRAST_ALPHA | ALIGN | FORMATTED |
+              SCALED | HTML | CLIP_LENGTH | CLIP_ELIDE)
   };
 
   QColor            color; //!< color

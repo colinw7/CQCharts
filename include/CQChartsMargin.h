@@ -22,13 +22,13 @@ class CQChartsMargin :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsMargin, metaTypeId)
 
  public:
+  using Margin = CQChartsMargin;
   using Length = CQChartsLength;
   using Units  = CQChartsUnits::Type;
 
  public:
-  static CQChartsMargin pixel(double l, double t, double r, double b) {
-    return CQChartsMargin(Length::pixel(l), Length::pixel(t),
-                          Length::pixel(r), Length::pixel(b));
+  static Margin pixel(double l, double t, double r, double b) {
+    return Margin(Length::pixel(l), Length::pixel(t), Length::pixel(r), Length::pixel(b));
   }
 
  public:
@@ -101,7 +101,7 @@ class CQChartsMargin :
 
   //---
 
-  friend bool operator==(const CQChartsMargin &lhs, const CQChartsMargin &rhs) {
+  friend bool operator==(const Margin &lhs, const Margin &rhs) {
     return (lhs.left_  == rhs.left_  && lhs.top_    == rhs.top_ &&
             lhs.right_ == rhs.right_ && lhs.bottom_ == rhs.bottom_);
   }

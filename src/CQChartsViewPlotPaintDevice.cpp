@@ -870,16 +870,22 @@ setFont(const QFont &f, bool scale)
   if (scale && isZoomFont() && plot_) {
     auto f1 = CQChartsUtil::scaleFontSize(f, plot_->dataScale(), 1.0/72.0);
 
-    if (painter_)
+    if (painter_) {
       painter_->setFont(f1);
 
-    font_ = f1;
+      font_ = painter_->font();
+    }
+    else
+      font_ = f1;
   }
   else {
-    if (painter_)
+    if (painter_) {
       painter_->setFont(f);
 
-    font_ = f;
+      font_ = painter_->font();
+    }
+    else
+      font_ = f;
   }
 }
 

@@ -375,6 +375,11 @@ class Size :
             lhs.size_.height() == rhs.size_.height());
   }
 
+  //---
+
+  QString toString() const;
+  bool fromString(const QString &s);
+
  private:
   QSizeF size_;
   bool   set_ { false };
@@ -631,6 +636,18 @@ class BBox :
     if (! set_) return false;
 
     return (y >= pmin_.y && y <= pmax_.y);
+  }
+
+  bool insideX(const BBox &bbox) const {
+    if (! set_) return false;
+
+    return (bbox.pmin_.x >= pmin_.x && bbox.pmax_.x <= pmax_.x);
+  }
+
+  bool insideY(const BBox &bbox) const {
+    if (! set_) return false;
+
+    return (bbox.pmin_.y >= pmin_.y && bbox.pmax_.y <= pmax_.y);
   }
 
   double distanceTo(const Point &p) const {
@@ -1464,6 +1481,16 @@ class Margin {
   double height() { return top() + bottom(); }
 
   //---
+
+  static BBox insetBBox(const BBox &bbox, const Margin &m) {
+    return BBox(bbox.getXMin() + m.left (), bbox.getYMin() + m.bottom(),
+                bbox.getXMax() - m.right(), bbox.getYMax() - m.top   ());
+  }
+
+  static BBox outsetBBox(const BBox &bbox, const Margin &m) {
+    return BBox(bbox.getXMin() - m.left (), bbox.getYMin() - m.bottom(),
+                bbox.getXMax() + m.right(), bbox.getYMax() + m.top   ());
+  }
 
  private:
   double l_ { 0.0 };

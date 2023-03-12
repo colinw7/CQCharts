@@ -44,12 +44,20 @@ init()
   setTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
   setTextColor(Color::makeInterfaceValue(1.0));
 
+  setTextFormatted(true);
+  setTextScaled(false);
+
   //---
 
   subTitle_ = new TextBoxObj(plot_);
 
   subTitle_->setTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
   subTitle_->setTextColor(Color::makeInterfaceValue(1.0));
+
+  subTitle_->setTextFormatted(true);
+  subTitle_->setTextScaled(false);
+
+  connect(subTitle_, SIGNAL(textBoxObjInvalidated()), this, SLOT(subTitleChanged()));
 }
 
 QString
@@ -70,7 +78,18 @@ void
 CQChartsTitle::
 setLocation(const TitleLocation &l)
 {
-  CQChartsUtil::testAndSet(location_, l, [&]() { updatePlotPosition(); } );
+  CQChartsUtil::testAndSet(location_, l, [&]() {
+    if      (location().type() == TitleLocation::Type::ABSOLUTE_POSITION) {
+      if (! absolutePosition().isSet())
+        absolutePosition_ = CQChartsPosition(bbox().getUL(), CQChartsPosition::Units::PLOT);
+    }
+    else if (location().type() == TitleLocation::Type::ABSOLUTE_RECTANGLE) {
+      if (! absoluteRectangle().isSet())
+        absoluteRectangle_ = CQChartsRect(bbox(), CQChartsRect::Units::PLOT);
+    }
+
+    updatePlotPosition();
+  } );
 }
 
 void
@@ -161,7 +180,7 @@ updateLocation()
 
   //---
 
-  // calc title size
+  // calc title text size
   auto ts = calcSize();
 
   auto location = this->location();
@@ -169,7 +188,7 @@ updateLocation()
 //auto marginSize = plot_->pixelToWindowSize(Size(8, 8));
   auto marginSize = plot_->pixelToWindowSize(Size(0, 0));
 
-  double kx = bbox.getXMid() - ts.optWidth()/2;
+  double kx = bbox.getXMid() - ts.optWidth()/2.0;
   double ky = 0.0;
 
   //auto *xAxis = plot_->xAxis();
@@ -185,7 +204,7 @@ updateLocation()
       ky = bbox.getYMax() - ts.height() - marginSize.height();
   }
   else if (location.type() == TitleLocation::Type::CENTER) {
-    ky = bbox.getYMid() - ts.height()/2;
+    ky = bbox.getYMid() - ts.height()/2.0;
   }
   else if (location.type() == TitleLocation::Type::BOTTOM) {
     if (! isInsidePlot()) {
@@ -198,7 +217,7 @@ updateLocation()
       ky = bbox.getYMin() + marginSize.height();
   }
   else {
-    ky = bbox.getYMid() - ts.height()/2;
+    ky = bbox.getYMid() - ts.height()/2.0;
   }
 
   Point kp(kx, ky);
@@ -255,7 +274,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
     setDesc("Subtitle text string");
 
   subTitle_->addTextDataProperties(model, subTitlePath, "Subtitle",
-    (PropertyType::VISIBLE | PropertyType::BASIC | PropertyType::ALIGN) & ~PropertyType::ANGLE);
+                                   PropertyType::ALL & ~PropertyType::ANGLE);
 }
 
 CQChartsGeom::Point
@@ -309,7 +328,7 @@ calcSize()
     // convert to window size
     auto wsize = plot_->pixelToWindowSize(psize);
 
-    textSize_ = Size(wsize);
+    textSize_ = wsize;
   }
 
   if (subTitle_->isTextVisible() && subTitle_->textStr().length()) {
@@ -334,10 +353,10 @@ calcSize()
     auto mm = parentMargin(margin ());
     auto pm = parentMargin(padding());
 
-    double ts = 0.0;
+    double gap = 0.0;
 
     if (textSize_.isSet() && subTitleTextSize_.isSet())
-      ts = plot_->pixelToWindowHeight(4);
+      gap = plot_->pixelToWindowHeight(subTitleGap());
 
     auto textWidth  = std::max(textSize_.optWidth(), subTitleTextSize_.optWidth());
     auto textHeight = textSize_.optHeight() + subTitleTextSize_.optHeight();
@@ -345,7 +364,7 @@ calcSize()
     allTextSize_ = Size(textWidth, textHeight);
 
     size_ = Size(allTextSize_.width () + pm.width () + mm.width(),
-                 allTextSize_.height() + pm.height() + mm.height() + ts);
+                 allTextSize_.height() + pm.height() + mm.height() + gap);
   }
 
   if (isExpandWidth() && size_.isSet()) {
@@ -357,6 +376,44 @@ calcSize()
   return size_;
 }
 
+void
+CQChartsTitle::
+preAutoFit()
+{
+  isTitleInsideX1_ = false;
+  isTitleInsideY1_ = false;
+
+  auto vbbox = plot_->calcPlotViewRect();
+  //std::cerr << vbbox << "\n";
+
+  auto tbbox = fitBBox();
+  isTitleInsideX1_ = vbbox.insideX(tbbox);
+  isTitleInsideY1_ = vbbox.insideY(tbbox);
+  //std::cerr << isTitleInsideX1_ << " " << isTitleInsideY1_ << " " << tbbox << "\n";
+  //std::cerr << windowToPixel(tbbox) << "\n";
+}
+
+void
+CQChartsTitle::
+postAutoFit()
+{
+  updateBBox();
+
+  auto vbbox = plot_->calcPlotViewRect();
+  //std::cerr << vbbox << "\n";
+
+  auto tbbox = fitBBox();
+  auto isTitleInsideX2 = vbbox.insideX(tbbox);
+  auto isTitleInsideY2 = vbbox.insideY(tbbox);
+  //std::cerr << isTitleInsideX2 << " " << isTitleInsideY2 << " " << tbbox << "\n";
+  //std::cerr << windowToPixel(tbbox) << "\n";
+
+  if (! isTitleInsideX1_ && ! isTitleInsideX2)
+    setFitHorizontal(false);
+  if (! isTitleInsideY1_ && ! isTitleInsideY2)
+    setFitVertical(false);
+}
+
 CQChartsGeom::BBox
 CQChartsTitle::
 fitBBox() const
@@ -366,16 +423,30 @@ fitBBox() const
   if (! bbox.isValid())
     return bbox;
 
-  if (isFitHorizontal() && isFitVertical())
+  if (calcFitHorizontal() && calcFitVertical())
     return bbox;
 
-  if (isFitHorizontal())
+  if (calcFitHorizontal())
     return BBox(bbox.getXMin(), bbox.getYMid(), bbox.getXMax(), bbox.getYMid());
 
-  if (isFitVertical())
+  if (calcFitVertical())
     return BBox(bbox.getXMid(), bbox.getYMin(), bbox.getXMid(), bbox.getYMax());
 
   return BBox();
+}
+
+bool
+CQChartsTitle::
+calcFitHorizontal() const
+{
+  return isFitHorizontal();
+}
+
+bool
+CQChartsTitle::
+calcFitVertical() const
+{
+  return isFitVertical();
 }
 
 bool
@@ -416,16 +487,16 @@ editMove(const Point &p)
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
-  if (location().type() == TitleLocation::Type::ABSOLUTE_POSITION &&
-      dragSide == CQChartsResizeSide::MOVE) {
-    setLocation(TitleLocation(TitleLocation::Type::ABSOLUTE_POSITION));
+  if      (location().type() == TitleLocation::Type::ABSOLUTE_POSITION) {
+    if (dragSide == CQChartsResizeSide::MOVE) {
+      setLocation(TitleLocation(TitleLocation::Type::ABSOLUTE_POSITION));
 
-    setAbsolutePlotPosition(absolutePlotPosition() + Point(dx, dy));
+      setAbsolutePlotPosition(absolutePlotPosition() + Point(dx, dy));
+    }
   }
-  else {
-    setLocation(TitleLocation(TitleLocation::Type::ABSOLUTE_RECTANGLE));
-
-    editHandles()->updateBBox(dx, dy);
+  else if (location().type() == TitleLocation::Type::ABSOLUTE_RECTANGLE) {
+    if (dragSide != CQChartsResizeSide::NONE)
+      editHandles()->updateBBox(dx, dy);
 
     setAbsolutePlotRectangle(editHandles()->bbox());
   }
@@ -490,51 +561,47 @@ draw(PaintDevice *device)
 
   //---
 
-  if (location().type() != TitleLocation::Type::ABSOLUTE_RECTANGLE)
-    updateLocation();
+  updateBBox();
 
   //---
 
-  double x { 0 }, y { 0 }, w { 1 }, h { 1 };
+  auto ibbox = BBox(tx_, ty_, tx_ + tw_, ty_ + th_); // text bbox
 
-  if (location().type() != TitleLocation::Type::ABSOLUTE_RECTANGLE) {
-    x = position_.x; // bottom
-    y = position_.y; // top
-
-    if (! size_.isSet())
-      return;
-
-    w = size_.width ();
-    h = size_.height();
-
-    setBBox(BBox(x, y, x + w, y + h));
-  }
-  else {
-    setBBox(absolutePlotRectangle());
-
-    if (bbox().isValid()) {
-      x = bbox().getXMin  ();
-      y = bbox().getYMin  ();
-      w = bbox().getWidth ();
-      h = bbox().getHeight();
-    }
-  }
+  //---
 
   // add outer margin and inner padding
   auto mm = parentMargin(margin ());
   auto pm = parentMargin(padding());
 
-  BBox ibbox(x +     pm.left ()             , y +     pm.bottom()              ,
-             x + w - pm.right()             , y + h - pm.top   ()              );
-  BBox tbbox(x +     pm.left () + mm.left (), y +     pm.bottom() + mm.bottom(),
-             x + w - pm.right() - mm.right(), y + h - pm.top   () - mm.top   ());
+  auto obbox = CQChartsGeom::Margin::outsetBBox(ibbox, pm);
+  auto bbox  = CQChartsGeom::Margin::outsetBBox(obbox, mm);
+
+//plot_->drawWindowColorBox(device, ibbox, Qt::blue);
+//plot_->drawWindowColorBox(device, obbox, Qt::green);
+//plot_->drawWindowColorBox(device,  bbox, Qt::red);
 
   //---
 
-  // draw outer box (if stroked/filled)
-  CQChartsBoxObj::draw(device, ibbox);
+  // draw outer box (if stroked/filled) - sets bbox :(
+  CQChartsBoxObj::draw(device, obbox);
+
+  setBBox(bbox);
 
   //---
+
+  double subTitleTextHeight = 0;
+  double subTitleTextGap    = 0.0;
+
+  if (subTitle_->isTextVisible() && subTitle_->textStr().length()) {
+    assert(subTitleTextSize_.isSet());
+
+    subTitleTextHeight = subTitleTextSize_.height();
+    subTitleTextGap    = plot_->pixelToWindowHeight(subTitleGap());
+  }
+
+  //---
+
+  device->setClipRect(ibbox);
 
   if (isTextVisible() && textStr().length()) {
     // set text pen
@@ -549,12 +616,14 @@ draw(PaintDevice *device)
     //---
 
     // set text options
+    BBox tbbox1(ibbox.getXMin(), ibbox.getYMax(),
+                ibbox.getXMax(), ibbox.getYMin() + subTitleTextHeight + subTitleTextGap);
+
+    plot_->setRefLength(Plot::OptReal(tbbox1.getWidth()));
+
     auto textOptions = this->textOptions();
 
-    textOptions.angle     = CQChartsAngle();
-    textOptions.formatted = true;
-    textOptions.scaled    = false;
-    textOptions.clipped   = false;
+    textOptions.angle = CQChartsAngle();
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
@@ -568,15 +637,13 @@ draw(PaintDevice *device)
     // draw text
     device->setRenderHints(QPainter::Antialiasing);
 
-    BBox tbbox1(tbbox.getXMin(), tbbox.getYMax() - textSize_.height() - pm.top() - mm.top(),
-                tbbox.getXMax(), tbbox.getYMax());
-
     CQChartsDrawUtil::drawTextInBox(device, tbbox1, textStr(), textOptions);
+
+    plot_->setRefLength(Plot::OptReal());
   }
 
   //---
 
-  // TODO: handle rotated text
   if (subTitle_->isTextVisible() && subTitle_->textStr().length()) {
     // set text pen
     CQChartsPenBrush penBrush;
@@ -589,12 +656,15 @@ draw(PaintDevice *device)
 
     //---
 
+    // set text options
+    BBox tbbox1(ibbox.getXMin(), ibbox.getYMin(),
+                ibbox.getXMax(), ibbox.getYMin() + subTitleTextHeight);
+
+    plot_->setRefLength(Plot::OptReal(tbbox1.getWidth()));
+
     auto textOptions = subTitle_->textOptions();
 
-    textOptions.angle     = CQChartsAngle();
-    textOptions.formatted = true;
-    textOptions.scaled    = false;
-    textOptions.clipped   = false;
+    textOptions.angle = CQChartsAngle();
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
@@ -608,17 +678,18 @@ draw(PaintDevice *device)
     // draw text
     device->setRenderHints(QPainter::Antialiasing);
 
-    BBox tbbox1(tbbox.getXMin(), tbbox.getYMin(),
-                tbbox.getXMax(), tbbox.getYMin() + subTitleTextSize_.height() +
-                pm.bottom() + mm.bottom());
-
     CQChartsDrawUtil::drawTextInBox(device, tbbox1, subTitle_->textStr(), textOptions);
+
+    plot_->setRefLength(Plot::OptReal());
   }
 
   //---
 
-  if (plot_->showBoxes())
-    plot_->drawWindowColorBox(device, bbox(), Qt::red);
+  if (plot_->showBoxes()) {
+    device->setClipRect(clipRect);
+
+    plot_->drawWindowColorBox(device, this->bbox(), Qt::red);
+  }
 
   //---
 
@@ -627,12 +698,61 @@ draw(PaintDevice *device)
 
 void
 CQChartsTitle::
+updateBBox()
+{
+  if (location().type() != TitleLocation::Type::ABSOLUTE_RECTANGLE)
+    updateLocation();
+
+  //---
+
+  // add outer margin and inner padding
+  auto mm = parentMargin(margin ());
+  auto pm = parentMargin(padding());
+
+  //---
+
+  if (location().type() != TitleLocation::Type::ABSOLUTE_RECTANGLE) {
+    tx_ = position_.x + mm.left() + pm.left(); // text left
+    ty_ = position_.y + mm.top () + pm.top (); // text top
+
+    if (! size_.isSet())
+      return;
+
+    tw_ = size_.width () - mm.width () - pm.width ();
+    th_ = size_.height() - mm.height() - pm.height();
+
+    auto ibbox = BBox(tx_, ty_, tx_ + tw_, ty_ + th_); // text bbox (inner bbox)
+
+    auto obbox = CQChartsGeom::Margin::outsetBBox(ibbox, pm);
+    auto bbox  = CQChartsGeom::Margin::outsetBBox(obbox, mm);
+
+    setBBox(bbox);
+  }
+  else {
+    setBBox(absolutePlotRectangle());
+
+    if (bbox().isValid()) {
+      auto obbox = CQChartsGeom::Margin::insetBBox(bbox(), mm);
+      auto ibbox = CQChartsGeom::Margin::insetBBox(obbox , pm);
+
+      tx_ = ibbox.getXMin  ();
+      ty_ = ibbox.getYMin  ();
+      tw_ = ibbox.getWidth ();
+      th_ = ibbox.getHeight();
+    }
+  }
+}
+
+void
+CQChartsTitle::
 setEditHandlesBBox() const
 {
-  auto *th = const_cast<CQChartsTitle *>(this);
+  if (location().type() == TitleLocation::Type::ABSOLUTE_RECTANGLE)
+    editHandles()->setMode(EditHandles::Mode::RESIZE);
+  else
+    editHandles()->setMode(EditHandles::Mode::MOVE);
 
-  if (location().type() != TitleLocation::Type::ABSOLUTE_RECTANGLE)
-    th->editHandles()->setBBox(this->bbox());
+  editHandles()->setBBox(this->bbox());
 }
 
 void
@@ -643,6 +763,13 @@ textBoxObjInvalidate()
     setBBox(BBox());
 
   plot_->drawObjs();
+}
+
+void
+CQChartsTitle::
+subTitleChanged()
+{
+  updateLocation();
 }
 
 //---

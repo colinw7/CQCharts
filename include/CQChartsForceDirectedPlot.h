@@ -382,6 +382,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   double damping() const { return damping_; }
   void setDamping(double r);
 
+  //! get/set reset placement
   bool isReset() const { return false; }
   void setReset(bool b);
 

@@ -33,6 +33,10 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
     CONTRAST_ALPHA = (1<<7),
     HTML           = (1<<8),
     ALIGN          = (1<<9),
+    FORMATTED      = (1<<10),
+    SCALED         = (1<<11),
+    CLIP_LENGTH    = (1<<12),
+    CLIP_ELIDE     = (1<<13),
 
     NONE        = 0,
     BASIC       = COLOR | ALPHA | FONT | ANGLE | CONTRAST | CONTRAST_ALPHA,
@@ -89,11 +93,16 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
   void write(std::ostream &os, const QString &varName) const;
 
+ Q_SIGNALS:
+  void textBoxObjInvalidated();
+
  protected:
   void init();
 
   void textDataInvalidate(bool) override {
     textBoxObjInvalidate();
+
+    textBoxObjInvalidated();
   }
 
  protected:

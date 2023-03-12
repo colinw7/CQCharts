@@ -3,10 +3,13 @@
 
 #include <CQPropertyViewTree.h>
 
-class CQPropertyViewModel;
 class CQChartsEditTitleDlg;
 class CQChartsEditKeyDlg;
 class CQChartsEditAxisDlg;
+class CQChartsView;
+class CQChartsPlot;
+
+class CQPropertyViewModel;
 
 /*!
  * \brief Charts Property View Tree
@@ -19,7 +22,14 @@ class CQChartsPropertyViewTree : public CQPropertyViewTree {
   Q_PROPERTY(bool showStyleItems  READ isShowStyleItems  WRITE setShowStyleItems )
 
  public:
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsPropertyViewTree(QWidget *parent, CQPropertyViewModel *model);
+
+  void setView(View *view);
+  void setPlot(Plot *plot);
 
   void addMenuItems(QMenu *menu) override;
 
@@ -30,6 +40,8 @@ class CQChartsPropertyViewTree : public CQPropertyViewTree {
 
   bool isShowStyleItems() const { return showStyleItems_; }
   void setShowStyleItems(bool b);
+
+  void initEditor(QWidget *w) override;
 
   void keyPressEvent(QKeyEvent *e) override;
 
@@ -51,6 +63,8 @@ class CQChartsPropertyViewTree : public CQPropertyViewTree {
   CQChartsEditAxisDlg*  axisDlg_         { nullptr };
   bool                  filterDisplayed_ { false };
   bool                  showStyleItems_  { true };
+  View*                 view_            { nullptr };
+  Plot*                 plot_            { nullptr };
 };
 
 #endif

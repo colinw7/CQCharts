@@ -305,6 +305,7 @@ QString bboxToString(const BBox &bbox);
 bool stringToBBox(const QString &str, BBox &bbox);
 
 QString sizeToString(const Size &s);
+bool stringToSize(const QString &str, Size &size);
 
 QString pointToString(const Point &p);
 bool stringToPoint(const QString &str, Point &point);
@@ -313,6 +314,7 @@ QString point3DToString(const Point3D &p);
 bool stringToPoint3D(const QString &str, Point3D &point);
 
 bool parseBBox   (CQStrParse &parse, BBox    &rect , bool terminated=true);
+bool parseSize   (CQStrParse &parse, Size    &size , bool terminated=true);
 bool parsePoint  (CQStrParse &parse, Point   &point, bool terminated=true);
 bool parsePoint3D(CQStrParse &parse, Point3D &point, bool terminated=true);
 

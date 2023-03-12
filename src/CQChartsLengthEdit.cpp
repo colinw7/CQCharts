@@ -4,11 +4,101 @@
 #include <CQChartsVariant.h>
 
 #include <CQPropertyView.h>
+#include <CQPropertyViewTree.h>
 #include <CQRealSpin.h>
 #include <CQUtil.h>
 
 #include <QHBoxLayout>
 #include <cassert>
+
+bool CQChartsSwitchLengthEdit::isAlt_ { false };
+
+CQChartsSwitchLengthEdit::
+CQChartsSwitchLengthEdit(QWidget *parent) :
+ CQSwitchLineEdit(parent)
+{
+  setObjectName("switchLengthEdit");
+
+  edit_ = new CQChartsLengthEdit(parent);
+
+  setAltEdit(edit_);
+
+  connect(this, SIGNAL(editSwitched(bool)), this, SLOT(editSwitched(bool)));
+  connect(this, SIGNAL(editingFinished()), this, SLOT(textChangedSlot()));
+  connect(edit_, SIGNAL(lengthChanged()), this, SIGNAL(lengthChanged()));
+
+  connect(this, SIGNAL(editingFinished()), this, SIGNAL(altEditingFinished()));
+  connect(edit_, SIGNAL(editingFinished()), this, SIGNAL(altEditingFinished()));
+}
+
+CQChartsLength
+CQChartsSwitchLengthEdit::
+length() const
+{
+  return edit_->length();
+}
+
+void
+CQChartsSwitchLengthEdit::
+setLength(const CQChartsLength &l)
+{
+  edit_->setLength(l);
+
+  setText(length().toString());
+}
+
+void
+CQChartsSwitchLengthEdit::
+editSwitched(bool b)
+{
+  isAlt_ = b;
+}
+
+void
+CQChartsSwitchLengthEdit::
+setPropertyView(CQPropertyViewTree *pv)
+{
+  pv_ = pv;
+
+  connect(this, SIGNAL(altEditingFinished()), pv_, SLOT(closeEditorSlot()));
+}
+
+void
+CQChartsSwitchLengthEdit::
+textChangedSlot()
+{
+  CQChartsLength l;
+
+  if (! l.fromString(text()))
+    setText(length().toString());
+
+  edit_->setLength(l);
+
+  Q_EMIT lengthChanged();
+}
+
+void
+CQChartsSwitchLengthEdit::
+updatePlacement()
+{
+  if (pv_) {
+    disconnect(this, SIGNAL(altEditingFinished()), pv_, SLOT(closeEditorSlot()));
+
+    auto triggers = pv_->editTriggers();
+
+    pv_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    CQSwitchLineEdit::updatePlacement();
+
+    pv_->setEditTriggers(triggers);
+
+    connect(this, SIGNAL(altEditingFinished()), pv_, SLOT(closeEditorSlot()));
+  }
+  else
+    CQSwitchLineEdit::updatePlacement();
+}
+
+//---
 
 CQChartsLengthEdit::
 CQChartsLengthEdit(QWidget *parent) :
@@ -32,6 +122,10 @@ CQChartsLengthEdit(QWidget *parent) :
   unitsEdit_ = new CQChartsUnitsEdit;
 
   layout->addWidget(unitsEdit_);
+
+  //---
+
+  setFocusProxy(edit_);
 
   //---
 
@@ -143,7 +237,27 @@ connectSlots(bool b)
   };
 
   connectDisconnect(edit_, SIGNAL(valueChanged(double)), SLOT(editChanged()));
+  connectDisconnect(edit_, SIGNAL(keyPress(int, int)), SLOT(spinKeyPress(int, int)));
+
+  connectDisconnect(edit_, SIGNAL(editingFinished()), SIGNAL(editingFinished()));
+
   connectDisconnect(unitsEdit_, SIGNAL(unitsChanged()), SLOT(unitsChanged()));
+}
+
+void
+CQChartsLengthEdit::
+spinKeyPress(int key, int /*modifiers*/)
+{
+  static int lastKey = 0;
+
+  if      (key == 'M' && lastKey == 'E') unitsEdit_->setUnits(Units::EM);
+  else if (key == 'X' && lastKey == 'E') unitsEdit_->setUnits(Units::EX);
+  else if (key == '%'                  ) unitsEdit_->setUnits(Units::PERCENT);
+  else if (key == 'P'                  ) unitsEdit_->setUnits(Units::PLOT);
+  else if (key == 'V'                  ) unitsEdit_->setUnits(Units::VIEW);
+  else if (key == 'X'                  ) unitsEdit_->setUnits(Units::PIXEL);
+
+  lastKey = key;
 }
 
 //------
@@ -219,7 +333,14 @@ QWidget *
 CQChartsLengthPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  auto *edit = new CQChartsLengthEdit(parent);
+  auto *edit = new CQChartsSwitchLengthEdit(parent);
+
+  edit->setShowAltEdit(CQChartsSwitchLengthEdit::isAlt());
+
+  auto *pv = dynamic_cast<CQPropertyViewTree *>(parent ? parent->parentWidget() : nullptr);
+
+  if (pv)
+    edit->setPropertyView(pv);
 
   return edit;
 }
@@ -228,7 +349,7 @@ void
 CQChartsLengthPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto *edit = qobject_cast<CQChartsLengthEdit *>(w);
+  auto *edit = qobject_cast<CQChartsSwitchLengthEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(lengthChanged()), obj, method);
@@ -238,7 +359,7 @@ QVariant
 CQChartsLengthPropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto *edit = qobject_cast<CQChartsLengthEdit *>(w);
+  auto *edit = qobject_cast<CQChartsSwitchLengthEdit *>(w);
   assert(edit);
 
   return CQChartsVariant::fromLength(edit->length());
@@ -248,7 +369,7 @@ void
 CQChartsLengthPropertyViewEditor::
 setValue(QWidget *w, const QVariant &value)
 {
-  auto *edit = qobject_cast<CQChartsLengthEdit *>(w);
+  auto *edit = qobject_cast<CQChartsSwitchLengthEdit *>(w);
   assert(edit);
 
   bool ok;

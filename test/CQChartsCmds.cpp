@@ -7458,7 +7458,7 @@ execCmd(CQChartsCmdArgs &argv)
     // get widget path
     else if (name == "widget_path") {
       auto *widgetAnnotation = dynamic_cast<CQChartsWidgetAnnotation *>(annotation);
-      if (! annotation) return errorMsg("Invalid annotation for widget_path");
+      if (! widgetAnnotation) return errorMsg("Invalid annotation for widget_path");
 
       return cmdBase_->setCmdRc(CQUtil::fullName(widgetAnnotation->widget().widget()));
     }

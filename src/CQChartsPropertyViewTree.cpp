@@ -11,6 +11,7 @@
 #include <CQChartsKey.h>
 #include <CQChartsAxis.h>
 #include <CQChartsEnv.h>
+#include <CQChartsWidgetIFace.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -24,6 +25,20 @@ CQChartsPropertyViewTree::
 CQChartsPropertyViewTree(QWidget *parent, CQPropertyViewModel *model) :
  CQPropertyViewTree(parent, model)
 {
+}
+
+void
+CQChartsPropertyViewTree::
+setView(View *view)
+{
+  view_ = view;
+}
+
+void
+CQChartsPropertyViewTree::
+setPlot(Plot *plot)
+{
+  plot_ = plot;
 }
 
 void
@@ -227,6 +242,19 @@ CQChartsPropertyViewTree::
 showHideStyleItemsSlot(bool b)
 {
   setShowStyleItems(b);
+}
+
+
+void
+CQChartsPropertyViewTree::
+initEditor(QWidget *w)
+{
+  auto *iface = dynamic_cast<CQChartsWidgetIFace *>(w);
+
+  if (iface) {
+    if (view_) iface->setView(view_);
+    if (plot_) iface->setPlot(plot_);
+  }
 }
 
 void
