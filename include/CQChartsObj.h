@@ -40,6 +40,7 @@ class CQChartsObj : public QObject {
   Q_PROPERTY(int                priority   READ priority     WRITE setPriority  )
 
  public:
+  // data modification type
   enum DataType {
     ID,
     RECT,
@@ -53,6 +54,12 @@ class CQChartsObj : public QObject {
     MARGIN,
     ALPHA,
     DRAW_TYPE
+  };
+
+  enum class ObjShapeType {
+    NONE,
+    RECT,
+    CIRCLE
   };
 
   using BBox  = CQChartsGeom::BBox;
@@ -147,6 +154,10 @@ class CQChartsObj : public QObject {
   //! get/set priority
   int priority() const { return priority_; }
   void setPriority(int i) { priority_ = i; }
+
+  //---
+
+  virtual ObjShapeType objShapeType() const { return ObjShapeType::RECT; }
 
   //---
 

@@ -91,6 +91,8 @@ class CQChartsForceDirectedNodeObj : public CQChartsPlotObj {
 
   void calcPenBrush(PenBrush & /*penBrush*/, bool /*updateState*/) const override { }
 
+  ObjShapeType objShapeType() const override;
+
  protected:
   const ForceDirectedPlot* forceDirectedPlot_ { nullptr }; //!< parent plot
   ForceNodeP               node_;                          //!< associated node
@@ -761,6 +763,11 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   void autoFitUpdate() override;
 
+  //---
+
+  Node::Shape calcNodeShape(Node *snode) const;
+  Edge::Shape calcEdgeShape(Edge *sedge) const;
+
  private:
   struct FillData {
     Color color;
@@ -826,9 +833,6 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   int getStringId(const QString &str) const;
   //! get string for unique index
   QString getIdString(int id) const;
-
-  Node::Shape calcNodeShape(Node *snode) const;
-  Edge::Shape calcEdgeShape(Edge *sedge) const;
 
   BBox nodeBBox(const ForceNodeP &node, Node *snode) const;
   BBox edgeBBox(const ForceEdgeP &edge, Edge *sedge) const;

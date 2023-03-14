@@ -4374,6 +4374,20 @@ getObjSelectIndices(Indices &inds) const
     addColumnSelectIndex(inds, c);
 }
 
+CQChartsObj::ObjShapeType
+CQChartsForceDirectedNodeObj::
+objShapeType() const
+{
+  auto *snode = dynamic_cast<Node *>(node_.get());
+
+  auto sshape = forceDirectedPlot_->calcNodeShape(snode);
+
+  if (sshape == Node::Shape::CIRCLE || sshape == Node::Shape::DOUBLE_CIRCLE)
+    return ObjShapeType::CIRCLE;
+
+  return ObjShapeType::RECT;
+}
+
 //------
 
 CQChartsForceDirectedEdgeObj::

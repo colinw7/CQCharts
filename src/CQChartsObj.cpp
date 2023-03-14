@@ -1,6 +1,7 @@
 #include <CQChartsObj.h>
 #include <CQChartsPlot.h>
 #include <CQChartsUtil.h>
+#include <CMathGeom2D.h>
 
 CQChartsObj::
 CQChartsObj(CQCharts *charts, const BBox &rect) :
@@ -77,39 +78,73 @@ bool
 CQChartsObj::
 intersectShape(const Point &p1, const Point &p2, Point &pi) const
 {
-  double x1 = rect().getXMin(); double y1 = rect().getYMin();
-  double x2 = rect().getXMax(); double y2 = rect().getYMax();
+  std::vector<Point> ipoints;
 
-  std::vector<Point> points;
+  if      (objShapeType() == ObjShapeType::RECT) {
+    double x1 = rect().getXMin(); double y1 = rect().getYMin();
+    double x2 = rect().getXMax(); double y2 = rect().getYMax();
 
-  auto intersectLines = [&](double x11, double y11, double x21, double y21,
-                            double &xi, double &yi) {
-    double mu1, mu2;
+    auto intersectLines = [&](double x11, double y11, double x21, double y21,
+                              double &xi, double &yi) {
+      double mu1, mu2;
 
-    if (! CQChartsUtil::intersectLines(p1.x, p1.y, p2.x, p2.y, x11, y11, x21, y21,
-                                       xi, yi, mu1, mu2))
+      if (! CQChartsUtil::intersectLines(p1.x, p1.y, p2.x, p2.y, x11, y11, x21, y21,
+                                         xi, yi, mu1, mu2))
+        return false;
+
+      if (mu1 < 0.0 || mu1 > 1.0)
+        return false;
+
+      return true;
+    };
+
+    double xi, yi;
+
+    if (intersectLines(x1, y1, x2, y1, xi, yi)) ipoints.push_back(Point(xi, yi));
+    if (intersectLines(x2, y1, x2, y2, xi, yi)) ipoints.push_back(Point(xi, yi));
+    if (intersectLines(x2, y2, x1, y2, xi, yi)) ipoints.push_back(Point(xi, yi));
+    if (intersectLines(x1, y2, x1, y1, xi, yi)) ipoints.push_back(Point(xi, yi));
+  }
+  else if (objShapeType() == ObjShapeType::CIRCLE) {
+    auto c = rect().getCenter();
+    auto r = rect().getWidth()/2.0;
+
+    double xi1, yi1, xi2, yi2;
+    uint n;
+
+    if (! CMathGeom2D::CircleLineIntersect(c.x, c.y, r, p1.x, p1.y, p2.x, p2.y,
+                                           &xi1, &yi1, &xi2, &yi2, &n))
       return false;
 
-    if (mu1 < 0.0 || mu1 > 1.0)
-      return false;
+    auto calcMu = [&](double x, double y) {
+      if (! CMathUtil::realEq(p1.x, p2.x))
+        return (x - p1.x)/(p2.x - p1.x);
+      else
+        return (y - p1.y)/(p2.y - p1.y);
+    };
 
-    return true;
-  };
+    auto mu1 = calcMu(xi1, yi1);
 
-  double xi, yi;
+    if (mu1 >= 0.0 && mu1 <= 1.0)
+      ipoints.push_back(Point(xi1, yi1));
 
-  if (intersectLines(x1, y1, x2, y1, xi, yi)) points.push_back(Point(xi, yi));
-  if (intersectLines(x2, y1, x2, y2, xi, yi)) points.push_back(Point(xi, yi));
-  if (intersectLines(x2, y2, x1, y2, xi, yi)) points.push_back(Point(xi, yi));
-  if (intersectLines(x1, y2, x1, y1, xi, yi)) points.push_back(Point(xi, yi));
+    if (n > 1) {
+      auto mu2 = calcMu(xi2, yi2);
 
-  if (points.empty())
+      if (mu2 >= 0.0 && mu2 <= 1.0)
+        ipoints.push_back(Point(xi2, yi2));
+    }
+  }
+  else
+    return false;
+
+  if (ipoints.empty())
     return false;
 
   Point  minP;
   double minD = -1;
 
-  for (const auto &p : points) {
+  for (const auto &p : ipoints) {
     auto d = CQChartsUtil::PointPointDistance(p, p1);
 
     if (minD < 0 || d < minD) {
