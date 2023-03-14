@@ -1222,6 +1222,8 @@ class Range :
 
   double size(bool horizontal) const { return (horizontal ? xsize() : ysize()); }
 
+  double aspect() const { return (ysize() > 0.0 ? xsize()/ysize() : 1.0); }
+
   //---
 
   BBox bbox() const {

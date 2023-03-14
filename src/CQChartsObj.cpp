@@ -72,3 +72,53 @@ setTipId(const QString &s)
 
   dataInvalidate(DataType::TIP);
 }
+
+bool
+CQChartsObj::
+intersectShape(const Point &p1, const Point &p2, Point &pi) const
+{
+  double x1 = rect().getXMin(); double y1 = rect().getYMin();
+  double x2 = rect().getXMax(); double y2 = rect().getYMax();
+
+  std::vector<Point> points;
+
+  auto intersectLines = [&](double x11, double y11, double x21, double y21,
+                            double &xi, double &yi) {
+    double mu1, mu2;
+
+    if (! CQChartsUtil::intersectLines(p1.x, p1.y, p2.x, p2.y, x11, y11, x21, y21,
+                                       xi, yi, mu1, mu2))
+      return false;
+
+    if (mu1 < 0.0 || mu1 > 1.0)
+      return false;
+
+    return true;
+  };
+
+  double xi, yi;
+
+  if (intersectLines(x1, y1, x2, y1, xi, yi)) points.push_back(Point(xi, yi));
+  if (intersectLines(x2, y1, x2, y2, xi, yi)) points.push_back(Point(xi, yi));
+  if (intersectLines(x2, y2, x1, y2, xi, yi)) points.push_back(Point(xi, yi));
+  if (intersectLines(x1, y2, x1, y1, xi, yi)) points.push_back(Point(xi, yi));
+
+  if (points.empty())
+    return false;
+
+  Point  minP;
+  double minD = -1;
+
+  for (const auto &p : points) {
+    auto d = CQChartsUtil::PointPointDistance(p, p1);
+
+    if (minD < 0 || d < minD) {
+      minP = p;
+      minD = d;
+    }
+  }
+
+  pi = minP;
+
+  return true;
+}

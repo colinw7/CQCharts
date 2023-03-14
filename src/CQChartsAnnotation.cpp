@@ -4846,8 +4846,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
     path_.moveScale(dx, dy, sx, sy);
   }
   else {
-    auto start = positionToParent(startObjRef(), this->start());
-    auto end   = positionToParent(endObjRef  (), this->end  ());
+    Point start, end;
+    calcStartEnd(start, end);
 
     double x1 = bbox.getXMin(), y1 = bbox.getYMin();
     double x2 = bbox.getXMax(), y2 = bbox.getYMax();
@@ -4930,8 +4930,8 @@ draw(PaintDevice *device)
 
   //---
 
-  auto start = positionToParent(startObjRef(), this->start());
-  auto end   = positionToParent(endObjRef  (), this->end  ());
+  Point start, end;
+  calcStartEnd(start, end);
 
   //---
 
@@ -5016,17 +5016,8 @@ calcBBox()
     setAnnotationBBox(path_.bbox());
   }
   else {
-    auto start = positionToParent(startObjRef(), this->start());
-    auto end   = positionToParent(endObjRef  (), this->end  ());
-
-    if (startObjRef().location() == ObjRef::Location::INTERSECT ||
-        endObjRef  ().location() == ObjRef::Location::INTERSECT) {
-      if (startObjRef().location() == ObjRef::Location::INTERSECT)
-        start = intersectObjRef(startObjRef(), start, end);
-
-      if (endObjRef().location() == ObjRef::Location::INTERSECT)
-        end = intersectObjRef(endObjRef(), end, start);
-    }
+    Point start, end;
+    calcStartEnd(start, end);
 
     // get inner padding
     double xlp, xrp, ytp, ybp;
@@ -5143,6 +5134,23 @@ moveExtraHandle(const QVariant &data, double dx, double dy)
   calcBBox();
 
   editHandles->setBBox(annotationBBox());
+}
+
+void
+CQChartsArrowAnnotation::
+calcStartEnd(Point &start, Point &end) const
+{
+  start = positionToParent(startObjRef(), this->start());
+  end   = positionToParent(endObjRef  (), this->end  ());
+
+  if (startObjRef().location() == ObjRef::Location::INTERSECT ||
+      endObjRef  ().location() == ObjRef::Location::INTERSECT) {
+    if (startObjRef().location() == ObjRef::Location::INTERSECT)
+      start = intersectObjRef(startObjRef(), start, end);
+
+    if (endObjRef().location() == ObjRef::Location::INTERSECT)
+      end = intersectObjRef(endObjRef(), end, start);
+  }
 }
 
 //--

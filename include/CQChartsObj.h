@@ -92,8 +92,7 @@ class CQChartsObj : public QObject {
   //---
 
   //! intersect shape with line (used for arrow annotation connection point)
-  virtual bool intersectShape(const Point & /*p1*/, const Point & /*p2*/,
-                              Point & /*pi*/) const { return false; }
+  virtual bool intersectShape(const Point &p1, const Point &p2, Point &pi) const;
 
   //---
 

@@ -1578,6 +1578,8 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
 
   void calcBBox();
 
+  void calcStartEnd(Point &start, Point &end) const;
+
  protected:
   using ArrowP = std::unique_ptr<CQChartsArrow>;
 

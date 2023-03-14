@@ -545,6 +545,28 @@ setReset(bool b)
     forceDirected_->resetPlacement();
 }
 
+void
+CQChartsForceDirectedPlot::
+setMinSpringLength(double r)
+{
+  if (r != minSpringLength_) {
+    minSpringLength_ = r;
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsForceDirectedPlot::
+setMaxSpringLength(double r)
+{
+  if (r != maxSpringLength_) {
+    maxSpringLength_ = r;
+
+    updateRangeAndObjs();
+  }
+}
+
 //---
 
 int
@@ -679,6 +701,11 @@ addProperties()
   addProp("placement", "damping"  , "", "Force directed damping");
   addProp("placement", "reset"    , "", "Reset placement");
 
+  addProp("placement", "minSpringLength", "", "Min spring length");
+  addProp("placement", "maxSpringLength", "", "Max spring length");
+
+  addProp("placement", "unitRange", "", "Use unit range");
+
   //---
 
   // info
@@ -770,7 +797,13 @@ createObjs(PlotObjs &) const
 
   th->forceDirected_ = std::make_unique<CQChartsForceDirected>();
 
+  th->forceDirected_->setStiffness(stiffness_);
+  th->forceDirected_->setRepulsion(repulsion_);
+  th->forceDirected_->setDamping(damping_);
+
   //th->forceDirected_->reset();
+
+  //---
 
   th->idConnections_  .clear();
   th->nameIdMap_      .clear();
@@ -1074,7 +1107,12 @@ addIdConnections() const
       if (connectionData.value.isSet())
         value = connectionData.value.real();
 
-      sedge->setLength(value > 0.0 ? 1.0/value : 1.0);
+      double length = 1.0;
+
+      if (value > 0.0)
+        length = CMathUtil::map(value, 0.0, maxEdgeValue(), maxSpringLength(), minSpringLength());
+
+      sedge->setLength(length);
       sedge->setValue(value);
 
       //---
@@ -2236,6 +2274,7 @@ CQChartsForceDirectedPlot::
 doAutoFit()
 {
   if (isAutoFit()) {
+    // set margin to max of node size and 3 pixels
     double s = lengthPlotWidth(nodeSize());
 
     auto minSize = pixelToWindowWidth(3.0);
@@ -2243,13 +2282,28 @@ doAutoFit()
     double xm = std::max(s, minSize);
     double ym = xm;
 
+    //---
+
+    // calc force directed range
     double xmin { -1.0 }, ymin { -1.0 }, xmax { 1.0 }, ymax { 1.0 };
     forceDirected_->calcRange(xmin, ymin, xmax, ymax);
 
+    forceRange_  = Range(xmin, ymin, xmax, ymax);
+    forceAspect_ = forceRange_.aspect();
+
     calcDataRange_ = Range();
 
-    calcDataRange_.updateRange(xmin - xm, ymin - ym);
-    calcDataRange_.updateRange(xmax + xm, ymax + ym);
+    if (isUnitRange()) {
+      double w = (forceAspect_ > 1.0 ? 2.0*forceAspect_ : 2.0             );
+      double h = (forceAspect_ > 1.0 ? 2.0              : 2.0/forceAspect_);
+
+      calcDataRange_.updateRange(-w/2.0 - xm, -h/2.0 - ym);
+      calcDataRange_.updateRange( w/2.0 + xm,  h/2.0 + ym);
+    }
+    else {
+      calcDataRange_.updateRange(xmin - xm, ymin - ym);
+      calcDataRange_.updateRange(xmax + xm, ymax + ym);
+    }
 
     unequalDataRange_ = adjustDataRange(calcDataRange_);
 
@@ -2266,6 +2320,10 @@ doAutoFit()
     auto adjustedBBox = adjustDataRangeBBox(bbox);
 
     setWindowRange(bbox, adjustedBBox);
+
+    //---
+
+    updatePlotObjs();
   }
 }
 
@@ -2338,8 +2396,11 @@ CQChartsForceDirectedPlot::
 handleEditMove(const Point &, const Point &p, bool)
 {
   if (pressed_) {
-    if (forceDirected_->currentPoint())
-      forceDirected_->currentPoint()->setP(SpringVec(p.x, p.y));
+    if (forceDirected_->currentPoint()) {
+      auto p1 = plotToForcePoint(p);
+
+      forceDirected_->currentPoint()->setP(SpringVec(p1.x, p1.y));
+    }
 
     drawObjs();
 
@@ -2363,8 +2424,11 @@ bool
 CQChartsForceDirectedPlot::
 handleEditRelease(const Point &, const Point &p)
 {
-  if (forceDirected_->currentPoint())
-    forceDirected_->currentPoint()->setP(SpringVec(p.x, p.y));
+  if (forceDirected_->currentPoint()) {
+    auto p1 = plotToForcePoint(p);
+
+    forceDirected_->currentPoint()->setP(SpringVec(p1.x, p1.y));
+  }
 
   resetCurrentNode();
 
@@ -2385,12 +2449,30 @@ updatePlotObjs()
 {
   for (auto *plotObj : plotObjs_) {
     auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
-    if (! nodeObj) continue;
+    auto *edgeObj = dynamic_cast<EdgeObj *>(plotObj);
 
-    auto *snode = dynamic_cast<Node *>(nodeObj->node().get());
-    assert(snode);
+    if      (nodeObj) {
+      auto *snode = dynamic_cast<Node *>(nodeObj->node().get());
+      assert(snode);
 
-    nodeObj->setRect(snode->bbox());
+      if (isUnitRange()) {
+        auto bbox = nodeBBox(nodeObj->node(), snode);
+
+        nodeObj->setRect(bbox);
+      }
+      else
+        nodeObj->setRect(snode->bbox());
+    }
+    else if (edgeObj) {
+      auto *sedge = dynamic_cast<Edge *>(edgeObj->edge().get());
+      assert(sedge);
+
+      if (isUnitRange()) {
+        auto bbox = edgeBBox(edgeObj->edge(), sedge);
+
+        edgeObj->setRect(bbox);
+      }
+    }
   }
 }
 
@@ -2430,7 +2512,9 @@ void
 CQChartsForceDirectedPlot::
 setCurrentNode(const Point &p)
 {
-  auto nodePoint = forceDirected_->nearest(SpringVec(p.x, p.y));
+  auto p1 = plotToForcePoint(p);
+
+  auto nodePoint = forceDirected_->nearest(SpringVec(p1.x, p1.y));
 
   forceDirected_->setCurrentNode (nodePoint.first );
   forceDirected_->setCurrentPoint(nodePoint.second);
@@ -2801,7 +2885,9 @@ plotTipText(const Point &p, QString &tip, bool /*single*/) const
     CQChartsTableTip tableTip;
 
 #if 0
-    auto nodePoint = forceDirected_->nearest(SpringVec(p.x, p.y));
+    auto p1 = plotToForcePoint(p);
+
+    auto nodePoint = forceDirected_->nearest(SpringVec(p1.x, p1.y));
 
     auto *node = dynamic_cast<Node *>(nodePoint.first.get());
     if (! node) return false;
@@ -3965,7 +4051,11 @@ nodeBBox(const ForceNodeP &node, Node *snode) const
 
   const auto &p1 = point->p();
 
-  return BBox(p1.x() - xmn/2.0, p1.y() - ymn/2.0, p1.x() + xmn/2.0, p1.y() + ymn/2.0);
+  auto p2 = forcePointToPlot(Point(p1.x(), p1.y()));
+
+  auto bbox = BBox(p2.x - xmn/2.0, p2.y - ymn/2.0, p2.x + xmn/2.0, p2.y + ymn/2.0);
+
+  return bbox;
 }
 
 CQChartsGeom::BBox
@@ -4097,6 +4187,46 @@ calcNodeFillColor(Node *node) const
     fc = interpPaletteColor(colorInd, /*scale*/false);
 
   return fc;
+}
+
+//---
+
+CQChartsGeom::Point
+CQChartsForceDirectedPlot::
+forcePointToPlot(const Point &p) const
+{
+  if (! isUnitRange())
+    return p;
+
+  auto x = p.x;
+  auto y = p.y;
+
+  if (forceRange_.xsize() > 0.0)
+    x = 2.0*(x - forceRange_.xmid())/forceRange_.xsize();
+
+  if (forceRange_.ysize() > 0.0)
+    y = 2.0*(y - forceRange_.ymid())/forceRange_.ysize();
+
+  return Point(x, y);
+}
+
+CQChartsGeom::Point
+CQChartsForceDirectedPlot::
+plotToForcePoint(const Point &p) const
+{
+  if (! isUnitRange())
+    return p;
+
+  auto x = p.x;
+  auto y = p.y;
+
+  if (forceRange_.xsize() > 0.0)
+    x = x*forceRange_.xsize()/2.0 + forceRange_.xmid();
+
+  if (forceRange_.ysize() > 0.0)
+    y = y*forceRange_.ysize()/2.0 + forceRange_.ymid();
+
+  return Point(x, y);
 }
 
 //---

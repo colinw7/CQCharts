@@ -73,7 +73,7 @@ decodeString(const QString &str, ObjRef &objRef, Position &position, const Units
     if (parse1.readNonSpace(word1))
       objStrs << word1;
 
-    parse.skipSpace();
+    parse1.skipSpace();
 
     if (parse1.readNonSpace(word2))
       objStrs << word2;

@@ -722,6 +722,7 @@ namespace Springy {
       }
     }
 
+#if 0
     void adjustRange(double &xmin, double &ymin, double &xmax, double &ymax) {
       double xmin1, ymin1, xmax1, ymax1;
 
@@ -746,6 +747,7 @@ namespace Springy {
       xmax = xmax1 - xc1;
       ymax = ymax1 - yc1;
     }
+#endif
 
     void resetNodes() {
       graph_->resetNodes();

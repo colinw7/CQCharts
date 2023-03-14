@@ -31,11 +31,26 @@ proc animateStateChanged { view plot b } {
   echo "Node: $node1, Edge $edge1"
   echo "Node: $node2"
 
+  if {$node1 == "" || $node2 == ""} {
+    return
+  }
+
   #set_charts_data -plot $plot -object $node1 -name select -value 1
   #set_charts_data -plot $plot -object $edge1 -name select -value 1
 
-  set edge [create_charts_arrow_annotation -plot $plot -id edge \
-    -start [list "@(${node1})" 0 0] -end [list "@(${node2})" 0 0]]
+  set startPos "@($node1 intersect) 0 0"
+  set endPos   "@($node2 intersect) 0 0"
+  echo "StartPos: $startPos, EndPos: $endPos"
+
+  #set startPos [list "@(${node1})" 0 0]
+  #set endPos   [list "@(${node2})" 0 0]
+  #echo "StartPos: $startPos, EndPos: $endPos"
+
+  set edge [create_charts_arrow_annotation -plot $plot -id edge -start $startPos -end $endPos]
+
+  set_charts_property -annotation $edge -name midHead.type   -value ARROW
+  set_charts_property -annotation $edge -name midHead.length -value 0.1P
+  set_charts_property -annotation $edge -name line.width     -value 0.05P
 }
 
 proc objPressed { view plot id } {

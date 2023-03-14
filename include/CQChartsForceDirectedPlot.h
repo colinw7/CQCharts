@@ -118,6 +118,8 @@ class CQChartsForceDirectedEdgeObj : public CQChartsPlotObj {
 
   QString typeName() const override { return "edge"; }
 
+  const ForceEdgeP &edge() const { return edge_; }
+
   QString label() const;
 
   QString calcId() const override;
@@ -165,6 +167,11 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(double repulsion READ repulsion WRITE setRepulsion)
   Q_PROPERTY(double damping   READ damping   WRITE setDamping)
   Q_PROPERTY(bool   reset     READ isReset   WRITE setReset)
+
+  Q_PROPERTY(double minSpringLength READ minSpringLength WRITE setMinSpringLength)
+  Q_PROPERTY(double maxSpringLength READ maxSpringLength WRITE setMaxSpringLength)
+
+  Q_PROPERTY(bool unitRange READ isUnitRange WRITE setUnitRange)
 
   // node data
   Q_PROPERTY(NodeShape      nodeShape         READ nodeShape           WRITE setNodeShape        )
@@ -385,6 +392,15 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   //! get/set reset placement
   bool isReset() const { return false; }
   void setReset(bool b);
+
+  double minSpringLength() const { return minSpringLength_; }
+  void setMinSpringLength(double r);
+
+  double maxSpringLength() const { return maxSpringLength_; }
+  void setMaxSpringLength(double r);
+
+  bool isUnitRange() const { return unitRange_; }
+  void setUnitRange(bool b) { unitRange_ = b; }
 
   //---
 
@@ -827,6 +843,11 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
+  Point forcePointToPlot(const Point &p) const;
+  Point plotToForcePoint(const Point &p) const;
+
+  //---
+
   bool hasEdgeWidth(Edge *edge) const;
   OptReal calcNormalizedEdgeWidth(Edge *edge) const;
 
@@ -869,8 +890,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   struct NodeDrawData {
     NodeShape    shape          { NodeShape::CIRCLE };  //!< node shape
     bool         scaled         { true };               //!< is node scaled
-    Length       size           { Length::plot(1) };    //!< node size
-    Length       minSize        { Length::plot(0.1) };  //!< min node size
+    Length       size           { Length::plot(0.2) };  //!< node size
+    Length       minSize        { Length::pixel(32) };  //!< min node size
     bool         valueColored   { false };              //!< is node colored by value
     bool         valueLabel     { false };              //!< show value as label
     bool         mouseColoring  { false };              //!< is node edges colored on mouse over
@@ -951,6 +972,13 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   double stiffness_ { 400.0 };
   double repulsion_ { 400.0 };
   double damping_   { 0.5 };
+
+  double minSpringLength_ { 0.05 };
+  double maxSpringLength_ { 5.00 };
+
+  bool   unitRange_   { true };
+  Range  forceRange_;
+  double forceAspect_ { 1.0 };
 
   //---
 
