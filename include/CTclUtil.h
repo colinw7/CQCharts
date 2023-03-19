@@ -114,7 +114,7 @@ inline bool splitList(const std::string &str, StringList &strs) {
   int    argc;
   char **argv;
 
-  int rc = Tcl_SplitList(0, str.c_str(), &argc, const_cast<const char ***>(&argv));
+  int rc = Tcl_SplitList(nullptr, str.c_str(), &argc, const_cast<const char ***>(&argv));
 
   if (rc != TCL_OK)
     return false;
@@ -367,7 +367,7 @@ class CTcl {
     int flags = TCL_TRACE_READS | TCL_TRACE_WRITES | TCL_TRACE_UNSETS | TCL_GLOBAL_ONLY;
 
     ClientData data =
-      Tcl_VarTraceInfo(interp(), name.c_str(), flags, &CTcl::traceProc, 0);
+      Tcl_VarTraceInfo(interp(), name.c_str(), flags, &CTcl::traceProc, nullptr);
 
     if (! data) {
       Tcl_TraceVar(interp(), name.c_str(), flags,
@@ -489,7 +489,7 @@ class CTcl {
 
     th->handleTrace(name1, flags);
 
-    return 0;
+    return nullptr;
   }
 
  private:

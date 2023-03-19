@@ -93,8 +93,8 @@ class CListLink {
   using ListLink = CListLink<T>;
 
   CListLink() {
-    next = 0;
-    prev = 0;
+    next = nullptr;
+    prev = nullptr;
   }
 
   void addTo(T **head) {
@@ -118,7 +118,7 @@ class CListLink {
 
     if (*head) {
       if      (*head == (*head)->next)
-        *head = 0;
+        *head = nullptr;
       else if (th == *head)
         (*head) = (*head)->next;
 
@@ -165,7 +165,7 @@ class CListLink {
   using iterator = CInputIterator<IteratorState, T *>;
 
   iterator begin() const { return iterator(IteratorState(this)); }
-  iterator end  () const { return iterator(IteratorState(0));}
+  iterator end  () const { return iterator(IteratorState(nullptr));}
 
  public:
   T* next { nullptr };

@@ -195,9 +195,13 @@ void
 CQChartsEditHandles::
 draw(PaintDevice *device) const
 {
+  device->save();
+
   QPen pen(Qt::black);
 
-  pen.setStyle(Qt::DashLine);
+  CQChartsUtil::penSetLineDash(pen, CQChartsLineDash("2 2"));
+
+  //pen.setStyle(Qt::DashLine);
 
   //---
 
@@ -231,4 +235,6 @@ draw(PaintDevice *device) const
 
     device->drawRect(bbox_);
   }
+
+  device->restore();
 }

@@ -1152,7 +1152,7 @@ print(const QString &filename)
   if (! isShow()) {
     view->resize(view->sizeHint());
 
-    view->resizeEvent(0);
+    view->resizeEvent(nullptr);
   }
 
   view->printFile(filename);

@@ -191,15 +191,9 @@ updateLocation()
   double kx = bbox.getXMid() - ts.optWidth()/2.0;
   double ky = 0.0;
 
-  //auto *xAxis = plot_->xAxis();
-
   if      (location.type() == TitleLocation::Type::TOP) {
-    if (! isInsidePlot()) {
+    if (! isInsidePlot())
       ky = bbox.getYMax() + marginSize.height();
-
-      //if (xAxis)
-      //  ky += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).getOptHeight();
-    }
     else
       ky = bbox.getYMax() - ts.height() - marginSize.height();
   }
@@ -207,12 +201,8 @@ updateLocation()
     ky = bbox.getYMid() - ts.height()/2.0;
   }
   else if (location.type() == TitleLocation::Type::BOTTOM) {
-    if (! isInsidePlot()) {
+    if (! isInsidePlot())
       ky = bbox.getYMin() - ts.height() - marginSize.height();
-
-      //if (xAxis)
-      //  ky -= plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).getOptHeight();
-    }
     else
       ky = bbox.getYMin() + marginSize.height();
   }
@@ -575,10 +565,6 @@ draw(PaintDevice *device)
 
   auto obbox = CQChartsGeom::Margin::outsetBBox(ibbox, pm);
   auto bbox  = CQChartsGeom::Margin::outsetBBox(obbox, mm);
-
-//plot_->drawWindowColorBox(device, ibbox, Qt::blue);
-//plot_->drawWindowColorBox(device, obbox, Qt::green);
-//plot_->drawWindowColorBox(device,  bbox, Qt::red);
 
   //---
 

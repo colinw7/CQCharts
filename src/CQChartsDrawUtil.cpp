@@ -1925,6 +1925,7 @@ resizeHandlePath(PaintDevice *device, QPainterPath &path, const Point &p)
   path.closeSubpath();
 }
 
+// square
 void
 extraHandlePath(PaintDevice *device, QPainterPath &path, const Point &p)
 {
@@ -1935,6 +1936,21 @@ extraHandlePath(PaintDevice *device, QPainterPath &path, const Point &p)
   path.lineTo(QPointF(p.x + sx/2, p.y - sy/2));
   path.lineTo(QPointF(p.x + sx/2, p.y + sy/2));
   path.lineTo(QPointF(p.x - sx/2, p.y + sy/2));
+
+  path.closeSubpath();
+}
+
+// diamond
+void
+controlHandlePath(PaintDevice *device, QPainterPath &path, const Point &p)
+{
+  double sx = device->pixelToWindowWidth (16);
+  double sy = device->pixelToWindowHeight(16);
+
+  path.moveTo(QPointF(p.x - sx/2, p.y       ));
+  path.lineTo(QPointF(p.x       , p.y - sy/2));
+  path.lineTo(QPointF(p.x + sx/2, p.y       ));
+  path.lineTo(QPointF(p.x       , p.y + sy/2));
 
   path.closeSubpath();
 }

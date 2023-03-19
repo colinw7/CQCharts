@@ -23,6 +23,7 @@ class CQChartsResizeHandle : QObject {
   Q_PROPERTY(QColor        fillColor   READ fillColor   WRITE setFillColor  )
   Q_PROPERTY(CQChartsAlpha fillAlpha   READ fillAlpha   WRITE setFillAlpha  )
   Q_PROPERTY(QColor        strokeColor READ strokeColor WRITE setStrokeColor)
+  Q_PROPERTY(bool          control     READ isControl   WRITE setControl    )
 
  public:
   using View        = CQChartsView;
@@ -72,6 +73,11 @@ class CQChartsResizeHandle : QObject {
 
   //---
 
+  bool isControl() const { return control_; }
+  void setControl(bool b) { control_ = b; }
+
+  //---
+
   virtual void draw(PaintDevice *device) const;
 
   virtual QPainterPath calcPath(PaintDevice *device) const;
@@ -93,6 +99,7 @@ class CQChartsResizeHandle : QObject {
   PlotP                plot_;
   BBox                 bbox_;
   ResizeSide           side_        { ResizeSide::NONE };
+  bool                 control_     { false };
   bool                 selected_    { false };
   QVariant             data_;
   QColor               fillColor_   { "#4444aa" };

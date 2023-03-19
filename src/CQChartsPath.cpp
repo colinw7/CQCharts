@@ -46,6 +46,35 @@ bbox() const
 
 //---
 
+bool
+CQChartsPath::
+isControlPoint(int i) const
+{
+  if (! path_) return false;
+
+  int n = path_->elementCount();
+  if (i < 0 || i >= n) return false;
+
+  // contol points are curveTo or first of two curveToDatas
+  auto et = path_->elementAt(i);
+
+  if (et.type == QPainterPath::CurveToElement)
+    return true;
+
+  if (et.type == QPainterPath::CurveToDataElement) {
+    if (i < n - 1) {
+      auto et1 = path_->elementAt(i + 1);
+
+      if (et1.type == QPainterPath::CurveToDataElement)
+        return true;
+    }
+  }
+
+  return false;
+}
+
+//---
+
 void
 CQChartsPath::
 move(double dx, double dy)

@@ -336,9 +336,10 @@ void selfCurvePath(QPainterPath &path, const BBox &bbox, const EdgeType &edgeTyp
 
 //---
 
-void cornerHandlePath(PaintDevice *device, QPainterPath &path, const Point &p);
-void resizeHandlePath(PaintDevice *device, QPainterPath &path, const Point &p);
-void extraHandlePath (PaintDevice *device, QPainterPath &path, const Point &p);
+void cornerHandlePath (PaintDevice *device, QPainterPath &path, const Point &p);
+void resizeHandlePath (PaintDevice *device, QPainterPath &path, const Point &p);
+void extraHandlePath  (PaintDevice *device, QPainterPath &path, const Point &p);
+void controlHandlePath(PaintDevice *device, QPainterPath &path, const Point &p);
 
 //---
 

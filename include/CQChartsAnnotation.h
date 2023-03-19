@@ -1432,6 +1432,8 @@ class CQChartsPathAnnotation : public CQChartsShapeAnnotationBase {
   void writeDetails(std::ostream &os, const QString &parentVarName=QString(),
                     const QString &varName=QString()) const override;
 
+  void drawEditHandles(PaintDevice *device) const override;
+
  protected Q_SLOTS:
   void moveExtraHandle(const QVariant &data, double dx, double dy);
 

@@ -23,7 +23,7 @@ class CQChartsLineDashEdit : public QFrame {
   Q_PROPERTY(CQChartsLineDash lineDash READ getLineDash WRITE setLineDash)
 
  public:
-  CQChartsLineDashEdit(QWidget *parent=0);
+  CQChartsLineDashEdit(QWidget *parent=nullptr);
  ~CQChartsLineDashEdit();
 
   bool editable() const { return editable_; }

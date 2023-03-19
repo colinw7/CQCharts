@@ -13,7 +13,7 @@ class CQFilename : public QFrame {
   Q_PROPERTY(QString pattern READ pattern WRITE setPattern)
 
  public:
-  CQFilename(QWidget *parent=0);
+  CQFilename(QWidget *parent=nullptr);
 
   bool isSave() const { return save_; }
   void setSave(bool b) { save_ = b; }

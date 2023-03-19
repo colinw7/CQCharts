@@ -814,7 +814,7 @@ cleanEdges()
       else
         e->setRightFace(e->coneFace());
 
-      e->setConeFace(0);
+      e->setConeFace(nullptr);
     }
 
     e = e->next;
@@ -951,7 +951,7 @@ cleanVertices(PVertex *pvnext)
     v = vertices_;
 
     do {
-      v->setDuplicateEdge(0);
+      v->setDuplicateEdge(nullptr);
       v->setOnHull       (false);
 
       v = v->next;

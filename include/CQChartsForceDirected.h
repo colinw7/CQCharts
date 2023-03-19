@@ -30,6 +30,8 @@ class CQChartsForceDirectedNode : public Springy::Node {
   using ColorInd      = CQChartsUtil::ColorInd;
   using OptReal       = CQChartsOptReal;
   using BBox          = CQChartsGeom::BBox;
+  using Point         = CQChartsGeom::Point;
+  using OptPoint      = std::optional<Point>;
 
   using EdgeSet = std::set<Edge *>;
   using Slots   = std::map<int, EdgeSet>;
@@ -61,6 +63,9 @@ class CQChartsForceDirectedNode : public Springy::Node {
 
   const QModelIndex &ind() const { return ind_; }
   void setInd(const QModelIndex &i) { ind_ = i; }
+
+  const OptPoint &initPos() const { return initPos_; }
+  void setInitPos(const OptPoint &p) { initPos_ = p; }
 
   const BBox &bbox() const { return bbox_; }
   void setBBox(const BBox &b) { bbox_ = b; }
@@ -94,6 +99,7 @@ class CQChartsForceDirectedNode : public Springy::Node {
   Shape       shape_    { Shape::NONE };
   Color       fillColor_;
   OptReal     nodeValue_;
+  OptPoint    initPos_;
   QModelIndex ind_;
   BBox        bbox_;
   ColorInd    colorInd_;

@@ -258,7 +258,7 @@ positionFromParent(const ObjRef &objRef, const Position &pos) const
   else if (objRef.location() == ObjRef::Location::RIGHT    ) p -= bbox.getMidR();
   else if (objRef.location() == ObjRef::Location::BOTTOM   ) p -= bbox.getMidB();
   else if (objRef.location() == ObjRef::Location::TOP      ) p -= bbox.getMidT();
-  if      (objRef.location() == ObjRef::Location::LL       ) p -= bbox.getLL();
+  else if (objRef.location() == ObjRef::Location::LL       ) p -= bbox.getLL();
   else if (objRef.location() == ObjRef::Location::LR       ) p -= bbox.getLR();
   else if (objRef.location() == ObjRef::Location::UL       ) p -= bbox.getUL();
   else if (objRef.location() == ObjRef::Location::UR       ) p -= bbox.getUR();

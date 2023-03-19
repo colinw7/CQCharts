@@ -165,10 +165,11 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(int    maxSteps     READ maxSteps     WRITE setMaxSteps)
 
   // placement
-  Q_PROPERTY(double stiffness READ stiffness WRITE setStiffness)
-  Q_PROPERTY(double repulsion READ repulsion WRITE setRepulsion)
-  Q_PROPERTY(double damping   READ damping   WRITE setDamping)
-  Q_PROPERTY(bool   reset     READ isReset   WRITE setReset)
+  Q_PROPERTY(double stiffness     READ stiffness     WRITE setStiffness)
+  Q_PROPERTY(double repulsion     READ repulsion     WRITE setRepulsion)
+  Q_PROPERTY(double damping       READ damping       WRITE setDamping)
+  Q_PROPERTY(double centerAttract READ centerAttract WRITE setCenterAttract)
+  Q_PROPERTY(bool   reset         READ isReset       WRITE setReset)
 
   Q_PROPERTY(double minSpringLength READ minSpringLength WRITE setMinSpringLength)
   Q_PROPERTY(double maxSpringLength READ maxSpringLength WRITE setMaxSpringLength)
@@ -391,6 +392,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   double damping() const { return damping_; }
   void setDamping(double r);
 
+  //! get/set placement center attaction
+  double centerAttract() const { return centerAttract_; }
+  void setCenterAttract(double r);
+
   //! get/set reset placement
   bool isReset() const { return false; }
   void setReset(bool b);
@@ -562,6 +567,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   void animateStep() override;
 
+  void initNodePos();
+
   //---
 
   // add properties
@@ -630,6 +637,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   void processNodeNameValues(ConnectionsData &connectionsData,
                              const NameValues &nameValues) const;
+
+  bool processNodeNameVar(ConnectionsData &connectionsData, const QString &name,
+                          const QVariant &var) const;
   void processNodeNameValue(ConnectionsData &connectionsData, const QString &name,
                             const QString &valueStr) const;
 
@@ -637,8 +647,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
-  static void stringToShapeType(const QString &str, NodeShape &shapeType);
-  static void stringToShapeType(const QString &str, EdgeShape &shapeType);
+  static bool stringToShapeType(const QString &str, NodeShape &shapeType);
+  static bool stringToShapeType(const QString &str, EdgeShape &shapeType);
 
   //---
 
@@ -769,6 +779,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Edge::Shape calcEdgeShape(Edge *sedge) const;
 
  private:
+  using OptPoint = std::optional<Point>;
+
   struct FillData {
     Color color;
   };
@@ -802,6 +814,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     int         group        { 0 };               //!< group
     OptReal     value;                            //!< value
     OptReal     total;                            //!< total
+    OptPoint    pos;                              //!< postion
     int         depth        { -1 };              //!< depth
     bool        visible      { true };            //!< is visible
     int         parentId     { -1 };              //!< parent
@@ -973,9 +986,10 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   int    maxSteps_       { -1 };    //!< max steps
 
   // placement
-  double stiffness_ { 400.0 };
-  double repulsion_ { 400.0 };
-  double damping_   { 0.5 };
+  double stiffness_     { 400.0 };
+  double repulsion_     { 400.0 };
+  double damping_       { 0.5 };
+  double centerAttract_ { 50.0 };
 
   double minSpringLength_ { 0.05 };
   double maxSpringLength_ { 5.00 };

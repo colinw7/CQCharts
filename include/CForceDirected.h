@@ -31,6 +31,10 @@ class CForceDirected {
   double damping() const { return damping_; }
   void setDamping(double r) { damping_ = r; if (layout_) layout_->setDamping(damping_); }
 
+  double centerAttract() const { return centerAttract_; }
+  void setCenterAttract(double r) {
+    centerAttract_ = r; if (layout_) layout_->setCenterAttract(centerAttract_); }
+
   void resetPlacement() {
     layout_->resetNodes();
   }
@@ -150,18 +154,23 @@ class CForceDirected {
   }
 
   virtual LayoutP makeLayout() const {
-    return LayoutP(new Springy::Layout(graph_.get(), stiffness_, repulsion_, damping_));
+    auto *layout = new Springy::Layout(graph_.get(), stiffness_, repulsion_, damping_);
+
+    layout->setCenterAttract(centerAttract_);
+
+    return LayoutP(layout);
   }
 
  private:
-  double  stiffness_    { 400.0 };
-  double  repulsion_    { 400.0 };
-  double  damping_      { 0.5 };
-  bool    initialized_  { false };
+  double  stiffness_     { 400.0 };
+  double  repulsion_     { 400.0 };
+  double  damping_       { 0.5 };
+  double  centerAttract_ { 50.0 };
+  bool    initialized_   { false };
   GraphP  graph_;
   LayoutP layout_;
-  NodeP   currentNode_  { nullptr };
-  PointP  currentPoint_ { nullptr };
+  NodeP   currentNode_   { nullptr };
+  PointP  currentPoint_  { nullptr };
 };
 
 #endif

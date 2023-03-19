@@ -139,9 +139,10 @@ init()
 
   forceDirected_ = std::make_unique<CQChartsForceDirected>();
 
-  forceDirected_->setStiffness(stiffness_);
-  forceDirected_->setRepulsion(repulsion_);
-  forceDirected_->setDamping(damping_);
+  forceDirected_->setStiffness(stiffness());
+  forceDirected_->setRepulsion(repulsion());
+  forceDirected_->setDamping(damping());
+  forceDirected_->setCenterAttract(centerAttract());
 
   //---
 
@@ -511,7 +512,8 @@ void
 CQChartsForceDirectedPlot::
 setStiffness(double r)
 {
-  stiffness_ = r;
+  // TODO: better range
+  stiffness_ = std::min(std::max(r, 0.0), 10000.0);
 
   if (forceDirected_)
     forceDirected_->setStiffness(stiffness_);
@@ -521,7 +523,8 @@ void
 CQChartsForceDirectedPlot::
 setRepulsion(double r)
 {
-  repulsion_ = r;
+  // TODO: better range
+  repulsion_ = std::min(std::max(r, 0.0), 100000.0);
 
   if (forceDirected_)
     forceDirected_->setRepulsion(repulsion_);
@@ -531,7 +534,8 @@ void
 CQChartsForceDirectedPlot::
 setDamping(double r)
 {
-  damping_ = r;
+  // TODO: better range
+  damping_ = std::min(std::max(r, 0.1), 0.9);
 
   if (forceDirected_)
     forceDirected_->setDamping(damping_);
@@ -539,10 +543,49 @@ setDamping(double r)
 
 void
 CQChartsForceDirectedPlot::
+setCenterAttract(double r)
+{
+  // TODO: better range
+  centerAttract_ = std::min(std::max(r, 0.0), 1000.0);
+
+  if (forceDirected_)
+    forceDirected_->setCenterAttract(centerAttract_);
+}
+
+void
+CQChartsForceDirectedPlot::
 setReset(bool b)
 {
-  if (forceDirected_ && b)
+  if (forceDirected_ && b) {
     forceDirected_->resetPlacement();
+
+    initNodePos();
+
+    drawObjs();
+
+    updatePlotObjs();
+  }
+}
+
+void
+CQChartsForceDirectedPlot::
+initNodePos()
+{
+  for (const auto &pn : nodes_) {
+    const auto &node = pn.second;
+
+    auto *snode = dynamic_cast<Node *>(node.get());
+    assert(snode);
+
+    if (snode->initPos()) {
+      auto p  = snode->initPos().value();
+      auto p1 = plotToForcePoint(p);
+
+      auto fp = forceDirected_->point(node);
+
+      fp->setP(SpringVec(p1.x, p1.y));
+    }
+  }
 }
 
 void
@@ -696,10 +739,11 @@ addProperties()
 
   //---
 
-  addProp("placement", "stiffness", "", "Force directed stiffness");
-  addProp("placement", "repulsion", "", "Force directed repulsion");
-  addProp("placement", "damping"  , "", "Force directed damping");
-  addProp("placement", "reset"    , "", "Reset placement");
+  addProp("placement", "stiffness"    , "", "Force directed stiffness");
+  addProp("placement", "repulsion"    , "", "Force directed repulsion");
+  addProp("placement", "damping"      , "", "Force directed damping");
+  addProp("placement", "centerAttract", "", "Force directed center attraction");
+  addProp("placement", "reset"        , "", "Reset placement");
 
   addProp("placement", "minSpringLength", "", "Min spring length");
   addProp("placement", "maxSpringLength", "", "Max spring length");
@@ -797,9 +841,10 @@ createObjs(PlotObjs &) const
 
   th->forceDirected_ = std::make_unique<CQChartsForceDirected>();
 
-  th->forceDirected_->setStiffness(stiffness_);
-  th->forceDirected_->setRepulsion(repulsion_);
-  th->forceDirected_->setDamping(damping_);
+  th->forceDirected_->setStiffness(stiffness());
+  th->forceDirected_->setRepulsion(repulsion());
+  th->forceDirected_->setDamping(damping());
+  th->forceDirected_->setCenterAttract(centerAttract());
 
   //th->forceDirected_->reset();
 
@@ -950,20 +995,8 @@ processMetaData() const
 
         auto &connectionsData = th->getConnections(name);
 
-        if (key1 == "value") {
-          bool ok;
-          auto r = CQChartsVariant::toReal(value, ok);
-
-          if (ok)
-            connectionsData.value = OptReal(r);
-
+        if (processNodeNameVar(connectionsData, key1, value))
           handled = true;
-        }
-        else if (key1 == "label") {
-          connectionsData.label = value.toString();
-
-          handled = true;
-        }
       }
 
       if (! handled) {
@@ -1056,6 +1089,9 @@ addIdConnections() const
     if (connectionsData.shapeType != NodeShape::NONE)
       snode->setShape(static_cast<Node::Shape>(connectionsData.shapeType));
 
+    if (connectionsData.pos)
+      snode->setInitPos(connectionsData.pos);
+
     if (connectionsData.fillData.color.isValid())
       snode->setFillColor(connectionsData.fillData.color);
 
@@ -1102,18 +1138,20 @@ addIdConnections() const
       //---
 
       // set edge value
-      double value = 0.0;
+      OptReal value;
 
       if (connectionData.value.isSet())
-        value = connectionData.value.real();
+        value = OptReal(connectionData.value.real());
 
-      double length = 1.0;
+      if (value.isSet()) {
+        auto length = CMathUtil::map(value.real(), 0.0, maxEdgeValue(),
+                                     maxSpringLength(), minSpringLength());
 
-      if (value > 0.0)
-        length = CMathUtil::map(value, 0.0, maxEdgeValue(), maxSpringLength(), minSpringLength());
+        sedge->setLength(length);
+      }
 
-      sedge->setLength(length);
-      sedge->setValue(value);
+      if (value.isSet())
+        sedge->setValue(value.value());
 
       //---
 
@@ -1150,6 +1188,8 @@ addIdConnections() const
   //---
 
   th->updateMaxNodeValue();
+
+  th->initNodePos();
 }
 
 void
@@ -1562,6 +1602,8 @@ addFromToValue(const FromToData &fromToData) const
         connection->edgeWidth = OptReal(edgeWidth);
     }
 
+    //---
+
     // set edge name values (attribute column)
     processEdgeNameValues(connection, fromToData.nameValues);
   }
@@ -1946,57 +1988,87 @@ CQChartsForceDirectedPlot::
 processNodeNameValue(ConnectionsData &connectionsData, const QString &name,
                      const QString &valueStr) const
 {
+  if (! processNodeNameVar(connectionsData, name, valueStr)) {
+    auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
+
+    th->addDataError(ModelIndex(), QString("Unhandled name '%1'").arg(name));
+  }
+}
+
+bool
+CQChartsForceDirectedPlot::
+processNodeNameVar(ConnectionsData &connectionsData, const QString &name,
+                   const QVariant &var) const
+{
   // custom shape
   if      (name == "shape") {
     NodeShape shapeType;
 
-    stringToShapeType(valueStr, shapeType);
+    if (! stringToShapeType(var.toString(), shapeType))
+      return false;
 
     connectionsData.shapeType = shapeType;
   }
   // custom label
   else if (name == "label") {
-    connectionsData.label = valueStr;
+    connectionsData.label = var.toString();
   }
   // custom value
   else if (name == "value") {
     bool ok;
-    auto r = CQChartsUtil::toReal(valueStr, ok);
+    auto r = CQChartsVariant::toReal(var, ok);
+    if (! ok) return false;
 
-    if (ok)
-      connectionsData.value = OptReal(r);
+    connectionsData.value = OptReal(r);
+  }
+  // custom init pos
+  else if (name == "pos" || name == "init_pos") {
+    bool ok;
+    auto pos = CQChartsVariant::toPoint(var, ok);
+    if (! ok) return false;
+
+    connectionsData.pos = OptPoint(pos);
   }
   // custom fill color
   else if (name == "fill_color" || name == "color") {
-    connectionsData.fillData.color = Color(valueStr);
+    bool ok;
+    connectionsData.fillData.color = CQChartsVariant::toColor(var, ok);
+    if (! ok) return false;
   }
   // custom fill alpha
   else if (name == "fill_alpha" || name == "alpha") {
-    //connectionsData.fillAlpha = CQChartsUtil::toReal(valueStr, ok);
+    //bool ok;
+    //connectionsData.fillAlpha = CQChartsVariant::toReal(var, ok);
+    //if (! ok) return false;
   }
   // custom stroke color
   else if (name == "stroke_color") {
-    //connectionsData.strokeColor = Color(valueStr);
+    //bool ok;
+    //connectionsData.strokeColor = CQChartsVariant::toColor(var, ok);
+    //if (! ok) return false;
   }
   // custom stroke alpha
   else if (name == "stroke_alpha") {
-    //connectionsData.strokeAlpha = CQChartsUtil::toReal(valueStr, ok);
+    //bool ok;
+    //connectionsData.strokeAlpha = CQChartsVariant::toReal(var, ok);
+    //if (! ok) return false;
   }
 #if 0
   // custom stroke width
   else if (name == "stroke_width" || name == "width") {
-    node->setStrokeWidth(CQChartsLength(valueStr));
+    //bool ok;
+    node->setStrokeWidth(CQChartsVariant::toLength(var, ok));
+    //if (! ok) return false;
   }
   // custom stroke dash
   else if (name == "stroke_dash" || name == "dash") {
-    node->setStrokeDash(CQChartsLineDash(valueStr));
+    node->setStrokeDash(CQChartsLineDash(var.toString()));
   }
 #endif
-  else {
-    auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
+  else
+    return false;
 
-    th->addDataError(ModelIndex(), QString("Unhandled name '%1'").arg(name));
-  }
+  return true;
 }
 
 void
@@ -2011,7 +2083,7 @@ processEdgeNameValues(Connection *connection, const NameValues &nameValues) cons
     if      (name == "shape") {
       EdgeShape shapeType;
 
-      stringToShapeType(valueStr, shapeType);
+      (void) stringToShapeType(valueStr, shapeType);
 
       connection->shapeType = shapeType;
     }
@@ -2040,7 +2112,7 @@ processEdgeNameValues(Connection *connection, const NameValues &nameValues) cons
   }
 }
 
-void
+bool
 CQChartsForceDirectedPlot::
 stringToShapeType(const QString &str, NodeShape &shapeType)
 {
@@ -2051,17 +2123,26 @@ stringToShapeType(const QString &str, NodeShape &shapeType)
   else {
     //charts()->errorMsg("Unhandled shape type " + str);
     shapeType = NodeShape::BOX;
+    return false;
   }
+
+  return true;
 }
 
-void
+bool
 CQChartsForceDirectedPlot::
 stringToShapeType(const QString &str, EdgeShape &shapeType)
 {
   if      (str == "arc" )        shapeType = EdgeShape::ARC;
   else if (str == "line")        shapeType = EdgeShape::LINE;
   else if (str == "rectilinear") shapeType = EdgeShape::RECTILINEAR;
-  else                           shapeType = EdgeShape::NONE;
+  else {
+    //charts()->errorMsg("Unhandled shape type " + str);
+    shapeType = EdgeShape::NONE;
+    return false;
+  }
+
+  return true;
 }
 
 //---
@@ -2274,8 +2355,8 @@ CQChartsForceDirectedPlot::
 doAutoFit()
 {
   if (isAutoFit()) {
-    // set margin to max of node size and 3 pixels
-    double s = lengthPlotWidth(nodeSize());
+    // set margin to max of node radius and 3 pixels
+    double s = lengthPlotWidth(nodeSize())/2.0;
 
     auto minSize = pixelToWindowWidth(3.0);
 
@@ -4214,7 +4295,7 @@ CQChartsGeom::Point
 CQChartsForceDirectedPlot::
 plotToForcePoint(const Point &p) const
 {
-  if (! isUnitRange())
+  if (! isUnitRange() || ! forceRange_.isSet())
     return p;
 
   auto x = p.x;

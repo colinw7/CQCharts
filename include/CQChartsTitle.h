@@ -183,7 +183,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   Size textSize_;         //!< main size (without padding, border)
   Size subTitleTextSize_; //!< subtitle size (without padding, border)
   Size allTextSize_;      //!< combined size (without padding, border)
-  Size size_;             //!< size (with padding, border)
+  Size size_;             //!< size (width padding, border)
 
   FitData fitData_; //!< fit data
 

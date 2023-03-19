@@ -491,7 +491,7 @@ bool fileToLines(const QString &filename, QStringList &lines, int maxLines) {
     if (fp)
       fclose(fp);
 
-    fp = 0;
+    fp = nullptr;
   };
 
   //---

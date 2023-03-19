@@ -106,34 +106,12 @@ intersectShape(const Point &p1, const Point &p2, Point &pi) const
     if (intersectLines(x1, y2, x1, y1, xi, yi)) ipoints.push_back(Point(xi, yi));
   }
   else if (objShapeType() == ObjShapeType::CIRCLE) {
-    auto c = rect().getCenter();
-    auto r = rect().getWidth()/2.0;
+    Point pi;
 
-    double xi1, yi1, xi2, yi2;
-    uint n;
-
-    if (! CMathGeom2D::CircleLineIntersect(c.x, c.y, r, p1.x, p1.y, p2.x, p2.y,
-                                           &xi1, &yi1, &xi2, &yi2, &n))
+    if (! CQChartsGeom::lineIntersectCircle(rect(), p1, p2, pi))
       return false;
 
-    auto calcMu = [&](double x, double y) {
-      if (! CMathUtil::realEq(p1.x, p2.x))
-        return (x - p1.x)/(p2.x - p1.x);
-      else
-        return (y - p1.y)/(p2.y - p1.y);
-    };
-
-    auto mu1 = calcMu(xi1, yi1);
-
-    if (mu1 >= 0.0 && mu1 <= 1.0)
-      ipoints.push_back(Point(xi1, yi1));
-
-    if (n > 1) {
-      auto mu2 = calcMu(xi2, yi2);
-
-      if (mu2 >= 0.0 && mu2 <= 1.0)
-        ipoints.push_back(Point(xi2, yi2));
-    }
+    ipoints.push_back(pi);
   }
   else
     return false;

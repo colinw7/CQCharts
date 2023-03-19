@@ -104,7 +104,10 @@ calcPath(PaintDevice *device) const
   else if (side() == CQChartsResizeSide::EXTRA) {
     auto c = bbox_.getCenter();
 
-    CQChartsDrawUtil::extraHandlePath(device, path, c);
+    if (isControl())
+      CQChartsDrawUtil::controlHandlePath(device, path, c);
+    else
+      CQChartsDrawUtil::extraHandlePath(device, path, c);
   }
   else {
     assert(false);

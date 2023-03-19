@@ -22,8 +22,11 @@ namespace Springy {
    */
   class Vector {
    public:
+    static constexpr double spaceSize = 10.0;
+
+   public:
     static Vector random() {
-      return Vector(10.0*(randDouble() - 0.5), 10.0*(randDouble() - 0.5));
+      return Vector(spaceSize*(randDouble() - 0.5), spaceSize*(randDouble() - 0.5));
     }
 
     Vector(double x=0.0, double y=0.0) :
@@ -141,7 +144,7 @@ namespace Springy {
     double distanceToPoint(const Point &point) {
       auto n  = point2.p.subtract(point1.p).normalise().normal();
       auto ac = point .p.subtract(point1.p);
-      return abs(ac.x * n.x + ac.y * n.y);
+      return abs(ac.x*n.x + ac.y*n.y);
     }
 */
 
@@ -492,6 +495,9 @@ namespace Springy {
     double damping() const { return damping_; }
     void setDamping(double r) { damping_ = r; }
 
+    double centerAttract() const { return centerAttract_; }
+    void setCenterAttract(double r) { centerAttract_ = r; }
+
     PointP nodePoint(NodeP node) const {
       auto *th = const_cast<Layout *>(this);
 
@@ -630,7 +636,7 @@ namespace Springy {
 
         Vector direction = point->p().multiply(-1.0);
 
-        point->applyForce(direction.multiply(repulsion()/50.0));
+        point->applyForce(direction.multiply(repulsion()/centerAttract()));
       }
     }
 
@@ -767,6 +773,7 @@ namespace Springy {
     double      stiffness_          { 400.0 };   //!< spring stiffness constant
     double      repulsion_          { 400.0 };   //!< repulsion constant
     double      damping_            { 0.5 };     //!< velocity damping factor
+    double      centerAttract_      { 50.0 };    //!< center attraction
 //  double      minEnergyThreshold_ { 0.0 };     //!< min energy threshold
     NodePoints  nodePoints_;                     //!< keep track of points associated with nodes
     EdgeSprings edgeSprings_;                    //!< keep track of springs associated with edges

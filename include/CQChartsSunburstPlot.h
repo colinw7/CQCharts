@@ -292,7 +292,7 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
 class CQChartsSunburstRootNode : public CQChartsSunburstHierNode {
  public:
   CQChartsSunburstRootNode(const SunburstPlot *plot, const QString &name="") :
-   CQChartsSunburstHierNode(plot, 0, name) {
+   CQChartsSunburstHierNode(plot, nullptr, name) {
   }
 
   void packNodes(double ri=0.5, double ro=1.0, double dr=0.0,

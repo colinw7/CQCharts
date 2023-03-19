@@ -11,7 +11,7 @@ class CQChartsHeader : public CQHeaderView {
   Q_OBJECT
 
  public:
-  CQChartsHeader(QWidget *parent=0);
+  CQChartsHeader(QWidget *parent=nullptr);
 };
 
 #endif

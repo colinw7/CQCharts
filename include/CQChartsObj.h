@@ -92,7 +92,7 @@ class CQChartsObj : public QObject {
 
   //---
 
-  //! get set rect
+  //! get/set rect
   const BBox &rect() const { return rect_; }
   virtual void setRect(const BBox &r) { rect_ = r; dataInvalidate(DataType::RECT); }
 
@@ -105,7 +105,7 @@ class CQChartsObj : public QObject {
 
   // tip id for object (string to display in tooltip)
 
-  //! has tp id
+  //! has tip id
   bool hasTipId() const { return !!tipId_; }
 
   //! get/set tip id

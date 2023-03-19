@@ -51,6 +51,9 @@ fromStrings(const QStringList &strs)
   if (strs.length() >= 2) {
     setName    (strs[0]);
     setLocation(nameToLocation(strs[1]));
+
+    if (location() == Location::NONE)
+      setLocation(Location::CENTER);
   }
   else {
     setName    (strs[0]);
@@ -75,7 +78,7 @@ locationToName(const Location &location)
     case Location::LR       : return "lr";
     case Location::UR       : return "ur";
     case Location::INTERSECT: return "intersect";
-    default                 : return "none";
+    default                 : return "";
   };
 }
 

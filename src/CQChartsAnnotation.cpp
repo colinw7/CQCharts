@@ -4496,6 +4496,58 @@ draw(PaintDevice *device)
 
 //--
 
+void
+CQChartsPathAnnotation::
+drawEditHandles(PaintDevice *device) const
+{
+  CQChartsAnnotation::drawEditHandles(device);
+
+  //---
+
+  device->save();
+
+  QPen pen;
+
+  CQChartsUtil::penSetLineDash(pen, CQChartsLineDash("5 3"));
+
+  auto *handles = CQChartsViewPlotObj::editHandles();
+
+  const auto &extraHandles = handles->extraHandles();
+
+  int np = path_.numPoints();
+
+  assert(int(extraHandles.size()) == np);
+
+  Point lastP;
+  bool  lastSelected = false;
+  bool  lastIsControl = false;
+
+  for (int i = 0; i < np; ++i) {
+    auto p = path_.pointAt(i);
+
+    bool isControl = path_.isControlPoint(i);
+
+    bool selected = extraHandles[i]->isSelected();
+
+    if ((isControl && ! lastIsControl) || (! isControl && lastIsControl)) {
+      if (selected || lastSelected)
+        pen.setColor(extraHandles[i]->fillColor());
+      else
+        pen.setColor(extraHandles[i]->strokeColor());
+
+      device->setPen(pen);
+
+      device->drawLine(lastP, p);
+    }
+
+    lastP         = p;
+    lastIsControl = isControl;
+    lastSelected  = selected;
+  }
+
+  device->restore();
+}
+
 CQChartsEditHandles *
 CQChartsPathAnnotation::
 editHandles() const
@@ -4524,6 +4576,8 @@ editHandles() const
 
   for (auto &extraHandle : handles->extraHandles()) {
     extraHandle->setData(CQChartsVariant::fromInt(i));
+
+    extraHandle->setControl(path_.isControlPoint(i));
 
     auto p = path_.pointAt(i);
 
@@ -4614,8 +4668,6 @@ CQChartsArrowAnnotation::
 init()
 {
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
-
-  editHandles()->setMode(EditHandles::Mode::RESIZE);
 
   if (plot())
     arrow_ = std::make_unique<CQChartsArrow>(plot());

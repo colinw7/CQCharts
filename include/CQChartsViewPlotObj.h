@@ -89,7 +89,7 @@ class CQChartsViewPlotObj : public CQChartsObj,
   // text utilities
   QFont calcFont(const Font &font) const;
 
-  void setPainterFont(PaintDevice *painter, const Font &font) const;
+  void setPainterFont(PaintDevice *device, const Font &font) const;
 
   void adjustTextOptions(TextOptions &textOptions) const;
 

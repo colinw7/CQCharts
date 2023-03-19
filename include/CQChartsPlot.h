@@ -2843,7 +2843,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // draw key on foreground
   virtual bool hasGroupedFgKey() const;
 
-  virtual void drawFgKey(PaintDevice *painter) const;
+  virtual void drawFgKey(PaintDevice *device) const;
 
   // draw title
   virtual bool hasTitle() const;

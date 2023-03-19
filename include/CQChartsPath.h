@@ -122,6 +122,8 @@ class CQChartsPath :
 
   void setPointAt(int i, const Point &p) { path().setElementPositionAt(i, p.x, p.y); }
 
+  bool isControlPoint(int i) const;
+
   //---
 
   void move (double dx, double dy);
