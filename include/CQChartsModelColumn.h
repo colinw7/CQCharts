@@ -8,9 +8,10 @@
 #include <QString>
 
 class CQCharts;
+class CQChartsModelData;
 
 /*!
- * \brief class to contain charts angle (degrees)
+ * \brief class to contain model column
  * \ingroup Charts
  *
  * TODO: support postfix for type of degrees/radians
@@ -28,7 +29,8 @@ class CQChartsModelColumn :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsModelColumn, metaTypeId)
 
  public:
-  using Column = CQChartsColumn;
+  using ModelData = CQChartsModelData;
+  using Column    = CQChartsColumn;
 
  public:
   //! default constructor
@@ -50,6 +52,10 @@ class CQChartsModelColumn :
 
   const Column &column() const { return column_; }
   void setColumn(const Column &v) { column_ = v; }
+
+  //---
+
+  const ModelData *modelData() const;
 
   //---
 

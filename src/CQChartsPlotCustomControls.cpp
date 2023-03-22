@@ -665,6 +665,8 @@ updateWidgets()
 
   //----
 
+  const auto &plotModel = plot()->currentModel();
+
   if (colorEdit_) {
     auto hasColorColumn = plot()->colorColumn().isValid();
     auto isNative       = (plot()->colorMapType() == Plot::ColumnType::COLOR);
@@ -676,7 +678,7 @@ updateWidgets()
 
     colorEdit_->setColor(getColorValue());
 
-    colorColumnCombo_->setModelColumn(plot()->getModelData(), plot()->colorColumn());
+    colorColumnCombo_->setModelColumn(plot()->getModelData(plotModel), plot()->colorColumn());
 
     auto paletteName = plot()->colorMapPalette();
 
@@ -699,7 +701,7 @@ updateWidgets()
   for (auto *columnEdit : columnEdits_) {
     auto *parameter = columnEdit->parameter();
 
-    columnEdit->setModelData(plot()->getModelData());
+    columnEdit->setModelData(plot()->getModelData(plotModel));
     columnEdit->setColumn   (plot()->getNamedColumn(parameter->name()));
 
     if (parameter->isNumericColumn())
@@ -709,7 +711,7 @@ updateWidgets()
   for (auto *columnsEdit : columnsEdits_) {
     auto *parameter = columnsEdit->parameter();
 
-    columnsEdit->setModelData(plot()->getModelData());
+    columnsEdit->setModelData(plot()->getModelData(plotModel));
     columnsEdit->setColumns  (plot()->getNamedColumns(parameter->name()));
 
     if (parameter->isNumericColumn())

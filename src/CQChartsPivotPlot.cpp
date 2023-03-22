@@ -126,7 +126,7 @@ init()
 
   //---
 
-  pivotModel_ = new CQPivotModel(model().data());
+  pivotModel_ = new CQPivotModel(this->currentModel().data());
 
   pivotModel_->setIncludeTotals(false);
 

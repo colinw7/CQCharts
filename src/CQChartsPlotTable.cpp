@@ -525,7 +525,9 @@ updatePlots(CQChartsView *view)
     (void) createItem(plot->connectionStateStr(), i, 2);
 
     // set model item
-    auto *modelData = plot->getModelData();
+    const auto &model = plot->currentModel();
+
+    auto *modelData = plot->getModelData(model);
 
     if (modelData)
       (void) createItem(modelData->id(), i, 3);

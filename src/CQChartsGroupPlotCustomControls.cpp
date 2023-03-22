@@ -119,7 +119,10 @@ updateWidgets()
   //---
 
   if (groupColumnCombo_) {
-    groupColumnCombo_->setModelColumn(groupPlot_->getModelData(), groupPlot_->groupColumn());
+    const auto &groupModel = groupPlot_->currentModel();
+
+    groupColumnCombo_->setModelColumn(groupPlot_->getModelData(groupModel),
+                                      groupPlot_->groupColumn());
 
     //---
 

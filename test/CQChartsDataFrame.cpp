@@ -1029,7 +1029,9 @@ exec(CQTclCmd::CmdArgs &argv)
 
       //---
 
-      CQChartsAnalyzeModel analyzeModel(charts, plot->getModelData());
+      const auto &plotModel = plot->currentModel();
+
+      CQChartsAnalyzeModel analyzeModel(charts, plot->getModelData(plotModel));
 
       analyzeModel.initPlot(plot);
     }

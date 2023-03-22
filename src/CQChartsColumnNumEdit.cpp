@@ -33,8 +33,11 @@ void
 CQChartsColumnNumLineEdit::
 setPlot(CQChartsPlot *plot)
 {
-  if (plot)
-    setModelData(plot->getModelData());
+  if (plot) {
+    const auto &plotModel = plot->currentModel();
+
+    setModelData(plot->getModelData(plotModel));
+  }
   else
     setModelData(nullptr);
 }

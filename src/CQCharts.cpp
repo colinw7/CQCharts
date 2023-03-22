@@ -84,6 +84,7 @@
 #include <CQChartsLineCapEdit.h>
 #include <CQChartsLineJoinEdit.h>
 #include <CQChartsMarginEdit.h>
+#include <CQChartsModelColumnEdit.h>
 #include <CQChartsPaletteNameEdit.h>
 #include <CQChartsPolygonEdit.h>
 #include <CQChartsPositionEdit.h>
@@ -707,13 +708,13 @@ init()
     viewMgr->addTypeT<CQChartsImagePropertyViewType           >("CQChartsImage"           );
     viewMgr->addTypeT<CQChartsKeyLocationPropertyViewType     >("CQChartsKeyLocation"     );
     viewMgr->addTypeT<CQChartsKeyPressBehaviorPropertyViewType>("CQChartsKeyPressBehavior");
-    viewMgr->addTypeT<CQChartsTitleLocationPropertyViewType   >("CQChartsTitleLocation"   );
     viewMgr->addTypeT<CQChartsLengthPropertyViewType          >("CQChartsLength"          );
     viewMgr->addTypeT<CQChartsLineCapPropertyViewType         >("CQChartsLineCap"         );
     viewMgr->addTypeT<CQChartsLineDashPropertyViewType        >("CQChartsLineDash"        );
     viewMgr->addTypeT<CQChartsLineDataPropertyViewType        >("CQChartsLineData"        );
     viewMgr->addTypeT<CQChartsLineJoinPropertyViewType        >("CQChartsLineJoin"        );
     viewMgr->addTypeT<CQChartsMarginPropertyViewType          >("CQChartsMargin"          );
+    viewMgr->addTypeT<CQChartsModelColumnPropertyViewType     >("CQChartsModelColumn"     );
 //  viewMgr->addTypeT<CQChartsObjRefPropertyViewType          >("CQChartsObjRef"          );
 //  viewMgr->addTypeT<CQChartsObjRefPosPropertyViewType       >("CQChartsObjRefPos"       );
     viewMgr->addTypeT<CQChartsPaletteNamePropertyViewType     >("CQChartsPaletteName"     );
@@ -731,6 +732,7 @@ init()
 //  viewMgr->addTypeT<CQChartsSymbolTypePropertyViewType      >("CQChartsSymbolType"      );
     viewMgr->addTypeT<CQChartsTextBoxDataPropertyViewType     >("CQChartsTextBoxData"     );
     viewMgr->addTypeT<CQChartsTextDataPropertyViewType        >("CQChartsTextData"        );
+    viewMgr->addTypeT<CQChartsTitleLocationPropertyViewType   >("CQChartsTitleLocation"   );
     viewMgr->addTypeT<CQChartsUnitsPropertyViewType           >("CQChartsUnits"           );
 
     viewMgr->addTypeT<CQChartsOptBoolPropertyViewType    >("CQChartsOptBool"    );
@@ -813,19 +815,20 @@ init()
     widgetMgr->addWidgetFactoryNoArgsT<CQChartsModelFoldControl   >("CQChartsModelFoldControl");
 
     // other edits (all ?)
-    widgetMgr->addWidgetFactoryT<CQChartsAlphaEdit   >("CQChartsAlphaEdit"     );
-    widgetMgr->addWidgetFactoryT<CQChartsAngleEdit   >("CQChartsAngleEdit"     );
-    widgetMgr->addWidgetFactoryT<CQChartsColorEdit   >("CQChartsColorEdit"     );
-    widgetMgr->addWidgetFactoryT<CQChartsColumnEdit  >("CQChartsColumnEdit"    );
-    widgetMgr->addWidgetFactoryT<CQChartsColumnsEdit >("CQChartsColumnsEdit"   );
-    widgetMgr->addWidgetFactoryT<CQChartsFontEdit    >("CQChartsFontEdit"      );
-    widgetMgr->addWidgetFactoryT<CQChartsImageEdit   >("CQChartsImageEdit"     );
-    widgetMgr->addWidgetFactoryT<CQChartsLengthEdit  >("CQChartsLengthEdit"    );
-    widgetMgr->addWidgetFactoryT<CQChartsLineEdit    >("CQChartsLineEdit"      );
-    widgetMgr->addWidgetFactoryT<CQChartsPolygonEdit >("CQChartsPolygonEdit"   );
-    widgetMgr->addWidgetFactoryT<CQChartsPositionEdit>("CQChartsPositionEdit"  );
-    widgetMgr->addWidgetFactoryT<CQChartsRectEdit    >("CQChartsRectEdit"      );
-    widgetMgr->addWidgetFactoryT<CQChartsUnitsEdit   >("CQChartsUnitsEdit"     );
+    widgetMgr->addWidgetFactoryT<CQChartsAlphaEdit      >("CQChartsAlphaEdit"      );
+    widgetMgr->addWidgetFactoryT<CQChartsAngleEdit      >("CQChartsAngleEdit"      );
+    widgetMgr->addWidgetFactoryT<CQChartsColorEdit      >("CQChartsColorEdit"      );
+    widgetMgr->addWidgetFactoryT<CQChartsColumnEdit     >("CQChartsColumnEdit"     );
+    widgetMgr->addWidgetFactoryT<CQChartsColumnsEdit    >("CQChartsColumnsEdit"    );
+    widgetMgr->addWidgetFactoryT<CQChartsFontEdit       >("CQChartsFontEdit"       );
+    widgetMgr->addWidgetFactoryT<CQChartsImageEdit      >("CQChartsImageEdit"      );
+    widgetMgr->addWidgetFactoryT<CQChartsLengthEdit     >("CQChartsLengthEdit"     );
+    widgetMgr->addWidgetFactoryT<CQChartsLineEdit       >("CQChartsLineEdit"       );
+    widgetMgr->addWidgetFactoryT<CQChartsModelColumnEdit>("CQChartsModelColumnEdit");
+    widgetMgr->addWidgetFactoryT<CQChartsPolygonEdit    >("CQChartsPolygonEdit"    );
+    widgetMgr->addWidgetFactoryT<CQChartsPositionEdit   >("CQChartsPositionEdit"   );
+    widgetMgr->addWidgetFactoryT<CQChartsRectEdit       >("CQChartsRectEdit"       );
+    widgetMgr->addWidgetFactoryT<CQChartsUnitsEdit      >("CQChartsUnitsEdit"      );
 
     // symbols
     widgetMgr->addWidgetFactoryT<CQChartsSymbolTypeEdit>("CQChartsSymbolTypeEdit");

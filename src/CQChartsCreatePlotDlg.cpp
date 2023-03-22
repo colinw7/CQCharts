@@ -2378,7 +2378,7 @@ void
 CQChartsCreatePlotDlg::
 applyPlot(Plot *plot, bool preview)
 {
-  ModelP model = plot->model();
+  const ModelP &model = plot->currentModel();
 
   auto *type = plot->type();
 

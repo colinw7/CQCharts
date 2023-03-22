@@ -176,7 +176,7 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   //---
 
-  void setModel(const ModelP &model) override;
+  void addModelI(const ModelP &model) override;
 
   //---
 

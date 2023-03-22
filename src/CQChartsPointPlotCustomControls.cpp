@@ -189,6 +189,8 @@ updateWidgets()
 
   //---
 
+  const auto &pointModel = pointPlot_->currentModel();
+
   if (symbolSizeLengthEdit_) {
     auto hasSymbolSizeColumn = pointPlot_->symbolSizeColumn().isValid();
 
@@ -197,7 +199,7 @@ updateWidgets()
     symbolSizeMappingEdit_->setEnabled(hasSymbolSizeColumn);
 
     symbolSizeLengthEdit_ ->setLength(pointPlot_->fixedSymbolSize());
-    symbolSizeColumnCombo_->setModelColumn(pointPlot_->getModelData(),
+    symbolSizeColumnCombo_->setModelColumn(pointPlot_->getModelData(pointModel),
                                            pointPlot_->symbolSizeColumn());
     symbolSizeRange_      ->setPlot(pointPlot_);
     symbolSizeMappingEdit_->setText(pointPlot_->symbolSizeMap().toString());
@@ -223,7 +225,7 @@ updateWidgets()
     auto *symbolSet    = symbolSetMgr->symbolSet(pointPlot_->symbolTypeSetName());
 
     symbolTypeEdit_       ->setSymbol(pointPlot_->fixedSymbol());
-    symbolTypeColumnCombo_->setModelColumn(pointPlot_->getModelData(),
+    symbolTypeColumnCombo_->setModelColumn(pointPlot_->getModelData(pointModel),
                                            pointPlot_->symbolTypeColumn());
     symbolTypeSetEdit_    ->setSymbolSetName(symbolSet ? symbolSet->name() : "");
     symbolTypeRange_      ->setPlot(pointPlot_);

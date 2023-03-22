@@ -578,8 +578,13 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  ModelP model() const { return model_; }
-  virtual void setModel(const ModelP &model);
+  ModelP currentModel() const;
+
+  void addModel(const ModelP &model);
+
+  void replaceModel(const ModelP &oldModel, const ModelP &newModel);
+
+  virtual void addModelI(const ModelP &model);
 
   //---
 
@@ -3086,9 +3091,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  ModelData *getModelData() const;
+  ModelData *getModelData(const ModelP &model) const;
 
-  ModelDetails *modelDetails() const;
+  ModelDetails *modelDetails(const ModelP &model) const;
 
   //---
 
@@ -3336,10 +3341,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using SizeObjPSet = std::map<double, ObjPSet>;
 
  protected:
-  void connectModel();
-  void disconnectModel();
+  void connectModels();
+  void disconnectModels();
 
-  void connectDisconnectModel(bool connectDisconnect);
+  void connectDisconnectModels(bool connectDisconnect);
+  void connectDisconnectModel(const ModelP &model, bool connectDisconnect);
 
   //---
 
@@ -3605,6 +3611,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual void setEveryData(const EveryData &everyData);
 
  protected:
+  using ModelArray        = std::vector<ModelP>;
   using DisplayRangeP     = std::unique_ptr<DisplayRange>;
   using EditHandlesP      = std::unique_ptr<EditHandles>;
   using TitleP            = std::unique_ptr<Title>;
@@ -3618,7 +3625,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   View*     view_ { nullptr }; //!< parent view
   PlotType* type_ { nullptr }; //!< plot type data
-  ModelP    model_;            //!< abstract model
+
+  ModelArray models_; //!< associated models
 
   PropertyModelP propertyModel_; //!< property model
 

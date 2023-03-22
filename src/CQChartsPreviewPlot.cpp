@@ -65,7 +65,7 @@ void
 CQChartsPreviewPlot::
 updatePlot(const ModelP &model, const PlotType *type, const QString &filter)
 {
-  if (plot_ && plot_->type() == type && plot_->model() == model)
+  if (plot_ && plot_->type() == type && plot_->currentModel() == model)
     return;
 
   view_->removeAllPlots();

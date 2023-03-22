@@ -1033,7 +1033,9 @@ valueStr(const Plot *plot, double pos) const
   if (formatStr_.length()) {
     QString str;
 
-    if (CQChartsModelUtil::formatColumnTypeValue(plot->charts(), plot->model().data(),
+    const auto &plotModel = plot->currentModel();
+
+    if (CQChartsModelUtil::formatColumnTypeValue(plot->charts(), plotModel.data(),
                                                  column(), formatStr_, valuePos, str))
       return str;
   }

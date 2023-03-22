@@ -1,0 +1,9 @@
+# META_DATA
+#  global,A,node_pos,0 0
+#  global,B,node_pos,1 1
+#  global,C,node_pos,0 1
+# END_META_DATA
+From,To,Value
+A,B,10
+B,C,20
+C,A,30

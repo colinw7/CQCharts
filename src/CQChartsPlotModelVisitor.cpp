@@ -20,10 +20,12 @@ initVisit()
 {
   assert(plot_);
 
+  const auto &model = plot_->currentModel();
+
   // expr used by filter and expression columns
   expr_ = new CQChartsModelExprMatch;
 
-  expr_->setModel(plot_->model().data());
+  expr_->setModel(model.data());
 
   expr_->initColumns();
 

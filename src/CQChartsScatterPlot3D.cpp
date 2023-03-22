@@ -568,7 +568,9 @@ calcRange() const
 
     CQChartsModelColumnDetails *columnDetails(const Column &column) {
       if (! details_) {
-        auto *modelData = scatterPlot_->getModelData();
+        const auto &model = scatterPlot_->currentModel();
+
+        auto *modelData = scatterPlot_->getModelData(model);
 
         details_ = (modelData ? modelData->details() : nullptr);
       }
@@ -716,7 +718,9 @@ addPointObjects() const
 
   auto *columnTypeMgr = charts()->columnTypeMgr();
 
-  columnTypeMgr->startCache(model().data());
+  const auto &model = this->currentModel();
+
+  columnTypeMgr->startCache(model.data());
 
   //---
 
@@ -951,7 +955,7 @@ addPointObjects() const
 
   //---
 
-  columnTypeMgr->endCache(model().data());
+  columnTypeMgr->endCache(model.data());
 }
 
 void
@@ -1089,7 +1093,9 @@ addNameValues() const
 
     CQChartsModelColumnDetails *columnDetails(const Column &column) {
       if (! details_) {
-        auto *modelData = scatterPlot_->getModelData();
+        const auto &model = scatterPlot_->currentModel();
+
+        auto *modelData = scatterPlot_->getModelData(model);
 
         details_ = (modelData ? modelData->details() : nullptr);
       }

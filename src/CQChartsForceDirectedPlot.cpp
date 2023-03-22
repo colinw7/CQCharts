@@ -204,6 +204,74 @@ setEdgeWidthColumn(const Column &c)
 
 //---
 
+void
+CQChartsForceDirectedPlot::
+setNodeIdColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeIdColumn_, c, [&]() {
+    nodeIdColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsForceDirectedPlot::
+setNodeShapeColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeShapeColumn_, c, [&]() {
+    nodeShapeColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsForceDirectedPlot::
+setNodeLabelColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeLabelColumn_, c, [&]() {
+    nodeLabelColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsForceDirectedPlot::
+setNodeValueColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeValueColumn_, c, [&]() {
+    nodeValueColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsForceDirectedPlot::
+setNodeInitPosColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeInitPosColumn_, c, [&]() {
+    nodeInitPosColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsForceDirectedPlot::
+setNodeColorColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeColorColumn_, c, [&]() {
+    nodeColorColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
+}
+
+//---
+
 CQChartsColumn
 CQChartsForceDirectedPlot::
 getNamedColumn(const QString &name) const
@@ -639,6 +707,14 @@ addProperties()
   // columns
   addProp("columns", "edgeWidthColumn", "edgeWidth", "Edge width column");
 
+  // extra columns
+  addProp("columns", "nodeIdColumn"     , "nodeId"     , "Node id column");
+  addProp("columns", "nodeShapeColumn"  , "nodeShape"  , "Node shape column");
+  addProp("columns", "nodeLabelColumn"  , "nodeLabel"  , "Node label column");
+  addProp("columns", "nodeValueColumn"  , "nodeValue"  , "Node value column");
+  addProp("columns", "nodeInitPosColumn", "nodeInitPos", "Node init pos column");
+  addProp("columns", "nodeColorColumn"  , "nodeColor"  , "Node color column");
+
   // animation data
   addProp("animation", "initSteps"         , "", "Initial steps");
   addProp("animation", "animateSteps"      , "", "Animate steps");
@@ -885,6 +961,130 @@ createObjs(PlotObjs &) const
 
   //---
 
+  if (nodeIdColumn().isValid()) {
+    auto *nodeModelData = nodeIdColumn().modelData();
+
+    class NodeVisitor : public CQChartsModelVisitor {
+     public:
+      NodeVisitor(const CQChartsForceDirectedPlot *plot) :
+       plot_(plot) {
+        modelInd_ = plot_->nodeIdColumn().modelInd();
+        idColumn_ = plot_->nodeIdColumn().column();
+
+        if (plot_->nodeShapeColumn().isValid() &&
+            plot_->nodeShapeColumn().modelInd() == modelInd_)
+          shapeColumn_ = plot_->nodeShapeColumn().column();
+
+        if (plot_->nodeLabelColumn().isValid() &&
+            plot_->nodeLabelColumn().modelInd() == modelInd_)
+          labelColumn_ = plot_->nodeLabelColumn().column();
+
+        if (plot_->nodeValueColumn().isValid() &&
+            plot_->nodeValueColumn().modelInd() == modelInd_)
+          valueColumn_ = plot_->nodeValueColumn().column();
+
+        if (plot_->nodeInitPosColumn().isValid() &&
+            plot_->nodeInitPosColumn().modelInd() == modelInd_)
+          initPosColumn_ = plot_->nodeInitPosColumn().column();
+
+        if (plot_->nodeColorColumn().isValid() &&
+            plot_->nodeColorColumn().modelInd() == modelInd_)
+          colorColumn_ = plot_->nodeColorColumn().column();
+      }
+
+      // visit row
+      State visit(const QAbstractItemModel *model, const VisitData &data) override {
+        bool ok;
+
+        auto var = CQChartsModelUtil::modelValue(
+          plot_->charts(), model, data.row, idColumn_, data.parent, ok);
+
+        if (! var.isValid())
+          return State::SKIP;
+
+        auto id = var.toString();
+
+        auto *plot = const_cast<CQChartsForceDirectedPlot *>(plot_);
+
+        auto &connectionsData = plot->getConnections(id);
+
+        if (shapeColumn_.isValid()) {
+          auto shapeVar = CQChartsModelUtil::modelValue(
+            plot_->charts(), model, data.row, shapeColumn_, data.parent, ok);
+
+          if (shapeVar.isValid()) {
+            NodeShape shapeType;
+
+            if (! stringToShapeType(shapeVar.toString(), shapeType))
+              return State::SKIP;
+
+            connectionsData.shapeType = shapeType;
+          }
+        }
+
+        if (labelColumn_.isValid()) {
+          auto labelVar = CQChartsModelUtil::modelValue(
+            plot_->charts(), model, data.row, labelColumn_, data.parent, ok);
+
+          if (labelVar.isValid())
+            connectionsData.label = labelVar.toString();
+        }
+
+        if (valueColumn_.isValid()) {
+          auto valueVar = CQChartsModelUtil::modelValue(
+            plot_->charts(), model, data.row, valueColumn_, data.parent, ok);
+
+          if (valueVar.isValid()) {
+            auto r = CQChartsVariant::toReal(valueVar, ok);
+            if (! ok) return State::SKIP;
+
+            connectionsData.value = OptReal(r);
+          }
+        }
+
+        if (initPosColumn_.isValid()) {
+          auto initPosVar = CQChartsModelUtil::modelValue(
+            plot_->charts(), model, data.row, initPosColumn_, data.parent, ok);
+
+          if (initPosVar.isValid()) {
+            auto pos = CQChartsVariant::toPoint(initPosVar, ok);
+            if (! ok) return State::SKIP;
+
+            connectionsData.pos = OptPoint(pos);
+          }
+        }
+
+        if (colorColumn_.isValid()) {
+          auto colorVar = CQChartsModelUtil::modelValue(
+            plot_->charts(), model, data.row, colorColumn_, data.parent, ok);
+
+          if (colorVar.isValid()) {
+            connectionsData.fillData.color = CQChartsVariant::toColor(colorVar, ok);
+            if (! ok) return State::SKIP;
+          }
+        }
+
+        return State::OK;
+      }
+
+     private:
+      const CQChartsForceDirectedPlot *plot_ { nullptr };
+      int                              modelInd_ { - 1};
+      Column                           idColumn_;
+      Column                           shapeColumn_;
+      Column                           labelColumn_;
+      Column                           valueColumn_;
+      Column                           initPosColumn_;
+      Column                           colorColumn_;
+    };
+
+    NodeVisitor nodeVisitor(this);
+
+    CQChartsModelVisit::exec(charts(), nodeModelData->model().data(), nodeVisitor);
+  }
+
+  //---
+
   th->filterObjs();
 
   addIdConnections();
@@ -978,7 +1178,9 @@ processMetaData() const
 {
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
-  auto *pmodel = th->model().data();
+  const auto &model = th->currentModel();
+
+  auto *pmodel = model.data();
 
   auto names = CQChartsModelUtil::modelMetaNames(pmodel);
 

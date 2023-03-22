@@ -2308,7 +2308,9 @@ execCmd(CQChartsCmdArgs &argv)
         return errorMsg("Invalid object id '" + objectId + "'");
     }
 
-    CQChartsModelUtil::setContext(plot->model().data());
+    const auto &plotModel = plot->currentModel();
+
+    CQChartsModelUtil::setContext(plotModel.data());
 
     CQChartsColumn::setStringToColumnProc(CQChartsModelUtil::stringToColumnProc);
 
@@ -7140,6 +7142,8 @@ execCmd(CQChartsCmdArgs &argv)
     auto *plot = cmds()->getPlotByName(view, plotName);
     if (! plot) return false;
 
+    const auto &plotModel = plot->currentModel();
+
     //---
 
     auto roleName = argv.getParseStr("role");
@@ -7150,7 +7154,7 @@ execCmd(CQChartsCmdArgs &argv)
       if (roleName == "?")
         return cmdBase_->setCmdRc(getArgValues("role"));
 
-      role = CQChartsModelUtil::nameToRole(plot->model().data(), roleName);
+      role = CQChartsModelUtil::nameToRole(plotModel.data(), roleName);
 
       if (role < 0)
         return errorMsg("Invalid role");
@@ -7169,7 +7173,7 @@ execCmd(CQChartsCmdArgs &argv)
 
     // get model ind
     if      (name == "model") {
-      auto *modelData = charts->getModelData(plot->model());
+      auto *modelData = charts->getModelData(plotModel);
       if (! modelData) return errorMsg("No model data");
 
       return cmdBase_->setCmdRc(modelData->id());
@@ -7188,7 +7192,7 @@ execCmd(CQChartsCmdArgs &argv)
     }
     // get column header or row, column value
     else if (name == "value") {
-      auto column = argv.getParseColumn("column", plot->model().data());
+      auto column = argv.getParseColumn("column", plotModel.data());
 
       //---
 
@@ -7200,7 +7204,7 @@ execCmd(CQChartsCmdArgs &argv)
 
         bool ok;
 
-        var = CQChartsModelUtil::modelHeaderValue(plot->model().data(), column, role, ok);
+        var = CQChartsModelUtil::modelHeaderValue(plotModel.data(), column, role, ok);
 
         if (! var.isValid()) {
           if (quiet)
@@ -7222,10 +7226,10 @@ execCmd(CQChartsCmdArgs &argv)
       }
     }
     else if (name == "map") {
-      auto *modelData = charts->getModelData(plot->model());
+      auto *modelData = charts->getModelData(plotModel);
       if (! modelData) return errorMsg("No model data");
 
-      auto column = argv.getParseColumn("column", plot->model().data());
+      auto column = argv.getParseColumn("column", plotModel.data());
 
       //---
 
@@ -8048,7 +8052,14 @@ execCmd(CQChartsCmdArgs &argv)
       auto *modelData = cmds()->getModelDataOrCurrent(value);
       if (! modelData) return errorMsg("No model data for '" + value + "'");
 
-      plot->setModel(modelData->currentModel());
+      plot->replaceModel(plot->currentModel(), modelData->currentModel());
+    }
+    else if (name == "extra_model") {
+      // get model
+      auto *modelData = cmds()->getModelDataOrCurrent(value);
+      if (! modelData) return errorMsg("No model data for '" + value + "'");
+
+      plot->addModel(modelData->currentModel());
     }
     else if (name == "tick_label") {
       if (objectId.length()) {
@@ -10006,7 +10017,9 @@ execCmd(CQChartsCmdArgs &argv)
     if (! plot)
       return errorMsg("Plot needed for key column");
 
-    column = argv.getParseColumn("column", plot->model().data());
+    const auto &plotModel = plot->currentModel();
+
+    column = argv.getParseColumn("column", plotModel.data());
 
     if (! column.isValid())
       return errorMsg("Invalid column");
@@ -12928,6 +12941,7 @@ execCmd(CQChartsCmdArgs &argv)
 #include <CQChartsLengthEdit.h>
 #include <CQChartsLineDashEdit.h>
 #include <CQChartsLineDataEdit.h>
+#include <CQChartsModelColumnEdit.h>
 #include <CQChartsPolygonEdit.h>
 #include <CQChartsPositionEdit.h>
 #include <CQChartsRectEdit.h>
@@ -13108,6 +13122,9 @@ execCmd(CQChartsCmdArgs &argv)
     else if (type == "line_data_line") {
       auto *edit = new CQChartsLineDataLineEdit; addEdit(edit, type);
     }
+    else if (type == "model_column") {
+      auto *edit = new CQChartsModelColumnEdit; addEdit(edit, type);
+    }
     else if (type == "polygon") {
       auto *edit = new CQChartsPolygonEdit; addEdit(edit, type);
     }
@@ -13264,7 +13281,7 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
 
   auto *type = plot->type();
 
-  auto model = plot->model();
+  const auto &model = plot->currentModel();
 
   // check column parameters exist
   for (const auto &nameValue : nameValueData.columns) {

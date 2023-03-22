@@ -274,7 +274,9 @@ createObjs(PlotObjs &objs) const
   WordDatas wordDatas;
 
   if (! countColumn().isValid()) {
-    auto *modelData = getModelData();
+    const auto &model = this->currentModel();
+
+    auto *modelData = getModelData(model);
 
     auto *details = modelData->details();
 

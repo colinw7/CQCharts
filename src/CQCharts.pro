@@ -351,6 +351,7 @@ CQChartsLineDataEdit.cpp \
 CQChartsLineEditBase.cpp \
 CQChartsLineJoinEdit.cpp \
 CQChartsMarginEdit.cpp \
+CQChartsModelColumnEdit.cpp \
 \
 CQChartsOptBoolEdit.cpp \
 CQChartsOptIntEdit.cpp \
@@ -804,6 +805,7 @@ HEADERS += \
 ../include/CQChartsLineEditBase.h \
 ../include/CQChartsLineJoinEdit.h \
 ../include/CQChartsMarginEdit.h \
+../include/CQChartsModelColumnEdit.h \
 \
 ../include/CQChartsOptBoolEdit.h \
 ../include/CQChartsOptIntEdit.h \

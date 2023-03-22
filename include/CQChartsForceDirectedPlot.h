@@ -6,6 +6,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
 #include <CQChartsForceDirected.h>
+#include <CQChartsModelColumn.h>
 #include <CForceDirected.h>
 
 class CQBusyButton;
@@ -154,6 +155,20 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   // columns
   Q_PROPERTY(CQChartsColumn edgeWidthColumn READ edgeWidthColumn WRITE setEdgeWidthColumn)
+
+  // extra columns
+  Q_PROPERTY(CQChartsModelColumn nodeIdColumn
+             READ nodeIdColumn      WRITE setNodeIdColumn)
+  Q_PROPERTY(CQChartsModelColumn nodeShapeColumn
+             READ nodeShapeColumn   WRITE setNodeShapeColumn)
+  Q_PROPERTY(CQChartsModelColumn nodeLabelColumn
+             READ nodeLabelColumn   WRITE setNodeLabelColumn)
+  Q_PROPERTY(CQChartsModelColumn nodeValueColumn
+             READ nodeValueColumn   WRITE setNodeValueColumn)
+  Q_PROPERTY(CQChartsModelColumn nodeInitPosColumn
+             READ nodeInitPosColumn WRITE setNodeInitPosColumn)
+  Q_PROPERTY(CQChartsModelColumn nodeColorColumn
+             READ nodeColorColumn   WRITE setNodeColorColumn)
 
   // animation
   Q_PROPERTY(int    initSteps    READ initSteps    WRITE setInitSteps)
@@ -345,6 +360,26 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   Column getNamedColumn(const QString &name) const override;
   void setNamedColumn(const QString &name, const Column &c) override;
+
+  //--
+
+  const CQChartsModelColumn &nodeIdColumn() const { return nodeIdColumn_; }
+  void setNodeIdColumn(const CQChartsModelColumn &c);
+
+  const CQChartsModelColumn &nodeShapeColumn() const { return nodeShapeColumn_; }
+  void setNodeShapeColumn(const CQChartsModelColumn &c);
+
+  const CQChartsModelColumn &nodeLabelColumn() const { return nodeLabelColumn_; }
+  void setNodeLabelColumn(const CQChartsModelColumn &c);
+
+  const CQChartsModelColumn &nodeValueColumn() const { return nodeValueColumn_; }
+  void setNodeValueColumn(const CQChartsModelColumn &c);
+
+  const CQChartsModelColumn &nodeInitPosColumn() const { return nodeInitPosColumn_; }
+  void setNodeInitPosColumn(const CQChartsModelColumn &c);
+
+  const CQChartsModelColumn &nodeColorColumn() const { return nodeColorColumn_; }
+  void setNodeColorColumn(const CQChartsModelColumn &c);
 
   //--
 
@@ -896,6 +931,14 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   // columns
   Column edgeWidthColumn_; //!< edge width column
+
+  // extra columns
+  CQChartsModelColumn nodeIdColumn_;      //!< node id column
+  CQChartsModelColumn nodeShapeColumn_;   //!< node shape column
+  CQChartsModelColumn nodeLabelColumn_;   //!< node label column
+  CQChartsModelColumn nodeValueColumn_;   //!< node value column
+  CQChartsModelColumn nodeInitPosColumn_; //!< node init pos column
+  CQChartsModelColumn nodeColorColumn_;   //!< node color column
 
   // animation data
   int         initSteps_    { 500 };  //!< initial steps

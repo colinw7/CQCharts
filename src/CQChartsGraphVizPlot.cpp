@@ -435,7 +435,7 @@ calcRange() const
 
   Range dataRange;
 
-  auto *model = this->model().data();
+  auto *model = this->currentModel().data();
 
   if (! model)
     return dataRange;
@@ -505,7 +505,7 @@ createObjs(PlotObjs &objs) const
   // init objects
   th->clearNodesAndEdges();
 
-  auto *model = this->model().data();
+  auto *model = this->currentModel().data();
   if (! model) return false;
 
   //---

@@ -8519,7 +8519,9 @@ writeAll(std::ostream &os) const
   PlotVars  plotVars;
 
   for (const auto &plot : plots) {
-    auto *modelData = plot->getModelData();
+    const auto &model = plot->currentModel();
+
+    auto *modelData = plot->getModelData(model);
 
     QString modelVarName;
 

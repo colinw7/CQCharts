@@ -2492,6 +2492,8 @@ bool
 CQChartsXYPlot::
 headerSeriesData(std::vector<double> &x) const
 {
+  const auto &model = this->currentModel();
+
   int nc = yColumns().count();
 
   for (int i = 0; i < nc; ++i) {
@@ -2499,10 +2501,10 @@ headerSeriesData(std::vector<double> &x) const
 
     bool ok;
 
-    auto var = CQChartsModelUtil::modelHeaderValue(model().data(), yColumn, Qt::EditRole, ok);
+    auto var = CQChartsModelUtil::modelHeaderValue(model.data(), yColumn, Qt::EditRole, ok);
 
     if (! ok)
-      var = CQChartsModelUtil::modelHeaderValue(model().data(), yColumn, Qt::DisplayRole, ok);
+      var = CQChartsModelUtil::modelHeaderValue(model.data(), yColumn, Qt::DisplayRole, ok);
 
     double r = CQChartsVariant::toReal(var, ok);
 
@@ -2601,8 +2603,11 @@ int
 CQChartsXYPlot::
 numSets() const
 {
-  if (isColumnSeries())
-    return model()->rowCount();
+  if (isColumnSeries()) {
+    const auto &model = this->currentModel();
+
+    return model->rowCount();
+  }
   else
     return yColumns().count();
 }

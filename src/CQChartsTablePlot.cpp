@@ -130,8 +130,10 @@ init()
 
   //---
 
-  if (! CQChartsModelUtil::isHierarchical(model().data())) {
-    summaryModel_ = new CQSummaryModel(model().data());
+  const auto &model = this->currentModel();
+
+  if (! CQChartsModelUtil::isHierarchical(model.data())) {
+    summaryModel_ = new CQSummaryModel(model.data());
 
     summaryModel_->setMode(static_cast<CQSummaryModel::Mode>(mode_));
   }
@@ -187,11 +189,9 @@ term()
 
 void
 CQChartsTablePlot::
-setModel(const ModelP &model)
+addModelI(const ModelP &model)
 {
-  CQChartsPlot::disconnectModel();
-
-  model_ = model;
+  CQChartsPlot::addModelI(model);
 
   delete summaryModel_;
 
@@ -200,19 +200,15 @@ setModel(const ModelP &model)
 
     summaryModel_->setMode(static_cast<CQSummaryModel::Mode>(mode_));
   }
-
-  CQChartsPlot::connectModel();
-
-  updateRangeAndObjs();
-
-  Q_EMIT modelChanged();
 }
 
 void
 CQChartsTablePlot::
 modelTypeChangedSlot(int modelInd)
 {
-  auto *modelData = charts()->getModelData(model_);
+  const auto &model = this->currentModel();
+
+  auto *modelData = charts()->getModelData(model);
 
   if (modelData && modelData->isInd(modelInd))
     updateRangeAndObjs();
@@ -668,12 +664,14 @@ calcTableSize() const
 
   th->tableData_.nc = columns_.count();
 
+  const auto &model = this->currentModel();
+
   if (summaryModel_) {
     th->tableData_.nr       = summaryModel_->rowCount();
     th->tableData_.maxDepth = 0;
   }
   else {
-    CQChartsModelUtil::hierData(charts(), model().data(), th->tableData_.nr,
+    CQChartsModelUtil::hierData(charts(), model.data(), th->tableData_.nr,
                                 th->tableData_.maxDepth);
   }
 
@@ -708,7 +706,7 @@ calcTableSize() const
     if (summaryModel())
       str = CQChartsModelUtil::modelHHeaderString(summaryModel(), c, ok);
     else
-      str = CQChartsModelUtil::modelHHeaderString(model().data(), c, ok);
+      str = CQChartsModelUtil::modelHHeaderString(model.data(), c, ok);
 
     if (! ok) continue;
 
@@ -806,8 +804,11 @@ calcTableSize() const
 
   if (summaryModel_)
     CQChartsModelVisit::exec(charts(), summaryModel_, visitor);
-  else
-    CQChartsModelVisit::exec(charts(), model().data(), visitor);
+  else {
+    const auto &model = this->currentModel();
+
+    CQChartsModelVisit::exec(charts(), model.data(), visitor);
+  }
 
   th->tableData_.nvr = visitor.numProcessedRows();
 
@@ -1765,8 +1766,11 @@ createTableObjData() const
 
   if (summaryModel_)
     CQChartsModelVisit::exec(charts(), summaryModel_, visitor);
-  else
-    CQChartsModelVisit::exec(charts(), model().data(), visitor);
+  else {
+    const auto &model = this->currentModel();
+
+    CQChartsModelVisit::exec(charts(), model.data(), visitor);
+  }
 }
 
 CQChartsTablePlot::HeaderObjData &

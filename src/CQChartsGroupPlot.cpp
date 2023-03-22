@@ -613,7 +613,7 @@ bool
 CQChartsGroupPlot::
 rowGroupInds(const ModelIndex &ind, std::vector<int> &inds, bool hier) const
 {
-  auto *model = this->model().data();
+  auto *model = this->currentModel().data();
   if (! model) return false;
 
   if (! groupBucket_)
@@ -739,14 +739,15 @@ void
 CQChartsGroupPlot::
 setModelGroupInd(const ModelIndex &ind, int groupInd)
 {
-  auto *model = this->model().data();
-  assert(model);
+  const auto &model = this->currentModel();
+
+  assert(model.data());
 
   QVariant var(groupInd);
 
   int role = CQModelUtil::roleCast(CQBaseModelRole::Group);
 
-  auto *modelData = this->getModelData();
+  auto *modelData = this->getModelData(model);
 
   // disable model notification change for internal data
   if (modelData)

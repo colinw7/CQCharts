@@ -311,7 +311,9 @@ writeSlot()
 
   view->write(fs);
 
-  auto *modelData = plot->getModelData();
+  const auto &model = plot->currentModel();
+
+  auto *modelData = plot->getModelData(model);
 
   if (modelData)
     modelData->write(fs);

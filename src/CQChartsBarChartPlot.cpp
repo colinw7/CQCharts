@@ -3296,8 +3296,12 @@ updateWidgets()
 
   //---
 
-  if (labelColumnCombo_)
-    labelColumnCombo_->setModelColumn(barChartPlot_->getModelData(), barChartPlot_->labelColumn());
+  if (labelColumnCombo_) {
+    const auto &model = barChartPlot_->currentModel();
+
+    labelColumnCombo_->setModelColumn(barChartPlot_->getModelData(model),
+                                      barChartPlot_->labelColumn());
+  }
 
   if (labelCheck_) labelCheck_->setChecked(barChartPlot_->isLabelsVisible());
 

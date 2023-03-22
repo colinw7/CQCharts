@@ -116,7 +116,7 @@ init()
   // create correlation model
   CQChartsLoader loader(charts());
 
-  correlationModel_ = loader.createCorrelationModel(model().data());
+  correlationModel_ = loader.createCorrelationModel(this->currentModel().data());
 
   baseModel_ = dynamic_cast<CQChartsCorrelationModel *>(correlationModel_->baseModel());
 

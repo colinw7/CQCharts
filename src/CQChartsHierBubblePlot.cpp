@@ -494,7 +494,9 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  auto *modelData     = getModelData();
+  const auto &model = currentModel();
+
+  auto *modelData     = getModelData(model);
   auto *details       = (modelData ? modelData->details() : nullptr);
   auto *columnDetails = (details ? details->columnDetails(valueColumn()) : nullptr);
 

@@ -1,5 +1,6 @@
 #include <CQChartsModelColumn.h>
 #include <CQChartsUtil.h>
+#include <CQCharts.h>
 
 #include <CQPropertyView.h>
 
@@ -20,6 +21,19 @@ CQChartsModelColumn::
 CQChartsModelColumn(const QString &s)
 {
   fromString(s);
+}
+
+const CQChartsModelData *
+CQChartsModelColumn::
+modelData() const
+{
+  if (! charts())
+    return nullptr;
+
+  if (modelInd() < 0)
+    return nullptr;
+
+  return charts()->getModelDataByInd(modelInd());
 }
 
 QString

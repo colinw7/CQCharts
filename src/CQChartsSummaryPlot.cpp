@@ -164,7 +164,9 @@ init()
     auto *type = charts()->plotType(typeName);
     assert(type);
 
-    auto *plot = type->createAndInit(view(), model());
+    const auto &model = this->currentModel();
+
+    auto *plot = type->createAndInit(view(), model);
 
     plot->setVisible(false);
 
@@ -373,7 +375,9 @@ void
 CQChartsSummaryPlot::
 modelTypeChangedSlot(int modelInd)
 {
-  auto *modelData = charts()->getModelData(model_);
+  const auto &model = currentModel();
+
+  auto *modelData = charts()->getModelData(model);
 
   if (modelData && modelData->isInd(modelInd))
     updateRangeAndObjs();
@@ -1073,7 +1077,9 @@ calcTipId() const
 
     if (details1 && details2 && details1->isNumeric() && details2->isNumeric()) {
       if (! summaryPlot_->groupColumn().isValid()) {
-        auto correlation = summaryPlot_->modelDetails()->correlation(column1, column2);
+        const auto &model = summaryPlot_->currentModel();
+
+        auto correlation = summaryPlot_->modelDetails(model)->correlation(column1, column2);
 
         tableTip.addTableRow("Correlation", correlation);
       }
@@ -1417,7 +1423,9 @@ drawCorrelation(PaintDevice *device) const
     double y = by;
 
     if (! summaryPlot_->groupColumn().isValid()) {
-      auto correlation = summaryPlot_->modelDetails()->correlation(column1, column2);
+      const auto &model = summaryPlot_->currentModel();
+
+      auto correlation = summaryPlot_->modelDetails(model)->correlation(column1, column2);
 
       auto cstr = CQChartsUtil::realToString(correlation, 5);
 

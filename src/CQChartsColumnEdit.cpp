@@ -45,8 +45,11 @@ setPlot(CQChartsPlot *plot)
 {
   CQChartsLineEditBase::setPlot(plot);
 
-  if (plot)
-    setModelData(plot->getModelData());
+  if (plot) {
+    const auto &plotModel = plot->currentModel();
+
+    setModelData(plot->getModelData(plotModel));
+  }
 }
 
 CQChartsModelData *
@@ -328,8 +331,11 @@ createEdit(QWidget *parent)
 
   auto *edit = new CQChartsColumnLineEdit(parent);
 
-  if (objData.plot)
-    edit->setModelData(objData.plot->getModelData());
+  if (objData.plot) {
+    const auto &plotModel = objData.plot->currentModel();
+
+    edit->setModelData(objData.plot->getModelData(plotModel));
+  }
 
   return edit;
 }

@@ -919,7 +919,9 @@ calcRange() const
 
     CQChartsModelColumnDetails *columnDetails(const Column &column) {
       if (! details_) {
-        auto *modelData = scatterPlot_->getModelData();
+        const auto &model = scatterPlot_->currentModel();
+
+        auto *modelData = scatterPlot_->getModelData(model);
 
         details_ = (modelData ? modelData->details() : nullptr);
       }
@@ -1468,7 +1470,9 @@ addPointObjects(PlotObjs &objs) const
 
   auto *columnTypeMgr = charts()->columnTypeMgr();
 
-  columnTypeMgr->startCache(model().data());
+  const auto &model = this->currentModel();
+
+  columnTypeMgr->startCache(model.data());
 
   //---
 
@@ -1742,7 +1746,7 @@ addPointObjects(PlotObjs &objs) const
 
   //---
 
-  columnTypeMgr->endCache(model().data());
+  columnTypeMgr->endCache(model.data());
 }
 
 void
@@ -2582,7 +2586,9 @@ addNameValues() const
 
     CQChartsModelColumnDetails *columnDetails(const Column &column) {
       if (! details_) {
-        auto *modelData = scatterPlot_->getModelData();
+        const auto &model = scatterPlot_->currentModel();
+
+        auto *modelData = scatterPlot_->getModelData(model);
 
         details_ = (modelData ? modelData->details() : nullptr);
       }
@@ -5545,6 +5551,8 @@ updateWidgets()
 
   //---
 
+   const auto &model = scatterPlot_->currentModel();
+
   if (labelColumnCombo_) {
     bool hasLabelColumn = scatterPlot_->labelColumn().isValid();
 
@@ -5552,7 +5560,7 @@ updateWidgets()
     if (positionEdit_    ) positionEdit_    ->setEnabled(hasLabelColumn);
 
     if (symbolLabelGroup_) symbolLabelGroup_->setChecked(scatterPlot_->isPointLabels());
-    if (labelColumnCombo_) labelColumnCombo_->setModelColumn(scatterPlot_->getModelData(),
+    if (labelColumnCombo_) labelColumnCombo_->setModelColumn(scatterPlot_->getModelData(model),
                                                              scatterPlot_->labelColumn());
     if (positionEdit_    ) positionEdit_    ->setObj(scatterPlot_->dataLabel());
   }
@@ -5565,7 +5573,7 @@ updateWidgets()
   if (fontSizeRange_) fontSizeRange_->setEnabled(hasFontSizeColumn);
 
   if (fontSizeEdit_       ) fontSizeEdit_       ->setLength(scatterPlot_->dataLabelFontSize());
-  if (fontSizeColumnCombo_) fontSizeColumnCombo_->setModelColumn(scatterPlot_->getModelData(),
+  if (fontSizeColumnCombo_) fontSizeColumnCombo_->setModelColumn(scatterPlot_->getModelData(model),
                                                                  scatterPlot_->fontSizeColumn());
   if (fontSizeRange_      ) fontSizeRange_      ->setPlot(scatterPlot_);
 

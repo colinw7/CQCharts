@@ -655,8 +655,8 @@ setViewModel()
   auto *plot = view_->currentPlot(/*remap*/false);
 
   if (plot) {
-    if (plot->model() != modelView_->model())
-      modelView_->setModel(plot->model(), plot->isHierarchical());
+    if (plot->currentModel() != modelView_->model())
+      modelView_->setModel(plot->currentModel(), plot->isHierarchical());
   }
   else
     modelView_->setModel(CQChartsModelViewHolder::ModelP(), false);
