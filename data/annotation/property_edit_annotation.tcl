@@ -12,7 +12,7 @@ proc annotationSlot { viewId plotId id } {
 
 set plot [create_charts_plot -type empty -xmin -1 -ymin -1 -xmax 1 -ymax 1]
 
-set propertyEdit [qt_create_widget -type CQChartsPlotPropertyEdit -name edit]
+set propertyEdit [qt_create_widget -type CQCharts:PlotPropertyEdit -name edit]
 
 qt_set_property -object $propertyEdit -property propertyName -value showBoxes
  

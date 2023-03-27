@@ -200,6 +200,8 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(ProbePos probePos     READ probePos       WRITE setProbePos    )
 
   // view settings
+  Q_PROPERTY(SettingsTabs settingsTabs READ settingsTabs WRITE setSettingsTabs)
+
   Q_PROPERTY(bool showSettings READ isShowSettings WRITE setShowSettings)
 
   Q_PROPERTY(bool viewSettingsMajorObjects READ isViewSettingsMajorObjects
@@ -263,6 +265,27 @@ class CQChartsView : public QFrame,
     MAX,
     VALUE
   };
+
+  enum class SettingsTab {
+    CONTROLS    = (1<<0),
+    WIDGETS     = (1<<1),
+    PROPERTIES  = (1<<2),
+    MODELS      = (1<<3),
+    PLOTS       = (1<<4),
+    ANNOTATIONS = (1<<5),
+    OBJECTS     = (1<<6),
+    COLORS      = (1<<7),
+    SYMBOLS     = (1<<8),
+    LAYERS      = (1<<9),
+    QUERY       = (1<<10),
+    ERRORS      = (1<<11)
+  };
+
+  Q_ENUM(SettingsTab)
+
+  Q_DECLARE_FLAGS(SettingsTabs, SettingsTab)
+
+  Q_FLAG(SettingsTabs)
 
   using DrawType = CQChartsObjDrawType;
 
@@ -754,6 +777,11 @@ class CQChartsView : public QFrame,
 
   //---
 
+  const Widget &customWidget() const { return customWidget_; }
+  void setCustomWidget(const Widget &v) { customWidget_ = v; }
+
+  //---
+
   // group plots (overlay, x1/x2, y1/y2)
   void resetGrouping();
 
@@ -958,6 +986,9 @@ class CQChartsView : public QFrame,
   void removeProbeOverlaps();
 
   //---
+
+  const SettingsTabs &settingsTabs() const { return settingsTabs_; }
+  void setSettingsTabs(const SettingsTabs &i);
 
   bool isShowSettings() const;
 
@@ -1270,6 +1301,8 @@ class CQChartsView : public QFrame,
   void keyEventPress(const QString &);
 
   void viewResized();
+
+  void settingsTabsChanged();
 
  public Q_SLOTS:
   void propertyItemChanged(QObject *, const QString &);
@@ -1706,6 +1739,12 @@ class CQChartsView : public QFrame,
   int         currentPlotInd_ { -1 }; //!< current plot index
   Annotations annotations_;           //!< annotations
 
+  //---
+
+  Widget customWidget_; //!< custom widget
+
+  //---
+
   Mode        mode_        { Mode::SELECT };            //!< mouse mode
   KeyBehavior keyBehavior_ { KeyBehavior::Type::SHOW }; //!< default key press behavior
 
@@ -1803,6 +1842,9 @@ class CQChartsView : public QFrame,
   mutable std::atomic<bool> painterLocked_ { false}; //!< is painter locked
   mutable std::mutex        painterMutex_;           //!< painter mutex
 
+  // view settings
+  SettingsTabs settingsTabs_ = SettingsTabs(0xFFFF);
+
   // dialogs
   EditAnnotationDlg* editAnnotationDlg_ { nullptr }; //!< edit annotation dialog
   EditAxisDlg*       editAxisDlg_       { nullptr }; //!< edit axis dialog
@@ -1889,5 +1931,7 @@ class CQChartsSplitter : public QFrame {
   QPoint          initPos_;
   bool            hover_       { false };
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(CQChartsView::SettingsTabs);
 
 #endif

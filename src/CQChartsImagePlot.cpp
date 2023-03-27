@@ -780,7 +780,11 @@ CQChartsImagePlot::
 createImageObj(const BBox &rect, int row, int col, double value, const QModelIndex &ind,
                const ColorInd &iv) const
 {
-  return new CQChartsImageObj(this, rect, row, col, value, ind, iv);
+  auto *obj = new CQChartsImageObj(this, rect, row, col, ind, iv);
+
+  obj->setValue(OptReal(value));
+
+  return obj;
 }
 
 CQChartsImageObj *
@@ -788,7 +792,11 @@ CQChartsImagePlot::
 createImageObj(const BBox &rect, int row, int col, const Image &image,
                const QModelIndex &ind) const
 {
-  return new CQChartsImageObj(this, rect, row, col, image, ind);
+  auto *obj = new CQChartsImageObj(this, rect, row, col, ind, ColorInd());
+
+  obj->setImage(image);
+
+  return obj;
 }
 
 //---
@@ -811,22 +819,10 @@ createCustomControls()
 //------
 
 CQChartsImageObj::
-CQChartsImageObj(const ImagePlot *imagePlot, const BBox &rect, int row, int col, double value,
+CQChartsImageObj(const ImagePlot *imagePlot, const BBox &rect, int row, int col,
                  const QModelIndex &ind, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsImagePlot *>(imagePlot), rect, ColorInd(), ColorInd(), iv),
- imagePlot_(imagePlot), row_(row), col_(col), value_(value)
-{
-  setDetailHint(DetailHint::MAJOR);
-
-  setModelInd(ind);
-}
-
-CQChartsImageObj::
-CQChartsImageObj(const ImagePlot *imagePlot, const BBox &rect, int row, int col,
-                 const Image &image, const QModelIndex &ind) :
- CQChartsPlotObj(const_cast<CQChartsImagePlot *>(imagePlot), rect, ColorInd(), ColorInd(),
- ColorInd()), imagePlot_(imagePlot), row_(row), col_(col), image_(image),
- columnType_(CQBaseModelType::IMAGE)
+ imagePlot_(imagePlot), row_(row), col_(col)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -857,7 +853,11 @@ calcTipId() const
   if (yname.length())
     tableTip.addTableRow("Y", yname);
 
-  tableTip.addTableRow("Value", value());
+  if (value().isSet())
+    tableTip.addTableRow("Value", value().real());
+
+  if (image().isValid())
+    tableTip.addTableRow("image", image().toString());
 
   //---
 
@@ -915,7 +915,10 @@ draw(PaintDevice *device) const
       ColorInd ic;
 
       if (imagePlot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-        double v = CMathUtil::norm(value(), imagePlot_->minValue(), imagePlot_->maxValue());
+        double v = 0.0;
+
+        if (value().isSet())
+          v = CMathUtil::norm(value().real(), imagePlot_->minValue(), imagePlot_->maxValue());
 
         ic = ColorInd(v);
       }
@@ -946,7 +949,10 @@ draw(PaintDevice *device) const
 
       //---
 
-      auto valueStr = CQChartsUtil::formatReal(value());
+      QString valueStr;
+
+      if (value().isSet())
+        valueStr = CQChartsUtil::formatReal(value().real());
 
       auto textOptions = imagePlot_->cellLabelTextOptions(device);
 
@@ -963,8 +969,11 @@ draw(PaintDevice *device) const
     double minSize = s*imagePlot_->minBalloonSize();
     double maxSize = s*imagePlot_->maxBalloonSize();
 
-    double s1 = CMathUtil::map(value(), imagePlot_->minValue(), imagePlot_->maxValue(),
-                               minSize, maxSize);
+    double s1 = 0.0;
+
+    if (value().isSet())
+      s1 = CMathUtil::map(value().real(), imagePlot_->minValue(), imagePlot_->maxValue(),
+                          minSize, maxSize);
 
     //---
 
@@ -987,7 +996,10 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   ColorInd ic;
 
   if (imagePlot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    double v = CMathUtil::norm(value(), imagePlot_->minValue(), imagePlot_->maxValue());
+    double v = 0.0;
+
+    if (value().isSet())
+      v = CMathUtil::norm(value().real(), imagePlot_->minValue(), imagePlot_->maxValue());
 
     ic = ColorInd(v);
   }
@@ -1003,7 +1015,10 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   if (bgColor().isValid())
     fc = plot()->interpColor(bgColor(), ic);
 
-  imagePlot_->setPenBrush(penBrush, imagePlot_->cellPenData(bc), imagePlot_->cellBrushData(fc));
+  imagePlot_->setPenBrush(penBrush,
+    imagePlot_->cellPenData(bc, imagePlot_->cellStrokeAlpha(),
+                            imagePlot_->cellStrokeWidth(), imagePlot_->cellStrokeDash()),
+    imagePlot_->cellBrushData(fc, imagePlot_->cellFillAlpha(), imagePlot_->cellFillPattern()));
 
   if (updateState)
     imagePlot_->updateObjPenBrushState(this, penBrush);

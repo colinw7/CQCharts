@@ -24,7 +24,7 @@ proc set_text_property { type w text } {
   }
 }
 
-set control1 [qt_create_widget -type CQChartsPlotIntControl -name intControl]
+set control1 [qt_create_widget -type CQCharts:PlotIntControl -name intControl]
 
 qt_set_property -object $control1 -property column -value 2
 

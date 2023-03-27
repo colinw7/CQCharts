@@ -37,6 +37,7 @@
 #include <CQChartsAnalyzeModel.h>
 #include <CQChartsTextDlg.h>
 #include <CQChartsHelpDlg.h>
+#include <CQChartsViewSettings.h>
 
 #ifdef CQCHARTS_DATA_FRAME
 #include <CQChartsDataFrame.h>
@@ -238,10 +239,15 @@ addCommands()
     addCommand("get_charts_palette"   , new CQChartsGetChartsPaletteCmd   (this));
     addCommand("set_charts_palette"   , new CQChartsSetChartsPaletteCmd   (this));
 
+    // symbols
     addCommand("create_charts_symbol_set", new CQChartsCreateChartsSymbolSetCmd(this));
     addCommand("add_charts_symbol"       , new CQChartsAddChartsSymbolCmd      (this));
+
     // connect
     addCommand("connect_charts_signal", new CQChartsConnectChartsSignalCmd(this));
+
+    // widgets
+    addCommand("add_custom_widget", new CQChartsAddCustomWidgetCmd(this));
 
     // print, write
     addCommand("print_charts_image", new CQChartsPrintChartsImageCmd(this));
@@ -6374,7 +6380,8 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
       static auto names = QStringList() <<
        "plots" << "annotations" << "selected_objects" << "view_width" << "view_height" <<
        "pixel_width" << "pixel_height" << "pixel_position" << "properties" <<
-       "script_select_proc" << "mouse_press" << "mouse_modifier" << "view_path";
+       "script_select_proc" << "mouse_press" << "mouse_modifier" << "view_path" <<
+       "custom_widgets_parent";
       return names;
     }
     else if (hasType) {
@@ -7059,6 +7066,14 @@ execCmd(CQChartsCmdArgs &argv)
     // get view path
     else if (name == "view_path") {
       return cmdBase_->setCmdRc(CQUtil::fullName(view));
+    }
+    // get view settings custom widgets frame path
+    else if (name == "custom_widgets_parent") {
+      auto *window       = view->window();
+      auto *viewSettings = (window ? window->viewSettings() : nullptr);
+      auto *frame        = (viewSettings ? viewSettings->widgetsFrame() : nullptr);
+
+      return cmdBase_->setCmdRc(frame ? CQUtil::fullName(frame) : "");
     }
     else if (name == "?") {
       NameValueMap nameValues; nameValues["view"] = "";
@@ -12401,6 +12416,79 @@ execCmd(CQChartsCmdArgs &argv)
   }
 
   return true;
+}
+
+//------
+
+// add_custom_widget command
+
+void
+CQChartsAddCustomWidgetCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  argv.startCmdGroup(CmdGroup::Type::OneOpt);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
+  argv.endCmdGroup();
+
+  addArg(argv, "-widget", ArgType::String, "widget name");
+}
+
+QStringList
+CQChartsAddCustomWidgetCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if      (arg == "view") return cmds()->viewArgValues();
+  else if (arg == "plot") return cmds()->plotArgValues(nullptr);
+
+  return QStringList();
+}
+
+bool
+CQChartsAddCustomWidgetCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsAddCustomWidgetCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get parent plot or view
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if (! cmds()->getViewPlotArg(argv, view, plot))
+    return false;
+
+  //---
+
+  // get widget
+  auto widgetName = argv.getParseStr("widget");
+
+  auto widget = CQChartsWidget(widgetName);
+
+  if (! widget.isValid())
+    return errorMsg(QString("Invalid widget name '%1'").arg(widgetName));
+
+  if      (view)
+    view->setCustomWidget(widget);
+  else if (plot)
+    plot->setCustomWidget(widget);
+
+  return cmdBase_->setCmdRc(widget.path());
 }
 
 //------

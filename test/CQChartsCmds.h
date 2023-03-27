@@ -337,6 +337,11 @@ CQCHARTS_DEF_CMD(ConnectChartsSignal)
 
 //---
 
+// custom widget
+CQCHARTS_DEF_CMD(AddCustomWidget)
+
+//---
+
 // export
 CQCHARTS_DEF_CMD(PrintChartsImage)
 CQCHARTS_DEF_CMD(WriteChartsData)

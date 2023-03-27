@@ -342,7 +342,7 @@ QString
 CQIntRangeSlider::
 intToString(int i) const
 {
-  return QString("%1").arg(i);
+  return QString::number(i);
 }
 
 double

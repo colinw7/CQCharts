@@ -15739,6 +15739,17 @@ plotControlUpdateSlot()
 
 //------
 
+void
+CQChartsPlot::
+setCustomWidget(const Widget &v)
+{
+  customWidget_ = v;
+
+  Q_EMIT customWidgetChanged();
+}
+
+//------
+
 CQChartsPlotObj *
 CQChartsPlot::
 getPlotObject(const QString &objectId) const

@@ -7,7 +7,7 @@ set plot [create_charts_plot -type empty]
 #---
 
 set viewAnnotationsControl \
-  [qt_create_widget -type CQChartsViewAnnotationsControl -name viewAnnotationsControl]
+  [qt_create_widget -type CQCharts:ViewAnnotationsControl -name viewAnnotationsControl]
 
 set viewAnnotationsControlAnn \
   [create_charts_widget_annotation -plot $plot -id viewAnnotationsControl \
@@ -18,7 +18,7 @@ set viewAnnotationsControl [get_charts_data -annotation $viewAnnotationsControl 
 #---
 
 set plotAnnotationsControl \
-  [qt_create_widget -type CQChartsPlotAnnotationsControl -name plotAnnotationsControl]
+  [qt_create_widget -type CQCharts:PlotAnnotationsControl -name plotAnnotationsControl]
 
 set plotAnnotationsControlAnn \
   [create_charts_widget_annotation -plot $plot -id plotAnnotationsControl \

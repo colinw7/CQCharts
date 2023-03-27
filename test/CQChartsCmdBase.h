@@ -254,7 +254,9 @@ class CQChartsBase##NAME##Cmd : public CQChartsCmdProc { \
 //---
 
 // widgets
+CQCHARTS_BASE_DEF_CMD(GetWidgetTypes)
 CQCHARTS_BASE_DEF_CMD(CreateWidget  )
+CQCHARTS_BASE_DEF_CMD(GetLayoutTypes)
 CQCHARTS_BASE_DEF_CMD(CreateLayout  )
 CQCHARTS_BASE_DEF_CMD(AddChildWidget)
 CQCHARTS_BASE_DEF_CMD(AddStretch    )

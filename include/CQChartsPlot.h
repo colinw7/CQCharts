@@ -2611,6 +2611,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  const Widget &customWidget() const { return customWidget_; }
+  void setCustomWidget(const Widget &v);
+
+  //---
+
   PlotObj *getPlotObject(const QString &objectId) const;
 
   Obj *getObject(const QString &objectId) const;
@@ -3284,6 +3289,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void objDoubleClicked(CQChartsPlotObj *);
   void objIdDoubleClicked(const QString &);
 
+  // custom widget changed
+  void customWidgetChanged();
+
   // pressed
   void selectPressSignal(const CQChartsGeom::Point &p);
 
@@ -3894,6 +3902,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // annotations
   Annotations annotations_;      //!< extra annotations
   Annotations pressAnnotations_; //!< press annotations
+
+  //---
+
+  Widget customWidget_; //!< custom widget
 
   //---
 

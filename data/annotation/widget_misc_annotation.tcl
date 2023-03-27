@@ -15,8 +15,8 @@ set plot [create_charts_plot -type empty -xmin 0 -ymin 0 -xmax 100 -ymax 100]
 
 #---
 
-set w1 [qt_create_widget -type CQChartsAlphaEdit -name w1]
-set w2 [qt_create_widget -type CQChartsAngleEdit -name w2]
+set w1 [qt_create_widget -type CQCharts:AlphaEdit -name w1]
+set w2 [qt_create_widget -type CQCharts:AngleEdit -name w2]
 
 set frame [qt_create_widget -type QFrame -name frame]
 
@@ -26,6 +26,6 @@ qt_add_child_widget -parent $frame -child $w1
 qt_add_child_widget -parent $frame -child $w2
 
 set ann [create_charts_widget_annotation -plot $plot -id ann \
-  -position [list -1 -1] -widget $frame]
+  -position [list 50 50] -widget $frame]
 
 connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot

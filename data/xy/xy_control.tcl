@@ -84,9 +84,9 @@ set frame [qt_create_widget -type QFrame -name frame]
 
 set layout [qt_create_layout -type QVBoxLayout -parent $frame]
 
-set xminSpin [qt_create_widget -type CQRealSpin    -name xmin]
-set xmaxSpin [qt_create_widget -type CQRealSpin    -name xmax]
-set nSpin    [qt_create_widget -type CQIntegerSpin -name n]
+set xminSpin [qt_create_widget -type CQ:RealSpin    -name xmin]
+set xmaxSpin [qt_create_widget -type CQ:RealSpin    -name xmax]
+set nSpin    [qt_create_widget -type CQ:IntegerSpin -name n]
 
 qt_set_property -object $xminSpin -property value -value $xmin
 qt_set_property -object $xmaxSpin -property value -value $xmax

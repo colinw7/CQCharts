@@ -436,6 +436,9 @@ CGLUtil.cpp \
 CGLTexture.cpp \
 \
 CCircleFactor.cpp \
+\
+CQTabBarWidget.cpp \
+CQTabBar.cpp \
 
 HEADERS += \
 ../include/CQCharts.h \
@@ -897,6 +900,9 @@ HEADERS += \
 CQBusyButton.h \
 \
 CCircleFactor.h \
+\
+CQTabBarWidget.h \
+CQTabBar.h \
 
 DESTDIR     = ../lib
 OBJECTS_DIR = ../obj

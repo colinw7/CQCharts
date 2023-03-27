@@ -24,7 +24,7 @@ proc set_text_property { type w text } {
   }
 }
 
-set control [qt_create_widget -type CQChartsPlotControlFrame -name control]
+set control [qt_create_widget -type CQCharts:PlotControlFrame -name control]
 
 set ann [create_charts_widget_annotation -plot $plot -id control \
   -position [list -1 -1] -widget $control]

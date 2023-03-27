@@ -11,6 +11,7 @@
 
 #include <QApplication>
 #include <QVBoxLayout>
+#include <QFormLayout>
 #include <QComboBox>
 
 namespace {
@@ -68,7 +69,9 @@ addCommands()
     addCommand("complete", new CQChartsBaseCompleteCmd(this));
 
     // qt generic
+    addCommand("qt_get_widget_types", new CQChartsBaseGetWidgetTypesCmd(this));
     addCommand("qt_create_widget"   , new CQChartsBaseCreateWidgetCmd  (this));
+    addCommand("qt_get_layout_types", new CQChartsBaseGetLayoutTypesCmd(this));
     addCommand("qt_create_layout"   , new CQChartsBaseCreateLayoutCmd  (this));
     addCommand("qt_add_child_widget", new CQChartsBaseAddChildWidgetCmd(this));
     addCommand("qt_add_stretch"     , new CQChartsBaseAddStretchCmd    (this));
@@ -131,6 +134,53 @@ createArgs(const QString &name, const Vars &vars)
 
 //------
 
+// qt_get_widget_types
+void
+CQChartsBaseGetWidgetTypesCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  addArg(argv, "-set"   , ArgType::String , "set name");
+  addArg(argv, "-simple", ArgType::Boolean, "only return simple types");
+}
+
+QStringList
+CQChartsBaseGetWidgetTypesCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if (arg == "set")
+    return CQWidgetFactoryMgrInst->widgetFactorySetNames();
+
+  return QStringList();
+}
+
+bool
+CQChartsBaseGetWidgetTypesCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseGetWidgetTypesCmd::exec");
+
+  addArgs(argv);
+
+  if (! argv.parse())
+    return false;
+
+  auto setName = argv.getParseStr("set");
+  auto simple  = argv.getParseBool("simple");
+
+  QStringList names;
+
+  if      (setName == ""  )
+    names = CQWidgetFactoryMgrInst->widgetFactoryNames(simple);
+  else if (setName == "qt")
+    names = CQWidgetFactoryMgrInst->setWidgetFactoryNames("", simple);
+  else
+    names = CQWidgetFactoryMgrInst->setWidgetFactoryNames(setName, simple);
+
+  return cmdBase_->setCmdRc(names);
+}
+
+//------
+
 // qt_create_widget
 void
 CQChartsBaseCreateWidgetCmd::
@@ -139,6 +189,7 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-parent", ArgType::String, "parent name");
   addArg(argv, "-type"  , ArgType::String, "widget type");
   addArg(argv, "-name"  , ArgType::String, "widget name");
+  addArg(argv, "-set"   , ArgType::String, "widget set");
 }
 
 QStringList
@@ -163,9 +214,20 @@ execCmd(CQChartsCmdArgs &argv)
     return false;
 
   auto typeName = argv.getParseStr("type");
+  auto setName  = argv.getParseStr("set");
 
-  if (typeName == "?")
-    return cmdBase_->setCmdRc(CQWidgetFactoryMgrInst->widgetFactoryNames());
+  if (typeName == "?") {
+    QStringList names;
+
+    if      (setName == ""  )
+      names = CQWidgetFactoryMgrInst->widgetFactoryNames();
+    else if (setName == "qt")
+      names = CQWidgetFactoryMgrInst->setWidgetFactoryNames("");
+    else
+      names = CQWidgetFactoryMgrInst->setWidgetFactoryNames(setName);
+
+    return cmdBase_->setCmdRc(names);
+  }
 
   QWidget *parentWidget = nullptr;
 
@@ -179,6 +241,9 @@ execCmd(CQChartsCmdArgs &argv)
     if (! parentWidget)
       return errorMsg(QString("No parent '%1'").arg(parentName));
   }
+
+  if (setName != "" && setName != "qt")
+    typeName = setName + ":" + typeName;
 
   if (! CQWidgetFactoryMgrInst->isWidgetFactory(typeName))
     return errorMsg(QString("Invalid type '%1'").arg(typeName));
@@ -206,6 +271,9 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-parent" , ArgType::String , "parent name");
   addArg(argv, "-child"  , ArgType::String , "child name");
   addArg(argv, "-stretch", ArgType::Integer, "stretch");
+  addArg(argv, "-label"  , ArgType::String , "label");
+  addArg(argv, "-row"    , ArgType::Integer, "grid row");
+  addArg(argv, "-column" , ArgType::Integer, "grid column");
 }
 
 QStringList
@@ -239,12 +307,39 @@ execCmd(CQChartsCmdArgs &argv)
     if (! childWidget)
       return errorMsg(QString("No widget '%1'").arg(childName));
 
-    auto *layout = parentWidget->layout();
+    auto *qtab = qobject_cast<QTabWidget *>(parentWidget);
 
-    if (! layout)
-      layout = new QVBoxLayout(parentWidget);
+    if (qtab) {
+      auto label = argv.getParseStr("label");
 
-    layout->addWidget(childWidget);
+      qtab->addTab(childWidget, label);
+    }
+    else {
+      auto *layout = parentWidget->layout();
+
+      if (! layout)
+        layout = new QVBoxLayout(parentWidget);
+
+      auto *gridLayout = qobject_cast<QGridLayout *>(layout);
+      auto *formLayout = qobject_cast<QFormLayout *>(layout);
+
+      if      (gridLayout) {
+        int row = argv.getParseInt("row");
+        int col = argv.getParseInt("column");
+
+        gridLayout->addWidget(childWidget, row, col);
+      }
+      else if (formLayout) {
+        auto label = argv.getParseStr("label");
+
+        if (label != "")
+          formLayout->addRow(label, childWidget);
+        else
+          formLayout->addRow(childWidget);
+      }
+      else
+        layout->addWidget(childWidget);
+    }
 
     return cmdBase_->setCmdRc(CQUtil::fullName(childWidget));
   }
@@ -256,7 +351,25 @@ execCmd(CQChartsCmdArgs &argv)
     if (! layout)
       return errorMsg(QString("No layout for '%1'").arg(parentName));
 
-    layout->addStretch(stretch);
+    auto *gridLayout = qobject_cast<QGridLayout *>(layout);
+
+    if (gridLayout) {
+      int row = -1;
+      int col = -1;
+
+      if (argv.hasParseArg("row"))
+        row = argv.getParseInt("row");
+
+      if (argv.hasParseArg("column"))
+        col = argv.getParseInt("column");
+
+      if      (row >= 0)
+        gridLayout->setRowStretch(row, stretch);
+      else if (col >= 0)
+        gridLayout->setColumnStretch(row, stretch);
+    }
+    else
+      layout->addStretch(stretch);
 
     return cmdBase_->setCmdRc(QString());
   }
@@ -314,6 +427,38 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// qt_get_layout_types
+void
+CQChartsBaseGetLayoutTypesCmd::
+addCmdArgs(CQChartsCmdArgs &)
+{
+}
+
+QStringList
+CQChartsBaseGetLayoutTypesCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseGetLayoutTypesCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseGetLayoutTypesCmd::exec");
+
+  addArgs(argv);
+
+  if (! argv.parse())
+    return false;
+
+  auto names = CQWidgetFactoryMgrInst->layoutFactoryNames();
+
+  return cmdBase_->setCmdRc(names);
+}
+
+//------
+
 // qt_create_layout
 void
 CQChartsBaseCreateLayoutCmd::
@@ -366,6 +511,9 @@ execCmd(CQChartsCmdArgs &argv)
 
   if (! CQWidgetFactoryMgrInst->isLayoutFactory(typeName))
     return errorMsg(QString("Invalid type '%1'").arg(typeName));
+
+  if (parentWidget->layout())
+    return errorMsg(QString("Widget '%1' already has a layout").arg(CQUtil::fullName(parentWidget)));
 
   auto *l = CQWidgetFactoryMgrInst->createLayout(typeName, parentWidget);
 

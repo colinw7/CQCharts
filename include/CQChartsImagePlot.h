@@ -45,17 +45,16 @@ class CQChartsImagePlot;
 class CQChartsImageObj : public CQChartsPlotObj {
   Q_OBJECT
 
-  Q_PROPERTY(double value READ value)
+  Q_PROPERTY(CQChartsOptReal value READ value)
 
  public:
   using ImagePlot = CQChartsImagePlot;
   using Image     = CQChartsImage;
+  using OptReal   = CQChartsOptReal;
 
  public:
   CQChartsImageObj(const ImagePlot *plot, const BBox &rect, int row, int col,
-                   double value, const QModelIndex &ind, const ColorInd &iv);
-  CQChartsImageObj(const ImagePlot *plot, const BBox &rect, int row, int col,
-                   const Image &image, const QModelIndex &ind);
+                   const QModelIndex &ind, const ColorInd &iv);
 
   //---
 
@@ -67,7 +66,11 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
   //---
 
-  double value() const { return value_; }
+  void setValue(const OptReal &value) { value_ = value; columnType_ = CQBaseModelType::REAL; }
+  const OptReal &value() const { return value_; }
+
+  void setImage(const Image &image) { image_ = image; columnType_ = CQBaseModelType::IMAGE; }
+  const Image &image() const { return image_; }
 
   //---
 
@@ -96,7 +99,7 @@ class CQChartsImageObj : public CQChartsPlotObj {
   const ImagePlot* imagePlot_  { nullptr };               //!< parent plot
   int              row_        { -1 };                    //!< row
   int              col_        { -1 };                    //!< column
-  double           value_      { 0.0 };                   //!< value
+  OptReal          value_;                                //!< value
   Image            image_;                                //!< image
   CQBaseModelType  columnType_ { CQBaseModelType::REAL }; //!< data type
   CQChartsColor    bgColor_;                              //!< optional background color

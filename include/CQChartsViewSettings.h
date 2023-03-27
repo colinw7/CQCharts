@@ -37,7 +37,8 @@ class CQChartsInterfaceControl;
 class CQColorsEditList;
 class CQPropertyViewModel;
 
-class CQTabWidget;
+//class CQTabWidget;
+class CQTabBarWidget;
 class CQTabSplit;
 
 class QPushButton;
@@ -75,6 +76,8 @@ class CQChartsViewSettings : public QFrame {
 
   Plot *currentPlot(bool remap=true) const;
 
+  QWidget *widgetsFrame() const { return widgetsFrame_; }
+
  Q_SIGNALS:
   void objectsPropertyItemChanged(QObject *obj, const QString &path);
 
@@ -105,6 +108,7 @@ class CQChartsViewSettings : public QFrame {
   void updateErrors();
 
   void updateSelection();
+  void updateTabs();
 
   void updateView();
 
@@ -126,6 +130,7 @@ class CQChartsViewSettings : public QFrame {
   void addWidgets();
 
   void initControlsFrame   (QFrame *controlsFrame);
+  void initWidgetsFrame    (QFrame *widgetsFrame);
   void initPropertiesFrame (QFrame *propertiesFrame);
   void initModelsFrame     (QFrame *modelsFrame);
   void initPlotsFrame      (QFrame *plotsFrame);
@@ -209,24 +214,37 @@ class CQChartsViewSettings : public QFrame {
   CQChartsWindow* window_ { nullptr }; //!< parent window
 
   // widgets
-  CQTabWidget*          tab_                { nullptr }; //!< settings/palette tab
+//CQTabWidget*          tab_                { nullptr }; //!< settings/palette tab
+  CQTabBarWidget*       tab_                { nullptr }; //!< settings/palette tab
   PropertiesWidgets     propertiesWidgets_;              //!< properties widgets
   PlotControlFrame*     quickControlFrame_  { nullptr }; //!< quick control widgets
   QFrame*               customControlFrame_ { nullptr }; //!< custom control widgets
+  QFrame*               widgetsFrame_       { nullptr }; //!< custom widgets frame
+  QFrame*               propertiesFrame_    { nullptr }; //!< properties frame
   PlotCustomControlsP   plotCustomControls_;             //!< plot custom controls
+  QFrame*               modelsFrame_        { nullptr }; //!< models frame
   ModelsWidgets         modelsWidgets_;                  //!< models widgets
+  QFrame*               plotsFrame_         { nullptr }; //!< plots frame
   PlotsWidgets          plotsWidgets_;                   //!< plots widgets
+  QFrame*               annotationsFrame_   { nullptr }; //!< annotations frame
   AnnotationsWidgets    annotationsWidgets_;             //!< annotations widgets
+  QFrame*               objectsFrame_       { nullptr }; //!< objects frame
   ObjectsWidgets        objectsWidgets_;                 //!< objects widgets
+  QFrame*               colorsFrame_        { nullptr }; //!< colors frame
   ThemeWidgets          themeWidgets_;                   //!< theme widgets
+  QFrame*               symbolsFrame_       { nullptr }; //!< symbols frame
   SymbolSetsList*       symbolSetsList_     { nullptr }; //!< symbol sets list
   SymbolsList*          symbolsList_        { nullptr }; //!< symbols list
   CQChartsSymbolEditor* symbolEdit_         { nullptr }; //!< symbol editor
+  QFrame*               layersFrame_        { nullptr }; //!< layer frame
   LayersWidgets         layersWidgets_;                  //!< layers widgets
+  QFrame*               queryFrame_         { nullptr }; //!< query frame
   ViewQuery*            query_              { nullptr }; //!< query widget
+  QFrame*               errorsFrame_        { nullptr }; //!< errors frame
   ViewError*            error_              { nullptr }; //!< error widget
 
-  TabNum tabNum_; //!< current tab number
+  TabNum  tabNum_;                  //!< current tab number
+  uint    settingsTabs_ { 0xFFFF }; //!< displayed tabs
 
   QString plotId_; //!< current plot id
 

@@ -26,7 +26,7 @@ set_charts_property -plot $plot2 -name yaxis.visible -value 0
 
 #---
 
-set modelDetails [qt_create_widget -type CQChartsModelDetailsTable -name modelDetails]
+set modelDetails [qt_create_widget -type CQCharts:ModelDetailsTable -name modelDetails]
 
 set ann [create_charts_widget_annotation -plot $plot2 -id modelDetails \
   -position [list -1 -1] -widget $modelDetails]

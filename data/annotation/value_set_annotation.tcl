@@ -45,7 +45,7 @@ set frame [qt_create_widget -type QFrame -name frame]
 
 set layout [qt_create_layout -type QVBoxLayout -parent $frame]
 
-set nSpin [qt_create_widget -type CQIntegerSpin -name n]
+set nSpin [qt_create_widget -type CQ:IntegerSpin -name n]
 
 qt_set_property -object $nSpin -property value -value $n
 qt_set_property -object $nSpin -property minimum -value 1

@@ -261,6 +261,10 @@ init()
   registerSlot("zoom_full"    , QStringList());
   registerSlot("show_table"   , QStringList() << "bool");
   registerSlot("show_settings", QStringList() << "bool");
+
+  //---
+
+  settingsTabs_ = SettingsTab(0xFFFF & ~uint(SettingsTab::WIDGETS));
 }
 
 void
@@ -402,15 +406,15 @@ addProperties()
   //---
 
   // data
-  addProp("", "mode"          , "", "View mouse mode" , true);
-  addProp("", "id"            , "", "View id"         , true);
-  addProp("", "currentPlotInd", "", "Current plot ind", true);
+  addProp("state", "mode"          , "", "View mouse mode" , true);
+  addProp("state", "id"            , "", "View id"         , true);
+  addProp("state", "currentPlotInd", "", "Current plot ind", true);
+  addProp("state", "viewSizeHint"  , "", "View size hint"  , true);
 
-  addProp("", "viewSizeHint", "", "View size hint", true);
-  addProp("", "bufferLayers", "", "Buffer layer"  , true);
-
-  addProp("", "showTable"   , "", "Show table of value", true);
-  addProp("", "showSettings", "", "Show settings panel", true);
+  addProp("options", "bufferLayers", "", "Buffer layer", true);
+  addProp("options", "showTable"   , "", "Show table of value", true);
+  addProp("options", "settingsTabs", "", "Settings tabs", true);
+  addProp("options", "showSettings", "", "Show settings panel", true);
 
   // options
   addStyleProp("options", "antiAlias", "", "Draw aliased shapes", true);
@@ -7985,6 +7989,15 @@ CQChartsView::
 isShowSettings() const
 {
   return (window() ? window()->isViewSettings() : false);
+}
+
+void
+CQChartsView::
+setSettingsTabs(const SettingsTabs &i)
+{
+  settingsTabs_ = i;
+
+  Q_EMIT settingsTabsChanged();
 }
 
 void

@@ -46,7 +46,8 @@
 #include <CQPropertyViewItem.h>
 #include <CQPropertyViewModel.h>
 
-#include <CQTabWidget.h>
+//#include <CQTabWidget.h>
+#include <CQTabBarWidget.h>
 #include <CQTabSplit.h>
 #include <CQUtil.h>
 #include <CQGroupBox.h>
@@ -79,6 +80,8 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   connect(view, SIGNAL(selectionChanged()), this, SLOT(updateSelection()));
 
+  connect(view, SIGNAL(settingsTabsChanged()), this, SLOT(updateTabs()));
+
   connect(window, SIGNAL(themePalettesChanged()), this, SLOT(updatePalettes()));
   connect(charts, SIGNAL(interfaceThemeChanged()), this, SLOT(updateInterface()));
 
@@ -97,6 +100,10 @@ CQChartsViewSettings(CQChartsWindow *window) :
   updateErrorsTimer_->setSingleShot(true);
 
   connect(updateErrorsTimer_, SIGNAL(timeout()), this, SLOT(updateErrors()));
+
+  //---
+
+  updateTabs();
 }
 
 CQChartsViewSettings::
@@ -116,7 +123,11 @@ addWidgets()
   // add main tab widget
   auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
-  tab_ = CQUtil::makeWidget<CQTabWidget>("tab");
+  //tab_ = CQUtil::makeWidget<CQTabWidget>("tab");
+  tab_ = CQUtil::makeWidget<CQTabBarWidget>("tab");
+
+  tab_->setButtonStyle(Qt::ToolButtonTextOnly);
+  tab_->setFlowTabs(true);
 
   layout->addWidget(tab_);
 
@@ -128,13 +139,11 @@ addWidgets()
   int tabNum = 0;
 
   auto addTab = [&](const QString &name) {
-    auto objectName = name + "Frame";
+    auto areaName  = name + "Area" ; areaName [0] = areaName [0].toLower();
+    auto frameName = name + "Frame"; frameName[0] = frameName[0].toLower();
 
-    objectName[0] = objectName[0].toLower();
-
-    auto *area = CQUtil::makeWidget<QScrollArea>(objectName);
-
-    auto *frame = CQUtil::makeWidget<QFrame>(area, "frame");
+    auto *area  = CQUtil::makeWidget<QScrollArea>(areaName);
+    auto *frame = CQUtil::makeWidget<QFrame>(area, frameName);
 
     area->setWidget(frame);
     area->setWidgetResizable(true);
@@ -150,6 +159,9 @@ addWidgets()
 
   // Controls
   initControlsFrame(addTab("Controls"));
+
+  // Widgets
+  initWidgetsFrame(addTab("Widgets"));
 
   // Properties Tab
   initPropertiesFrame(addTab("Properties"));
@@ -209,12 +221,27 @@ initControlsFrame(QFrame *controlsFrame)
   (void) CQUtil::makeLayout<QVBoxLayout>(customControlFrame_);
 }
 
+//------
+
+void
+CQChartsViewSettings::
+initWidgetsFrame(QFrame *widgetsFrame)
+{
+  widgetsFrame_ = widgetsFrame;
+
+  (void) CQUtil::makeLayout<QVBoxLayout>(widgetsFrame_, 0, 0);
+}
+
 //---
 
 void
 CQChartsViewSettings::
 initPropertiesFrame(QFrame *propertiesFrame)
 {
+  propertiesFrame_ = propertiesFrame;
+
+  //---
+
   auto *view   = window_->view();
   auto *charts = view->charts();
 
@@ -289,6 +316,10 @@ void
 CQChartsViewSettings::
 initModelsFrame(QFrame *modelsFrame)
 {
+  modelsFrame_ = modelsFrame;
+
+  //---
+
   auto *view   = window_->view();
   auto *charts = view->charts();
 
@@ -332,6 +363,10 @@ void
 CQChartsViewSettings::
 initPlotsFrame(QFrame *plotsFrame)
 {
+  plotsFrame_ = plotsFrame;
+
+  //---
+
   auto *view = window_->view();
 
   //---
@@ -360,6 +395,10 @@ void
 CQChartsViewSettings::
 initAnnotationsFrame(QFrame *annotationsFrame)
 {
+  annotationsFrame_ = annotationsFrame;
+
+  //---
+
   auto *view = window_->view();
 
   //---
@@ -382,6 +421,10 @@ void
 CQChartsViewSettings::
 initObjectsFrame(QFrame *objectsFrame)
 {
+  objectsFrame_ = objectsFrame;
+
+  //---
+
   // TODO: add Objects group box
 
   auto *objectsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(objectsFrame, 2, 2);
@@ -400,6 +443,10 @@ void
 CQChartsViewSettings::
 initColorsFrame(QFrame *colorsFrame)
 {
+  colorsFrame_ = colorsFrame;
+
+  //---
+
   auto *view = window_->view();
 
   //--
@@ -442,20 +489,24 @@ initColorsFrame(QFrame *colorsFrame)
 
 void
 CQChartsViewSettings::
-initSymbolsFrame(QFrame *symbolSetsFrame)
+initSymbolsFrame(QFrame *symbolsFrame)
 {
+  symbolsFrame_ = symbolsFrame;
+
+  //---
+
   auto *view   = window_->view();
   auto *charts = view->charts();
 
   //---
 
-  auto *symbolSetsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(symbolSetsFrame, 2, 2);
+  auto *symbolsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(symbolsFrame, 2, 2);
 
   //---
 
   auto *symbolsSplit = createTabSplit("symbolsSplit", /*tabbed*/false);
 
-  symbolSetsFrameLayout->addWidget(symbolsSplit);
+  symbolsFrameLayout->addWidget(symbolsSplit);
 
   //---
 
@@ -467,14 +518,14 @@ initSymbolsFrame(QFrame *symbolSetsFrame)
 
   //---
 
-  auto symbolsFrame = addSplitFrame(symbolsSplit, "Symbols", "symbolsFrame");
+  auto symbolsSubFrame = addSplitFrame(symbolsSplit, "Symbols", "symbolsFrame");
 
   //--
 
   // List of all symbols in set
   symbolsList_ = new CQChartsSymbolsListControl(charts);
 
-  symbolsFrame.layout->addWidget(symbolsList_);
+  symbolsSubFrame.layout->addWidget(symbolsList_);
 
   connect(symbolsList_, SIGNAL(symbolChanged()), this, SLOT(symbolListSymbolChangeSlot()));
 
@@ -507,6 +558,10 @@ void
 CQChartsViewSettings::
 initLayersFrame(QFrame *layersFrame)
 {
+  layersFrame_ = layersFrame;
+
+  //---
+
   auto *view = window_->view();
 
   //---
@@ -528,6 +583,10 @@ void
 CQChartsViewSettings::
 initQueryFrame(QFrame *queryFrame)
 {
+  queryFrame_ = queryFrame;
+
+  //---
+
   auto *view = window_->view();
 
   //---
@@ -568,6 +627,10 @@ void
 CQChartsViewSettings::
 initErrorsFrame(QFrame *errorsFrame)
 {
+  errorsFrame_ = errorsFrame;
+
+  //---
+
   auto *view = window_->view();
 
   //---
@@ -717,6 +780,7 @@ updateCurrentPlot()
     connect(plot, SIGNAL(controlColumnsChanged()), this, SLOT(updatePlotControls()));
     connect(plot, SIGNAL(plotObjsAdded()), this, SLOT(updatePlotObjects()));
     connect(plot, SIGNAL(layersChanged()), this, SLOT(updateLayers()));
+    connect(plot, SIGNAL(customWidgetChanged()), this, SLOT(updatePlotControls()));
   }
 
   //---
@@ -800,6 +864,23 @@ updatePlotControls()
   if (quickSize) sizes << quickSize;
 
   propertiesWidgets_.propertiesSplit->setSizes(sizes);
+
+  //---
+
+  // update custom widget
+  QWidget *customWidget = nullptr;
+
+  if (plot)
+    customWidget = plot->customWidget().widget();
+
+  if (customWidget)
+    widgetsFrame_->layout()->addWidget(customWidget);
+  else {
+    QLayoutItem *child;
+
+    while ((child = widgetsFrame_->layout()->takeAt(0)) != nullptr)
+      delete child;
+  }
 }
 
 //------
@@ -861,6 +942,92 @@ CQChartsViewSettings::
 updateSelection()
 {
   window_->selectPropertyObjects();
+}
+
+//------
+
+void
+CQChartsViewSettings::
+updateTabs()
+{
+  auto *view = window_->view();
+  if (! view) return;
+
+  auto settingsTabs = view->settingsTabs();
+
+  if (uint(settingsTabs) == settingsTabs_)
+    return;
+
+  settingsTabs_ = uint(settingsTabs);
+
+  //---
+
+  int ind = tab_->currentIndex();
+
+  auto tabName = tab_->tabText(ind);
+
+  //---
+
+  tab_->clear();
+
+  tabNum_.clear();
+
+  int tabNum = 0;
+
+  ind = -1;
+
+  auto addTab = [&](QFrame *frame, const QString &name) {
+    auto *stack = frame->parentWidget();
+    auto *area  = (stack ? stack->parentWidget() : nullptr);
+
+    assert(area && qobject_cast<QScrollArea *>(area));
+
+    tab_->addTab(area, name);
+
+    if (name == tabName)
+      ind = tabNum;
+
+    tabNum_[name] = tabNum++;
+  };
+
+  if (settingsTabs & CQChartsView::SettingsTab::CONTROLS)
+    addTab(customControlFrame_, "Controls");
+
+  if (settingsTabs & CQChartsView::SettingsTab::WIDGETS)
+    addTab(widgetsFrame_, "Widgets");
+
+  if (settingsTabs & CQChartsView::SettingsTab::PROPERTIES)
+    addTab(propertiesFrame_, "Properties");
+
+  if (settingsTabs & CQChartsView::SettingsTab::MODELS)
+    addTab(modelsFrame_, "Models");
+
+  if (settingsTabs & CQChartsView::SettingsTab::PLOTS)
+    addTab(plotsFrame_, "Plots");
+
+  if (settingsTabs & CQChartsView::SettingsTab::ANNOTATIONS)
+    addTab(annotationsFrame_, "Annotations");
+
+  if (settingsTabs & CQChartsView::SettingsTab::OBJECTS)
+    addTab(objectsFrame_, "Objects");
+
+  if (settingsTabs & CQChartsView::SettingsTab::COLORS)
+    addTab(colorsFrame_, "Colors");
+
+  if (settingsTabs & CQChartsView::SettingsTab::SYMBOLS)
+    addTab(symbolsFrame_, "Symbols");
+
+  if (settingsTabs & CQChartsView::SettingsTab::LAYERS)
+    addTab(layersFrame_, "Layers");
+
+  if (settingsTabs & CQChartsView::SettingsTab::QUERY)
+    addTab(queryFrame_, "Query");
+
+  if (settingsTabs & CQChartsView::SettingsTab::ERRORS)
+    addTab(errorsFrame_, "Errors");
+
+  if (ind >= 0)
+    tab_->setCurrentIndex(ind);
 }
 
 //------

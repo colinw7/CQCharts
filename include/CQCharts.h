@@ -120,10 +120,13 @@ class CQCharts : public QObject {
     }
   };
 
+  using Window     = CQChartsWindow;
   using PlotTypes  = std::vector<CQChartsPlotType *>;
   using ModelP     = QSharedPointer<QAbstractItemModel>;
   using ModelDatas = std::vector<CQChartsModelData *>;
-  using Views      = std::vector<CQChartsView *>;
+  using View       = CQChartsView;
+  using Views      = std::vector<View *>;
+  using Plot       = CQChartsPlot;
   using Procs      = std::map<QString, ProcData>;
   using TypeProcs  = std::map<ProcType, Procs>;
 
@@ -304,27 +307,27 @@ class CQCharts : public QObject {
 
   //---
 
-  CQChartsView *addView(const QString &id="");
+  View *addView(const QString &id="");
 
-  void addView(CQChartsView *view);
+  void addView(View *view);
 
-  virtual CQChartsView *createView();
-  virtual void deleteView(CQChartsView *view);
+  virtual View *createView();
+  virtual void deleteView(View *view);
 
-  CQChartsView *getView(const QString &id) const;
+  View *getView(const QString &id) const;
 
-  CQChartsView *currentView() const;
+  View *currentView() const;
 
   void getViews(Views &views) const;
 
   void getViewIds(QStringList &names) const;
 
-  void removeView(CQChartsView *view);
+  void removeView(View *view);
 
   //---
 
-  virtual CQChartsWindow *createWindow(CQChartsView *view);
-  virtual void deleteWindow(CQChartsWindow *window);
+  virtual Window *createWindow(View *view);
+  virtual void deleteWindow(Window *window);
 
   //---
 
@@ -448,7 +451,7 @@ class CQCharts : public QObject {
   bool setModelInd(QAbstractItemModel *model, int ind);
 
  private:
-  using NameViews       = std::map<QString, CQChartsView*>;
+  using NameViews       = std::map<QString, View*>;
   using InterfaceThemeP = std::unique_ptr<CQChartsInterfaceTheme>;
   using PlotTypeMgrP    = std::unique_ptr<CQChartsPlotTypeMgr>;
   using ColumnTypeMgrP  = std::unique_ptr<CQChartsColumnTypeMgr>;

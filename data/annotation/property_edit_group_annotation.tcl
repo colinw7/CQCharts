@@ -17,7 +17,7 @@ set plot [create_charts_plot -model $model -type scatter \
   -properties {{symbol.symbol circle} {symbol.size 5px}} \
   -properties {{xaxis.userLabel {Sepal Length}} {yaxis.userLabel {Sepal Width}}}]
 
-set propertyEditGroup [qt_create_widget -type CQChartsPlotPropertyEditGroup -name edit]
+set propertyEditGroup [qt_create_widget -type CQCharts:PlotPropertyEditGroup -name edit]
 
 qt_activate_slot -name $propertyEditGroup -slot "addSlot(QString)" -args font
 qt_activate_slot -name $propertyEditGroup -slot "addSlot(QString)" -args xColumn

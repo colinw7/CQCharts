@@ -350,7 +350,8 @@ fromString(const QString &s, Type type)
     if (filename_ != "") {
       image_ = CQChartsImageMgrInst->loadImage(filename_);
 
-      resolved_ = true;
+      if (! image_.isNull())
+        resolved_ = true;
 
       if (w > 0 && h > 0) {
         if (! image_.isNull())
@@ -364,7 +365,8 @@ fromString(const QString &s, Type type)
     if (filename_ != "") {
       icon_ = CQChartsIconMgrInst->loadIcon(filename_);
 
-      resolved_ = true;
+      if (! icon_.isNull())
+        resolved_ = true;
     }
 
     if (w < 0) w = 100;

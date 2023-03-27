@@ -26,7 +26,7 @@ proc addColumnsEdit { labelStr name } {
   set hlayout [qt_create_layout -type QHBoxLayout -parent $hframe]
 
   set label [qt_create_widget -type QLabel -name ${name}_label]
-  set edit  [qt_create_widget -type CQChartsColumnsEdit -name ${name}_edit]
+  set edit  [qt_create_widget -type CQCharts:ColumnsEdit -name ${name}_edit]
 
   qt_set_property -object $label -property text -value $labelStr
   qt_set_property -object $edit  -property basic -value 1
@@ -155,7 +155,7 @@ set valueTypesEdit [editWidgetName valueTypesEdit]
 
 #---
 
-set modelView [qt_create_widget -type CQChartsModelViewHolder -name modelView]
+set modelView [qt_create_widget -type CQCharts:ModelViewHolder -name modelView]
 
 set modelViewAnn [create_charts_widget_annotation -plot $plot -id modelView \
   -rectangle [list 1 1 49 49 V] -widget $modelView]
@@ -165,7 +165,7 @@ set modelView [get_charts_data -annotation $modelViewAnn -name widget_path]
 
 #---
 
-set pivotModelView [qt_create_widget -type CQChartsModelViewHolder -name pivotModelView]
+set pivotModelView [qt_create_widget -type CQCharts:ModelViewHolder -name pivotModelView]
 
 set pivotModelViewAnn [create_charts_widget_annotation -plot $plot -id pivotModelView \
   -rectangle [list 50 1 99 49 V] -widget $pivotModelView]

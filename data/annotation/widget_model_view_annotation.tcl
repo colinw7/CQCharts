@@ -21,7 +21,7 @@ set plot2 [create_charts_plot -type empty -xmin 0 -xmax 1 -ymin 0 -ymax 1]
 
 #---
 
-set modelView [qt_create_widget -type CQChartsModelViewHolder -name modelView]
+set modelView [qt_create_widget -type CQCharts:ModelViewHolder -name modelView]
 
 set ann [create_charts_widget_annotation -plot $plot2 -id modelView \
   -position [list -1 -1] -widget $modelView]
