@@ -700,6 +700,19 @@ void
 CQChartsBarChartPlot::
 postCalcRange()
 {
+  if (! currentModel().data()) {
+    auto *xAxis = mappedXAxis();
+    auto *yAxis = mappedYAxis();
+
+    xAxis->setDefLabel("");
+    yAxis->setDefLabel("");
+
+    xAxis->clearTickLabels();
+    yAxis->clearTickLabels();
+
+    return;
+  }
+
   initRangeAxes();
 }
 
@@ -3283,9 +3296,15 @@ void
 CQChartsBarChartPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_ && barChartPlot_)
+    disconnect(barChartPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   barChartPlot_ = dynamic_cast<CQChartsBarChartPlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
+
+  if (barChartPlot_)
+    connect(barChartPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

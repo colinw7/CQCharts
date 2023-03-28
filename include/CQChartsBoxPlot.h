@@ -799,6 +799,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
+  void initRange() override;
+
   Range calcRange() const override;
 
   void postCalcRange() override;
@@ -823,6 +825,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   //---
 
   BBox calcExtraFitBBox() const override;
+
+  void clearPlotObjects() override;
 
   bool createObjs(PlotObjs &objs) const override;
 

@@ -267,6 +267,7 @@ class CQChartsView : public QFrame,
   };
 
   enum class SettingsTab {
+    NONE        = 0,
     CONTROLS    = (1<<0),
     WIDGETS     = (1<<1),
     PROPERTIES  = (1<<2),

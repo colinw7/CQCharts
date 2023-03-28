@@ -1114,6 +1114,9 @@ addPlotObjects()
 
   removePlotObjects();
 
+  if (! currentModel().data())
+    return;
+
   //---
 
   // add node objects

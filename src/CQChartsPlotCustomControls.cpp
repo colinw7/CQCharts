@@ -594,6 +594,8 @@ showKeyListSlot(bool b)
   if (! plot_) return;
 
   plot_->setControlsKey(b);
+
+  updateWidgets();
 }
 
 CQChartsEnumParameterEdit *

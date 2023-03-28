@@ -453,6 +453,9 @@ connectDisconnectModel(const ModelP &model, bool isConnect)
       }
     }
 
+    connectDisconnect(isConnect, modelData, SIGNAL(deleted()),
+                      SLOT(modelDeletedSlot()));
+
     connectDisconnect(isConnect, modelData, SIGNAL(modelChanged()),
                       SLOT(modelChangedSlot()));
 
@@ -577,6 +580,22 @@ animateStep()
 }
 
 //---
+
+void
+CQChartsPlot::
+modelDeletedSlot()
+{
+  auto *modelData = qobject_cast<CQChartsModelData *>(sender());
+  if (! modelData) return;
+
+  auto pm = std::find(models_.begin(), models_.end(), modelData->model());
+
+  if (pm != models_.end()) {
+    models_.erase(pm);
+
+    updateRangeAndObjs();
+  }
+}
 
 void
 CQChartsPlot::
@@ -4549,6 +4568,9 @@ void
 CQChartsPlot::
 doAddKeyItems(PlotKey *key)
 {
+  if (! currentModel().data())
+    return;
+
   // add key items from color column
   if (isColorKey()) {
     if (addColorKeyItems(key))
@@ -5736,7 +5758,19 @@ updateAndAdjustRanges()
 
   resetExtraFitBBox();
 
-  calcDataRange_    = calcRange();
+  //---
+
+  initRange();
+
+  if (currentModel().data()) {
+    calcDataRange_ = calcRange();
+  }
+  else {
+    calcDataRange_ = Range();
+
+    calcDataRange_.makeNonZero();
+  }
+
   unequalDataRange_ = adjustDataRange(getCalcDataRange());
 
   // adjust to equal scale
@@ -6747,6 +6781,11 @@ createObjs()
   //std::cerr << "createObjs " << calcName().toStdString() << "\n";
 
   resetExtraFitBBox();
+
+  //---
+
+  if (! currentModel().data())
+    return true;
 
   //---
 
@@ -17468,10 +17507,12 @@ QString
 CQChartsPlot::
 modelHHeaderTip(const Column &column, bool &ok) const
 {
-  const auto &model = this->currentModel();
+  QString str;
 
-  auto str = modelHHeaderString(model.data(), column,
-               CQModelUtil::roleCast(CQBaseModelRole::Tip), ok);
+  const auto &model = this->currentModel();
+  if (! model.data()) return str;
+
+  str = modelHHeaderString(model.data(), column, CQModelUtil::roleCast(CQBaseModelRole::Tip), ok);
 
   if (! ok || ! str.length())
     str = CQChartsModelUtil::modelHHeaderString(model.data(), mapColumn(column), ok);

@@ -150,6 +150,9 @@ void
 CQChartsPointPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_ && pointPlot_)
+    disconnect(pointPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   if (plot_ && pointPlot_) {
     disconnect(pointPlot_, SIGNAL(plotDrawn()), this, SLOT(plotDrawnSlot()));
     disconnect(pointPlot_, SIGNAL(symbolSizeDetailsChanged()), this, SLOT(symbolSizeDetailsSlot()));
@@ -165,6 +168,9 @@ setPlot(CQChartsPlot *plot)
   }
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
+
+  if (pointPlot_)
+    connect(pointPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

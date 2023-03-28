@@ -412,6 +412,9 @@ void
 CQChartsHierScatterPlot::
 postCalcRange()
 {
+  if (! currentModel().data())
+    return;
+
   initAxes();
 }
 

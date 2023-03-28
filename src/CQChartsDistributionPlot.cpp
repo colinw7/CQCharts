@@ -5334,9 +5334,15 @@ void
 CQChartsDistributionPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_ && distributionPlot_)
+    disconnect(distributionPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   distributionPlot_ = dynamic_cast<CQChartsDistributionPlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
+
+  if (distributionPlot_)
+    connect(distributionPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

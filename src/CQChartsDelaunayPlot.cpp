@@ -393,6 +393,9 @@ void
 CQChartsDelaunayPlot::
 postCalcRange()
 {
+  if (! currentModel().data())
+    return;
+
   bool ok;
 
   // set x axis label and ticks

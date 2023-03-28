@@ -826,9 +826,15 @@ void
 CQChartsStripPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_ && stripPlot_)
+    disconnect(stripPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   stripPlot_ = dynamic_cast<CQChartsStripPlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
+
+  if (stripPlot_)
+    connect(stripPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 CQChartsColor

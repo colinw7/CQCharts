@@ -753,6 +753,21 @@ isRawCalc() const
 
 //---
 
+void
+CQChartsBoxPlot::
+initRange()
+{
+  clearRawWhiskers();
+
+  auto *xAxis = mappedXAxis();
+  auto *yAxis = mappedYAxis();
+
+  xAxis->clearTickLabels();
+
+  xAxis->setDefLabel("");
+  yAxis->setDefLabel("");
+}
+
 CQChartsGeom::Range
 CQChartsBoxPlot::
 calcRange() const
@@ -771,8 +786,6 @@ calcRange() const
 
   Range dataRange;
 
-  //---
-
   if      (isPreCalc())
     dataRange = updateCalcRange();
   else if (isRawCalc())
@@ -787,6 +800,9 @@ void
 CQChartsBoxPlot::
 postCalcRange()
 {
+  if (! currentModel().data())
+    return;
+
   // x-axis must be integer, y-axis must be real
   auto *xAxis = mappedXAxis();
   auto *yAxis = mappedYAxis();
@@ -1543,6 +1559,13 @@ updateVisibleValueColumns()
 }
 
 //------
+
+void
+CQChartsBoxPlot::
+clearPlotObjects()
+{
+  CQChartsPlot::clearPlotObjects();
+}
 
 bool
 CQChartsBoxPlot::
@@ -4139,11 +4162,17 @@ void
 CQChartsBoxPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_ && boxPlot_)
+    disconnect(boxPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   boxPlot_ = dynamic_cast<CQChartsBoxPlot *>(plot);
 
   chooser_->setPlot(boxPlot_);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
+
+  if (boxPlot_)
+    connect(boxPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

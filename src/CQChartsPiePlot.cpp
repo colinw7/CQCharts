@@ -3899,9 +3899,15 @@ void
 CQChartsPiePlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_ && piePlot_)
+    disconnect(piePlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   piePlot_ = dynamic_cast<PiePlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
+
+  if (piePlot_)
+    connect(piePlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void

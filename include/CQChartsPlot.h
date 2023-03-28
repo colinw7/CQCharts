@@ -1705,6 +1705,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void execUpdateRange();
 
  public:
+  virtual void initRange() { }
+
   // calculate and return range from data
   virtual Range calcRange() const = 0;
 
@@ -3207,6 +3209,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void animateSlot();
 
   void threadTimerSlot();
+
+  void modelDeletedSlot();
 
   // model change slots
   void modelChangedSlot();

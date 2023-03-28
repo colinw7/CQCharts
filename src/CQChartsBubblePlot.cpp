@@ -1679,9 +1679,15 @@ void
 CQChartsBubblePlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
+  if (plot_ && bubblePlot_)
+    disconnect(bubblePlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
   bubblePlot_ = dynamic_cast<CQChartsBubblePlot *>(plot);
 
   CQChartsGroupPlotCustomControls::setPlot(plot);
+
+  if (bubblePlot_)
+    connect(bubblePlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 }
 
 void
