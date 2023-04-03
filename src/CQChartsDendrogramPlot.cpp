@@ -8,7 +8,6 @@
 #include <CQChartsHtml.h>
 #include <CQChartsTip.h>
 #include <CQChartsNamePair.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -2229,7 +2228,7 @@ connectSlots(bool b)
 {
   CQChartsPlotCustomControls::connectSlots(b);
 
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
 }
 

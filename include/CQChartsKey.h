@@ -644,7 +644,7 @@ class CQChartsKeyItem : public QObject, public CQChartsSelectableIFace {
  public:
   CQChartsKeyItem(PlotKey *key, const ColorInd &ic, Plot *plot=nullptr);
 
-  virtual ~CQChartsKeyItem() { }
+  virtual ~CQChartsKeyItem() = default;
 
   //---
 

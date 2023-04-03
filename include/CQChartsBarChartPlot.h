@@ -79,7 +79,7 @@ class CQChartsBarChartValue {
   using ValueInds = std::vector<ValueInd>;
 
  public:
-  CQChartsBarChartValue() { }
+  CQChartsBarChartValue() = default;
 
   void addValueInd(const ValueInd &valueInd) {
     valueInds_.push_back(valueInd);

@@ -13,7 +13,6 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsHtml.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -1344,11 +1343,11 @@ void
 CQChartsCorrelationPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     diagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(diagonalTypeSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     upperDiagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(upperDiagonalTypeSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     lowerDiagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(lowerDiagonalTypeSlot()));
 
   CQChartsPlotCustomControls::connectSlots(b);

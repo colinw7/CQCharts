@@ -1,7 +1,6 @@
 #include <CQChartsModelTable.h>
 #include <CQChartsModelData.h>
 #include <CQChartsVariant.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsCreatePlotDlg.h>
 #include <CQChartsView.h>
 #include <CQCharts.h>

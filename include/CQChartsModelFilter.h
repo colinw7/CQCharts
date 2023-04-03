@@ -25,7 +25,7 @@ class CQChartsModelFilterData {
   using Type            = CQChartsFilterModelType;
 
  public:
-  CQChartsModelFilterData() { }
+  CQChartsModelFilterData() = default;
 
   const Type &type() const { return type_; }
   void setType(const Type &t) { type_ = t; }

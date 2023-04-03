@@ -53,7 +53,7 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
  public:
   CQChartsDataLabel(Plot *plot);
 
-  virtual ~CQChartsDataLabel() { }
+  virtual ~CQChartsDataLabel() = default;
 
   //--
 

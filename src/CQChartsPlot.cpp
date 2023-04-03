@@ -25,7 +25,6 @@
 #include <CQChartsSVGPaintDevice.h>
 #include <CQChartsStatsPaintDevice.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsSymbolSet.h>
 #include <CQChartsSymbolBuffer.h>
 #include <CQChartsHtml.h>
@@ -77,6 +76,8 @@ CQChartsPlot(View *view, PlotType *type, const ModelP &model) :
  view_(view), type_(type)
 {
   models_.push_back(model);
+
+  updateModelInds();
 
   CQChartsObjPlotShapeData<CQChartsPlot>::setPlotReloadObj(false);
   CQChartsObjDataShapeData<CQChartsPlot>::setDataReloadObj(false);
@@ -339,11 +340,126 @@ CQChartsPlot::ModelP
 CQChartsPlot::
 currentModel() const
 {
+  for (auto &model : models_) {
+    auto *modelData = getModelData(model);
+
+    if (modelData && modelData->ind() == currentModelIndex())
+      return model;
+  }
+
   if (! models_.empty())
     return *models_.begin();
 
   return ModelP();
 }
+
+CQChartsModelData *
+CQChartsPlot::
+currentModelData() const
+{
+  const auto &model = currentModel();
+
+  return getModelData(model);
+}
+
+int
+CQChartsPlot::
+currentModelIndex() const
+{
+  return currentModelInd().modelInd();
+}
+
+const CQChartsModelInd &
+CQChartsPlot::
+currentModelInd() const
+{
+  return currentModelInd_;
+}
+
+void
+CQChartsPlot::
+setCurrentModelInd(const CQChartsModelInd &ind)
+{
+  if (ind.modelInd() != currentModelIndex()) {
+    currentModelInd_ = ind;
+
+    updateModelInds();
+
+    updateRangeAndObjs();
+
+    Q_EMIT currentModelChanged();
+  }
+}
+
+const CQChartsValueList &
+CQChartsPlot::
+modelInds() const
+{
+  return modelInds_;
+}
+
+void
+CQChartsPlot::
+setModelInds(const CQChartsValueList &inds)
+{
+  if (inds != modelInds_) {
+    auto modelInd = CQChartsModelInd::fromVariant(inds.value(inds.currentInd()));
+
+    modelInd.setCharts(charts());
+
+    setCurrentModelInd(modelInd);
+  }
+}
+
+void
+CQChartsPlot::
+updateModelInds()
+{
+  modelInds_.clear();
+
+  int currentInd = -1;
+
+  if (! models_.empty()) {
+    int ind = 0;
+
+    for (const auto &model : models_) {
+      auto *modelData = getModelData(model);
+
+      CQChartsModelInd modelInd(charts(), modelData->ind());
+
+      modelInds_.addValue(CQChartsModelInd::toVariant(modelInd));
+
+      if (modelData->ind() == currentModelIndex())
+        currentInd = ind;
+
+      ++ind;
+    }
+  }
+
+  modelInds_.setCurrentInd(currentInd);
+
+  //---
+
+  CQChartsModelInd ind;
+
+  ind.setCharts(charts());
+
+  auto *modelData = currentModelData();
+
+  ind.setModelInd(modelData ? modelData->ind() : -1);
+
+  if (ind != currentModelInd()) {
+    currentModelInd_ = ind;
+
+    modelInds_.setCurrentInd(currentModelIndex());
+
+    updateRangeAndObjs();
+
+    Q_EMIT currentModelChanged();
+  }
+}
+
+//---
 
 void
 CQChartsPlot::
@@ -354,6 +470,8 @@ addModel(const ModelP &model)
   addModelI(model);
 
   connectModels();
+
+  updateModelInds();
 
   updateRangeAndObjs();
 
@@ -383,6 +501,8 @@ replaceModel(const ModelP &oldModel, const ModelP &newModel)
   addModelI(newModel);
 
   connectModels();
+
+  updateModelInds();
 
   updateRangeAndObjs();
 
@@ -430,28 +550,34 @@ connectDisconnectModel(const ModelP &model, bool isConnect)
   //---
 
   auto connectDisconnect = [&](bool b, QObject *obj, const char *from, const char *to) {
-    CQChartsWidgetUtil::connectDisconnect(b, obj, from, this, to);
+    CQUtil::connectDisconnect(b, obj, from, this, to);
   };
 
   //---
 
+  auto setModelName = [&]() {
+    if (! modelData->name().length() && this->hasId()) {
+      auto modelName = QString("%1:%2").arg(this->id()).arg(modelData->ind());
+
+      modelData->setName(modelName);
+
+      modelData->setPlotName(true);
+    }
+  };
+
+  auto unsetModelName = [&]()  {
+    if (modelData->isPlotName()) {
+      modelData->setName("");
+
+      modelData->setPlotName(false);
+    }
+  };
+
   if (modelData) {
-    if (isConnect) {
-      if (! modelData->name().length() && this->hasId()) {
-        charts()->setModelName(modelData, this->id());
-
-        modelNameSet_ = true;
-      }
-      else
-        modelNameSet_ = false;
-    }
-    else {
-      if (modelNameSet_) {
-        charts()->setModelName(modelData, this->id());
-
-        modelNameSet_ = false;
-      }
-    }
+    if (isConnect)
+      setModelName();
+    else
+      unsetModelName();
 
     connectDisconnect(isConnect, modelData, SIGNAL(deleted()),
                       SLOT(modelDeletedSlot()));
@@ -466,8 +592,6 @@ connectDisconnectModel(const ModelP &model, bool isConnect)
                       SLOT(selectionSlot(QItemSelectionModel *)));
   }
   else {
-    modelNameSet_ = false;
-
     // TODO: on connect, check if model uses changed columns
     //int column1 = tl.column();
     //int column2 = br.column();
@@ -593,7 +717,11 @@ modelDeletedSlot()
   if (pm != models_.end()) {
     models_.erase(pm);
 
+    updateModelInds();
+
     updateRangeAndObjs();
+
+    Q_EMIT modelChanged();
   }
 }
 
@@ -3750,14 +3878,17 @@ CQChartsPlot::
 addBaseProperties()
 {
   // data
-  addProp("", "viewId"    , "view"      , "Parent view id" , /*hidden*/true);
-  addProp("", "typeStr"   , "type"      , "Type name"      , /*hidden*/true);
-  addProp("", "visible"   , "visible"   , "Plot visible"   , /*hidden*/true);
-  addProp("", "selected"  , "selected"  , "Plot selected"  , /*hidden*/true);
-  addProp("", "selectable", "selectable", "Plot selectable", /*hidden*/true);
-  addProp("", "editable"  , "editable"  , "Plot editable"  , /*hidden*/true);
+  addPropI("state", "viewId"    , "view", "Parent view id" );
+  addPropI("state", "typeStr"   , "type", "Type name"      );
+  addPropI("state", "visible"   , ""    , "Plot visible"   );
+  addPropI("state", "selected"  , ""    , "Plot selected"  );
+  addPropI("state", "selectable", ""    , "Plot selectable");
+  addPropI("state", "editable"  , ""    , "Plot editable"  );
 
-  addProp("", "name", "name", "Plot name", /*hidden*/true);
+  addPropI("state", "name", "", "Plot name");
+
+  addPropI("state", "currentModelIndex", "currentModelInd", "Current model index");
+  addPropI("state", "modelInds"        , "currentModel"   , "Current model from plot models");
 
   // font
   addStyleProp("font", "font"      , "font"      , "Base font");
@@ -3794,9 +3925,9 @@ addBaseProperties()
   addProp("range", "viewRect", "view", "View rectangle");
   addProp("range", "dataRect", "data", "Data rectangle");
 
-  addProp("range", "innerViewRect", "innerView", "Inner view rectangle"     , /*hidden*/true);
-  addProp("range", "calcDataRect" , "calcData" , "Calculated data rectangle", /*hidden*/true);
-  addProp("range", "outerDataRect", "outerData", "Outer data rectangle"     , /*hidden*/true);
+  addPropI("range", "innerViewRect", "innerView", "Inner view rectangle"     );
+  addPropI("range", "calcDataRect" , "calcData" , "Calculated data rectangle");
+  addPropI("range", "outerDataRect", "outerData", "Outer data rectangle"     );
 
   addProp("range", "autoFit", "autoFit", "Auto fit to data");
 
@@ -3809,16 +3940,16 @@ addBaseProperties()
   if (type()->canEqualScale())
     addProp("scaling", "equalScale", "equal", "Equal x/y scaling");
 
-  addProp("scaling/data/scale" , "dataScaleX" , "x", "X data scale" , /*hidden*/true);
-  addProp("scaling/data/scale" , "dataScaleY" , "y", "Y data scale" , /*hidden*/true);
-  addProp("scaling/data/offset", "dataOffsetX", "x", "X data offset", /*hidden*/true);
-  addProp("scaling/data/offset", "dataOffsetY", "y", "Y data offset", /*hidden*/true);
+  addPropI("scaling/data/scale" , "dataScaleX" , "x", "X data scale" );
+  addPropI("scaling/data/scale" , "dataScaleY" , "y", "Y data scale" );
+  addPropI("scaling/data/offset", "dataOffsetX", "x", "X data offset");
+  addPropI("scaling/data/offset", "dataOffsetY", "y", "Y data offset");
 
   // grouping
-  addProp("grouping", "overlay", "", "Overlay plots to shared range"    , /*hidden*/true);
-  addProp("grouping", "x1x2"   , "", "Independent x axes, shared y axis", /*hidden*/true);
-  addProp("grouping", "y1y2"   , "", "Independent y axes, shared x axis", /*hidden*/true);
-  addProp("grouping", "tabbed" , "", "Tabbed plots in same region"      , /*hidden*/true);
+  addPropI("grouping", "overlay", "", "Overlay plots to shared range"    );
+  addPropI("grouping", "x1x2"   , "", "Independent x axes, shared y axis");
+  addPropI("grouping", "y1y2"   , "", "Independent y axes, shared x axis");
+  addPropI("grouping", "tabbed" , "", "Tabbed plots in same region"      );
 
   // invert
   addProp("invert", "invertX", "x", "Invert x values");
@@ -3835,10 +3966,9 @@ addBaseProperties()
   addProp("animation", "animTick" , "tick"   , "Animation tick (ms)");
 
   // debug
-  addProp("debug", "showBoxes"        , "", "Show object bounding boxes"         , /*hidden*/true);
-  addProp("debug", "showSelectedBoxes", "", "Show selected object bounding boxes", /*hidden*/true);
-
-  addProp("debug", "followMouse", "", "Enable mouse tracking", /*hidden*/true);
+  addPropI("debug", "showBoxes"        , "", "Show object bounding boxes"         );
+  addPropI("debug", "showSelectedBoxes", "", "Show selected object bounding boxes");
+  addPropI("debug", "followMouse"      , "", "Enable mouse tracking");
 
   //------
 
@@ -3849,7 +3979,7 @@ addBaseProperties()
 
   addProp(plotStyleStr, "plotClip", "clip", "Clip to plot bounding box");
 
-  addProp(plotStyleStr, "plotShapeData", "shape", "Plot background shape data", /*hidden*/true);
+  addPropI(plotStyleStr, "plotShapeData", "shape", "Plot background shape data");
 
   addStyleProp(plotStyleFillStr, "plotFilled", "visible",
                "Plot background bounding box fill visible");
@@ -3875,7 +4005,7 @@ addBaseProperties()
   addProp(dataStyleStr, "dataClip"    , "clip"         , "Clip to scaled data bounding box");
   addProp(dataStyleStr, "dataRawClip" , "unscaledClip" , "Clip to unscaled data bounding box");
 
-  addProp(dataStyleStr, "dataShapeData", "shape", "Data background shape data", /*hidden*/true);
+  addPropI(dataStyleStr, "dataShapeData", "shape", "Data background shape data");
 
   addStyleProp(dataStyleFillStr, "dataFilled", "visible",
                "Data background bounding box fill visible");
@@ -3899,8 +4029,8 @@ addBaseProperties()
 
   addProp(fitStyleStr, "fitClip", "clip", "Clip to fit bounding box");
 
-  addStyleProp(fitStyleFillStr, "fitFilled", "visible",
-               "Fit background bounding box fill visible", /*hidden*/true);
+  addStylePropI(fitStyleFillStr, "fitFilled", "visible",
+                "Fit background bounding box fill visible");
 
   addFillProperties(fitStyleFillStr, "fitFill", "Fit background",
                     uint(CQChartsFillDataTypes::STANDARD), /*hidden*/true);
@@ -3937,14 +4067,14 @@ addBaseProperties()
   //---
 
   // every
-  addProp("every", "everyEnabled", "enabled", "Enable every row filter"  , /*hidden*/true);
-  addProp("every", "everyStart"  , "start"  , "Start of every row filter", /*hidden*/true);
-  addProp("every", "everyEnd"    , "end"    , "End of every row filter"  , /*hidden*/true);
-  addProp("every", "everyStep"   , "step"   , "Step of every row filter" , /*hidden*/true);
+  addPropI("every", "everyEnabled", "enabled", "Enable every row filter"  );
+  addPropI("every", "everyStart"  , "start"  , "Start of every row filter");
+  addPropI("every", "everyEnd"    , "end"    , "End of every row filter"  );
+  addPropI("every", "everyStep"   , "step"   , "Step of every row filter" );
 
   // filter
-  addProp("filter", "filterStr"       , "expression", "Filter expression", /*hidden*/true);
-  addProp("filter", "visibleFilterStr", "visible"   , "Filter visible expression", /*hidden*/true);
+  addPropI("filter", "filterStr"       , "expression", "Filter expression");
+  addPropI("filter", "visibleFilterStr", "visible"   , "Filter visible expression");
 
   // bad data
   addProp("filter/bad", "skipBad"  , "skip"  , "Skip bad values");
@@ -3992,13 +4122,12 @@ addBaseProperties()
   addProp("coloring", "colorYStops"   , "yStops"        , "Color y stop coordinates");
 
   // scaled font
-  addProp("scaledFont", "minScaleFontSize", "minSize", "Min scaled font size", /*hidden*/true);
-  addProp("scaledFont", "maxScaleFontSize", "maxSize", "Max scaled font size", /*hidden*/true);
+  addPropI("scaledFont", "minScaleFontSize", "minSize", "Min scaled font size");
+  addPropI("scaledFont", "maxScaleFontSize", "maxSize", "Max scaled font size");
 
   // scaled symbol
-  addProp("points", "scaleSymbolSize", "scaled", "Are symbols scaled on zoom", /*hidden*/true);
-  addProp("points", "defaultSymbolSetName", "defaultSymbolSet",
-          "Default symbol set", /*hidden*/true);
+  addPropI("points", "scaleSymbolSize", "scaled", "Are symbols scaled on zoom");
+  addPropI("points", "defaultSymbolSetName", "defaultSymbolSet", "Default symbol set");
 }
 
 void
@@ -4854,7 +4983,7 @@ updateColorMapKey() const
 
   auto *th = const_cast<CQChartsPlot *>(this);
 
-  CQChartsWidgetUtil::AutoDisconnect autoDisconnect(colorMapKey_.get(),
+  CQUtil::AutoDisconnect autoDisconnect(colorMapKey_.get(),
     SIGNAL(dataChanged()), th, SLOT(updateSlot()));
 
   colorMapKey_->setData(colorColumnData());

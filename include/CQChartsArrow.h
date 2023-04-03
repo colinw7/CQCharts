@@ -315,7 +315,7 @@ class CQChartsArrow : public QObject,
     Point p2;
     bool  valid { false };
 
-    Line() { }
+    Line() = default;
 
     Line(const Point &p1, const Point &p2) :
      p1(p1), p2(p2), valid(true) {
@@ -333,7 +333,7 @@ class CQChartsArrow : public QObject,
     GeomPolygon points;
     bool        valid { false };
 
-    Polygon() { }
+    Polygon() = default;
 
     Polygon(const GeomPolygon &points) :
      points(points), valid(true) {

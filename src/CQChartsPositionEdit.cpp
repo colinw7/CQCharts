@@ -1,7 +1,6 @@
 #include <CQChartsPositionEdit.h>
 #include <CQChartsGeomPointEdit.h>
 #include <CQChartsUnitsEdit.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 
@@ -164,7 +163,7 @@ connectSlots(bool b)
   //---
 
   auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
-    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
+    CQUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
   connectDisconnect(edit_, SIGNAL(valueChanged()), SLOT(editChanged()));

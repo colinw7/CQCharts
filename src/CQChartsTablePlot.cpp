@@ -11,7 +11,7 @@
 #include <CQChartsVariant.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsHtml.h>
-#include <CQChartsWidgetUtil.h>
+#include <CQChartsWidgetAction.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -206,9 +206,7 @@ void
 CQChartsTablePlot::
 modelTypeChangedSlot(int modelInd)
 {
-  const auto &model = this->currentModel();
-
-  auto *modelData = charts()->getModelData(model);
+  auto *modelData = charts()->currentModelData();
 
   if (modelData && modelData->isInd(modelInd))
     updateRangeAndObjs();

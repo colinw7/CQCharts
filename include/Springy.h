@@ -335,19 +335,19 @@ namespace Springy {
     //------
 
     virtual NodeP makeNode() const {
-      return NodeP(new Node(nextNodeId_++));
+      return std::make_shared<Node>(nextNodeId_++);
     }
 
     virtual EdgeP makeEdge() const {
-      return EdgeP(new Edge(nextEdgeId_++));
+      return std::make_shared<Edge>(nextEdgeId_++);
     }
 
     virtual PointP makePoint() const {
-      return PointP(new Point());
+      return std::make_shared<Point>();
     }
 
     virtual SpringP makeSpring() const {
-      return SpringP(new Spring());
+      return std::make_shared<Spring>();
     }
 
     //------

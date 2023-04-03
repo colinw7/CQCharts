@@ -8,7 +8,6 @@
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsHtml.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQBucketModel.h>
 #include <CQCollapseModel.h>
@@ -327,28 +326,28 @@ connectModel(bool b)
   if (! model().data())
     return;
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     model().data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
     this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     model().data(), SIGNAL(headerDataChanged(Qt::Orientation, int, int)),
     this, SLOT(modelHeaderDataChangedSlot(Qt::Orientation, int, int)));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     model().data(), SIGNAL(layoutChanged()), this, SLOT(modelLayoutChangedSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     model().data(), SIGNAL(modelReset()), this, SLOT(modelResetSlot()));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     model().data(), SIGNAL(rowsInserted(QModelIndex, int, int)),
     this, SLOT(modelRowsInsertedSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     model().data(), SIGNAL(rowsRemoved(QModelIndex, int, int)),
     this, SLOT(modelRowsRemovedSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     model().data(), SIGNAL(columnsInserted(QModelIndex, int, int)),
     this, SLOT(modelColumnsInsertedSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     model().data(), SIGNAL(columnsRemoved(QModelIndex, int, int)),
     this, SLOT(modelColumnsRemovedSlot()));
 }
@@ -566,7 +565,7 @@ select(const QItemSelection &sel)
   for (auto &sm : selectionModels_) {
     if (! sm) continue;
 
-    CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
+    CQUtil::AutoDisconnect autoDisconnect(
       sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
       this, SLOT(selectionSlot()));
 

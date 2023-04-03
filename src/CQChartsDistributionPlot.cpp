@@ -17,7 +17,6 @@
 #include <CQChartsHtml.h>
 #include <CQCharts.h>
 #include <CQChartsPlotDrawUtil.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -413,16 +412,18 @@ setMaxBucketValue(double r)
 
 void
 CQChartsDistributionPlot::
-calcMinMaxBucketValue(double &rmin, double &rmax) const
+calcMinMaxBucketValue(double &rmin, double &rmax, bool noAdjust) const
 {
   rmin = minBucketValue();
   rmax = maxBucketValue();
 
-  if (underflowBucket().isSet())
-    rmin = std::max(underflowBucket().real(), rmin);
+  if (! noAdjust) {
+    if (underflowBucket().isSet())
+      rmin = std::max(underflowBucket().real(), rmin);
 
-  if (overflowBucket().isSet())
-    rmax = std::min(overflowBucket().real(), rmax);
+    if (overflowBucket().isSet())
+      rmax = std::min(overflowBucket().real(), rmax);
+  }
 }
 
 int
@@ -2510,8 +2511,13 @@ createObjs(PlotObjs &objs) const
             bbox = makeBBox(vpos - 0.5, v1, vpos + 0.5, v2);
         }
 
-        barValue.xr = RangeValue(value1     , values->xValueRange.min(), values->xValueRange.max());
-        barValue.yr = RangeValue(barValue.n2, values->yValueRange.min(), values->yValueRange.max());
+        if (values->xValueRange.isSet())
+          barValue.xr = RangeValue(value1,
+            values->xValueRange.min(), values->xValueRange.max());
+
+        if (values->yValueRange.isSet())
+          barValue.yr = RangeValue(barValue.n2,
+            values->yValueRange.min(), values->yValueRange.max());
 
         if (bbox.isValid()) {
           auto *barObj = createBarObj(bbox, groupInd, sbucket, barValue,
@@ -5389,7 +5395,7 @@ updateWidgets()
 
     double rmin, rmax;
 
-    distributionPlot_->calcMinMaxBucketValue(rmin, rmax);
+    distributionPlot_->calcMinMaxBucketValue(rmin, rmax, /*noAdjust*/true);
 
     bucketRange_    ->setRangeMinMax(rmin, rmax);
     startBucketEdit_->setValue(distributionPlot_->startBucketValue());
@@ -5426,30 +5432,30 @@ void
 CQChartsDistributionPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     valueTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(valueTypeSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     shapeTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(shapeTypeSlot()));
 
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     bucketRadioGroup_, SIGNAL(buttonClicked(QAbstractButton *)),
     this, SLOT(bucketRadioGroupSlot(QAbstractButton *)));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     bucketRange_, SIGNAL(sliderRangeChanged(double, double)), this, SLOT(bucketRangeSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     startBucketEdit_, SIGNAL(valueChanged(double)), this, SLOT(startBucketSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     deltaBucketEdit_, SIGNAL(valueChanged(double)), this, SLOT(deltaBucketSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     numBucketsEdit_, SIGNAL(valueChanged(int)), this, SLOT(numBucketsSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     bucketStopsEdit_, SIGNAL(editingFinished()), this, SLOT(bucketStopsSlot()));
 
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     statsCheck_, SIGNAL(stateChanged(int)), this, SLOT(statsLinesSlot(int)));
 
   CQChartsGroupPlotCustomControls::connectSlots(b);

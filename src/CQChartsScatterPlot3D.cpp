@@ -568,9 +568,7 @@ calcRange() const
 
     CQChartsModelColumnDetails *columnDetails(const Column &column) {
       if (! details_) {
-        const auto &model = scatterPlot_->currentModel();
-
-        auto *modelData = scatterPlot_->getModelData(model);
+        auto *modelData = scatterPlot_->currentModelData();
 
         details_ = (modelData ? modelData->details() : nullptr);
       }
@@ -1093,9 +1091,7 @@ addNameValues() const
 
     CQChartsModelColumnDetails *columnDetails(const Column &column) {
       if (! details_) {
-        const auto &model = scatterPlot_->currentModel();
-
-        auto *modelData = scatterPlot_->getModelData(model);
+        auto *modelData = scatterPlot_->currentModelData();
 
         details_ = (modelData ? modelData->details() : nullptr);
       }

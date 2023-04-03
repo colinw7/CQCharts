@@ -20,7 +20,6 @@
 #include <CQChartsLengthEdit.h>
 #include <CQChartsFontSizeRangeSlider.h>
 #include <CQChartsColumnControlGroup.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsMapKey.h>
 #include <CQCharts.h>
 
@@ -919,9 +918,7 @@ calcRange() const
 
     CQChartsModelColumnDetails *columnDetails(const Column &column) {
       if (! details_) {
-        const auto &model = scatterPlot_->currentModel();
-
-        auto *modelData = scatterPlot_->getModelData(model);
+        auto *modelData = scatterPlot_->currentModelData();
 
         details_ = (modelData ? modelData->details() : nullptr);
       }
@@ -1358,6 +1355,8 @@ clearPlotObjects()
       delete hexMap;
     }
   }
+
+  groupNameHexData_.clear();
 
   CQChartsPlot::clearPlotObjects();
 }
@@ -2596,9 +2595,7 @@ addNameValues() const
 
     CQChartsModelColumnDetails *columnDetails(const Column &column) {
       if (! details_) {
-        const auto &model = scatterPlot_->currentModel();
-
-        auto *modelData = scatterPlot_->getModelData(model);
+        auto *modelData = scatterPlot_->currentModelData();
 
         details_ = (modelData ? modelData->details() : nullptr);
       }
@@ -5489,30 +5486,30 @@ void
 CQChartsScatterPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     bestFitCheck_, SIGNAL(stateChanged(int)), this, SLOT(bestFitSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     hullCheck_, SIGNAL(stateChanged(int)), this, SLOT(convexHullSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     statsCheck_, SIGNAL(stateChanged(int)), this, SLOT(statsLinesSlot()));
 
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
 
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     symbolLabelGroup_, SIGNAL(clicked(bool)), this, SLOT(pointLabelsSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     labelColumnCombo_, SIGNAL(columnChanged()), this, SLOT(labelColumnSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     positionEdit_, SIGNAL(currentIndexChanged(int)), this, SLOT(positionSlot()));
 
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     fontSizeControlGroup_, SIGNAL(groupChanged()), this, SLOT(fontSizeGroupChanged()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     fontSizeEdit_, SIGNAL(lengthChanged()), this, SLOT(fontSizeSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     fontSizeColumnCombo_, SIGNAL(columnChanged()), this, SLOT(fontSizeColumnSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     fontSizeRange_, SIGNAL(sliderRangeChanged(double, double)),
     this, SLOT(fontSizeRangeSlot(double, double)));
 

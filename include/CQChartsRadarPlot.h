@@ -231,7 +231,7 @@ class CQChartsRadarPlot : public CQChartsPlot,
  private:
   class ValueData {
    public:
-    ValueData() { }
+    ValueData() = default;
 
     void add(double v) {
       if (values_.empty()) {

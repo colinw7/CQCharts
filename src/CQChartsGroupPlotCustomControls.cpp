@@ -1,7 +1,6 @@
 #include <CQChartsGroupPlotCustomControls.h>
 #include <CQChartsGroupPlot.h>
 #include <CQChartsColumnCombo.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsModelDetails.h>
 
 #include <CQUtil.h>
@@ -119,9 +118,7 @@ updateWidgets()
   //---
 
   if (groupColumnCombo_) {
-    const auto &groupModel = groupPlot_->currentModel();
-
-    groupColumnCombo_->setModelColumn(groupPlot_->getModelData(groupModel),
+    groupColumnCombo_->setModelColumn(groupPlot_->currentModelData(),
                                       groupPlot_->groupColumn());
 
     //---
@@ -188,21 +185,21 @@ CQChartsGroupPlotCustomControls::
 connectSlots(bool b)
 {
   if (groupColumnCombo_) {
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       groupColumnCombo_, SIGNAL(columnChanged()), this, SLOT(groupColumnSlot()));
 
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       bucketRadioGroup_, SIGNAL(buttonClicked(QAbstractButton *)),
       this, SLOT(bucketRadioGroupSlot(QAbstractButton *)));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       bucketRange_, SIGNAL(sliderRangeChanged(double, double)), this, SLOT(bucketRangeSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       startBucketEdit_, SIGNAL(valueChanged(double)), this, SLOT(startBucketSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       deltaBucketEdit_, SIGNAL(valueChanged(double)), this, SLOT(deltaBucketSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       numBucketsEdit_, SIGNAL(valueChanged(int)), this, SLOT(numBucketsSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       bucketStopsEdit_, SIGNAL(editingFinished()), this, SLOT(bucketStopsSlot()));
   }
 

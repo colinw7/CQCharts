@@ -58,7 +58,7 @@ class CQChartsHtml {
 
   //---
 
-  CQChartsHtml() { }
+  CQChartsHtml() = default;
 
   operator QString() const { return str_; }
 

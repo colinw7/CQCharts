@@ -59,7 +59,7 @@ class CQChartsModelColumn :
 
   //---
 
-  bool isValid() const { return charts_ && modelInd_ > 0 && column_.isValid(); }
+  bool isValid() const { return modelInd_ > 0 && column_.isValid(); }
 
   //---
 

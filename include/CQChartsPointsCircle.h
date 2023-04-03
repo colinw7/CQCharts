@@ -53,28 +53,30 @@ using PointArray = std::vector<Point>;
 //! Circle
 class Circle {
  public:
-  Point  c { 0.0, 0.0 }; //!< Center
-  double r { 1.0 };      //!< Radius
+  Circle() = default;
 
-  bool valid;
-
- public:
-  Circle() : valid(false) { }
-
-  Circle(const Point &c1, double r1) :
-   c(c1), r(r1) {
-    valid = true;
+  Circle(const Point &c, double r) :
+   c_(c), r_(r) {
+    valid_ = true;
   }
 
-  bool contains(const Point &p) const {
-    assert(valid);
+  bool isValid() const { return valid_; }
 
-    return c.distance(p) <= r + 1E-12;
+  const Point &center() const { return c_; }
+
+  double radius() const { return r_; }
+
+  bool contains(const Point &p) const {
+    assert(isValid());
+
+    return c_.distance(p) <= r_ + 1E-12;
   }
 
   bool contains(const PointArray &points) {
+    assert(isValid());
+
     for (uint i = 0; i < points.size(); i++) {
-      const Point &p = points[i];
+      const auto &p = points[i];
 
       if (! contains(p))
         return false;
@@ -82,6 +84,12 @@ class Circle {
 
     return true;
   }
+
+ private:
+  Point  c_ { 0.0, 0.0 }; //!< Center
+  double r_ { 1.0 };      //!< Radius
+
+  bool valid_ { false };
 };
 
 //------
@@ -149,19 +157,19 @@ Circle makeCircleTwoPoints(const PointArray &points, const Point &p, const Point
 
     double cross = pq.cross(r.subtract(p));
 
-    Circle c = makeCircumcircle(p, q, r);
+    auto c = makeCircumcircle(p, q, r);
 
-    if (c.valid) {
-      if      (cross > 0 &&
-               (! left .valid || pq.cross(c.c.subtract(p)) > pq.cross(left .c.subtract(p))))
+    if (c.isValid()) {
+      if      (cross > 0 && (! left .isValid() ||
+                pq.cross(c.center().subtract(p)) > pq.cross(left .center().subtract(p))))
         left = c;
-      else if (cross < 0 &&
-               (! right.valid || pq.cross(c.c.subtract(p)) < pq.cross(right.c.subtract(p))))
+      else if (cross < 0 && (! right.isValid() ||
+                pq.cross(c.center().subtract(p)) < pq.cross(right.center().subtract(p))))
         right = c;
     }
   }
 
-  return (! right.valid || (left.valid && left.r <= right.r)) ? left : right;
+  return (! right.isValid() || (left.isValid() && left.radius() <= right.radius())) ? left : right;
 }
 
 // One boundary point known
@@ -172,7 +180,7 @@ Circle makeCircleOnePoint(const PointArray &points, const Point &p) {
     const Point &q = points[i];
 
     if (! c.contains(q)) {
-      if (c.r == 0)
+      if (c.radius() == 0)
         c = makeDiameter(p, q);
       else
         c = makeCircleTwoPoints(slice(points, 0, int(i)), p, q);
@@ -197,11 +205,11 @@ bool makeCircle(const PointArray &points, Circle &circle) {
   for (uint i = 0; i < points1.size(); i++) {
     const Point &p = points1[i];
 
-    if (! c.valid || ! c.contains(p))
+    if (! c.isValid() || ! c.contains(p))
       c = makeCircleOnePoint(slice(points1, 0, int(i)), p);
   }
 
-  if (! c.valid)
+  if (! c.isValid())
     return false;
 
   circle = c;

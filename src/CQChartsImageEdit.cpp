@@ -2,7 +2,6 @@
 #include <CQCharts.h>
 #include <CQChartsPlot.h>
 #include <CQChartsObjUtil.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsLineEdit.h>
 
 #include <CQPropertyView.h>
@@ -40,9 +39,9 @@ void
 CQChartsImageEdit::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     edit_  , SIGNAL(editingFinished()), this, SLOT(editChanged()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     button_, SIGNAL(clicked()), this, SLOT(fileSlot()));
 }
 

@@ -10,7 +10,7 @@ class CQChartsAlphaColumnData {
   using ColumnType = CQBaseModelType;
 
  public:
-  CQChartsAlphaColumnData() { }
+  CQChartsAlphaColumnData() = default;
 
   bool isValid() const { return valid_; }
   void setValid(bool b) { valid_ = b; }

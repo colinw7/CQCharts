@@ -66,7 +66,7 @@ class CQChartsFont :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsFont, metaTypeId)
 
  public:
-  CQChartsFont() { }
+  CQChartsFont() = default;
 
   explicit CQChartsFont(Type type) :
    type_(type) {

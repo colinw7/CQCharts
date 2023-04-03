@@ -10,7 +10,7 @@ class CQChartsSymbolTypeData {
   using Column        = CQChartsColumn;
   using SymbolTypeMap = CQChartsSymbolTypeMap;
 
-  CQChartsSymbolTypeData() { }
+  CQChartsSymbolTypeData() = default;
 
   bool isValid() const { return valid_; }
   void setValid(bool b) { valid_ = b; }

@@ -6,8 +6,9 @@
 #include <CQChartsLineDataEdit.h>
 #include <CQChartsFillDataEdit.h>
 #include <CQChartsTextDataEdit.h>
-#include <CQCharts.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsDialogButtons.h>
+#include <CQCharts.h>
 
 #include <CQGroupBox.h>
 #include <CQCheckBox.h>
@@ -392,7 +393,7 @@ connectSlots(bool b)
   //---
 
   auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
-    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
+    CQUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
   connectDisconnect(groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));

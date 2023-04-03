@@ -12,7 +12,7 @@ class CQChartsSymbolSizeData {
   using Units         = CQChartsUnits;
   using SymbolSizeMap = CQChartsSymbolSizeMap;
 
-  CQChartsSymbolSizeData() { }
+  CQChartsSymbolSizeData() = default;
 
   bool isValid() const { return valid_; }
   void setValid(bool b) { valid_ = b; }

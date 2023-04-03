@@ -18,7 +18,6 @@
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 #include <CQEnumCombo.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <QMenu>
 #include <QHBoxLayout>
@@ -4136,23 +4135,23 @@ void
 CQChartsBoxPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     columnsTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(columnsTypeSlot()));
 
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     pointsTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(pointsTypeSlot()));
 
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     normalizedCheck_, SIGNAL(stateChanged(int)), this, SLOT(normalizedSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     notchedCheck_, SIGNAL(stateChanged(int)), this, SLOT(notchedSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     colorBySetCheck_, SIGNAL(stateChanged(int)), this, SLOT(colorBySetSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     violinCheck_, SIGNAL(stateChanged(int)), this, SLOT(violinSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     errorBarCheck_, SIGNAL(stateChanged(int)), this, SLOT(errorBarSlot()));
 
   CQChartsGroupPlotCustomControls::connectSlots(b);

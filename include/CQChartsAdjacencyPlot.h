@@ -550,7 +550,7 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
     int   group { -1 };
     Point point;
 
-    GroupPoint() { }
+    GroupPoint() = default;
 
     GroupPoint(int group, const Point &point) :
      group(group), point(point) {

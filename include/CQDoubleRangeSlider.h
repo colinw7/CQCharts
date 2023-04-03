@@ -3,6 +3,7 @@
 
 #include <CQRangeSlider.h>
 
+// range widget with sub range sliders
 class CQDoubleRangeSlider : public CQRangeSlider {
   Q_OBJECT
 

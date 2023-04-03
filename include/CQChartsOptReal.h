@@ -27,7 +27,7 @@ class CQChartsOptReal :
  public:
   using OptReal = std::optional<double>;
 
-  CQChartsOptReal() { }
+  CQChartsOptReal() = default;
 
   CQChartsOptReal(const OptReal &value) :
    value_(value) {

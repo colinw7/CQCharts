@@ -1,7 +1,6 @@
 #include <CQChartsModelChooser.h>
 #include <CQChartsModelData.h>
 #include <CQCharts.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsVariant.h>
 
 #include <QComboBox>
@@ -42,13 +41,13 @@ void
 CQChartsModelChooser::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(setCurrentModel(int)));
 
   if (charts_) {
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       charts_, SIGNAL(modelDataChanged()), this, SLOT(updateModels()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       charts_, SIGNAL(modelDataDataChanged()), this, SLOT(updateModels()));
   }
 }

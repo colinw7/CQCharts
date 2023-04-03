@@ -38,7 +38,7 @@ class CQChartsDistributionBucket {
     OVERFLOW
   };
 
-  CQChartsDistributionBucket() { }
+  CQChartsDistributionBucket() = default;
 
   explicit CQChartsDistributionBucket(int value) :
    type_(Type::VALUE), value_(value) {
@@ -728,7 +728,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   double maxBucketValue() const;
   void setMaxBucketValue(double r);
 
-  void calcMinMaxBucketValue(double &rmin, double &rmax) const;
+  void calcMinMaxBucketValue(double &rmin, double &rmax, bool noAdjust=false) const;
 
   int numAutoBuckets() const;
   void setNumAutoBuckets(int i);

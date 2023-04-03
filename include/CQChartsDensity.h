@@ -55,7 +55,7 @@ class CQChartsDensity : public QObject {
   using Polygon     = CQChartsGeom::Polygon;
 
   struct DrawData {
-    DrawData() { }
+    DrawData() { } // default not allowed ?
 
     bool scaled { true };
   };

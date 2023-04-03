@@ -26,7 +26,7 @@ class CQChartsOptBool :
  public:
   using OptBool = std::optional<bool>;
 
-  CQChartsOptBool() { }
+  CQChartsOptBool() = default;
 
   CQChartsOptBool(const OptBool &value) :
    value_(value) {

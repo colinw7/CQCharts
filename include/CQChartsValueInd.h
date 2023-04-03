@@ -13,7 +13,7 @@ class CQChartsValueInd {
   using Type = CQBaseModelType;
 
  public:
-  CQChartsValueInd() { }
+  CQChartsValueInd() = default;
 
   void clear() {
     type_ = Type::NONE;

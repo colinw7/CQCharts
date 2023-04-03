@@ -201,17 +201,25 @@ class CommandWidget : public QFrame {
 
   virtual ~CommandWidget();
 
+  //---
+
+  //! get/set area
   ScrollArea *area() const { return area_; }
   void setArea(ScrollArea *area) { area_ = area; }
 
+  //! get/set prompt string
   const QString &prompt() const { return prompt_; }
   void setPrompt(const QString &s) { prompt_ = s; }
 
+  //! get/set show prompt
   bool isShowPrompt() const { return showPrompt_; }
   void setShowPrompt(bool b) { showPrompt_ = b; }
 
+  //! get/set min lines
   int minLines() const { return minLines_; }
   void setMinLines(int i) { minLines_ = i; }
+
+  //---
 
   QSize sizeHint() const override;
 
@@ -233,11 +241,19 @@ class CommandWidget : public QFrame {
 
   void outputText(const QString &str);
 
+  //---
+
+  // override to handle text changes (before enter)
   virtual void textChanged() { }
 
   //---
 
+  // override to provide syntax highlighting
   virtual QColor posColor(int /*pos*/) const { return QColor(); }
+
+  //---
+
+  // overrides to provide command completion
 
   virtual bool isCompleteLine(const QString &str) const;
 

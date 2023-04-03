@@ -15,7 +15,6 @@
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 #include <CQChartsVariant.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsTextPlacer.h>
 #include <CQChartsPlotParameterEdit.h>
 #include <CQCharts.h>
@@ -475,7 +474,7 @@ CQChartsXYPlot::
 setVectors(bool b)
 {
   if (b != isVectors()) {
-    CQChartsWidgetUtil::AutoDisconnect arrowDisconnect(
+    CQUtil::AutoDisconnect arrowDisconnect(
       arrowObj_.get(), SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
     arrowObj_->setVisible(b);
@@ -3575,7 +3574,7 @@ void
 CQChartsXYPlot::
 drawArrow(PaintDevice *device, const Point &p1, const Point &p2) const
 {
-  CQChartsWidgetUtil::AutoDisconnect arrowDisconnect(
+  CQUtil::AutoDisconnect arrowDisconnect(
     arrowObj_.get(), SIGNAL(dataChanged()), const_cast<CQChartsXYPlot *>(this), SLOT(updateSlot()));
 
   arrowObj_->setFrom(p1);
@@ -5807,25 +5806,25 @@ void
 CQChartsXYPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     pointsCheck_, SIGNAL(stateChanged(int)), this, SLOT(pointsSlot(int)));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     linesCheck_ , SIGNAL(stateChanged(int)), this, SLOT(linesSlot(int)));
 
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     fillUnderCheck_, SIGNAL(stateChanged(int)), this, SLOT(fillUnderSlot(int)));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     stackedCheck_  , SIGNAL(stateChanged(int)), this, SLOT(stackedSlot(int)));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     impulseCheck_  , SIGNAL(stateChanged(int)), this, SLOT(impulseSlot(int)));
 
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     bestFitCheck_      , SIGNAL(stateChanged(int)), this, SLOT(bestFitSlot(int)));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     hullCheck_         , SIGNAL(stateChanged(int)), this, SLOT(convexHullSlot(int)));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     statsCheck_        , SIGNAL(stateChanged(int)), this, SLOT(statsLinesSlot(int)));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     movingAverageCheck_, SIGNAL(stateChanged(int)), this, SLOT(movingAverageSlot(int)));
 
   CQChartsPointPlotCustomControls::connectSlots(b);

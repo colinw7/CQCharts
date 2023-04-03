@@ -36,7 +36,7 @@ class CQChartsMargin :
     setValue(str);
   }
 
-  CQChartsMargin() { }
+  CQChartsMargin() = default;
 
   CQChartsMargin(const Length &l, const Length &t, const Length &r, const Length &b) {
     set(l, t, r, b);
@@ -54,7 +54,7 @@ class CQChartsMargin :
     set(Length::percent(l));
   }
 
-  virtual ~CQChartsMargin() { }
+  virtual ~CQChartsMargin() = default;
 
   //---
 

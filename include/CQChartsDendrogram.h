@@ -26,7 +26,7 @@ class CQChartsDendrogram {
     Node*   node { nullptr };
     OptReal value;
 
-    Child() { }
+    Child() = default;
 
     Child(Node *node, const OptReal &value=OptReal()) :
      node(node), value(value) {
@@ -197,7 +197,7 @@ class CQChartsDendrogram {
    public:
     explicit RootNode(const QString &name="");
 
-    virtual ~RootNode() { }
+    virtual ~RootNode() = default;
 
     bool debug() const { return debug_; }
     void setDebug(bool debug) { debug_ = debug; }

@@ -2,7 +2,6 @@
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsVariant.h>
-#include <CQChartsWidgetUtil.h>
 
 CQChartsColumnCombo::
 CQChartsColumnCombo(QWidget *parent) :
@@ -91,14 +90,14 @@ connectSlots(bool b)
   if (modelData_) {
     auto *modelData = const_cast<CQChartsModelData *>(modelData_);
 
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       modelData, SIGNAL(dataChanged()), this, SLOT(updateItems()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       modelData, SIGNAL(modelChanged()), this, SLOT(updateItems()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       modelData, SIGNAL(currentModelChanged()), this, SLOT(updateItems()));
 
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       modelData, SIGNAL(destroyed(QObject *)), this, SLOT(resetModelData()));
   }
 }

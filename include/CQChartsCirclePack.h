@@ -19,14 +19,14 @@
  */
 class CQChartsCircleNode {
   public:
-   CQChartsCircleNode() { }
+   CQChartsCircleNode() = default;
 
    CQChartsCircleNode(double r, double x, double y) :
     r_(r), x_(x), y_(y) {
      assert(! COSNaN::is_nan(x_) && ! COSNaN::is_nan(y_));
    }
 
-   virtual ~CQChartsCircleNode() { }
+   virtual ~CQChartsCircleNode() = default;
 
    virtual double radius() const { return r_; }
 
@@ -60,8 +60,8 @@ class CQChartsCirclePack {
   using Nodes = std::vector<NODE*>;
 
  public:
-  CQChartsCirclePack() { }
- ~CQChartsCirclePack() { }
+  CQChartsCirclePack() = default;
+ ~CQChartsCirclePack() = default;
 
   void reset() {
     nodes_.clear();

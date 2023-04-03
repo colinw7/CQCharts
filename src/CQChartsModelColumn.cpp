@@ -51,17 +51,24 @@ CQChartsModelColumn::
 fromString(const QString &str)
 {
   auto strs = str.split(":");
-  if (strs.size() != 2) return false;
 
-  bool ok;
-  long modelInd = CQChartsUtil::toInt(strs[0], ok);
-  if (! ok) return false;
+  if (strs.size() == 2) {
+    bool ok;
+    long modelInd = CQChartsUtil::toInt(strs[0], ok);
+    if (! ok) return false;
 
-  auto column = Column(strs[1]);
-  if (! column.isValid()) return false;
+    auto column = Column(strs[1]);
+    if (! column.isValid()) return false;
 
-  modelInd_ = int(modelInd);
-  column_   = column;
+    modelInd_ = int(modelInd);
+    column_   = column;
+  }
+  else {
+    auto column = Column(str);
+    if (! column.isValid()) return false;
+
+    column_ = column;
+  }
 
   return true;
 }

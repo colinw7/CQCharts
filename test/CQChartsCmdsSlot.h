@@ -28,16 +28,26 @@ class CQChartsCmdsSlot : public QObject {
   QString getTclIdCmd(const QString &id) const;
 
  public Q_SLOTS:
-  void objIdPressed         (const QString &);
-  void annotationIdPressed  (const QString &);
-  void plotObjsAdded        ();
-  void selectionChanged     ();
-  void selectPress          (const CQChartsGeom::Point &);
-  void animateStateChanged  (bool);
+  // view
+  void keyEventPress(const QString &);
+  void viewResized  ();
+
+  // plot, view
+  void objIdPressed    (const QString &);
+  void selectionChanged();
+
+  // plot, view, annotation
+  void annotationIdPressed(const QString &);
+
+  // plot
+  void plotObjsAdded      ();
+  void selectPress        (const CQChartsGeom::Point &);
+  void animateStateChanged(bool);
+  void currentModelChanged();
+
+  // global
   void themeChanged         ();
   void interfaceThemeChanged();
-  void keyEventPress        (const QString &);
-  void viewResized          ();
 
  private:
   CQChartsCmds*       cmds_       { nullptr };

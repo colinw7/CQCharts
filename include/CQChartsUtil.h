@@ -346,7 +346,7 @@ struct FormatData {
   QString seps;
   bool    continued { false };
 
-  FormatData() { }
+  FormatData() = default;
 
   FormatData(const QString &s) :
    seps(s) {

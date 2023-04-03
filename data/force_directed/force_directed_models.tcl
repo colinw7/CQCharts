@@ -6,6 +6,8 @@ set plot [create_charts_plot -model $model1 -type force_directed \
 
 set_charts_data -plot $plot -name extra_model -value $model2
 
-set_charts_property -plot $plot -name columns.nodeId -value "2:0"
-set_charts_property -plot $plot -name columns.nodeColor -value "2:1"
-set_charts_property -plot $plot -name columns.nodeInitPos -value "2:2"
+set_charts_property -plot $plot -name nodeModel.model -value $model2
+
+set_charts_property -plot $plot -name nodeModel.idColumn      -value 0
+set_charts_property -plot $plot -name nodeModel.colorColumn   -value 1
+set_charts_property -plot $plot -name nodeModel.initPosColumn -value 2

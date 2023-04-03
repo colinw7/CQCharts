@@ -58,7 +58,7 @@ class CQChartsOptEdit : public QFrame {
  */
 class CQChartsOptPropertyViewType : public CQPropertyViewType {
  public:
-  CQChartsOptPropertyViewType() { }
+  CQChartsOptPropertyViewType() = default;
 
   bool setEditorData(CQPropertyViewItem *item, const QVariant &value) override;
 
@@ -82,7 +82,7 @@ class CQChartsOptPropertyViewType : public CQPropertyViewType {
  */
 class CQChartsOptPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
-  CQChartsOptPropertyViewEditor() { }
+  CQChartsOptPropertyViewEditor() = default;
 
   void connect(QWidget *w, QObject *obj, const char *method) override;
 

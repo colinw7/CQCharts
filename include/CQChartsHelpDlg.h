@@ -31,7 +31,7 @@ class CQChartsHelpDlgMgr {
     return inst;
   }
 
- ~CQChartsHelpDlgMgr() { }
+ ~CQChartsHelpDlgMgr() = default;
 
   CQChartsHelpDlg *showDialog(CQCharts *charts);
 

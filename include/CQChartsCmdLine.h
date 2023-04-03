@@ -31,7 +31,7 @@ class CQChartsCmdLineDlgMgr {
     return inst;
   }
 
- ~CQChartsCmdLineDlgMgr() { }
+ ~CQChartsCmdLineDlgMgr() = default;
 
   void showDialog(CQCharts *charts);
 

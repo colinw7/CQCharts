@@ -2,7 +2,6 @@
 #include <CQChartsModelDataWidget.h>
 #include <CQChartsModelData.h>
 #include <CQCharts.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQUtil.h>
 #include <CQTabWidget.h>
@@ -57,7 +56,7 @@ void
 CQChartsModelList::
 addModelData(CQChartsModelData *modelData)
 {
-  CQChartsWidgetUtil::AutoDisconnect viewTabAutoDisconnect(
+  CQUtil::AutoDisconnect viewTabAutoDisconnect(
     viewTab_, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
 
   //---
@@ -76,7 +75,7 @@ addModelData(CQChartsModelData *modelData)
   //---
 
   {
-  CQChartsWidgetUtil::AutoDisconnect modelChangedAutoDisconnect(
+  CQUtil::AutoDisconnect modelChangedAutoDisconnect(
     charts_, SIGNAL(currentModelChanged(int)), this, SLOT(updateCurrentModel()));
 
   charts_->setCurrentModelInd(ind);
@@ -87,7 +86,7 @@ void
 CQChartsModelList::
 updateCurrentModel()
 {
-  CQChartsWidgetUtil::AutoDisconnect currentChangedAutoDisconnect(
+  CQUtil::AutoDisconnect currentChangedAutoDisconnect(
     viewTab_, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
 
   auto *modelData = charts_->currentModelData();
@@ -116,7 +115,7 @@ void
 CQChartsModelList::
 currentTabChanged(int)
 {
-  CQChartsWidgetUtil::AutoDisconnect modelChangedAutoDisconnect(
+  CQUtil::AutoDisconnect modelChangedAutoDisconnect(
     charts_, SIGNAL(currentModelChanged(int)), this, SLOT(updateCurrentModel()));
 
   auto *modelDataWidget = currentModelDataWidget();

@@ -38,7 +38,7 @@ class CQChartsPosition :
   static CQChartsPosition plot(const QString &str) { return CQChartsPosition(str, Units::PLOT); }
 
  public:
-  CQChartsPosition() { }
+  CQChartsPosition() = default;
 
   CQChartsPosition(const Units &units, const Point &p) :
    units_(units), p_(p) {

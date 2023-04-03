@@ -26,7 +26,7 @@ class CQChartsOptPosition :
  public:
   using OptPosition = std::optional<CQChartsPosition>;
 
-  CQChartsOptPosition() { }
+  CQChartsOptPosition() = default;
 
   CQChartsOptPosition(const OptPosition &value) :
    value_(value) {

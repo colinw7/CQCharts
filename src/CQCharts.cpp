@@ -49,6 +49,7 @@
 #include <CQChartsModelFilterControl.h>
 #include <CQChartsModelFlattenControl.h>
 #include <CQChartsModelFoldControl.h>
+#include <CQChartsModelInd.h>
 
 #include <CQChartsGlobalPropertiesWidget.h>
 #include <CQChartsViewPropertiesWidget.h>
@@ -96,6 +97,7 @@
 #include <CQChartsTextDataEdit.h>
 #include <CQChartsTitleLocationEdit.h>
 #include <CQChartsUnitsEdit.h>
+#include <CQChartsValueListEdit.h>
 
 #include <CQChartsOptBoolEdit.h>
 #include <CQChartsOptIntEdit.h>
@@ -537,6 +539,7 @@ CQCharts()
   CQChartsLineJoin              ::registerMetaType();
   CQChartsMargin                ::registerMetaType();
   CQChartsModelColumn           ::registerMetaType();
+  CQChartsModelInd              ::registerMetaType();
   CQChartsModelIndex            ::registerMetaType();
   CQChartsNamePair              ::registerMetaType();
   CQChartsNameValues            ::registerMetaType();
@@ -564,6 +567,7 @@ CQCharts()
   CQChartsThemeName             ::registerMetaType();
   CQChartsTitleLocation         ::registerMetaType();
   CQChartsUnits                 ::registerMetaType();
+  CQChartsValueList             ::registerMetaType();
   CQChartsWidget                ::registerMetaType();
 
   CQChartsOptBool    ::registerMetaType();
@@ -736,6 +740,7 @@ init()
     viewMgr->addTypeT<CQChartsLineJoinPropertyViewType        >("CQChartsLineJoin"        );
     viewMgr->addTypeT<CQChartsMarginPropertyViewType          >("CQChartsMargin"          );
     viewMgr->addTypeT<CQChartsModelColumnPropertyViewType     >("CQChartsModelColumn"     );
+//  viewMgr->addTypeT<CQChartsModelIndPropertyViewType        >("CQChartsModelInd"        );
 //  viewMgr->addTypeT<CQChartsObjRefPropertyViewType          >("CQChartsObjRef"          );
 //  viewMgr->addTypeT<CQChartsObjRefPosPropertyViewType       >("CQChartsObjRefPos"       );
     viewMgr->addTypeT<CQChartsPaletteNamePropertyViewType     >("CQChartsPaletteName"     );
@@ -755,6 +760,7 @@ init()
     viewMgr->addTypeT<CQChartsTextDataPropertyViewType        >("CQChartsTextData"        );
     viewMgr->addTypeT<CQChartsTitleLocationPropertyViewType   >("CQChartsTitleLocation"   );
     viewMgr->addTypeT<CQChartsUnitsPropertyViewType           >("CQChartsUnits"           );
+    viewMgr->addTypeT<CQChartsValueListPropertyViewType       >("CQChartsValueList"       );
 
     viewMgr->addTypeT<CQChartsOptBoolPropertyViewType    >("CQChartsOptBool"    );
     viewMgr->addTypeT<CQChartsOptIntPropertyViewType     >("CQChartsOptInt"     );
@@ -830,6 +836,7 @@ init()
     addChartsWidgetFactoryT(LengthEdit);
     addChartsWidgetFactoryT(LineEdit);
     addChartsWidgetFactoryT(ModelColumnEdit);
+//  addChartsWidgetFactoryT(ModelIndEdit);
     addChartsComplexWidgetFactoryT(PolygonEdit);
     addChartsWidgetFactoryT(PositionEdit);
     addChartsWidgetFactoryT(RectEdit);

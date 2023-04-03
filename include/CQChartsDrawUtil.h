@@ -413,9 +413,9 @@ namespace CQChartsDrawUtil {
 // path visitor
 class PathVisitor {
  public:
-  PathVisitor() { }
+  PathVisitor() = default;
 
-  virtual ~PathVisitor() { }
+  virtual ~PathVisitor() = default;
 
   virtual void init() { }
   virtual void term() { }

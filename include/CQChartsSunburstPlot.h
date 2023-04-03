@@ -114,7 +114,7 @@ class CQChartsSunburstNode {
  public:
   CQChartsSunburstNode(const SunburstPlot *plot, HierNode *parent, const QString &name="");
 
-  virtual ~CQChartsSunburstNode() { }
+  virtual ~CQChartsSunburstNode() = default;
 
   const SunburstPlot *sunburstPlot() const { return sunburstPlot_; }
 

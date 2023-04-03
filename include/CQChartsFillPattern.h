@@ -80,7 +80,7 @@ class CQChartsFillPattern :
   static CQChartsFillPattern makeSolid() { return CQChartsFillPattern(Type::SOLID); }
 
  public:
-  CQChartsFillPattern() { }
+  CQChartsFillPattern() = default;
 
   explicit CQChartsFillPattern(Type type) :
    type_(type) {

@@ -8,7 +8,6 @@
 #include <CQChartsSymbolEdit.h>
 #include <CQChartsLengthEdit.h>
 #include <CQChartsMapKey.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 #include <CQUtil.h>
 
@@ -104,41 +103,41 @@ CQChartsPointPlotCustomControls::
 connectSlots(bool b)
 {
   if (plot_) {
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       plot_, SIGNAL(symbolSizeDetailsChanged()), this, SLOT(symbolSizeDetailsSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       plot_, SIGNAL(symbolTypeDetailsChanged()), this, SLOT(symbolTypeDetailsSlot()));
   }
 
   if (symbolSizeLengthEdit_) {
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       symbolSizeControlGroup_, SIGNAL(groupChanged()), this, SLOT(symbolSizeGroupChanged()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       symbolSizeLengthEdit_, SIGNAL(lengthChanged()), this, SLOT(symbolSizeLengthSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       symbolSizeColumnCombo_, SIGNAL(columnChanged()), this, SLOT(symbolSizeColumnSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       symbolSizeRange_, SIGNAL(sliderRangeChanged(double, double)),
       this, SLOT(symbolSizeRangeSlot(double, double)));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       symbolSizeMappingEdit_, SIGNAL(editingFinished()),
       this, SLOT(symbolSizeMappingSlot()));
   }
 
   if (symbolTypeEdit_) {
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       symbolTypeControlGroup_, SIGNAL(groupChanged()), this, SLOT(symbolTypeGroupChanged()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       symbolTypeEdit_, SIGNAL(symbolChanged()), this, SLOT(symbolTypeSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       symbolTypeColumnCombo_, SIGNAL(columnChanged()), this, SLOT(symbolTypeColumnSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       symbolTypeRange_, SIGNAL(sliderRangeChanged(int, int)),
       this, SLOT(symbolTypeRangeSlot(int, int)));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       symbolTypeSetEdit_, SIGNAL(setChanged(const QString &)),
       this, SLOT(symbolTypeSetSlot(const QString &)));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       symbolTypeMappingEdit_, SIGNAL(editingFinished()),
       this, SLOT(symbolTypeMappingSlot()));
   }

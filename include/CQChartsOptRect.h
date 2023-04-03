@@ -26,7 +26,7 @@ class CQChartsOptRect :
  public:
   using OptRect = std::optional<CQChartsRect>;
 
-  CQChartsOptRect() { }
+  CQChartsOptRect() = default;
 
   CQChartsOptRect(const OptRect &value) :
    value_(value) {

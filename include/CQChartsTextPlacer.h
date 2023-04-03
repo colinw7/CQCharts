@@ -103,7 +103,7 @@ class CQChartsAxisTextPlacer {
   using DrawTexts = std::vector<DrawText>;
 
  public:
-  CQChartsAxisTextPlacer() { }
+  CQChartsAxisTextPlacer() = default;
 
   void clear();
 

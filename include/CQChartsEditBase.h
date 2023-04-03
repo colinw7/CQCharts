@@ -26,7 +26,7 @@ class CQChartsEditBase : public QFrame {
  public:
   CQChartsEditBase(QWidget *parent=nullptr);
 
-  virtual ~CQChartsEditBase() { }
+  virtual ~CQChartsEditBase() = default;
 
   View *view() const;
   virtual void setView(View *view);

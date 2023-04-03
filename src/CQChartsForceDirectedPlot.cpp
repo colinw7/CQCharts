@@ -11,7 +11,6 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsAnnotation.h>
 #include <CQChartsArrow.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 #include <CQChartsDisplayRange.h>
@@ -137,6 +136,10 @@ init()
 
   NoUpdate noUpdate(this);
 
+  //---
+
+  nodeModel_.setCharts(charts());
+
   forceDirected_ = std::make_unique<CQChartsForceDirected>();
 
   forceDirected_->setStiffness(stiffness());
@@ -203,6 +206,24 @@ setEdgeWidthColumn(const Column &c)
 }
 
 //---
+
+void
+CQChartsForceDirectedPlot::
+setNodeModel(const CQChartsModelInd &model)
+{
+  CQChartsUtil::testAndSet(nodeModel_, model, [&]() {
+    nodeModel_.setCharts(charts());
+
+    nodeIdColumn_     .setModelInd(nodeModel_.modelInd());
+    nodeShapeColumn_  .setModelInd(nodeModel_.modelInd());
+    nodeLabelColumn_  .setModelInd(nodeModel_.modelInd());
+    nodeValueColumn_  .setModelInd(nodeModel_.modelInd());
+    nodeInitPosColumn_.setModelInd(nodeModel_.modelInd());
+    nodeColorColumn_  .setModelInd(nodeModel_.modelInd());
+
+    updateRangeAndObjs();
+  } );
+}
 
 void
 CQChartsForceDirectedPlot::
@@ -707,13 +728,14 @@ addProperties()
   // columns
   addProp("columns", "edgeWidthColumn", "edgeWidth", "Edge width column");
 
-  // extra columns
-  addProp("columns", "nodeIdColumn"     , "nodeId"     , "Node id column");
-  addProp("columns", "nodeShapeColumn"  , "nodeShape"  , "Node shape column");
-  addProp("columns", "nodeLabelColumn"  , "nodeLabel"  , "Node label column");
-  addProp("columns", "nodeValueColumn"  , "nodeValue"  , "Node value column");
-  addProp("columns", "nodeInitPosColumn", "nodeInitPos", "Node init pos column");
-  addProp("columns", "nodeColorColumn"  , "nodeColor"  , "Node color column");
+  // node columns
+  addPropI("nodeModel", "nodeModel"        , "model"        , "Node id nodel");
+  addPropI("nodeModel", "nodeIdColumn"     , "idColumn"     , "Node id column");
+  addPropI("nodeModel", "nodeShapeColumn"  , "shapeColumn"  , "Node shape column");
+  addPropI("nodeModel", "nodeLabelColumn"  , "labelColumn"  , "Node label column");
+  addPropI("nodeModel", "nodeValueColumn"  , "valueColumn"  , "Node value column");
+  addPropI("nodeModel", "nodeInitPosColumn", "initPosColumn", "Node init pos column");
+  addPropI("nodeModel", "nodeColorColumn"  , "colorColumn"  , "Node color column");
 
   // animation data
   addProp("animation", "initSteps"         , "", "Initial steps");
@@ -961,34 +983,29 @@ createObjs(PlotObjs &) const
 
   //---
 
-  if (nodeIdColumn().isValid()) {
-    auto *nodeModelData = nodeIdColumn().modelData();
+  if (nodeModel().isValid() && nodeIdColumn().isValid()) {
+    auto *nodeModelData = nodeModel().modelData();
 
     class NodeVisitor : public CQChartsModelVisitor {
      public:
       NodeVisitor(const CQChartsForceDirectedPlot *plot) :
        plot_(plot) {
-        modelInd_ = plot_->nodeIdColumn().modelInd();
+        modelInd_ = plot_->nodeModel().modelInd();
         idColumn_ = plot_->nodeIdColumn().column();
 
-        if (plot_->nodeShapeColumn().isValid() &&
-            plot_->nodeShapeColumn().modelInd() == modelInd_)
+        if (plot_->nodeShapeColumn().isValid())
           shapeColumn_ = plot_->nodeShapeColumn().column();
 
-        if (plot_->nodeLabelColumn().isValid() &&
-            plot_->nodeLabelColumn().modelInd() == modelInd_)
+        if (plot_->nodeLabelColumn().isValid())
           labelColumn_ = plot_->nodeLabelColumn().column();
 
-        if (plot_->nodeValueColumn().isValid() &&
-            plot_->nodeValueColumn().modelInd() == modelInd_)
+        if (plot_->nodeValueColumn().isValid())
           valueColumn_ = plot_->nodeValueColumn().column();
 
-        if (plot_->nodeInitPosColumn().isValid() &&
-            plot_->nodeInitPosColumn().modelInd() == modelInd_)
+        if (plot_->nodeInitPosColumn().isValid())
           initPosColumn_ = plot_->nodeInitPosColumn().column();
 
-        if (plot_->nodeColorColumn().isValid() &&
-            plot_->nodeColorColumn().modelInd() == modelInd_)
+        if (plot_->nodeColorColumn().isValid())
           colorColumn_ = plot_->nodeColorColumn().column();
       }
 
@@ -4822,7 +4839,7 @@ void
 CQChartsForceDirectedPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     runningCheck_, SIGNAL(stateChanged(int)), this, SLOT(runningSlot(int)));
 
   CQChartsConnectionPlotCustomControls::connectSlots(b);

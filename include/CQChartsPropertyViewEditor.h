@@ -27,9 +27,9 @@ class CQChartsPropertyViewType : public CQPropertyViewType {
   using Plot = CQChartsPlot;
 
  public:
-  CQChartsPropertyViewType() { }
+  CQChartsPropertyViewType() = default;
 
-  virtual ~CQChartsPropertyViewType() { }
+  virtual ~CQChartsPropertyViewType() = default;
 
   bool setEditorData(CQPropertyViewItem *item, const QVariant &value) override;
 
@@ -53,9 +53,9 @@ class CQChartsLineEditBase;
  */
 class CQChartsPropertyViewEditorFactory : public CQPropertyViewEditorFactory {
  public:
-  CQChartsPropertyViewEditorFactory() { }
+  CQChartsPropertyViewEditorFactory() = default;
 
-  virtual ~CQChartsPropertyViewEditorFactory() { }
+  virtual ~CQChartsPropertyViewEditorFactory() = default;
 
   QWidget *createEdit(QWidget *parent) override;
 

@@ -7,7 +7,6 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQCsvModel.h>
 #include <CQColorsPalette.h>
@@ -162,9 +161,9 @@ connectSlots(bool b)
   if (! modelData_)
     return;
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     modelData_, SIGNAL(currentModelChanged()), this, SLOT(currentModelChangedSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
 }
 

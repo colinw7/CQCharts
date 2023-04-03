@@ -4,8 +4,8 @@
 #include <CQChartsKeyEdit.h>
 #include <CQChartsKey.h>
 #include <CQChartsView.h>
-
 #include <CQChartsWidgetUtil.h>
+
 #include <CQUtil.h>
 
 #include <QPushButton>

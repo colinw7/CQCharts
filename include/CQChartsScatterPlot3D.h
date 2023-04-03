@@ -128,8 +128,8 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
   };
 
  private:
-  const ExtraData &extraData() const { return edata_; };
-  ExtraData &extraData() { return edata_; };
+  const ExtraData &extraData() const { return edata_; }
+  ExtraData &extraData() { return edata_; }
 
  private:
   int       groupInd_ { -1 }; //!< plot group index

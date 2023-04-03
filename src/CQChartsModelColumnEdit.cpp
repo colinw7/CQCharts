@@ -5,13 +5,10 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsObjUtil.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
 
-#include <QComboBox>
-#include <QLabel>
 #include <QGridLayout>
 #include <QPainter>
 
@@ -98,12 +95,12 @@ CQChartsModelColumnLineEdit::
 textChanged()
 {
   // update column from widget (text)
-  ModelColumn modelColumn;
+  auto modelColumn = dataEdit_->modelColumn();
 
   auto text = edit_->text();
 
   if (text.trimmed() != "") {
-    modelColumn = ModelColumn(text);
+    (void) modelColumn.fromString(text);
 
     if (dataEdit_->charts())
       modelColumn.setCharts(dataEdit_->charts());
@@ -159,7 +156,7 @@ connectSlots(bool b)
 {
   connectBaseSlots(b);
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     dataEdit_, SIGNAL(modelColumnChanged()), this, SLOT(menuEditChanged()));
 }
 

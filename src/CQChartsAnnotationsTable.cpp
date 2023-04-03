@@ -331,7 +331,7 @@ viewAnnotationSelectionChangeSlot()
 #if 0
   // deselect all plot annotations (needed ?)
   if (anyViewAnnotations) {
-    CQChartsWidgetUtil::AutoDisconnect tableDisconnect(
+    CQUtil::AutoDisconnect tableDisconnect(
       plotTable_, SIGNAL(itemSelectionChanged()),
       this, SLOT(plotAnnotationSelectionChangeSlot()));
 
@@ -342,10 +342,10 @@ viewAnnotationSelectionChangeSlot()
   //---
 
   {
-  CQChartsWidgetUtil::AutoDisconnect tableDisconnect(
+  CQUtil::AutoDisconnect tableDisconnect(
     viewTable_, SIGNAL(itemSelectionChanged()),
     this, SLOT(viewAnnotationSelectionChangeSlot()));
-  CQChartsWidgetUtil::AutoDisconnect annotationsDisconnect(
+  CQUtil::AutoDisconnect annotationsDisconnect(
     view_, SIGNAL(annotationsChanged()), this, SLOT(updateViewAnnotations()));
 
   disconnect(view_, SIGNAL(annotationsChanged()), viewTable_, SLOT(updateAnnotations()));
@@ -564,7 +564,7 @@ plotAnnotationSelectionChangeSlot()
 #if 0
   // deselect all view annotations (needed ?)
   if (anyPlotAnnotations) {
-    CQChartsWidgetUtil::AutoDisconnect tableDisconnect(
+    CQUtil::AutoDisconnect tableDisconnect(
       viewTable_, SIGNAL(itemSelectionChanged()),
       this, SLOT(viewAnnotationSelectionChangeSlot()));
 
@@ -577,10 +577,10 @@ plotAnnotationSelectionChangeSlot()
   auto *view = plot_->view();
 
   {
-  CQChartsWidgetUtil::AutoDisconnect tableDisconnect(
+  CQUtil::AutoDisconnect tableDisconnect(
     plotTable_, SIGNAL(itemSelectionChanged()),
     this, SLOT(plotAnnotationSelectionChangeSlot()));
-  CQChartsWidgetUtil::AutoDisconnect annotationsDisconnect(
+  CQUtil::AutoDisconnect annotationsDisconnect(
     plot_, SIGNAL(annotationsChanged()), this, SLOT(updatePlotAnnotations()));
 
   disconnect(plot_, SIGNAL(annotationsChanged()), plotTable_, SLOT(updateAnnotations()));

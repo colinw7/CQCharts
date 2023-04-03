@@ -6,7 +6,6 @@
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
 #include <CQChartsPixelPaintDevice.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -112,7 +111,7 @@ connectSlots(bool b)
 {
   connectBaseSlots(b);
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     dataEdit_, SIGNAL(textBoxDataChanged()), this, SLOT(menuEditChanged()));
 }
 
@@ -337,7 +336,7 @@ CQChartsTextBoxDataEdit::
 connectSlots(bool b)
 {
   auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    CQChartsWidgetUtil::connectDisconnect(b, w, from, this, to);
+    CQUtil::connectDisconnect(b, w, from, this, to);
   };
 
   connectDisconnect(b, textEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));

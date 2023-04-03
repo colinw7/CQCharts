@@ -71,9 +71,9 @@ class CQChartsRectPlacer {
 
   class RectData {
    public:
-    RectData() { }
+    RectData() = default;
 
-    virtual ~RectData() { }
+    virtual ~RectData() = default;
 
     virtual const Rect &rect() const = 0;
     virtual void setRect(const Rect &r) = 0;
@@ -100,7 +100,7 @@ class CQChartsRectPlacer {
     using QuadTree = CQChartsQuadTree<RectData, Rect>;
 
    public:
-    Grid() { }
+    Grid() = default;
 
     void clear() {
       tree_.reset();

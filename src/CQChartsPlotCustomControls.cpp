@@ -10,7 +10,6 @@
 #include <CQChartsMapKey.h>
 #include <CQChartsKey.h>
 #include <CQChartsVariant.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 
 #include <CQIconButton.h>
@@ -221,34 +220,34 @@ connectSlots(bool b)
   connected_ = b;
 
   if (plot_)
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
 
   if (colorEdit_) {
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       colorControlGroup_, SIGNAL(groupChanged()), this, SLOT(colorGroupChanged()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       colorEdit_, SIGNAL(colorChanged()), this, SLOT(colorSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       colorColumnCombo_, SIGNAL(columnChanged()), this, SLOT(colorColumnSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       colorRange_, SIGNAL(sliderRangeChanged(double, double)), this, SLOT(colorRangeSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       colorPaletteEdit_, SIGNAL(nameChanged()), this, SLOT(colorPaletteSlot()));
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       colorMappingEdit_, SIGNAL(editingFinished()), this, SLOT(colorMappingSlot()));
   }
 
   for (auto *columnEdit : columnEdits_)
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       columnEdit, SIGNAL(columnChanged()), this, SLOT(columnSlot()));
 
   for (auto *columnsEdit : columnsEdits_)
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       columnsEdit, SIGNAL(columnsChanged()), this, SLOT(columnsSlot()));
 
   if (numericIcon_)
-    CQChartsWidgetUtil::connectDisconnect(b,
+    CQUtil::connectDisconnect(b,
       numericIcon_, SIGNAL(clicked(bool)), this, SLOT(numericOnlySlot(bool)));
 }
 

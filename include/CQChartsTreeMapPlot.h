@@ -73,7 +73,7 @@ class CQChartsTreeMapNode {
   CQChartsTreeMapNode(const TreeMapPlot *plot, HierNode *parent, const QString &name,
                       double size, const QModelIndex &ind);
 
-  virtual ~CQChartsTreeMapNode() { }
+  virtual ~CQChartsTreeMapNode() = default;
 
   const TreeMapPlot *plot() const { return treeMapPlot_; }
 

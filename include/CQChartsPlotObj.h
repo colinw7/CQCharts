@@ -401,7 +401,7 @@ class CQChartsPlotPointObj : public CQChartsPlotObj {
                        const ColorInd &is=ColorInd(), const ColorInd &ig=ColorInd(),
                        const ColorInd &iv=ColorInd());
 
-  virtual ~CQChartsPlotPointObj() { }
+  virtual ~CQChartsPlotPointObj() = default;
 
   //---
 

@@ -310,7 +310,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     using Values = std::vector<Value>;
 
    public:
-    TableConnectionData() { }
+    TableConnectionData() = default;
 
     int from() const { return from_; }
     void setFrom(int i) { from_ = i; }

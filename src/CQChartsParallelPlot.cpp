@@ -12,7 +12,6 @@
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsHtml.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -1763,7 +1762,7 @@ void
 CQChartsParallelPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
 
   CQChartsPlotCustomControls::connectSlots(b);

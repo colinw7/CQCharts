@@ -354,7 +354,7 @@ load(const QString &filename)
             QDataStream in(&ibuffer);
             in.setVersion(dataStreamVersion());
 
-            var = QVariant(type, 0);
+            var = QVariant(type, nullptr);
 
             // const cast is safe since we operate on a newly constructed variant
             if (! QMetaType::load(in, type, const_cast<void *>(var.constData()))) {

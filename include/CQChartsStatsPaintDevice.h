@@ -35,7 +35,7 @@ class CQChartsStatsPaintDevice : public CQChartsPaintDevice {
 
   Type type() const override { return Type::STATS; }
 
-  const QFont &font() const override { return font_; };
+  const QFont &font() const override { return font_; }
   void setFont(const QFont &font, bool /*scale*/=false) override { font_ = font; }
 
   void setTransformRotate(const Point & /*p*/, double /*angle*/) override { }
@@ -81,7 +81,7 @@ class CQChartsStatsPaintDevice : public CQChartsPaintDevice {
     DrawType type { DrawType::NONE };
     BBox     bbox;
 
-    DrawData() { }
+    DrawData() = default;
 
     DrawData(const DrawType &type, const BBox &bbox) :
      type(type), bbox(bbox) {

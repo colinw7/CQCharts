@@ -28,7 +28,7 @@ class CQChartsPlotParameterAttributes {
   };
 
  public:
-  CQChartsPlotParameterAttributes() { }
+  CQChartsPlotParameterAttributes() = default;
 
   // optional/required
   bool isOptional() const { return ! isRequired(); }
@@ -169,7 +169,7 @@ class CQChartsPlotParameter : public QObject {
                         const QString &propName, const Attributes &attributes=Attributes(),
                         const QVariant &defValue=QVariant());
 
-  virtual ~CQChartsPlotParameter() { }
+  virtual ~CQChartsPlotParameter() = default;
 
   //! get/set parameter name
   const QString &name() const { return name_; }

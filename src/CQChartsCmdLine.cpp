@@ -1,6 +1,5 @@
 #include <CQChartsCmdLine.h>
 #include <CQCharts.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsVariant.h>
 
 #include <CQCommand.h>

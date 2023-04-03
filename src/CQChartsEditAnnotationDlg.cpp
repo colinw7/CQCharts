@@ -20,8 +20,8 @@
 #include <CQChartsImageEdit.h>
 #include <CQChartsAngleEdit.h>
 #include <CQChartsLineEdit.h>
-
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsDialogButtons.h>
 
 #include <CQRealSpin.h>
 #include <CQCheckBox.h>

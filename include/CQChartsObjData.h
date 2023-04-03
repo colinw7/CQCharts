@@ -62,7 +62,7 @@ class CQChartsObjLineData {
    lineDataObj_(obj), invalidator_(obj), pinvalidator_(invalidator) {
   }
 
-  virtual ~CQChartsObjLineData() { }
+  virtual ~CQChartsObjLineData() = default;
 
   //---
 
@@ -204,7 +204,7 @@ class CQChartsObj##UNAME##LineData { \
    LNAME##LineDataObj_(obj), LNAME##Invalidator_(obj), LNAME##PInvalidator_(invalidator) { \
   } \
 \
-  virtual ~CQChartsObj##UNAME##LineData() { } \
+  virtual ~CQChartsObj##UNAME##LineData() = default; \
 \
   bool is##UNAME##ReloadObj() const { return LNAME##ReloadObj_; } \
   void set##UNAME##ReloadObj(bool b) { LNAME##ReloadObj_ = b; } \
@@ -363,7 +363,7 @@ class CQChartsObjPointData {
    pointDataObj_(obj), invalidator_(obj), pinvalidator_(invalidator) {
   }
 
-  virtual ~CQChartsObjPointData() { }
+  virtual ~CQChartsObjPointData() = default;
 
   //---
 
@@ -575,7 +575,7 @@ class CQChartsObj##UNAME##PointData { \
    LNAME##PointDataObj_(obj), LNAME##Invalidator_(obj), LNAME##PInvalidator_(invalidator) { \
   } \
 \
-  virtual ~CQChartsObj##UNAME##PointData() { } \
+  virtual ~CQChartsObj##UNAME##PointData() = default; \
 \
   bool is##UNAME##ReloadObj() const { return LNAME##ReloadObj_; } \
   void set##UNAME##ReloadObj(bool b) { LNAME##ReloadObj_ = b; } \
@@ -760,7 +760,7 @@ class CQChartsObj##UNAME##FillData { \
    LNAME##FillDataObj_(obj), LNAME##Invalidator_(obj), LNAME##PInvalidator_(invalidator) { \
   } \
 \
-  virtual ~CQChartsObj##UNAME##FillData() { } \
+  virtual ~CQChartsObj##UNAME##FillData() = default; \
 \
   bool is##UNAME##ReloadObj() const { return LNAME##ReloadObj_; } \
   void set##UNAME##ReloadObj(bool b) { LNAME##ReloadObj_ = b; } \
@@ -861,7 +861,7 @@ class CQChartsObjTextData {
    textDataObj_(obj), invalidator_(obj), pinvalidator_(invalidator) {
   }
 
-  virtual ~CQChartsObjTextData() { }
+  virtual ~CQChartsObjTextData() = default;
 
   //---
 
@@ -1053,7 +1053,7 @@ class CQChartsObj##UNAME##TextData { \
    LNAME##TextDataObj_(obj), LNAME##Invalidator_(obj), LNAME##PInvalidator_(invalidator) { \
   } \
 \
-  virtual ~CQChartsObj##UNAME##TextData() { } \
+  virtual ~CQChartsObj##UNAME##TextData() = default; \
 \
   bool is##UNAME##ReloadObj() const { return LNAME##ReloadObj_; } \
   void set##UNAME##ReloadObj(bool b) { LNAME##ReloadObj_ = b; } \
@@ -1239,7 +1239,7 @@ class CQChartsObjStrokeData {
    strokeDataObj_(obj), invalidator_(obj), pinvalidator_(invalidator) {
   }
 
-  virtual ~CQChartsObjStrokeData() { }
+  virtual ~CQChartsObjStrokeData() = default;
 
   //---
 
@@ -1378,7 +1378,7 @@ class CQChartsObjShapeData {
    shapeDataObj_(obj), invalidator_(obj), pinvalidator_(invalidator) {
   }
 
-  virtual ~CQChartsObjShapeData() { }
+  virtual ~CQChartsObjShapeData() = default;
 
   //---
 
@@ -1576,7 +1576,7 @@ class CQChartsObj##UNAME##ShapeData { \
    LNAME##ShapeDataObj_(obj), LNAME##Invalidator_(obj), LNAME##PInvalidator_(invalidator) { \
   } \
 \
-  virtual ~CQChartsObj##UNAME##ShapeData() { } \
+  virtual ~CQChartsObj##UNAME##ShapeData() = default; \
 \
   bool is##UNAME##ReloadObj() const { return LNAME##ReloadObj_; } \
   void set##UNAME##ReloadObj(bool b) { LNAME##ReloadObj_ = b; } \
@@ -1786,7 +1786,7 @@ class CQChartsObjBoxData {
    boxDataObj_(obj), invalidator_(obj), pinvalidator_(invalidator) {
   }
 
-  virtual ~CQChartsObjBoxData() { }
+  virtual ~CQChartsObjBoxData() = default;
 
   //---
 
@@ -1991,7 +1991,7 @@ class CQChartsObj##UNAME##BoxData { \
    LNAME##BoxDataObj_(obj), LNAME##Invalidator_(obj), LNAME##PInvalidator_(invalidator) { \
   } \
 \
-  virtual ~CQChartsObj##UNAME##BoxData() { } \
+  virtual ~CQChartsObj##UNAME##BoxData() = default; \
 \
   bool is##UNAME##ReloadObj() const { return LNAME##ReloadObj_; } \
   void set##UNAME##ReloadObj(bool b) { LNAME##ReloadObj_ = b; } \

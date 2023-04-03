@@ -3,12 +3,12 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsModelData.h>
+#include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 
 #include <CQChartsCreatePlotDlg.h>
 #include <CQChartsCmdLine.h>
 #include <CQChartsHelpDlg.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPixmapCache.h>
 #include <CQIconButton.h>

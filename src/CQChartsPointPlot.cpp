@@ -7,7 +7,6 @@
 #include <CQChartsVariant.h>
 #include <CQChartsFitData.h>
 #include <CQChartsGrahamHull.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsTip.h>
 #include <CQChartsSymbolSet.h>
 #include <CQChartsTextPlacer.h>
@@ -643,7 +642,7 @@ setDataLabelFont(const CQChartsFont &font, bool notify)
   if (! notify) {
     NoUpdate noUpdate(this);
 
-    CQChartsWidgetUtil::AutoDisconnect dataChangeDisconnect(
+    CQUtil::AutoDisconnect dataChangeDisconnect(
       dataLabel, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
 
     dataLabel->setTextFont(font);
@@ -1425,7 +1424,7 @@ updateSymbolSizeMapKey() const
 
   auto *th = const_cast<CQChartsPointPlot *>(this);
 
-  CQChartsWidgetUtil::AutoDisconnect autoDisconnect(symbolSizeMapKey_.get(),
+  CQUtil::AutoDisconnect autoDisconnect(symbolSizeMapKey_.get(),
     SIGNAL(dataChanged()), th, SLOT(updateSlot()));
 
   symbolSizeMapKey_->setData(symbolSizeData());
@@ -1639,7 +1638,7 @@ updateSymbolTypeMapKey() const
 
   auto *th = const_cast<CQChartsPointPlot *>(this);
 
-  CQChartsWidgetUtil::AutoDisconnect autoDisconnect(symbolTypeMapKey_.get(),
+  CQUtil::AutoDisconnect autoDisconnect(symbolTypeMapKey_.get(),
     SIGNAL(dataChanged()), th, SLOT(updateSlot()));
 
   symbolTypeMapKey_->setData(symbolTypeData());

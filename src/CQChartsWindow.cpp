@@ -9,7 +9,6 @@
 #include <CQChartsModelViewHolder.h>
 #include <CQChartsPropertyViewTree.h>
 #include <CQChartsModelView.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPixmapCache.h>
 #include <CQTabSplit.h>
@@ -395,17 +394,16 @@ void
 CQChartsWindow::
 updateRangeMap()
 {
-  auto *plot = view()->currentPlot();
-  if (! plot) return;
+  if (! plot_) return;
 
-  CQChartsWidgetUtil::AutoDisconnect xscrollDisconnect(
+  CQUtil::AutoDisconnect xscrollDisconnect(
     xrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
-  CQChartsWidgetUtil::AutoDisconnect yscrollDisconnect(
+  CQUtil::AutoDisconnect yscrollDisconnect(
     yrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
 
   // get fill range and current range
-  auto bbox1 = plot->getDataRange ();
-  auto bbox2 = plot->calcDataRange();
+  auto bbox1 = plot_->getDataRange ();
+  auto bbox2 = plot_->calcDataRange();
 
   double xsize = bbox2.getWidth ()/bbox1.getWidth ();
   double xpos  = (bbox2.getXMin() - bbox1.getXMin())/bbox1.getWidth();
@@ -512,10 +510,9 @@ void
 CQChartsWindow::
 rangeScrollSlot()
 {
-  auto *plot = view()->currentPlot();
-  if (! plot) return;
+  if (! plot_) return;
 
-  auto dataRange = plot->getDataRange();
+  auto dataRange = plot_->getDataRange();
 
   if (xrangeScroll_->isVisible()) {
     double pos = xrangeScroll_->pos();
@@ -539,7 +536,7 @@ rangeScrollSlot()
     dataRange.setYMax(ymax);
   }
 
-  plot->zoomTo(dataRange);
+  plot_->zoomTo(dataRange);
 }
 
 void
@@ -593,10 +590,9 @@ void
 CQChartsWindow::
 filterChangedSlot()
 {
-  //auto *plot = view_->currentPlot(/*remap*/false);
-  //if (! plot) return;
+  //if (! plot_) return;
 
-  //plot->updateRangeAndObjs();
+  //plot_->updateRangeAndObjs();
 }
 
 //------
@@ -635,10 +631,13 @@ void
 CQChartsWindow::
 plotSlot()
 {
-  auto *plot = view_->currentPlot(/*remap*/false);
+  if (plot_)
+    disconnect(plot_, SIGNAL(currentModelChanged()), this, SLOT(plotModelSlot()));
 
-  if (plot)
-    setWindowTitle(QString("Window: View %1, Plot %2").arg(view_->id()).arg(plot->id()));
+  plot_ = view_->currentPlot(/*remap*/false);
+
+  if (plot_)
+    setWindowTitle(QString("Window: View %1, Plot %2").arg(view_->id()).arg(plot_->id()));
   else
     setWindowTitle(QString("Window: View %1, Plot <none>").arg(view_->id()));
 
@@ -646,17 +645,25 @@ plotSlot()
     setViewModel();
   else
     modelView_->setModel(CQChartsModelViewHolder::ModelP(), false);
+
+  if (plot_)
+    connect(plot_, SIGNAL(currentModelChanged()), this, SLOT(plotModelSlot()));
+}
+
+void
+CQChartsWindow::
+plotModelSlot()
+{
+  setViewModel();
 }
 
 void
 CQChartsWindow::
 setViewModel()
 {
-  auto *plot = view_->currentPlot(/*remap*/false);
-
-  if (plot) {
-    if (plot->currentModel() != modelView_->model())
-      modelView_->setModel(plot->currentModel(), plot->isHierarchical());
+  if (plot_) {
+    if (plot_->currentModel() != modelView_->model())
+      modelView_->setModel(plot_->currentModel(), plot_->isHierarchical());
   }
   else
     modelView_->setModel(CQChartsModelViewHolder::ModelP(), false);
@@ -800,10 +807,10 @@ CQChartsWindow::
 connectModelViewExpand(bool connect)
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  CQChartsWidgetUtil::connectDisconnect(connect,
+  CQUtil::connectDisconnect(connect,
     modelView_->view(), SIGNAL(expanded(const QModelIndex &)),
     this, SLOT(expansionChangeSlot()));
-  CQChartsWidgetUtil::connectDisconnect(connect,
+  CQUtil::connectDisconnect(connect,
     modelView_->view(), SIGNAL(collapsed(const QModelIndex &)),
     this, SLOT(expansionChangeSlot()));
 #endif

@@ -10,7 +10,6 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsVariant.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsArrow.h>
 #include <CQChartsEditHandles.h>

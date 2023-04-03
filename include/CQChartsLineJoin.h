@@ -27,7 +27,7 @@ class CQChartsLineJoin : public CQChartsEnum<CQChartsLineJoin> {
 
   explicit CQChartsLineJoin(const QString &str);
 
- ~CQChartsLineJoin() { }
+ ~CQChartsLineJoin() = default;
 
   //---
 

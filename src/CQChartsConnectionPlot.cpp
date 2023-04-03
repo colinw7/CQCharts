@@ -7,7 +7,6 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -1622,7 +1621,7 @@ void
 CQChartsConnectionPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     columnsTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(columnsTypeSlot()));
 
   CQChartsPlotCustomControls::connectSlots(b);

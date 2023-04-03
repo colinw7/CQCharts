@@ -195,6 +195,7 @@ class CQChartsWindow : public QFrame {
   void removeViewSlot(CQChartsView *view);
 
   void plotSlot();
+  void plotModelSlot();
   void modeSlot();
   void selectModeSlot();
 
@@ -206,6 +207,7 @@ class CQChartsWindow : public QFrame {
 
  private:
   using ViewP           = QPointer<View>;
+  using PlotP           = QPointer<Plot>;
   using RangeScroll     = CQChartsWindowRangeScroll;
   using FilterEdit      = CQChartsFilterEdit;
   using ModelViewHolder = CQChartsModelViewHolder;
@@ -213,6 +215,7 @@ class CQChartsWindow : public QFrame {
   using Status          = CQChartsViewStatus;
 
   ViewP view_;                    //!< parent view
+  PlotP plot_;                    //!< current plot
   bool  xRangeMap_     { false }; //!< xrange map
   bool  yRangeMap_     { false }; //!< xrange map
   bool  showDataTable_ { false }; //!< data table

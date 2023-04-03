@@ -7,7 +7,7 @@ class CQCharts;
 
 class CQChartsFile {
  public:
-  CQChartsFile() { }
+  CQChartsFile() = default;
 
   explicit CQChartsFile(CQCharts *charts, const QString &name);
 

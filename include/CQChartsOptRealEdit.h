@@ -42,7 +42,7 @@ class CQChartsOptRealEdit : public CQChartsOptEdit {
  */
 class CQChartsOptRealPropertyViewType : public CQChartsOptPropertyViewType {
  public:
-  CQChartsOptRealPropertyViewType() { }
+  CQChartsOptRealPropertyViewType() = default;
 
   CQPropertyViewEditorFactory *getEditor() const override;
 
@@ -59,7 +59,7 @@ class CQChartsOptRealPropertyViewType : public CQChartsOptPropertyViewType {
  */
 class CQChartsOptRealPropertyViewEditor : public CQChartsOptPropertyViewEditor {
  public:
-  CQChartsOptRealPropertyViewEditor() { }
+  CQChartsOptRealPropertyViewEditor() = default;
 
   QWidget *createEdit(QWidget *parent) override;
 };

@@ -12349,10 +12349,14 @@ execCmd(CQChartsCmdArgs &argv)
       cmds()->connect(plot, SIGNAL(animateStateChanged(bool)),
                       createCmdsSlot(), SLOT(animateStateChanged(bool)));
     }
+    else if (fromName == "currentModelChanged") {
+      cmds()->connect(plot, SIGNAL(currentModelChanged()),
+                      createCmdsSlot(), SLOT(currentModelChanged()));
+    }
     else if (fromName == "?") {
       static auto names = QStringList() <<
         "objIdPressed" << "annotationIdPressed" << "plotObjsAdded" << "selectionChanged" <<
-        "selectPress" << "animateStateChanged";
+        "selectPress" << "animateStateChanged" << "currentModelChanged";
       return cmdBase_->setCmdRc(names);
     }
     else

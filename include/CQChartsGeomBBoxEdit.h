@@ -28,7 +28,7 @@ class CQChartsGeomBBoxEdit : public QFrame {
   CQChartsGeomBBoxEdit(QWidget *parent, const BBox &value=BBox(0, 0, 1, 1));
   CQChartsGeomBBoxEdit(const BBox &value=BBox(0, 0, 1, 1));
 
- ~CQChartsGeomBBoxEdit() { }
+ ~CQChartsGeomBBoxEdit() = default;
 
   const BBox &getValue() const { return bbox_; }
   void setValue(const BBox &bbox);

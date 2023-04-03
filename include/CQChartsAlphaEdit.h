@@ -49,7 +49,7 @@ class CQChartsAlphaEdit : public CQComboSlider {
  */
 class CQChartsAlphaPropertyViewType : public CQPropertyViewType {
  public:
-  CQChartsAlphaPropertyViewType() { }
+  CQChartsAlphaPropertyViewType() = default;
 
   CQPropertyViewEditorFactory *getEditor() const override;
 
@@ -74,7 +74,7 @@ class CQChartsAlphaPropertyViewType : public CQPropertyViewType {
  */
 class CQChartsAlphaPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
-  CQChartsAlphaPropertyViewEditor() { }
+  CQChartsAlphaPropertyViewEditor() = default;
 
   QWidget *createEdit(QWidget *parent) override;
 

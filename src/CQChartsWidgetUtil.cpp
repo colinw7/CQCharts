@@ -1,4 +1,6 @@
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsDialogButtons.h>
+
 #include <CQUtil.h>
 
 #include <QPushButton>

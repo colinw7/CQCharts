@@ -47,7 +47,7 @@ class CQChartsPlotCustomControls : public QScrollArea {
  public:
   CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType);
 
-  virtual ~CQChartsPlotCustomControls() { }
+  virtual ~CQChartsPlotCustomControls() = default;
 
   virtual void init() { }
 

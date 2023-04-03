@@ -150,7 +150,7 @@ class CForceDirected {
   }
 
   virtual GraphP makeGraph() const {
-    return GraphP(new Springy::Graph);
+    return std::make_shared<Springy::Graph>();
   }
 
   virtual LayoutP makeLayout() const {

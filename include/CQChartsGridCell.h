@@ -16,7 +16,7 @@ class CQChartsGridCell {
   using XYPoints = std::map<int, YPoints>;
 
  public:
-  CQChartsGridCell() { }
+  CQChartsGridCell() = default;
 
   int nx() const { return nx_; }
   void setNX(int i) { nx_ = i; }

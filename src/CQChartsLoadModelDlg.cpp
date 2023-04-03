@@ -5,10 +5,10 @@
 #include <CQChartsModelData.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsModelUtil.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 #include <CQChartsFile.h>
 #include <CQChartsUtil.h>
+#include <CQChartsDialogButtons.h>
 
 #include <CQTabSplit.h>
 #include <CQFilename.h>

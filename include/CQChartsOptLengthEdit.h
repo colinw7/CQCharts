@@ -42,7 +42,7 @@ class CQChartsOptLengthEdit : public CQChartsOptEdit {
  */
 class CQChartsOptLengthPropertyViewType : public CQChartsOptPropertyViewType {
  public:
-  CQChartsOptLengthPropertyViewType() { }
+  CQChartsOptLengthPropertyViewType() = default;
 
   CQPropertyViewEditorFactory *getEditor() const override;
 
@@ -61,7 +61,7 @@ class CQChartsOptLengthPropertyViewType : public CQChartsOptPropertyViewType {
  */
 class CQChartsOptLengthPropertyViewEditor : public CQChartsOptPropertyViewEditor {
  public:
-  CQChartsOptLengthPropertyViewEditor() { }
+  CQChartsOptLengthPropertyViewEditor() = default;
 
   QWidget *createEdit(QWidget *parent) override;
 };

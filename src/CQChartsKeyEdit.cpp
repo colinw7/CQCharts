@@ -8,16 +8,15 @@
 #include <CQChartsTextDataEdit.h>
 #include <CQChartsTextBoxDataEdit.h>
 #include <CQChartsGeomPointEdit.h>
-#include <CQCharts.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsDialogButtons.h>
+#include <CQCharts.h>
 
 #include <CQGroupBox.h>
 #include <CQCheckBox.h>
 #include <CQIntegerSpin.h>
 #include <CQUtil.h>
 
-#include <QLabel>
-#include <QComboBox>
 #include <QVBoxLayout>
 
 CQChartsEditKeyDlg::
@@ -377,7 +376,7 @@ connectSlots(bool b)
   //---
 
   auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
-    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
+    CQUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
   auto *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);

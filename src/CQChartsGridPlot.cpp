@@ -11,7 +11,6 @@
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 #include <CQCharts.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -945,7 +944,7 @@ void
 CQChartsGridPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     drawTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(drawTypeSlot()));
 
   CQChartsPlotCustomControls::connectSlots(b);

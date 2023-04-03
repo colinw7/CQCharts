@@ -8,7 +8,6 @@
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -458,7 +457,7 @@ void
 CQChartsContourPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     solidCheck_, SIGNAL(stateChanged(int)), this, SLOT(solidSlot()));
 }
 

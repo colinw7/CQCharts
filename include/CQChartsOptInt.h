@@ -26,7 +26,7 @@ class CQChartsOptInt :
  public:
   using OptInt = std::optional<long>;
 
-  CQChartsOptInt() { }
+  CQChartsOptInt() = default;
 
   CQChartsOptInt(const OptInt &value) :
    value_(value) {

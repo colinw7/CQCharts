@@ -285,9 +285,9 @@ class CQChartsPlotSymbolList {
   Symbols symbols_;
 };
 
-static double cw1 =  0.2828430; // 0.4/sqrt(2)
-static double cw2 =  0.7171570; // 1-0.4/sqrt(2)
-static double cw3 = -0.0828427; // line intersect for Y
+constexpr double cw1 =  0.2828430; // 0.4/sqrt(2)
+constexpr double cw2 =  0.7171570; // 1-0.4/sqrt(2)
+constexpr double cw3 = -0.0828427; // line intersect for Y
 
 using PlotSymbol = CQChartsPlotSymbol;
 

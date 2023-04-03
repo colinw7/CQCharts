@@ -26,7 +26,7 @@ class CQChartsLineCap : public CQChartsEnum<CQChartsLineCap> {
 
   explicit CQChartsLineCap(const QString &str);
 
- ~CQChartsLineCap() { }
+ ~CQChartsLineCap() = default;
 
   //---
 

@@ -5,7 +5,6 @@
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsHtml.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
@@ -3310,11 +3309,11 @@ void
 CQChartsTreeMapPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     headerCheck_, SIGNAL(stateChanged(int)), this, SLOT(headerSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     valueCheck_, SIGNAL(stateChanged(int)), this, SLOT(valueSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     followViewCheck_, SIGNAL(stateChanged(int)), this, SLOT(followViewSlot()));
 
   CQChartsHierPlotCustomControls::connectSlots(b);

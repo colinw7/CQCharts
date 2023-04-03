@@ -52,7 +52,7 @@ class CQChartsLoader {
   using Columns = std::vector<CQChartsColumn>;
 
   struct CorrelationData {
-    CorrelationData() { }
+    CorrelationData() { } // default not allowed ?
 
     bool    flip { false };
     Columns columns;

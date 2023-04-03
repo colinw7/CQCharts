@@ -4,7 +4,6 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsRegionMgr.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 

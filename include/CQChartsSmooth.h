@@ -44,8 +44,8 @@ class CQChartsBezier2 {
   const Point &getLastPoint   () const { return p3_; }
 
   void setFirstPoint  (const Point &p1) { p1_ = p1; }
-  void setControlPoint(const Point &p2) { p2_ = p2; };
-  void setLastPoint   (const Point &p3) { p3_ = p3; };
+  void setControlPoint(const Point &p2) { p2_ = p2; }
+  void setLastPoint   (const Point &p3) { p3_ = p3; }
 
 #if 0
   void getFirstPoint  (double *x, double *y) const { *x = p1_.x; *y = p1_.y; }
@@ -290,9 +290,9 @@ class CQChartsBezier3 {
 
 #if 0
   void setFirstPoint   (const Point &p1) { p1_ = p1; }
-  void setControlPoint1(const Point &p2) { p2_ = p2; };
-  void setControlPoint2(const Point &p3) { p3_ = p3; };
-  void setLastPoint    (const Point &p4) { p4_ = p4; };
+  void setControlPoint1(const Point &p2) { p2_ = p2; }
+  void setControlPoint2(const Point &p3) { p3_ = p3; }
+  void setLastPoint    (const Point &p4) { p4_ = p4; }
 #endif
 
   void getFirstPoint   (double *x, double *y) const { *x = p1_.x; *y = p1_.y; }
@@ -881,9 +881,9 @@ class CQChartsSmooth {
  private:
   class Segment {
    public:
-    Segment() { }
+    Segment() = default;
 
-    virtual ~Segment() { }
+    virtual ~Segment() = default;
 
     virtual SegmentType type() const = 0;
 
@@ -974,7 +974,8 @@ class CQChartsSmooth {
   class Curve3 : public Segment {
    public:
     Curve3(int i, const Point &mp1, const Point &mp2) :
-     i_(i), mp1_(mp1), mp2_(mp2) { }
+     i_(i), mp1_(mp1), mp2_(mp2) {
+    }
 
     SegmentType type() const override { return SegmentType::CURVE3; }
 

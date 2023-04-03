@@ -69,7 +69,7 @@ class CQChartsChordData {
   using Angle               = CQChartsAngle;
 
  public:
-  CQChartsChordData() { }
+  CQChartsChordData() = default;
 
   const TableConnectionData &data() const { return data_; }
   void setData(TableConnectionData &data) { data_ = data; }

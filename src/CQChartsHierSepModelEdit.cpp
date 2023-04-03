@@ -2,7 +2,6 @@
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsColumnCombo.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 
 #include <CQHierSepModel.h>
@@ -78,12 +77,12 @@ void
 CQChartsHierSepModelEdit::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     enabledCheck_, SIGNAL(stateChanged(int)), this, SLOT(enabledSlot()));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     separatorEdit_, SIGNAL(editingFinished()), this, SLOT(updateModelFromWidgets()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     columnEdit_, SIGNAL(columnChanged()), this, SLOT(updateWidgetsFromModel()));
 }
 

@@ -1,5 +1,4 @@
 #include <CQChartsAlphaEdit.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsVariant.h>
 
 #include <CQPropertyView.h>
@@ -72,7 +71,7 @@ connectSlots(bool b)
 
   connected_ = b;
 
-  CQChartsWidgetUtil::connectDisconnect(connected_,
+  CQUtil::connectDisconnect(connected_,
     this, SIGNAL(valueChanged(double)), this, SLOT(editChanged()));
 }
 

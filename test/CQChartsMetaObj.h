@@ -13,7 +13,7 @@ class CQChartsMetaObj : public QObject {
   Q_PROPERTY(CQChartsColumn column READ column WRITE setColumn)
 
  public:
-  CQChartsMetaObj() { }
+  CQChartsMetaObj() = default;
 
   const CQChartsColumn &column() const { return column_; }
   void setColumn(const CQChartsColumn &c) { column_ = c; }

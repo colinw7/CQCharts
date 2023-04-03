@@ -13,7 +13,6 @@
 #include <CQChartsColumnCombo.h>
 #include <CQChartsHtml.h>
 #include <CQCharts.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -3316,9 +3315,7 @@ updateWidgets()
   //---
 
   if (labelColumnCombo_) {
-    const auto &model = barChartPlot_->currentModel();
-
-    labelColumnCombo_->setModelColumn(barChartPlot_->getModelData(model),
+    labelColumnCombo_->setModelColumn(barChartPlot_->currentModelData(),
                                       barChartPlot_->labelColumn());
   }
 
@@ -3355,28 +3352,28 @@ void
 CQChartsBarChartPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     labelColumnCombo_, SIGNAL(columnChanged()), this, SLOT(labelColumnSlot()));
 
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     labelCheck_, SIGNAL(stateChanged(int)), this, SLOT(labelVisibleSlot(int)));
 
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     valueTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(valueTypeSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     shapeTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(shapeTypeSlot()));
 
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     percentCheck_, SIGNAL(stateChanged(int)), this, SLOT(percentSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     skipEmptyCheck_, SIGNAL(stateChanged(int)), this, SLOT(skipEmptySlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     groupByColumnCheck_, SIGNAL(stateChanged(int)), this, SLOT(groupByColumnSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     colorBySetCheck_, SIGNAL(stateChanged(int)), this, SLOT(colorBySetSlot()));
 
   CQChartsGroupPlotCustomControls::connectSlots(b);

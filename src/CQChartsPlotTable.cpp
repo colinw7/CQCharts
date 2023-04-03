@@ -4,8 +4,8 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsModelData.h>
 #include <CQChartsVariant.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsCreatePlotDlg.h>
+#include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 
 #include <CQGroupBox.h>
@@ -525,9 +525,7 @@ updatePlots(CQChartsView *view)
     (void) createItem(plot->connectionStateStr(), i, 2);
 
     // set model item
-    const auto &model = plot->currentModel();
-
-    auto *modelData = plot->getModelData(model);
+    auto *modelData = plot->currentModelData();
 
     if (modelData)
       (void) createItem(modelData->id(), i, 3);

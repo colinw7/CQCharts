@@ -1,6 +1,5 @@
 #include <CQChartsOptEdit.h>
 #include <CQChartsLineEdit.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQUtil.h>
@@ -86,7 +85,7 @@ connectSlots(bool b)
 
   connected_ = b;
 
-  CQChartsWidgetUtil::connectDisconnect(connected_,
+  CQUtil::connectDisconnect(connected_,
     edit_, SIGNAL(editingFinished()), this, SLOT(editChanged()));
 }
 

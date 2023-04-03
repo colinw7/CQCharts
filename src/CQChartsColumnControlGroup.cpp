@@ -1,5 +1,4 @@
 #include <CQChartsColumnControlGroup.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQGroupBox.h>
 #include <CQIconButton.h>

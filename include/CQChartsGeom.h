@@ -1586,7 +1586,7 @@ class Matrix :
   // constructor/destructor
   Matrix() = default;
 
- ~Matrix() { }
+ ~Matrix() = default;
 
   explicit Matrix(Type type) {
     if (type == Type::IDENTITY)
@@ -2382,15 +2382,18 @@ namespace CQChartsGeom {
 
 //! value in range
 struct RangeValue {
-  RangeValue(double v=0.0, double min=0.0, double max=1.0) :
+  RangeValue() = default;
+
+  RangeValue(double v, double min, double max) :
    v(v), min(min), max(max) {
   }
 
   double map() const { return map(v); }
 
-  double map  (double v1) const { return CMathUtil::map(v1, min, max, 0.0, 1.0); }
-  double unmap(double v1) const { return CMathUtil::map(v1, 0.0, 1.0, min, max); }
+  double map  (double v1) const { return (set ? CMathUtil::map(v1, min, max, 0.0, 1.0) : v1); }
+  double unmap(double v1) const { return (set ? CMathUtil::map(v1, 0.0, 1.0, min, max) : v1); }
 
+  bool   set { false };
   double v   { 0.0 };
   double min { 0.0 };
   double max { 1.0 };

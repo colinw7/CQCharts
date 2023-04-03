@@ -48,7 +48,7 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
   CQChartsBoxObj(View *view);
   CQChartsBoxObj(Plot *plot);
 
-  virtual ~CQChartsBoxObj() { }
+  virtual ~CQChartsBoxObj() = default;
 
   //---
 

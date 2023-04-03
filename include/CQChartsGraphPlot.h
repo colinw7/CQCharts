@@ -852,7 +852,7 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   int              numGroups_     { 1 };     //!< node number of groups
 
   struct FixedNode {
-    FixedNode() { }
+    FixedNode() = default;
 
     FixedNode(const BBox &r) { rect = r; }
 

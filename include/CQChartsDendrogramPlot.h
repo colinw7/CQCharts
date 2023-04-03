@@ -162,7 +162,7 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
  private:
   struct Child {
-    Child() { }
+    Child() = default;
 
     Child(NodeObj *node, const OptReal &value) :
      node(node), value(value) {
@@ -266,7 +266,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
     Node*   to   { nullptr };
     OptReal value;
 
-    Edge() { }
+    Edge() = default;
 
     Edge(Node *from, Node *to, const OptReal &value) :
      from(from), to(to), value(value) {

@@ -4,9 +4,10 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + view toolbar (table, help, ...)
  + example full width toolbar widget (title, buttons) for force directed
  + fit with big title, small plot
- + move percent support for sizing (like force directed text)
+ + more percent support for sizing (like force directed text)
    + bubble plot text scaling to match force directed
  + better editing of path annotation (guide lines to control points)
  + support node sizing in dendrogram plot

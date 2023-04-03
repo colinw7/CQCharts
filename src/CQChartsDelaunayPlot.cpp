@@ -12,7 +12,6 @@
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -1000,9 +999,9 @@ void
 CQChartsDelaunayPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     delaunayCheck_, SIGNAL(stateChanged(int)), this, SLOT(delaunaySlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     voronoiCheck_, SIGNAL(stateChanged(int)), this, SLOT(voronoiSlot()));
 
   CQChartsPlotCustomControls::connectSlots(b);

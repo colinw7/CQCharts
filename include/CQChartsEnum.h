@@ -13,9 +13,9 @@
 template<typename TYPE>
 class CQChartsEnum {
  public:
-  CQChartsEnum() { }
+  CQChartsEnum() = default;
 
-  virtual ~CQChartsEnum() { }
+  virtual ~CQChartsEnum() = default;
 
   //---
 

@@ -1,6 +1,5 @@
 #include <CQChartsRegionMgr.h>
 #include <CQChartsView.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQIconButton.h>
 #include <CQUtil.h>
@@ -93,10 +92,10 @@ buttonChecked(CQChartsRegionButton *button, bool b)
 
   button->setChecked(b);
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     view_, SIGNAL(regionRectRelease(const CQChartsGeom::BBox &)),
     button, SLOT(rectRegionSetSlot(const CQChartsGeom::BBox &)));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     view_, SIGNAL(regionPointRelease(const CQChartsGeom::Point &)),
     button, SLOT(pointRegionSetSlot(const CQChartsGeom::Point &)));
 }

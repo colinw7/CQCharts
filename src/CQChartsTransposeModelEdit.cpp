@@ -2,17 +2,13 @@
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsColumnsEdit.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 
 #include <CQTransposeModel.h>
 #include <CQIntegerSpin.h>
 #include <CQUtil.h>
 
-#include <QComboBox>
-#include <QStackedWidget>
 #include <QCheckBox>
-#include <QLabel>
 
 CQChartsTransposeModelEdit::
 CQChartsTransposeModelEdit(QWidget *parent) :
@@ -54,7 +50,7 @@ void
 CQChartsTransposeModelEdit::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     enabledCheck_, SIGNAL(stateChanged(int)), this, SLOT(enabledSlot()));
 }
 

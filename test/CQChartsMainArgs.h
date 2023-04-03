@@ -18,7 +18,7 @@ class CQChartsMainArgs {
    argc_(argc), argv_(argv) {
   }
 
-  bool eof() const { return i_ >= argc_; };
+  bool eof() const { return i_ >= argc_; }
 
   bool isOpt() const { return argv_[i_][0] == '-'; }
 

@@ -1,5 +1,4 @@
 #include <CQChartsEnumEdit.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQUtil.h>
@@ -33,7 +32,7 @@ void
 CQChartsEnumEdit::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
 }
 

@@ -9,7 +9,6 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsArrow.h>
 #include <CQChartsEditHandles.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 #include <CQChartsEnv.h>

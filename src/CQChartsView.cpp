@@ -36,7 +36,6 @@
 
 #include <CQChartsDocument.h>
 #include <CQChartsRegionMgr.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -2031,21 +2030,21 @@ void
 CQChartsView::
 connectPlot(Plot *plot, bool connect)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(connect, plot,
+  CQUtil::optConnectDisconnect(connect, plot,
     SIGNAL(modelChanged()), this, SLOT(plotModelChanged()));
 
-  CQChartsWidgetUtil::optConnectDisconnect(connect, plot,
+  CQUtil::optConnectDisconnect(connect, plot,
     SIGNAL(viewBoxChanged()), this, SLOT(plotViewBoxChanged()));
 
-  CQChartsWidgetUtil::optConnectDisconnect(connect, plot,
+  CQUtil::optConnectDisconnect(connect, plot,
     SIGNAL(connectDataChanged()), this, SLOT(plotConnectDataChangedSlot()));
 
-  CQChartsWidgetUtil::optConnectDisconnect(connect, plot,
+  CQUtil::optConnectDisconnect(connect, plot,
     SIGNAL(errorsCleared()), this, SIGNAL(updateErrors()));
-  CQChartsWidgetUtil::optConnectDisconnect(connect, plot,
+  CQUtil::optConnectDisconnect(connect, plot,
     SIGNAL(errorAdded()), this, SIGNAL(updateErrors()));
 
-  CQChartsWidgetUtil::optConnectDisconnect(connect, plot,
+  CQUtil::optConnectDisconnect(connect, plot,
     SIGNAL(currentPlotIdChanged(const QString &)), this, SIGNAL(currentPlotChanged()));
 }
 

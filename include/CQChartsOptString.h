@@ -26,7 +26,7 @@ class CQChartsOptString :
  public:
   using OptString = std::optional<QString>;
 
-  CQChartsOptString() { }
+  CQChartsOptString() = default;
 
   CQChartsOptString(const OptString &value) :
    value_(value) {

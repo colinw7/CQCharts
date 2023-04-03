@@ -12,7 +12,7 @@ class CQChartsArcData {
   using Point = CQChartsGeom::Point;
 
  public:
-  CQChartsArcData() { }
+  CQChartsArcData() = default;
 
   const Point &center() const { return c_; }
   void setCenter(const Point &c) { c_ = c; }

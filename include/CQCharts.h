@@ -450,6 +450,8 @@ class CQCharts : public QObject {
   // assign model index to model
   bool setModelInd(QAbstractItemModel *model, int ind);
 
+  void updateCurrentModelId();
+
  private:
   using NameViews       = std::map<QString, View*>;
   using InterfaceThemeP = std::unique_ptr<CQChartsInterfaceTheme>;

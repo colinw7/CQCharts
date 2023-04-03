@@ -112,7 +112,7 @@ class CQChartsFillUnderPos :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsFillUnderPos, metaTypeId)
 
  public:
-  CQChartsFillUnderPos() { }
+  CQChartsFillUnderPos() = default;
 
   CQChartsFillUnderPos(Type xtype, double xpos, Type ytype, double ypos) :
    xtype_(xtype), xpos_(xpos), ytype_(ytype), ypos_(ypos) {

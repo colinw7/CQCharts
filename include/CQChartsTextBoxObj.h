@@ -53,7 +53,7 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
   CQChartsTextBoxObj(View *view);
   CQChartsTextBoxObj(Plot *plot);
 
-  virtual ~CQChartsTextBoxObj() { }
+  virtual ~CQChartsTextBoxObj() = default;
 
   //---
 

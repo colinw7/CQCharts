@@ -65,7 +65,7 @@ class CQChartsPaintDevice {
 
   CQChartsPaintDevice(CQCharts *charts=nullptr) : charts_(charts) { }
 
-  virtual ~CQChartsPaintDevice() { }
+  virtual ~CQChartsPaintDevice() = default;
 
   //---
 
@@ -173,7 +173,7 @@ class CQChartsPaintDevice {
   virtual const QTransform &transform() const = 0;
   virtual void setTransform(const QTransform &t, bool combine=false) = 0;
 
-  virtual void setRenderHints(QPainter::RenderHints, bool=true) { };
+  virtual void setRenderHints(QPainter::RenderHints, bool=true) { }
 
   virtual void setColorNames() { }
   virtual void setColorNames(const QString &, const QString &) { }
@@ -190,7 +190,7 @@ class CQChartsPaintDevice {
     bool    hasTip    { false };
     QString tipStr;
 
-    GroupData() { }
+    GroupData() { } // default not allowed ?
   };
 
   virtual void startGroup(const QString &, const GroupData& =GroupData()) { }

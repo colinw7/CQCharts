@@ -49,7 +49,7 @@ class CQChartsMarginEdit : public QFrame {
  */
 class CQChartsMarginPropertyViewType : public CQPropertyViewType {
  public:
-  CQChartsMarginPropertyViewType() { }
+  CQChartsMarginPropertyViewType() = default;
 
   CQPropertyViewEditorFactory *getEditor() const override;
 
@@ -74,7 +74,7 @@ class CQChartsMarginPropertyViewType : public CQPropertyViewType {
  */
 class CQChartsMarginPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
-  CQChartsMarginPropertyViewEditor() { }
+  CQChartsMarginPropertyViewEditor() = default;
 
   QWidget *createEdit(QWidget *parent) override;
 

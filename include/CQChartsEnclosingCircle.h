@@ -31,7 +31,7 @@ class CQChartsEnclosingCircle {
   using Circles = std::vector<Circle>;
 
  public:
-  CQChartsEnclosingCircle() { }
+  CQChartsEnclosingCircle() = default;
 
   // add circle
   void addCircle(double x, double y, double r) {
@@ -96,7 +96,7 @@ class CQChartsEnclosingCircle {
 
     (void) CQChartsPointsCircle::makeCircle(points, circle);
 
-    pcircle = Circle(circle.c.x, circle.c.y, circle.r);
+    pcircle = Circle(circle.center().x, circle.center().y, circle.radius());
   }
 
   struct SortClosestCmp {

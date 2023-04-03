@@ -36,13 +36,14 @@ class QItemSelectionModel;
 class CQChartsModelData : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(int     ind            READ ind              WRITE setInd           )
-  Q_PROPERTY(QString id             READ id                                      )
-  Q_PROPERTY(QString name           READ name             WRITE setName          )
-  Q_PROPERTY(QString filename       READ filename         WRITE setFilename      )
+  Q_PROPERTY(int     ind            READ ind              WRITE setInd)
+  Q_PROPERTY(QString id             READ id)
+  Q_PROPERTY(QString name           READ name             WRITE setName)
+  Q_PROPERTY(QString filename       READ filename         WRITE setFilename)
   Q_PROPERTY(QString desc           READ desc)
   Q_PROPERTY(bool    summaryEnabled READ isSummaryEnabled WRITE setSummaryEnabled)
-  Q_PROPERTY(int     currentColumn  READ currentColumn    WRITE setCurrentColumn )
+  Q_PROPERTY(int     currentColumn  READ currentColumn    WRITE setCurrentColumn)
+  Q_PROPERTY(bool    plotName       READ isPlotName       WRITE setPlotName)
 
  public:
   using ModelP        = QSharedPointer<QAbstractItemModel>;
@@ -148,6 +149,11 @@ class CQChartsModelData : public QObject {
 
   int currentColumn() const { return currentColumn_; }
   void setCurrentColumn(int i);
+
+  //---
+
+  bool isPlotName() const { return plotName_; }
+  void setPlotName(bool b) { plotName_ = b; }
 
   //---
 
@@ -275,7 +281,7 @@ class CQChartsModelData : public QObject {
   struct NameAliasArray {
     std::vector<NameAlias> data;
 
-    NameAliasArray() { }
+    NameAliasArray() = default;
 
     NameAliasArray &operator<<(const NameAlias &nameAlias) {
       data.push_back(nameAlias);
@@ -400,6 +406,7 @@ class CQChartsModelData : public QObject {
   QString   name_;                      //!< model name
   QString   filename_;                  //!< model file name
   int       currentColumn_ { -1 };      //!< current column
+  bool      plotName_      { false };   //!< is name from plot
 
   // details
   ModelDetails* details_ { nullptr }; //!< model details

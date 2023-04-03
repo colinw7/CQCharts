@@ -130,6 +130,15 @@ animateStateChanged(bool b)
 
 void
 CQChartsCmdsSlot::
+currentModelChanged()
+{
+  auto cmd = getTclCmd();
+
+  evalCmd(cmd);
+}
+
+void
+CQChartsCmdsSlot::
 themeChanged()
 {
   disconnect(cmds_->charts(), SIGNAL(themeChanged()), this, SLOT(themeChanged()));

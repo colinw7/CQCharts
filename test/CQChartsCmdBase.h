@@ -117,7 +117,7 @@ class CQChartsCmdProc : public CQTclCmd::CmdProc {
  public:
   CQChartsCmdProc(CmdBase *cmdBase);
 
-  virtual ~CQChartsCmdProc() { }
+  virtual ~CQChartsCmdProc() = default;
 
   //--
 
@@ -189,6 +189,7 @@ class CQChartsCmdBaseSlot : public QObject {
   void nameChanged(const QString &s);
   void symbolChanged();
 
+  // timer
   void timerSlot();
 
  private:

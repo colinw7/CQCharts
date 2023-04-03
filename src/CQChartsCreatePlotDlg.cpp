@@ -16,9 +16,10 @@
 #include <CQChartsAnalyzeModel.h>
 #include <CQChartsPreviewPlot.h>
 #include <CQChartsPlotParameterEdit.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsOptRealEdit.h>
 #include <CQChartsLineEdit.h>
+#include <CQChartsWidgetUtil.h>
+#include <CQChartsDialogButtons.h>
 #include <CQCharts.h>
 
 #include <CQSummaryModel.h>
@@ -501,27 +502,27 @@ void
 CQChartsCreatePlotDlg::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     modelData_, SIGNAL(dataChanged()), this, SLOT(updateModelData()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     summaryEditData_.enabledCheck, SIGNAL(stateChanged(int)),
     this, SLOT(summaryEnabledSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     summaryEditData_.maxRows, SIGNAL(valueChanged(int)),
     this, SLOT(updatePreviewSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     summaryEditData_.typeCombo, SIGNAL(currentIndexChanged(int)),
     this, SLOT(updateSummaryTypeSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     summaryEditData_.sortedColEdit, SIGNAL(valueChanged(int)),
     this, SLOT(updatePreviewSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     summaryEditData_.pageSizeEdit, SIGNAL(valueChanged(int)),
     this, SLOT(updatePreviewSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     summaryEditData_.currentPageEdit, SIGNAL(valueChanged(int)),
     this, SLOT(updatePreviewSlot()));
 }
@@ -1831,7 +1832,7 @@ validateSlot()
         if (pe != plotData.columnEdits.end()) {
           auto *edit = (*pe).second;
 
-          CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
+          CQUtil::AutoDisconnect autoDisconnect(
             edit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
 
           edit->setColumn(column);
@@ -1842,7 +1843,7 @@ validateSlot()
           if (pe != plotData.columnsEdits.end()) {
             auto *edit = (*pe).second;
 
-            CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
+            CQUtil::AutoDisconnect autoDisconnect(
               edit, SIGNAL(columnsChanged()), this, SLOT(validateSlot()));
 
             edit->setColumns(Columns(column));
@@ -1857,7 +1858,7 @@ validateSlot()
         if (pe != plotData.columnsEdits.end()) {
           auto *edit = (*pe).second;
 
-          CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
+          CQUtil::AutoDisconnect autoDisconnect(
             edit, SIGNAL(columnsChanged()), this, SLOT(validateSlot()));
 
           edit->setColumns(nc.second);
@@ -1871,7 +1872,7 @@ validateSlot()
         if (pe != plotData.boolEdits.end()) {
           auto *edit = (*pe).second;
 
-          CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
+          CQUtil::AutoDisconnect autoDisconnect(
             edit, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
 
           edit->setChecked(nc.second);
@@ -2225,7 +2226,7 @@ updatePreviewSlot()
   auto *summaryModel = modelData_->summaryModel();
 
   if (modelData_->isSummaryEnabled() && summaryModel) {
-    CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
+    CQUtil::AutoDisconnect autoDisconnect(
       modelData_, SIGNAL(dataChanged()), this, SLOT(updateModelData()));
 
     int n = summaryEditData_.maxRows->value();

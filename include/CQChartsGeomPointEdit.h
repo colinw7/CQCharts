@@ -28,7 +28,7 @@ class CQChartsGeomPointEdit : public QFrame {
   CQChartsGeomPointEdit(QWidget *parent, const Point &value=Point(0, 0));
   CQChartsGeomPointEdit(const Point &value=Point(0, 0));
 
- ~CQChartsGeomPointEdit() { }
+ ~CQChartsGeomPointEdit() = default;
 
   const Point &getValue() const { return point_; }
   void setValue(const Point &point);

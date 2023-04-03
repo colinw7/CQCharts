@@ -3,10 +3,10 @@
 #include <CQChartsView.h>
 #include <CQChartsBoxObj.h>
 #include <CQChartsUtil.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPixelPaintDevice.h>
 #include <CQChartsVariant.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -124,7 +124,7 @@ connectSlots(bool b)
 {
   connectBaseSlots(b);
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     dataEdit_, SIGNAL(fontChanged()), this, SLOT(menuEditChanged()));
 }
 
@@ -434,7 +434,7 @@ CQChartsFontEdit::
 connectSlots(bool b)
 {
   auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    CQChartsWidgetUtil::connectDisconnect(b, w, from, this, to);
+    CQUtil::connectDisconnect(b, w, from, this, to);
   };
 
   connectDisconnect(b, typeCombo_, SIGNAL(currentIndexChanged(int)), SLOT(widgetsToFont()));

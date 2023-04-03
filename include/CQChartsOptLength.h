@@ -27,7 +27,7 @@ class CQChartsOptLength :
  public:
   using OptLength = std::optional<CQChartsLength>;
 
-  CQChartsOptLength() { }
+  CQChartsOptLength() = default;
 
   CQChartsOptLength(const OptLength &value) :
    value_(value) {

@@ -25,9 +25,9 @@ class CQChartsPlacer {
   using BBoxes = std::vector<BBox>;
 
  public:
-  CQChartsPlacer() { }
+  CQChartsPlacer() = default;
 
-  virtual ~CQChartsPlacer() { }
+  virtual ~CQChartsPlacer() = default;
 
   const Point &center() const { return center_; }
   void setCenter(const Point &p) { center_ = p; }
@@ -57,7 +57,7 @@ class CQChartsPlacer {
 
 class CQChartsHPlacer : public CQChartsPlacer {
  public:
-  CQChartsHPlacer() { }
+  CQChartsHPlacer() = default;
 
   void place(int n) override {
     bboxes_.clear();
@@ -88,7 +88,7 @@ class CQChartsHPlacer : public CQChartsPlacer {
 
 class CQChartsVPlacer : public CQChartsPlacer {
  public:
-  CQChartsVPlacer() { }
+  CQChartsVPlacer() = default;
 
   void place(int n) override {
     bboxes_.clear();
@@ -119,7 +119,7 @@ class CQChartsVPlacer : public CQChartsPlacer {
 
 class CQChartsGridPlacer : public CQChartsPlacer {
  public:
-  CQChartsGridPlacer() { }
+  CQChartsGridPlacer() = default;
 
   void place(int n) override {
     bboxes_.clear();

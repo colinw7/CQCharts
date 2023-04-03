@@ -10,10 +10,10 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsPlotDrawUtil.h>
 #include <CQChartsTextPlacer.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsHtml.h>
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsTreeMapPlace.h>
+#include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -3878,18 +3878,18 @@ void
 CQChartsPiePlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     drawTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(drawTypeSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     separatedCheck_, SIGNAL(stateChanged(int)), this, SLOT(separatedSlot()));
 
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     donutCheck_, SIGNAL(stateChanged(int)), this, SLOT(donutSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     summaryCheck_, SIGNAL(stateChanged(int)), this, SLOT(summarySlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     dumbbellCheck_, SIGNAL(stateChanged(int)), this, SLOT(dumbbellSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     countCheck_, SIGNAL(stateChanged(int)), this, SLOT(countSlot()));
 
   CQChartsGroupPlotCustomControls::connectSlots(b);

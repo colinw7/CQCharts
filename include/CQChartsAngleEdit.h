@@ -49,7 +49,7 @@ class CQChartsAngleEdit : public CQAngleSpinBox {
  */
 class CQChartsAnglePropertyViewType : public CQPropertyViewType {
  public:
-  CQChartsAnglePropertyViewType() { }
+  CQChartsAnglePropertyViewType() = default;
 
   CQPropertyViewEditorFactory *getEditor() const override;
 
@@ -74,7 +74,7 @@ class CQChartsAnglePropertyViewType : public CQPropertyViewType {
  */
 class CQChartsAnglePropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
-  CQChartsAnglePropertyViewEditor() { }
+  CQChartsAnglePropertyViewEditor() = default;
 
   QWidget *createEdit(QWidget *parent) override;
 

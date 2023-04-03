@@ -1,7 +1,6 @@
 #include <CQChartsSummaryModelEdit.h>
 #include <CQChartsModelData.h>
 #include <CQChartsColumnCombo.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQSummaryModel.h>
 #include <CQIntegerSpin.h>
@@ -151,22 +150,22 @@ void
 CQChartsSummaryModelEdit::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     modelData_, SIGNAL(dataChanged()), this, SLOT(updateWidgetsFromModel()));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     enabledCheck_, SIGNAL(stateChanged(int)), this, SLOT(enabledSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     maxRowsSpin_, SIGNAL(valueChanged(int)), this, SLOT(updateModelFromWidgets()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     typeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(typeSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     sortedColEdit_, SIGNAL(columnChanged()), this, SLOT(updateModelFromWidgets()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     sortOrderCheck_, SIGNAL(stateChanged(int)), this, SLOT(enabledSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     pageSizeEdit_, SIGNAL(valueChanged(int)), this, SLOT(updateModelFromWidgets()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     currentPageEdit_, SIGNAL(valueChanged(int)), this, SLOT(updateModelFromWidgets()));
 }
 

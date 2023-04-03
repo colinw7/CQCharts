@@ -15,7 +15,7 @@ class CQChartsWordCloud : public QObject {
  public:
   class Rect {
    public:
-    Rect() { }
+    Rect() = default;
 
     Rect(double xmin, double ymin, double xmax, double ymax) :
      xmin_(xmin), ymin_(ymin), xmax_(xmax), ymax_(ymax) {

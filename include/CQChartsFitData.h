@@ -14,7 +14,7 @@ class CQChartsFitData {
   using Polygon = CQChartsGeom::Polygon;
 
  public:
-  CQChartsFitData() { }
+  CQChartsFitData() = default;
 
   //---
 

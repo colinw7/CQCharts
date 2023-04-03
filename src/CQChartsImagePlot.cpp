@@ -10,7 +10,6 @@
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsVariant.h>
 #include <CQChartsHtml.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -1086,7 +1085,7 @@ void
 CQChartsImagePlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     cellStyleCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(cellStyleSlot()));
 
   CQChartsPlotCustomControls::connectSlots(b);

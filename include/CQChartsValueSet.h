@@ -37,7 +37,7 @@ class CQChartsRValues {
   using Indices     = std::vector<int>;
 
  public:
-  CQChartsRValues() { }
+  CQChartsRValues() = default;
 
   CQChartsRValues(const CQChartsRValues &rhs) {
     assign(rhs);
@@ -222,7 +222,7 @@ class CQChartsIValues {
   using Indices     = std::vector<int>;
 
  public:
-  CQChartsIValues() { }
+  CQChartsIValues() = default;
 
   void clear() {
     values_ .clear();
@@ -515,7 +515,7 @@ class CQChartsCValues {
   using ValueCounts = std::vector<ValueCount>;
 
  public:
-  CQChartsCValues() { }
+  CQChartsCValues() = default;
 
   void clear() {
     values_ .clear();
@@ -708,20 +708,20 @@ class CQChartsValueSet : public QObject {
 
   //---
 
-  CQChartsIValues &ivals() { return ivals_; };
-  const CQChartsIValues &ivals() const { return ivals_; };
+  CQChartsIValues &ivals() { return ivals_; }
+  const CQChartsIValues &ivals() const { return ivals_; }
 
-  CQChartsRValues &rvals() { return rvals_; };
-  const CQChartsRValues &rvals() const { return rvals_; };
+  CQChartsRValues &rvals() { return rvals_; }
+  const CQChartsRValues &rvals() const { return rvals_; }
 
-  CQChartsSValues &svals() { return svals_; };
-  const CQChartsSValues &svals() const { return svals_; };
+  CQChartsSValues &svals() { return svals_; }
+  const CQChartsSValues &svals() const { return svals_; }
 
-  CQChartsCValues &cvals() { return cvals_; };
-  const CQChartsCValues &cvals() const { return cvals_; };
+  CQChartsCValues &cvals() { return cvals_; }
+  const CQChartsCValues &cvals() const { return cvals_; }
 
-  CQChartsRValues &tvals() { return tvals_; };
-  const CQChartsRValues &tvals() const { return tvals_; };
+  CQChartsRValues &tvals() { return tvals_; }
+  const CQChartsRValues &tvals() const { return tvals_; }
 
   void clearVals();
 

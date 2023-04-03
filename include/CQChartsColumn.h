@@ -285,7 +285,7 @@ class CQChartsColumns :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsColumns, metaTypeId)
 
  public:
-  CQChartsColumns() { }
+  CQChartsColumns() = default;
 
   explicit CQChartsColumns(const Column &c) {
     setColumn(c);

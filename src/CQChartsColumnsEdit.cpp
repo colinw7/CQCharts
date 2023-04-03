@@ -4,7 +4,6 @@
 #include <CQChartsPlot.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -179,7 +178,7 @@ connectSlots(bool b)
 {
   connectBaseSlots(b);
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     dataEdit_, SIGNAL(columnsChanged()), this, SLOT(menuEditChanged()));
 }
 
@@ -762,12 +761,12 @@ connectSlots(bool b)
 {
   if (isBasic()) {
     for (auto &edit : columnCombos_)
-      CQChartsWidgetUtil::connectDisconnect(b,
+      CQUtil::connectDisconnect(b,
         edit, SIGNAL(columnChanged()), this, SLOT(widgetsToColumn()));
   }
   else {
     for (auto &edit : columnEdits_)
-      CQChartsWidgetUtil::connectDisconnect(b,
+      CQUtil::connectDisconnect(b,
         edit, SIGNAL(columnChanged()), this, SLOT(widgetsToColumn()));
   }
 }

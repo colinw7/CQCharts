@@ -1,9 +1,9 @@
 #ifndef CQChartsWidgetUtil_H
 #define CQChartsWidgetUtil_H
 
-#include <QFrame>
-#include <QWidgetAction>
+#include <QWidget>
 
+class QFrame;
 class QGridLayout;
 
 namespace CQChartsWidgetUtil {
@@ -16,22 +16,9 @@ QFrame *createHStretch(const char *name="spacer");
 
 void setTextColor(QWidget *w, const QColor &c);
 
-}
-
 //---
 
-namespace CQChartsWidgetUtil {
-
-inline void optConnectDisconnect(bool b, QObject *from, const char *fromName,
-                                 QObject *to, const char *toName) {
-  if (! from || ! to) return;
-
-  if (b)
-    QObject::connect(from, fromName, to, toName);
-  else
-    QObject::disconnect(from, fromName, to, toName);
-}
-
+#if 0
 inline void optConnect(QObject *from, const char *fromName, QObject *to, const char *toName) {
   if (! from || ! to) return;
 
@@ -41,7 +28,7 @@ inline void optConnect(QObject *from, const char *fromName, QObject *to, const c
 inline void optDisconnect(QObject *from, const char *fromName, QObject *to, const char *toName) {
   if (! from || ! to) return;
 
-  QObject::connect(from, fromName, to, toName);
+  QObject::disconnect(from, fromName, to, toName);
 }
 
 inline void connectDisconnect(bool b, QObject *from, const char *fromName,
@@ -52,6 +39,17 @@ inline void connectDisconnect(bool b, QObject *from, const char *fromName,
     QObject::disconnect(from, fromName, to, toName);
 }
 
+inline void optConnectDisconnect(bool b, QObject *from, const char *fromName,
+                                 QObject *to, const char *toName) {
+  if (! from || ! to) return;
+
+  connectDisconnect(b, from, fromName, to, toName);
+}
+#endif
+
+//---
+
+#if 0
 /*!
  * \brief RAII Class to Auto Connect/Disconnect to signal/slot
  * \ingroup Charts
@@ -73,66 +71,8 @@ class AutoDisconnect {
   QObject    *to_       { nullptr };
   const char *toName_   { nullptr };
 };
+#endif
 
 }
-
-//------
-
-class QPushButton;
-
-/*!
- * \brief dialog OK, Apply, Cancel buttons
- * \ingroup Charts
- */
-class CQChartsDialogButtons : public QFrame {
-  Q_OBJECT
-
- public:
-  CQChartsDialogButtons(QWidget *parent=nullptr);
-
-  QPushButton* okButton    () const { return okButton_    ; }
-  QPushButton* applyButton () const { return applyButton_ ; }
-  QPushButton* cancelButton() const { return cancelButton_; }
-  QPushButton* helpButton  () const { return helpButton_  ; }
-
-  void connect(QWidget *w, const char *okSlot, const char *applySlot, const char *cancelSlot,
-               const char *helpSlot=nullptr);
-
-  void setToolTips(const QString &okTip, const QString &applyTip, const QString &cancelTip);
-
- private:
-  QPushButton* okButton_     { nullptr };
-  QPushButton* applyButton_  { nullptr };
-  QPushButton* cancelButton_ { nullptr };
-  QPushButton* helpButton_   { nullptr };
-};
-
-//---
-
-/*!
- * \brief Widget Action wrapped for Menus
- * \ingroup Charts
- */
-class CQChartsWidgetAction : public QWidgetAction {
- public:
-  CQChartsWidgetAction(QWidget *w) :
-   QWidgetAction(nullptr), w_(w) {
-  }
-
- ~CQChartsWidgetAction() {
-    delete w_;
-  }
-
-  QWidget *widget() const { return w_; }
-
-  QWidget *createWidget(QWidget *parent) override {
-    w_->setParent(parent);
-
-    return w_;
-  }
-
- private:
-  QWidget *w_ { nullptr };
-};
 
 #endif

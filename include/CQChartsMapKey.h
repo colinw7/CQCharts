@@ -235,7 +235,7 @@ class CQChartsMapKey : public CQChartsBoxObj,
   //---
 
   struct DrawData {
-    DrawData() { }
+    DrawData() = default;
 
     bool usePenBrush { false };
     bool isWidget    { false };
@@ -373,7 +373,7 @@ class CQChartsColorMapKey : public CQChartsMapKey {
   //---
 
   const Length &cornerRadius() const { return cornerSize_; }
-  void setCornerRadius(const Length &r) { cornerSize_ = r; invalidate(); };
+  void setCornerRadius(const Length &r) { cornerSize_ = r; invalidate(); }
 
   //---
 

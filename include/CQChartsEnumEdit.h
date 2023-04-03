@@ -15,7 +15,7 @@ class CQChartsEnumEdit : public QFrame {
  public:
   CQChartsEnumEdit(QWidget *parent=nullptr);
 
-  virtual ~CQChartsEnumEdit() { }
+  virtual ~CQChartsEnumEdit() = default;
 
   void init();
 
@@ -58,7 +58,7 @@ class CQChartsEnumPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsEnumPropertyViewType();
 
-  virtual ~CQChartsEnumPropertyViewType() { }
+  virtual ~CQChartsEnumPropertyViewType() = default;
 
   bool setEditorData(CQPropertyViewItem *item, const QVariant &value) override;
 

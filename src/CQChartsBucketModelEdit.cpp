@@ -2,7 +2,6 @@
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsColumnCombo.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 
 #include <CQBucketModel.h>
@@ -10,7 +9,6 @@
 #include <CQIntegerSpin.h>
 #include <CQUtil.h>
 
-#include <QComboBox>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QLabel>
@@ -99,26 +97,26 @@ void
 CQChartsBucketModelEdit::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     modelData_, SIGNAL(dataChanged()), this, SLOT(updateWidgetsFromModel()));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     enabledCheck_, SIGNAL(stateChanged(int)), this, SLOT(enabledSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     columnEdit_, SIGNAL(columnChanged()), this, SLOT(columnSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     typeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(typeSlot(int)));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     startEdit_, SIGNAL(valueChanged(double)), this, SLOT(updateModelFromWidgets()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     deltaEdit_, SIGNAL(valueChanged(double)), this, SLOT(updateModelFromWidgets()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     minEdit_, SIGNAL(valueChanged(double)), this, SLOT(updateModelFromWidgets()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     maxEdit_, SIGNAL(valueChanged(double)), this, SLOT(updateModelFromWidgets()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     countEdit_, SIGNAL(valueChanged(int)), this, SLOT(updateModelFromWidgets()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     multiCheck_, SIGNAL(stateChanged(int)), this, SLOT(updateModelFromWidgets()));
 }
 

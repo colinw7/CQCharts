@@ -1,7 +1,6 @@
 #include <CQChartsSymbolSetEdit.h>
 #include <CQCharts.h>
 #include <CQChartsPlot.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsObjUtil.h>
 
 //#include <CQPropertyView.h>
@@ -83,7 +82,7 @@ void
 CQChartsSymbolSetEdit::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
 }
 

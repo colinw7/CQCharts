@@ -13,9 +13,9 @@ class CQCharts;
  */
 class CQChartsModelVisitor : public CQModelVisitor {
  public:
-  CQChartsModelVisitor() { }
+  CQChartsModelVisitor() = default;
 
-  virtual ~CQChartsModelVisitor() { }
+  virtual ~CQChartsModelVisitor() = default;
 };
 
 //---

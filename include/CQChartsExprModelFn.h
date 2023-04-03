@@ -20,7 +20,7 @@ class CQChartsExprModelFn {
  public:
   CQChartsExprModelFn(CQChartsExprModel *model, const QString &name);
 
-  virtual ~CQChartsExprModelFn() { }
+  virtual ~CQChartsExprModelFn() = default;
 
   CQTcl *qtcl() const { return qtcl_; }
 

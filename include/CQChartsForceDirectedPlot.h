@@ -74,7 +74,7 @@ class CQChartsForceDirectedNodeObj : public CQChartsPlotObj {
  public:
   CQChartsForceDirectedNodeObj(const ForceDirectedPlot *plot, ForceNodeP node, const BBox &bbox);
 
-  virtual ~CQChartsForceDirectedNodeObj() { }
+  virtual ~CQChartsForceDirectedNodeObj() = default;
 
   QString typeName() const override { return "node"; }
 
@@ -117,7 +117,7 @@ class CQChartsForceDirectedEdgeObj : public CQChartsPlotObj {
  public:
   CQChartsForceDirectedEdgeObj(const ForceDirectedPlot *plot, ForceEdgeP edge, const BBox &bbox);
 
-  virtual ~CQChartsForceDirectedEdgeObj() { }
+  virtual ~CQChartsForceDirectedEdgeObj() = default;
 
   QString typeName() const override { return "edge"; }
 
@@ -157,6 +157,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(CQChartsColumn edgeWidthColumn READ edgeWidthColumn WRITE setEdgeWidthColumn)
 
   // extra columns
+  Q_PROPERTY(CQChartsModelInd    nodeModel
+             READ nodeModel         WRITE setNodeModel)
   Q_PROPERTY(CQChartsModelColumn nodeIdColumn
              READ nodeIdColumn      WRITE setNodeIdColumn)
   Q_PROPERTY(CQChartsModelColumn nodeShapeColumn
@@ -316,7 +318,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   struct InsideDrawData {
     PenBrush penBrush;
 
-    InsideDrawData() { }
+    InsideDrawData() = default;
     InsideDrawData(const PenBrush &pb) : penBrush(pb) { }
   };
 
@@ -362,6 +364,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   void setNamedColumn(const QString &name, const Column &c) override;
 
   //--
+
+  const CQChartsModelInd &nodeModel() const { return nodeModel_; }
+  void setNodeModel(const CQChartsModelInd &c);
 
   const CQChartsModelColumn &nodeIdColumn() const { return nodeIdColumn_; }
   void setNodeIdColumn(const CQChartsModelColumn &c);
@@ -932,7 +937,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   // columns
   Column edgeWidthColumn_; //!< edge width column
 
-  // extra columns
+  // node columns
+  CQChartsModelInd    nodeModel_;         //!< node model
   CQChartsModelColumn nodeIdColumn_;      //!< node id column
   CQChartsModelColumn nodeShapeColumn_;   //!< node shape column
   CQChartsModelColumn nodeLabelColumn_;   //!< node label column

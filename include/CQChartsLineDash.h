@@ -46,7 +46,7 @@ class CQChartsLineDash :
 
   explicit CQChartsLineDash(const QString &str);
 
- ~CQChartsLineDash() { }
+ ~CQChartsLineDash() = default;
 
   CQChartsLineDash &operator=(const CQChartsLineDash &dash);
 

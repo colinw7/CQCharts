@@ -1,7 +1,6 @@
 #include <CQChartsSymbolEdit.h>
 #include <CQChartsSymbolTypeEdit.h>
 #include <CQChartsObj.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
@@ -144,7 +143,7 @@ connectSlots(bool b)
 {
   connectBaseSlots(b);
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     dataEdit_, SIGNAL(symbolChanged()), this, SLOT(menuEditChanged()));
 }
 
@@ -684,7 +683,7 @@ connectSlots(bool b)
   //---
 
   auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
-    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
+    CQUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
   connectDisconnect(basicTypeEdit_    , SIGNAL(symbolChanged()), SLOT(widgetsToSymbol()));

@@ -36,6 +36,7 @@ CQChartsColumnNum.cpp \
 CQChartsColumnType.cpp \
 CQChartsModelIndex.cpp \
 CQChartsModelColumn.cpp \
+CQChartsModelInd.cpp \
 \
 CQChartsTable.cpp \
 CQChartsTree.cpp \
@@ -253,6 +254,7 @@ CQChartsFillUnder.cpp \
 CQChartsPaletteName.cpp \
 CQChartsArea.cpp \
 CQChartsUnits.cpp \
+CQChartsValueList.cpp \
 \
 CQChartsColorMap.cpp \
 CQChartsSymbolSizeMap.cpp \
@@ -352,6 +354,7 @@ CQChartsLineEditBase.cpp \
 CQChartsLineJoinEdit.cpp \
 CQChartsMarginEdit.cpp \
 CQChartsModelColumnEdit.cpp \
+CQChartsValueListEdit.cpp \
 \
 CQChartsOptBoolEdit.cpp \
 CQChartsOptIntEdit.cpp \
@@ -457,6 +460,7 @@ HEADERS += \
 ../include/CQChartsColumnType.h \
 ../include/CQChartsModelIndex.h \
 ../include/CQChartsModelColumn.h \
+../include/CQChartsModelInd.h \
 \
 ../include/CQChartsTable.h \
 ../include/CQChartsTree.h \
@@ -618,6 +622,7 @@ HEADERS += \
 ../include/CQChartsObjUtil.h \
 ../include/CQChartsUtil.h \
 ../include/CQChartsWidgetUtil.h \
+../include/CQChartsDialogButtons.h \
 \
 ../include/CQChartsVariant.h \
 ../include/CQChartsGeom.h \
@@ -717,6 +722,7 @@ HEADERS += \
 ../include/CQChartsPaletteName.h \
 ../include/CQChartsArea.h \
 ../include/CQChartsUnits.h \
+../include/CQChartsValueList.h \
 \
 ../include/CQChartsColorMap.h \
 ../include/CQChartsSymbolSizeMap.h \
@@ -809,6 +815,7 @@ HEADERS += \
 ../include/CQChartsLineJoinEdit.h \
 ../include/CQChartsMarginEdit.h \
 ../include/CQChartsModelColumnEdit.h \
+../include/CQChartsValueListEdit.h \
 \
 ../include/CQChartsOptBoolEdit.h \
 ../include/CQChartsOptIntEdit.h \

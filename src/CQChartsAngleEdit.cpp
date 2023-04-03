@@ -1,5 +1,4 @@
 #include <CQChartsAngleEdit.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsVariant.h>
 
 #include <CQPropertyView.h>
@@ -69,7 +68,7 @@ connectSlots(bool b)
 
   connected_ = b;
 
-  CQChartsWidgetUtil::connectDisconnect(connected_,
+  CQUtil::connectDisconnect(connected_,
     this, SIGNAL(angleChanged(const CAngle &)), this, SLOT(editChanged()));
 }
 

@@ -2,11 +2,11 @@
 #include <CQChartsInput.h>
 #include <CQChartsEnv.h>
 #include <CQBaseModel.h>
+#include <CQTclUtil.h>
 #include <CQWidgetFactory.h>
 #include <CQPerfMonitor.h>
 #include <CQUtil.h>
 #include <CQStrUtil.h>
-#include <CQTclUtil.h>
 #include <CQWidgetTest.h>
 
 #include <QApplication>
@@ -90,13 +90,15 @@ addCommands()
 
     addCommand("perf", new CQChartsBasePerfCmd(this));
 
-    qtcl()->createAlias("echo", "puts");
-
     addCommand("assert", new CQChartsBaseAssertCmd(this));
 
     addCommand("sh", new CQChartsBaseShellCmd(this));
 
     addCommand("exit", new CQChartsBaseExitCmd(this));
+
+    //---
+
+    qtcl()->createAlias("echo", "puts");
 
     //---
 
@@ -234,9 +236,7 @@ execCmd(CQChartsCmdArgs &argv)
   if (argv.hasParseArg("parent")) {
     auto parentName = argv.getParseStr("parent");
 
-    auto *parent = CQUtil::nameToObject(parentName);
-
-    parentWidget = qobject_cast<QWidget *>(parent);
+    parentWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(parentName));
 
     if (! parentWidget)
       return errorMsg(QString("No parent '%1'").arg(parentName));
@@ -259,6 +259,113 @@ execCmd(CQChartsCmdArgs &argv)
     w->setObjectName(name);
 
   return cmdBase_->setCmdRc(CQUtil::fullName(w));
+}
+
+//------
+
+// qt_get_layout_types
+void
+CQChartsBaseGetLayoutTypesCmd::
+addCmdArgs(CQChartsCmdArgs &)
+{
+}
+
+QStringList
+CQChartsBaseGetLayoutTypesCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseGetLayoutTypesCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseGetLayoutTypesCmd::exec");
+
+  addArgs(argv);
+
+  if (! argv.parse())
+    return false;
+
+  auto names = CQWidgetFactoryMgrInst->layoutFactoryNames();
+
+  return cmdBase_->setCmdRc(names);
+}
+
+//------
+
+// qt_create_layout
+void
+CQChartsBaseCreateLayoutCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  addArg(argv, "-parent", ArgType::String, "parent name");
+  addArg(argv, "-type"  , ArgType::String, "layout type");
+  addArg(argv, "-name"  , ArgType::String, "layout name");
+}
+
+QStringList
+CQChartsBaseCreateLayoutCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if (arg == "type")
+    return CQWidgetFactoryMgrInst->layoutFactoryNames();
+
+  return QStringList();
+}
+
+bool
+CQChartsBaseCreateLayoutCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseCreateLayoutCmd::exec");
+
+  addArgs(argv);
+
+  if (! argv.parse())
+    return false;
+
+  auto typeName = argv.getParseStr("type");
+
+  if (typeName == "?") {
+    auto names = CQWidgetFactoryMgrInst->layoutFactoryNames();
+
+    return cmdBase_->setCmdRc(names);
+  }
+
+  QWidget *parentWidget = nullptr;
+
+  if (argv.hasParseArg("parent")) {
+    auto parentName = argv.getParseStr("parent");
+
+    parentWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(parentName));
+
+    if (! parentWidget)
+      return errorMsg(QString("No parent '%1'").arg(parentName));
+  }
+  else {
+    return errorMsg("No parent");
+  }
+
+  if (! CQWidgetFactoryMgrInst->isLayoutFactory(typeName))
+    return errorMsg(QString("Invalid type '%1'").arg(typeName));
+
+  if (parentWidget->layout())
+    return errorMsg(QString("Widget '%1' already has a layout").
+             arg(CQUtil::fullName(parentWidget)));
+
+  auto *l = CQWidgetFactoryMgrInst->createLayout(typeName, parentWidget);
+
+  if (! l)
+    return errorMsg(QString("Failed to create '%1'").arg(typeName));
+
+  auto name = argv.getParseStr("name");
+
+  if (name != "")
+    l->setObjectName(name);
+
+  return cmdBase_->setCmdRc(CQUtil::fullName(l));
 }
 
 //------
@@ -294,14 +401,16 @@ execCmd(CQChartsCmdArgs &argv)
   if (! argv.parse())
     return false;
 
-  auto  parentName   = argv.getParseStr("parent");
+  auto parentName = argv.getParseStr("parent");
+
   auto *parentWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(parentName));
 
   if (! parentWidget)
     return errorMsg(QString("No parent '%1'").arg(parentName));
 
   if      (argv.hasParseArg("child")) {
-    auto  childName   = argv.getParseStr("child");
+    auto childName = argv.getParseStr("child");
+
     auto *childWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(childName));
 
     if (! childWidget)
@@ -406,7 +515,8 @@ execCmd(CQChartsCmdArgs &argv)
   if (! argv.parse())
     return false;
 
-  auto  parentName   = argv.getParseStr("parent");
+  auto parentName = argv.getParseStr("parent");
+
   auto *parentWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(parentName));
 
   if (! parentWidget)
@@ -423,109 +533,6 @@ execCmd(CQChartsCmdArgs &argv)
     boxLayout->addStretch(1);
 
   return true;
-}
-
-//------
-
-// qt_get_layout_types
-void
-CQChartsBaseGetLayoutTypesCmd::
-addCmdArgs(CQChartsCmdArgs &)
-{
-}
-
-QStringList
-CQChartsBaseGetLayoutTypesCmd::
-getArgValues(const QString &, const NameValueMap &)
-{
-  return QStringList();
-}
-
-bool
-CQChartsBaseGetLayoutTypesCmd::
-execCmd(CQChartsCmdArgs &argv)
-{
-  CQPerfTrace trace("CQChartsBaseGetLayoutTypesCmd::exec");
-
-  addArgs(argv);
-
-  if (! argv.parse())
-    return false;
-
-  auto names = CQWidgetFactoryMgrInst->layoutFactoryNames();
-
-  return cmdBase_->setCmdRc(names);
-}
-
-//------
-
-// qt_create_layout
-void
-CQChartsBaseCreateLayoutCmd::
-addCmdArgs(CQChartsCmdArgs &argv)
-{
-  addArg(argv, "-parent", ArgType::String, "parent name");
-  addArg(argv, "-type"  , ArgType::String, "layout type");
-  addArg(argv, "-name"  , ArgType::String, "layout name");
-}
-
-QStringList
-CQChartsBaseCreateLayoutCmd::
-getArgValues(const QString &arg, const NameValueMap &)
-{
-  if (arg == "type")
-    return CQWidgetFactoryMgrInst->layoutFactoryNames();
-
-  return QStringList();
-}
-
-bool
-CQChartsBaseCreateLayoutCmd::
-execCmd(CQChartsCmdArgs &argv)
-{
-  CQPerfTrace trace("CQChartsBaseCreateLayoutCmd::exec");
-
-  addArgs(argv);
-
-  if (! argv.parse())
-    return false;
-
-  auto typeName = argv.getParseStr("type");
-
-  if (typeName == "?")
-    return cmdBase_->setCmdRc(CQWidgetFactoryMgrInst->layoutFactoryNames());
-
-  QWidget *parentWidget = nullptr;
-
-  if (argv.hasParseArg("parent")) {
-    auto parentName = argv.getParseStr("parent");
-
-    parentWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(parentName));
-
-    if (! parentWidget)
-      return errorMsg(QString("No parent '%1'").arg(parentName));
-  }
-  else {
-    return errorMsg("No parent");
-  }
-
-  if (! CQWidgetFactoryMgrInst->isLayoutFactory(typeName))
-    return errorMsg(QString("Invalid type '%1'").arg(typeName));
-
-  if (parentWidget->layout())
-    return errorMsg(QString("Widget '%1' already has a layout").arg(CQUtil::fullName(parentWidget)));
-
-  auto *l = CQWidgetFactoryMgrInst->createLayout(typeName, parentWidget);
-
-  if (! l)
-    return errorMsg(QString("Failed to create '%1'").arg(typeName));
-
-  auto name = argv.getParseStr("name");
-
-  if (name != "")
-    l->setObjectName(name);
-
-  return cmdBase_->setCmdRc(CQUtil::fullName(l));
 }
 
 //------
@@ -558,7 +565,8 @@ execCmd(CQChartsCmdArgs &argv)
   if (! argv.parse())
     return false;
 
-  auto  name   = argv.getParseStr("name");
+  auto name = argv.getParseStr("name");
+
   auto *widget = qobject_cast<QWidget *>(CQUtil::nameToObject(name));
 
   if (! widget)
@@ -607,7 +615,8 @@ execCmd(CQChartsCmdArgs &argv)
   if (! argv.parse())
     return false;
 
-  auto  name   = argv.getParseStr("name");
+  auto name = argv.getParseStr("name");
+
   auto *object = CQUtil::nameToObject(name);
 
   if (! object)
@@ -652,12 +661,13 @@ execCmd(CQChartsCmdArgs &argv)
     return false;
 
   auto objectName = argv.getParseStr("object");
-  auto propName   = argv.getParseStr("property");
 
   auto *obj = CQUtil::nameToObject(objectName);
 
   if (! obj)
     return errorMsg(QString("No object '%1'").arg(objectName));
+
+  auto propName = argv.getParseStr("property");
 
   QVariant v;
 
@@ -698,13 +708,14 @@ execCmd(CQChartsCmdArgs &argv)
     return false;
 
   auto objectName = argv.getParseStr("object");
-  auto propName   = argv.getParseStr("property");
-  auto value      = argv.getParseStr("value");
 
   auto *obj = CQUtil::nameToObject(objectName);
 
   if (! obj)
     return errorMsg(QString("No object '%1'").arg(objectName));
+
+  auto propName = argv.getParseStr("property");
+  auto value    = argv.getParseStr("value");
 
   if (propName == "items" && qobject_cast<QComboBox *>(obj)) {
     auto *combo = qobject_cast<QComboBox *>(obj);
@@ -757,12 +768,13 @@ execCmd(CQChartsCmdArgs &argv)
     return false;
 
   auto objectName = argv.getParseStr("object");
-  auto propName   = argv.getParseStr("property");
 
   auto *obj = CQUtil::nameToObject(objectName);
 
   if (! obj)
     return errorMsg(QString("No object '%1'").arg(objectName));
+
+  auto propName = argv.getParseStr("property");
 
   bool b;
 
@@ -1668,7 +1680,7 @@ execProc(const QString &args)
   auto cmd = procName_;
 
   if (args != "")
-   cmd += " " + args;
+    cmd += " " + args;
 
   (void) base_->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
 }

@@ -1,7 +1,6 @@
 #include <CQChartsPolygonEdit.h>
 #include <CQChartsUnitsEdit.h>
 #include <CQChartsGeomPointEdit.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQIconButton.h>
@@ -124,7 +123,7 @@ connectSlots(bool b)
 {
   connectBaseSlots(b);
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     dataEdit_, SIGNAL(polygonChanged()), this, SLOT(menuEditChanged()));
 }
 
@@ -396,7 +395,7 @@ connectSlots(bool b)
 
   connected_ = b;
 
-  CQChartsWidgetUtil::connectDisconnect(connected_,
+  CQUtil::connectDisconnect(connected_,
     unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
 }
 

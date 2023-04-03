@@ -28,7 +28,7 @@ class CQChartsBoxWhiskerT {
   using Density  = CQChartsDensity;
 
  public:
-  CQChartsBoxWhiskerT() { }
+  CQChartsBoxWhiskerT() = default;
 
   explicit CQChartsBoxWhiskerT(const Values &values) :
    values_(values) {

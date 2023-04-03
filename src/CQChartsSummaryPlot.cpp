@@ -9,7 +9,6 @@
 #include <CQChartsVariant.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsHtml.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsBoxWhisker.h>
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsSymbolSet.h>
@@ -375,9 +374,7 @@ void
 CQChartsSummaryPlot::
 modelTypeChangedSlot(int modelInd)
 {
-  const auto &model = currentModel();
-
-  auto *modelData = charts()->getModelData(model);
+  auto *modelData = charts()->currentModelData();
 
   if (modelData && modelData->isInd(modelInd))
     updateRangeAndObjs();
@@ -2163,18 +2160,18 @@ void
 CQChartsSummaryPlotCustomControls::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     diagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(diagonalTypeSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     upperDiagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(upperDiagonalTypeSlot()));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     lowerDiagonalTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(lowerDiagonalTypeSlot()));
 
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     bestFitCheck_, SIGNAL(stateChanged(int)), this, SLOT(bestFitSlot(int)));
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     densityCheck_, SIGNAL(stateChanged(int)), this, SLOT(densitySlot(int)));
 
   CQChartsPlotCustomControls::connectSlots(b);

@@ -57,7 +57,7 @@ class CInputIterator : public std::iterator<std::input_iterator_tag, T, DIST> {
    state_(i.state_) {
   }
 
- ~CInputIterator() { }
+ ~CInputIterator() = default;
 
   CInputIterator &operator=(const CInputIterator &i) {
     state_ = i.state_;
@@ -421,7 +421,7 @@ class CQChartsHull3D {
 
     void clearVoronoiEdges() { vedges_.clear(); }
     void addVoronoiEdge(PEdge e) { vedges_.push_back(e); }
-    const VEdges &voronoiEdges() const { return vedges_; };
+    const VEdges &voronoiEdges() const { return vedges_; }
 
     double normalZDirection() {
       double a[3], b[3];

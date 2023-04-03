@@ -14,9 +14,9 @@ class CQChartsWidgetIFace {
   using ModelData = CQChartsModelData;
 
  public:
-  CQChartsWidgetIFace() { }
+  CQChartsWidgetIFace() = default;
 
-  virtual ~CQChartsWidgetIFace() { }
+  virtual ~CQChartsWidgetIFace() = default;
 
   virtual void setCharts(Charts *) { }
 

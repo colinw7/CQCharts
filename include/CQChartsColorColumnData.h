@@ -18,7 +18,7 @@ class CQChartsColorColumnData {
   using ColorMap    = CQChartsColorMap;
 
  public:
-  CQChartsColorColumnData() { }
+  CQChartsColorColumnData() = default;
 
   bool isValid() const { return valid_; }
   void setValid(bool b) { valid_ = b; }

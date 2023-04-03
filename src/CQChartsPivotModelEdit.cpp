@@ -2,15 +2,12 @@
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsColumnsEdit.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 
 #include <CQPivotModel.h>
 #include <CQIntegerSpin.h>
 #include <CQUtil.h>
 
-#include <QComboBox>
-#include <QStackedWidget>
 #include <QCheckBox>
 #include <QLineEdit>
 #include <QLabel>
@@ -125,24 +122,24 @@ void
 CQChartsPivotModelEdit::
 connectSlots(bool b)
 {
-  CQChartsWidgetUtil::optConnectDisconnect(b,
+  CQUtil::optConnectDisconnect(b,
     modelData_, SIGNAL(dataChanged()), this, SLOT(updateWidgetsFromModel()));
 
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     enabledCheck_, SIGNAL(stateChanged(int)), this, SLOT(enabledSlot()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     hColumnsEdit_, SIGNAL(columnsChanged()), this, SLOT(updateModelFromWidgets()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     vColumnsEdit_, SIGNAL(columnsChanged()), this, SLOT(updateModelFromWidgets()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     dColumnsEdit_, SIGNAL(columnsChanged()), this, SLOT(updateModelFromWidgets()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     valueTypesEdit_, SIGNAL(editingFinished()), this, SLOT(updateModelFromWidgets()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     includeTotals_, SIGNAL(stateChanged(int)), this, SLOT(updateModelFromWidgets()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     fillValue_, SIGNAL(editingFinished()), this, SLOT(updateModelFromWidgets()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     separatorEdit_, SIGNAL(editingFinished()), this, SLOT(updateModelFromWidgets()));
 }
 

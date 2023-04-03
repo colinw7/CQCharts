@@ -40,7 +40,7 @@ class CQChartsResizeHandle : QObject {
   CQChartsResizeHandle(const View *view, ResizeSide side);
   CQChartsResizeHandle(const Plot *plot, ResizeSide side);
 
-  virtual ~CQChartsResizeHandle() { }
+  virtual ~CQChartsResizeHandle() = default;
 
   //---
 

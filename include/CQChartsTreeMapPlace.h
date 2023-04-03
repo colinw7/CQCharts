@@ -25,7 +25,7 @@ class CQChartsTreeMapPlace {
  private:
   class BBoxIAreas {
    public:
-    BBoxIAreas() { }
+    BBoxIAreas() = default;
 
     BBoxIAreas(const BBox &bbox, const IAreas &iareas) :
      bbox_(bbox), iareas_(iareas) {

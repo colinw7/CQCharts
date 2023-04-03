@@ -19,12 +19,14 @@
 #include <CQChartsPaletteName.h>
 #include <CQChartsModelTypes.h>
 #include <CQChartsModelIndex.h>
+#include <CQChartsModelInd.h>
 #include <CQChartsPlotModelVisitor.h>
 #include <CQChartsColorColumnData.h>
 #include <CQChartsAlphaColumnData.h>
 #include <CQChartsSymbolTypeData.h>
 #include <CQChartsSymbolSizeData.h>
 #include <CQChartsFontSizeData.h>
+#include <CQChartsValueList.h>
 
 #include <CSafeIndex.h>
 
@@ -170,6 +172,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // name
   Q_PROPERTY(QString name READ name WRITE setName)
+
+  // current model
+  Q_PROPERTY(int               currentModelIndex READ currentModelIndex)
+  Q_PROPERTY(CQChartsValueList modelInds         READ modelInds WRITE setModelInds)
 
   // generic columns and control
   // . idColumn used as unique id for row (tcl row lookup can use)
@@ -407,7 +413,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     Plot* next    { nullptr }; //!< next plot
     Plot* prev    { nullptr }; //!< previous plot
 
-    ConnectData() { }
+    ConnectData() = default;
 
     void reset() {
       x1x2    = false;
@@ -579,6 +585,16 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   ModelP currentModel() const;
+
+  ModelData *currentModelData() const;
+
+  int currentModelIndex() const;
+
+  const CQChartsModelInd &currentModelInd() const;
+  void setCurrentModelInd(const CQChartsModelInd &ind) ;
+
+  const CQChartsValueList &modelInds() const;
+  void setModelInds(const CQChartsValueList &modelInds) ;
 
   void addModel(const ModelP &model);
 
@@ -1277,8 +1293,18 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   CQPropertyViewItem *addStyleProp(const QString &path, const QString &name, const QString &alias,
                                    const QString &desc, bool hidden=false);
 
+  CQPropertyViewItem *addStylePropI(const QString &path, const QString &name, const QString &alias,
+                                    const QString &desc) {
+    return addStyleProp(path, name, alias, desc, /*hidden*/true);
+  }
+
   CQPropertyViewItem *addProp(const QString &path, const QString &name, const QString &alias,
                               const QString &desc, bool hidden=false);
+
+  CQPropertyViewItem *addPropI(const QString &path, const QString &name, const QString &alias,
+                               const QString &desc) {
+    return addProp(path, name, alias, desc, /*hidden*/true);
+  }
 
   void hideProp(QObject *obj, const QString &path);
 
@@ -1364,6 +1390,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   QModelIndex modelIndex(const ModelIndex &ind) const;
 
  private:
+  void updateModelInds();
+
   bool modelMappedReal(int row, const Column &col, const QModelIndex &ind,
                        double &r, bool log, double def) const;
 
@@ -1959,7 +1987,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     RangeTypes &setAnnotation(bool b=true) { annotation = b; return *this; }
     RangeTypes &setExtra     (bool b=true) { extra      = b; return *this; }
 
-    RangeTypes() { }
+    RangeTypes() { } // default not allowed ?
   };
 
   BBox calcGroupedDataRange(const RangeTypes &rangeTypes=RangeTypes()) const;
@@ -2076,16 +2104,16 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   const Column &imageColumn() const { return imageColumn_; }
   void setImageColumn(const Column &column);
 
-  const Column &colorColumn() const { return colorColumnData_.column(); };
+  const Column &colorColumn() const { return colorColumnData_.column(); }
   virtual void setColorColumn(const Column &c);
 
-  const Column &colorLabelColumn() const { return colorLabelColumn_; };
+  const Column &colorLabelColumn() const { return colorLabelColumn_; }
   virtual void setColorLabelColumn(const Column &c);
 
-  const Column &alphaColumn() const { return alphaColumnData_.column(); };
+  const Column &alphaColumn() const { return alphaColumnData_.column(); }
   void setAlphaColumn(const Column &c);
 
-  const Column &fontColumn() const { return fontColumn_; };
+  const Column &fontColumn() const { return fontColumn_; }
   void setFontColumn(const Column &c);
 
   const Columns &controlColumns() const { return controlColumns_; }
@@ -3235,6 +3263,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // model data changed
   void modelChanged();
 
+  // current model changed
+  void currentModelChanged();
+
   // data range changed
   void rangeChanged();
 
@@ -3638,11 +3669,13 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   View*     view_ { nullptr }; //!< parent view
   PlotType* type_ { nullptr }; //!< plot type data
 
-  ModelArray models_; //!< associated models
+  // model data
+  ModelArray        models_;          //!< associated models
+  CQChartsModelInd  currentModelInd_; //!< current model index
+  CQChartsValueList modelInds_;       //!< list of model indices (for property)
 
+  // properties
   PropertyModelP propertyModel_; //!< property model
-
-  bool modelNameSet_ { false }; //!< model name set from plot
 
   // name
   QString name_; //!< custom name
@@ -3680,6 +3713,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     double value  { 0.0 };   //!< vad value (if not use row number)
   };
 
+  // bad data
   BadData badData_; //!< bad value data
 
   // plot border
@@ -3788,6 +3822,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   bool preview_        { false }; //!< is preview plot
   int  previewMaxRows_ { 1000 };  //!< preview max rows
 
+  // state
   bool sequential_        { false }; //!< is sequential (non-threaded)
   bool queueUpdate_       { true };  //!< is queued update
   bool bufferSymbols_     { false }; //!< buffer symbols
@@ -3870,6 +3905,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  // object quad tree
   using PlotObjTree  = CQChartsPlotObjTree;
   using PlotObjTreeP = std::unique_ptr<PlotObjTree>;
 
@@ -3885,6 +3921,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  // more state
   UpdateData  updateData_;  //!< update data
   MouseData   mouseData_;   //!< mouse event data
   AnimateData animateData_; //!< animation data
@@ -3894,9 +3931,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Layers               layers_;     //!< draw layers
   mutable Buffer::Type drawBuffer_; //!< objects draw buffer
 
+  // hidden ids/values
   IdHidden idHidden_;  //!< hidden object ids
   QVariant hideValue_; //!< hide value
 
+  // select
   IndexColumnRows selIndexColumnRows_; //!< sel model indices (by col/row)
 
   // edit handles
@@ -3909,22 +3948,29 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  // custom widget
   Widget customWidget_; //!< custom widget
 
   //---
 
+  // background
   QColor plotBgColor_; //!< background fill color
 
+  //---
+
+  // reference length (for percent length)
   mutable OptReal refLength_;
 
   //---
 
+  // controls
   using ControlWidgets = std::vector<CQChartsPlotControlIFace *>;
 
   ControlWidgets controls_;
 
   //---
 
+  // updates
   UpdatesData updatesData_;              //!< updates data
   bool        fromInvalidate_ { false }; //!< call from invalidate
 
@@ -3984,6 +4030,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  // mutexes
   mutable std::mutex resizeMutex_;  //!< resize mutex
   mutable std::mutex updatesMutex_; //!< updates enabled mutex
 };

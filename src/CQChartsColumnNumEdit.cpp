@@ -3,7 +3,6 @@
 #include <CQChartsPlot.h>
 #include <CQChartsModelData.h>
 #include <CQChartsVariant.h>
-#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 
@@ -143,7 +142,7 @@ connectSlots(bool b)
 
   connected_ = b;
 
-  CQChartsWidgetUtil::connectDisconnect(connected_,
+  CQUtil::connectDisconnect(connected_,
     combo_, SIGNAL(columnChanged()), this, SLOT(columnComboChanged()));
 }
 

@@ -539,7 +539,7 @@ class CQChartsSankeyPlotGraph {
  public:
   CQChartsSankeyPlotGraph(const SankeyPlot *plot);
 
-  virtual ~CQChartsSankeyPlotGraph() { }
+  virtual ~CQChartsSankeyPlotGraph() = default;
 
   //---
 

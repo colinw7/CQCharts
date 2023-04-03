@@ -20,7 +20,6 @@
 #include <CQChartsSVGPaintDevice.h>
 #include <CQChartsPlotDrawUtil.h>
 #include <CQChartsValueSet.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsResizeHandle.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
@@ -6530,9 +6529,9 @@ void
 CQChartsAxisAnnotation::
 connectAxis(bool b)
 {
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     axis_.get(), SIGNAL(ticksChanged()), this, SLOT(emitDataChanged()));
-  CQChartsWidgetUtil::connectDisconnect(b,
+  CQUtil::connectDisconnect(b,
     axis_.get(), SIGNAL(appearanceChanged()), this, SLOT(invalidateSlot()));
 }
 
