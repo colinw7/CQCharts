@@ -431,6 +431,10 @@ initObjectsFrame(QFrame *objectsFrame)
 
   //---
 
+  objectsWidgets_.selectedObject = new SelectedObjectWidget;
+
+  objectsFrameLayout->addWidget(objectsWidgets_.selectedObject);
+
   // add object properties control
   objectsWidgets_.propertyTree = new ObjectPropertiesWidget;
 
@@ -765,8 +769,10 @@ updateCurrentPlot()
 
     if (plot) {
       disconnect(plot, SIGNAL(controlColumnsChanged()), this, SLOT(updatePlotControls()));
+      disconnect(plot, SIGNAL(customWidgetChanged()), this, SLOT(updatePlotControls()));
       disconnect(plot, SIGNAL(plotObjsAdded()), this, SLOT(updatePlotObjects()));
       disconnect(plot, SIGNAL(layersChanged()), this, SLOT(updateLayers()));
+      disconnect(plot, SIGNAL(selectionChanged()), this, SLOT(updatePlotSelection()));
     }
   }
 
@@ -778,9 +784,10 @@ updateCurrentPlot()
 
   if (plot) {
     connect(plot, SIGNAL(controlColumnsChanged()), this, SLOT(updatePlotControls()));
+    connect(plot, SIGNAL(customWidgetChanged()), this, SLOT(updatePlotControls()));
     connect(plot, SIGNAL(plotObjsAdded()), this, SLOT(updatePlotObjects()));
     connect(plot, SIGNAL(layersChanged()), this, SLOT(updateLayers()));
-    connect(plot, SIGNAL(customWidgetChanged()), this, SLOT(updatePlotControls()));
+    connect(plot, SIGNAL(selectionChanged()), this, SLOT(updatePlotSelection()));
   }
 
   //---
@@ -790,6 +797,8 @@ updateCurrentPlot()
   updatePlotObjects();
 
   updateLayers();
+
+  updatePlotSelection();
 }
 
 CQChartsPlot *
@@ -1079,6 +1088,23 @@ updateLayers()
   layersWidgets_.layerTableControl->setPlot(plot);
 }
 
+//------
+
+// called when layers ot current plot changed
+void
+CQChartsViewSettings::
+updatePlotSelection()
+{
+  CQChartsPlot::PlotObjs objs;
+
+  auto *plot = currentPlot();
+
+  if (plot)
+    plot->selectedPlotObjs(objs);
+
+  objectsWidgets_.selectedObject->setObjects(objs);
+}
+
 //---
 
 CQTabSplit *
@@ -1106,4 +1132,40 @@ addSplitFrame(CQTabSplit *split, const QString &label, const QString &name) cons
   split->addWidget(frame, label);
 
   return FrameLayout(frame, layout);
+}
+
+//---
+
+CQChartsSelectedObjectWidget::
+CQChartsSelectedObjectWidget(QWidget *parent) :
+ QTextBrowser(parent)
+{
+  setObjectName("selectedPlotObject");
+
+  setReadOnly(true);
+}
+
+void
+CQChartsSelectedObjectWidget::
+setObjects(const PlotObjs &objs)
+{
+  auto indStr = [](const QModelIndex &ind) {
+    return QString("%1:%2").arg(ind.row()).arg(ind.column());
+  };
+
+  QString text;
+
+  for (const auto &obj : objs) {
+    text += "<p>" + obj->id() + "</p>\n";
+
+    text += "<ul>\n";
+
+    for (const auto &ind : obj->modelInds()) {
+      text += "<li>" + indStr(ind) + "</li>\n";
+    }
+
+    text += "</ul>\n";
+  }
+
+  setHtml(text);
 }

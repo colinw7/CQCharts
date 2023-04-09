@@ -634,6 +634,9 @@ calcTableSize() const
 {
   CQPerfTrace trace("CQChartsTablePlot::calcTableSize");
 
+  if (! currentModelData())
+    return;
+
   //---
 
   auto *th = const_cast<CQChartsTablePlot *>(this);
@@ -1148,6 +1151,9 @@ execDrawBackground(PaintDevice *device) const
   CQPerfTrace trace("CQChartsTablePlot::execDrawBackground");
 
   //---
+
+  if (! currentModelData())
+    return;
 
   device->save();
 

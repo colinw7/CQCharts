@@ -369,6 +369,7 @@ initGroup(CQChartsGroupData &data) const
   if (data.columns.count() > 1 && ! data.rowGrouping) {
     columnBucket->setDataType   (Bucket::DataType::HEADER);
     columnBucket->setColumnType (ColumnType::INTEGER);
+    columnBucket->setExactValue (true);
     columnBucket->setRowGrouping(false);
 
     for (const auto &column : data.columns) {

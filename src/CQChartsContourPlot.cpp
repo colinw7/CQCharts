@@ -236,6 +236,19 @@ calcRange() const
   return dataRange;
 }
 
+//------
+
+void
+CQChartsContourPlot::
+clearPlotObjList()
+{
+  delete contour_;
+
+  contour_ = nullptr;
+
+  CQChartsPlot::clearPlotObjList();
+}
+
 bool
 CQChartsContourPlot::
 createObjs(PlotObjs &) const
@@ -390,6 +403,9 @@ void
 CQChartsContourPlot::
 drawContour(PaintDevice *device) const
 {
+  if (! contour_)
+    return;
+
   contour_->setSolid(isSolid());
   contour_->setNumContourLevels(numContourLevels());
 

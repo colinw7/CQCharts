@@ -192,7 +192,27 @@ void
 CQChartsKey::
 setHeaderStr(const QString &s)
 {
-  CQChartsUtil::testAndSet(header_, s, [&]() { updateLayout(); } );
+  CQChartsUtil::testAndSet(headerStr_, s, [&]() { updateLayout(); } );
+}
+
+void
+CQChartsKey::
+setDefHeaderStr(const QString &s, bool update)
+{
+  CQChartsUtil::testAndSet(defHeaderStr_, s, [&]() {
+    if (update)
+     updateLayout();
+  } );
+}
+
+QString
+CQChartsKey::
+calcHeaderStr() const
+{
+  if (headerStr_.length())
+    return headerStr_;
+
+  return defHeaderStr_;
 }
 
 //---
@@ -821,6 +841,10 @@ CQChartsPlotKey(Plot *plot) :
 
   setMargin (Margin::pixel(4, 4, 4, 4));
   setPadding(Margin::pixel(2, 2, 2, 2));
+
+  //---
+
+  addScrollBars(view());
 }
 
 CQChartsPlotKey::
@@ -1369,7 +1393,9 @@ doLayout()
   layoutData_.headerWidth  = 0;
   layoutData_.headerHeight = 0;
 
-  if (headerStr().length()) {
+  auto headerStr = calcHeaderStr();
+
+  if (headerStr.length()) {
     // set text options
     CQChartsTextOptions textOptions;
 
@@ -1379,7 +1405,7 @@ doLayout()
     auto font = view()->plotFont(plot(), headerTextFont());
 
     // get text size
-    auto ptsize = CQChartsDrawUtil::calcTextSize(headerStr(), font, textOptions);
+    auto ptsize = CQChartsDrawUtil::calcTextSize(headerStr, font, textOptions);
 
     layoutData_.headerWidth  = drawPlot->pixelToWindowWidth (ptsize.width ()) + 2*xs_;
     layoutData_.headerHeight = drawPlot->pixelToWindowHeight(ptsize.height()) + 2*ys_;
@@ -2107,7 +2133,9 @@ draw(PaintDevice *device) const
   //---
 
   // draw header
-  if (headerStr().length()) {
+  auto headerStr = calcHeaderStr();
+
+  if (headerStr.length()) {
     // set text options
     auto textOptions = this->headerTextOptions();
 
@@ -2146,7 +2174,7 @@ draw(PaintDevice *device) const
     //---
 
     // calc text rect
-    auto ptsize = CQChartsDrawUtil::calcTextSize(headerStr(), font, textOptions);
+    auto ptsize = CQChartsDrawUtil::calcTextSize(headerStr, font, textOptions);
 
     double tw = pw;
     double th = ptsize.height() + 2*spacing();
@@ -2173,7 +2201,7 @@ draw(PaintDevice *device) const
     device1.setPen(tPenBrush.pen);
 
     CQChartsDrawUtil::drawTextInBox(&device1, drawPlot->pixelToWindow(trect),
-                                    headerStr(), textOptions);
+                                    headerStr, textOptions);
   }
 
   //---

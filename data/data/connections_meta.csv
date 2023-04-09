@@ -1,0 +1,89 @@
+# META_DATA
+#  global,AEw,node_value,6
+#  global,ArOp,node_value,71
+#  global,AXcOG,node_value,97
+#  global,BUNc,node_value,61
+#  global,dKfT,node_value,95
+#  global,EKxSB,node_value,21
+#  global,elK,node_value,51
+#  global,eqz,node_value,50
+#  global,fFvx,node_label,Long Name One
+#  global,fFvx,node_value,24
+#  global,fTZkdp,node_value,13
+#  global,Fvy,node_value,97
+#  global,Gwk,node_value,68
+#  global,ihLBc,node_value,24
+#  global,Ilcg,node_label,Long Name Two
+#  global,Ilcg,node_value,24
+#  global,ins,node_value,31
+#  global,ipbHlg,node_value,2
+#  global,kiIcqF,node_value,23
+#  global,KLtYrJ,node_label,Long Name Three
+#  global,KLtYrJ,node_value,97
+#  global,kmGL,node_label,Long Name Four
+#  global,kmGL,node_value,54
+#  global,LAVO,node_value,87
+#  global,NldCx,node_value,42
+#  global,ohyx,node_value,30
+#  global,QhH,node_value,82
+#  global,qsIvMD,node_value,91
+#  global,QtrPv,node_label,Long Name Five
+#  global,QtrPv,node_value,36
+#  global,rLlb,node_value,54
+#  global,TAs,node_value,55
+#  global,tdrd,node_value,77
+#  global,tDuhGc,node_label,Long Name Six
+#  global,tDuhGc,node_value,93
+#  global,VmlX,node_value,97
+#  global,vSLQH,node_value,15
+#  global,Vtt,node_label,Long Name Seven
+#  global,Vtt,node_value,42
+#  global,VxR,node_value,88
+#  global,wBnWAK,node_value,33
+#  global,WhqOQ,node_value,51
+#  global,WuVY,node_value,81
+#  global,XsTVYy,node_value,47
+#  global,ySualz,node_value,100
+#  global,zICWlM,node_value,91
+#  global,zmsr,node_value,24
+# END_META_DATA
+From,To,Value,Group
+QtrPv,Vtt,60,2
+QtrPv,XsTVYy,54,2
+QtrPv,Gwk,35,2
+QtrPv,ihLBc,4,2
+QtrPv,EKxSB,70,2
+QtrPv,VmlX,54,2
+QtrPv,NldCx,43,2
+QtrPv,kiIcqF,83,2
+QtrPv,fTZkdp,98,2
+QtrPv,zICWlM,15,2
+QtrPv,qsIvMD,87,2
+QtrPv,WhqOQ,64,2
+QtrPv,ohyx,70,2
+QtrPv,zmsr,20,2
+QtrPv,AXcOG,36,2
+QtrPv,Fvy,25,2
+QtrPv,vSLQH,9,2
+QtrPv,ArOp,1,2
+QtrPv,WuVY,87,2
+QtrPv,LAVO,67,2
+QtrPv,rLlb,35,2
+QtrPv,ipbHlg,53,2
+QtrPv,TAs,91,2
+QtrPv,BUNc,70,2
+QtrPv,wBnWAK,64,2
+QtrPv,eqz,1,2
+QtrPv,AEw,60,2
+kmGL,Vtt,59,7
+kmGL,tdrd,99,7
+kmGL,QhH,91,7
+kmGL,ySualz,82,7
+kmGL,elK,28,7
+kmGL,ins,66,7
+kmGL,dKfT,61,7
+kmGL,VxR,60,7
+KLtYrJ,Vtt,87,1
+fFvx,Vtt,39,5
+tDuhGc,Vtt,23,8
+Ilcg,Vtt,70,6

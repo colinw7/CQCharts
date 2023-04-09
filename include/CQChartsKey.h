@@ -114,8 +114,11 @@ class CQChartsKey : public CQChartsBoxObj,
   //---
 
   //! get/set header text
-  const QString &headerStr() const { return header_; }
+  const QString &headerStr() const { return headerStr_; }
   void setHeaderStr(const QString &s);
+
+  const QString &defHeaderStr() const { return defHeaderStr_; }
+  void setDefHeaderStr(const QString &s, bool update=true);
 
   //---
 
@@ -175,6 +178,8 @@ class CQChartsKey : public CQChartsBoxObj,
  protected:
   void init();
 
+  QString calcHeaderStr() const;
+
  protected:
   struct ScrollData {
     bool        scrolled     { false };   //!< scrolled
@@ -194,7 +199,8 @@ class CQChartsKey : public CQChartsBoxObj,
   Qt::Orientation orientation_ { Qt::Vertical }; //!< layout direction
   bool            above_       { true };         //!< draw above view/plot
   Location        location_;                     //!< key location
-  QString         header_;                       //!< header
+  QString         headerStr_;                    //!< header string
+  QString         defHeaderStr_;                 //!< default header string
   bool            autoHide_    { true };         //!< auto hide if too big
   bool            clipped_     { true };         //!< clipped to parent
   bool            interactive_ { true };         //!< is interactive

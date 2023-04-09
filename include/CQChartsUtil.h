@@ -346,11 +346,15 @@ struct FormatData {
   QString seps;
   bool    continued { false };
 
-  FormatData() = default;
+  //---
 
-  FormatData(const QString &s) :
+  explicit FormatData() = default;
+
+  explicit FormatData(const QString &s) :
    seps(s) {
   }
+
+  //---
 
   bool isValid() const {
     return (seps.length() > 0);
@@ -425,6 +429,8 @@ class CQChartsScopeGuard {
       f_(); // must not throw
   }
 
+  //---
+
   void dismiss() noexcept {
     f_ = nullptr;
   }
@@ -472,15 +478,17 @@ namespace CQChartsUtil {
 
 //! color index data
 struct ColorInd {
-  ColorInd() = default;
+  explicit ColorInd() = default;
 
-  ColorInd(int i, int n) :
+  explicit ColorInd(int i, int n) :
    isInt(true), i(i), n(n) {
   }
 
   explicit ColorInd(double r) :
    isInt(false), r(r) {
   }
+
+  //---
 
   bool isValid() const {
     if (isInt) return (i >= 0 && i < n);

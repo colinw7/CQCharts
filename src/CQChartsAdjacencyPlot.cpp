@@ -252,6 +252,19 @@ calcRange() const
 
 //------
 
+void
+CQChartsAdjacencyPlot::
+clearPlotObjList()
+{
+  clearNodes();
+
+  clearErrors();
+
+  setInsideObj(nullptr);
+
+  CQChartsPlot::clearPlotObjList();
+}
+
 bool
 CQChartsAdjacencyPlot::
 createObjs(PlotObjs &objs) const
@@ -261,16 +274,6 @@ createObjs(PlotObjs &objs) const
   NoUpdate noUpdate(this);
 
   auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
-
-  th->clearErrors();
-
-  //---
-
-  th->clearNodes();
-
-  //---
-
-  th->setInsideObj(nullptr);
 
   //---
 
@@ -1192,6 +1195,11 @@ execDrawBackground(PaintDevice *device) const
 
   xts_ = maxLen()*fontFactor_*pxs_;
   yts_ = maxLen()*fontFactor_*pys_;
+
+  //---
+
+  if (sortedNodes_.empty())
+    return;
 
   //---
 

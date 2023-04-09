@@ -588,6 +588,7 @@ setModelColumnType(QAbstractItemModel *model, const Column &column,
   bool changed = false;
 
   auto *modelData = charts_->getModelData(model);
+  if (! modelData) return false;
 
   modelData->startUpdate();
 

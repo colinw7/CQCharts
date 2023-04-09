@@ -726,10 +726,11 @@ void
 CQChartsRadarPlot::
 execDrawBackground(PaintDevice *device) const
 {
-  int nv = valueColumns().count();
-
-  if (! nv)
+  if (! currentModelData())
     return;
+
+  int nv = valueColumns().count();
+  if (! nv) return;
 
   //---
 

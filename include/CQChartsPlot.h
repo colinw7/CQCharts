@@ -125,7 +125,7 @@ class CQChartsPlotUpdateTimer : public QTimer {
   using Plot = CQChartsPlot;
 
  public:
-  CQChartsPlotUpdateTimer(Plot *plot) :
+  explicit CQChartsPlotUpdateTimer(Plot *plot) :
    plot_(plot) {
     setSingleShot(true);
   }
@@ -413,7 +413,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     Plot* next    { nullptr }; //!< next plot
     Plot* prev    { nullptr }; //!< previous plot
 
-    ConnectData() = default;
+    explicit ConnectData() = default;
 
     void reset() {
       x1x2    = false;
@@ -434,7 +434,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     QString label;
     QString valueStr;
 
-    ProbeValue() = default;
+    explicit ProbeValue() = default;
 
     explicit ProbeValue(double value, const QString &label, const QString &valueStr) :
      value(value), label(label), valueStr(valueStr) {
@@ -1987,7 +1987,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     RangeTypes &setAnnotation(bool b=true) { annotation = b; return *this; }
     RangeTypes &setExtra     (bool b=true) { extra      = b; return *this; }
 
-    RangeTypes() { } // default not allowed ?
+    explicit RangeTypes() { } // default not allowed ?
   };
 
   BBox calcGroupedDataRange(const RangeTypes &rangeTypes=RangeTypes()) const;
@@ -3363,12 +3363,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
  protected:
   //! \brief RAII class to enable/disable no update state
   struct NoUpdate {
-    NoUpdate(const Plot *plot, bool update=false) :
+    explicit NoUpdate(const Plot *plot, bool update=false) :
      plot_(const_cast<Plot *>(plot)), update_(update) {
       plot_->setUpdatesEnabled(false);
     }
 
-    NoUpdate(Plot *plot, bool update=false) :
+    explicit NoUpdate(Plot *plot, bool update=false) :
      plot_(plot), update_(update) {
       plot_->setUpdatesEnabled(false);
     }
@@ -3547,7 +3547,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //*! \brief RAII class to lock/unlock plot mutex
   struct LockMutex {
-    LockMutex(Plot *plot, const char *id) : plot(plot) { plot->updateLock(id); }
+    explicit LockMutex(Plot *plot, const char *id) : plot(plot) { plot->updateLock(id); }
+
    ~LockMutex() { plot->updateUnLock(); }
 
     Plot* plot { nullptr };
@@ -3555,8 +3556,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //*! \brief RAII class to try to lock/unlock plot mutex
   struct TryLockMutex {
-    TryLockMutex(Plot *plot, const char *id) : plot(plot) {
+    explicit TryLockMutex(Plot *plot, const char *id) : plot(plot) {
       locked = plot->updateTryLock(id); }
+
    ~TryLockMutex() { if (locked) plot->updateUnLock(); }
 
     Plot* plot   { nullptr };

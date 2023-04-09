@@ -8,6 +8,7 @@ class CQChartsGlobalPropertiesWidget;
 class CQChartsViewPropertiesControl;
 class CQChartsPlotPropertiesControl;
 class CQChartsObjectPropertiesWidget;
+class CQChartsSelectedObjectWidget;
 
 class CQChartsModelTableControl;
 class CQChartsModelDetailsWidget;
@@ -102,6 +103,8 @@ class CQChartsViewSettings : public QFrame {
 
   void updateLayers();
 
+  void updatePlotSelection();
+
   void showQueryText(const QString &text);
 
   void updateErrorsSlot();
@@ -155,6 +158,7 @@ class CQChartsViewSettings : public QFrame {
   using ViewPropertiesControl  = CQChartsViewPropertiesControl;
   using PlotPropertiesControl  = CQChartsPlotPropertiesControl;
   using ObjectPropertiesWidget = CQChartsObjectPropertiesWidget;
+  using SelectedObjectWidget   = CQChartsSelectedObjectWidget;
 
   using ModelTable         = CQChartsModelTableControl;
   using ModelDetailsWidget = CQChartsModelDetailsWidget;
@@ -190,8 +194,9 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct ObjectsWidgets {
-    ObjectPropertiesWidget* propertyTree  { nullptr };
-    CQPropertyViewModel*    propertyModel { nullptr };
+    SelectedObjectWidget*   selectedObject { nullptr };
+    ObjectPropertiesWidget* propertyTree   { nullptr };
+    CQPropertyViewModel*    propertyModel  { nullptr };
   };
 
   struct ThemeWidgets {
@@ -249,6 +254,24 @@ class CQChartsViewSettings : public QFrame {
   QString plotId_; //!< current plot id
 
   QTimer *updateErrorsTimer_ { nullptr }; //!< update error delay timer
+};
+
+//---
+
+#include <QTextBrowser>
+
+class CQChartsPlotObj;
+
+class CQChartsSelectedObjectWidget : public QTextBrowser {
+  Q_OBJECT
+
+ public:
+  using PlotObjs = std::vector<CQChartsPlotObj *>;
+
+ public:
+  CQChartsSelectedObjectWidget(QWidget *parent=nullptr);
+
+  void setObjects(const PlotObjs &objs);
 };
 
 #endif

@@ -371,6 +371,10 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   Range calcRange() const override;
 
+  //---
+
+  void clearPlotObjList() override;
+
   bool createObjs(PlotObjs &objs) const override;
 
   //---

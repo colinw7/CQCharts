@@ -94,11 +94,11 @@ class CQChartsColumn :
   }
 
  public:
-  CQChartsColumn() = default;
+  explicit CQChartsColumn() = default;
 
   explicit CQChartsColumn(int column, int role=-1); // data
 
-  CQChartsColumn(Type type, int column, const QString &s, int role=-1); // explicit
+  explicit CQChartsColumn(Type type, int column, const QString &s, int role=-1); // explicit
 
   explicit CQChartsColumn(const QString &s); // parsed
 
@@ -285,7 +285,7 @@ class CQChartsColumns :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsColumns, metaTypeId)
 
  public:
-  CQChartsColumns() = default;
+  explicit CQChartsColumns() = default;
 
   explicit CQChartsColumns(const Column &c) {
     setColumn(c);
@@ -294,6 +294,8 @@ class CQChartsColumns :
   explicit CQChartsColumns(const QString &s) {
     setColumnsStr(s);
   }
+
+  //---
 
   // get single column
   const Column &column() const { return column_; }
@@ -394,12 +396,21 @@ class CQChartsColumns :
 
   //---
 
-  bool hasColumn(const Column &c) const {
-    for (const auto &column : columns_)
-      if (c == column)
-        return true;
+  int columnInd(const Column &c) const {
+    int ind = 0;
 
-    return false;
+    for (const auto &column : columns_) {
+      if (c == column)
+        return ind;
+
+      ++ind;
+    }
+
+    return -1;
+  }
+
+  bool hasColumn(const Column &c) const {
+    return (columnInd(c) >= 0);
   }
 
   //---

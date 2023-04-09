@@ -552,6 +552,19 @@ calcExtraFitBBox() const
 
 //------
 
+void
+CQChartsPivotPlot::
+clearPlotObjList()
+{
+  xAxis()->setDefLabel("");
+  xAxis()->clearTickLabels();
+
+  yAxis()->setDefLabel("");
+  yAxis()->clearTickLabels();
+
+  CQChartsPlot::clearPlotObjList();
+}
+
 bool
 CQChartsPivotPlot::
 createObjs(PlotObjs &objs) const

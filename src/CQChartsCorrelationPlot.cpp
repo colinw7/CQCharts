@@ -556,6 +556,9 @@ void
 CQChartsCorrelationPlot::
 execDrawForeground(PaintDevice *device) const
 {
+  if (! currentModelData())
+    return;
+
   if (isXLabels())
     drawXLabels(device);
 

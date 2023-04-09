@@ -269,9 +269,15 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   void addProperties() override;
 
+  //---
+
+  void initRange() override;
+
   Range calcRange() const override;
 
   void updateAxes();
+
+  //---
 
   bool createObjs(PlotObjs &objs) const override;
 

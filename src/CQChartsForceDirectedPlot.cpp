@@ -1131,7 +1131,7 @@ addPlotObjects()
 
   removePlotObjects();
 
-  if (! currentModel().data())
+  if (! currentModelData())
     return;
 
   //---

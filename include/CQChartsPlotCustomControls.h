@@ -125,6 +125,7 @@ class CQChartsPlotCustomControls : public QScrollArea {
   void addLayoutStretch();
 
   void setFrameWidgetVisible(QWidget *w, bool visible);
+  void setFrameWidgetEnabled(QWidget *w, bool visible);
 
   //---
 

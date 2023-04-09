@@ -799,7 +799,7 @@ void
 CQChartsBoxPlot::
 postCalcRange()
 {
-  if (! currentModel().data())
+  if (! currentModelData())
     return;
 
   // x-axis must be integer, y-axis must be real

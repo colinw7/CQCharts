@@ -206,6 +206,13 @@ addProperties()
 
 //---
 
+void
+CQChartsStripPlot::
+initRange()
+{
+  xAxis()->clearTickLabels();
+}
+
 CQChartsGeom::Range
 CQChartsStripPlot::
 calcRange() const

@@ -81,6 +81,10 @@ class CQChartsContourPlot : public CQChartsPlot,
 
   Range calcRange() const override;
 
+  //---
+
+  void clearPlotObjList() override;
+
   bool createObjs(PlotObjs &objs) const override;
 
   //---

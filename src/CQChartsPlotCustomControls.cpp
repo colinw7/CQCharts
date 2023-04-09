@@ -581,6 +581,44 @@ setFrameWidgetVisible(QWidget *w, bool visible)
 
 void
 CQChartsPlotCustomControls::
+setFrameWidgetEnabled(QWidget *w, bool enabled)
+{
+  auto *pw = w->parentWidget();
+
+  auto *layout = qobject_cast<QGridLayout *>(pw->layout());
+  if (! layout) return;
+
+  // find widget row
+  int row = -1;
+
+  for (int i = 0; i < layout->count(); ++i) {
+    auto *item = layout->itemAt(i);
+
+    if (item->widget() == w) {
+      int c, rs, cs;
+
+      layout->getItemPosition(i, &row, &c, &rs, &cs);
+
+      break;
+    }
+  }
+
+  // set enabled for all items on same row
+  for (int i = 0; i < layout->count(); ++i) {
+    auto *item = layout->itemAt(i);
+    if (! item->widget()) continue;
+
+    int r, c, rs, cs;
+
+    layout->getItemPosition(i, &r, &c, &rs, &cs);
+
+    if (r == row)
+      item->widget()->setEnabled(enabled);
+  }
+}
+
+void
+CQChartsPlotCustomControls::
 showColorKeySlot(bool)
 {
   updateColorKeyVisible();

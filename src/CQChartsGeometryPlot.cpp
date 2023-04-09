@@ -389,8 +389,8 @@ calcRange() const
 
   Range dataRange;
 
-  auto *model = this->currentModel().data();
-  if (! model) return dataRange;
+  if (! this->currentModelData())
+    return dataRange;
 
   //---
 

@@ -906,6 +906,11 @@ void
 CQChartsWheelPlot::
 execDrawForeground(PaintDevice *device) const
 {
+  if (! currentModelData())
+    return;
+
+  //---
+
   double ri = std::min(std::max(innerRadius(), 0.0), 1.0);
   double ro = std::min(std::max(outerRadius(), 0.0), 1.0);
 

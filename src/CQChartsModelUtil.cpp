@@ -1230,6 +1230,9 @@ QVariant modelHeaderValueI(const QAbstractItemModel *model, const Column &column
                            Qt::Orientation orient, int role, bool &ok) {
   ok = false;
 
+  if (! model)
+    return QVariant();
+
   if (! column.isValid())
     return QVariant();
 
@@ -1393,6 +1396,9 @@ QVariant modelValue(const QAbstractItemModel *model, const QModelIndex &ind, boo
 QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
                     const Column &column, const QModelIndex &parent,
                     int role, bool &ok) {
+  if (! model)
+    return QVariant();
+
   if (! column.isValid()) {
     ok = false; return QVariant();
   }

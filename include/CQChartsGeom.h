@@ -26,11 +26,13 @@ namespace CQChartsGeom {
  */
 class Real : public CQChartsComparatorBase<Real> {
  public:
-  Real() = default;
+  explicit Real() = default;
 
   explicit Real(double r) :
    r_(r) {
   }
+
+  //---
 
   double value() const { return r_; }
 
@@ -62,9 +64,9 @@ class Point :
   public CQChartsEqBase<Point>,
   public CQChartsToStringBase<Point> {
  public:
-  Point() = default;
+  explicit Point() = default;
 
-  Point(double x1, double y1) :
+  explicit Point(double x1, double y1) :
    x(x1), y(y1) {
   }
 
@@ -298,11 +300,13 @@ namespace CQChartsGeom {
 
 class Line {
  public:
-  Line() = default;
+  explicit Line() = default;
 
-  Line(const Point &start, const Point &end) :
+  explicit Line(const Point &start, const Point &end) :
    start_(start), end_(end) {
   }
+
+  //---
 
   const Point &start() const { return start_; }
   void setStart(const Point &v) { start_ = v; }
@@ -328,15 +332,17 @@ namespace CQChartsGeom {
 class Size :
   public CQChartsEqBase<Size> {
  public:
-  Size() = default;
+  explicit Size() = default;
 
-  Size(double w, double h) :
+  explicit Size(double w, double h) :
    size_(w, h), set_(true) {
   }
 
   explicit Size(const QSizeF &s) :
    size_(s), set_(true) {
   }
+
+  //---
 
   bool isSet() const { return set_; }
 
@@ -407,18 +413,18 @@ class BBox :
   public CQChartsEqBase<BBox>,
   public CQChartsToStringBase<BBox> {
  public:
-  BBox() = default;
+  explicit BBox() = default;
 
   explicit BBox(const Point &point) :
    pmin_(point), pmax_(point), set_(true) {
   }
 
-  BBox(const Point &pmin, const Point &pmax) :
+  explicit BBox(const Point &pmin, const Point &pmax) :
    pmin_(pmin), pmax_(pmax), set_(true) {
     (void) update();
   }
 
-  BBox(double x1, double y1, double x2, double y2) :
+  explicit BBox(double x1, double y1, double x2, double y2) :
    pmin_(x1, y1), pmax_(x2, y2), set_(true) {
     (void) update();
   }
@@ -429,7 +435,7 @@ class BBox :
       (void) update();
   }
 
-  BBox(const QPointF &p1, const QPointF &p2) :
+  explicit BBox(const QPointF &p1, const QPointF &p2) :
    pmin_(p1.x(), p1.y()), pmax_(p2.x(), p2.y()), set_(true) {
     if (isSet())
       (void) update();
@@ -437,7 +443,7 @@ class BBox :
 
   explicit BBox(const Range &range);
 
-  BBox(const Point &o, const Size &s) :
+  explicit BBox(const Point &o, const Size &s) :
    pmin_(o), pmax_(o + Point(s.width(), s.height())), set_(true) {
     (void) update();
   }
@@ -1151,9 +1157,9 @@ class Range :
   public CQChartsEqBase<Range>,
   public CQChartsToStringBase<Range> {
  public:
-  Range() = default;
+  explicit Range() = default;
 
-  Range(double x1, double y1, double x2, double y2) :
+  explicit Range(double x1, double y1, double x2, double y2) :
    set_(true), x1_(x1), y1_(y1), x2_(x2), y2_(y2) {
   }
 
@@ -1367,7 +1373,7 @@ namespace CQChartsGeom {
 class Polygon :
   public CQChartsEqBase<Polygon> {
  public:
-  Polygon() = default;
+  explicit Polygon() = default;
 
   explicit Polygon(const QPolygonF &qpoly) :
    qpoly_(qpoly) {
@@ -1380,6 +1386,7 @@ class Polygon :
    qpoly_ << bbox.getUL().qpoint();
   }
 
+  //---
   const QPolygonF &qpoly() const { return qpoly_; }
 
   bool empty() const { return qpoly_.empty(); }
@@ -1459,11 +1466,11 @@ namespace CQChartsGeom {
  */
 class Margin {
  public:
-  Margin() = default;
+  explicit Margin() = default;
 
-  Margin(double l) : l_(l), t_(l), r_(l), b_(l) { }
+  explicit Margin(double l) : l_(l), t_(l), r_(l), b_(l) { }
 
-  Margin(double l, double t, double r, double b) : l_(l), t_(t), r_(r), b_(b) { }
+  explicit Margin(double l, double t, double r, double b) : l_(l), t_(t), r_(r), b_(b) { }
 
   //---
 
@@ -1514,16 +1521,18 @@ namespace CQChartsGeom {
 template<typename T>
 class MinMax {
  public:
-  MinMax() = default;
+  explicit MinMax() = default;
 
   explicit MinMax(const T &t) {
     add(t);
   }
 
-  MinMax(const T &t1, const T &t2) {
+  explicit MinMax(const T &t1, const T &t2) {
     add(t1);
     add(t2);
   }
+
+  //---
 
   void add(const T &t) {
     if (! set_) {
@@ -1584,9 +1593,7 @@ class Matrix :
 
  public:
   // constructor/destructor
-  Matrix() = default;
-
- ~Matrix() = default;
+  explicit Matrix() = default;
 
   explicit Matrix(Type type) {
     if (type == Type::IDENTITY)
@@ -1595,23 +1602,23 @@ class Matrix :
       assert(false && "Bad Matrix Type");
   }
 
-  Matrix(double a, double b, double c, double d) :
+  explicit Matrix(double a, double b, double c, double d) :
    m00_(a), m01_(b), m10_(c), m11_(d) {
     setBottomIdentity();
   }
 
-  Matrix(double a, double b, double c, double d, double tx, double ty) :
+  explicit Matrix(double a, double b, double c, double d, double tx, double ty) :
    m00_(a), m01_(b), m02_(tx), m10_(c), m11_(d), m12_(ty) {
     setBottomIdentity();
   }
 
-  Matrix(double m00, double m01, double m02, double m10, double m11, double m12,
-            double m20, double m21, double m22) :
+  explicit Matrix(double m00, double m01, double m02, double m10, double m11, double m12,
+                  double m20, double m21, double m22) :
    m00_(m00), m01_(m01), m02_(m02), m10_(m10), m11_(m11), m12_(m12),
    m20_(m20), m21_(m21), m22_(m22) {
   }
 
-  Matrix(const double *m, int n) {
+  explicit Matrix(const double *m, int n) {
     if      (n == 4)
       setValues(m[0], m[1], m[2], m[3]);
     else if (n == 6)
@@ -1619,6 +1626,10 @@ class Matrix :
     else
      assert(false && "Invalid size");
   }
+
+ ~Matrix() = default;
+
+  //---
 
   Matrix *dup() const {
     return new Matrix(*this);
@@ -2470,9 +2481,9 @@ namespace CQChartsGeom {
 class Point3D :
   public CQChartsComparatorBase<Point3D> {
  public:
-  Point3D() = default;
+  explicit Point3D() = default;
 
-  Point3D(double x1, double y1, double z1) :
+  explicit Point3D(double x1, double y1, double z1) :
    x(x1), y(y1), z(z1) {
   }
 
@@ -2533,11 +2544,13 @@ class Point3D :
  */
 class Range3D {
  public:
-  Range3D() = default;
+  explicit Range3D() = default;
 
-  Range3D(double x1, double y1, double z1, double x2, double y2, double z2) :
+  explicit Range3D(double x1, double y1, double z1, double x2, double y2, double z2) :
    set_(true), x1_(x1), y1_(y1), z1_(z1), x2_(x2), y2_(y2), z2_(z2) {
   }
+
+  //---
 
   bool isSet() const { return set_; }
 
@@ -2590,7 +2603,9 @@ class Polygon3D {
   using Points = std::vector<Point3D>;
 
  public:
-  Polygon3D() = default;
+  explicit Polygon3D() = default;
+
+  //---
 
   const Points &points() const { return points_; }
 

@@ -412,6 +412,16 @@ addProperties()
   addColorMapKeyProperties();
 }
 
+//---
+
+void
+CQChartsParallelPlot::
+initRange()
+{
+  if (! currentModelData())
+    axes_.clear();
+}
+
 CQChartsGeom::Range
 CQChartsParallelPlot::
 calcRange() const

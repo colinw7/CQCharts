@@ -61,8 +61,10 @@ CQChartsModelDetailsTable::
 setModelData(ModelData *modelData)
 {
   if (modelData != modelData_) {
-    if (modelData_)
+    if (modelData_) {
+      disconnect(modelData_, SIGNAL(deleted()), this, SLOT(modelDeletedSlot()));
       disconnect(modelData_, SIGNAL(modelChanged()), this, SLOT(modelChangedSlot()));
+    }
 
     if (charts_)
       disconnect(charts_, SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
@@ -70,8 +72,10 @@ setModelData(ModelData *modelData)
     modelData_ = const_cast<ModelData *>(modelData);
     charts_    = (modelData_ ? modelData_->charts() : nullptr);
 
-    if (modelData_)
+    if (modelData_) {
+      connect(modelData_, SIGNAL(deleted()), this, SLOT(modelDeletedSlot()));
       connect(modelData_, SIGNAL(modelChanged()), this, SLOT(modelChangedSlot()));
+    }
 
     if (charts_)
       connect(charts_, SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
@@ -90,6 +94,13 @@ setFlip(bool b)
 
     checkedUpdate(/*force*/true);
   }
+}
+
+void
+CQChartsModelDetailsTable::
+modelDeletedSlot()
+{
+  setModelData(nullptr);
 }
 
 void

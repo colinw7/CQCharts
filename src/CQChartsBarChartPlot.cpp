@@ -75,10 +75,10 @@ addParameters()
   addBoolParameter("skipEmpty", "Skip Empty", "skipEmpty").setTip("Skip empty groups");
 
   addBoolParameter("groupByColumn", "Group by Column", "groupByColumn").
-    setTip("Group by column when multiple columns");
+    setTip("Group by column when multiple columns (needs group column)");
 
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").
-    setTip("Color by value set");
+    setTip("Color by value set (needs group column and individual values)");
 
   endParameterGroup();
 
@@ -260,6 +260,35 @@ calcValueColumns() const
   }
 
   return columns;
+}
+
+bool
+CQChartsBarChartPlot::
+calcGroupByColumn() const
+{
+  if (! isGroupByColumn())
+    return false;
+
+  if (! groupColumn().isValid())
+    return false;
+
+  return true;
+}
+
+bool
+CQChartsBarChartPlot::
+calcColorBySet() const
+{
+  if (! isColorBySet())
+    return false;
+
+  if (! groupColumn().isValid())
+    return false;
+
+  if (! isValueValue())
+    return false;
+
+  return true;
 }
 
 //---
@@ -482,6 +511,32 @@ setDotLineWidth(const Length &l)
 
 //---
 
+bool
+CQChartsBarChartPlot::
+calcStacked() const
+{
+  if (isStacked()) {
+    if (isValueValue())
+      return true;
+  }
+
+  return false;
+}
+
+bool
+CQChartsBarChartPlot::
+calcPercent() const
+{
+  if (isPercent()) {
+    if (isValueValue())
+      return true;
+  }
+
+  return false;
+}
+
+//---
+
 CQChartsGeom::Range
 CQChartsBarChartPlot::
 calcRange() const
@@ -540,35 +595,30 @@ calcRange() const
 
   // init grouping
   //   individual values use group columns for grouping
-#if 0
-  if (isValueValue())
+  if (calcGroupByColumn())
     initGroupData(valueColumns, nameColumn());
   else
     initGroupData(Columns(), nameColumn());
-#else
-  if (isGroupByColumn())
-    initGroupData(valueColumns, nameColumn());
-  else
-    initGroupData(Columns(), nameColumn());
-#endif
 
   //---
 
-  if (valueColumns.count() == 1) {
+  int nc = valueColumns.count();
+
+  if (nc == 1) {
     auto valueColumn = valueColumns.column();
 
-    const auto *columnDetails = this->columnDetails(valueColumn);
+    const auto *valueDetails = this->columnDetails(valueColumn);
 
-    if (columnDetails) {
+    if (valueDetails) {
       bool ok;
 
-      double r1 = CQChartsVariant::toReal(columnDetails->minValue(), ok);
+      double r1 = CQChartsVariant::toReal(valueDetails->minValue(), ok);
       if (ok) rangeData.minValue = OptReal(r1);
 
-      double r2 = CQChartsVariant::toReal(columnDetails->maxValue(), ok);
+      double r2 = CQChartsVariant::toReal(valueDetails->maxValue(), ok);
       if (ok) rangeData.maxValue = OptReal(r2);
 
-      double sum = CQChartsVariant::toReal(columnDetails->sumValue(), ok);
+      double sum = CQChartsVariant::toReal(valueDetails->sumValue(), ok);
       if (ok) rangeData.sumValue = OptReal(sum);
     }
   }
@@ -599,6 +649,22 @@ calcRange() const
 
   //---
 
+  th->isGroupKey_   = false;
+  th->isColumnsKey_ = false;
+
+  if (calcColorBySet()) {
+    auto *groupDetails = this->columnDetails(groupColumn());
+
+    if (groupDetails) {
+      if      (calcGroupByColumn())
+        th->isGroupKey_ = true;
+      else if (nc > 1)
+        th->isColumnsKey_ = true;
+    }
+  }
+
+  //---
+
   int ns = calcNumSets();
   int nv = numValueSets();
   int ng = numGroups();
@@ -625,8 +691,11 @@ calcRange() const
 
       int nvs = valueSet.numValues();
 
-      for (int ivs = 0; ivs < nvs; ++ivs)
-        numVisible += ! isValueHidden(ivs);
+      for (int ivs = 0; ivs < nvs; ++ivs) {
+        const auto &ivalue = valueSet.value(ivs);
+
+        numVisible += ! isValueHidden(ivalue, ivs);
+      }
     }
   }
 
@@ -635,7 +704,7 @@ calcRange() const
   if (ng > 0) {
     // if single value column (ns == 1) and summary value (range, min, max, mean) for values
     // per group then single bar
-    if (ns == 1) {
+    if (ns == 1 || calcGroupByColumn()) {
       if (! isValueValue()) {
         rangeData.dataRange = Range();
 
@@ -667,7 +736,7 @@ calcRange() const
         }
       }
       else {
-        if (isStacked())
+        if (calcStacked())
           numVisible = nv;
       }
     }
@@ -699,7 +768,7 @@ void
 CQChartsBarChartPlot::
 postCalcRange()
 {
-  if (! currentModel().data()) {
+  if (! currentModelData()) {
     auto *xAxis = mappedXAxis();
     auto *yAxis = mappedYAxis();
 
@@ -733,6 +802,7 @@ initRangeAxesI()
   int ns = calcNumSets();
 //int nv = numValueSets();
   int ng = numGroups();
+  int nc = valueColumns.count();
 
   // needed ?
   if (isVertical()) {
@@ -756,8 +826,8 @@ initRangeAxesI()
 
   if (ns > 1) {
     // grouped by value column headers
-    if (isGroupByColumn()) {
-      xname = "Values";
+    if (calcGroupByColumn()) {
+      xname = "Column";
     }
     // grouped by group column values
     else {
@@ -766,16 +836,16 @@ initRangeAxesI()
     }
   }
   else {
-    if (ng > 1) {
+    if      (ng > 1) {
       bool ok;
       xname = modelHHeaderString(groupColumn().isValid() ? groupColumn() : nameColumn(), ok);
     }
-    else {
+    else if (nc > 1) {
+      xname = "Column";
     }
   }
 
-  if (xname != "")
-    xAxis->setDefLabel(xname);
+  xAxis->setDefLabel(xname);
 
   //---
 
@@ -783,12 +853,12 @@ initRangeAxesI()
 
   QString yname;
 
-  if (valueColumns.count() <= 1) {
+  if (nc <= 1) {
     bool ok;
 
     yname = modelHHeaderString(valueColumns.column(), ok);
 
-    if (isPercent())
+    if (calcPercent())
       yname += " (%)";
   }
 
@@ -808,20 +878,20 @@ addRow(const ModelVisitor::VisitData &data, RangeData &rangeData) const
     for (const auto &column : valueColumns) {
       Columns columns { column };
 
-      addRowColumn(data, columns, column, rangeData, ic);
+      addRowColumn(data, columns, column, rangeData, ic, 0);
 
       ++ic;
     }
   }
   else {
     // add value set per column
-    if (isGroupByColumn()) {
+    if (calcGroupByColumn()) {
       int ic = 0;
 
       for (const auto &column : valueColumns) {
         Columns columns { column };
 
-        addRowColumn(data, columns, column, rangeData, ic);
+        addRowColumn(data, columns, column, rangeData, ic, 0);
 
         ++ic;
       }
@@ -831,7 +901,7 @@ addRow(const ModelVisitor::VisitData &data, RangeData &rangeData) const
       int ng = numGroups();
 
       if (ng > 1) {
-        addRowColumn(data, valueColumns, Column(), rangeData, -1);
+        addRowColumn(data, valueColumns, Column(), rangeData, -1, 0);
       }
       else {
         int ic = 0;
@@ -839,7 +909,7 @@ addRow(const ModelVisitor::VisitData &data, RangeData &rangeData) const
         for (const auto &column : valueColumns) {
           Columns columns { column };
 
-          addRowColumn(data, columns, Column(), rangeData, ic);
+          addRowColumn(data, columns, Column(), rangeData, ic, 0);
 
           ++ic;
         }
@@ -851,7 +921,8 @@ addRow(const ModelVisitor::VisitData &data, RangeData &rangeData) const
 void
 CQChartsBarChartPlot::
 addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
-             const Column &valueColumn, RangeData &rangeData, int columnInd) const
+             const Column &valueColumn, RangeData &rangeData, int columnInd,
+             int ic) const
 {
   auto *th = const_cast<CQChartsBarChartPlot *>(this);
 
@@ -903,7 +974,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
 
   if (groupName == "") {
     if (useColumnInd)
-      groupName = columnHeaderName(valueColumns.getColumn(columnInd), /*tip*/false);
+      groupName = columnHeaderName(valueColumns.getColumn(ic), /*tip*/false);
     else
       groupName = QString::number(groupInd);
   }
@@ -916,15 +987,21 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
 
   // get group string (if defined) and update group name
   QString group;
+  int     setId = -1;
 
   if (groupColumn().isValid()) {
     ModelIndex groupModelInd(th, data.row, groupColumn(), data.parent);
 
     bool ok1;
-
     group = modelHierString(groupModelInd, ok1);
 
     categoryName = group;
+
+    const auto *groupDetails = this->columnDetails(groupColumn());
+
+    if (groupDetails) {
+      setId = groupDetails->uniqueId(group);
+    }
   }
 
   //---
@@ -1042,6 +1119,11 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
 
   //---
 
+  if (valueColumn.isValid())
+    valueData.setValueColumn(valueColumn);
+
+  //---
+
   int ns = calcNumSets();
 
   if (ns > 1) {
@@ -1116,6 +1198,8 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
     }
   }
 
+  valueData.setSetId(setId);
+
   // add value(s) to value set
   valueSet->addValue(valueData);
 
@@ -1130,14 +1214,14 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
   // calc pos/neg sums
   double posSum = 0.0, negSum = 0.0;
 
-  if (isPercent() || isStacked()) {
+  if (calcPercent() || calcStacked()) {
     valueSet->calcSums(posSum, negSum);
   }
 
   // scale for percent
   double scale = 1.0;
 
-  if (isPercent()) {
+  if (calcPercent()) {
     double total = posSum - negSum;
 
     scale = (total > 0.0 ? 100.0/total : 1.0);
@@ -1146,7 +1230,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
   //---
 
   // update range for scale and sums (TODO: only after all rows processed ?)
-  if (isStacked()) {
+  if (calcStacked()) {
     if (isValueValue()) {
       updateRange(0, scale*posSum);
       updateRange(0, scale*negSum);
@@ -1236,32 +1320,72 @@ groupValueSetI(int groupInd, int columnInd)
 
   auto name = groupIndName(groupInd);
 
+  Column valueColumn;
+
+  if (columnInd >= 0)
+    valueColumn = valueColumns.getColumn(columnInd);
+
   if (name == "") {
     if (columnInd >= 0)
-      name = columnHeaderName(valueColumns.getColumn(columnInd), /*tip*/false);
+      name = columnHeaderName(valueColumn, /*tip*/false);
     else
       name = QString::number(groupInd);
   }
+
+  if (! valueColumn.isValid() && calcGroupByColumn()) {
+    auto valueColumns = calcValueColumns();
+
+    valueColumn = valueColumns.getColumn(groupInd);
+  }
+
+  //---
+
+  bool found = false;
+  int  ind1  = ind;
 
   auto type = groupType();
 
   if (type == ColumnType::REAL || type == ColumnType::INTEGER) {
     auto value = groupIndValue(groupInd);
 
-    valueData_.valueInds[value] = ind;
+    auto p = valueData_.valueInds.find(value);
+
+    if (p == valueData_.valueInds.end())
+      valueData_.valueInds[value] = ind;
+    else {
+      ind1 = (*p).second;
+      found = true;
+    }
   }
-  else
-    valueData_.valueInds[name] = ind;
+  else {
+    auto p = valueData_.valueInds.find(name);
 
-  valueData_.valueSets.emplace_back(name, ind);
+    if (p == valueData_.valueInds.end())
+      valueData_.valueInds[name] = ind;
+    else {
+      ind1 = (*p).second;
+      found = true;
+    }
+  }
 
-  valueData_.valueGroupInd[groupInd] = ind;
+  ValueSet *valueSet = nullptr;
 
-  auto *valueSet = &valueData_.valueSets.back();
+  if (! found) {
+    valueData_.valueSets.emplace_back(name, ind, valueColumn);
 
-  valueSet->setGroupInd(groupInd);
+    valueData_.valueGroupInd[groupInd] = ind;
 
-  assert(valueData_.valueInds.size() == valueData_.valueSets.size());
+    valueSet = &valueData_.valueSets.back();
+
+    valueSet->setGroupInd(groupInd);
+
+    assert(valueData_.valueInds.size() == valueData_.valueSets.size());
+  }
+  else {
+    assert(ind1 >= 0 && size_t(ind1) < valueData_.valueSets.size());
+
+    valueSet = &valueData_.valueSets[size_t(ind1)];
+  }
 
   return valueSet;
 }
@@ -1274,11 +1398,7 @@ calcNumSets() const
 {
   auto valueColumns = calcValueColumns();
 
-#if 0
-  return (isValueValue() ? valueColumns.count() : 1);
-#else
-  return (isGroupByColumn() ? valueColumns.count() : 1);
-#endif
+  return (calcGroupByColumn() ? valueColumns.count() : 1);
 }
 
 //------
@@ -1341,7 +1461,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  auto addValueSetBarObj = [&](const ValueSet &valueSet, int iv) {
+  auto addValueSetBarObj = [&](const ValueSet &valueSet, int iv, const Column &column) {
     double min = 0.0, max = 0.0, mean = 0.0, sum = 0.0;
 
     if (! valueSet.calcStats(min, max, mean, sum))
@@ -1360,18 +1480,18 @@ createObjs(PlotObjs &objs) const
 
     //---
 
-    const auto &ivalue    = valueSet.value(0);
-    const auto &valueInds = ivalue.valueInds();
+    QModelIndices inds;
 
-    BarValue::ValueInd ind;
+    for (const auto &ivalue : valueSet.values()) {
+      const auto &valueInds = ivalue.valueInds();
 
-    if (! valueInds.empty())
-      ind = valueInds[0];
+      for (const auto &valueInd : valueInds)
+        inds.push_back(valueInd.ind);
+    }
 
-    //---
-
-    auto *barObj = createBarObj(brect, /*valueSet*/true, iv,
-                                ColorInd(), ColorInd(iv, nv), ColorInd(), ind.ind);
+    auto *barObj =
+      createBarObj(brect, /*valueSet*/true, iv, column,
+                   ColorInd(), ColorInd(iv, nv), ColorInd(), inds, false, -1);
 
     barObj->connectDataChanged(this, SLOT(updateSlot()));
 
@@ -1382,7 +1502,9 @@ createObjs(PlotObjs &objs) const
 
   auto addValueBarObj = [&](int groupInd, const BarValue &ivalue, int iv, int ivs, int nvs,
                             double scale, double bx1, double bw1, double &lastPosValue,
-                            double &lastNegValue) {
+                            double &lastNegValue, const Column &column, int ivalueSetInd) {
+    bool singleValue = (ivalue.valueInds().size() == 1);
+
     BarValue::ValueInd minInd, maxInd;
     double             mean = 0.0, sum = 0.0;
 
@@ -1407,7 +1529,7 @@ createObjs(PlotObjs &objs) const
     double value1 { 0.0 }, value2 { 0.0 };
 
     if      (isValueValue()) {
-      if (isStacked()) {
+      if (calcStacked()) {
         if (minInd.value >= 0) {
           value1 = lastPosValue;
           value2 = value1 + scale*minInd.value;
@@ -1429,7 +1551,7 @@ createObjs(PlotObjs &objs) const
       }
     }
     else if (isValueRange()) {
-      if (isStacked()) {
+      if (calcStacked()) {
         value1 = lastPosValue;
         value2 = value1 + scale*(maxInd.value - minInd.value);
       }
@@ -1439,7 +1561,7 @@ createObjs(PlotObjs &objs) const
       }
     }
     else if (isValueMin()) {
-      if (isStacked()) {
+      if (calcStacked()) {
         value1 = lastPosValue;
         value2 = value1 + scale*minInd.value;
       }
@@ -1449,7 +1571,7 @@ createObjs(PlotObjs &objs) const
       }
     }
     else if (isValueMax()) {
-      if (isStacked()) {
+      if (calcStacked()) {
         value1 = lastPosValue;
         value2 = value1 + scale*maxInd.value;
       }
@@ -1459,7 +1581,7 @@ createObjs(PlotObjs &objs) const
       }
     }
     else if (isValueMean()) {
-      if (isStacked()) {
+      if (calcStacked()) {
         value1 = lastPosValue;
         value2 = value1 + scale*mean;
       }
@@ -1474,7 +1596,7 @@ createObjs(PlotObjs &objs) const
         return false;
     }
 
-    if (isStacked())
+    if (calcStacked())
       brect = CQChartsGeom::makeDirBBox(isHorizontal(), bx, value1, bx + 1.0, value2);
     else
       brect = CQChartsGeom::makeDirBBox(isHorizontal(), bx1, value1, bx1 + bw1, value2);
@@ -1490,8 +1612,11 @@ createObjs(PlotObjs &objs) const
       // multiple sets:
       //  . set per value column (ns == nvs)
       //  . group per group column unique value
-      if (isGroupByColumn()) {
-        cis = ColorInd(iv, nv);
+      if (calcGroupByColumn()) {
+        const auto *groupDetails = this->columnDetails(groupColumn());
+        int ncs = (groupDetails ? groupDetails->numUnique() : 0);
+
+        cis = ColorInd(ivalue.setId(), ncs);
         cig = ColorInd(iv, nv);
         civ = ColorInd(ivs, nvs);
       }
@@ -1505,8 +1630,18 @@ createObjs(PlotObjs &objs) const
       }
     }
     else if (nv > 1) {
-      // single set, multiple groups :
+      // multiple sets (is color by set anf multiple columns), multiple groups :
       cis = ColorInd(0, 1);
+
+      if (calcColorBySet()) {
+        auto valueColumns = calcValueColumns();
+
+        int nc = valueColumns.count();
+
+        if (nc > 0 && column.isValid())
+          cis = ColorInd(valueColumns.columnInd(column), nc);
+      }
+
       cig = ColorInd(iv, nv);
       civ = ColorInd(ivs, nvs);
     }
@@ -1519,7 +1654,13 @@ createObjs(PlotObjs &objs) const
       civ = ColorInd(ivs, nvs);
     }
 
-    auto *barObj = createBarObj(brect, /*valueSet*/false, iv, cis, cig, civ, minInd.ind);
+    QModelIndices inds;
+
+    inds.push_back(minInd.ind);
+
+    auto *barObj =
+      createBarObj(brect, /*valueSet*/false, iv, column, cis, cig, civ, inds,
+                   singleValue, ivalueSetInd);
 
     barObj->connectDataChanged(this, SLOT(updateSlot()));
 
@@ -1577,19 +1718,32 @@ createObjs(PlotObjs &objs) const
     int numVisible1 = 0;
 
     if      (ns > 1) {
-      for (int ivs = 0; ivs < nvs; ++ivs)
-        numVisible1 += ! isValueHidden(ivs);
+      for (int ivs = 0; ivs < nvs; ++ivs) {
+        const auto &ivalue = valueSet.value(ivs);
+
+        numVisible1 += ! isValueHidden(ivalue, ivs);
+      }
     }
-    else if (nv > 1)
-      numVisible1 = nvs;
-    else
+    else if (nv > 1) {
+      if (calcColorBySet()) {
+        for (int ivs = 0; ivs < nvs; ++ivs) {
+          const auto &ivalue = valueSet.value(ivs);
+
+          numVisible1 += ! isValueHidden(ivalue, ivs);
+        }
+      }
+      else
+        numVisible1 = nvs;
+    }
+    else {
       numVisible1 = 1;
+    }
 
     //---
 
     double scale = 1.0;
 
-    if (isPercent()) {
+    if (calcPercent()) {
       double posSum = 0.0, negSum = 0.0;
 
       valueSet.calcSums(posSum, negSum);
@@ -1606,15 +1760,15 @@ createObjs(PlotObjs &objs) const
     // calc bar width (side by side)
     double bw1 = 1.0;
 
-    if (! isStacked())
+    if (! calcStacked())
       bw1 = 1.0/numVisible1;
 
     //---
 
     // if single value column (ns == 1) and summary value (range, min, max, mean) for values
     // per group then single bar
-    if (! isValueValue() && (ns == 1 || isGroupByColumn())) {
-      if (! addValueSetBarObj(valueSet, iv)) {
+    if (! isValueValue() && (ns == 1 || calcGroupByColumn())) {
+      if (! addValueSetBarObj(valueSet, iv, valueSet.column())) {
         if (isSkipEmpty())
           continue; // no inc bx
       }
@@ -1623,19 +1777,24 @@ createObjs(PlotObjs &objs) const
       // NOTE: summary values (min, max, mean, range, sum are across the multiple value columns)
       double lastPosValue = 0.0, lastNegValue = 0.0;
 
-      // per value
+      // per value in set
       for (int ivs = 0; ivs < nvs; ++ivs) {
-        if (isValueHidden(ivs))
+        const auto &ivalue = valueSet.value(ivs);
+
+        if (isValueHidden(ivalue, ivs))
           continue;
 
         //---
 
-        const auto &ivalue = valueSet.value(ivs);
-
         int groupInd = valueSet.groupInd();
 
+        auto column = valueSet.column();
+
+        if (! column.isValid())
+          column = ivalue.valueColumn();
+
         if (! addValueBarObj(groupInd, ivalue, iv, ivs, nvs, scale, bx1, bw1,
-                             lastPosValue, lastNegValue))
+                             lastPosValue, lastNegValue, column, ivs))
           continue;
 
         bx1 += bw1;
@@ -1752,14 +1911,13 @@ initObjAxesI()
 
         if (isValueValue()) {
           for (int ivs = 0; ivs < nvs; ++ivs) {
-            if (isValueHidden(ivs))
+            const auto &ivalue = valueSet.value(ivs);
+
+            if (isValueHidden(ivalue, ivs))
               continue;
 
-            if (positions.find(numVisible) != positions.end()) {
-              const auto &value = valueSet.value(ivs);
-
-              xAxis->setTickLabel(numVisible, value.valueName());
-            }
+            if (positions.find(numVisible) != positions.end())
+              xAxis->setTickLabel(numVisible, ivalue.valueName());
 
             ++numVisible;
           }
@@ -1768,12 +1926,12 @@ initObjAxesI()
           QStringList names;
 
           for (int ivs = 0; ivs < nvs; ++ivs) {
-            if (isValueHidden(ivs))
+            const auto &ivalue = valueSet.value(ivs);
+
+            if (isValueHidden(ivalue, ivs))
               continue;
 
-            const auto &value = valueSet.value(ivs);
-
-            names += value.valueName();
+            names += ivalue.valueName();
           }
 
           xAxis->setTickLabel(numVisible, names.join(", "));
@@ -1822,6 +1980,15 @@ void
 CQChartsBarChartPlot::
 addKeyItems(PlotKey *key)
 {
+  addKeyItems1(key);
+
+  key->plot()->updateKeyPosition(/*force*/true);
+}
+
+void
+CQChartsBarChartPlot::
+addKeyItems1(PlotKey *key)
+{
   // start at next row (vertical) or next column (horizontal) from previous key
   int row = (! key->isHorizontal() ? key->maxRow() : 0);
   int col = (! key->isHorizontal() ? 0 : key->maxCol());
@@ -1845,46 +2012,90 @@ addKeyItems(PlotKey *key)
 
   //---
 
+  if (isGroupKey()) {
+    key->setDefHeaderStr("Set", /*update*/false);
+
+    const auto *groupDetails = this->columnDetails(groupColumn());
+    assert(groupDetails);
+
+    int ncs = groupDetails->numUnique();
+
+    for (int ics = 0; ics < ncs; ++ics) {
+      auto name = groupDetails->uniqueValue(ics).toString();
+
+      ColorInd ic(ics, ncs);
+
+      addKeyRow(ic, ic, ic, name);
+    }
+
+    return;
+  }
+
+  //---
+
+  if (isColumnsKey()) {
+    key->setDefHeaderStr("Columns", /*update*/false);
+
+    auto valueColumns = calcValueColumns();
+
+    int ics = 0;
+    int ncs = valueColumns.count();
+
+    for (const auto &c : valueColumns) {
+      bool ok;
+      auto name = modelHHeaderString(c, ok);
+
+      if (! name.length())
+        name = c.toString();
+
+      ColorInd ic(ics, ncs);
+
+      addKeyRow(ic, ic, ic, name);
+
+      ++ics;
+    }
+
+    return;
+  }
+
+  //---
+
   int ns = calcNumSets();
   int nv = numValueSets();
 
   if (ns > 1) {
-    // ivs is 'value set' index (group)
-    // iv is 'value set' value index
-    if (isColorBySet()) {
+    // color by column
+    if (calcGroupByColumn()) {
+      key->setDefHeaderStr("Column", /*update*/false);
+
       for (int iv = 0; iv < nv; ++iv) {
         const auto &valueSet = this->valueSet(iv);
 
         auto name = valueSet.name();
 
-        addKeyRow(ColorInd(iv, nv), ColorInd(iv, nv), ColorInd(), name);
+        addKeyRow(ColorInd(iv, nv), ColorInd(iv, nv), ColorInd(iv, nv), name);
       }
     }
+    // color by group unique value
     else {
-      // color by column
-      if (isGroupByColumn()) {
-        for (int iv = 0; iv < nv; ++iv) {
-          const auto &valueSet = this->valueSet(iv);
+      key->setDefHeaderStr("Group", /*update*/false);
 
-          auto name = valueSet.name();
+      int ng = numGroups();
 
-          addKeyRow(ColorInd(iv, nv), ColorInd(iv, nv), ColorInd(), name);
-        }
-      }
-      // color by group unique value
-      else {
-        int ng = numGroups();
+      for (int ig = 0; ig < ng; ++ig) {
+        auto name = groupIndName(ig);
 
-        for (int ig = 0; ig < ng; ++ig) {
-          auto name = groupIndName(ig);
-
-          addKeyRow(ColorInd(), ColorInd(ig, ng), ColorInd(), name);
-        }
+        addKeyRow(ColorInd(), ColorInd(ig, ng), ColorInd(ig, ng), name);
       }
     }
   }
   else {
     if      (nv > 1) {
+      if (groupColumn().isValid())
+        key->setDefHeaderStr("Group", /*update*/false);
+      else
+        key->setDefHeaderStr("Column", /*update*/false);
+
       for (int iv = 0; iv < nv; ++iv) {
         const auto &valueSet = this->valueSet(iv);
 
@@ -1916,12 +2127,14 @@ addKeyItems(PlotKey *key)
 
         auto name = valueSet.name();
 
-        addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), name, c);
+        addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(iv, nv), name, c);
       }
     }
     else if (nv == 1) {
       // no group, single column, value type (bar per value)
       if (isValueValue()) {
+        key->setDefHeaderStr("Value", /*update*/false);
+
         const auto &valueSet = this->valueSet(0);
 
         int nvs = valueSet.numValues();
@@ -1954,59 +2167,14 @@ addKeyItems(PlotKey *key)
         }
       }
       else {
+        key->setDefHeaderStr("Column", /*update*/false);
+
         auto name = this->valueName();
 
         addKeyRow(ColorInd(), ColorInd(), ColorInd(0, 1), name);
       }
     }
-
-#if 0
-    if (isGroupHeaders()) {
-      for (int iv = 0; iv < nv; ++iv) {
-        const auto &valueSet = this->valueSet(iv);
-
-        QColor c;
-
-        if (valueSet.numValues() == 1) {
-          const auto &ivalue = valueSet.value(0);
-
-          const auto &valueInds = ivalue.valueInds();
-          assert(! valueInds.empty());
-
-          const auto &ind0 = valueInds[0];
-
-          QModelIndex parent; // TODO
-          Color       color;
-
-          if (colorColumnColor(ind0.vrow, parent, color))
-            c = interpColor(color, ColorInd());
-
-          if (! colorVisible(c))
-            continue;
-        }
-
-        auto name = valueSet.name();
-
-        addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), name, c);
-      }
-    }
-    else {
-      auto title = this->titleStr();
-
-      if (! title.length()) {
-        bool ok;
-
-        auto yname = modelHHeaderString(valueColumns.column(), ok);
-
-        title = yname;
-      }
-
-      addKeyRow(ColorInd(), ColorInd(), ColorInd(), title);
-    }
-#endif
   }
-
-  key->plot()->updateKeyPosition(/*force*/true);
 }
 
 //---
@@ -2015,6 +2183,12 @@ bool
 CQChartsBarChartPlot::
 isSetHidden(int i) const
 {
+  // group key filters by value
+  if (isGroupKey() || isColumnsKey())
+    return false;
+
+  //---
+
   int ns = calcNumSets();
   int nv = numValueSets();
 
@@ -2036,14 +2210,37 @@ isSetHidden(int i) const
 
 bool
 CQChartsBarChartPlot::
-isValueHidden(int i) const
+isValueHidden(const BarValue &value, int i) const
 {
+  // group key filters by value
+  if (isGroupKey()) {
+    int is = value.setId();
+
+    if (is >= 0)
+      return CQChartsPlot::isSetHidden(is);
+
+    return false;
+  }
+
+  if (isColumnsKey()) {
+    auto valueColumns = calcValueColumns();
+
+    int is = valueColumns.columnInd(value.valueColumn());
+
+    if (is >= 0)
+      return CQChartsPlot::isSetHidden(is);
+
+    return false;
+  }
+
+  //---
+
   int ns = calcNumSets();
   int nv = numValueSets();
 
   if      (ns > 1) {
     // if not color by set then key hides set values
-    if (! isColorBySet())
+    if (! calcColorBySet())
       return CQChartsPlot::isSetHidden(i);
 
     return false;
@@ -2156,10 +2353,12 @@ execDrawForeground(PaintDevice *device) const
 
 CQChartsBarChartObj *
 CQChartsBarChartPlot::
-createBarObj(const BBox &rect, bool valueSet, int valueSetInd, const ColorInd &is,
-             const ColorInd &ig, const ColorInd &iv, const QModelIndex &ind) const
+createBarObj(const BBox &rect, bool valueSet, int valueSetInd, const Column &column,
+             const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
+             const QModelIndices &inds, bool singleValue, int ivalueSetInd) const
 {
-  return new CQChartsBarChartObj(this, rect, valueSet, valueSetInd, is, ig, iv, ind);
+  return new CQChartsBarChartObj(this, rect, valueSet, valueSetInd, column,
+                                 is, ig, iv, inds, singleValue, ivalueSetInd);
 }
 
 //---
@@ -2182,16 +2381,17 @@ createCustomControls()
 //------
 
 CQChartsBarChartObj::
-CQChartsBarChartObj(const CQChartsBarChartPlot *barChartPlot, const BBox &rect, bool valueSet,
-                    int valueSetInd, const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
-                    const QModelIndex &ind) :
+CQChartsBarChartObj(const BarChartPlot *barChartPlot, const BBox &rect, bool valueSet,
+                    int valueSetInd, const Column &column, const ColorInd &is, const ColorInd &ig,
+                    const ColorInd &iv, const QModelIndices &inds, bool singleValue,
+                    int ivalueSetInd) :
  CQChartsPlotObj(const_cast<CQChartsBarChartPlot *>(barChartPlot), rect, is, ig, iv),
- barChartPlot_(barChartPlot), valueSet_(valueSet), valueSetInd_(valueSetInd)
+ barChartPlot_(barChartPlot), valueSet_(valueSet), valueSetInd_(valueSetInd), column_(column),
+ singleValue_(singleValue), ivalueSetInd_(ivalueSetInd)
 {
   setDetailHint(DetailHint::MAJOR);
 
-  if (ind.isValid())
-    setModelInd(ind);
+  setModelInds(inds);
 }
 
 CQChartsBarChartObj::
@@ -2277,12 +2477,24 @@ calcTipId() const
 
   //---
 
-  auto valueColumns = barChartPlot_->calcValueColumns();
+  if      (! isValueSet() && barChartPlot_->calcGroupByColumn())
+    addOptColumnRow(barChartPlot_->groupColumn(), "Group", this->nameStr());
+  else if (! isValueSet() || ! barChartPlot_->calcGroupByColumn()) {
+    addOptColumnRow(barChartPlot_->groupColumn(), "Group", this->groupStr());
+    addOptColumnRow(barChartPlot_->nameColumn (), "Name", this->nameStr());
+  }
 
-  addOptColumnRow (barChartPlot_->groupColumn (), "Group", this->groupStr());
-  addOptColumnRow (barChartPlot_->nameColumn  (), "Name" , this->nameStr ());
-  addOptColumnsRow(valueColumns         , "Value", this->valueStr());
-  addOptColumnRow (barChartPlot_->colorColumn (), "Color");
+  Column  column;
+  Columns columns;
+
+  calcValueColumns(column, columns);
+
+  if (singleValue_ || columns.count() == 1)
+    addOptColumnRow(column, "Value", this->valueStr());
+  else
+    addOptColumnsRow(columns, "Value", this->valueStr());
+
+  addOptColumnRow(barChartPlot_->colorColumn(), "Color");
 
   //---
 
@@ -2440,36 +2652,40 @@ void
 CQChartsBarChartObj::
 getObjSelectIndices(Indices &inds) const
 {
-  auto valueColumns = barChartPlot_->calcValueColumns();
-
   addColumnSelectIndex(inds, barChartPlot_->groupColumn());
 
-  int nv = valueColumns.count();
+  Column  column;
+  Columns columns;
 
-  if (barChartPlot_->isStacked()) {
-    if (ig_.i < nv)
-      addColumnSelectIndex(inds, valueColumns.getColumn(ig_.i));
-  }
-  else {
-    if (is_.i < nv)
-      addColumnSelectIndex(inds, valueColumns.getColumn(is_.i));
-  }
+  calcValueColumns(column, columns);
+
+  for (const auto &c : columns.columns())
+    addColumnSelectIndex(inds, c);
 
   addColumnSelectIndex(inds, barChartPlot_->nameColumn());
   addColumnSelectIndex(inds, barChartPlot_->labelColumn());
 }
 
-#if 0
-bool
+void
 CQChartsBarChartObj::
-isHidden() const
+calcValueColumns(Column &column, Columns &columns) const
 {
-  if (is_.n > 1)
-    return barChartPlot_->isSetHidden(is_.i);
-  else
-    return barChartPlot_->isSetHidden(ig_.i);
+  column = this->column();
+
+  if (isValueSet()) {
+    const auto &valueSet = barChartPlot_->valueSet(valueSetInd_);
+
+    if (valueSet.column().isValid())
+      column = valueSet.column();
+  }
+
+  if (column.isValid())
+    columns = Columns(column);
+  else {
+    columns = barChartPlot_->calcValueColumns();
+    column  = columns.column();
+  }
 }
-#endif
 
 void
 CQChartsBarChartObj::
@@ -2479,7 +2695,7 @@ draw(PaintDevice *device) const
   double m1 = barChartPlot_->lengthPixelSize(barChartPlot_->margin(), barChartPlot_->isVertical());
   double m2 = m1;
 
-  if (! barChartPlot_->isStacked()) {
+  if (! barChartPlot_->calcStacked()) {
     if      (is_.n > 1) {
       if      (ig_.i == 0)
         m1 = barChartPlot_->lengthPixelSize(barChartPlot_->groupMargin(),
@@ -2542,17 +2758,22 @@ drawShape(PaintDevice *device, const BBox &bbox) const
 
   //---
 
-  if      (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::DOT_LINE) {
-    drawDotLine(device, bbox, barPenBrush);
-  }
-  else if (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::BOX) {
-    drawBox(device, bbox);
-  }
-  else if (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::SCATTER) {
-    drawScatter(device, bbox);
-  }
-  else if (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::VIOLIN) {
-    drawViolin(device, bbox);
+  if (isValueSet()) {
+    if      (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::DOT_LINE) {
+      drawDotLine(device, bbox, barPenBrush);
+    }
+    else if (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::BOX) {
+      drawBox(device, bbox);
+    }
+    else if (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::SCATTER) {
+      drawScatter(device, bbox);
+    }
+    else if (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::VIOLIN) {
+      drawViolin(device, bbox);
+    }
+    else {
+      drawRect(device, bbox, barPenBrush);
+    }
   }
   else {
     drawRect(device, bbox, barPenBrush);
@@ -2689,7 +2910,7 @@ drawFg(PaintDevice *device) const
 
       double scale = 1.0;
 
-      if (barChartPlot_->isPercent()) {
+      if (barChartPlot_->calcPercent()) {
         const auto *valueSet = this->valueSet();
 
         double posSum = 0.0, negSum = 0.0;
@@ -2829,15 +3050,17 @@ calcBarColor() const
         barColor = barChartPlot_->interpBarFillColor(ig_);
       }
       else {
-        if (barChartPlot_->isColorBySet())
-          barColor = barChartPlot_->interpBarFillColor(ig_);
-        else
+        if (barChartPlot_->calcColorBySet())
           barColor = barChartPlot_->interpBarFillColor(is_);
+        else
+          barColor = barChartPlot_->interpBarFillColor(ig_);
       }
     }
     else {
       if (! color_.isValid()) {
-        if      (ig_.n > 1)
+        if      (barChartPlot_->calcColorBySet())
+          barColor = barChartPlot_->interpBarFillColor(is_);
+        else if (ig_.n > 1)
           barColor = barChartPlot_->interpBarFillColor(ig_);
         else if (iv_.n > 1)
           barColor = barChartPlot_->interpBarFillColor(iv_);
@@ -2869,16 +3092,18 @@ value() const
 {
   const auto *valueSet = this->valueSet();
 
-  if (is_.n > 1) {
-    const auto &ivalue = valueSet->value(is_.i);
+  int i = ivalueSetInd_;
 
-    return &ivalue;
+  if (i < 0) {
+    if (is_.n > 1)
+      i = is_.i;
+    else
+      i = iv_.i;
   }
-  else {
-    const auto &ivalue = valueSet->value(iv_.i);
 
-    return &ivalue;
-  }
+  const auto &ivalue = valueSet->value(i);
+
+  return &ivalue;
 }
 
 const CQChartsBarChartValueSet *
@@ -2907,42 +3132,6 @@ CQChartsBarColorKeyItem(BarChartPlot *barChartPlot, const QString &name, const C
   setClickable(true);
 }
 
-#if 0
-bool
-CQChartsBarColorKeyItem::
-selectPress(const Point &, SelData &selData)
-{
-  if (selData.selMod == SelMod::ADD) {
-    for (int i = 0; i < iv_.n; ++i) {
-      barChartPlot_->CQChartsPlot::setSetHidden(i, i != iv_.i);
-    }
-  }
-  else {
-    setSetHidden(! isSetHidden());
-  }
-
-  return true;
-}
-#endif
-
-#if 0
-void
-CQChartsBarColorKeyItem::
-doSelect(SelMod)
-{
-  CQChartsPlot::PlotObjs objs;
-
-  plot()->getGroupObjs(ig_.i, objs);
-  if (objs.empty()) return;
-
-  //---
-
-  plot()->selectObjs(objs, /*export*/true);
-
-  key_->redraw(/*wait*/ true);
-}
-#endif
-
 QBrush
 CQChartsBarColorKeyItem::
 fillBrush() const
@@ -2956,7 +3145,7 @@ fillBrush() const
     int ns = barChartPlot_->calcNumSets();
 
     if (ns > 1) {
-      if (barChartPlot_->isColorBySet()) {
+      if (barChartPlot_->calcColorBySet()) {
         if (ig_.n > 1)
           barColor = barChartPlot_->interpBarFillColor(ig_);
         else
@@ -3036,42 +3225,65 @@ tipText(const Point &, QString &tip) const
 
   double posSum = 0.0, negSum = 0.0;
 
+  auto valueSetTip = [&](int i) {
+    const auto &valueSet = barChartPlot_->valueSet(i);
+
+    valueSet.calcSums(posSum, negSum);
+
+    count = valueSet.numValues();
+  };
+
+  //---
+
   int ns = barChartPlot_->calcNumSets();
   int nv = barChartPlot_->numValueSets();
 
-  if (ns > 1) {
-    if (barChartPlot_->isColorBySet()) {
-      const auto &valueSet = barChartPlot_->valueSet(iv_.i);
+  //---
 
-      valueSet.calcSums(posSum, negSum);
+  if      (barChartPlot_->isGroupKey()) {
+    const auto &valueSet = barChartPlot_->valueSet(is_.i);
 
-      count = valueSet.numValues();
+    valueSet.calcSums(posSum, negSum);
+
+    count = valueSet.numValues();
+  }
+  else if (barChartPlot_->isColumnsKey()) {
+    const auto &valueSet = barChartPlot_->valueSet(is_.i);
+
+    valueSet.calcSums(posSum, negSum);
+
+    count = valueSet.numValues();
+  }
+  else if (ns > 1) {
+    if (barChartPlot_->calcColorBySet()) {
+      valueSetTip(iv_.i);
     }
     else {
-      count = barChartPlot_->numSetValues();
+      if (barChartPlot_->calcGroupByColumn()) {
+        valueSetTip(is_.i);
+      }
+      else {
+        count = barChartPlot_->numSetValues();
 
-      for (int i = 0; i < nv; ++i) {
-        const auto &valueSet = barChartPlot_->valueSet(i);
+        for (int i = 0; i < nv; ++i) {
+          const auto &valueSet = barChartPlot_->valueSet(i);
 
-        const auto &ivalue = valueSet.value(iv_.i);
+          const auto &ivalue = valueSet.value(iv_.i);
 
-        const auto &valueInds = ivalue.valueInds();
-        assert(! valueInds.empty());
+          const auto &valueInds = ivalue.valueInds();
+          assert(! valueInds.empty());
 
-        double value1 = valueInds[0].value;
+          double value1 = valueInds[0].value;
 
-        if (value1 >= 0) posSum += value1;
-        else             negSum += value1;
+          if (value1 >= 0) posSum += value1;
+          else             negSum += value1;
+        }
       }
     }
   }
   else {
     if      (nv > 1) {
-      const auto &valueSet = barChartPlot_->valueSet(iv_.i);
-
-      valueSet.calcSums(posSum, negSum);
-
-      count = valueSet.numValues();
+      valueSetTip(iv_.i);
     }
     else if (nv == 1) {
       const auto &valueSet = barChartPlot_->valueSet(0);
@@ -3089,6 +3301,8 @@ tipText(const Point &, QString &tip) const
     }
   }
 
+  //---
+
   QString sumStr;
 
   if (hasSum) {
@@ -3099,6 +3313,8 @@ tipText(const Point &, QString &tip) const
     else
       sumStr = QString("%1 -> %2").arg(negSum).arg(posSum);
   }
+
+  //---
 
   CQChartsTableTip tableTip;
 
@@ -3120,39 +3336,21 @@ tipText(const Point &, QString &tip) const
   return true;
 }
 
-#if 0
-bool
+CQChartsUtil::ColorInd
 CQChartsBarColorKeyItem::
-isSetHidden() const
+calcColorInd() const
 {
-  if      (is_.n > 1)
-    return barChartPlot_->CQChartsPlot::isSetHidden(is_.i);
-  else if (ig_.n > 1)
-    return barChartPlot_->CQChartsPlot::isSetHidden(ig_.i);
-  else if (iv_.n > 1)
-    return barChartPlot_->CQChartsPlot::isSetHidden(iv_.i);
-  else
-    return false;
-}
+  if (barChartPlot_->isGroupKey() || barChartPlot_->isColumnsKey())
+    return is_;
 
-void
-CQChartsBarColorKeyItem::
-setSetHidden(bool b)
-{
-  if      (is_.n > 1)
-    barChartPlot_->CQChartsPlot::setSetHidden(is_.i, b);
-  else if (ig_.n > 1)
-    barChartPlot_->CQChartsPlot::setSetHidden(ig_.i, b);
-  else if (iv_.n > 1)
-    barChartPlot_->CQChartsPlot::setSetHidden(iv_.i, b);
+  return CQChartsColorBoxKeyItem::calcColorInd();
 }
-#endif
 
 //------
 
 CQChartsBarTextKeyItem::
 CQChartsBarTextKeyItem(BarChartPlot *barChartPlot, const QString &text, const ColorInd &ic) :
- CQChartsTextKeyItem(barChartPlot, text, ic)
+ CQChartsTextKeyItem(barChartPlot, text, ic), barChartPlot_(barChartPlot)
 {
 }
 
@@ -3167,14 +3365,15 @@ interpTextColor(const ColorInd &ind) const
   return c;
 }
 
-#if 0
-bool
+CQChartsUtil::ColorInd
 CQChartsBarTextKeyItem::
-isSetHidden() const
+setIndex() const
 {
-  return barChartPlot_->CQChartsPlot::isSetHidden(ic_.i);
+  if (barChartPlot_->isGroupKey() || barChartPlot_->isColumnsKey())
+    return ic_;
+
+  return CQChartsTextKeyItem::setIndex();
 }
-#endif
 
 //------
 
@@ -3323,21 +3522,34 @@ updateWidgets()
 
   //---
 
-  if (orientationCombo_)
-    orientationCombo_->setCurrentValue(static_cast<int>(barChartPlot_->orientation()));
-  if (plotTypeCombo_   )
-    plotTypeCombo_   ->setCurrentValue(static_cast<int>(barChartPlot_->plotType()));
-  if (valueTypeCombo_  )
-    valueTypeCombo_  ->setCurrentValue(static_cast<int>(barChartPlot_->valueType()));
-  if (shapeTypeCombo_  )
-    shapeTypeCombo_  ->setCurrentValue(static_cast<int>(barChartPlot_->shapeType()));
+  auto setComboValue = [](CQChartsEnumParameterEdit *combo, int value) {
+    if (combo) combo->setCurrentValue(value);
+  };
+
+  setComboValue(orientationCombo_, static_cast<int>(barChartPlot_->orientation()));
+  setComboValue(plotTypeCombo_   , static_cast<int>(barChartPlot_->plotType()));
+  setComboValue(valueTypeCombo_  , static_cast<int>(barChartPlot_->valueType()));
+  setComboValue(shapeTypeCombo_  , static_cast<int>(barChartPlot_->shapeType()));
 
   //---
 
-  if (percentCheck_      ) percentCheck_      ->setChecked(barChartPlot_->isPercent());
-  if (skipEmptyCheck_    ) skipEmptyCheck_    ->setChecked(barChartPlot_->isSkipEmpty());
-  if (groupByColumnCheck_) groupByColumnCheck_->setChecked(barChartPlot_->isGroupByColumn());
-  if (colorBySetCheck_   ) colorBySetCheck_   ->setChecked(barChartPlot_->isColorBySet());
+  auto setCheckValue = [](CQChartsBoolParameterEdit *check, bool value) {
+    if (check) check->setChecked(value);
+  };
+
+  auto setCheckEnabled = [&](CQChartsBoolParameterEdit *check, bool enabled) {
+    if (! check) return;
+    setFrameWidgetEnabled(check, enabled);
+  };
+
+  setCheckValue(percentCheck_      , barChartPlot_->isPercent());
+  setCheckValue(skipEmptyCheck_    , barChartPlot_->isSkipEmpty());
+  setCheckValue(groupByColumnCheck_, barChartPlot_->isGroupByColumn());
+  setCheckValue(colorBySetCheck_   , barChartPlot_->isColorBySet());
+
+  setCheckEnabled(groupByColumnCheck_, barChartPlot_->groupColumn().isValid());
+  setCheckEnabled(colorBySetCheck_   , barChartPlot_->groupColumn().isValid() &&
+                                       barChartPlot_->isValueValue());
 
   //---
 

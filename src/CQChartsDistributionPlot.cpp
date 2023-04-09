@@ -1912,6 +1912,19 @@ calcBucket(int groupInd, double value) const
 
 //------
 
+void
+CQChartsDistributionPlot::
+clearPlotObjList()
+{
+  xAxis()->setDefLabel("");
+  xAxis()->clearTickLabels();
+
+  yAxis()->setDefLabel("");
+  yAxis()->clearTickLabels();
+
+  CQChartsPlot::clearPlotObjList();
+}
+
 bool
 CQChartsDistributionPlot::
 createObjs(PlotObjs &objs) const

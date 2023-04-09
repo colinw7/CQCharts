@@ -150,6 +150,8 @@ class CQChartsStripPlot : public CQChartsGroupPlot,
 
   //---
 
+  void initRange() override;
+
   Range calcRange() const override;
 
   //---

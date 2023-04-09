@@ -1061,7 +1061,7 @@ void
 CQChartsXYPlot::
 postCalcRange()
 {
-  if (! currentModel().data()) {
+  if (! currentModelData()) {
     xAxis()->setDefLabel("", /*notify*/false);
     yAxis()->setDefLabel("", /*notify*/false);
 

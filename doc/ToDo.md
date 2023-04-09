@@ -4,6 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + add model with type (data mode, extra model)
  + view toolbar (table, help, ...)
  + example full width toolbar widget (title, buttons) for force directed
  + fit with big title, small plot

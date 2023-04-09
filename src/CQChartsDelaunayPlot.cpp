@@ -392,8 +392,11 @@ void
 CQChartsDelaunayPlot::
 postCalcRange()
 {
-  if (! currentModel().data())
+  if (! currentModelData()) {
+    xAxis_->setDefLabel("");
+    yAxis_->setDefLabel("");
     return;
+  }
 
   bool ok;
 

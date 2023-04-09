@@ -1012,7 +1012,7 @@ void
 CQChartsScatterPlot::
 postCalcRange()
 {
-  if (! currentModel().data()) {
+  if (! currentModelData()) {
     xAxis()->setDefLabel("", /*notify*/false);
     yAxis()->setDefLabel("", /*notify*/false);
 
