@@ -1979,7 +1979,7 @@ execCmd(CQChartsCmdArgs &argv)
       else {
         QVariant value;
 
-        if (! CQUtil::getTclProperty(plotObj, name, value))
+        if (! plotObj->getProperty(name, value))
           return errorMsg("Failed to get plot object property '" + name + "'");
 
         bool rc;

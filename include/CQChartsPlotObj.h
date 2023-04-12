@@ -279,6 +279,8 @@ class CQChartsPlotObj : public CQChartsObj,
 
   virtual void getPropertyNames(QStringList &names, bool hidden=false) const;
 
+  virtual bool getProperty(const QString &name, QVariant &value) const;
+
   //---
 
   //! handle select press

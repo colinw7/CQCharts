@@ -34,6 +34,7 @@
 #include <CQChartsModelTable.h>
 #include <CQChartsVariant.h>
 #include <CQChartsUtil.h>
+#include <CQChartsHtml.h>
 #include <CQCharts.h>
 
 #include <CQChartsPaletteControl.h>
@@ -1155,16 +1156,47 @@ setObjects(const PlotObjs &objs)
 
   QString text;
 
+  text += "<style>th, td { padding: 2px; text-align: left; }</style>\n";
+
   for (const auto &obj : objs) {
-    text += "<p>" + obj->id() + "</p>\n";
+    text += "<h3>Object: " + obj->id() + "</h3>\n";
 
-    text += "<ul>\n";
+    text += "<table>\n";
 
-    for (const auto &ind : obj->modelInds()) {
-      text += "<li>" + indStr(ind) + "</li>\n";
+    //---
+
+    QStringList indStrs;
+
+    for (const auto &ind : obj->modelInds())
+      indStrs << indStr(ind);
+
+    text += CQChartsHtml::tableRow(CQChartsHtml::tableHeader("Inds", "left") +
+                                   CQChartsHtml::tableData(indStrs.join(", ")));
+
+    //---
+
+    QStringList names;
+
+    obj->getPropertyNames(names);
+
+    for (const auto &name : names) {
+      QVariant value;
+
+      if (! CQUtil::getTclProperty(obj, name, value))
+        continue;
+
+      QString valueStr;
+
+      if (! CQChartsVariant::toString(value, valueStr))
+        continue;
+
+      text += CQChartsHtml::tableRow(CQChartsHtml::tableHeader(name, "left") +
+                                     CQChartsHtml::tableData(valueStr));
     }
 
-    text += "</ul>\n";
+    //---
+
+    text += "<table>\n";
   }
 
   setHtml(text);

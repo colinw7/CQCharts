@@ -516,6 +516,57 @@ addModelI(const ModelP &model)
   models_.push_back(model);
 }
 
+//---
+
+void
+CQChartsPlot::
+addExtraModel(const ModelData *modelData)
+{
+  int ind;
+
+  if (! modelData || hasExtraModel(modelData, ind))
+    return;
+
+  extraModels_.push_back(modelData->model());
+}
+
+void
+CQChartsPlot::
+removeExtraModel(const ModelData *modelData)
+{
+  int ind;
+
+  if (! modelData || ! hasExtraModel(modelData, ind))
+    return;
+
+  for (uint i = ind + 1; i < extraModels_.size(); ++i)
+    extraModels_[i - 1] = extraModels_[i];
+
+  extraModels_.pop_back();
+}
+
+bool
+CQChartsPlot::
+hasExtraModel(const ModelData *modelData, int &ind) const
+{
+  if (! modelData) return false;
+
+  ind = 0;
+
+  for (const auto &model : extraModels_) {
+    if (modelData->model() == model)
+      return true;
+
+    ++ind;
+  }
+
+  ind = -1;
+
+  return false;
+}
+
+//---
+
 void
 CQChartsPlot::
 connectModels()
@@ -4578,6 +4629,13 @@ CQChartsPlot::
 getObjectPropertyNames(PlotObj *plotObj, QStringList &names) const
 {
   plotObj->getPropertyNames(names);
+}
+
+bool
+CQChartsPlot::
+getObjectProperty(PlotObj *plotObj, const QString &name, QVariant &value) const
+{
+  return plotObj->getProperty(name, value);
 }
 
 void

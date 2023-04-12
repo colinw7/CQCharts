@@ -315,9 +315,9 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   //---
 
-  QString groupStr() const;
-  QString nameStr () const;
-  QString valueStr() const;
+  QString groupStr(bool tip=false) const;
+  QString nameStr (bool tip=false) const;
+  QString valueStr(bool tip=false) const;
 
   //---
 

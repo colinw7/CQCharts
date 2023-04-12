@@ -211,7 +211,12 @@ void
 CQChartsForceDirectedPlot::
 setNodeModel(const CQChartsModelInd &model)
 {
-  CQChartsUtil::testAndSet(nodeModel_, model, [&]() {
+  if (nodeModel_ != model) {
+    if (nodeModel_.isValid())
+      removeExtraModel(nodeModel_.modelData());
+
+    nodeModel_ = model;
+
     nodeModel_.setCharts(charts());
 
     nodeIdColumn_     .setModelInd(nodeModel_.modelInd());
@@ -221,8 +226,10 @@ setNodeModel(const CQChartsModelInd &model)
     nodeInitPosColumn_.setModelInd(nodeModel_.modelInd());
     nodeColorColumn_  .setModelInd(nodeModel_.modelInd());
 
+    addExtraModel(nodeModel_.modelData());
+
     updateRangeAndObjs();
-  } );
+  }
 }
 
 void

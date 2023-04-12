@@ -94,6 +94,45 @@ class CQChartsHtml {
     return *this;
   }
 
+  //----
+
+  static QString tableHeader(const QString &str, const QString &align="right") {
+    return QString("<th style='text-align:%1'>%2</th>").arg(align).arg(str);
+  }
+
+  static QString tableRow(const QString &str) {
+    return QString("<tr>%1</tr>").arg(str);
+  }
+
+  static QString tableData(const QString &str="") {
+    if (str.length())
+      return QString("<td>%1</td>").arg(str);
+    else
+      return "<td>&nbsp;</td>";
+  }
+
+  template<typename T>
+  static QString tableDataT(const T &value) {
+    return QString("<td>%1</td>").arg(value);
+  }
+
+  static QString escapeText(const QString &str) {
+    QString str1;
+
+    int i   = 0;
+    int len = str.length();
+
+    while (i < len) {
+      if      (str[i] == '<') { str1 += "&lt;"  ; ++i; }
+      else if (str[i] == '>') { str1 += "&gt;"  ; ++i; }
+      else if (str[i] == '"') { str1 += "&quot;"; ++i; }
+      else if (str[i] == '&') { str1 += "&amp;" ; ++i; }
+      else                      str1 += str[i++];
+    }
+
+    return str1;
+  }
+
  private:
   Str str_;
 };

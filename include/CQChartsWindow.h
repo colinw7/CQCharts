@@ -22,6 +22,7 @@ class CQChartsWindowRangeScroll;
 class CQTabSplit;
 class QStackedWidget;
 class QSplitter;
+class QComboBox;
 
 #define CQChartsWindowMgrInst CQChartsWindowMgr::instance()
 
@@ -166,10 +167,14 @@ class CQChartsWindow : public QFrame {
 
   void resizeEvent(QResizeEvent *) override;
 
+  //---
+
   QSize sizeHint() const override;
 
  private:
   Plot *objectPlot(QObject *obj) const;
+
+  void addModelView(bool current);
 
  Q_SIGNALS:
   void interfacePaletteChanged();
@@ -179,6 +184,8 @@ class CQChartsWindow : public QFrame {
 
  private Q_SLOTS:
   void rangeScrollSlot();
+
+  void stackSlot(int ind);
 
   void filterAndSlot(bool b);
 
@@ -233,13 +240,25 @@ class CQChartsWindow : public QFrame {
   RangeScroll* xrangeScroll_ { nullptr }; //!< xrange scroll
   RangeScroll* yrangeScroll_ { nullptr }; //!< yrange scroll
 
-  CQTabSplit*      viewSplitter_ { nullptr }; //!< view splitter
-  QFrame*          tableFrame_   { nullptr }; //!< table frame
-  QStackedWidget*  viewStack_    { nullptr }; //!< view stack
-  FilterEdit*      filterEdit_   { nullptr }; //!< filter edit
-  ModelViewHolder* modelView_    { nullptr }; //!< model view
-  ToolBar*         toolbar_      { nullptr }; //!< toolbar
-  Status*          status_       { nullptr }; //!< status
+  CQTabSplit* viewSplitter_ { nullptr }; //!< view splitter
+
+  ToolBar* toolbar_ { nullptr }; //!< toolbar
+  Status*  status_  { nullptr }; //!< status
+
+  struct TableData {
+    bool             isCurrent  { false };   //!< is current plot model view
+    QFrame*          tableFrame { nullptr }; //!< table frame
+    FilterEdit*      filterEdit { nullptr }; //!< filter edit
+    ModelViewHolder* modelView  { nullptr }; //!< model view
+  };
+
+  using TableDatas = std::vector<TableData>;
+
+  QFrame*         tableFrame_    { nullptr };
+  QFrame*         modelSelFrame_ { nullptr };
+  QComboBox*      stackCombo_    { nullptr };
+  QStackedWidget* tableStack_    { nullptr };
+  TableDatas      tableDatas_;
 };
 
 //-----

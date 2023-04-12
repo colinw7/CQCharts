@@ -272,6 +272,9 @@ calcGroupByColumn() const
   if (! groupColumn().isValid())
     return false;
 
+  if (isRowGrouping())
+    return false;
+
   return true;
 }
 
@@ -478,7 +481,7 @@ CQChartsBarChartPlot::
 setGroupByColumn(bool b)
 {
   CQChartsUtil::testAndSet(groupByColumn_, b, [&]() {
-    updateRangeAndObjs(); Q_EMIT customDataChanged();
+    setRowGrouping(false); updateRangeAndObjs(); Q_EMIT customDataChanged();
   });
 }
 
@@ -2478,10 +2481,10 @@ calcTipId() const
   //---
 
   if      (! isValueSet() && barChartPlot_->calcGroupByColumn())
-    addOptColumnRow(barChartPlot_->groupColumn(), "Group", this->nameStr());
+    addOptColumnRow(barChartPlot_->groupColumn(), "Group", this->nameStr (/*tip*/true));
   else if (! isValueSet() || ! barChartPlot_->calcGroupByColumn()) {
-    addOptColumnRow(barChartPlot_->groupColumn(), "Group", this->groupStr());
-    addOptColumnRow(barChartPlot_->nameColumn (), "Name", this->nameStr());
+    addOptColumnRow(barChartPlot_->groupColumn(), "Group", this->groupStr(/*tip*/true));
+    addOptColumnRow(barChartPlot_->nameColumn (), "Name" , this->nameStr (/*tip*/true));
   }
 
   Column  column;
@@ -2527,25 +2530,60 @@ calcTipId() const
 
 QString
 CQChartsBarChartObj::
-groupStr() const
+groupStr(bool tip) const
 {
   const auto *value = this->value();
 
-  return value->groupName();
+  auto str = value->groupName();
+
+  if (! tip && ! str.length()) {
+    auto column = barChartPlot_->groupColumn();
+
+    if (column.isValid()) {
+      bool ok;
+
+      ModelIndex columnInd(barChartPlot_, modelInd().row(), column, modelInd().parent());
+
+      str = barChartPlot_->modelString(columnInd, ok);
+    }
+  }
+
+  return str;
 }
 
 QString
 CQChartsBarChartObj::
-nameStr() const
+nameStr(bool tip) const
 {
   const auto *value = this->value();
 
-  return value->valueName();
+  auto str = value->valueName();
+
+  if (! tip && ! str.length()) {
+    Column  column;
+    Columns columns;
+
+    calcValueColumns(column, columns);
+
+    if (singleValue_ || columns.count() == 1) {
+      bool ok;
+
+      if (barChartPlot_->calcGroupByColumn()) {
+        ModelIndex columnInd(barChartPlot_, modelInd().row(), column, modelInd().parent());
+
+        str = barChartPlot_->modelString(columnInd, ok);
+      }
+      else
+        str = barChartPlot_->modelHHeaderString(column, ok);
+    }
+  }
+
+  return str;
 }
 
 QString
 CQChartsBarChartObj::
-valueStr() const
+valueStr(bool /*tip*/) const
 {
   QString valueStr;
 

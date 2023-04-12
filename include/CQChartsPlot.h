@@ -465,6 +465,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   using ModelP          = QSharedPointer<QAbstractItemModel>;
   using SelectionModelP = QPointer<QItemSelectionModel>;
+  using ModelArray      = std::vector<ModelP>;
 
   using PlotObj  = CQChartsPlotObj;
   using PlotObjs = std::vector<PlotObj *>;
@@ -584,8 +585,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  ModelP currentModel() const;
+  // current model
 
+  // current mode;model data
+  ModelP     currentModel() const;
   ModelData *currentModelData() const;
 
   int currentModelIndex() const;
@@ -593,14 +596,30 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   const CQChartsModelInd &currentModelInd() const;
   void setCurrentModelInd(const CQChartsModelInd &ind) ;
 
+  //---
+
   const CQChartsValueList &modelInds() const;
   void setModelInds(const CQChartsValueList &modelInds) ;
 
+  //---
+
+  // add model
   void addModel(const ModelP &model);
 
+  // replace model with new model
   void replaceModel(const ModelP &oldModel, const ModelP &newModel);
 
   virtual void addModelI(const ModelP &model);
+
+  //---
+
+  // add extra model
+  void addExtraModel(const ModelData *modelData);
+  void removeExtraModel(const ModelData *modelData);
+
+  bool hasExtraModel(const ModelData *modelData, int &ind) const;
+
+  const ModelArray &extraModels() const { return extraModels_; }
 
   //---
 
@@ -1330,8 +1349,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual void getPropertyNames(QStringList &names, bool hidden=false) const;
 
-  //! get nams of all properties settable on plot
+  //! get names of all properties settable on plot
   void getObjectPropertyNames(PlotObj *plotObj, QStringList &names) const;
+
+  //! get value for name plot object property
+  bool getObjectProperty(PlotObj *plotObj, const QString &name, QVariant &value) const;
 
   void hideProperty(const QString &path, QObject *object);
 
@@ -3656,7 +3678,6 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual void setEveryData(const EveryData &everyData);
 
  protected:
-  using ModelArray        = std::vector<ModelP>;
   using DisplayRangeP     = std::unique_ptr<DisplayRange>;
   using EditHandlesP      = std::unique_ptr<EditHandles>;
   using TitleP            = std::unique_ptr<Title>;
@@ -3672,7 +3693,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   PlotType* type_ { nullptr }; //!< plot type data
 
   // model data
-  ModelArray        models_;          //!< associated models
+  ModelArray        models_;          //!< associated models (usable)
+  ModelArray        extraModels_;     //!< associated extra models (extra data)
   CQChartsModelInd  currentModelInd_; //!< current model index
   CQChartsValueList modelInds_;       //!< list of model indices (for property)
 

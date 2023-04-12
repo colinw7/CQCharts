@@ -193,6 +193,13 @@ getPropertyNames(QStringList &names, bool /*hidden*/) const
     "visible" << "selected" << "inside" << "selectable" << "editable" << "clickable";
 }
 
+bool
+CQChartsPlotObj::
+getProperty(const QString &name, QVariant &value) const
+{
+  return CQUtil::getTclProperty(this, name, value);
+}
+
 //---
 
 bool

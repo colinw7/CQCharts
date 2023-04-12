@@ -2,6 +2,7 @@
 #define CQChartsTip_H
 
 #include <CQChartsColumn.h>
+#include <CQChartsHtml.h>
 #include <set>
 
 /*!
@@ -31,9 +32,7 @@ class CQChartsTableTip {
     if (! inTable_)
       str_ += "<table>\n";
 
-    str_ += QString("<tr><th style='text-align:right'>%1</th>"
-                    "<td>&nbsp;</td><td>%2</td></tr>\n").
-              arg(escapeText(name)).arg(value);
+    str_ += tableRow(tableHeader(escapeText(name)) + tableData() + tableDataT<T>(value));
 
     inTable_ = true;
   }
@@ -42,9 +41,7 @@ class CQChartsTableTip {
     if (! inTable_)
       str_ += "<table>\n";
 
-    str_ += QString("<tr><th style='text-align:right'>%1</th>"
-                    "<td>&nbsp;</td><td>%2</td></tr>\n").
-              arg(escapeText(name)).arg(escapeText(value));
+    str_ += tableRow(tableHeader(escapeText(name)) + tableData() + tableData(escapeText(value)));
 
     inTable_ = true;
   }
@@ -53,9 +50,8 @@ class CQChartsTableTip {
     if (! inTable_)
       str_ += "<table>\n";
 
-    str_ += QString("<tr><th style='text-align:right'>%1</th>"
-                    "<td>&nbsp;</td><td>%2</td><td>%3</td></tr>\n").
-              arg(escapeText(name)).arg(escapeText(value1)).arg(escapeText(value2));
+    str_ += tableRow(tableHeader(escapeText(name)) + tableData() +
+                     tableData(escapeText(value1)) + tableData(escapeText(value2)));
 
     inTable_ = true;
   }
@@ -98,31 +94,14 @@ class CQChartsTableTip {
   }
 
  private:
-  QString escapeText(const QString &str) const {
-    QString str1;
+  QString tableHeader(const QString &str   ) const { return CQChartsHtml::tableHeader(str); }
+  QString tableRow   (const QString &str   ) const { return CQChartsHtml::tableRow   (str); }
+  QString tableData  (const QString &str="") const { return CQChartsHtml::tableData  (str); }
 
-    int i   = 0;
-    int len = str.length();
+  template<typename T>
+  QString tableDataT(const T &value) const { return CQChartsHtml::tableDataT<T>(value); }
 
-    while (i < len) {
-      if      (str[i] == '<') {
-        str1 += "&lt;"; ++i;
-      }
-      else if (str[i] == '>') {
-        str1 += "&gt;"; ++i;
-      }
-      else if (str[i] == '"') {
-        str1 += "&quot;"; ++i;
-      }
-      else if (str[i] == '&') {
-        str1 += "&amp;"; ++i;
-      }
-      else
-        str1 += str[i++];
-    }
-
-    return str1;
-  }
+  QString escapeText(const QString &str) const { return CQChartsHtml::escapeText(str); }
 
  private:
   using ColumnsSet = std::set<Columns>;

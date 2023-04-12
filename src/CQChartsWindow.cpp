@@ -16,6 +16,7 @@
 #include <CQChartsEnv.h>
 
 #include <QStackedWidget>
+#include <QComboBox>
 #include <QVBoxLayout>
 #include <QPainter>
 
@@ -281,6 +282,7 @@ CQChartsWindow(View *view) :
 
   //---
 
+  // create range scrolls (for overview)
   xrangeScroll_ = new CQChartsWindowRangeScroll(this, Qt::Horizontal);
   yrangeScroll_ = new CQChartsWindowRangeScroll(this, Qt::Vertical  );
 
@@ -299,37 +301,40 @@ CQChartsWindow(View *view) :
 
   tableFrame_ = CQUtil::makeWidget<QFrame>(this, "tableFrame");
 
-  tableFrame_->setAutoFillBackground(true);
-
-  auto *tableLayout = CQUtil::makeLayout<QVBoxLayout>(tableFrame_, 0, 2);
-
-  filterEdit_ = new CQChartsFilterEdit;
-
-  connect(filterEdit_, SIGNAL(filterAnd(bool)), this, SLOT(filterAndSlot(bool)));
-
-  connect(filterEdit_, SIGNAL(replaceFilter(const QString &)),
-          this, SLOT(replaceFilterSlot(const QString &)));
-  connect(filterEdit_, SIGNAL(addFilter(const QString &)),
-          this, SLOT(addFilterSlot(const QString &)));
-
-  connect(filterEdit_, SIGNAL(replaceSearch(const QString &)),
-          this, SLOT(replaceSearchSlot(const QString &)));
-  connect(filterEdit_, SIGNAL(addSearch(const QString &)),
-          this, SLOT(addSearchSlot(const QString &)));
-
-  tableLayout->addWidget(filterEdit_);
-
-  modelView_ = new CQChartsModelViewHolder(view_->charts());
-
-  connect(modelView_, SIGNAL(filterChanged()), this, SLOT(filterChangedSlot()));
-
-  connectModelViewExpand(true);
-
-  tableLayout->addWidget(modelView_);
+  auto *tableLayout = CQUtil::makeLayout<QVBoxLayout>(tableFrame_, 2, 2);
 
   tableFrame_->setVisible(false);
 
+  //---
+
+  // frame for model selector
+  modelSelFrame_ = CQUtil::makeWidget<QFrame>(this, "modelSelFrame");
+  auto *modelSelLayout = CQUtil::makeLayout<QHBoxLayout>(modelSelFrame_, 2, 2);
+
+  modelSelLayout->addStretch(1);
+
+  modelSelLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Models", "label"));
+
+  stackCombo_ = CQUtil::makeWidget<QComboBox>(this, "stackCombo");
+
+  connect(stackCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(stackSlot(int)));
+
+  modelSelLayout->addWidget(stackCombo_);
+
+  tableLayout->addWidget(modelSelFrame_);
+
+  //---
+
+  // create model view
+  tableStack_ = CQUtil::makeWidget<QStackedWidget>(this, "tableStack");
+
+  tableStack_->setAutoFillBackground(true);
+
+  addModelView(/*current*/true);
+
   setDataTable(showDataTable_, /*force*/true);
+
+  tableLayout->addWidget(tableStack_);
 
   //---
 
@@ -370,6 +375,52 @@ void
 CQChartsWindow::
 resizeEvent(QResizeEvent *)
 {
+}
+
+void
+CQChartsWindow::
+addModelView(bool current)
+{
+  connectModelViewExpand(false);
+
+  //---
+
+  TableData tableData;
+
+  tableData.isCurrent  = current;
+  tableData.tableFrame = CQUtil::makeWidget<QFrame>("tableFrame");
+
+  auto *tableLayout = CQUtil::makeLayout<QVBoxLayout>(tableData.tableFrame, 0, 2);
+
+  tableData.filterEdit = new CQChartsFilterEdit;
+
+  connect(tableData.filterEdit, SIGNAL(filterAnd(bool)), this, SLOT(filterAndSlot(bool)));
+
+  connect(tableData.filterEdit, SIGNAL(replaceFilter(const QString &)),
+          this, SLOT(replaceFilterSlot(const QString &)));
+  connect(tableData.filterEdit, SIGNAL(addFilter(const QString &)),
+          this, SLOT(addFilterSlot(const QString &)));
+
+  connect(tableData.filterEdit, SIGNAL(replaceSearch(const QString &)),
+          this, SLOT(replaceSearchSlot(const QString &)));
+  connect(tableData.filterEdit, SIGNAL(addSearch(const QString &)),
+          this, SLOT(addSearchSlot(const QString &)));
+
+  tableLayout->addWidget(tableData.filterEdit);
+
+  tableData.modelView = new CQChartsModelViewHolder(view_->charts());
+
+  connect(tableData.modelView, SIGNAL(filterChanged()), this, SLOT(filterChangedSlot()));
+
+  tableDatas_.push_back(tableData);
+
+  tableLayout->addWidget(tableData.modelView);
+
+  tableStack_->addWidget(tableData.tableFrame);
+
+  //---
+
+  connectModelViewExpand(true);
 }
 
 void
@@ -428,11 +479,11 @@ setDataTable(bool b, bool force)
   if (force || b != showDataTable_) {
     if      (showDataTable_ && ! b) {
       viewSplitter_->removeWidget(tableFrame_, /*destroy*/false);
-      //tableFrame_->setVisible(false);
+      //tableStack_->setVisible(false);
     }
     else if (! showDataTable_ && b) {
       viewSplitter_->addWidget(tableFrame_, "Table");
-      //tableFrame_->setVisible(true);
+      //tableStack_->setVisible(true);
     }
 
     showDataTable_ = b;
@@ -541,49 +592,91 @@ rangeScrollSlot()
 
 void
 CQChartsWindow::
+stackSlot(int ind)
+{
+  tableStack_->setCurrentIndex(ind);
+}
+
+void
+CQChartsWindow::
 filterAndSlot(bool b)
 {
-  modelView_->setFilterAnd(b);
+  auto *filterEdit = qobject_cast<FilterEdit *>(sender());
+  if (! filterEdit) return;
 
-  auto details = modelView_->filterDetails();
+  for (const auto &tableData : tableDatas_) {
+    if (tableData.filterEdit == filterEdit) {
+      tableData.modelView->setFilterAnd(b);
 
-  filterEdit_->setFilterDetails(details);
+      auto details = tableData.modelView->filterDetails();
+
+      filterEdit->setFilterDetails(details);
+    }
+  }
 }
 
 void
 CQChartsWindow::
 replaceFilterSlot(const QString &text)
 {
-  modelView_->setFilter(text);
+  auto *filterEdit = qobject_cast<FilterEdit *>(sender());
+  if (! filterEdit) return;
 
-  auto details = modelView_->filterDetails();
+  for (const auto &tableData : tableDatas_) {
+    if (tableData.filterEdit == filterEdit) {
+      tableData.modelView->setFilter(text);
 
-  filterEdit_->setFilterDetails(details);
+      auto details = tableData.modelView->filterDetails();
+
+      filterEdit->setFilterDetails(details);
+    }
+  }
 }
 
 void
 CQChartsWindow::
 addFilterSlot(const QString &text)
 {
-  modelView_->addFilter(text);
+  auto *filterEdit = qobject_cast<FilterEdit *>(sender());
+  if (! filterEdit) return;
 
-  auto details = modelView_->filterDetails();
+  for (const auto &tableData : tableDatas_) {
+    if (tableData.filterEdit == filterEdit) {
+      tableData.modelView->addFilter(text);
 
-  filterEdit_->setFilterDetails(details);
+      auto details = tableData.modelView->filterDetails();
+
+      filterEdit->setFilterDetails(details);
+    }
+  }
 }
 
 void
 CQChartsWindow::
 replaceSearchSlot(const QString &text)
 {
-  modelView_->setSearch(text);
+  auto *filterEdit = qobject_cast<FilterEdit *>(sender());
+  if (! filterEdit) return;
+
+  for (const auto &tableData : tableDatas_) {
+    if (tableData.filterEdit == filterEdit) {
+      tableData.modelView->setSearch(text);
+    }
+  }
 }
 
 void
 CQChartsWindow::
 addSearchSlot(const QString &text)
 {
-  modelView_->addSearch(text);
+  auto *filterEdit = qobject_cast<FilterEdit *>(sender());
+  if (! filterEdit) return;
+
+  for (const auto &tableData : tableDatas_) {
+    if (tableData.filterEdit == filterEdit) {
+      tableData.modelView->addSearch(text);
+    }
+  }
 }
 
 void
@@ -634,17 +727,64 @@ plotSlot()
   if (plot_)
     disconnect(plot_, SIGNAL(currentModelChanged()), this, SLOT(plotModelSlot()));
 
+  //---
+
   plot_ = view_->currentPlot(/*remap*/false);
 
+  // set title
   if (plot_)
     setWindowTitle(QString("Window: View %1, Plot %2").arg(view_->id()).arg(plot_->id()));
   else
     setWindowTitle(QString("Window: View %1, Plot <none>").arg(view_->id()));
 
-  if (tableFrame_->isVisible())
+  if (tableStack_->isVisible()) {
+    auto numExtra = plot_->extraModels().size();
+
+    while (tableDatas_.size() > numExtra + 1) {
+      delete tableDatas_.back().tableFrame;
+
+      tableDatas_.pop_back();
+    }
+
+    while (tableDatas_.size() < numExtra + 1) {
+      addModelView(/*current*/false);
+    }
+
     setViewModel();
-  else
-    modelView_->setModel(CQChartsModelViewHolder::ModelP(), false);
+  }
+  else {
+    while (tableDatas_.size() > 1) {
+      delete tableDatas_.back().tableFrame;
+
+      tableDatas_.pop_back();
+    }
+
+    for (const auto &tableData : tableDatas_)
+      tableData.modelView->setModel(CQChartsModelViewHolder::ModelP(), false);
+  }
+
+  //---
+
+  disconnect(stackCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(stackSlot(int)));
+
+  stackCombo_->clear();
+
+  int i = 0;
+
+  for (const auto &tableData : tableDatas_) {
+    if (tableData.isCurrent)
+      stackCombo_->addItem("Current");
+    else
+      stackCombo_->addItem(QString("Extra %1").arg(i));
+
+    ++i;
+  }
+
+  connect(stackCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(stackSlot(int)));
+
+  modelSelFrame_->setVisible(tableDatas_.size() > 1);
+
+  //---
 
   if (plot_)
     connect(plot_, SIGNAL(currentModelChanged()), this, SLOT(plotModelSlot()));
@@ -662,11 +802,35 @@ CQChartsWindow::
 setViewModel()
 {
   if (plot_) {
-    if (plot_->currentModel() != modelView_->model())
-      modelView_->setModel(plot_->currentModel(), plot_->isHierarchical());
+    using Models = std::vector<CQChartsModelViewHolder::ModelP>;
+
+    Models models;
+
+    models.push_back(plot_->currentModel());
+
+    for (const auto &model : plot_->extraModels())
+      models.push_back(model);
+
+    assert(models.size() == tableDatas_.size());
+
+    for (uint i = 0; i < models.size(); ++i) {
+      auto &model     = models[i];
+      auto &tableData = tableDatas_[i];
+
+      if (model != tableData.modelView->model()) {
+        if (i == 0)
+          tableData.modelView->setModel(model, plot_->isHierarchical());
+        else
+          tableData.modelView->setModel(model, /*isHierarchical*/ false);
+      }
+    }
   }
-  else
-    modelView_->setModel(CQChartsModelViewHolder::ModelP(), false);
+  else {
+    for (const auto &tableData : tableDatas_) {
+      if (tableData.isCurrent)
+        tableData.modelView->setModel(CQChartsModelViewHolder::ModelP(), false);
+    }
+  }
 }
 
 void
@@ -807,12 +971,16 @@ CQChartsWindow::
 connectModelViewExpand(bool connect)
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  CQUtil::connectDisconnect(connect,
-    modelView_->view(), SIGNAL(expanded(const QModelIndex &)),
-    this, SLOT(expansionChangeSlot()));
-  CQUtil::connectDisconnect(connect,
-    modelView_->view(), SIGNAL(collapsed(const QModelIndex &)),
-    this, SLOT(expansionChangeSlot()));
+  for (const auto &tableData : tableDatas_) {
+    if (tableData.isCurrent) {
+      CQUtil::connectDisconnect(connect,
+        tableData.modelView->view(), SIGNAL(expanded(const QModelIndex &)),
+        this, SLOT(expansionChangeSlot()));
+      CQUtil::connectDisconnect(connect,
+        tableData.modelView->view(), SIGNAL(collapsed(const QModelIndex &)),
+        this, SLOT(expansionChangeSlot()));
+    }
+  }
 #endif
 }
 
@@ -830,7 +998,12 @@ isExpandModelIndex(const QModelIndex &ind) const
   const_cast<CQChartsWindow *>(this)->setViewModel();
 
 #ifdef CQCHARTS_MODEL_VIEW
-  return modelView_->view()->isExpanded(ind);
+  for (const auto &tableData : tableDatas_) {
+    if (tableData.isCurrent)
+      return tableData.modelView->view()->isExpanded(ind);
+  }
+
+  return false;
 #endif
 }
 
@@ -843,7 +1016,10 @@ expandModelIndex(const QModelIndex &ind, bool b)
 #ifdef CQCHARTS_MODEL_VIEW
   connectModelViewExpand(false);
 
-  modelView_->view()->setExpanded(ind, b);
+  for (const auto &tableData : tableDatas_) {
+    if (tableData.isCurrent)
+      tableData.modelView->view()->setExpanded(ind, b);
+  }
 
   connectModelViewExpand(true);
 #endif
@@ -856,7 +1032,10 @@ expandedModelIndices(QModelIndexList &inds)
   setViewModel();
 
 #ifdef CQCHARTS_MODEL_VIEW
-  modelView_->view()->expandedIndices(inds);
+  for (const auto &tableData : tableDatas_) {
+    if (tableData.isCurrent)
+      tableData.modelView->view()->expandedIndices(inds);
+  }
 #endif
 }
 
