@@ -1,17 +1,43 @@
 set plotId [create_charts_plot -type empty -xmin 0 -ymin 0 -xmax 100 -ymax 100]
 
-set shape1 [create_charts_shape_annotation -plot $plotId -rectangle {{10 10} {20 20}}]
-set shape2 [create_charts_shape_annotation -plot $plotId -rectangle {{20 20} {30 30}}]
-set shape3 [create_charts_shape_annotation -plot $plotId -rectangle {{30 30} {40 40}}]
-set shape4 [create_charts_shape_annotation -plot $plotId -rectangle {{40 40} {50 50}}]
-set shape5 [create_charts_shape_annotation -plot $plotId -rectangle {{50 50} {60 60}}]
-set shape6 [create_charts_shape_annotation -plot $plotId -rectangle {{60 60} {70 70}}]
-set shape7 [create_charts_shape_annotation -plot $plotId -rectangle {{70 70} {80 80}}]
+set shapes [get_charts_data -name shapes]
 
-set_charts_property -annotation $shape1 -name shapeType -value TRIANGLE
-set_charts_property -annotation $shape2 -name shapeType -value DIAMOND
-set_charts_property -annotation $shape3 -name shapeType -value BOX
-set_charts_property -annotation $shape4 -name shapeType -value POLYGON
-set_charts_property -annotation $shape4 -name shapeType -value CIRCLE
-set_charts_property -annotation $shape5 -name shapeType -value DOUBLE_CIRCLE
-set_charts_property -annotation $shape6 -name shapeType -value DOT_LINE
+set nshapes [llength $shapes]
+
+set nr [expr {int(sqrt($nshapes))}]
+set nc [expr {int(($nshapes + $nr - 1)/$nr)}]
+
+set dx [expr {100.0/$nc}]
+set dy [expr {100.0/$nr}]
+
+set dx1 [expr {$dx/10.0}]
+set dy1 [expr {$dy/10.0}]
+
+set i 0
+set y 0
+
+for {set r 0} {$r < $nr} {incr r} {
+  set x 0
+
+  for {set c 0} {$c < $nc} {incr c} {
+    set shape [lindex $shapes $i]
+
+    set x1 [expr {$x + $dx1}]
+    set y1 [expr {$y + $dy1}]
+    set x2 [expr {$x + $dx - 2*$dx1}]
+    set y2 [expr {$y + $dy - 2*$dy1}]
+
+    set rect [list [list $x1 $y1] [list $x2 $y2]]
+
+    set ashape [create_charts_shape_annotation -plot $plotId -rectangle $rect]
+
+    set_charts_property -annotation $ashape -name shapeType -value $shape
+    set_charts_property -annotation $ashape -name fill.color -value #628ab5
+
+    set x [expr {$x + $dx}]
+
+    incr i
+  }
+
+  set y [expr {$y + $dy}]
+}

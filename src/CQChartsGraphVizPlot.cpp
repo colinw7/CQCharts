@@ -169,7 +169,7 @@ clearNodesAndEdges()
 
 void
 CQChartsGraphVizPlot::
-setNodeShape(const NodeShape &s)
+setNodeShape(const CQChartsShapeType &s)
 {
   CQChartsUtil::testAndSet(nodeShape_, s, [&]() { updateRangeAndObjs(); } );
 }
@@ -1038,8 +1038,7 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
         (void) CQChartsUtil::nearestPointListPoint(points, tailNode->rect().getCenter(), it);
 
         // intersect line from center to node
-        if (tailNode->shapeType() == Node::ShapeType::CIRCLE ||
-            tailNode->shapeType() == Node::ShapeType::OVAL)
+        if (tailNode->shapeType().isRound())
           CQChartsGeom::lineIntersectCircle(tailNode->rect(),
             tailNode->rect().getCenter(), points[size_t(it)], pit);
         else
@@ -1059,8 +1058,7 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
         (void) CQChartsUtil::nearestPointListPoint(points, headNode->rect().getCenter(), ih);
 
         // intersect line from center to node
-        if (headNode->shapeType() == Node::ShapeType::CIRCLE ||
-            headNode->shapeType() == Node::ShapeType::OVAL)
+        if (headNode->shapeType().isRound())
           CQChartsGeom::lineIntersectCircle(headNode->rect(),
             headNode->rect().getCenter(), points[size_t(ih)], pih);
         else
@@ -1986,88 +1984,85 @@ void
 CQChartsGraphVizPlot::
 stringToShapeType(const QString &str, Node::ShapeType &shapeType)
 {
-  if      (str == "box"            ) shapeType = Node::ShapeType::BOX;
-  else if (str == "polygon"        ) shapeType = Node::ShapeType::POLYGON;
-  else if (str == "ellipse"        ) shapeType = Node::ShapeType::CIRCLE;
-  else if (str == "oval"           ) shapeType = Node::ShapeType::CIRCLE;
-  else if (str == "circle"         ) shapeType = Node::ShapeType::CIRCLE;
-//else if (str == "point"          ) shapeType = Node::ShapeType::POINT;
-//else if (str == "egg"            ) shapeType = Node::ShapeType::EGG;
-  else if (str == "triangle"       ) shapeType = Node::ShapeType::TRIANGLE;
-  else if (str == "plaintext"      ) shapeType = Node::ShapeType::PLAIN_TEXT;
-//else if (str == "plain"          ) shapeType = Node::ShapeType::PLAIN;
-  else if (str == "diamond"        ) shapeType = Node::ShapeType::DIAMOND;
-//else if (str == "trapezium"      ) shapeType = Node::ShapeType::TRAPEZIUM;
-//else if (str == "parallelogram"  ) shapeType = Node::ShapeType::PARALLELGRAM;
-//else if (str == "house"          ) shapeType = Node::ShapeType::HOUSE;
-//else if (str == "pentagon"       ) shapeType = Node::ShapeType::PENTAGON;
-//else if (str == "hexagon"        ) shapeType = Node::ShapeType::HEXAGON;
-//else if (str == "septagon"       ) shapeType = Node::ShapeType::SEPTAGON;
-//else if (str == "octagon"        ) shapeType = Node::ShapeType::OCTAGON;
-  else if (str == "doublecircle"   ) shapeType = Node::ShapeType::DOUBLE_CIRCLE;
-//else if (str == "doubleoctagon"  ) shapeType = Node::ShapeType::DOUBLE_OCTAGON;
-//else if (str == "tripleoctagon"  ) shapeType = Node::ShapeType::TRIPLE_OCTAGON;
-//else if (str == "invtriangle"    ) shapeType = Node::ShapeType::INV_TRIANGLE;
-//else if (str == "invtrapezium"   ) shapeType = Node::ShapeType::INV_TRAPEZIUM;
-//else if (str == "invhouse"       ) shapeType = Node::ShapeType::INV_HOUSE;
-//else if (str == "Mdiamond"       ) shapeType = Node::ShapeType::MDIAMOND;
-//else if (str == "Msquare"        ) shapeType = Node::ShapeType::MSQUARE;
-//else if (str == "Mcircle"        ) shapeType = Node::ShapeType::MCIRCLE;
-  else if (str == "rect"           ) shapeType = Node::ShapeType::BOX;
-  else if (str == "rectangle"      ) shapeType = Node::ShapeType::BOX;
-  else if (str == "square"         ) shapeType = Node::ShapeType::BOX;
-//else if (str == "star"           ) shapeType = Node::ShapeType::STAR;
-//else if (str == "underline"      ) shapeType = Node::ShapeType::UNDERLINE;
-//else if (str == "cylinder"       ) shapeType = Node::ShapeType::CYLINDER;
-//else if (str == "note"           ) shapeType = Node::ShapeType::NOTE;
-//else if (str == "tab"            ) shapeType = Node::ShapeType::TAB;
-//else if (str == "folder"         ) shapeType = Node::ShapeType::FOLDER;
-//else if (str == "box3d"          ) shapeType = Node::ShapeType::BOX3D;
-//else if (str == "component"      ) shapeType = Node::ShapeType::COMPONENT;
-//else if (str == "promoter"       ) shapeType = Node::ShapeType::PROMOTER;
-//else if (str == "cds"            ) shapeType = Node::ShapeType::CDS;
-//else if (str == "terminator"     ) shapeType = Node::ShapeType::TERMINATOR;
-//else if (str == "utr"            ) shapeType = Node::ShapeType::UTR;
-//else if (str == "primersite"     ) shapeType = Node::ShapeType::PRIMERSITE;
-//else if (str == "restrictionsite") shapeType = Node::ShapeType::RESTRICTIONSITE;
-//else if (str == "fivepoverhang"  ) shapeType = Node::ShapeType::FIVEPOVERHANG;
-//else if (str == "threepoverhang" ) shapeType = Node::ShapeType::THREEPOVERHANG;
-//else if (str == "noverhang"      ) shapeType = Node::ShapeType::NOVERHANG;
-//else if (str == "assembly"       ) shapeType = Node::ShapeType::ASSEMBLY;
-//else if (str == "signature"      ) shapeType = Node::ShapeType::SIGNATURE;
-//else if (str == "insulator"      ) shapeType = Node::ShapeType::INSULATOR;
-//else if (str == "ribosite"       ) shapeType = Node::ShapeType::RIBOSITE;
-//else if (str == "rnastab"        ) shapeType = Node::ShapeType::RNASTAB;
-//else if (str == "proteasesite"   ) shapeType = Node::ShapeType::PROTEASESITE;
-//else if (str == "proteinstab"    ) shapeType = Node::ShapeType::PROTEINSTAB;
-  else if (str == "record"         ) shapeType = Node::ShapeType::RECORD;
-  else if (str == "rpromoter"      ) shapeType = Node::ShapeType::RPROMOTER;
-  else if (str == "rarrow"         ) shapeType = Node::ShapeType::RARROW;
-//else if (str == "larrow"         ) shapeType = Node::ShapeType::LARROW;
-//else if (str == "lpromoter"      ) shapeType = Node::ShapeType::LPROMOTER;
-  else if (str == "none"           ) shapeType = Node::ShapeType::NONE;
+  auto shapeType1 = CQChartsShapeType::nameToType(str);
+
+#if 0
+  auto shapeType1 = CQChartsShapeType::Type::NONE;
+
+  if      (str == "box"            ) shapeType1 = CQChartsShapeType::Type::BOX;
+  else if (str == "polygon"        ) shapeType1 = CQChartsShapeType::Type::POLYGON;
+  else if (str == "ellipse"        ) shapeType1 = CQChartsShapeType::Type::CIRCLE;
+  else if (str == "oval"           ) shapeType1 = CQChartsShapeType::Type::CIRCLE;
+  else if (str == "circle"         ) shapeType1 = CQChartsShapeType::Type::CIRCLE;
+//else if (str == "point"          ) shapeType1 = CQChartsShapeType::Type::POINT;
+//else if (str == "egg"            ) shapeType1 = CQChartsShapeType::Type::EGG;
+  else if (str == "triangle"       ) shapeType1 = CQChartsShapeType::Type::TRIANGLE;
+  else if (str == "plaintext"      ) shapeType1 = CQChartsShapeType::Type::PLAIN_TEXT;
+//else if (str == "plain"          ) shapeType1 = CQChartsShapeType::Type::PLAIN;
+  else if (str == "diamond"        ) shapeType1 = CQChartsShapeType::Type::DIAMOND;
+//else if (str == "trapezium"      ) shapeType1 = CQChartsShapeType::Type::TRAPEZIUM;
+//else if (str == "parallelogram"  ) shapeType1 = CQChartsShapeType::Type::PARALLELGRAM;
+//else if (str == "house"          ) shapeType1 = CQChartsShapeType::Type::HOUSE;
+//else if (str == "pentagon"       ) shapeType1 = CQChartsShapeType::Type::PENTAGON;
+//else if (str == "hexagon"        ) shapeType1 = CQChartsShapeType::Type::HEXAGON;
+//else if (str == "septagon"       ) shapeType1 = CQChartsShapeType::Type::SEPTAGON;
+//else if (str == "octagon"        ) shapeType1 = CQChartsShapeType::Type::OCTAGON;
+  else if (str == "doublecircle"   ) shapeType1 = CQChartsShapeType::Type::DOUBLE_CIRCLE;
+//else if (str == "doubleoctagon"  ) shapeType1 = CQChartsShapeType::Type::DOUBLE_OCTAGON;
+//else if (str == "tripleoctagon"  ) shapeType1 = CQChartsShapeType::Type::TRIPLE_OCTAGON;
+//else if (str == "invtriangle"    ) shapeType1 = CQChartsShapeType::Type::INV_TRIANGLE;
+//else if (str == "invtrapezium"   ) shapeType1 = CQChartsShapeType::Type::INV_TRAPEZIUM;
+//else if (str == "invhouse"       ) shapeType1 = CQChartsShapeType::Type::INV_HOUSE;
+//else if (str == "Mdiamond"       ) shapeType1 = CQChartsShapeType::Type::MDIAMOND;
+//else if (str == "Msquare"        ) shapeType1 = CQChartsShapeType::Type::MSQUARE;
+//else if (str == "Mcircle"        ) shapeType1 = CQChartsShapeType::Type::MCIRCLE;
+  else if (str == "rect"           ) shapeType1 = CQChartsShapeType::Type::BOX;
+  else if (str == "rectangle"      ) shapeType1 = CQChartsShapeType::Type::BOX;
+  else if (str == "square"         ) shapeType1 = CQChartsShapeType::Type::BOX;
+//else if (str == "star"           ) shapeType1 = CQChartsShapeType::Type::STAR;
+//else if (str == "underline"      ) shapeType1 = CQChartsShapeType::Type::UNDERLINE;
+//else if (str == "cylinder"       ) shapeType1 = CQChartsShapeType::Type::CYLINDER;
+//else if (str == "note"           ) shapeType1 = CQChartsShapeType::Type::NOTE;
+//else if (str == "tab"            ) shapeType1 = CQChartsShapeType::Type::TAB;
+//else if (str == "folder"         ) shapeType1 = CQChartsShapeType::Type::FOLDER;
+//else if (str == "box3d"          ) shapeType1 = CQChartsShapeType::Type::BOX3D;
+//else if (str == "component"      ) shapeType1 = CQChartsShapeType::Type::COMPONENT;
+//else if (str == "promoter"       ) shapeType1 = CQChartsShapeType::Type::PROMOTER;
+//else if (str == "cds"            ) shapeType1 = CQChartsShapeType::Type::CDS;
+//else if (str == "terminator"     ) shapeType1 = CQChartsShapeType::Type::TERMINATOR;
+//else if (str == "utr"            ) shapeType1 = CQChartsShapeType::Type::UTR;
+//else if (str == "primersite"     ) shapeType1 = CQChartsShapeType::Type::PRIMERSITE;
+//else if (str == "restrictionsite") shapeType1 = CQChartsShapeType::Type::RESTRICTIONSITE;
+//else if (str == "fivepoverhang"  ) shapeType1 = CQChartsShapeType::Type::FIVEPOVERHANG;
+//else if (str == "threepoverhang" ) shapeType1 = CQChartsShapeType::Type::THREEPOVERHANG;
+//else if (str == "noverhang"      ) shapeType1 = CQChartsShapeType::Type::NOVERHANG;
+//else if (str == "assembly"       ) shapeType1 = CQChartsShapeType::Type::ASSEMBLY;
+//else if (str == "signature"      ) shapeType1 = CQChartsShapeType::Type::SIGNATURE;
+//else if (str == "insulator"      ) shapeType1 = CQChartsShapeType::Type::INSULATOR;
+//else if (str == "ribosite"       ) shapeType1 = CQChartsShapeType::Type::RIBOSITE;
+//else if (str == "rnastab"        ) shapeType1 = CQChartsShapeType::Type::RNASTAB;
+//else if (str == "proteasesite"   ) shapeType1 = CQChartsShapeType::Type::PROTEASESITE;
+//else if (str == "proteinstab"    ) shapeType1 = CQChartsShapeType::Type::PROTEINSTAB;
+  else if (str == "record"         ) shapeType1 = CQChartsShapeType::Type::RECORD;
+  else if (str == "rpromoter"      ) shapeType1 = CQChartsShapeType::Type::RPROMOTER;
+  else if (str == "rarrow"         ) shapeType1 = CQChartsShapeType::Type::RARROW;
+//else if (str == "larrow"         ) shapeType1 = CQChartsShapeType::Type::LARROW;
+//else if (str == "lpromoter"      ) shapeType1 = CQChartsShapeType::Type::LPROMOTER;
+  else if (str == "none"           ) shapeType1 = CQChartsShapeType::Type::NONE;
   else {
     //charts()->errorMsg("Unhandled shape type " + str);
-    shapeType = Node::ShapeType::NONE;
+    shapeType1 = CQChartsShapeType::Type::NONE;
   }
+#endif
+
+  shapeType = CQChartsShapeType(shapeType1);
 }
 
 QString
 CQChartsGraphVizPlot::
 shapeTypeToString(const Node::ShapeType &shapeType)
 {
-  switch (shapeType) {
-    case Node::ShapeType::DIAMOND      : return "diamond";
-    case Node::ShapeType::BOX          : return "box";
-    case Node::ShapeType::POLYGON      : return "polygon";
-    case Node::ShapeType::CIRCLE       : return "circle";
-    case Node::ShapeType::DOUBLE_CIRCLE: return "doublecircle";
-    case Node::ShapeType::RECORD       : return "record";
-    case Node::ShapeType::PLAIN_TEXT   : return "plaintext";
-    case Node::ShapeType::RARROW       : return "rarrow";
-    case Node::ShapeType::RPROMOTER    : return "rpromoter";
-    default                            : return "none";
-  }
+  return CQChartsShapeType::typeToName(shapeType.type());
 }
 
 void
@@ -2149,8 +2144,8 @@ createObjFromNode(Node *node) const
   // set shape type
   NodeObj::ShapeType shapeType = static_cast<NodeObj::ShapeType>(node->shapeType());
 
-  if (shapeType == NodeObj::ShapeType::NONE)
-    shapeType = static_cast<NodeObj::ShapeType>(nodeShape());
+  if (shapeType.type() == CQChartsShapeType::Type::NONE)
+    shapeType = nodeShape();
 
   nodeObj->setShapeType(shapeType);
 
@@ -2460,18 +2455,18 @@ setDepth(int depth)
   node()->setDepth(depth);
 }
 
-CQChartsGraphVizNodeObj::ShapeType
+CQChartsShapeType
 CQChartsGraphVizNodeObj::
 shapeType() const
 {
-  return static_cast<CQChartsGraphVizNodeObj::ShapeType>(node()->shapeType());
+  return node()->shapeType();
 }
 
 void
 CQChartsGraphVizNodeObj::
 setShapeType(const ShapeType &s)
 {
-  node()->setShapeType(static_cast<CQChartsGraphVizPlotNode::ShapeType>(s));
+  node()->setShapeType(s);
 }
 
 int
@@ -2732,18 +2727,9 @@ draw(PaintDevice *device) const
   //---
 
   // draw node
-  if      (shapeType() == ShapeType::BOX)
-    device->drawRect(rect());
-  else if (shapeType() == ShapeType::DIAMOND)
-    device->drawDiamond(rect());
-  else if (shapeType() == ShapeType::POLYGON)
-    device->drawPolygonSides(rect(), numSides());
-  else if (shapeType() == ShapeType::CIRCLE)
-    device->drawEllipse(rect());
-  else if (shapeType() == ShapeType::DOUBLE_CIRCLE)
-    CQChartsDrawUtil::drawDoubleEllipse(device, rect());
-  else
-    device->drawRect(rect());
+  auto shapeData = CQChartsShapeTypeData(shapeType().type());
+
+  CQChartsDrawUtil::drawShape(device, shapeData, rect());
 
   //---
 
@@ -2824,9 +2810,13 @@ drawFg(PaintDevice *device) const
   textOptions.align = Qt::AlignLeft;
   textOptions.html  = false;
 
-  if (shapeType() == ShapeType::DIAMOND || shapeType() == ShapeType::BOX ||
-      shapeType() == ShapeType::POLYGON || shapeType() == ShapeType::CIRCLE ||
-      shapeType() == ShapeType::DOUBLE_CIRCLE) {
+  auto shapeType1 = shapeType().type();
+
+  if (shapeType1 == CQChartsShapeType::Type::DIAMOND ||
+      shapeType1 == CQChartsShapeType::Type::BOX ||
+      shapeType1 == CQChartsShapeType::Type::POLYGON ||
+      shapeType1 == CQChartsShapeType::Type::CIRCLE ||
+      shapeType1 == CQChartsShapeType::Type::DOUBLE_CIRCLE) {
     if (rect().isValid()) {
       textOptions.align = Qt::AlignHCenter | Qt::AlignVCenter;
 
@@ -3154,12 +3144,16 @@ draw(PaintDevice *device) const
 
   rectConnectData.gap = connectGap;
 
-  if (srcNode->shapeType() == Node::ShapeType::CIRCLE)
+  auto shapeType1 = srcNode->shapeType().type();
+
+  if (shapeType1 == CQChartsShapeType::Type::CIRCLE)
     CQChartsDrawUtil::circleConnectionPoint(srcRect, destRect, p1, circleConnectData);
   else
     CQChartsDrawUtil::rectConnectionPoint(srcRect, destRect, p1, rectConnectData);
 
-  if (destNode->shapeType() == Node::ShapeType::CIRCLE)
+  auto shapeType2 = destNode->shapeType().type();
+
+  if (shapeType2 == CQChartsShapeType::Type::CIRCLE)
     CQChartsDrawUtil::circleConnectionPoint(destRect, srcRect, p2, circleConnectData);
   else
     CQChartsDrawUtil::rectConnectionPoint(destRect, srcRect, p2, rectConnectData);

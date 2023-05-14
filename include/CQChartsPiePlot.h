@@ -460,11 +460,9 @@ class CQChartsPieTextKeyItem : public CQChartsTextKeyItem {
 
 //---
 
-CQCHARTS_NAMED_SHAPE_DATA(Group, group)
-CQCHARTS_NAMED_TEXT_DATA (Group, group)
-CQCHARTS_NAMED_BOX_DATA  (TextLabel, textLabel)
-CQCHARTS_NAMED_TEXT_DATA (TextLabel, textLabel)
-CQCHARTS_NAMED_TEXT_DATA (RadiusLabel, radiusLabel)
+CQCHARTS_NAMED_BOX_DATA (TextLabel, textLabel)
+CQCHARTS_NAMED_TEXT_DATA(TextLabel, textLabel)
+CQCHARTS_NAMED_TEXT_DATA(RadiusLabel, radiusLabel)
 
 /*!
  * \brief Pie Chart Plot

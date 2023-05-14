@@ -881,6 +881,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
+  void updateAxes();
+
   CQChartsAxis *valueAxis() const;
   CQChartsAxis *countAxis() const;
 

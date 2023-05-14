@@ -1312,7 +1312,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
   auto strs1 = bubblePlot_->clipTextsToLength(device, strs, bbox, clipLength, clipElide,
                                               bubblePlot_->isTextScaled());
 
-  const_cast<CQChartsBubblePlot *>(bubblePlot_)->setRefLength(OptReal());
+  const_cast<CQChartsBubblePlot *>(bubblePlot_)->resetRefLength();
 
   //---
 

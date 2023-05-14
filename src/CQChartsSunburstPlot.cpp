@@ -404,6 +404,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsSunburstPlot::calcRange");
 
+  // fixed range (-1,-1 to 1,1)
   Range dataRange;
 
   double r = 1.0;
@@ -1478,16 +1479,6 @@ modelViewExpansionChanged()
 
 void
 CQChartsSunburstPlot::
-setNodeExpansion(HierNode *hierNode, const std::set<QModelIndex> &indSet)
-{
-  hierNode->setExpanded(indSet.find(hierNode->ind()) != indSet.end());
-
-  for (auto &hierNode1 : hierNode->getChildren())
-    setNodeExpansion(hierNode1, indSet);
-}
-
-void
-CQChartsSunburstPlot::
 resetNodeExpansion()
 {
   for (auto &pg : groupSunburstData_) {
@@ -1513,6 +1504,16 @@ resetNodeExpansion(HierNode *hierNode)
 
   for (auto &hierNode1 : hierNode->getChildren())
     resetNodeExpansion(hierNode1);
+}
+
+void
+CQChartsSunburstPlot::
+setNodeExpansion(HierNode *hierNode, const std::set<QModelIndex> &indSet)
+{
+  hierNode->setExpanded(indSet.find(hierNode->ind()) != indSet.end());
+
+  for (auto &hierNode1 : hierNode->getChildren())
+    setNodeExpansion(hierNode1, indSet);
 }
 
 //------
@@ -1762,6 +1763,8 @@ CQChartsSunburstNodeObj(const SunburstPlot *sunburstPlot, const BBox &rect, Node
     setModelInd(node_->ind());
 }
 
+//---
+
 QString
 CQChartsSunburstNodeObj::
 calcId() const
@@ -1776,6 +1779,10 @@ CQChartsSunburstNodeObj::
 calcTipId() const
 {
   CQChartsTableTip tableTip;
+
+  plot()->addNoTipColumns(tableTip);
+
+  //---
 
   auto name = (! node_->isFiller() ? node_->hierName() : node_->parent()->hierName());
 
@@ -1806,6 +1813,8 @@ calcTipId() const
 
   return tableTip.str();
 }
+
+//---
 
 bool
 CQChartsSunburstNodeObj::
@@ -2269,13 +2278,6 @@ addWidgets()
 
 void
 CQChartsSunburstPlotCustomControls::
-connectSlots(bool b)
-{
-  CQChartsHierPlotCustomControls::connectSlots(b);
-}
-
-void
-CQChartsSunburstPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
   sunburstPlot_ = dynamic_cast<CQChartsSunburstPlot *>(plot);
@@ -2296,6 +2298,13 @@ updateWidgets()
   //---
 
   connectSlots(true);
+}
+
+void
+CQChartsSunburstPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsHierPlotCustomControls::connectSlots(b);
 }
 
 CQChartsColor

@@ -5,6 +5,7 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
+#include <CQChartsModelColumn.h>
 
 class CQChartsTextPlacer;
 
@@ -896,13 +897,39 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
  public CQChartsObjEdgeShapeData<CQChartsSankeyPlot> {
   Q_OBJECT
 
+  // extra columns
+  Q_PROPERTY(CQChartsModelInd    nodeModel
+             READ nodeModel             WRITE setNodeModel)
+  Q_PROPERTY(CQChartsModelColumn nodeIdColumn
+             READ nodeIdColumn          WRITE setNodeIdColumn)
+  Q_PROPERTY(CQChartsModelColumn nodeLabelColumn
+             READ nodeLabelColumn       WRITE setNodeLabelColumn)
+  Q_PROPERTY(CQChartsModelColumn nodeFillColorColumn
+             READ nodeFillColorColumn   WRITE setNodeFillColorColumn)
+  Q_PROPERTY(CQChartsModelColumn nodeFillAlphaColumn
+             READ nodeFillAlphaColumn   WRITE setNodeFillAlphaColumn)
+  Q_PROPERTY(CQChartsModelColumn nodeFillPatternColumn
+             READ nodeFillPatternColumn WRITE setNodeFillPatternColumn)
+  Q_PROPERTY(CQChartsModelColumn nodeStrokeColorColumn
+             READ nodeStrokeColorColumn WRITE setNodeStrokeColorColumn)
+  Q_PROPERTY(CQChartsModelColumn nodeStrokeAlphaColumn
+             READ nodeStrokeAlphaColumn WRITE setNodeStrokeAlphaColumn)
+  Q_PROPERTY(CQChartsModelColumn nodeStrokeWidthColumn
+             READ nodeStrokeWidthColumn WRITE setNodeStrokeWidthColumn)
+  Q_PROPERTY(CQChartsModelColumn nodeStrokeDashColumn
+             READ nodeStrokeDashColumn  WRITE setNodeStrokeDashColumn)
+
   // options
+  Q_PROPERTY(Qt::Orientation orientation   READ orientation   WRITE setOrientation  )
+
+  // node options
   Q_PROPERTY(CQChartsLength  nodeMargin    READ nodeMargin    WRITE setNodeMargin   )
   Q_PROPERTY(double          minNodeMargin READ minNodeMargin WRITE setMinNodeMargin)
   Q_PROPERTY(CQChartsLength  nodeWidth     READ nodeWidth     WRITE setNodeWidth    )
-  Q_PROPERTY(bool            edgeLine      READ isEdgeLine    WRITE setEdgeLine     )
-  Q_PROPERTY(Qt::Orientation orientation   READ orientation   WRITE setOrientation  )
   Q_PROPERTY(bool            valueLabel    READ isValueLabel  WRITE setValueLabel   )
+
+  // edge options
+  Q_PROPERTY(bool edgeLine READ isEdgeLine WRITE setEdgeLine)
 
   // coloring
   Q_PROPERTY(bool           srcColoring       READ isSrcColoring       WRITE setSrcColoring      )
@@ -1058,6 +1085,38 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   void init() override;
   void term() override;
+
+  //---
+
+  const CQChartsModelInd &nodeModel() const { return nodeModel_; }
+  void setNodeModel(const CQChartsModelInd &c);
+
+  const CQChartsModelColumn &nodeIdColumn() const { return nodeIdColumn_; }
+  void setNodeIdColumn(const CQChartsModelColumn &c);
+
+  const CQChartsModelColumn &nodeLabelColumn() const { return nodeLabelColumn_; }
+  void setNodeLabelColumn(const CQChartsModelColumn &c);
+
+  const CQChartsModelColumn &nodeFillColorColumn() const { return nodeFillColorColumn_; }
+  void setNodeFillColorColumn(const CQChartsModelColumn &c);
+
+  const CQChartsModelColumn &nodeFillAlphaColumn() const { return nodeFillAlphaColumn_; }
+  void setNodeFillAlphaColumn(const CQChartsModelColumn &c);
+
+  const CQChartsModelColumn &nodeFillPatternColumn() const { return nodeFillPatternColumn_; }
+  void setNodeFillPatternColumn(const CQChartsModelColumn &c);
+
+  const CQChartsModelColumn &nodeStrokeColorColumn() const { return nodeStrokeColorColumn_; }
+  void setNodeStrokeColorColumn(const CQChartsModelColumn &c);
+
+  const CQChartsModelColumn &nodeStrokeAlphaColumn() const { return nodeStrokeAlphaColumn_; }
+  void setNodeStrokeAlphaColumn(const CQChartsModelColumn &c);
+
+  const CQChartsModelColumn &nodeStrokeWidthColumn() const { return nodeStrokeWidthColumn_; }
+  void setNodeStrokeWidthColumn(const CQChartsModelColumn &c);
+
+  const CQChartsModelColumn &nodeStrokeDashColumn() const { return nodeStrokeDashColumn_; }
+  void setNodeStrokeDashColumn(const CQChartsModelColumn &c);
 
   //---
 
@@ -1287,6 +1346,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   void processNodeNameValues(Node *node, const NameValues &valueValues) const;
   void processNodeNameValue (Node *node, const QString &name, const QString &value) const;
+  bool processNodeNameVar   (Node *node, const QString &name, const QVariant &var) const;
 
   void processEdgeNameValues(Edge *edge, const NameValues &valueValues) const;
 
@@ -1428,6 +1488,18 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   CQChartsPlotCustomControls *createCustomControls() override;
 
  protected:
+  // node columns
+  CQChartsModelInd    nodeModel_;             //!< node model
+  CQChartsModelColumn nodeIdColumn_;          //!< node id column
+  CQChartsModelColumn nodeLabelColumn_;       //!< node label column
+  CQChartsModelColumn nodeFillColorColumn_;   //!< node fill color column
+  CQChartsModelColumn nodeFillAlphaColumn_;   //!< node fill alpha column
+  CQChartsModelColumn nodeFillPatternColumn_; //!< node fill pattern column
+  CQChartsModelColumn nodeStrokeColorColumn_; //!< node stroke color column
+  CQChartsModelColumn nodeStrokeAlphaColumn_; //!< node stroke alpha column
+  CQChartsModelColumn nodeStrokeWidthColumn_; //!< node stroke width column
+  CQChartsModelColumn nodeStrokeDashColumn_;  //!< node stroke dash column
+
   // placement
   Align  align_              { Align::JUSTIFY };     //!< align
   bool   alignFirstLast_     { false };              //!< align first/last
@@ -1449,15 +1521,18 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool   constrainMove_      { true };               //!< constrain move
 
   // options
-  bool            edgeLine_    { false };          //!< draw line for edge
   Qt::Orientation orientation_ { Qt::Horizontal }; //!< orientation
-  bool            valueLabel_  { false };          //!< value label
 
-  // bbox, margin, node width
+  // edge options
+  bool edgeLine_ { false }; //!< draw line for edge
+
+  // node options
+  //   bbox, margin, node width
   BBox   targetBBox_    { -1, -1, 1, 1 };      //!< target range bbox
   Length nodeMargin_    { Length::plot(0.2) }; //!< node margin (perp)
   double minNodeMargin_ { 0.1 };               //!< minimum node margin (in pixels)
   Length nodeWidth_     { Length::pixel(16) }; //!< node x width in pixels
+  bool   valueLabel_    { false };             //!< node value label
 
   // mouse inside/selected text visible
   bool insideTextVisible_   { false }; //!< is inside text visble (when text invisible)

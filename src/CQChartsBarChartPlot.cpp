@@ -47,12 +47,12 @@ addParameters()
   addEnumParameter("orientation", "Orientation", "orientation").
     addNameValue("HORIZONTAL", static_cast<int>(Qt::Horizontal)).
     addNameValue("VERTICAL"  , static_cast<int>(Qt::Vertical  )).
-    setTip("Bars orientation");
+    setPropPath("options.orientation").setTip("Bars orientation");
 
   addEnumParameter("plotType", "Plot Type", "plotType").
     addNameValue("NORMAL" , static_cast<int>(BarChartPlot::PlotType::NORMAL )).
     addNameValue("STACKED", static_cast<int>(BarChartPlot::PlotType::STACKED)).
-    setTip("Plot type");
+    setPropPath("options.plotType").setTip("Plot type");
 
   addEnumParameter("valueType", "Value Type", "valueType").
    addNameValue("VALUE", static_cast<int>(BarChartPlot::ValueType::VALUE)).
@@ -61,7 +61,7 @@ addParameters()
    addNameValue("MAX"  , static_cast<int>(BarChartPlot::ValueType::MAX  )).
    addNameValue("MEAN" , static_cast<int>(BarChartPlot::ValueType::MEAN )).
    addNameValue("SUM"  , static_cast<int>(BarChartPlot::ValueType::SUM  )).
-   setTip("Bar value type");
+   setPropPath("options.valueType").setTip("Bar value type");
 
   addEnumParameter("shapeType", "Shape Type", "shapeType").
     addNameValue("RECT"    , static_cast<int>(BarChartPlot::ShapeType::RECT    )).
@@ -69,15 +69,19 @@ addParameters()
     addNameValue("BOX"     , static_cast<int>(BarChartPlot::ShapeType::BOX     )).
     addNameValue("SCATTER" , static_cast<int>(BarChartPlot::ShapeType::SCATTER )).
     addNameValue("VIOLIN"  , static_cast<int>(BarChartPlot::ShapeType::VIOLIN  )).
-    setTip("Bar shape type");
+    setPropPath("options.shapeType").setTip("Bar shape type");
 
-  addBoolParameter("percent"  , "Percent"   , "percent"  ).setTip("Show value is percentage");
-  addBoolParameter("skipEmpty", "Skip Empty", "skipEmpty").setTip("Skip empty groups");
+  addBoolParameter("percent"  , "Percent"   , "percent"  ).
+    setPropPath("options.percent").setTip("Show value is percentage");
+  addBoolParameter("skipEmpty", "Skip Empty", "skipEmpty").
+    setPropPath("options.skipEmpty").setTip("Skip empty groups");
 
   addBoolParameter("groupByColumn", "Group by Column", "groupByColumn").
+    setPropPath("options.groupByColumn").
     setTip("Group by column when multiple columns (needs group column)");
 
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").
+    setPropPath("coloring.colorBySet").
     setTip("Color by value set (needs group column and individual values)");
 
   endParameterGroup();
@@ -311,6 +315,7 @@ addProperties()
   // options
   addProp("options", "plotType" , "plotType" , "Plot type");
   addProp("options", "valueType", "valueType", "Value type");
+  addProp("options", "shapeType", "shapeType", "Shape type");
 
   addProp("options", "percent"  , "", "Use percentage value");
   addProp("options", "skipEmpty", "", "Skip empty groups");
@@ -2388,7 +2393,7 @@ CQChartsBarChartObj(const BarChartPlot *barChartPlot, const BBox &rect, bool val
                     int valueSetInd, const Column &column, const ColorInd &is, const ColorInd &ig,
                     const ColorInd &iv, const QModelIndices &inds, bool singleValue,
                     int ivalueSetInd) :
- CQChartsPlotObj(const_cast<CQChartsBarChartPlot *>(barChartPlot), rect, is, ig, iv),
+ CQChartsPlotObj(const_cast<BarChartPlot *>(barChartPlot), rect, is, ig, iv),
  barChartPlot_(barChartPlot), valueSet_(valueSet), valueSetInd_(valueSetInd), column_(column),
  singleValue_(singleValue), ivalueSetInd_(ivalueSetInd)
 {
@@ -2797,16 +2802,16 @@ drawShape(PaintDevice *device, const BBox &bbox) const
   //---
 
   if (isValueSet()) {
-    if      (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::DOT_LINE) {
+    if      (barChartPlot_->shapeType() == BarChartPlot::ShapeType::DOT_LINE) {
       drawDotLine(device, bbox, barPenBrush);
     }
-    else if (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::BOX) {
+    else if (barChartPlot_->shapeType() == BarChartPlot::ShapeType::BOX) {
       drawBox(device, bbox);
     }
-    else if (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::SCATTER) {
+    else if (barChartPlot_->shapeType() == BarChartPlot::ShapeType::SCATTER) {
       drawScatter(device, bbox);
     }
-    else if (barChartPlot_->shapeType() == CQChartsBarChartPlot::ShapeType::VIOLIN) {
+    else if (barChartPlot_->shapeType() == BarChartPlot::ShapeType::VIOLIN) {
       drawViolin(device, bbox);
     }
     else {

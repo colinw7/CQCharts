@@ -20,7 +20,6 @@
 #include <CQPerfMonitor.h>
 
 #include <QMenu>
-#include <QAction>
 
 CQChartsGeometryPlotType::
 CQChartsGeometryPlotType()
@@ -38,7 +37,7 @@ addParameters()
    setRequired().setPropPath("columns.geometry").
    setTip("Polygon List, Polygon, Rect or Path geometry");
 
-  // optional value, name, style
+  // optional name, value, style
   addColumnParameter("name" , "Name" , "nameColumn" ).setPropPath("columns.name").setBasic();
   addColumnParameter("value", "Value", "valueColumn").setPropPath("columns.value").setBasic();
   addColumnParameter("style", "Style", "styleColumn").setPropPath("columns.style");
@@ -47,6 +46,7 @@ addParameters()
 
   //---
 
+  // parent type data
   CQChartsPlotType::addParameters();
 }
 

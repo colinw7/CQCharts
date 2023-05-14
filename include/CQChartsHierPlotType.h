@@ -13,6 +13,10 @@ class CQChartsHierPlotType : public CQChartsPlotType {
 
   void addParameters() override;
 
+  void addHierParameters(const QString &title="Hierarchy");
+
+  virtual void addExtraHierParameters() { }
+
   bool isHierarchical() const override { return true; }
 
   void analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData) override;

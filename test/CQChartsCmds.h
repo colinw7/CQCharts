@@ -367,6 +367,7 @@ CQCHARTS_DEF_CMD(ShowChartsHelpDlg)
 
 // test
 CQCHARTS_DEF_CMD(TestEdit)
+CQCHARTS_DEF_CMD(Test)
 
 //---
 

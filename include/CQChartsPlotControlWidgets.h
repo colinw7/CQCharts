@@ -38,6 +38,7 @@ class CQChartsPlotControlFrame : public QFrame, public CQChartsWidgetIFace {
 
  public:
   CQChartsPlotControlFrame(QWidget *parent=nullptr);
+ ~CQChartsPlotControlFrame();
 
   Plot *plot() const;
   void setPlot(Plot *p) override;

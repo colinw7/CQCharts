@@ -482,6 +482,17 @@ third_walk(DrawTree *tree, int n)
 
 void
 DrawTree::
+normalize(double r, bool equalScale)
+{
+  s_r = r;
+
+  normalize(equalScale);
+
+  s_r = -1.0;
+}
+
+void
+DrawTree::
 normalize(bool equalScale)
 {
   double xmin = 9999.0, ymin = 9999.0, xmax = -9999.0, ymax = -9999.0;
@@ -509,7 +520,7 @@ sizeTree(DrawTree *root, int depth, double &xmin, double &ymin, double &xmax, do
 {
   double x = root->x();
   double y = depth;
-  double r = root->r();
+  double r = (s_r >= 0.0 ? s_r : root->r());
 
   double x1 = x - r*1.5;
   double y1 = y - r*1.5;
@@ -533,7 +544,7 @@ moveScale(DrawTree *root, int depth, double xmin, double ymin, double xmax, doub
     return low + (high - low)*x;
   };
 
-  auto norm =[](double x, double low, double high) {
+  auto norm = [](double x, double low, double high) {
     if (high != low)
       return (x - low)/(high - low);
     else
@@ -554,12 +565,23 @@ moveScale(DrawTree *root, int depth, double xmin, double ymin, double xmax, doub
 
   double x = root->x();
   double y = depth;
-  double r = root->r();
 
-  double x1 = mapX(x - r);
-  double y1 = mapY(y - r);
-  double x2 = mapX(x + r);
-  double y2 = mapY(y + r);
+  double x1, y1, x2, y2;
+
+  if (s_r >= 0.0) {
+    x1 = mapX(x) - s_r;
+    y1 = mapY(y) - s_r;
+    x2 = mapX(x) + s_r;
+    y2 = mapY(y) + s_r;
+  }
+  else {
+    double r = root->r();
+
+    x1 = mapX(x - r);
+    y1 = mapY(y - r);
+    x2 = mapX(x + r);
+    y2 = mapY(y + r);
+  }
 
   double s = std::min(x2 - x1, y2 - y1);
 

@@ -93,6 +93,7 @@ class CQChartsModelViewHolder : public QFrame, public CQChartsWidgetIFace {
   CQChartsTree*      tree_         { nullptr };
 #endif
   bool               hierarchical_ { false };
+  ModelP             model_;
 };
 
 #endif

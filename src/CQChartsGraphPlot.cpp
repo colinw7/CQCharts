@@ -292,19 +292,19 @@ setNodeYScaled(bool b)
 
 //---
 
-CQChartsGraphPlot::NodeShape
+CQChartsShapeType
 CQChartsGraphPlot::
 nodeShape() const
 {
-  return static_cast<NodeShape>(graphMgr_->nodeShape());
+  return graphMgr_->nodeShape();
 }
 
 void
 CQChartsGraphPlot::
-setNodeShape(const NodeShape &s)
+setNodeShape(const ShapeType &s)
 {
   if (s != nodeShape()) {
-    graphMgr_->setNodeShape(static_cast<GraphMgr::NodeShape>(s));
+    graphMgr_->setNodeShape(s);
 
     updateRangeAndObjs();
   }
@@ -1394,22 +1394,9 @@ processNodeNameValue(Node *node, const QString &name, const QString &valueStr) c
 {
   // shape
   if      (name == "shape") {
-    if      (valueStr == "diamond")
-      node->setShapeType(Node::ShapeType::DIAMOND);
-    else if (valueStr == "box")
-      node->setShapeType(Node::ShapeType::BOX);
-    else if (valueStr == "polygon")
-      node->setShapeType(Node::ShapeType::POLYGON);
-    else if (valueStr == "circle")
-      node->setShapeType(Node::ShapeType::CIRCLE);
-    else if (valueStr == "doublecircle")
-      node->setShapeType(Node::ShapeType::DOUBLE_CIRCLE);
-    else if (valueStr == "record")
-      node->setShapeType(Node::ShapeType::BOX);
-    else if (valueStr == "plaintext")
-      node->setShapeType(Node::ShapeType::BOX);
-    else
-      node->setShapeType(Node::ShapeType::BOX);
+    auto shapeType = CQChartsShapeType::nameToType(valueStr);
+
+    node->setShapeType(CQChartsShapeType(shapeType));
   }
   // num sides
   else if (name == "num_sides") {
@@ -1821,10 +1808,10 @@ createObjFromNode(Graph *, Node *node) const
 
   nodeObj->connectDataChanged(this, SLOT(updateSlot()));
 
-  auto shapeType = static_cast<NodeObj::ShapeType>(node->shapeType());
+  auto shapeType = node->shapeType();
 
-  if (shapeType == NodeObj::ShapeType::NONE)
-    shapeType = static_cast<NodeObj::ShapeType>(nodeShape());
+  if (shapeType.type() == ShapeType::Type::NONE)
+    shapeType = nodeShape();
 
   nodeObj->setShapeType(shapeType);
   nodeObj->setHierName (node->str());
@@ -2459,27 +2446,9 @@ draw(PaintDevice *device) const
 
   // draw node
   if (rect().isSet()) {
-    if      (shapeType() == ShapeType::DIAMOND)
-      device->drawDiamond(rect());
-    else if (shapeType() == ShapeType::BOX)
-      device->drawRect(rect());
-    else if (shapeType() == ShapeType::POLYGON)
-      device->drawPolygonSides(rect(), numSides());
-    else if (shapeType() == ShapeType::CIRCLE)
-      device->drawEllipse(rect());
-    else if (shapeType() == ShapeType::DOUBLE_CIRCLE) {
-      auto rect = this->rect();
+    auto shapeData = CQChartsShapeTypeData(shapeType().type(), Angle(), numSides());
 
-      double dx = rect.getWidth ()/10.0;
-      double dy = rect.getHeight()/10.0;
-
-      auto rect1 = rect.expanded(dx, dy, -dx, -dy);
-
-      device->drawEllipse(rect );
-      device->drawEllipse(rect1);
-    }
-    else
-      device->drawRect(rect());
+    CQChartsDrawUtil::drawShape(device, shapeData, rect());
 
     //---
 
@@ -2540,9 +2509,13 @@ drawFg(PaintDevice *device) const
 
   bool textInside = graphPlot_->isNodeTextInside();
 
-  if (shapeType() == ShapeType::DIAMOND || shapeType() == ShapeType::BOX ||
-      shapeType() == ShapeType::POLYGON || shapeType() == ShapeType::CIRCLE ||
-      shapeType() == ShapeType::DOUBLE_CIRCLE)
+  auto shapeType1 = shapeType().type();
+
+  if (shapeType1 == CQChartsShapeType::Type::DIAMOND ||
+      shapeType1 == CQChartsShapeType::Type::BOX ||
+      shapeType1 == CQChartsShapeType::Type::POLYGON ||
+      shapeType1 == CQChartsShapeType::Type::CIRCLE ||
+      shapeType1 == CQChartsShapeType::Type::DOUBLE_CIRCLE)
     textInside = true;
 
   //---
@@ -2826,17 +2799,21 @@ draw(PaintDevice *device) const
     destRect = edge()->destNode()->rect();
 
   if (shapeType() == ShapeType::ARROW || ! graphPlot_->isEdgeScaled()) {
-    if (edge()->srcNode()->shapeType() == Node::ShapeType::DIAMOND ||
-        edge()->srcNode()->shapeType() == Node::ShapeType::POLYGON ||
-        edge()->srcNode()->shapeType() == Node::ShapeType::CIRCLE ||
-        edge()->srcNode()->shapeType() == Node::ShapeType::DOUBLE_CIRCLE) {
+    auto shapeType1 = edge()->srcNode()->shapeType().type();
+
+    if (shapeType1 == CQChartsShapeType::Type::DIAMOND ||
+        shapeType1 == CQChartsShapeType::Type::POLYGON ||
+        shapeType1 == CQChartsShapeType::Type::CIRCLE ||
+        shapeType1 == CQChartsShapeType::Type::DOUBLE_CIRCLE) {
       srcRect = srcObj->rect();
     }
 
-    if (edge()->destNode()->shapeType() == Node::ShapeType::DIAMOND ||
-        edge()->destNode()->shapeType() == Node::ShapeType::POLYGON ||
-        edge()->destNode()->shapeType() == Node::ShapeType::CIRCLE ||
-        edge()->destNode()->shapeType() == Node::ShapeType::DOUBLE_CIRCLE) {
+    auto shapeType2 = edge()->destNode()->shapeType().type();
+
+    if (shapeType2 == CQChartsShapeType::Type::DIAMOND ||
+        shapeType2 == CQChartsShapeType::Type::POLYGON ||
+        shapeType2 == CQChartsShapeType::Type::CIRCLE ||
+        shapeType2 == CQChartsShapeType::Type::DOUBLE_CIRCLE) {
       destRect = destObj->rect();
     }
   }

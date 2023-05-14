@@ -40,6 +40,9 @@
 #include <CQChartsModelColumnDataControl.h>
 #include <CQChartsModelExprControl.h>
 #include <CQChartsModelControl.h>
+#ifdef CQCHARTS_MODULE_SHLIB
+#include <CQChartsModuleData.h>
+#endif
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -54,6 +57,11 @@
 
 #include <CMathUtil.h>
 #include <CMathRound.h>
+
+#ifdef CQCHARTS_MODULE_SHLIB
+#define OS_UNIX 1
+#include <CShLib.h>
+#endif
 
 #include <QApplication>
 #include <QItemSelectionModel>
@@ -424,6 +432,7 @@ updateModelInds()
 
     for (const auto &model : models_) {
       auto *modelData = getModelData(model);
+      if (! modelData) continue;
 
       CQChartsModelInd modelInd(charts(), modelData->ind());
 
@@ -597,6 +606,7 @@ connectDisconnectModel(const ModelP &model, bool isConnect)
     return;
 
   auto *modelData = getModelData(model);
+  if (! modelData) return;
 
   //---
 
@@ -3886,6 +3896,22 @@ setLogY(bool b)
   }
 }
 
+bool
+CQChartsPlot::
+isPolar() const
+{
+  return polar_;
+}
+
+void
+CQChartsPlot::
+setPolar(bool b)
+{
+  if (b != isPolar()) {
+    polar_ = b; updateRangeAndObjs();
+  }
+}
+
 //------
 
 CQChartsEditHandles *
@@ -4012,6 +4038,8 @@ addBaseProperties()
   if (type()->allowYLog()) addProp("log", "logY", "y", "Use log y axis");
 #endif
 
+  addProp("polar", "polar", "enabled", "Use polar values");
+
   // animation
   addProp("animation", "animating", "running", "Is Animation Running");
   addProp("animation", "animTick" , "tick"   , "Animation tick (ms)");
@@ -4020,6 +4048,11 @@ addBaseProperties()
   addPropI("debug", "showBoxes"        , "", "Show object bounding boxes"         );
   addPropI("debug", "showSelectedBoxes", "", "Show selected object bounding boxes");
   addPropI("debug", "followMouse"      , "", "Enable mouse tracking");
+
+#ifdef CQCHARTS_MODULE_SHLIB
+  // modules
+  addPropI("module", "plotModule", "name", "Set module name");
+#endif
 
   //------
 
@@ -7692,6 +7725,26 @@ selectMousePress(const Point &p, SelMod selMod)
   if (handleSelectPress(w, selMod))
     return true;
 
+#ifdef CQCHARTS_MODULE_SHLIB
+  if (moduleData_.eventProc) {
+    CQChartsModuleEventData moduleEventData;
+
+    moduleEventData.id     = moduleData_.id;
+    moduleEventData.mode   = CQCHARTS_EVENT_MODE_SELECT;
+    moduleEventData.type   = CQCHARTS_EVENT_TYPE_MOUSE_PRESS;
+    moduleEventData.button = 0;
+    moduleEventData.key    = 0;
+
+    moduleEventData.pixel_x = p.x;
+    moduleEventData.pixel_y = p.y;
+
+    moduleEventData.plot_x = w.x;
+    moduleEventData.plot_y = w.y;
+
+    (*moduleData_.eventProc)(&moduleEventData);
+  }
+#endif
+
   Q_EMIT selectPressSignal(w);
 
   return false;
@@ -9459,6 +9512,37 @@ setDragObj(DragObjType objType, Obj *obj)
 
 void
 CQChartsPlot::
+probeMouseMove(const Point &pw)
+{
+#ifdef CQCHARTS_MODULE_SHLIB
+  if (moduleData_.eventProc) {
+    CQChartsModuleEventData moduleEventData;
+
+    auto pp = windowToPixel(pw);
+
+    moduleEventData.id     = moduleData_.id;
+    moduleEventData.mode   = CQCHARTS_EVENT_MODE_PROBE;
+    moduleEventData.type   = CQCHARTS_EVENT_TYPE_MOUSE_MOVE;
+    moduleEventData.button = 0;
+    moduleEventData.key    = 0;
+
+    moduleEventData.pixel_x = pp.x;
+    moduleEventData.pixel_y = pp.y;
+
+    moduleEventData.plot_x = pw.x;
+    moduleEventData.plot_y = pw.y;
+
+    (*moduleData_.eventProc)(&moduleEventData);
+  }
+#else
+  Q_UNUSED(pw);
+#endif
+}
+
+//---
+
+void
+CQChartsPlot::
 flipSelected(Qt::Orientation orient)
 {
   for (auto &annotation : annotations()) {
@@ -10972,8 +11056,13 @@ columnStr(const Column &column, double r) const
 
 QString
 CQChartsPlot::
-columnValueToString(const Column &, const QVariant &var) const
+columnValueToString(const Column &c, const QVariant &var) const
 {
+  auto *columnDetails = this->columnDetails(c);
+
+  if (columnDetails && columnDetails->type() == CQBaseModelType::TIME)
+    return columnDetails->dataName(var).toString();
+
   bool ok;
   return CQChartsVariant::toString(var, ok);
 }
@@ -12713,6 +12802,12 @@ drawLayers(QPainter *painter) const
     if (buffer->isActive() && buffer->isValid())
       buffer->draw(painter);
   }
+
+  //---
+
+#ifdef CQCHARTS_MODULE_SHLIB
+  drawModule(painter);
+#endif
 }
 
 void
@@ -12727,6 +12822,39 @@ drawLayer(QPainter *painter, Layer::Type type) const
 
   buffer->draw(painter, 0, 0);
 }
+
+//---
+
+#ifdef CQCHARTS_MODULE_SHLIB
+void
+CQChartsPlot::
+drawModule(QPainter *painter) const
+{
+  if (moduleData_.drawProc) {
+    CQChartsModuleDrawData moduleDrawData;
+
+    moduleDrawData.id      = moduleData_.id;
+    moduleDrawData.painter = painter;
+
+    auto pixelRect = calcPlotPixelRect();
+    auto plotRect  = pixelToWindow(calcPlotPixelRect());
+
+    moduleDrawData.pixel_xmin = pixelRect.getXMin();
+    moduleDrawData.pixel_ymin = pixelRect.getYMin();
+    moduleDrawData.pixel_xmax = pixelRect.getXMax();
+    moduleDrawData.pixel_ymax = pixelRect.getYMax();
+
+    moduleDrawData.plot_xmin = plotRect.getXMin();
+    moduleDrawData.plot_ymin = plotRect.getYMin();
+    moduleDrawData.plot_xmax = plotRect.getXMax();
+    moduleDrawData.plot_ymax = plotRect.getYMax();
+
+    (*moduleData_.drawProc)(&moduleDrawData);
+  }
+}
+#endif
+
+//---
 
 void
 CQChartsPlot::
@@ -15707,6 +15835,7 @@ initWidgetAnnotation(const Widget &widget)
   const auto &model = currentModel();
 
   auto *modelData = getModelData(model);
+  if (! modelData) return;
 
   for (auto *widget : widgets) {
     auto widgetIFace = dynamic_cast<CQChartsWidgetIFace *>(widget);
@@ -18817,9 +18946,15 @@ percentRefSize(const BBox &pbbox, double &refWidth, double &refHeight) const
   refWidth  = pbbox.getWidth ();
   refHeight = pbbox.getHeight();
 
-  if (refLength_.isSet()) {
+  if      (refLength_.isSet()) {
     refWidth  = refLength().real();
     refHeight = refWidth;
+  }
+  else if (refRect_.isSet()) {
+    auto bbox = rectToPlot(refRect().rect());
+
+    refWidth  = bbox.getWidth ();
+    refHeight = bbox.getHeight();
   }
 }
 
@@ -18839,9 +18974,15 @@ percentPixelRefSize(const BBox &pbbox, double &refWidth, double &refHeight) cons
   refWidth  = pbbox.getWidth ();
   refHeight = pbbox.getHeight();
 
-  if (refLength_.isSet()) {
+  if      (refLength_.isSet()) {
     refWidth  = windowToPixelWidth (refLength().real());
     refHeight = windowToPixelHeight(refLength().real());
+  }
+  else if (refRect_.isSet()) {
+    auto bbox = rectToPlot(refRect().rect());
+
+    refWidth  = windowToPixelWidth (bbox.getWidth ());
+    refHeight = windowToPixelHeight(bbox.getHeight());
   }
 }
 
@@ -19529,3 +19670,179 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
   // title
   if (title()) title()->write(propertyModel(), plotName(), os);
 }
+
+//---
+
+#ifdef CQCHARTS_MODULE_SHLIB
+bool
+CQChartsPlot::
+setPlotModule(const QString &name)
+{
+  auto errorMsg = [](const QString &msg) {
+    std::cerr << msg.toStdString() << "\n";
+    return false;
+  };
+
+  //---
+
+  // <module> <args>
+  QString     moduleName;
+  QStringList moduleArgs;
+
+  QStringList strs;
+
+  if (CQTcl::splitList(name, strs) && strs.length() > 0) {
+    moduleName = strs[0];
+
+    for (int i = 1; i < strs.length(); ++i)
+      moduleArgs.push_back(strs[i]);
+  }
+  else
+    moduleName = name;
+
+  //---
+
+  delete moduleData_.shlib;
+
+  moduleData_.name      = moduleName;
+  moduleData_.initProc  = nullptr;
+  moduleData_.drawProc  = nullptr;
+  moduleData_.eventProc = nullptr;
+
+  auto libname = CQChartsEnv::getString("CQCHARTS_MODULE_PATH", "./modules");
+
+  libname += "/" + moduleName + ".so";
+
+  moduleData_.shlib = new CShLib(libname.toLatin1().constData());
+
+  if (! moduleData_.shlib->open())
+    return errorMsg(QString("Failed to Open Library %1").arg(libname));
+
+  //---
+
+  auto initName    = moduleName + "_charts_init";
+  auto drawName    = moduleName + "_charts_draw";
+  auto eventName   = moduleName + "_charts_event";
+  auto getDataName = moduleName + "_charts_get_data";
+  auto setDataName = moduleName + "_charts_set_data";
+
+  auto getProc = [&](const QString &procName, auto *proc) {
+    CShLibProc shProc;
+    if (! moduleData_.shlib->getProc(procName.toLatin1().constData(), &shProc))
+      return errorMsg(QString("Failed to Find Proc %1").arg(procName));
+    *proc = reinterpret_cast<decltype(*proc)>(shProc);
+    return true;
+  };
+
+  if (! getProc(initName, &moduleData_.initProc))
+    return false;
+
+  if (! getProc(drawName, &moduleData_.drawProc))
+    return false;
+
+  if (! getProc(eventName, &moduleData_.eventProc))
+    return false;
+
+  if (! getProc(getDataName, &moduleData_.getDataProc))
+    return false;
+
+  if (! getProc(setDataName, &moduleData_.setDataProc))
+    return false;
+
+  //---
+
+  auto str = moduleArgs.join(" ");
+
+  moduleData_.id = (*moduleData_.initProc)(reinterpret_cast<void *>(str.toLatin1().data()));
+
+  //---
+
+  CQChartsModuleGetData getData;
+
+  getData.id     = moduleData_.id;
+  getData.buffer = nullptr;
+
+  (*moduleData_.getDataProc)(&getData);
+
+  if (getData.buffer) {
+    std::cerr << "buffer: " << getData.buffer << "\n";
+
+    // list of named value sets
+    QStringList strs;
+
+    if (CQTcl::splitList(getData.buffer, strs) && strs.length() > 0) {
+      // named value set
+      for (const auto &str : strs) {
+        std::cerr << "named value set: " << str.toStdString() << "\n";
+
+        // named values
+        QStringList strs1;
+
+        if (CQTcl::splitList(str, strs1) && strs1.length() > 0) {
+          std::cerr << "named values" << strs1[0].toStdString() << "\n";
+
+          // properties name/types
+          if (strs1[0] == "properties" && strs1.length() > 1) {
+            QStringList strs2;
+
+            if (CQTcl::splitList(strs1[1], strs2) && strs2.length() > 0) {
+              for (const auto &str2 : strs2) {
+                std::cerr << "name/type: " << str2.toStdString() << "\n";
+
+                QStringList strs3;
+
+                if (CQTcl::splitList(str2, strs3) && strs3.length() > 1) {
+                  auto name = strs3[0];
+                  auto type = strs3[1];
+
+                  QVariant value;
+
+                  if (strs3.length() > 2)
+                    value = strs3[2];
+
+                  std::cerr << "name=" << name.toStdString() << " " <<
+                               "type=" << type.toStdString() << " " <<
+                               "value=" << value.toString().toStdString() << "\n";
+
+                  moduleData_.properties[name] = ModulePropertyData(type, value);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  Q_EMIT plotModuleChanged();
+
+  return true;
+}
+#endif
+
+#ifdef CQCHARTS_MODULE_SHLIB
+void
+CQChartsPlot::
+setModuleProperty(const QString &name, const QString &type, const QVariant &value)
+{
+  moduleData_.properties[name] = ModulePropertyData(type, value);
+
+  CQChartsModuleGetData setData;
+
+  setData.id = moduleData_.id;
+
+  QString str;
+
+  str += "{properties {";
+
+  for (const auto &p : moduleData_.properties) {
+    str += "{" + p.first + " " + p.second.first + " " + p.second.second.toString() + "}";
+  }
+
+  str += "}}";
+
+  setData.buffer = str.toLatin1().data();
+
+  (*moduleData_.setDataProc)(&setData);
+}
+#endif

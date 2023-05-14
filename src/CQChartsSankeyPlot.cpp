@@ -4,6 +4,7 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsAnalyzeModelData.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
@@ -132,6 +133,10 @@ init()
 
   //---
 
+  nodeModel_.setCharts(charts());
+
+  //---
+
   auto bg = Color::makePalette();
 
   setNodeFilled(true);
@@ -184,6 +189,135 @@ term()
   //---
 
   delete placer_;
+}
+
+//---
+
+void
+CQChartsSankeyPlot::
+setNodeModel(const CQChartsModelInd &model)
+{
+  if (nodeModel_ != model) {
+    if (nodeModel_.isValid())
+      removeExtraModel(nodeModel_.modelData());
+
+    nodeModel_ = model;
+
+    nodeModel_.setCharts(charts());
+
+    nodeIdColumn_         .setModelInd(nodeModel_.modelInd());
+    nodeLabelColumn_      .setModelInd(nodeModel_.modelInd());
+    nodeFillColorColumn_  .setModelInd(nodeModel_.modelInd());
+    nodeFillAlphaColumn_  .setModelInd(nodeModel_.modelInd());
+    nodeFillPatternColumn_.setModelInd(nodeModel_.modelInd());
+    nodeStrokeColorColumn_.setModelInd(nodeModel_.modelInd());
+    nodeStrokeAlphaColumn_.setModelInd(nodeModel_.modelInd());
+    nodeStrokeWidthColumn_.setModelInd(nodeModel_.modelInd());
+    nodeStrokeDashColumn_ .setModelInd(nodeModel_.modelInd());
+
+    addExtraModel(nodeModel_.modelData());
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsSankeyPlot::
+setNodeIdColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeIdColumn_, c, [&]() {
+    nodeIdColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsSankeyPlot::
+setNodeLabelColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeLabelColumn_, c, [&]() {
+    nodeLabelColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsSankeyPlot::
+setNodeFillColorColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeFillColorColumn_, c, [&]() {
+    nodeFillColorColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsSankeyPlot::
+setNodeFillAlphaColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeFillAlphaColumn_, c, [&]() {
+    nodeFillAlphaColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsSankeyPlot::
+setNodeFillPatternColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeFillPatternColumn_, c, [&]() {
+    nodeFillPatternColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsSankeyPlot::
+setNodeStrokeColorColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeStrokeColorColumn_, c, [&]() {
+    nodeStrokeColorColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsSankeyPlot::
+setNodeStrokeAlphaColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeStrokeAlphaColumn_, c, [&]() {
+    nodeStrokeAlphaColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsSankeyPlot::
+setNodeStrokeWidthColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeStrokeWidthColumn_, c, [&]() {
+    nodeStrokeWidthColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsSankeyPlot::
+setNodeStrokeDashColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeStrokeDashColumn_, c, [&]() {
+    nodeStrokeDashColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
 }
 
 //---
@@ -399,6 +533,20 @@ addProperties()
 
   //---
 
+  // node columns
+  addPropI("nodeModel", "nodeModel"            , "model"            , "Node id nodel");
+  addPropI("nodeModel", "nodeIdColumn"         , "idColumn"         , "Node id column");
+  addPropI("nodeModel", "nodeLabelColumn"      , "labelColumn"      , "Node label column");
+  addPropI("nodeModel", "nodeFillColorColumn"  , "fillColorColumn"  , "Node fill color column");
+  addPropI("nodeModel", "nodeFillAlphaColumn"  , "fillAlphaColumn"  , "Node fill alpha column");
+  addPropI("nodeModel", "nodeFillPatternColumn", "fillPatternColumn", "Node fill pattern column");
+  addPropI("nodeModel", "nodeStrokeColorColumn", "strokeColorColumn", "Node stroke color column");
+  addPropI("nodeModel", "nodeStrokeAlphaColumn", "strokeAlphaColumn", "Node stroke alpha column");
+  addPropI("nodeModel", "nodeStrokeWidthColumn", "strokeWidthColumn", "Node stroke width column");
+  addPropI("nodeModel", "nodeStrokeDashColumn" , "strokeDashColumn" , "Node stroke dash column");
+
+  //---
+
   // placement
   addProp("placement", "align"             , "align"             , "Node alignment");
   addProp("placement", "alignFirstLast"    , "alignFirstLast"    , "Node align first/last");
@@ -428,9 +576,9 @@ addProperties()
   addProp("coloring", "mouseNodeColoring", "", "Mouse Over Node Coloring");
 
   // node
-  addProp("node", "nodeMargin"   , "margin", "Node margin (Y)");
-  addProp("node", "minNodeMargin", "margin", "Min Node margin (Pixels)", /*hidden*/true);
-  addProp("node", "nodeWidth"    , "width" , "Node width");
+  addProp ("node", "nodeMargin"   , "margin", "Node margin (Y)");
+  addPropI("node", "minNodeMargin", "margin", "Min Node margin (Pixels)");
+  addProp ("node", "nodeWidth"    , "width" , "Node width");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -590,6 +738,161 @@ createObjs(PlotObjs &objs) const
 
   if (! rc)
     return false;
+
+  //---
+
+//processMetaData();
+
+  //---
+
+  if (nodeModel().isValid() && nodeIdColumn().isValid()) {
+    auto *nodeModelData = nodeModel().modelData();
+
+    class NodeVisitor : public CQChartsModelVisitor {
+     public:
+      NodeVisitor(const CQChartsSankeyPlot *plot) :
+       plot_(plot) {
+        modelInd_ = plot_->nodeModel().modelInd();
+        idColumn_ = plot_->nodeIdColumn().column();
+
+        if (plot_->nodeLabelColumn().isValid())
+          labelColumn_ = plot_->nodeLabelColumn().column();
+
+        if (plot_->nodeFillColorColumn().isValid())
+          fillColorColumn_ = plot_->nodeFillColorColumn().column();
+
+        if (plot_->nodeFillAlphaColumn().isValid())
+          fillAlphaColumn_ = plot_->nodeFillAlphaColumn().column();
+
+        if (plot_->nodeFillPatternColumn().isValid())
+          fillPatternColumn_ = plot_->nodeFillPatternColumn().column();
+
+        if (plot_->nodeStrokeColorColumn().isValid())
+          strokeColorColumn_ = plot_->nodeStrokeColorColumn().column();
+
+        if (plot_->nodeStrokeAlphaColumn().isValid())
+          strokeAlphaColumn_ = plot_->nodeStrokeAlphaColumn().column();
+
+        if (plot_->nodeStrokeWidthColumn().isValid())
+          strokeWidthColumn_ = plot_->nodeStrokeWidthColumn().column();
+
+        if (plot_->nodeStrokeDashColumn().isValid())
+          strokeDashColumn_ = plot_->nodeStrokeDashColumn().column();
+      }
+
+      // visit row
+      State visit(const QAbstractItemModel *model, const VisitData &data) override {
+        bool ok;
+
+        auto var = CQChartsModelUtil::modelValue(
+          plot_->charts(), model, data.row, idColumn_, data.parent, ok);
+        if (! var.isValid()) return State::SKIP;
+
+        auto id = var.toString();
+
+        auto *plot = const_cast<CQChartsSankeyPlot *>(plot_);
+
+        auto *node = plot->findNode(id);
+
+        if (labelColumn_.isValid()) {
+          auto labelVar = CQChartsModelUtil::modelValue(
+            plot_->charts(), model, data.row, labelColumn_, data.parent, ok);
+
+          if (labelVar.isValid())
+            node->setLabel(labelVar.toString());
+        }
+
+        if (fillColorColumn_.isValid()) {
+          auto colorVar = CQChartsModelUtil::modelValue(
+            plot_->charts(), model, data.row, fillColorColumn_, data.parent, ok);
+
+          if (colorVar.isValid()) {
+            auto c = CQChartsVariant::toColor(colorVar, ok);
+            if (ok) node->setFillColor(c);
+          }
+        }
+
+        if (fillAlphaColumn_.isValid()) {
+          auto alphaVar = CQChartsModelUtil::modelValue(
+            plot_->charts(), model, data.row, fillAlphaColumn_, data.parent, ok);
+
+          if (alphaVar.isValid()) {
+            auto a = CQChartsVariant::toAlpha(alphaVar, ok);
+            if (ok) node->setFillAlpha(a);
+          }
+        }
+
+        if (fillPatternColumn_.isValid()) {
+          auto patternVar = CQChartsModelUtil::modelValue(
+            plot_->charts(), model, data.row, fillPatternColumn_, data.parent, ok);
+
+          if (patternVar.isValid()) {
+            auto p = CQChartsFillPattern(patternVar.toString());
+            node->setFillPattern(p);
+          }
+        }
+
+        if (strokeColorColumn_.isValid()) {
+          auto colorVar = CQChartsModelUtil::modelValue(
+            plot_->charts(), model, data.row, strokeColorColumn_, data.parent, ok);
+
+          if (colorVar.isValid()) {
+            auto c = CQChartsVariant::toColor(colorVar, ok);
+            if (ok) node->setStrokeColor(c);
+          }
+        }
+
+        if (strokeAlphaColumn_.isValid()) {
+          auto alphaVar = CQChartsModelUtil::modelValue(
+            plot_->charts(), model, data.row, strokeAlphaColumn_, data.parent, ok);
+
+          if (alphaVar.isValid()) {
+            auto a = CQChartsVariant::toAlpha(alphaVar, ok);
+            if (ok) node->setStrokeAlpha(a);
+          }
+        }
+
+        if (strokeWidthColumn_.isValid()) {
+          auto widthVar = CQChartsModelUtil::modelValue(
+            plot_->charts(), model, data.row, strokeWidthColumn_, data.parent, ok);
+
+          if (widthVar.isValid()) {
+            auto w = CQChartsVariant::toLength(widthVar, ok);
+            if (ok) node->setStrokeWidth(w);
+          }
+        }
+
+        if (strokeDashColumn_.isValid()) {
+          auto dashVar = CQChartsModelUtil::modelValue(
+            plot_->charts(), model, data.row, strokeDashColumn_, data.parent, ok);
+
+          if (dashVar.isValid()) {
+            auto d = CQChartsLineDash(dashVar.toString());
+            node->setStrokeDash(d);
+          }
+        }
+
+        return State::OK;
+      }
+
+     private:
+      const CQChartsSankeyPlot *plot_ { nullptr };
+      int                       modelInd_ { - 1};
+      Column                    idColumn_;
+      Column                    labelColumn_;
+      Column                    fillColorColumn_;
+      Column                    fillAlphaColumn_;
+      Column                    fillPatternColumn_;
+      Column                    strokeColorColumn_;
+      Column                    strokeAlphaColumn_;
+      Column                    strokeWidthColumn_;
+      Column                    strokeDashColumn_;
+    };
+
+    NodeVisitor nodeVisitor(this);
+
+    CQChartsModelVisit::exec(charts(), nodeModelData->model().data(), nodeVisitor);
+  }
 
   //---
 
@@ -1353,30 +1656,57 @@ void
 CQChartsSankeyPlot::
 processNodeNameValue(Node *node, const QString &name, const QString &value) const
 {
+  if (! processNodeNameVar(node, name, value)) {
+    auto *th = const_cast<CQChartsSankeyPlot *>(this);
+
+    th->addDataError(ModelIndex(), QString("Unhandled name '%1'").arg(name));
+  }
+}
+
+bool
+CQChartsSankeyPlot::
+processNodeNameVar(Node *node, const QString &name, const QVariant &var) const
+{
+  // custom label
   if      (name == "label") {
-    node->setLabel(value);
+    node->setLabel(var.toString());
   }
+  // custom fill color
   else if (name == "fill_color" || name == "color") {
-    node->setFillColor(CQChartsColor(value));
+    bool ok;
+    auto c = CQChartsVariant::toColor(var, ok); if (! ok) return false;
+    node->setFillColor(c);
   }
+  // custom fill alpha
   else if (name == "fill_alpha" || name == "alpha") {
-    node->setFillAlpha(CQChartsAlpha(value));
+    node->setFillAlpha(CQChartsAlpha(var.toString()));
   }
+  // custom fill pattern
   else if (name == "fill_pattern" || name == "pattern") {
-    node->setFillPattern(CQChartsFillPattern(value));
+    node->setFillPattern(CQChartsFillPattern(var.toString()));
   }
+  // custom stroke color
   else if (name == "stroke_color") {
-    node->setStrokeColor(CQChartsColor(value));
+    bool ok;
+    auto c = CQChartsVariant::toColor(var, ok); if (! ok) return false;
+    node->setStrokeColor(c);
   }
+  // custom stroke alpha
   else if (name == "stroke_alpha") {
-    node->setStrokeAlpha(CQChartsAlpha(value));
+    node->setStrokeAlpha(CQChartsAlpha(var.toString()));
   }
+  // custom stroke width
   else if (name == "stroke_width" || name == "width") {
-    node->setStrokeWidth(CQChartsLength(value));
+    node->setStrokeWidth(CQChartsLength(var.toString()));
   }
+  // custom stroke dash
   else if (name == "stroke_dash" || name == "dash") {
-    node->setStrokeDash(CQChartsLineDash(value));
+    node->setStrokeDash(CQChartsLineDash(var.toString()));
   }
+  else
+    return false;
+
+  return true;
 }
 
 void
@@ -1390,14 +1720,9 @@ processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
     const auto &name     = nv.first;
     auto        valueStr = nv.second.toString();
 
-    if      (name == "color") {
+    // custom fill color
+    if      (name == "fill_color" || name == "color") {
       edge->setFillColor(CQChartsColor(valueStr));
-    }
-    else if (name.left(4) == "src_") {
-      processNodeNameValue(srcNode, name.mid(4), valueStr);
-    }
-    else if (name.left(5) == "dest_") {
-      processNodeNameValue(destNode, name.mid(5), valueStr);
     }
 #if 0
     else if (name == "label") {
@@ -1416,6 +1741,14 @@ processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
       pathIdMinMax_.add(int(pathId));
     }
 #endif
+    // handle custom value for source node
+    else if (name.left(4) == "src_") {
+      processNodeNameValue(srcNode, name.mid(4), valueStr);
+    }
+    // handle custom value for destination node
+    else if (name.left(5) == "dest_") {
+      processNodeNameValue(destNode, name.mid(5), valueStr);
+    }
   }
 }
 

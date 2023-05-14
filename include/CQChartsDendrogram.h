@@ -48,7 +48,7 @@ class CQChartsDendrogram {
     }
 
    public:
-    Node(Node *parent, const QString &name="", double size=1.0);
+    Node(Node *parent, const QString &name="", const OptReal &size=OptReal());
 
     virtual ~Node();
 
@@ -59,7 +59,7 @@ class CQChartsDendrogram {
     const QString &name() const { return name_; }
     void setName(const QString &name) { name_ = name; }
 
-    double size() const;
+    bool calcSize(double &size) const;
 
     //! get/set depth
     int depth() const { return depth_; }
@@ -89,8 +89,12 @@ class CQChartsDendrogram {
 
     //---
 
+    virtual bool isRoot() const { return false; }
+
     const Children &getNodes   () const { return nodes_; }
     const Children &getChildren() const { return children_; }
+
+    bool isHier() const { return ! nodes_.empty() || ! children_.empty(); }
 
     //---
 
@@ -134,18 +138,23 @@ class CQChartsDendrogram {
     void clear();
 
     void addChild(Node *child, const OptReal &value=OptReal());
+    void removeChild(Node *child);
 
     void addNode(Node *node, const OptReal &value=OptReal());
+    void removeNode(Node *node);
 
     int numNodes() const;
 
     int maxNodes();
+    int maxEdges();
 
     int calcDepth() const;
 
     //---
 
     Node *findChild(const QString &name) const;
+
+    bool hasChild(Node *child) const;
 
     //---
 
@@ -175,7 +184,7 @@ class CQChartsDendrogram {
     Node*   parent_ { nullptr }; //!< parent hier node
     uint    id_;                 //!< id
     QString name_;               //!< name
-    double  size_   { 0.0 };     //!< size
+    OptReal size_;               //!< size
     int     depth_  { 0 };       //!< depth
     double  row_    { 0.0 };     //!< row
     double  nr_     { 0.0 };     //!< number of rows
@@ -207,6 +216,8 @@ class CQChartsDendrogram {
 
     double dx() const { return dx_; }
     double dy() const { return dy_; }
+
+    bool isRoot() const override { return true; }
 
     // place child nodes in (1.0 by 1.0 rectangle)
     void placeNodes();
@@ -278,10 +289,10 @@ class CQChartsDendrogram {
 
   Node *addHierNode(Node *hier, const QString &name, const OptReal &value=OptReal());
 
-  Node *addNode(Node *hier, const QString &name, double size);
+  Node *addNode(Node *hier, const QString &name, const OptReal &size=OptReal());
 
   virtual RootNode *createRootNode(const QString &name) const;
-  virtual Node *createNode(Node *hier, const QString &name, double size) const;
+  virtual Node *createNode(Node *hier, const QString &name, const OptReal &size=OptReal()) const;
 
   void placeNodes();
 

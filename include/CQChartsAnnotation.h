@@ -482,9 +482,9 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
 
  public:
   enum class ShapeType {
-    NONE   = static_cast<int>(CQChartsAnnotation::ShapeType::NONE),
-    BOX    = static_cast<int>(CQChartsAnnotation::ShapeType::BOX),
-    CIRCLE = static_cast<int>(CQChartsAnnotation::ShapeType::CIRCLE)
+    NONE   = static_cast<int>(CQChartsShapeType::Type::NONE),
+    BOX    = static_cast<int>(CQChartsShapeType::Type::BOX),
+    CIRCLE = static_cast<int>(CQChartsShapeType::Type::CIRCLE)
   };
 
   enum class LayoutType {
@@ -740,20 +740,6 @@ class CQChartsRectangleAnnotation : public CQChartsShapeAnnotationBase {
   Q_PROPERTY(CQChartsPosition start     READ start     WRITE setStart     )
   Q_PROPERTY(CQChartsPosition end       READ end       WRITE setEnd       )
 
-  Q_ENUMS(ShapeType)
-
- public:
-  enum class ShapeType {
-    NONE          = static_cast<int>(CQChartsShapeType::NONE),
-    TRIANGLE      = static_cast<int>(CQChartsShapeType::TRIANGLE),
-    DIAMOND       = static_cast<int>(CQChartsShapeType::DIAMOND),
-    BOX           = static_cast<int>(CQChartsShapeType::BOX),
-    POLYGON       = static_cast<int>(CQChartsShapeType::POLYGON),
-    CIRCLE        = static_cast<int>(CQChartsShapeType::CIRCLE),
-    DOUBLE_CIRCLE = static_cast<int>(CQChartsShapeType::DOUBLE_CIRCLE),
-    DOT_LINE      = static_cast<int>(CQChartsShapeType::DOT_LINE)
-  };
-
  public:
   using Rect       = CQChartsRect;
   using Symbol     = CQChartsSymbol;
@@ -824,34 +810,23 @@ class CQChartsRectangleAnnotation : public CQChartsShapeAnnotationBase {
 class CQChartsShapeAnnotation : public CQChartsShapeAnnotationBase {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsRect       rectangle  READ rectangle   WRITE setRectangle )
-  Q_PROPERTY(CQChartsPosition   start      READ start       WRITE setStart     )
-  Q_PROPERTY(CQChartsPosition   end        READ end         WRITE setEnd       )
-  Q_PROPERTY(ShapeType          shapeType  READ shapeType   WRITE setShapeType )
-  Q_PROPERTY(int                numSides   READ numSides    WRITE setNumSides  )
-  Q_PROPERTY(CQChartsLength     lineWidth  READ lineWidth   WRITE setLineWidth )
-  Q_PROPERTY(CQChartsSymbol     symbol     READ symbol      WRITE setSymbol    )
-  Q_PROPERTY(CQChartsLength     symbolSize READ symbolSize  WRITE setSymbolSize)
+  Q_PROPERTY(CQChartsRect      rectangle  READ rectangle WRITE setRectangle)
+  Q_PROPERTY(CQChartsPosition  start      READ start     WRITE setStart    )
+  Q_PROPERTY(CQChartsPosition  end        READ end       WRITE setEnd      )
+  Q_PROPERTY(CQChartsShapeType shapeType  READ shapeType WRITE setShapeType)
+  Q_PROPERTY(int               numSides   READ numSides  WRITE setNumSides )
 
-  Q_ENUMS(ShapeType)
-
- public:
-  enum class ShapeType {
-    NONE          = static_cast<int>(CQChartsShapeType::NONE),
-    TRIANGLE      = static_cast<int>(CQChartsShapeType::TRIANGLE),
-    DIAMOND       = static_cast<int>(CQChartsShapeType::DIAMOND),
-    BOX           = static_cast<int>(CQChartsShapeType::BOX),
-    POLYGON       = static_cast<int>(CQChartsShapeType::POLYGON),
-    CIRCLE        = static_cast<int>(CQChartsShapeType::CIRCLE),
-    DOUBLE_CIRCLE = static_cast<int>(CQChartsShapeType::DOUBLE_CIRCLE),
-    DOT_LINE      = static_cast<int>(CQChartsShapeType::DOT_LINE)
-  };
+  Q_PROPERTY(bool           dotLine       READ isDotLine     WRITE setDotLine      )
+  Q_PROPERTY(CQChartsLength dotLineWidth  READ dotLineWidth  WRITE setDotLineWidth )
+  Q_PROPERTY(CQChartsSymbol dotSymbol     READ dotSymbol     WRITE setDotSymbol    )
+  Q_PROPERTY(CQChartsLength dotSymbolSize READ dotSymbolSize WRITE setDotSymbolSize)
 
  public:
   using Rect       = CQChartsRect;
   using Symbol     = CQChartsSymbol;
   using SymbolType = CQChartsSymbolType;
   using Length     = CQChartsLength;
+  using ShapeType  = CQChartsShapeType;
 
  public:
   CQChartsShapeAnnotation(View *view, const Rect &rect=Rect());
@@ -887,7 +862,7 @@ class CQChartsShapeAnnotation : public CQChartsShapeAnnotationBase {
   //---
 
   //! get/set shape
-  ShapeType shapeType() const { return static_cast<ShapeType>(shapeTypeData_.shapeType); }
+  ShapeType shapeType() const { return ShapeType(shapeTypeData_.shapeType); }
   void setShapeType(const ShapeType &s);
 
   //! get/set number of sides
@@ -896,17 +871,21 @@ class CQChartsShapeAnnotation : public CQChartsShapeAnnotationBase {
 
   //---
 
-  //! get/set line width (for dot line)
-  const Length &lineWidth() const { return lineWidth_; }
-  void setLineWidth(const Length &l);
+  //! get/set draw dot line
+  bool isDotLine() const { return dotLine_; }
+  void setDotLine(bool b);
 
-  //! get/set symbol type (for dot line)
-  const Symbol &symbol() const { return symbol_; }
-  void setSymbol(const Symbol &t);
+  //! get/set dot line width
+  const Length &dotLineWidth() const { return dotLineWidth_; }
+  void setDotLineWidth(const Length &l);
 
-  //! get/set symbol size (for dot line)
-  const Length &symbolSize() const { return symbolSize_; }
-  void setSymbolSize(const Length &s);
+  //! get/set dot symbol type
+  const Symbol &dotSymbol() const { return dotSymbol_; }
+  void setDotSymbol(const Symbol &t);
+
+  //! get/set dot symbol size
+  const Length &dotSymbolSize() const { return dotSymbolSize_; }
+  void setDotSymbolSize(const Length &s);
 
   //---
 
@@ -935,9 +914,10 @@ class CQChartsShapeAnnotation : public CQChartsShapeAnnotationBase {
 
   CQChartsShapeTypeData shapeTypeData_; //!< shape type data
 
-  Length lineWidth_  { Length::plot(1.0) }; //!< dot line width
-  Symbol symbol_     { Symbol::circle() };  //!< dot symbol
-  Length symbolSize_ { Length::plot(1.0) }; //!< dot symbol size
+  bool   dotLine_       { false };             //!< draw dot line
+  Length dotLineWidth_  { Length::plot(1.0) }; //!< dot line width
+  Symbol dotSymbol_     { Symbol::circle() };  //!< dot symbol
+  Length dotSymbolSize_ { Length::plot(1.0) }; //!< dot symbol size
 };
 
 //---

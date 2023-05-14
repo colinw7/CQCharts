@@ -1,53 +1,55 @@
-#ifndef CQChartsSymbolTypeEdit_H
-#define CQChartsSymbolTypeEdit_H
+#ifndef CQChartsShapeTypeEdit_H
+#define CQChartsShapeTypeEdit_H
 
-#include <CQChartsSymbolType.h>
-#include <QFrame>
+#include <CQSwitchLineEdit.h>
+#include <CQChartsShapeType.h>
 
 class CQRealSpin;
 class QComboBox;
 
 /*!
- * \brief symbol edit
+ * \brief shape edit
  * \ingroup Charts
  */
-class CQChartsSymbolTypeEdit : public QFrame {
+class CQChartsShapeTypeEdit : public CQSwitchLineEdit {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsSymbolType symbol READ symbolType WRITE setSymbolType)
+  Q_PROPERTY(CQChartsShapeType shape READ shapeType WRITE setShapeType)
 
  public:
-  CQChartsSymbolTypeEdit(QWidget *parent=nullptr);
+  CQChartsShapeTypeEdit(QWidget *parent=nullptr);
 
-  const CQChartsSymbolType &symbolType() const;
-  void setSymbolType(const CQChartsSymbolType &pos);
+  const CQChartsShapeType &shapeType() const;
+  void setShapeType(const CQChartsShapeType &pos);
 
  private:
   void connectSlots(bool b);
 
+  void updateWidgets();
+
  Q_SIGNALS:
-  void symbolChanged();
+  void shapeChanged();
 
  private Q_SLOTS:
   void comboChanged();
+  void textChangedSlot();
 
  private:
-  CQChartsSymbolType symbolType_;
-  QComboBox*         combo_ { nullptr };
+  CQChartsShapeType shapeType_;
+  QComboBox*        combo_ { nullptr };
 };
 
 //------
 
-#if 0
 #include <CQPropertyViewType.h>
 
 /*!
- * \brief type for CQChartsSymbolType
+ * \brief type for CQChartsShapeType
  * \ingroup Charts
  */
-class CQChartsSymbolTypePropertyViewType : public CQPropertyViewType {
+class CQChartsShapeTypePropertyViewType : public CQPropertyViewType {
  public:
-  CQChartsSymbolTypePropertyViewType();
+  CQChartsShapeTypePropertyViewType();
 
   CQPropertyViewEditorFactory *getEditor() const override;
 
@@ -59,7 +61,7 @@ class CQChartsSymbolTypePropertyViewType : public CQPropertyViewType {
 
   QString tip(const QVariant &value) const override;
 
-  QString userName() const override { return "symbol"; }
+  QString userName() const override { return "shape"; }
 };
 
 //---
@@ -67,12 +69,12 @@ class CQChartsSymbolTypePropertyViewType : public CQPropertyViewType {
 #include <CQPropertyViewEditor.h>
 
 /*!
- * \brief editor factory for CQChartsSymbolType
+ * \brief editor factory for CQChartsShapeType
  * \ingroup Charts
  */
-class CQChartsSymbolTypePropertyViewEditor : public CQPropertyViewEditorFactory {
+class CQChartsShapeTypePropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
-  CQChartsSymbolTypePropertyViewEditor();
+  CQChartsShapeTypePropertyViewEditor();
 
   QWidget *createEdit(QWidget *parent) override;
 
@@ -82,6 +84,5 @@ class CQChartsSymbolTypePropertyViewEditor : public CQPropertyViewEditorFactory 
 
   void setValue(QWidget *w, const QVariant &var) override;
 };
-#endif
 
 #endif

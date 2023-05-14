@@ -4,6 +4,7 @@
 #include <CQChartsPath.h>
 #include <CQChartsStyle.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsQuadTree.h>
 #include <CQCharts.h>
 
 #include <CQColors.h>
@@ -1803,6 +1804,200 @@ QImage disabledImage(const QImage &image, const QColor &bg, double f) {
   }
 
   return image1;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+bool checkOverlaps(const std::vector<BBox> &rects)
+{
+  if (rects.size() <= 1)
+    return false;
+
+  class RectData {
+   public:
+    RectData(const BBox &rect) :
+     rect_(rect) {
+    }
+
+    BBox rect() const { return rect_; }
+
+   private:
+    BBox rect_;
+  };
+
+  using QuadTree  = CQChartsQuadTree<RectData, BBox>;
+  using RectDatas = std::vector<RectData>;
+
+  BBox      bbox;
+  RectDatas rectDatas;
+
+  for (auto &r : rects) {
+    bbox += r;
+
+    rectDatas.emplace_back(r);
+  }
+
+  QuadTree quad(bbox);
+
+  for (auto &r : rectDatas) {
+    if (quad.isDataTouchingRect(r.rect()))
+      return true;
+
+    quad.add(&r);
+  }
+
+  return false;
+}
+
+bool adjustRectsToOriginal(const std::vector<BBox> &oldRects, std::vector<BBox> &newRects)
+{
+  assert(oldRects.size() == newRects.size());
+
+  bool changed = true;
+
+  while (changed) {
+    changed = false;
+
+    uint i = 0;
+
+    for (auto &r : newRects) {
+      std::cerr << "Adjust rect: " << i << "\n";
+
+      assert(r.isSet());
+
+      // build list of sorted unique yvals (for intervals);
+      uint j = 0;
+
+      std::set<double> yvals;
+
+      for (auto &r : newRects) {
+        if (i != j) {
+          auto ymin = r.getYMin();
+          auto ymax = r.getYMax();
+
+          yvals.insert(ymin);
+          yvals.insert(ymax);
+        }
+
+        ++j;
+      }
+
+      // create y range intervals (each pair of unqiue yvals)
+      auto ny = yvals.size();
+
+      struct YRange {
+        double        ymin { 0.0 };
+        double        ymax { 0.0 };
+        double        h    { 0.0 };
+        std::set<int> used;
+      };
+
+      using YRanges = std::vector<YRange>;
+
+      YRanges yranges;
+
+      yranges.resize(ny - 1);
+
+      j = 0;
+
+      for (const auto &y : yvals) {
+        if      (j > 0) {
+          yranges[j - 1].ymax = y;
+          yranges[j - 1].h    = y - yranges[j - 1].ymin;
+        }
+        else if (j < ny - 1) {
+          yranges[j].ymin = y;
+          yranges[j].ymax = y;
+        }
+
+        ++j;
+      }
+
+      //---
+
+      // set inside for ranges
+      j = 0;
+
+      for (auto &r : newRects) {
+        if (i != j) {
+          auto ymin = r.getYMin();
+          auto ymax = r.getYMax();
+
+          for (auto &yrange : yranges) {
+            // check if range center inside rect
+            auto ym = (yrange.ymin + yrange.ymax)/2.0;
+
+            if (ym > ymin && ym < ymax)
+              yrange.used.insert(j);
+          }
+        }
+
+        ++j;
+      }
+
+      //---
+
+      for (auto &yrange : yranges) {
+        std::cerr << " " << yrange.ymin << " " << yrange.ymax << " " << yrange.used.size() << "\n";
+      }
+
+      //---
+
+      // get ideal pos
+      auto y2 = newRects[i].getYMid();
+      auto h2 = newRects[i].getHeight();
+
+      auto   y1 = oldRects[i].getYMid();
+      double dy = y1 - y2;
+
+      bool foundGap = false;
+
+      std::cerr << "  Check gap " << dy << "\n";
+
+      // check ranges for fit
+      for (auto &yrange : yranges) {
+        if (! yrange.used.empty())
+          continue;
+
+        if (y2 < yrange.ymin || y2 > yrange.ymax || h2 > yrange.h)
+          continue;
+
+        auto ym = (yrange.ymin + yrange.ymax)/2.0;
+
+        double y3;
+
+        if (y1 >= ym)
+          y3 = yrange.ymax - h2/2.0;
+        else
+          y3 = yrange.ymin + h2/2.0;
+
+        double dy1 = (y1 - y3);
+
+        if (abs(dy1) < abs(dy))
+          dy = dy1;
+
+        foundGap = true;
+
+        std::cerr << "  Found gap " << dy1 << "\n";
+      }
+
+      if (foundGap) {
+        newRects[i].moveBy(Point(0, dy));
+
+        changed = false;
+      }
+
+      //---
+
+      ++i;
+    }
+  }
+
+  return true;
 }
 
 }

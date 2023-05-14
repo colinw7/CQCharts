@@ -38,6 +38,9 @@ class CQChartsSides :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsSides, metaTypeId)
 
  public:
+  static CQChartsSides all() { return CQChartsSides(Side::ALL); }
+
+ public:
   CQChartsSides() = default;
 
   explicit CQChartsSides(const Side &side) :

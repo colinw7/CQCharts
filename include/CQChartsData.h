@@ -527,7 +527,7 @@ class CQChartsBoxData {
   Margin    margin_      { Margin::pixel(4, 0, 4, 0) }; //!< outer margin
   Margin    padding_     { Margin::pixel(0, 0, 0, 0) }; //!< inner padding
   ShapeData shape_;                                     //!< shape data
-  Sides     borderSides_ { "tlbr" };                    //!< border sides to draw
+  Sides     borderSides_ { Sides::all() };              //!< border sides to draw
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsBoxData)
@@ -747,26 +747,27 @@ struct CQChartsAxisData {
 
 //------
 
-enum class CQChartsShapeType {
-  NONE,
-  TRIANGLE,
-  DIAMOND,
-  BOX,
-  POLYGON,
-  CIRCLE,
-  DOUBLE_CIRCLE,
-  DOT_LINE,
-  RECORD,
-  PLAIN_TEXT,
-  RARROW,
-  OVAL,
-  RPROMOTER
-};
+#include <CQChartsShapeType.h>
 
 struct CQChartsShapeTypeData {
-  CQChartsShapeType shapeType { CQChartsShapeType::NONE }; //!< shape type
-  int               numSides  { -1 };                      //!< number of polygon sides (< 0 unset)
-  double            aspect    { -1.0 };                    //!< aspect (< 0 unset)
+  using ShapeType = CQChartsShapeType::Type;
+  using Angle     = CQChartsAngle;
+  using Length    = CQChartsLength;
+  using Sides     = CQChartsSides;
+
+  ShapeType shapeType { ShapeType::NONE };      //!< shape type
+  Angle     angle;                              //!< shape angle
+  int       numSides  { -1 };                   //!< number of polygon sides (< 0 unset)
+  double    aspect    { -1.0 };                 //!< aspect (< 0 unset)
+  Length    cornerSize;                         //!< shape corner size
+  Sides     sides     { CQChartsSides::all() }; //!< shape sides
+
+  CQChartsShapeTypeData() = default;
+
+  explicit CQChartsShapeTypeData(const CQChartsShapeType::Type &type,
+                                 const Angle &a=Angle(), int n=-1) :
+   shapeType(type), angle(a), numSides(n) {
+  }
 };
 
 #endif

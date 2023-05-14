@@ -961,6 +961,11 @@ class BBox :
   double getOptWidth (double def=0.0) const { return (set_ ? getWidth () : def); }
   double getOptHeight(double def=0.0) const { return (set_ ? getHeight() : def); }
 
+  double  aspect() const { return (getHeight() > 0.0 ? getWidth ()/getHeight() : 1.0); }
+  double iaspect() const { return (getWidth () > 0.0 ? getHeight()/getWidth () : 1.0); }
+
+  //---
+
   BBox &moveXTo(double x) {
     assert(set_);
 
@@ -1228,7 +1233,8 @@ class Range :
 
   double size(bool horizontal) const { return (horizontal ? xsize() : ysize()); }
 
-  double aspect() const { return (ysize() > 0.0 ? xsize()/ysize() : 1.0); }
+  double  aspect() const { return (ysize() > 0.0 ? xsize()/ysize() : 1.0); }
+  double iaspect() const { return (xsize() > 0.0 ? ysize()/xsize() : 1.0); }
 
   //---
 
@@ -1555,6 +1561,10 @@ class MinMax {
 
   T min(const T &t) const { return (set_ ? min_ : t); }
   T max(const T &t) const { return (set_ ? max_ : t); }
+
+  T map(const T &r, const T &min, const T &max) const {
+    return CMathUtil::map(r, min_, max_, min, max);
+  }
 
  private:
   T    min_ { };

@@ -5,8 +5,8 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
-#include <CQChartsForceDirected.h>
 #include <CQChartsModelColumn.h>
+#include <CQChartsForceDirected.h>
 #include <CForceDirected.h>
 
 class CQBusyButton;
@@ -926,7 +926,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   CQChartsPlotCustomControls *createCustomControls() override;
 
- private:
+ protected:
   using NodeMap         = std::map<int, ForceNodeP>;
   using ConnectionNodes = std::map<int, int>;
   using ForceDirected   = CQChartsForceDirected;

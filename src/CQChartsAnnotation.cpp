@@ -2344,7 +2344,7 @@ void
 CQChartsShapeAnnotation::
 setShapeType(const ShapeType &s)
 {
-  CQChartsUtil::testAndSet(shapeTypeData_.shapeType, static_cast<CQChartsShapeType>(s), [&]() {
+  CQChartsUtil::testAndSet(shapeTypeData_.shapeType, s.type(), [&]() {
     emitDataChanged();
   } );
 }
@@ -2356,25 +2356,34 @@ setNumSides(int n)
   CQChartsUtil::testAndSet(shapeTypeData_.numSides, n, [&]() { emitDataChanged(); } );
 }
 
+//---
+
 void
 CQChartsShapeAnnotation::
-setLineWidth(const Length &l)
+setDotLine(bool b)
 {
-  CQChartsUtil::testAndSet(lineWidth_, l, [&]() { emitDataChanged(); } );
+  CQChartsUtil::testAndSet(dotLine_, b, [&]() { emitDataChanged(); } );
 }
 
 void
 CQChartsShapeAnnotation::
-setSymbol(const Symbol &t)
+setDotLineWidth(const Length &l)
 {
-  CQChartsUtil::testAndSet(symbol_, t, [&]() { emitDataChanged(); } );
+  CQChartsUtil::testAndSet(dotLineWidth_, l, [&]() { emitDataChanged(); } );
 }
 
 void
 CQChartsShapeAnnotation::
-setSymbolSize(const Length &s)
+setDotSymbol(const Symbol &t)
 {
-  CQChartsUtil::testAndSet(symbolSize_, s, [&]() { emitDataChanged(); } );
+  CQChartsUtil::testAndSet(dotSymbol_, t, [&]() { emitDataChanged(); } );
+}
+
+void
+CQChartsShapeAnnotation::
+setDotSymbolSize(const Length &s)
+{
+  CQChartsUtil::testAndSet(dotSymbolSize_, s, [&]() { emitDataChanged(); } );
 }
 
 //---
@@ -2385,10 +2394,12 @@ intersectShape(const Point &p1, const Point &p2, Point &pi) const
 {
   auto rect = this->rect();
 
-  if      (shapeType() == ShapeType::CIRCLE || shapeType() == ShapeType::DOUBLE_CIRCLE) {
+  auto shapeType1 = shapeType().type();
+
+  if      (shapeType().isRound()) {
     return CQChartsGeom::lineIntersectCircle(rect, p1, p2, pi);
   }
-  else if (shapeType() == ShapeType::POLYGON) {
+  else if (shapeType1 == ShapeType::Type::POLYGON) {
     // get polygon path
     QPainterPath path;
 
@@ -2424,9 +2435,10 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
   auto dotPath1 = path1 + "/dotLine";
 
-  addProp(model, dotPath1, "lineWidth" , "", "Dot line width");
-  addProp(model, dotPath1, "symbol"    , "", "Dot line symbol");
-  addProp(model, dotPath1, "symbolSize", "", "Dot line symbol size");
+  addProp(model, dotPath1, "dotLine"      , "visible"   , "Draw Dot line");
+  addProp(model, dotPath1, "dotLineWidth" , "lineWidth" , "Dot line width");
+  addProp(model, dotPath1, "dotSymbol"    , "symbol"    , "Dot line symbol");
+  addProp(model, dotPath1, "dotSymbolSize", "symbolSize", "Dot line symbol size");
 
   //---
 
@@ -2510,47 +2522,18 @@ draw(PaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  if      (shapeType() == ShapeType::TRIANGLE) {
-    // rounded ?
-    device->drawPolygonSides(rect, 3, angle());
-  }
-  else if (shapeType() == ShapeType::DIAMOND) {
-    if (! angle().isZero())
-      device->drawPolygonSides(rect, 4, angle());
-    else
-      device->drawDiamond(rect);
-  }
-  else if (shapeType() == ShapeType::BOX) {
-    if (! angle().isZero())
-      device->drawPolygonSides(rect, 4, angle() + Angle::degrees(45));
-    else
-      device->drawRect(rect);
-  }
-  else if (shapeType() == ShapeType::POLYGON) {
-    // rounded ?
-    device->drawPolygonSides(rect, numSides() > 2 ? numSides() : 4, angle());
-  }
-  else if (shapeType() == ShapeType::CIRCLE) {
-    device->drawEllipse(rect, angle());
-  }
-  else if (shapeType() == ShapeType::DOUBLE_CIRCLE) {
-    double dx = rect.getWidth ()/10.0;
-    double dy = rect.getHeight()/10.0;
+  auto shapeType1 = shapeType().type();
 
-    auto rect1 = rect.expanded(dx, dy, -dx, -dy);
+  auto shapeData = CQChartsShapeTypeData(shapeType1, angle(), numSides());
 
-    device->drawEllipse(rect , angle());
-    device->drawEllipse(rect1, angle());
-  }
-  else if (shapeType() == ShapeType::DOT_LINE) {
-    //bool horizontal = CMathUtil::realEq(std::abs(angle().degrees()), 90.0);
+  shapeData.cornerSize = cornerSize();
+  shapeData.sides      = borderSides();
 
-    CQChartsDrawUtil::drawDotLine(device, penBrush, rect, lineWidth(), false,
-                                  symbol(), symbolSize(), penBrush, angle());
-  }
-  else {
-    CQChartsDrawUtil::drawRoundedRect(device, rect, cornerSize(), borderSides(), angle());
-  }
+  if (isDotLine())
+    CQChartsDrawUtil::drawDotLine(device, penBrush, rect, dotLineWidth(), false,
+                                  dotSymbol(), dotSymbolSize(), penBrush, angle());
+  else
+    CQChartsDrawUtil::drawShape(device, shapeData, rect);
 
   //---
 
@@ -7232,8 +7215,8 @@ drawSymbols(PaintDevice *device)
   for (const auto &p : values_.points()) {
     auto p1 = positionToParent(objRef(), p);
 
-    auto x1 = CMathUtil::map(p1.x, xrange_.min(), xrange_.max(), bbox.getXMin(), bbox.getXMax());
-    auto y1 = CMathUtil::map(p1.y, yrange_.min(), yrange_.max(), bbox.getYMin(), bbox.getYMax());
+    auto x1 = xrange_.map(p1.x, bbox.getXMin(), bbox.getXMax());
+    auto y1 = yrange_.map(p1.y, bbox.getYMin(), bbox.getYMax());
 
     CQChartsDrawUtil::drawSymbol(device, symbol, Point(x1, y1), symbolData.size(), /*scale*/true);
   }
@@ -7254,8 +7237,8 @@ drawHull(PaintDevice *device)
     for (auto &p : values_.points()) {
       auto p1 = positionToParent(objRef(), p);
 
-      auto x1 = CMathUtil::map(p1.x, xrange_.min(), xrange_.max(), bbox.getXMin(), bbox.getXMax());
-      auto y1 = CMathUtil::map(p1.y, yrange_.min(), yrange_.max(), bbox.getYMin(), bbox.getYMax());
+      auto x1 = xrange_.map(p1.x, bbox.getXMin(), bbox.getXMax());
+      auto y1 = yrange_.map(p1.y, bbox.getYMin(), bbox.getYMax());
 
       hull_->addPoint(Point(x1, y1));
     }
@@ -7284,8 +7267,8 @@ drawDensity(PaintDevice *device)
   for (const auto &p : values_.points()) {
     auto p1 = positionToParent(objRef(), p);
 
-    auto x1 = CMathUtil::map(p1.x, xrange_.min(), xrange_.max(), bbox.getXMin(), bbox.getXMax());
-    auto y1 = CMathUtil::map(p1.y, yrange_.min(), yrange_.max(), bbox.getYMin(), bbox.getYMax());
+    auto x1 = xrange_.map(p1.x, bbox.getXMin(), bbox.getXMax());
+    auto y1 = yrange_.map(p1.y, bbox.getYMin(), bbox.getYMax());
 
     data.values.emplace_back(x1, y1);
   }
@@ -7317,8 +7300,8 @@ drawBestFit(PaintDevice *device)
   for (const auto &p : values_.points()) {
     auto p1 = positionToParent(objRef(), p);
 
-    auto x1 = CMathUtil::map(p1.x, xrange_.min(), xrange_.max(), bbox.getXMin(), bbox.getXMax());
-    auto y1 = CMathUtil::map(p1.y, yrange_.min(), yrange_.max(), bbox.getYMin(), bbox.getYMax());
+    auto x1 = xrange_.map(p1.x, bbox.getXMin(), bbox.getXMax());
+    auto y1 = yrange_.map(p1.y, bbox.getYMin(), bbox.getYMax());
 
     poly.addPoint(Point(x1, y1));
   }
@@ -7370,8 +7353,8 @@ drawGrid(PaintDevice *device)
     for (const auto &p : values_.points()) {
       auto p1 = positionToParent(objRef(), p);
 
-      auto x1 = CMathUtil::map(p1.x, xrange_.min(), xrange_.max(), bbox.getXMin(), bbox.getXMax());
-      auto y1 = CMathUtil::map(p1.y, yrange_.min(), yrange_.max(), bbox.getYMin(), bbox.getYMax());
+      auto x1 = xrange_.map(p1.x, bbox.getXMin(), bbox.getXMax());
+      auto y1 = yrange_.map(p1.y, bbox.getYMin(), bbox.getYMax());
 
       gridCell_->addPoint(Point(x1, y1));
     }
@@ -7448,8 +7431,8 @@ drawDelaunay(PaintDevice *device)
     for (const auto &p : values_.points()) {
       auto p1 = positionToParent(objRef(), p);
 
-      auto x1 = CMathUtil::map(p1.x, xrange_.min(), xrange_.max(), bbox.getXMin(), bbox.getXMax());
-      auto y1 = CMathUtil::map(p1.y, yrange_.min(), yrange_.max(), bbox.getYMin(), bbox.getYMax());
+      auto x1 = xrange_.map(p1.x, bbox.getXMin(), bbox.getXMax());
+      auto y1 = yrange_.map(p1.y, bbox.getYMin(), bbox.getYMax());
 
       delaunay_->addVertex(x1, y1);
     }

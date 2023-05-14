@@ -70,4 +70,26 @@ class CQChartsEmptyPlot : public CQChartsPlot {
   CQChartsPlotCustomControls *createCustomControls() override;
 };
 
+//---
+
+#include <CQChartsPlotCustomControls.h>
+
+/*!
+ * \brief Empty Plot plot custom controls
+ * \ingroup Charts
+ */
+class CQChartsEmptyPlotCustomControls : public CQChartsPlotCustomControls {
+  Q_OBJECT
+
+ public:
+  CQChartsEmptyPlotCustomControls(CQCharts *charts);
+
+  void init() override;
+
+  void setPlot(Plot *plot) override;
+
+ protected:
+  CQChartsEmptyPlot* emptyPlot_ { nullptr }; //!< plot
+};
+
 #endif

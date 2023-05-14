@@ -28,15 +28,15 @@ addMappingParameters()
   startParameterGroup("Mapping");
 
   addColumnParameter("symbolType", "Symbol Type", "symbolTypeColumn").
-    setTip("Custom Symbol Type").setMapped().
+    setPropPath("columns.symbolType").setTip("Custom Symbol Type").setMapped().
     setMapMinMax(CQChartsSymbolType::minFillValue(), CQChartsSymbolType::maxFillValue());
 
   addColumnParameter("symbolSize", "Symbol Size", "symbolSizeColumn").
-    setTip("Custom Symbol Size").setMapped().
+    setPropPath("columns.symbolSize").setTip("Custom Symbol Size").setMapped().
     setMapMinMax(CQChartsSymbolSize::minValue(), CQChartsSymbolSize::maxValue());
 
   addColumnParameter("fontSize", "Font Size", "fontSizeColumn").
-    setTip("Custom Font Size for Label").setMapped().
+    setPropPath("columns.fontSize").setTip("Custom Font Size for Label").setMapped().
     setMapMinMax(CQChartsFontSize::minValue(), CQChartsFontSize::maxValue());
 
   endParameterGroup();
@@ -47,11 +47,11 @@ CQChartsPointPlotType::
 addMiscParameters()
 {
   addBoolParameter("bestFit", "Best Fit", "bestFit").
-    setTip("Show best fit overlay");
+    setPropPath("overlays.bestFit.visible").setTip("Show best fit overlay");
   addBoolParameter("convexHull", "Convex Hull", "convexHull").
-    setTip("Show convex hull overlay");
+    setPropPath("overlays.hull.visible").setTip("Show convex hull overlay");
   addBoolParameter("statsLines", "Stats Lines", "statsLines").
-    setTip("Show statistics lines overlay");
+    setPropPath("overlays.statsData.visible").setTip("Show statistics lines overlay");
 }
 
 //---

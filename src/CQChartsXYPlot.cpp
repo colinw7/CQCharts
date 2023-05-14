@@ -50,21 +50,29 @@ addParameters()
   //---
 
   // options
-  addBoolParameter("lines" , "Lines" , "lines", true).setBasic().setTip("Draw Lines");
-  addBoolParameter("points", "Points", "points"     ).setBasic().setTip("Draw Points");
+  addBoolParameter("lines" , "Lines" , "lines", true).setBasic().
+    setPropPath("lines.visible").setTip("Draw Lines");
+  addBoolParameter("points", "Points", "points"     ).setBasic().
+    setPropPath("points.visible").setTip("Draw Points");
 
-  addBoolParameter("columnSeries", "Column Series", "columnSeries").setTip("Columns are series");
+  addBoolParameter("columnSeries", "Column Series", "columnSeries").
+    setPropPath("options.timeSeries").setTip("Columns are series");
 
-  addBoolParameter("bivariate" , "Bivariate" , "bivariateLines" ).setTip("Draw Bivariate Lines");
-  addBoolParameter("stacked"   , "Stacked"   , "stacked"        ).setTip("Stack Points");
-  addBoolParameter("cumulative", "Cumulative", "cumulative"     ).setTip("Cumulate Values");
-  addBoolParameter("fillUnder" , "Fill Under", "fillUnderFilled").setTip("Fill Under Curve");
-  addBoolParameter("impulse"   , "Impulse"   , "impulseLines"   ).setTip("Draw Impulse Line");
+  addBoolParameter("bivariate" , "Bivariate" , "bivariateLines" ).
+    setPropPath("bivariate.visible").setTip("Draw Bivariate Lines");
+  addBoolParameter("stacked"   , "Stacked"   , "stacked"        ).
+    setPropPath("stacked.enabled").setTip("Stack Points");
+  addBoolParameter("cumulative", "Cumulative", "cumulative"     ).
+    setPropPath("cumulative.enabled").setTip("Cumulate Values");
+  addBoolParameter("fillUnder" , "Fill Under", "fillUnderFilled").
+    setPropPath("fillUnder.visible").setTip("Fill Under Curve");
+  addBoolParameter("impulse"   , "Impulse"   , "impulseLines"   ).
+    setPropPath("impulse.lines").setTip("Draw Impulse Line");
 
   addMiscParameters();
 
   addBoolParameter("movingAverage", "Moving Average", "movingAverage").
-    setTip("Show moving average");
+    setPropPath("overlays.movingAverage.visible").setTip("Show moving average");
 
   endParameterGroup();
 
@@ -77,10 +85,13 @@ addParameters()
   // vector columns
   startParameterGroup("Vectors");
 
-  addColumnParameter("vectorX", "Vector X", "vectorXColumn").setNumericColumn();
-  addColumnParameter("vectorY", "Vector Y", "vectorYColumn").setNumericColumn();
+  addColumnParameter("vectorX", "Vector X", "vectorXColumn").setNumericColumn().
+    setPropPath("columns.vectorX").setTip("Point vector x delta");
+  addColumnParameter("vectorY", "Vector Y", "vectorYColumn").setNumericColumn().
+    setPropPath("columns.vectorY").setTip("Point vector y delta");
 
-  addBoolParameter("vectors", "Vectors", "vectors");
+  addBoolParameter("vectors", "Vectors", "vectors").
+    setPropPath("vectors.visible").setTip("Show point vectors");
 
   endParameterGroup();
 

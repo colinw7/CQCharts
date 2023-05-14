@@ -97,7 +97,8 @@ class CQChartsViewSettings : public QFrame {
   void updatePlots();
   void updateCurrentPlot();
 
-  void updatePlotControls();
+  void reloadPlotControls();
+  void updatePlotControls(bool force=false);
 
   void symbolListSymbolChangeSlot();
 

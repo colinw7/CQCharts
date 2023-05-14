@@ -21,14 +21,15 @@ class CQChartsGraphEdge;
 
 class CQChartsGraphMgr {
  public:
-  using Plot    = CQChartsPlot;
-  using Graph   = CQChartsGraphGraph;
-  using Node    = CQChartsGraphNode;
-  using Edge    = CQChartsGraphEdge;
-  using Edges   = std::vector<Edge *>;
-  using Length  = CQChartsLength;
-  using Units   = CQChartsUnits::Type;
-  using OptReal = CQChartsOptReal;
+  using Plot      = CQChartsPlot;
+  using Graph     = CQChartsGraphGraph;
+  using Node      = CQChartsGraphNode;
+  using Edge      = CQChartsGraphEdge;
+  using Edges     = std::vector<Edge *>;
+  using Length    = CQChartsLength;
+  using Units     = CQChartsUnits::Type;
+  using OptReal   = CQChartsOptReal;
+  using ShapeType = CQChartsShapeType;
 
   enum class Align {
     SRC,
@@ -36,15 +37,6 @@ class CQChartsGraphMgr {
     JUSTIFY,
     LARGEST,
     RAND
-  };
-
-  enum NodeShape {
-    NODE_SHAPE_NONE,
-    NODE_SHAPE_DIAMOND,
-    NODE_SHAPE_BOX,
-    NODE_SHAPE_POLYGON,
-    NODE_SHAPE_CIRCLE,
-    NODE_SHAPE_DOUBLE_CIRCLE
   };
 
  public:
@@ -162,8 +154,8 @@ class CQChartsGraphMgr {
   void setNodeSpacing(const Length &l) { nodeSpacing_ = l; }
 
   //! get/set node shape
-  const NodeShape &nodeShape() { return nodeShape_; }
-  void setNodeShape(const NodeShape &s) { nodeShape_ = s; }
+  const ShapeType &nodeShape() { return nodeShape_; }
+  void setNodeShape(const ShapeType &s) { nodeShape_ = s; }
 
   //---
 
@@ -198,7 +190,7 @@ class CQChartsGraphMgr {
   Length          nodeHeight_       { Length::pixel(64) };  //!< node height
   Length          nodeMargin_       { Length::plot(0.05) }; //!< node margin (perp)
   Length          nodeSpacing_      { Length::plot(0.05) }; //!< node spacing (parallel)
-  NodeShape       nodeShape_        { NODE_SHAPE_NONE };    //!< node shape
+  ShapeType       nodeShape_;                               //!< node shape
   int             minNodeMargin_    { 4 };                  //!< minimum node margin (in pixels)
   NameNodeMap     nameNodeMap_;                             //!< name node map
   IndNodeMap      indNodeMap_;                              //!< ind node map
@@ -230,7 +222,7 @@ class CQChartsGraphNode {
   using BBox        = CQChartsGeom::BBox;
   using EdgeRect    = std::map<Edge *, BBox>;
   using Point       = CQChartsGeom::Point;
-  using ShapeType   = CQChartsBoxObj::ShapeType;
+  using ShapeType   = CQChartsShapeType;
 
  public:
   CQChartsGraphNode(GraphMgr *mgr, const QString &str);
@@ -325,9 +317,8 @@ class CQChartsGraphNode {
   //--- custom appearance
 
   //! get/set shape
-  ShapeType shapeType() const { return static_cast<ShapeType>(shapeTypeData_.shapeType); }
-  void setShapeType(const ShapeType &s) {
-    shapeTypeData_.shapeType = static_cast<CQChartsShapeType>(s); }
+  ShapeType shapeType() const { return ShapeType(shapeTypeData_.shapeType); }
+  void setShapeType(const ShapeType &s) { shapeTypeData_.shapeType = s.type(); }
 
   //! get/set number of sides
   int numSides() const { return shapeTypeData_.numSides; }

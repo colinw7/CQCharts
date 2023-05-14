@@ -270,6 +270,7 @@ addCommands()
     // test
     //addCommand("charts::test_edit", new CQChartsTestEditCmd(this));
     addCommand("test_charts_edit", new CQChartsTestEditCmd(this));
+    addCommand("test_charts", new CQChartsTestCmd(this));
 
 #ifdef CQCHARTS_DATA_FRAME
     // data frame
@@ -7569,6 +7570,11 @@ execCmd(CQChartsCmdArgs &argv)
 
       return cmdBase_->setCmdRc(symbolNames);
     }
+    else if (name == "shapes") {
+      auto names = CQChartsShapeType::typeNames();
+
+      return cmdBase_->setCmdRc(names);
+    }
     else if (name == "procs") {
       QStringList procs;
 
@@ -13276,6 +13282,75 @@ execCmd(CQChartsCmdArgs &argv)
 
   // show dialog
   dialog->show();
+
+  return true;
+}
+
+//---
+
+// test_charts command
+
+void
+CQChartsTestCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  addArg(argv, "-type", ArgType::String, "type");
+
+}
+
+QStringList
+CQChartsTestCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsTestCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsTestCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get type
+  auto type = argv.getParseStr("type");
+
+  std::cerr << type.toStdString() << "\n";
+
+  if (type == "adjust_rects") {
+    using BBox = CQChartsUtil::BBox;
+
+    std::vector<BBox> oldRects, newRects;
+
+    oldRects.push_back(BBox(0, 0, 1, 1));
+    oldRects.push_back(BBox(0, 1, 1, 2));
+    oldRects.push_back(BBox(0, 2, 1, 3));
+
+    newRects.push_back(BBox(0, 0, 1, 1));
+    newRects.push_back(BBox(0, 2, 1, 3));
+    newRects.push_back(BBox(0, 4, 1, 5));
+
+    CQChartsUtil::adjustRectsToOriginal(oldRects, newRects);
+  }
+  else
+    return errorMsg("Invalid test type");
+
+  //---
 
   return true;
 }

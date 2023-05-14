@@ -12,7 +12,18 @@ void
 CQChartsHierPlotType::
 addParameters()
 {
-  startParameterGroup("Hierarchy");
+  addHierParameters();
+
+  //---
+
+  CQChartsPlotType::addParameters();
+}
+
+void
+CQChartsHierPlotType::
+addHierParameters(const QString &title)
+{
+  startParameterGroup(title);
 
   addColumnsParameter("name", "Name", "nameColumns").
    setRequired().setStringColumn().setPropPath("columns.name").
@@ -27,11 +38,9 @@ addParameters()
   addStringParameter("separator", "Separator", "separator", "/").setBasic().
    setTip("Separator for hierarchical path in name column");
 
+  addExtraHierParameters();
+
   endParameterGroup();
-
-  //---
-
-  CQChartsPlotType::addParameters();
 }
 
 void

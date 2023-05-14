@@ -13,6 +13,7 @@
 #include <CQChartsTypes.h>
 #include <CQChartsGeom.h>
 #include <CQChartsPlotMargin.h>
+#include <CQChartsOptRect.h>
 #include <CQChartsOptReal.h>
 #include <CQChartsColorStops.h>
 #include <CQChartsSymbolTypeMap.h>
@@ -113,6 +114,16 @@ class QMenu;
 class QLabel;
 class QPainter;
 class QCheckBox;
+
+//---
+
+#ifdef CQCHARTS_MODULE_SHLIB
+class CShLib;
+
+extern "C" {
+using CQChartsModuleProc = int (*)(void *);
+}
+#endif
 
 //----
 
@@ -333,6 +344,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(bool invertY     READ isInvertY     WRITE setInvertY    )
 //Q_PROPERTY(bool logX        READ isLogX        WRITE setLogX       )
 //Q_PROPERTY(bool logY        READ isLogY        WRITE setLogY       )
+  Q_PROPERTY(bool polar       READ isPolar       WRITE setPolar      )
 
   // animation
   Q_PROPERTY(bool animating READ isAnimating WRITE setAnimating)
@@ -354,6 +366,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(bool queueUpdate       READ isQueueUpdate     WRITE setQueueUpdate      )
   Q_PROPERTY(bool showBoxes         READ showBoxes         WRITE setShowBoxes        )
   Q_PROPERTY(bool showSelectedBoxes READ showSelectedBoxes WRITE setShowSelectedBoxes)
+
+#ifdef CQCHARTS_MODULE_SHLIB
+  // module
+  Q_PROPERTY(QString plotModule READ plotModule WRITE setPlotModule)
+#endif
 
   Q_ENUMS(ColorType)
 
@@ -529,6 +546,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   using DisplayRange = CQChartsDisplayRange;
   using ValueSet     = CQChartsValueSet;
+  using OptRect      = CQChartsOptRect;
   using OptReal      = CQChartsOptReal;
   using OptBool      = std::optional<bool>;
   using PenBrush     = CQChartsPenBrush;
@@ -995,6 +1013,23 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+#ifdef CQCHARTS_MODULE_SHLIB
+  // name, type, value
+  using ModulePropertyData = std::pair<QString, QVariant>;
+  using ModuleProperties   = std::map<QString, ModulePropertyData>;
+
+  const QString &plotModule() const { return moduleData_.name; }
+  bool setPlotModule(const QString &name);
+
+  void getModuleProperties(ModuleProperties &propeties) {
+    propeties = moduleData_.properties;
+  }
+
+  void setModuleProperty(const QString &name, const QString &type, const QVariant &value);
+#endif
+
+  //---
+
   // get/set bbox in view range
   virtual const BBox &viewBBox() const;
   virtual void setViewBBox(const BBox &bbox);
@@ -1260,6 +1295,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual bool isLogY() const;
   virtual void setLogY(bool b);
+
+  // polar
+  virtual bool isPolar() const;
+  virtual void setPolar(bool b);
 
   //---
 
@@ -2323,6 +2362,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //-
 
+  virtual void probeMouseMove(const Point &p);
+
+  //---
+
   bool keyEditPress(PlotKey *key, const Point &w);
 
   bool mapKeyEditPress(const Point &w);
@@ -3195,7 +3238,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   const OptReal &refLength() const { return refLength_; }
-  void setRefLength(const OptReal &v) { refLength_ = v; }
+  void setRefLength(const OptReal &l) { refLength_ = l; }
+  void resetRefLength() { refLength_ = OptReal(); }
+
+  const OptRect &refRect() const { return refRect_; }
+  void setRefRect(const OptRect &r) { refRect_ = r; }
+  void resetRefRect() { refRect_ = OptRect(); }
 
   //---
 
@@ -3222,6 +3270,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void drawLayers(QPainter *painter) const;
 
   const Layer::Type &drawLayerType() const;
+
+  //---
+
+#ifdef CQCHARTS_MODULE_SHLIB
+  void drawModule(QPainter *painter) const;
+#endif
 
   //---
 
@@ -3381,6 +3435,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // emitted on anim
   void updateAnimData();
+
+#ifdef CQCHARTS_MODULE_SHLIB
+  // plot module changed
+  void plotModuleChanged();
+#endif
 
  protected:
   //! \brief RAII class to enable/disable no update state
@@ -3594,6 +3653,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
  public:
   bool isInterrupt() const { return updateData_.interrupt.load() > 0; }
 
+#ifdef CQCHARTS_MODULE_SHLIB
+ public:
+  bool loadModule(const QString &name);
+#endif
+
  protected:
   using IdHidden        = std::map<int, bool>;
   using Rows            = std::set<int>;
@@ -3741,18 +3805,18 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   BadData badData_; //!< bad value data
 
   // plot border
-  Sides plotBorderSides_ { "tlbr" }; //!< plot border sides
-  bool  plotClip_        { true };   //!< is clipped at plot limits
+  Sides plotBorderSides_ { Sides::all() }; //!< plot border sides
+  bool  plotClip_        { true };         //!< is clipped at plot limits
 
   // data border
-  Sides dataBorderSides_ { "tlbr" }; //!< data border sides
-  bool  dataRawRange_    { false };  //!< use raw range for data box draw
-  bool  dataClip_        { false };  //!< is clipped at data limits
-  bool  dataRawClip_     { false };  //!< clip to raw range for data box draw
+  Sides dataBorderSides_ { Sides::all() }; //!< data border sides
+  bool  dataRawRange_    { false };        //!< use raw range for data box draw
+  bool  dataClip_        { false };        //!< is clipped at data limits
+  bool  dataRawClip_     { false };        //!< clip to raw range for data box draw
 
   // fit border
-  Sides fitBorderSides_ { "tlbr" }; //!< fit border sides
-  bool  fitClip_        { false };  //!< is clipped at fit limits
+  Sides fitBorderSides_ { Sides::all() }; //!< fit border sides
+  bool  fitClip_        { false };        //!< is clipped at fit limits
 
   mutable BBox clipRect_;
 
@@ -3769,6 +3833,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   AxisSideDelta xAxisSideDelta_;
   AxisSideDelta yAxisSideDelta_;
+
+  bool polar_ { false };
 
   // key
   PlotKeyP keyObj_;                //!< key object
@@ -3873,6 +3939,24 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // objects
   PlotObjs plotObjs_; //!< plot objects
+
+  //---
+
+#ifdef CQCHARTS_MODULE_SHLIB
+  struct ModuleData {
+    QString            name;
+    CShLib*            shlib       { nullptr };
+    CQChartsModuleProc initProc    { nullptr };
+    CQChartsModuleProc drawProc    { nullptr };
+    CQChartsModuleProc eventProc   { nullptr };
+    CQChartsModuleProc getDataProc { nullptr };
+    CQChartsModuleProc setDataProc { nullptr };
+    int                id          { 0 };
+    ModuleProperties   properties;
+  };
+
+  ModuleData moduleData_;
+#endif
 
   //---
 
@@ -3984,6 +4068,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // reference length (for percent length)
   mutable OptReal refLength_;
+  // reference rect (for percent width/height)
+  mutable OptRect refRect_;
 
   //---
 
@@ -4062,13 +4148,19 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 //------
 
 // common named data
+CQCHARTS_NAMED_SHAPE_DATA(Group, group)
+CQCHARTS_NAMED_TEXT_DATA (Group, group)
+
 CQCHARTS_NAMED_LINE_DATA (Grid, grid)
+
 CQCHARTS_NAMED_SHAPE_DATA(Node, node)
+CQCHARTS_NAMED_TEXT_DATA (Node, node)
+
 CQCHARTS_NAMED_SHAPE_DATA(Edge, edge)
 CQCHARTS_NAMED_LINE_DATA (Edge, edge)
-CQCHARTS_NAMED_TEXT_DATA (Node, node)
 CQCHARTS_NAMED_TEXT_DATA (Edge, edge)
-CQCHARTS_NAMED_POINT_DATA(Dot , dot )
-CQCHARTS_NAMED_POINT_DATA(Rug , rug )
+
+CQCHARTS_NAMED_POINT_DATA(Dot, dot)
+CQCHARTS_NAMED_POINT_DATA(Rug, rug)
 
 #endif

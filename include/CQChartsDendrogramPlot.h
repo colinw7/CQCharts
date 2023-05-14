@@ -1,8 +1,8 @@
 #ifndef CQChartsDendrogramPlot_H
 #define CQChartsDendrogramPlot_H
 
-#include <CQChartsPlot.h>
-#include <CQChartsPlotType.h>
+#include <CQChartsHierPlot.h>
+#include <CQChartsHierPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDendrogram.h>
 
@@ -20,14 +20,18 @@ class DrawTree;
  * \brief Dendrogram plot type
  * \ingroup Charts
  */
-class CQChartsDendrogramPlotType : public CQChartsPlotType {
+class CQChartsDendrogramPlotType : public CQChartsHierPlotType {
  public:
   CQChartsDendrogramPlotType();
 
   QString name() const override { return "dendrogram"; }
   QString desc() const override { return "Dendrogram"; }
 
+  Category category() const override { return Category::HIER; }
+
   void addParameters() override;
+
+  void addExtraHierParameters() override;
 
   bool customXRange() const override { return false; }
   bool customYRange() const override { return false; }
@@ -65,8 +69,24 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
   using Sides          = CQChartsSides;
   using OptReal        = CQChartsOptReal;
 
+  //---
+
+  struct Child {
+    Child() = default;
+
+    Child(NodeObj *node, const OptReal &value) :
+     node(node), value(value) {
+    }
+
+    NodeObj *node { nullptr };
+    OptReal  value;
+  };
+
+  using Children = std::vector<Child>;
+
  public:
-  CQChartsDendrogramNodeObj(const DendrogramPlot *plot, Node *node, const BBox &rect);
+  CQChartsDendrogramNodeObj(const DendrogramPlot *plot, Node *node, const BBox &rect,
+                            const ColorInd &ig, const ColorInd &iv);
 
   QString typeName() const override { return "node"; }
 
@@ -77,10 +97,17 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
   const NodeObj *parent() const { return parent_; }
   void setParent(NodeObj *p) { parent_ = p; }
 
+  const Children &children() const { return children_; }
+
   void addChild(NodeObj *node, const OptReal &value=OptReal());
 
   const Node *node() const { return node_; }
   void resetNode() { node_ = nullptr; }
+
+  //---
+
+  const BBox &saveRect() const { return saveRect_; }
+  void setSaveRect(const BBox &r) { saveRect_ = r; }
 
   //---
 
@@ -89,8 +116,8 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   const QString &name() const { return name_; }
 
-  double value() const { return value_; }
-  void setValue(double r) { value_ = r; }
+  const OptReal &value() const { return value_; }
+  void setValue(const OptReal &r) { value_ = r; }
 
   double childTotal() const { return childTotal_; }
 
@@ -146,42 +173,25 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   void drawText(PaintDevice *device) const;
 
-  void drawEdges(PaintDevice *device) const;
-
-  void calcTextPos(Point &p, const QFont &font, Angle &angle,
+  void calcTextPos(Point &p, const QFont &font, Angle &angle, uint &position,
                    Qt::Alignment &align, bool &centered) const;
 
   //---
 
- private:
-  void drawEdge(PaintDevice *device, const NodeObj *child, const OptReal &value) const;
-
   BBox displayRect() const;
 
-  double calcSymbolSize() const;
+ private:
+  double calcScaledShapeSize() const;
 
  private:
-  struct Child {
-    Child() = default;
-
-    Child(NodeObj *node, const OptReal &value) :
-     node(node), value(value) {
-    }
-
-    NodeObj *node { nullptr };
-    OptReal  value;
-  };
-
-  using Children = std::vector<Child>;
-
   const DendrogramPlot* dendrogramPlot_ { nullptr }; //!< plot
   NodeObj*              parent_         { nullptr }; //!< parent
   Children              children_;                   //!< children
   Node*                 node_           { nullptr }; //!< associated node
   QString               name_;                       //!< name
   int                   ind_            { 0 };       //!< unique index
-  double                value_          { 0.0 };     //!< value
-  double                childTotal_     { 0.0 };     //!< value
+  OptReal               value_;                      //!< value
+  double                childTotal_     { 0.0 };     //!< child total
   bool                  isRoot_         { false };   //!< is root
   bool                  isHier_         { false };   //!< is hierarchical
   bool                  open_           { false };   //!< is open
@@ -190,64 +200,163 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
   OptReal               size_;                       //!< optional size
   mutable double        hierColor_      { 0.0 };     //!< hier color
   mutable double        hierSize_       { 0.0 };     //!< hier size
+  mutable BBox          saveRect_;                   //!< save rect
 };
 
 //---
 
+class CQChartsDendrogramEdgeObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  using DendrogramPlot = CQChartsDendrogramPlot;
+  using NodeObj        = CQChartsDendrogramNodeObj;
+  using Angle          = CQChartsAngle;
+  using OptReal        = CQChartsOptReal;
+
+ public:
+  CQChartsDendrogramEdgeObj(const DendrogramPlot *plot, NodeObj *fromNode,
+                            NodeObj *toNode, const BBox &rect,
+                            const ColorInd &ig, const ColorInd &iv);
+
+  QString typeName() const override { return "edge"; }
+
+  const DendrogramPlot *plot() const { return dendrogramPlot_; }
+
+  NodeObj *fromNode() const { return fromNode_; }
+  NodeObj *toNode() const { return toNode_; }
+
+  int ind() const { return ind_; }
+  void setInd(int i) { ind_ = i; }
+
+  const OptReal &value() const { return value_; }
+  void setValue(const OptReal &v) { value_ = v; }
+
+  const OptReal &color() const { return color_; }
+  void setColor(const OptReal &v) { color_ = v; }
+
+  const OptReal &size() const { return size_; }
+  void setSize(const OptReal &v) { size_ = v; }
+
+  //---
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
+
+  //---
+
+  bool inside(const Point &p) const override;
+
+  //---
+
+  void draw(PaintDevice *device) const override;
+
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
+ private:
+  const DendrogramPlot* dendrogramPlot_ { nullptr }; //!< plot
+  NodeObj*              fromNode_       { nullptr }; //!< from node object
+  NodeObj*              toNode_         { nullptr }; //!< to node object
+  int                   ind_            { 0 };       //!< unique index
+  OptReal               value_;                      //!< optional value
+  OptReal               color_;                      //!< optional color
+  OptReal               size_;                       //!< optional size
+  mutable QPainterPath  path_;                       //!< edge path
+};
+
+//---
+
+CQCHARTS_NAMED_SHAPE_DATA(Root, root)
+CQCHARTS_NAMED_SHAPE_DATA(Leaf, leaf)
+
+CQCHARTS_NAMED_TEXT_DATA(Root, root)
 CQCHARTS_NAMED_TEXT_DATA(Leaf, leaf)
 
 /*!
  * \brief Dendrogram Plot
  * \ingroup Charts
  */
-class CQChartsDendrogramPlot : public CQChartsPlot,
- public CQChartsObjNodeShapeData<CQChartsDendrogramPlot>,
+class CQChartsDendrogramPlot : public CQChartsHierPlot,
+ public CQChartsObjRootShapeData<CQChartsDendrogramPlot>,
+ public CQChartsObjHierShapeData<CQChartsDendrogramPlot>,
+ public CQChartsObjLeafShapeData<CQChartsDendrogramPlot>,
  public CQChartsObjEdgeShapeData<CQChartsDendrogramPlot>,
+ public CQChartsObjRootTextData <CQChartsDendrogramPlot>,
  public CQChartsObjHierTextData <CQChartsDendrogramPlot>,
  public CQChartsObjLeafTextData <CQChartsDendrogramPlot> {
   Q_OBJECT
 
-  //! follow view
-  Q_PROPERTY(bool followViewExpand READ isFollowViewExpand WRITE setFollowViewExpand)
-
   // columns
-  Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn )
-  Q_PROPERTY(CQChartsColumn linkColumn  READ linkColumn  WRITE setLinkColumn )
-  Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
-  Q_PROPERTY(CQChartsColumn sizeColumn  READ sizeColumn  WRITE setSizeColumn )
+  Q_PROPERTY(CQChartsColumn linkColumn READ linkColumn WRITE setLinkColumn)
+  Q_PROPERTY(CQChartsColumn sizeColumn READ sizeColumn WRITE setSizeColumn)
 
-  // node data
-  Q_PROPERTY(CQChartsLength symbolSize READ symbolSize WRITE setSymbolSize)
+  // root node data
+  Q_PROPERTY(bool              rootVisible READ isRootVisible WRITE setRootVisible)
+  Q_PROPERTY(CQChartsLength    rootSize    READ rootSize      WRITE setRootSize   )
+  Q_PROPERTY(double            rootAspect  READ rootAspect    WRITE setRootAspect )
+  Q_PROPERTY(CQChartsShapeType rootShape   READ rootShape     WRITE setRootShape  )
+
+  Q_PROPERTY(TextPosition rootTextPosition READ rootTextPosition  WRITE setRootTextPosition)
+  Q_PROPERTY(bool         rootRotatedText  READ isRootRotatedText WRITE setRootRotatedText )
+  Q_PROPERTY(double       rootTextMargin   READ rootTextMargin    WRITE setRootTextMargin  )
+
+  // hier node data
+  Q_PROPERTY(CQChartsLength    hierSize   READ hierSize   WRITE setHierSize  )
+  Q_PROPERTY(double            hierAspect READ hierAspect WRITE setHierAspect)
+  Q_PROPERTY(CQChartsShapeType hierShape  READ hierShape  WRITE setHierShape )
+
+  Q_PROPERTY(TextPosition hierTextPosition READ hierTextPosition  WRITE setHierTextPosition)
+  Q_PROPERTY(bool         hierRotatedText  READ isHierRotatedText WRITE setHierRotatedText )
+  Q_PROPERTY(double       hierTextMargin   READ hierTextMargin    WRITE setHierTextMargin  )
+
+  // leaf node data
+  Q_PROPERTY(CQChartsLength    leafSize   READ leafSize   WRITE setLeafSize  )
+  Q_PROPERTY(double            leafAspect READ leafAspect WRITE setLeafAspect)
+  Q_PROPERTY(CQChartsShapeType leafShape  READ leafShape  WRITE setLeafShape )
+
+  Q_PROPERTY(TextPosition leafTextPosition READ leafTextPosition  WRITE setLeafTextPosition)
+  Q_PROPERTY(bool         leafRotatedText  READ isLeafRotatedText WRITE setLeafRotatedText )
+  Q_PROPERTY(double       leafTextMargin   READ leafTextMargin    WRITE setLeafTextMargin  )
 
   // edge data
-//Q_PROPERTY(bool           edgeArrow   READ isEdgeArrow  WRITE setEdgeArrow )
-  Q_PROPERTY(bool           edgeScaled  READ isEdgeScaled WRITE setEdgeScaled)
-  Q_PROPERTY(CQChartsLength edgeWidth   READ edgeWidth    WRITE setEdgeWidth )
-//Q_PROPERTY(double         arrowWidth  READ arrowWidth   WRITE setArrowWidth)
+//Q_PROPERTY(bool           edgeArrow    READ isEdgeArrow  WRITE setEdgeArrow   )
+  Q_PROPERTY(bool           edgeScaled   READ isEdgeScaled WRITE setEdgeScaled  )
+  Q_PROPERTY(CQChartsLength edgeWidth    READ edgeWidth    WRITE setEdgeWidth   )
+  Q_PROPERTY(CQChartsLength minEdgeWidth READ minEdgeWidth WRITE setMinEdgeWidth)
+//Q_PROPERTY(double         arrowWidth   READ arrowWidth   WRITE setArrowWidth  )
 
-  // label
-  Q_PROPERTY(double textMargin  READ textMargin    WRITE setTextMargin )
-  Q_PROPERTY(bool   rotatedText READ isRotatedText WRITE setRotatedText)
 
   // options
-  Q_PROPERTY(PlaceType placeType READ placeType WRITE setPlaceType)
-
   Q_PROPERTY(Qt::Orientation orientation READ orientation WRITE setOrientation )
 
+  Q_PROPERTY(PlaceType placeType READ placeType WRITE setPlaceType)
+
+  Q_PROPERTY(bool removeNodeOverlaps  READ isRemoveNodeOverlaps  WRITE setRemoveNodeOverlaps)
+  Q_PROPERTY(bool removeGroupOverlaps READ isRemoveGroupOverlaps WRITE setRemoveGroupOverlaps)
+  Q_PROPERTY(bool adjustOverlaps      READ isAdjustOverlaps      WRITE setAdjustOverlaps)
+
+  Q_PROPERTY(CQChartsLength overlapMargin READ overlapMargin WRITE setOverlapMargin)
+
   // node stroke/fill
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Root, root)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Hier, hier)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Leaf, leaf)
 
   // edge line
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
 
   // hier, leaf labels
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Root, root)
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Hier, hier)
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Leaf, leaf)
 
   Q_ENUMS(PlaceType)
+  Q_ENUMS(TextPosition)
 
  public:
   using NodeObj   = CQChartsDendrogramNodeObj;
+  using EdgeObj   = CQChartsDendrogramEdgeObj;
   using Node      = CQChartsDendrogram::Node;
   using Color     = CQChartsColor;
   using Length    = CQChartsLength;
@@ -261,10 +370,18 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
     CIRCULAR
   };
 
+  enum class TextPosition {
+    LEFT,
+    RIGHT,
+    CENTER
+  };
+
   struct Edge {
     Node*   from { nullptr };
     Node*   to   { nullptr };
     OptReal value;
+    OptReal colorValue;
+    OptReal sizeValue;
 
     Edge() = default;
 
@@ -273,7 +390,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
     }
   };
 
-  using Edges = std::vector<Edge>;
+  using Edges = std::vector<Edge *>;
 
  public:
   CQChartsDendrogramPlot(View *view, const ModelP &model);
@@ -286,23 +403,15 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
-  //! get/set name column
-  const Column &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const Column &c);
-
   //! get/set link column
   const Column &linkColumn() const { return linkColumn_; }
   void setLinkColumn(const Column &c);
 
   //! get/set value column
-  const Column &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const Column &c);
-
-  void setColorColumn(const Column &c) override;
-
-  //! get/set value column
   const Column &sizeColumn() const { return sizeColumn_; }
   void setSizeColumn(const Column &c);
+
+  void setColorColumn(const Column &c) override;
 
   //---
 
@@ -312,17 +421,97 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
-  //! get/set follow view expand
-  bool isFollowViewExpand() const { return followViewExpand_; }
-  void setFollowViewExpand(bool b);
+  // root shape
+
+  //! get/set root visible
+  bool isRootVisible() const { return rootVisible_; }
+  void setRootVisible(bool b);
+
+  //! get/set root size
+  const Length &rootSize() const { return rootNodeData_.size; }
+  void setRootSize(const Length &s);
+
+  //! get/set root aspect
+  double rootAspect() const { return rootNodeData_.aspect; }
+  void setRootAspect(double a);
+
+  //! get/set root shape
+  const CQChartsShapeType &rootShape() const { return rootNodeData_.shape; }
+  void setRootShape(const CQChartsShapeType &s);
+
+  //! get/set root text position
+  const TextPosition &rootTextPosition() const { return rootNodeData_.textPosition; }
+  void setRootTextPosition(const TextPosition &p);
+
+  // get/set is rotated text label (for circular placement)
+  bool isRootRotatedText() const { return rootNodeData_.rotatedText; }
+  void setRootRotatedText(bool b);
+
+  //! get/set root text margin
+  double rootTextMargin() const { return rootNodeData_.textMargin; }
+  void setRootTextMargin(double r);
+
+  double calcRootSize() const;
 
   //---
 
-  //! get/set circle size
-  const Length &symbolSize() const { return symbolSize_; }
-  void setSymbolSize(const Length &s);
+  // hier shape
 
-  double calcSymbolSize() const;
+  //! get/set hier size
+  const Length &hierSize() const { return hierNodeData_.size; }
+  void setHierSize(const Length &s);
+
+  //! get/set hier aspect
+  double hierAspect() const { return hierNodeData_.aspect; }
+  void setHierAspect(double a);
+
+  //! get/set hier shape
+  const CQChartsShapeType &hierShape() const { return hierNodeData_.shape; }
+  void setHierShape(const CQChartsShapeType &s);
+
+  //! get/set hier text position
+  const TextPosition &hierTextPosition() const { return hierNodeData_.textPosition; }
+  void setHierTextPosition(const TextPosition &p);
+
+  // get/set is rotated text label (for circular placement)
+  bool isHierRotatedText() const { return hierNodeData_.rotatedText; }
+  void setHierRotatedText(bool b);
+
+  //! get/set hier text margin
+  double hierTextMargin() const { return hierNodeData_.textMargin; }
+  void setHierTextMargin(double r);
+
+  double calcHierSize() const;
+
+  //---
+
+  // leaf shape
+
+  //! get/set leaf size
+  const Length &leafSize() const { return leafNodeData_.size; }
+  void setLeafSize(const Length &s);
+
+  //! get/set leaf aspect
+  double leafAspect() const { return leafNodeData_.aspect; }
+  void setLeafAspect(double a);
+
+  //! get/set leaf shape
+  const CQChartsShapeType &leafShape() const { return leafNodeData_.shape; }
+  void setLeafShape(const CQChartsShapeType &s);
+
+  //! get/set leaf text position
+  const TextPosition &leafTextPosition() const { return leafNodeData_.textPosition; }
+  void setLeafTextPosition(const TextPosition &p);
+
+  // get/set is rotated text label (for circular placement)
+  bool isLeafRotatedText() const { return leafNodeData_.rotatedText; }
+  void setLeafRotatedText(bool b);
+
+  //! get/set leaf text margin
+  double leafTextMargin() const { return leafNodeData_.textMargin; }
+  void setLeafTextMargin(double r);
+
+  double calcLeafSize() const;
 
   //---
 
@@ -334,25 +523,39 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   const Length &edgeWidth() const { return edgeWidth_; }
   void setEdgeWidth(const Length &l);
 
-  //---
-
-  //! get/set text margin
-  double textMargin() const { return textMargin_; }
-  void setTextMargin(double r);
-
-  // get/set is rotated text label
-  bool isRotatedText() const { return rotatedText_; }
-  void setRotatedText(bool b);
+  //! get/set min edge width
+  const Length &minEdgeWidth() const { return minEdgeWidth_; }
+  void setMinEdgeWidth(const Length &l);
 
   //---
+
+  double edgeValueScale(const EdgeObj *edge, double value) const;
+
+  //---
+
+  //! get/set orientation
+  const Qt::Orientation &orientation() const { return orientation_; }
+  void setOrientation(const Qt::Orientation &o);
 
   //! get/set place type
   const PlaceType &placeType() const { return placeType_; }
   void setPlaceType(const PlaceType &t);
 
-  //! get/set orientation
-  const Qt::Orientation &orientation() const { return orientation_; }
-  void setOrientation(const Qt::Orientation &o);
+  //---
+
+  bool isRemoveNodeOverlaps() const { return removeNodeOverlaps_; }
+  void setRemoveNodeOverlaps(bool b);
+
+  bool isRemoveGroupOverlaps() const { return removeGroupOverlaps_; }
+  void setRemoveGroupOverlaps(bool b);
+
+  const Length &overlapMargin() const { return overlapMargin_; }
+  void setOverlapMargin(const Length &l);
+
+  bool isAdjustOverlaps() const { return adjustOverlaps_; }
+  void setAdjustOverlaps(bool b);
+
+  double overlapScale() const { return overlapScale_; }
 
   //---
 
@@ -366,7 +569,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   void addHierName(const QString &nameStr, const ModelIndex &modelInd) const;
 
-  void addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const OptReal &value,
+  void addNameValue(const QString &nameStr, const CQChartsNamePair &namePair,
+                    const QStringList &names, const OptReal &value,
                     const ModelIndex &modelInd, const OptReal &colorValue,
                     OptReal &sizeValue, Edges &edges) const;
 
@@ -376,13 +580,25 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
-  void addNodeObjs(Node *hier, int depth, NodeObj *parentObj, PlotObjs &objs) const;
-
-  NodeObj *addNodeObj(Node *node, PlotObjs &objs, bool isHier) const;
+  void execMoveNonRoot(const PlotObjs &objs);
 
   //---
 
-  void preDrawObjs(PaintDevice *device) const override;
+  void saveOverlapRects();
+  void saveOverlapRects(const PlotObjs &objs);
+  void restoreOverlapRects();
+
+  void execRemoveOverlaps();
+  void execRemoveOverlaps(const PlotObjs &objs);
+
+//void calcNodeSize(PlotObjs &objs);
+
+  //---
+
+  void addNodeObjs(Node *hier, int depth, NodeObj *parentObj, PlotObjs &objs) const;
+
+  NodeObj *addNodeObj(Node *node, PlotObjs &objs, bool isHier) const;
+  EdgeObj *addEdgeObj(NodeObj *fromNode, NodeObj *toObj) const;
 
   //---
 
@@ -392,8 +608,6 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   void resetNodeExpansion(Node *hierNode, bool expanded);
 
   void setNodeExpansion(Node *hierNode, const std::set<QModelIndex> &indSet);
-
-  void expandedModelIndices(std::set<QModelIndex> &indSet) const;
 
   //---
 
@@ -410,7 +624,10 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   NodeObj *rootNodeObj() const { return cacheData_.rootNodeObj; }
 
-  virtual NodeObj *createNodeObj(Node *node, const BBox &rect) const;
+  virtual NodeObj *createNodeObj(Node *node, const BBox &rect,
+                                 const ColorInd &ig, const ColorInd &iv) const;
+  virtual EdgeObj *createEdgeObj(NodeObj *fromNode, NodeObj *toNode, const BBox &rect,
+                                 const ColorInd &ig, const ColorInd &iv) const;
 
  protected:
   using DepthNodes   = std::vector<Node *>;
@@ -434,7 +651,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   void place() const;
 
   void placeBuchheim() const;
-  void addBuchheimHierNode(CBuchHeim::Tree *tree, Node *hierNode) const;
+  void addBuchheimHierNode(CBuchHeim::Tree *tree, Node *hierNode, int depth) const;
   void moveBuchheimHierNode(CBuchHeim::DrawTree *tree) const;
 
   void placeCircular() const;
@@ -456,60 +673,83 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   void expandNode(Node *hierNode, bool all);
   void collapseNode(Node *hierNode, bool all);
 
-  bool isExpandModelIndex(const QModelIndex &ind) const;
-
-  void expandModelIndex(const QModelIndex &ind, bool b);
-
  private Q_SLOTS:
   void expandSlot();
   void expandAllSlot();
   void collapseAllSlot();
 
  private:
-  using Dendrogram = CQChartsDendrogram;
+  using Dendrogram  = CQChartsDendrogram;
+  using DendrogramP = std::unique_ptr<Dendrogram>;
   using NodeObjs   = std::map<Node *, NodeObj *>;
 
   // columns
-  Column nameColumn_;  //!< name column
-  Column linkColumn_;  //!< link column
-  Column valueColumn_; //!< value column
-  Column sizeColumn_;  //!< size column
+  Column linkColumn_; //!< link column
+  Column sizeColumn_; //!< size column
 
-  bool followViewExpand_ { false }; //!< follow view expand
+  DendrogramP dendrogram_;             //!< dendrogram class
+  Node*       tempRoot_   { nullptr }; //!< temp root for unconnected nodes
 
-  Dendrogram* dendrogram_ { nullptr }; //!< dendrogram class
-  Node*       tempRoot_   { nullptr };
+  struct NodeData {
+    Length            size         { Length::pixel(16.0) };              //!< size
+    double            aspect       { 1.0 };                              //!< aspect
+    CQChartsShapeType shape        { CQChartsShapeType::Type::DIAMOND }; //!< shape
+    TextPosition      textPosition { TextPosition::RIGHT };              //!< text position
+    bool              rotatedText  { false };                            //!< is label rotated
+    double            textMargin   { 4.0 };                              //!< text margin
+  };
 
-  // node data
-  Length symbolSize_ { Length::pixel(16.0) }; //!< circle size
+  // root node data
+  bool     rootVisible_ { true }; //!< root is visible
+  NodeData rootNodeData_;         //!< root node data
+
+  // hier node data
+  NodeData hierNodeData_; //!< hier node data
+
+  // leaf node data
+  NodeData leafNodeData_; //!< leaf node data
 
   // edge data
-  bool   edgeScaled_ { false };            //!< is edge scaled
-  Length edgeWidth_  { Length::pixel(8) }; //!< edge width
-
-  // test data
-  double textMargin_  { 4.0 };   //!< text margin
-  bool   rotatedText_ { false }; //!< is label rotated
+  bool   edgeScaled_   { false };              //!< is edge scaled
+  Length edgeWidth_    { Length::pixel(8.0) }; //!< edge width
+  Length minEdgeWidth_ { Length::pixel(1.0) }; //!< min edge width
 
   // plot data
-  PlaceType       placeType_   { PlaceType::BUCHHEIM }; //!< place type
   Qt::Orientation orientation_ { Qt::Horizontal };      //!< draw direction
+  PlaceType       placeType_   { PlaceType::BUCHHEIM }; //!< place type
+
+  // overlap
+  bool           removeNodeOverlaps_  { false };              //!< remove node overlaps
+  bool           removeGroupOverlaps_ { false };              //!< remove group overlaps
+  Length         overlapMargin_       { Length::pixel(4.0) }; //!< overlap margin
+  bool           adjustOverlaps_      { false };              //!< adjust overlaps
+  mutable double overlapScale_        { 1.0 };                //!< overlap scale factor
+
+  RMinMax valueRange_; //!< value range
 
   //---
 
   // cached data
   struct CacheData {
+    using TreeP     = std::unique_ptr<CBuchHeim::Tree>;
+    using DrawTreeP = std::unique_ptr<CBuchHeim::DrawTree>;
+
     bool needsReload { true }; //!< needs reload
     bool needsPlace  { true }; //!< needs place
 
-    CBuchHeim::Tree*     buchheimTree     { nullptr }; //!< buchheim tree
-    CBuchHeim::DrawTree* buchheimDrawTree { nullptr }; //!< buchheim draw tree
+    TreeP     buchheimTree;     //!< buchheim tree
+    DrawTreeP buchheimDrawTree; //!< buchheim draw tree
 
     NodeObj *rootNodeObj { nullptr }; //!< root node obj
 
     NodeObjs nodeObjs;
 
+    int numNodes { 0 };
+    int numEdges { 0 };
+    int depth    { 0 };
+
     int nodeInd { 0 };
+    int edgeInd { 0 };
   };
 
   mutable CacheData cacheData_;
@@ -517,13 +757,11 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
 //---
 
-#include <CQChartsPlotCustomControls.h>
-
 /*!
  * \brief Dendrogram Plot plot custom controls
  * \ingroup Charts
  */
-class CQChartsDendrogramPlotCustomControls : public CQChartsPlotCustomControls {
+class CQChartsDendrogramPlotCustomControls : public CQChartsHierPlotCustomControls {
   Q_OBJECT
 
  public:

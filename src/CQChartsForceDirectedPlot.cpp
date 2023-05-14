@@ -4050,7 +4050,7 @@ drawNodeText(PaintDevice *device, Node *snode, const ColorInd &colorInd,
 
   textData.textOptions = nodeTextOptions(device);
 
-  th->setRefLength(OptReal());
+  th->resetRefLength();
 
   textData.textOptions.angle = Angle();
   textData.textOptions.align = Qt::AlignCenter;

@@ -91,7 +91,9 @@ class DrawTree {
 
   double x() const { return x_; }
   double y() const { return y_; }
+
   double r() const { return r_; }
+  void setR(double r) { r_ = r; }
 
   Tree *tree() const { return tree_; }
 
@@ -130,6 +132,7 @@ class DrawTree {
 
   void place();
 
+  void normalize(double r, bool equalScale=false);
   void normalize(bool equalScale=false);
 
   //---
@@ -197,6 +200,8 @@ class DrawTree {
   void moveChildren(const DrawTree *parent, const DrawTree *startChild);
 
  private:
+  static inline double s_r { -1.0 };
+
   double    x_             { 0.0 };
   double    y_             { 0.0 };
   double    r_             { 0.5 };

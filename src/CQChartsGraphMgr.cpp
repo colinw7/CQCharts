@@ -202,7 +202,7 @@ CQChartsGraphGraph::
 CQChartsGraphGraph(GraphMgr *mgr, const QString &str) :
  CQChartsGraphNode(mgr, str)
 {
-  setShapeType(ShapeType::BOX);
+  setShapeType(ShapeType(CQChartsShapeType::Type::BOX));
 }
 
 CQChartsGraphGraph::
@@ -668,15 +668,15 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
     // get node shape
     auto shapeType = node->shapeType();
 
-    if (shapeType == Node::ShapeType::NONE)
-      shapeType = static_cast<Node::ShapeType>(mgr_->nodeShape());
+    if (shapeType.type() == CQChartsShapeType::Type::NONE)
+      shapeType = mgr_->nodeShape();
 
     //---
 
     // set node rect based on shape
     BBox rect;
 
-    if (shapeType != Node::ShapeType::NONE) {
+    if (shapeType.type() != CQChartsShapeType::Type::NONE) {
       rect = CQChartsGeom::makeDirBBox(! mgr_->isHorizontal(),
         posStart, nodePerpPos1, posEnd, nodePerpPos2);
     }

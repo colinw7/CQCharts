@@ -154,31 +154,20 @@ class CQChartsGraphPlot;
 class CQChartsGraphNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
-  Q_PROPERTY(QString       hierName  READ hierName  WRITE setHierName )
-  Q_PROPERTY(QString       name      READ name      WRITE setName     )
-  Q_PROPERTY(double        value     READ value     WRITE setValue    )
-  Q_PROPERTY(int           depth     READ depth     WRITE setDepth    )
-  Q_PROPERTY(ShapeType     shapeType READ shapeType WRITE setShapeType)
-  Q_PROPERTY(int           numSides  READ numSides  WRITE setNumSides )
-  Q_PROPERTY(double        aspect    READ aspect    WRITE setAspect   )
-  Q_PROPERTY(CQChartsColor color     READ fillColor WRITE setFillColor)
-
-  Q_ENUMS(ShapeType)
+  Q_PROPERTY(QString           hierName  READ hierName  WRITE setHierName )
+  Q_PROPERTY(QString           name      READ name      WRITE setName     )
+  Q_PROPERTY(double            value     READ value     WRITE setValue    )
+  Q_PROPERTY(int               depth     READ depth     WRITE setDepth    )
+  Q_PROPERTY(CQChartsShapeType shapeType READ shapeType WRITE setShapeType)
+  Q_PROPERTY(int               numSides  READ numSides  WRITE setNumSides )
+  Q_PROPERTY(double            aspect    READ aspect    WRITE setAspect   )
+  Q_PROPERTY(CQChartsColor     color     READ fillColor WRITE setFillColor)
 
  public:
-  enum class ShapeType {
-    NONE          = static_cast<int>(CQChartsBoxObj::ShapeType::NONE),
-    TRIANGLE      = static_cast<int>(CQChartsBoxObj::ShapeType::TRIANGLE),
-    DIAMOND       = static_cast<int>(CQChartsBoxObj::ShapeType::DIAMOND),
-    BOX           = static_cast<int>(CQChartsBoxObj::ShapeType::BOX),
-    POLYGON       = static_cast<int>(CQChartsBoxObj::ShapeType::POLYGON),
-    CIRCLE        = static_cast<int>(CQChartsBoxObj::ShapeType::CIRCLE),
-    DOUBLE_CIRCLE = static_cast<int>(CQChartsBoxObj::ShapeType::DOUBLE_CIRCLE)
-  };
-
   using GraphPlot = CQChartsGraphPlot;
   using Node      = CQChartsGraphNode;
   using Edge      = CQChartsGraphEdge;
+  using ShapeType = CQChartsShapeType;
   using Color     = CQChartsColor;
   using Angle     = CQChartsAngle;
 
@@ -467,14 +456,14 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   Q_OBJECT
 
   // node options
-  Q_PROPERTY(CQChartsLength nodeXMargin    READ nodeXMargin      WRITE setNodeXMargin   )
-  Q_PROPERTY(CQChartsLength nodeYMargin    READ nodeYMargin      WRITE setNodeYMargin   )
-  Q_PROPERTY(CQChartsLength nodeWidth      READ nodeWidth        WRITE setNodeWidth     )
-  Q_PROPERTY(CQChartsLength nodeHeight     READ nodeHeight       WRITE setNodeHeight    )
-  Q_PROPERTY(bool           nodeXScaled    READ isNodeXScaled    WRITE setNodeXScaled   )
-  Q_PROPERTY(bool           nodeYScaled    READ isNodeYScaled    WRITE setNodeYScaled   )
-  Q_PROPERTY(NodeShape      nodeShape      READ nodeShape        WRITE setNodeShape     )
-  Q_PROPERTY(bool           nodeTextInside READ isNodeTextInside WRITE setNodeTextInside)
+  Q_PROPERTY(CQChartsLength    nodeXMargin    READ nodeXMargin      WRITE setNodeXMargin   )
+  Q_PROPERTY(CQChartsLength    nodeYMargin    READ nodeYMargin      WRITE setNodeYMargin   )
+  Q_PROPERTY(CQChartsLength    nodeWidth      READ nodeWidth        WRITE setNodeWidth     )
+  Q_PROPERTY(CQChartsLength    nodeHeight     READ nodeHeight       WRITE setNodeHeight    )
+  Q_PROPERTY(bool              nodeXScaled    READ isNodeXScaled    WRITE setNodeXScaled   )
+  Q_PROPERTY(bool              nodeYScaled    READ isNodeYScaled    WRITE setNodeYScaled   )
+  Q_PROPERTY(CQChartsShapeType nodeShape      READ nodeShape        WRITE setNodeShape     )
+  Q_PROPERTY(bool              nodeTextInside READ isNodeTextInside WRITE setNodeTextInside)
 
   // edge options
   Q_PROPERTY(EdgeShape edgeShape  READ edgeShape    WRITE setEdgeShape )
@@ -508,7 +497,6 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   // text style
 
   Q_ENUMS(Align)
-  Q_ENUMS(NodeShape)
   Q_ENUMS(EdgeShape)
 
  public:
@@ -516,15 +504,6 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
     SRC,
     DEST,
     JUSTIFY
-  };
-
-  enum NodeShape {
-    NODE_SHAPE_NONE,
-    NODE_SHAPE_DIAMOND,
-    NODE_SHAPE_BOX,
-    NODE_SHAPE_POLYGON,
-    NODE_SHAPE_CIRCLE,
-    NODE_SHAPE_DOUBLE_CIRCLE
   };
 
   enum EdgeShape {
@@ -547,6 +526,7 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   using Color       = CQChartsColor;
   using Alpha       = CQChartsAlpha;
   using ColorInd    = CQChartsUtil::ColorInd;
+  using ShapeType   = CQChartsShapeType;
 
  public:
   CQChartsGraphPlot(View *view, const ModelP &model);
@@ -586,8 +566,8 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   void setNodeYScaled(bool b);
 
   //! get/set node shape
-  NodeShape nodeShape() const;
-  void setNodeShape(const NodeShape &s);
+  ShapeType nodeShape() const;
+  void setNodeShape(const ShapeType &s);
 
   //! get/set is node text inside
   bool isNodeTextInside() const { return nodeTextInside_; }

@@ -76,10 +76,10 @@ addParameters()
     addNameValue("SYMBOLS"   , static_cast<int>(CQChartsScatterPlot::PlotType::SYMBOLS   )).
     addNameValue("GRID_CELLS", static_cast<int>(CQChartsScatterPlot::PlotType::GRID_CELLS)).
     addNameValue("HEX_CELLS" , static_cast<int>(CQChartsScatterPlot::PlotType::HEX_CELLS )).
-    setTip("Plot type");
+    setPropPath("options.plotType").setTip("Plot type");
 
   addBoolParameter("pointLabels", "Point Labels", "pointLabels").
-    setTip("Show Label at Point").setPropPath("labels.visible");
+    setPropPath("labels.visible").setTip("Show Label at Point");
 
   addMiscParameters();
 
@@ -883,6 +883,14 @@ calcRange() const
           y = uniqueId(data, scatterPlot_->yColumn()); ++numUniqueY_;
         }
 
+        if (scatterPlot_->isPolar()) {
+          auto r = x;
+          auto a = CMathUtil::Deg2Rad(y); // radians
+
+          x = r*std::cos(a);
+          y = r*std::sin(a);
+        }
+
         //---
 
         // check for bad value
@@ -962,6 +970,9 @@ calcRange() const
   else {
     dataRange = visitor.range();
   }
+
+  if (isPolar())
+    dataRange.updateRange(0.0, 0.0);
 
   //---
 
@@ -2508,6 +2519,16 @@ addNameValues() const
       }
       else {
         y = uniqueId(data, scatterPlot_->yColumn());
+      }
+
+      //---
+
+      if (scatterPlot_->isPolar()) {
+        auto r = x;
+        auto a = CMathUtil::Deg2Rad(y); // radians
+
+        x = r*std::cos(a);
+        y = r*std::sin(a);
       }
 
       //---
@@ -4919,21 +4940,27 @@ draw(PaintDevice *device) const
 
   //---
 
-  using XPoints = std::map<double, Points>;
-
-  XPoints xPoints;
-
-  for (const auto &p : points) {
-    auto gp = scatterPlot_->adjustGroupPoint(groupInd_, p);
-
-    xPoints[gp.x].push_back(gp);
-  }
-
   Polygon poly;
 
-  for (const auto &xp : xPoints)
-    for (const auto &p : xp.second)
+  if (! scatterPlot_->isPolar()) {
+    using XPoints = std::map<double, Points>;
+
+    XPoints xPoints;
+
+    for (const auto &p : points) {
+      auto gp = scatterPlot_->adjustGroupPoint(groupInd_, p);
+
+      xPoints[gp.x].push_back(gp);
+    }
+
+    for (const auto &xp : xPoints)
+      for (const auto &p : xp.second)
+        poly.addPoint(p);
+  }
+  else {
+    for (const auto &p : points)
       poly.addPoint(p);
+  }
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 

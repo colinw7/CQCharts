@@ -394,8 +394,10 @@ class CQChartsQuadTree {
       return false;
 
     // if tree completely inside then something must touch
-    if (inside(rect_, rect))
-      return true;
+    if (inside(rect_, rect)) {
+      if (! isEmpty())
+        return true;
+    }
 
     for (auto data : dataList_) {
       const RECT &rect1 = data->rect();
@@ -552,6 +554,9 @@ class CQChartsQuadTree {
 
   // does rect overlap tree
   bool overlaps(const RECT &rect) const {
+    if (! rect_.isSet())
+      return false;
+
     assert(rect.getXMin() <= rect.getXMax() && rect.getYMin() <= rect.getYMax());
 
     return overlaps(rect, rect_);

@@ -84,7 +84,9 @@ CQChartsDelaunayPlot.cpp \
 CQChartsDendrogramPlot.cpp \
 CQChartsDistributionPlot.cpp \
 CQChartsEmptyPlot.cpp \
+CQChartsFlamePlot.cpp \
 CQChartsForceDirectedPlot.cpp \
+CQChartsGanttPlot.cpp \
 CQChartsGeometryPlot.cpp \
 CQChartsGraphPlot.cpp \
 CQChartsGraphVizPlot.cpp \
@@ -265,6 +267,8 @@ CQChartsSymbolType.cpp \
 CQChartsSymbolSet.cpp \
 CQChartsSymbolBuffer.cpp \
 \
+CQChartsShapeType.cpp \
+\
 CQChartsImage.cpp \
 CQChartsWidget.cpp \
 CQChartsPath.cpp \
@@ -371,6 +375,7 @@ CQChartsPositionEdit.cpp \
 CQChartsRectEdit.cpp \
 CQChartsRegionMgr.cpp \
 CQChartsShapeDataEdit.cpp \
+CQChartsShapeTypeEdit.cpp \
 CQChartsSidesEdit.cpp \
 CQChartsStrokeDataEdit.cpp \
 CQChartsSymbolDataEdit.cpp \
@@ -508,7 +513,9 @@ HEADERS += \
 ../include/CQChartsDendrogramPlot.h \
 ../include/CQChartsDistributionPlot.h \
 ../include/CQChartsEmptyPlot.h \
+../include/CQChartsFlamePlot.h \
 ../include/CQChartsForceDirectedPlot.h \
+../include/CQChartsGanttPlot.h \
 ../include/CQChartsGeometryPlot.h \
 ../include/CQChartsGraphPlot.h \
 ../include/CQChartsGraphVizPlot.h \
@@ -583,6 +590,8 @@ HEADERS += \
 ../include/CQChartsSymbolType.h \
 ../include/CQChartsSymbolSet.h \
 ../include/CQChartsSymbolBuffer.h \
+\
+../include/CQChartsShapeType.h \
 \
 ../include/CQChartsImage.h \
 ../include/CQChartsWidget.h \
@@ -832,6 +841,7 @@ HEADERS += \
 ../include/CQChartsRectEdit.h \
 ../include/CQChartsRegionMgr.h \
 ../include/CQChartsShapeDataEdit.h \
+../include/CQChartsShapeTypeEdit.h \
 ../include/CQChartsSidesEdit.h \
 ../include/CQChartsStrokeDataEdit.h \
 ../include/CQChartsSymbolDataEdit.h \

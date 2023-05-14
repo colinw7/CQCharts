@@ -22,22 +22,6 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
   CQCHARTS_BOX_DATA_PROPERTIES
 
  public:
-  enum class ShapeType {
-    NONE          = static_cast<int>(CQChartsShapeType::NONE),
-    TRIANGLE      = static_cast<int>(CQChartsShapeType::TRIANGLE),
-    DIAMOND       = static_cast<int>(CQChartsShapeType::DIAMOND),
-    BOX           = static_cast<int>(CQChartsShapeType::BOX),
-    POLYGON       = static_cast<int>(CQChartsShapeType::POLYGON),
-    CIRCLE        = static_cast<int>(CQChartsShapeType::CIRCLE),
-    DOUBLE_CIRCLE = static_cast<int>(CQChartsShapeType::DOUBLE_CIRCLE),
-    DOT_LINE      = static_cast<int>(CQChartsShapeType::DOT_LINE),
-    RECORD        = static_cast<int>(CQChartsShapeType::RECORD),
-    PLAIN_TEXT    = static_cast<int>(CQChartsShapeType::PLAIN_TEXT),
-    RARROW        = static_cast<int>(CQChartsShapeType::RARROW),
-    OVAL          = static_cast<int>(CQChartsShapeType::OVAL),
-    RPROMOTER     = static_cast<int>(CQChartsShapeType::RPROMOTER)
-  };
-
   using PropertyModel = CQPropertyViewModel;
   using Alpha         = CQChartsAlpha;
   using FillPattern   = CQChartsFillPattern;

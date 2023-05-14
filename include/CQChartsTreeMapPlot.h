@@ -22,7 +22,7 @@ class CQChartsTreeMapPlotType : public CQChartsHierPlotType {
   QString name() const override { return "treemap"; }
   QString desc() const override { return "TreeMap"; }
 
-  Category category() const override { return Category::ONE_D; }
+  Category category() const override { return Category::HIER; }
 
   void addParameters() override;
 

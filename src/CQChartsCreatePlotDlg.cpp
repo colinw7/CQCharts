@@ -355,14 +355,17 @@ createTypeCombo()
   QString title;
 
   for (auto &plotType : plotTypes) {
-    bool hier = plotType->isHierarchical();
-    auto cat  = plotType->category();
+    auto cat    = plotType->category();
+    bool isHier = plotType->isHierarchical();
 
-    if (hier != plotTypeHier) {
-      if (hier)
+    if (cat == PlotType::Category::HIER)
+      isHier = false;
+
+    if (isHier != plotTypeHier) {
+      if (isHier)
         typeCombo->addTitle("Hierarchical");
 
-      plotTypeHier = hier;
+      plotTypeHier = isHier;
     }
 
     if (cat != plotTypeCat) {
@@ -372,6 +375,8 @@ createTypeCombo()
         typeCombo->addTitle("2D");
       else if (cat == PlotType::Category::CONNECTION)
         typeCombo->addTitle("Connection");
+      else if (cat == PlotType::Category::HIER)
+        typeCombo->addTitle("Hierarchical");
       else
         typeCombo->addTitle("Other");
 
@@ -535,7 +540,7 @@ sortedPlotTypes(CQCharts::PlotTypes &plotTypes1)
 
   this->charts()->getPlotTypes(plotTypes);
 
-  // create ordered list of types (1D, 2D, Category, Other, Hierarchical)
+  // create ordered list of types (1D, 2D, Connection, Hierarchical, Other, ...)
 
   using DimPlotTypesMap     = std::map<int, CQCharts::PlotTypes>;
   using HierDimPlotsTypeMap = std::map<bool, DimPlotTypesMap>;
@@ -550,7 +555,12 @@ sortedPlotTypes(CQCharts::PlotTypes &plotTypes1)
     if (cat != PlotType::Category::NONE)
       cat1 = int(cat);
 
-    hierDimPlotsTypeMap[plotType->isHierarchical()][cat1].push_back(plotType);
+    bool isHier = plotType->isHierarchical();
+
+    if (cat == PlotType::Category::HIER)
+      isHier = false;
+
+    hierDimPlotsTypeMap[isHier][cat1].push_back(plotType);
   }
 
   //---

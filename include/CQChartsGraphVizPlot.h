@@ -68,7 +68,7 @@ class CQChartsGraphVizPlotNode {
   using ModelInds   = std::vector<ModelIndex>;
   using BBox        = CQChartsGeom::BBox;
   using Point       = CQChartsGeom::Point;
-  using ShapeType   = CQChartsBoxObj::ShapeType;
+  using ShapeType   = CQChartsShapeType;
   using EdgeRect    = std::map<Edge *, BBox>;
 
   CQChartsGraphVizPlotNode(const QString &str);
@@ -169,9 +169,8 @@ class CQChartsGraphVizPlotNode {
   //--- custom appearance
 
   //! get/set shape
-  ShapeType shapeType() const { return static_cast<ShapeType>(shapeTypeData_.shapeType); }
-  void setShapeType(const ShapeType &s) {
-    shapeTypeData_.shapeType = static_cast<CQChartsShapeType>(s); }
+  ShapeType shapeType() const { return ShapeType(shapeTypeData_.shapeType); }
+  void setShapeType(const ShapeType &s) { shapeTypeData_.shapeType = s.type(); }
 
   //! get/set number of sides
   int numSides() const { return shapeTypeData_.numSides; }
@@ -384,21 +383,21 @@ class CQChartsGraphVizPlotEdge {
  private:
   using NamedColumn = std::map<QString, Column>;
 
-  Obj*         obj_       { nullptr };         //!< edge plot object
-  int          id_        { -1 };              //!< unique id
-  OptReal      value_;                         //!< value
-  NamedColumn  namedColumn_;                   //!< named columns
-  QString      label_;                         //!< label
-  ShapeType    shapeType_ { ShapeType::NONE }; //!< shape type
-  Color        color_;                         //!< color
-  QModelIndex  modelInd_;                      //!< original row model index
-  ModelInds    modelInds_;                     //!< model inds
-  Node*        srcNode_   { nullptr };         //!< source node
-  Node*        destNode_  { nullptr };         //!< destination node
-  QPainterPath path_;                          //!< draw path
-  QPainterPath edgePath_;                      //!< edge path
-//Line         line_;                          //!< edge line
-  bool         directed_  { false };           //!< is directed
+  Obj*         obj_       { nullptr }; //!< edge plot object
+  int          id_        { -1 };      //!< unique id
+  OptReal      value_;                 //!< value
+  NamedColumn  namedColumn_;           //!< named columns
+  QString      label_;                 //!< label
+  ShapeType    shapeType_;             //!< shape type
+  Color        color_;                 //!< color
+  QModelIndex  modelInd_;              //!< original row model index
+  ModelInds    modelInds_;             //!< model inds
+  Node*        srcNode_   { nullptr }; //!< source node
+  Node*        destNode_  { nullptr }; //!< destination node
+  QPainterPath path_;                  //!< draw path
+  QPainterPath edgePath_;              //!< edge path
+//Line         line_;                  //!< edge line
+  bool         directed_  { false };   //!< is directed
 };
 
 //---
@@ -412,32 +411,19 @@ class CQChartsGraphVizPlot;
 class CQChartsGraphVizNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
-  Q_PROPERTY(QString       hierName  READ hierName  WRITE setHierName )
-  Q_PROPERTY(QString       name      READ name      WRITE setName     )
-  Q_PROPERTY(double        value     READ value     WRITE setValue    )
-  Q_PROPERTY(int           depth     READ depth     WRITE setDepth    )
-  Q_PROPERTY(ShapeType     shapeType READ shapeType WRITE setShapeType)
-  Q_PROPERTY(int           numSides  READ numSides  WRITE setNumSides )
-  Q_PROPERTY(CQChartsColor color     READ fillColor WRITE setFillColor)
-
-  Q_ENUMS(ShapeType)
+  Q_PROPERTY(QString           hierName  READ hierName  WRITE setHierName )
+  Q_PROPERTY(QString           name      READ name      WRITE setName     )
+  Q_PROPERTY(double            value     READ value     WRITE setValue    )
+  Q_PROPERTY(int               depth     READ depth     WRITE setDepth    )
+  Q_PROPERTY(CQChartsShapeType shapeType READ shapeType WRITE setShapeType)
+  Q_PROPERTY(int               numSides  READ numSides  WRITE setNumSides )
+  Q_PROPERTY(CQChartsColor     color     READ fillColor WRITE setFillColor)
 
  public:
-  enum class ShapeType {
-    NONE          = static_cast<int>(CQChartsShapeType::NONE),
-    TRIANGLE      = static_cast<int>(CQChartsShapeType::TRIANGLE),
-    DIAMOND       = static_cast<int>(CQChartsShapeType::DIAMOND),
-    BOX           = static_cast<int>(CQChartsShapeType::BOX),
-    POLYGON       = static_cast<int>(CQChartsShapeType::POLYGON),
-    CIRCLE        = static_cast<int>(CQChartsShapeType::CIRCLE),
-    DOUBLE_CIRCLE = static_cast<int>(CQChartsShapeType::DOUBLE_CIRCLE),
-    RECORD        = static_cast<int>(CQChartsShapeType::RECORD),
-    PLAIN_TEXT    = static_cast<int>(CQChartsShapeType::PLAIN_TEXT)
-  };
-
   using GraphVizPlot = CQChartsGraphVizPlot;
   using Node         = CQChartsGraphVizPlotNode;
   using Edge         = CQChartsGraphVizPlotEdge;
+  using ShapeType    = CQChartsShapeType;
   using Color        = CQChartsColor;
   using Angle        = CQChartsAngle;
 
@@ -666,9 +652,9 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(OutputFormat outputFormat READ outputFormat WRITE setOutputFormat)
 
   // node data
-  Q_PROPERTY(NodeShape      nodeShape  READ nodeShape    WRITE setNodeShape )
-  Q_PROPERTY(bool           nodeScaled READ isNodeScaled WRITE setNodeScaled)
-  Q_PROPERTY(CQChartsLength nodeSize   READ nodeSize     WRITE setNodeSize  )
+  Q_PROPERTY(CQChartsShapeType nodeShape  READ nodeShape    WRITE setNodeShape )
+  Q_PROPERTY(bool              nodeScaled READ isNodeScaled WRITE setNodeScaled)
+  Q_PROPERTY(CQChartsLength    nodeSize   READ nodeSize     WRITE setNodeSize  )
 
   Q_PROPERTY(bool nodeTextSingleScale READ isNodeTextSingleScale WRITE setNodeTextSingleScale)
 
@@ -707,19 +693,9 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   Q_ENUMS(PlotType)
   Q_ENUMS(OutputFormat)
 
-  Q_ENUMS(NodeShape)
   Q_ENUMS(EdgeShape)
 
  public:
-  enum class NodeShape {
-    NONE,
-    DIAMOND,
-    BOX,
-    POLYGON,
-    CIRCLE,
-    DOUBLE_CIRCLE
-  };
-
   enum class EdgeShape {
     NONE        = int(CQChartsEdgeType::NONE),
     LINE        = int(CQChartsEdgeType::LINE),
@@ -771,8 +747,8 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   //---
 
   //! get/set node shape
-  NodeShape nodeShape() const { return nodeShape_; }
-  void setNodeShape(const NodeShape &s);
+  CQChartsShapeType nodeShape() const { return nodeShape_; }
+  void setNodeShape(const CQChartsShapeType &s);
 
   //! get/set is node scaled
   bool isNodeScaled() const { return nodeScaled_; }
@@ -1061,9 +1037,9 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   using NameNameMap = std::map<QString, QString>;
 
   // node data
-  NodeShape nodeShape_  { NodeShape::NONE };    //!< node shape
-  bool      nodeScaled_ { false };              //!< is node scaled
-  Length    nodeSize_   { Length::pixel(128) }; //!< node size
+  CQChartsShapeType nodeShape_;                         //!< node shape
+  bool              nodeScaled_ { false };              //!< is node scaled
+  Length            nodeSize_   { Length::pixel(128) }; //!< node size
 
   bool nodeTextSingleScale_ { true }; //!< node text single scale factor
 

@@ -42,6 +42,418 @@ setBrush(QBrush &brush, const BrushData &data)
 //---
 
 void
+drawShape(PaintDevice *device, const CQChartsShapeTypeData &data, const BBox &rect)
+{
+  switch (data.shapeType) {
+    case CQChartsShapeType::Type::NONE: {
+      break;
+    }
+    case CQChartsShapeType::Type::BOX: {
+      if (data.cornerSize.isSet()) {
+        CQChartsDrawUtil::drawRoundedRect(device, rect, data.cornerSize, data.sides, data.angle);
+      }
+      else {
+        if (! data.angle.isZero())
+          device->drawPolygonSides(rect, 4, data.angle + Angle::degrees(45));
+        else
+          device->drawRect(rect);
+      }
+
+      break;
+    }
+    case CQChartsShapeType::Type::POLYGON: {
+      // rounded ?
+      device->drawPolygonSides(rect, data.numSides > 2 ? data.numSides : 4, data.angle);
+
+      break;
+    }
+    case CQChartsShapeType::Type::CIRCLE: {
+      device->drawEllipse(rect, data.angle);
+
+      break;
+    }
+    case CQChartsShapeType::Type::DOT: {
+      auto xc = rect.getXMid();
+      auto yc = rect.getYMid();
+      auto w  = 0.1*rect.getWidth();
+      auto h  = 0.1*rect.getWidth();
+
+      device->drawEllipse(BBox(xc - w/2.0, yc - h/2.0, xc + w/2.0, yc + h/2.0), data.angle);
+
+      break;
+    }
+    case CQChartsShapeType::Type::TRIANGLE: {
+      // rounded ?
+      device->drawPolygonSides(rect, 3, data.angle);
+
+      break;
+    }
+    case CQChartsShapeType::Type::DIAMOND: {
+      if (! data.angle.isZero())
+        device->drawPolygonSides(rect, 4, data.angle);
+      else
+        device->drawDiamond(rect);
+
+      break;
+    }
+    case CQChartsShapeType::Type::TRAPEZIUM: {
+      QPainterPath path;
+
+      auto dx = 0.1*rect.getWidth();
+
+      path.moveTo(rect.getXMin()     , rect.getYMin());
+      path.lineTo(rect.getXMin() + dx, rect.getYMin());
+      path.lineTo(rect.getXMax() - dx, rect.getYMax());
+      path.lineTo(rect.getXMax()     , rect.getYMax());
+      path.closeSubpath();
+
+      device->drawPath(rotatePath(path, data.angle.degrees()));
+
+      break;
+    }
+    case CQChartsShapeType::Type::PARALLELOGRAM: {
+      QPainterPath path;
+
+      auto dx = 0.1*rect.getWidth();
+
+      path.moveTo(rect.getXMin()     , rect.getYMin());
+      path.lineTo(rect.getXMin() + dx, rect.getYMax());
+      path.lineTo(rect.getXMax()     , rect.getYMax());
+      path.lineTo(rect.getXMax() - dx, rect.getYMin());
+      path.closeSubpath();
+
+      device->drawPath(rotatePath(path, data.angle.degrees()));
+
+      break;
+    }
+    case CQChartsShapeType::Type::HOUSE: {
+      QPainterPath path;
+
+      path.moveTo(rect.getXMin(), rect.getYMin());
+      path.lineTo(rect.getXMin(), rect.getYMid());
+      path.lineTo(rect.getXMid(), rect.getYMax());
+      path.lineTo(rect.getXMax(), rect.getYMid());
+      path.lineTo(rect.getXMax(), rect.getYMin());
+      path.closeSubpath();
+
+      device->drawPath(rotatePath(path, data.angle.degrees()));
+
+      break;
+    }
+    case CQChartsShapeType::Type::PENTAGON: {
+      device->drawPolygonSides(rect, 5, data.angle);
+
+      break;
+    }
+    case CQChartsShapeType::Type::HEXAGON: {
+      device->drawPolygonSides(rect, 6, data.angle);
+
+      break;
+    }
+    case CQChartsShapeType::Type::SEPTAGON: {
+      device->drawPolygonSides(rect, 7, data.angle);
+
+      break;
+    }
+    case CQChartsShapeType::Type::OCTAGON: {
+      device->drawPolygonSides(rect, 8, data.angle);
+
+      break;
+    }
+    case CQChartsShapeType::Type::DOUBLE_CIRCLE: {
+      double dx = 0.1*rect.getWidth ();
+      double dy = 0.1*rect.getHeight();
+
+      auto rect1 = rect.expanded(dx, dy, -dx, -dy);
+
+      device->drawEllipse(rect , data.angle);
+      device->drawEllipse(rect1, data.angle);
+
+      break;
+    }
+    case CQChartsShapeType::Type::STAR: {
+      QPainterPath path;
+
+      auto xc = rect.getXMid();
+      auto yc = rect.getYMid();
+
+      auto ri = 0.25*rect.getWidth ();
+      auto ro = 0.50*rect.getWidth ();
+
+      auto n  = std::max(data.numSides, 5);
+      auto a  = M_PI/2.0;
+      auto da = 2*M_PI/n;
+
+      auto ia = rect.iaspect(); // h/w
+
+      for (int i = 0; i < n; ++i) {
+        auto x1 = xc +    ro*std::cos(a);
+        auto y1 = yc + ia*ro*std::sin(a);
+
+        if (i == 0)
+          path.moveTo(x1, y1);
+        else
+          path.lineTo(x1, y1);
+
+        a += da/2.0;
+
+        auto x2 = xc +    ri*std::cos(a);
+        auto y2 = yc + ia*ri*std::sin(a);
+
+        path.lineTo(x2, y2);
+
+        a += da/2.0;
+      }
+
+      path.closeSubpath();
+
+      device->drawPath(rotatePath(path, data.angle.degrees()));
+
+      // TODO:
+      break;
+    }
+    case CQChartsShapeType::Type::UNDERLINE: {
+      QPainterPath path;
+
+      path.moveTo(rect.getXMin(), rect.getYMin());
+      path.lineTo(rect.getXMax(), rect.getYMin());
+      path.closeSubpath();
+
+      device->drawPath(rotatePath(path, data.angle.degrees()));
+
+      break;
+    }
+    case CQChartsShapeType::Type::CYLINDER: {
+      double dy = 0.1*rect.getHeight();
+
+      QPainterPath path;
+
+      path.moveTo (rect.getXMin(), rect.getYMin() + dy);
+      path.cubicTo(rect.getXMin(), rect.getYMin(),
+                   rect.getXMax(), rect.getYMin(),
+                   rect.getXMax(), rect.getYMin() + dy);
+      path.lineTo (rect.getXMax(), rect.getYMax() - dy);
+      path.cubicTo(rect.getXMax(), rect.getYMax(),
+                   rect.getXMin(), rect.getYMax(),
+                   rect.getXMin(), rect.getYMax() - dy);
+      path.closeSubpath();
+
+      device->drawPath(rotatePath(path, data.angle.degrees()));
+
+      break;
+    }
+    case CQChartsShapeType::Type::NOTE: {
+      double dx = 0.1*rect.getWidth();
+      double dy = 0.1*rect.getHeight();
+
+      QPainterPath path;
+
+      path.moveTo (rect.getXMin()     , rect.getYMin());
+      path.lineTo (rect.getXMax()     , rect.getYMin());
+      path.lineTo (rect.getXMax()     , rect.getYMax() - dy);
+      path.lineTo (rect.getXMax() - dx, rect.getYMax());
+      path.lineTo (rect.getXMin()     , rect.getYMax());
+      path.closeSubpath();
+
+      device->drawPath(rotatePath(path, data.angle.degrees()));
+
+      QPainterPath path1;
+
+      path1.moveTo(rect.getXMax()     , rect.getYMax() - dy);
+      path1.lineTo(rect.getXMax() - dx, rect.getYMax() - dy);
+      path1.lineTo(rect.getXMax() - dx, rect.getYMax()     );
+
+      device->strokePath(rotatePath(path1, data.angle.degrees()), device->pen());
+
+      break;
+    }
+    case CQChartsShapeType::Type::TAB: {
+      double dx = 0.2*rect.getWidth();
+      double dy = 0.1*rect.getHeight();
+
+      QPainterPath path;
+
+      path.moveTo (rect.getXMin()     , rect.getYMin());
+      path.lineTo (rect.getXMax()     , rect.getYMin());
+      path.lineTo (rect.getXMax()     , rect.getYMax() - dy);
+      path.lineTo (rect.getXMin() + dx, rect.getYMax() - dy);
+      path.lineTo (rect.getXMin() + dx, rect.getYMax());
+      path.lineTo (rect.getXMin()     , rect.getYMax());
+      path.closeSubpath();
+
+      device->drawPath(rotatePath(path, data.angle.degrees()));
+
+      QPainterPath path1;
+
+      path1.moveTo(rect.getXMin()     , rect.getYMax() - dy);
+      path1.lineTo(rect.getXMin() + dx, rect.getYMax() - dy);
+
+      device->strokePath(rotatePath(path1, data.angle.degrees()), device->pen());
+
+      break;
+    }
+    case CQChartsShapeType::Type::FOLDER: {
+      double dx1 = 0.2*rect.getWidth();
+      double dx2 = 0.1*rect.getWidth();
+      double dy  = 0.1*rect.getHeight();
+
+      QPainterPath path;
+
+      path.moveTo (rect.getXMin()              , rect.getYMin());
+      path.lineTo (rect.getXMax()              , rect.getYMin());
+      path.lineTo (rect.getXMax()              , rect.getYMax() - dy);
+      path.lineTo (rect.getXMax() - dx2        , rect.getYMax());
+      path.lineTo (rect.getXMax() - dx1 - dx2  , rect.getYMax());
+      path.lineTo (rect.getXMax() - dx1 - 2*dx2, rect.getYMax() - dy);
+      path.lineTo (rect.getXMin()              , rect.getYMax() - dy);
+      path.closeSubpath();
+
+      device->drawPath(rotatePath(path, data.angle.degrees()));
+
+      break;
+    }
+    case CQChartsShapeType::Type::BOX3D: {
+      double dx = 0.1*rect.getWidth();
+      double dy = 0.1*rect.getHeight();
+
+      QPainterPath path;
+
+      path.moveTo (rect.getXMin()     , rect.getYMin());
+      path.lineTo (rect.getXMax() - dx, rect.getYMin());
+      path.lineTo (rect.getXMax()     , rect.getYMin() + dy);
+      path.lineTo (rect.getXMax()     , rect.getYMax());
+      path.lineTo (rect.getXMin() + dx, rect.getYMax());
+      path.lineTo (rect.getXMin()     , rect.getYMax() - dy);
+      path.closeSubpath();
+
+      device->drawPath(rotatePath(path, data.angle.degrees()));
+
+      QPainterPath path1;
+
+      path1.moveTo(rect.getXMin()     , rect.getYMax() - dy);
+      path1.lineTo(rect.getXMax() - dx, rect.getYMax() - dy);
+      path1.lineTo(rect.getXMax() - dx, rect.getYMin()     );
+
+      device->strokePath(rotatePath(path1, data.angle.degrees()), device->pen());
+
+      break;
+    }
+    case CQChartsShapeType::Type::COMPONENT: {
+      double dx = 0.1*rect.getWidth();
+      double dy = 0.1*rect.getHeight();
+
+      QPainterPath path;
+
+      path.moveTo (rect.getXMin() + dx/2.0, rect.getYMin());
+      path.lineTo (rect.getXMax()         , rect.getYMin());
+      path.lineTo (rect.getXMax()         , rect.getYMax());
+      path.lineTo (rect.getXMin() + dx/2.0, rect.getYMax());
+      path.closeSubpath();
+
+      device->drawPath(rotatePath(path, data.angle.degrees()));
+
+      for (int i = 0; i < 2; ++i) {
+        QPainterPath path1;
+
+        auto dy1 = (i == 0 ? rect.getYMin() + dy : rect.getYMax() - 2*dy);
+
+        path1.moveTo (rect.getXMin()     , dy1     );
+        path1.lineTo (rect.getXMin() + dx, dy1     );
+        path1.lineTo (rect.getXMin() + dx, dy1 + dy);
+        path1.lineTo (rect.getXMin()     , dy1 + dy);
+        path1.closeSubpath();
+
+        device->drawPath(rotatePath(path1, data.angle.degrees()));
+      }
+
+      break;
+    }
+    case CQChartsShapeType::Type::CDS: {
+      QPainterPath path;
+
+      auto xr = CMathUtil::lerp(0.75, rect.getXMin(), rect.getXMax());
+
+      path.moveTo(rect.getXMin(), rect.getYMin());
+      path.lineTo(rect.getXMin(), rect.getYMax());
+      path.lineTo(xr            , rect.getYMax());
+      path.lineTo(rect.getXMax(), rect.getYMid());
+      path.lineTo(xr            , rect.getYMin());
+      path.closeSubpath();
+
+      device->drawPath(rotatePath(path, data.angle.degrees()));
+
+      break;
+    }
+    case CQChartsShapeType::Type::ARROW: {
+      QPainterPath path;
+
+      double dx = 0.25*rect.getWidth ();
+      double dy = 0.20*rect.getHeight();
+
+      path.moveTo(rect.getXMin()     , rect.getYMin() + dy);
+      path.lineTo(rect.getXMin()     , rect.getYMax() - dy);
+      path.lineTo(rect.getXMax() - dx, rect.getYMax() - dy);
+      path.lineTo(rect.getXMax() - dx, rect.getYMax()     );
+      path.lineTo(rect.getXMax()     , rect.getYMid()     );
+      path.lineTo(rect.getXMax() - dx, rect.getYMin()     );
+      path.lineTo(rect.getXMax() - dx, rect.getYMin() + dy);
+      path.closeSubpath();
+
+      device->drawPath(rotatePath(path, data.angle.degrees()));
+
+      break;
+    }
+    case CQChartsShapeType::Type::LPROMOTER: {
+      QPainterPath path;
+
+      double dx = 0.25*rect.getWidth ();
+      double dy = 0.20*rect.getHeight();
+
+      path.moveTo(rect.getXMax()     , rect.getYMin()     );
+      path.lineTo(rect.getXMax()     , rect.getYMax() - dy);
+      path.lineTo(rect.getXMin() + dx, rect.getYMax() - dy);
+      path.lineTo(rect.getXMin() + dx, rect.getYMax()     );
+      path.lineTo(rect.getXMin()     , rect.getYMid()     );
+      path.lineTo(rect.getXMin() + dx, rect.getYMin()     );
+      path.lineTo(rect.getXMin() + dx, rect.getYMin() + dy);
+      path.lineTo(rect.getXMax() - dx, rect.getYMin() + dy);
+      path.lineTo(rect.getXMax() - dx, rect.getYMin()     );
+      path.closeSubpath();
+
+      device->drawPath(rotatePath(path, data.angle.degrees()));
+
+      break;
+    }
+    case CQChartsShapeType::Type::RPROMOTER: {
+      QPainterPath path;
+
+      double dx = 0.25*rect.getWidth ();
+      double dy = 0.20*rect.getHeight();
+
+      path.moveTo(rect.getXMin()     , rect.getYMin()     );
+      path.lineTo(rect.getXMin()     , rect.getYMax() - dy);
+      path.lineTo(rect.getXMax() - dx, rect.getYMax() - dy);
+      path.lineTo(rect.getXMax() - dx, rect.getYMax()     );
+      path.lineTo(rect.getXMax()     , rect.getYMid()     );
+      path.lineTo(rect.getXMax() - dx, rect.getYMin()     );
+      path.lineTo(rect.getXMax() - dx, rect.getYMin() + dy);
+      path.lineTo(rect.getXMin() + dx, rect.getYMin() + dy);
+      path.lineTo(rect.getXMin() + dx, rect.getYMin()     );
+      path.closeSubpath();
+
+      device->drawPath(rotatePath(path, data.angle.degrees()));
+
+      break;
+    }
+//  default: {
+//    device->drawRect(rect);
+//  }
+  }
+}
+
+//---
+
+void
 drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
             const Length &lineWidth, bool horizontal, const Symbol &symbol,
             const Length &symbolSize, const PenBrush &symbolPenBrush, const Angle &angle)

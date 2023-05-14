@@ -15,6 +15,8 @@
 #include <CQIconButton.h>
 #include <CQGroupBox.h>
 #include <CQTableWidget.h>
+#include <CQIntegerSpin.h>
+#include <CQRealSpin.h>
 #include <CQUtil.h>
 
 #include <QLabel>
@@ -59,6 +61,143 @@ CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType) :
 
   titleLayout->addWidget(numericIcon_);
 }
+
+#ifdef CQCHARTS_MODULE_SHLIB
+void
+CQChartsPlotCustomControls::
+addModuleWidgets()
+{
+  delete moduleFrame_.frame;
+
+  for (auto &pe : moduleEdits_)
+    delete pe.second;
+
+  moduleEdits_.clear();
+
+  //---
+
+  CQChartsPlot::ModuleProperties properties;
+
+  if (plot_)
+    plot_->getModuleProperties(properties);
+
+  if (! properties.empty()) {
+    auto frameTitle = QString("Module %1").arg(plot_->plotModule());
+
+    moduleFrame_ = createGroupFrame(frameTitle, "moduleFrame", "Module", "moduleFrame");
+
+    int row = 0;
+
+    for (const auto &p : properties) {
+      auto name = p.first;
+
+      auto *label = CQUtil::makeLabelWidget<QLabel>(name);
+
+      moduleFrame_.layout->addWidget(label, row, 0);
+
+      auto type = p.second.first.toLower();
+
+      QWidget *edit;
+
+      if      (type == "int") {
+        auto *ispin = CQUtil::makeWidget<CQIntegerSpin>();
+
+        ispin->setValue(p.second.second.toInt());
+
+        connect(ispin, SIGNAL(valueChanged(int)), this, SLOT(moduleEditSlot()));
+
+        edit = ispin;
+      }
+      else if (type == "real") {
+        auto *rspin = CQUtil::makeWidget<CQRealSpin>();
+
+        rspin->setValue(p.second.second.toDouble());
+
+        connect(rspin, SIGNAL(valueChanged(double)), this, SLOT(moduleEditSlot()));
+
+        edit = rspin;
+      }
+      else {
+        auto *ledit = CQUtil::makeWidget<QLineEdit>();
+
+        ledit->setText(p.second.second.toString());
+
+        connect(ledit, SIGNAL(editingFinished()), this, SLOT(moduleEditSlot()));
+
+        edit = ledit;
+      }
+
+      edit->setProperty("CQChartsModuleProperty", name);
+
+      moduleFrame_.layout->addWidget(edit, row, 1);
+
+      moduleEdits_[name] = edit;
+
+      ++row;
+    }
+
+    layout_->addWidget(moduleFrame_.frame);
+
+    //---
+
+    auto *buttonFrame  = CQUtil::makeWidget<QFrame>("buttonFrame");
+    auto *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(buttonFrame, 2, 2);
+
+    layout_->addWidget(buttonFrame);
+
+    auto *applyButton = CQUtil::makeLabelWidget<QPushButton>("Apply");
+
+    connect(applyButton, SIGNAL(clicked()), this, SLOT(moduleApplySlot()));
+
+    buttonLayout->addWidget (applyButton);
+    buttonLayout->addStretch(1);
+  }
+}
+#endif
+
+#ifdef CQCHARTS_MODULE_SHLIB
+void
+CQChartsPlotCustomControls::
+moduleEditSlot()
+{
+  auto name = sender()->property("CQChartsModuleProperty").toString();
+  assert(name.length());
+}
+#endif
+
+#ifdef CQCHARTS_MODULE_SHLIB
+void
+CQChartsPlotCustomControls::
+moduleApplySlot()
+{
+  if (! plot_) return;
+
+  CQChartsPlot::ModuleProperties properties;
+  plot_->getModuleProperties(properties);
+
+  for (const auto &p : properties) {
+    auto name = p.first;
+
+    auto pw = moduleEdits_.find(name);
+    assert(pw != moduleEdits_.end());
+
+    auto *w = (*pw).second.data();
+
+    auto *ispin = qobject_cast<CQIntegerSpin *>(w);
+    auto *rspin = qobject_cast<CQRealSpin    *>(w);
+    auto *ledit = qobject_cast<QLineEdit     *>(w);
+
+    if      (ispin)
+      plot_->setModuleProperty(name, "int", ispin->value());
+    else if (rspin)
+      plot_->setModuleProperty(name, "real", rspin->value());
+    else if (ledit)
+      plot_->setModuleProperty(name, "string", ledit->text());
+  }
+
+  plot_->view()->update();
+}
+#endif
 
 void
 CQChartsPlotCustomControls::

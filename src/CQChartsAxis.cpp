@@ -243,8 +243,13 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
     return item;
   };
 
+  auto addPropI = [&](const QString &path, const QString &name, const QString &alias,
+                      const QString &desc) {
+    return addProp(path, name, alias, desc, /*hidden*/true);
+  };
+
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc, bool hidden=false) {
+                          const QString &desc, bool hidden=false) {
     auto *item = addProp(path, name, alias, desc, hidden);
     CQCharts::setItemIsStyle(item);
     return item;
@@ -262,16 +267,16 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
   if (! (CQChartsUtil::isFlagSet(propertyTypes, PropertyType::ANNOTATION)))
     addProp(path, "direction", "", "Axis direction", true)->setEditable(false);
 
-  addProp(path, "side"     , "", "Axis plot side");
-  addProp(path, "valueType", "", "Axis value type");
-  addProp(path, "format"   , "", "Axis tick value format string");
+  addProp (path, "side"     , "", "Axis plot side");
+  addPropI(path, "valueType", "", "Axis value type");
+  addProp (path, "format"   , "", "Axis tick value format string");
 
   addProp(path, "tickIncrement" , "", "Axis tick increment");
   addProp(path, "majorIncrement", "", "Axis tick major increment");
 
   if (! (CQChartsUtil::isFlagSet(propertyTypes, PropertyType::ANNOTATION))) {
-    addProp(path, "start", "", "Axis start position", /*hidden*/true);
-    addProp(path, "end"  , "", "Axis end position"  , /*hidden*/true);
+    addPropI(path, "start", "", "Axis start position");
+    addPropI(path, "end"  , "", "Axis end position"  );
   }
 
   addProp(path, "includeZero", "", "Axis force include zero", true);
@@ -360,9 +365,9 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
   addProp(labelPath, "scaleLabelFont"  , "", "Scale label font to match length");
   addProp(labelPath, "scaleLabelExtent", "", "Extent to length for scale label font");
 
-  addProp(labelTextPath, "labelStr" , "string"   , "Axis label text string");
-  addProp(labelTextPath, "defLabel" , "defString", "Axis label text default string");
-//addProp(labelTextPath, "userLabel", "string"   , "Axis label text user string");
+  addProp (labelTextPath, "labelStr" , "string"   , "Axis label text string");
+  addPropI(labelTextPath, "defLabel" , "defString", "Axis label text default string");
+//addProp (labelTextPath, "userLabel", "string"   , "Axis label text user string");
 
   addStyleProp(labelTextPath, "axesLabelTextData"         , "style",
                "Axis label text style", true);
@@ -439,7 +444,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
 
   //---
 
-  addProp(path, "column", "column", "Associated column");
+  addPropI(path, "column", "column", "Associated column");
 }
 
 //---

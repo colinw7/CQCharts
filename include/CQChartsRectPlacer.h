@@ -33,7 +33,7 @@ class CQChartsRectPlacer {
 
     //---
 
-    bool isSet() { return set_; }
+    bool isSet() const { return set_; }
 
     double getXMin() const { return xmin_; }
     double getYMin() const { return ymin_; }

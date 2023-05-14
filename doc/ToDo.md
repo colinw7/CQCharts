@@ -4,13 +4,29 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + use MinMax map for more scaling (handles negative values). Handle zero as min ?
+ 
+ + all connection plots node model
+ + quick create of custom columns (select multiple columns and show expression)
+ + flame
+   + CQJsonTrace
+ + gantt
+   + group labels (axis ?)
+   + invert y ?
+   + text align
+   + compress
+ + add inflection point (points) to color range and use to interpolate color better
+   + annotate colors with inflection points number/pos
+ + module annotation
+ + module data from/to (no dependencies - tcl commands ?)
+ + module preferences
+ + use def key title in more plots and update font size
  + view toolbar (table, help, ...)
  + example full width toolbar widget (title, buttons) for force directed
  + fit with big title, small plot
  + more percent support for sizing (like force directed text)
    + bubble plot text scaling to match force directed
  + better editing of path annotation (guide lines to control points)
- + support node sizing in dendrogram plot
  + sub values of point, rect column
  + test inside/select with buffer layers (used ?)
  + cleanup selection code
@@ -177,6 +193,7 @@ TODO:
    + arc/angle
    + points in plot coords
  + dendrogram plot
+   + catch loops in graph
    + simplify dendrogram to single node structure (root node and node)
    + support connection plot model types in dendrogram
    + spread nodes to empty slots
@@ -185,6 +202,8 @@ TODO:
    + symbol size on zoom
    + sqrt map for radii
    + default font, equal scaling
+   + support node sizing
+   + symbol -> shape
  + check zoom on all symbol plots
  + parallel plot redraw issues
  + check column role

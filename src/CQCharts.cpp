@@ -14,7 +14,9 @@
 #include <CQChartsDendrogramPlot.h>
 #include <CQChartsDistributionPlot.h>
 #include <CQChartsEmptyPlot.h>
+#include <CQChartsFlamePlot.h>
 #include <CQChartsForceDirectedPlot.h>
+#include <CQChartsGanttPlot.h>
 #include <CQChartsGeometryPlot.h>
 #include <CQChartsGraphPlot.h>
 #include <CQChartsGraphVizPlot.h>
@@ -175,6 +177,9 @@
 #include <CQChartsSymbolsList.h>
 #include <CQChartsSymbolEdit.h>
 #include <CQChartsSymbolEditor.h>
+
+// shape type
+#include <CQChartsShapeTypeEdit.h>
 
 // layer
 #include <CQChartsLayerTable.h>
@@ -554,6 +559,7 @@ CQCharts()
   CQChartsReals                 ::registerMetaType();
   CQChartsRect                  ::registerMetaType();
   CQChartsShapeData             ::registerMetaType();
+  CQChartsShapeType             ::registerMetaType();
   CQChartsSides                 ::registerMetaType();
   CQChartsStrokeData            ::registerMetaType();
   CQChartsStyle                 ::registerMetaType();
@@ -650,7 +656,9 @@ init()
   plotTypeMgr()->addTypeT<CQChartsDistributionPlotType >("distribution" );
   plotTypeMgr()->addTypeT<CQChartsGraphVizPlotType     >("graphviz"     );
   plotTypeMgr()->addTypeT<CQChartsEmptyPlotType        >("empty"        );
+  plotTypeMgr()->addTypeT<CQChartsFlamePlotType        >("flame"        );
   plotTypeMgr()->addTypeT<CQChartsForceDirectedPlotType>("forcedirected");
+  plotTypeMgr()->addTypeT<CQChartsGanttPlotType        >("gantt"        );
   plotTypeMgr()->addTypeT<CQChartsGeometryPlotType     >("geometry"     );
   plotTypeMgr()->addTypeT<CQChartsGraphPlotType        >("graph"        );
   plotTypeMgr()->addTypeT<CQChartsGridPlotType         >("grid"         );
@@ -750,6 +758,7 @@ init()
 //  viewMgr->addTypeT<CQChartsRealsPropertyViewType           >("CQChartsReals"           );
     viewMgr->addTypeT<CQChartsRectPropertyViewType            >("CQChartsRect"            );
     viewMgr->addTypeT<CQChartsShapeDataPropertyViewType       >("CQChartsShapeData"       );
+    viewMgr->addTypeT<CQChartsShapeTypePropertyViewType       >("CQChartsShapeType"       );
     viewMgr->addTypeT<CQChartsSidesPropertyViewType           >("CQChartsSides"           );
     viewMgr->addTypeT<CQChartsStrokeDataPropertyViewType      >("CQChartsStrokeData"      );
     viewMgr->addTypeT<CQChartsSymbolDataPropertyViewType      >("CQChartsSymbolData"      );
@@ -852,10 +861,15 @@ init()
     addChartsComplexWidgetFactoryNoArgsT(SymbolsListControl);
     addChartsComplexWidgetFactoryNoArgsT(SymbolEditor);
 
+    // shape type
+    addChartsWidgetFactoryT(ShapeTypeEdit);
+
+    // layer
     addChartsComplexWidgetFactoryNoArgsT(LayerTableControl);
     addChartsComplexWidgetFactoryNoArgsT(ViewLayerTable);
     addChartsComplexWidgetFactoryNoArgsT(PlotLayerTable);
 
+    // property edit
     addChartsWidgetFactoryNoArgsT(PlotPropertyEditGroup);
     addChartsWidgetFactoryNoArgsT(PlotPropertyEdit);
 

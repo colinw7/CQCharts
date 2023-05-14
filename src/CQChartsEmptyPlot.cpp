@@ -125,5 +125,48 @@ CQChartsPlotCustomControls *
 CQChartsEmptyPlot::
 createCustomControls()
 {
-  return nullptr;
+  auto *controls = new CQChartsEmptyPlotCustomControls(charts());
+
+  controls->init();
+
+  controls->setPlot(this);
+
+  controls->updateWidgets();
+
+  return controls;
+}
+
+//---
+
+CQChartsEmptyPlotCustomControls::
+CQChartsEmptyPlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "empty")
+{
+}
+
+void
+CQChartsEmptyPlotCustomControls::
+init()
+{
+}
+
+void
+CQChartsEmptyPlotCustomControls::
+setPlot(CQChartsPlot *plot)
+{
+  if (plot_ && emptyPlot_)
+    disconnect(emptyPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
+  emptyPlot_ = dynamic_cast<CQChartsEmptyPlot *>(plot);
+
+  CQChartsPlotCustomControls::setPlot(plot);
+
+#ifdef CQCHARTS_MODULE_SHLIB
+  addModuleWidgets();
+#endif
+
+  if (emptyPlot_)
+    connect(emptyPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
+
+  addLayoutStretch();
 }

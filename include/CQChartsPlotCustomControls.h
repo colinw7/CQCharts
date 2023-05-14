@@ -59,6 +59,10 @@ class CQChartsPlotCustomControls : public QScrollArea {
 
   virtual void addOptionsWidgets() { }
 
+#ifdef CQCHARTS_MODULE_SHLIB
+  void addModuleWidgets();
+#endif
+
   //---
 
   virtual Plot *plot() const;
@@ -167,6 +171,11 @@ class CQChartsPlotCustomControls : public QScrollArea {
   void showColorKeySlot(bool b);
   void showKeyListSlot(bool b);
 
+#ifdef CQCHARTS_MODULE_SHLIB
+  void moduleEditSlot();
+  void moduleApplySlot();
+#endif
+
  protected:
   CQChartsPlotType *plotType() const;
 
@@ -221,6 +230,14 @@ class CQChartsPlotCustomControls : public QScrollArea {
 
   CQGroupBox*            keyGroup_ { nullptr }; //!< key group
   CQChartsPlotCustomKey *keyList_  { nullptr }; //!< key list
+
+#ifdef CQCHARTS_MODULE_SHLIB
+  using WidgetP     = QPointer<QWidget>;
+  using ModuleEdits = std::map<QString, WidgetP>;
+
+  FrameData   moduleFrame_;
+  ModuleEdits moduleEdits_;
+#endif
 };
 
 //---

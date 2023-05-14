@@ -771,6 +771,8 @@ updateCurrentPlot()
     if (plot) {
       disconnect(plot, SIGNAL(controlColumnsChanged()), this, SLOT(updatePlotControls()));
       disconnect(plot, SIGNAL(customWidgetChanged()), this, SLOT(updatePlotControls()));
+      disconnect(plot, SIGNAL(plotModuleChanged()), this, SLOT(reloadPlotControls()));
+
       disconnect(plot, SIGNAL(plotObjsAdded()), this, SLOT(updatePlotObjects()));
       disconnect(plot, SIGNAL(layersChanged()), this, SLOT(updateLayers()));
       disconnect(plot, SIGNAL(selectionChanged()), this, SLOT(updatePlotSelection()));
@@ -786,6 +788,8 @@ updateCurrentPlot()
   if (plot) {
     connect(plot, SIGNAL(controlColumnsChanged()), this, SLOT(updatePlotControls()));
     connect(plot, SIGNAL(customWidgetChanged()), this, SLOT(updatePlotControls()));
+    connect(plot, SIGNAL(plotModuleChanged()), this, SLOT(reloadPlotControls()));
+
     connect(plot, SIGNAL(plotObjsAdded()), this, SLOT(updatePlotObjects()));
     connect(plot, SIGNAL(layersChanged()), this, SLOT(updateLayers()));
     connect(plot, SIGNAL(selectionChanged()), this, SLOT(updatePlotSelection()));
@@ -816,7 +820,14 @@ currentPlot(bool remap) const
 
 void
 CQChartsViewSettings::
-updatePlotControls()
+reloadPlotControls()
+{
+  updatePlotControls(/*force*/true);
+}
+
+void
+CQChartsViewSettings::
+updatePlotControls(bool force)
 {
   // add controls for plot and child plots
   auto *plot = currentPlot();
@@ -834,7 +845,7 @@ updatePlotControls()
 
   //---
 
-  if (! plotCustomControls_ || plotCustomControls_->plot() != controlPlot) {
+  if (force || ! plotCustomControls_ || plotCustomControls_->plot() != controlPlot) {
     delete plotCustomControls_;
 
     plotCustomControls_ = (controlPlot ? controlPlot->createCustomControls() : nullptr);

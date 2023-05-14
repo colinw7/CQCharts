@@ -1968,72 +1968,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  valueAxis()->clearTickLabels();
-  countAxis()->clearTickLabels();
-
-#if 0
-  const auto &dataRange = this->dataRange();
-
-  double size = dataRange.size(isVertical());
-
-  int inc = intIncrementForSize(size);
-#endif
-
-  if      (isDensity()) {
-    valueAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
-                                     /*notify*/false);
-    valueAxis()->setGridMid         (false);
-    valueAxis()->setMajorIncrement  (0);
-    valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
-    valueAxis()->setRequireTickLabel(false);
-
-    countAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
-                                     /*notify*/false);
-    countAxis()->setGridMid         (false);
-    countAxis()->setMajorIncrement  (0);
-    countAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
-    countAxis()->setRequireTickLabel(false);
-  }
-  else if (isScatter()) {
-    valueAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
-                                     /*notify*/false);
-    valueAxis()->setGridMid         (true);
-    valueAxis()->setMajorIncrement  (1);
-    valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
-    valueAxis()->setRequireTickLabel(false);
-
-    countAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
-                                     /*notify*/false);
-    countAxis()->setGridMid         (true);
-    countAxis()->setMajorIncrement  (1);
-    countAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
-    countAxis()->setRequireTickLabel(false);
-  }
-  else {
-    valueAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
-                                     /*notify*/false);
-    valueAxis()->setGridMid         (true);
-    valueAxis()->setMajorIncrement  (1);
-    valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
-    valueAxis()->setRequireTickLabel(true);
-
-    if (! CQChartsPlot::isLogY()) {
-      if (isValueCount())
-        countAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
-                                  /*notify*/false);
-      else
-        countAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
-                                  /*notify*/false);
-    }
-    else
-      countAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::LOG),
-                                /*notify*/false);
-
-    countAxis()->setGridMid         (false);
-    countAxis()->setMajorIncrement  (0);
-    countAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
-    countAxis()->setRequireTickLabel(false);
-  }
+  th->updateAxes();
 
   //---
 
@@ -2704,6 +2639,78 @@ createObjs(PlotObjs &objs) const
   //---
 
   return true;
+}
+
+void
+CQChartsDistributionPlot::
+updateAxes()
+{
+  valueAxis()->clearTickLabels();
+  countAxis()->clearTickLabels();
+
+#if 0
+  const auto &dataRange = this->dataRange();
+
+  double size = dataRange.size(isVertical());
+
+  int inc = intIncrementForSize(size);
+#endif
+
+  if      (isDensity()) {
+    valueAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
+                                     /*notify*/false);
+    valueAxis()->setGridMid         (false);
+    valueAxis()->setMajorIncrement  (0);
+    valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
+    valueAxis()->setRequireTickLabel(false);
+
+    countAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
+                                     /*notify*/false);
+    countAxis()->setGridMid         (false);
+    countAxis()->setMajorIncrement  (0);
+    countAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
+    countAxis()->setRequireTickLabel(false);
+  }
+  else if (isScatter()) {
+    valueAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                                     /*notify*/false);
+    valueAxis()->setGridMid         (true);
+    valueAxis()->setMajorIncrement  (1);
+    valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
+    valueAxis()->setRequireTickLabel(false);
+
+    countAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                                     /*notify*/false);
+    countAxis()->setGridMid         (true);
+    countAxis()->setMajorIncrement  (1);
+    countAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
+    countAxis()->setRequireTickLabel(false);
+  }
+  else {
+    valueAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                                     /*notify*/false);
+    valueAxis()->setGridMid         (true);
+    valueAxis()->setMajorIncrement  (1);
+    valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
+    valueAxis()->setRequireTickLabel(true);
+
+    if (! CQChartsPlot::isLogY()) {
+      if (isValueCount())
+        countAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+                                  /*notify*/false);
+      else
+        countAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
+                                  /*notify*/false);
+    }
+    else
+      countAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::LOG),
+                                /*notify*/false);
+
+    countAxis()->setGridMid         (false);
+    countAxis()->setMajorIncrement  (0);
+    countAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
+    countAxis()->setRequireTickLabel(false);
+  }
 }
 
 QString

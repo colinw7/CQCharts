@@ -2223,7 +2223,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor, bool u
   auto strs1 = hierBubblePlot_->clipTextsToLength(device, strs, bbox, clipLength, clipElide,
                                                   hierBubblePlot_->isTextScaled());
 
-  const_cast<CQChartsHierBubblePlot *>(hierBubblePlot_)->setRefLength(OptReal());
+  const_cast<CQChartsHierBubblePlot *>(hierBubblePlot_)->resetRefLength();
 
   //---
 

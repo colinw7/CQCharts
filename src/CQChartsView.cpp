@@ -2988,7 +2988,7 @@ mouseMoveEvent(QMouseEvent *me)
   if (mode() == Mode::PROBE) {
     updateMousePosText();
 
-    showProbeLines(mouseMovePoint());
+    probeMouseMotion();
 
     return;
   }
@@ -3076,6 +3076,8 @@ mouseReleaseEvent(QMouseEvent *me)
     if      (mode() == Mode::SELECT) {
       if (mousePressed())
         selectMouseRelease();
+
+      doUpdate();
     }
     else if (mode() == Mode::ZOOM_IN || mode() == Mode::ZOOM_OUT) {
       if (mousePressed())
@@ -3576,6 +3578,13 @@ calcTip(const Point &wpos, QString &tip, bool single)
 
 void
 CQChartsView::
+probeMouseMotion()
+{
+  showProbeLines(mouseMovePoint());
+}
+
+void
+CQChartsView::
 showProbeLines(const Point &p)
 {
   auto addVerticalProbeBand = [&](int &ind, Plot *plot, const QString &tip,
@@ -3621,6 +3630,7 @@ showProbeLines(const Point &p)
 
   //---
 
+  // probe position
   if (! isProbeObjects()) {
     if (plot) {
       auto dataRange = plot->calcDataRange();
@@ -3635,8 +3645,11 @@ showProbeLines(const Point &p)
       addVerticalProbeBand  (probeInd, plot, "" , p.x, p1.y, p2.y, p2.y);
       addHorizontalProbeBand(probeInd, plot, "" , p1.x, p2.x, p2.x, p.y);
       addVerticalProbeBand  (probeInd, plot, tip, p.x, p.y, p.y + 4, p.y + 4);
+
+      plot->probeMouseMove(pp);
     }
   }
+  // probe nearest object
   else {
     for (auto &plot : plots) {
       auto w = plot->pixelToWindow(p);
@@ -3655,6 +3668,7 @@ showProbeLines(const Point &p)
 
       auto dataRange = plot->calcDataRange();
 
+      // horizontal and vertical probe lines
       if      (probeData.both) {
         // add probe lines from xmin to probed x values and from ymin to probed y values
         auto px1 = plot->windowToPixel(Point(dataRange.getXMin(), probeData.p.y));
@@ -3694,6 +3708,7 @@ showProbeLines(const Point &p)
           addHorizontalProbeBand(probeInd, plot, "" , px1.x, px3.x, px2.x, px1.y);
         }
       }
+      // vertical probe line
       else if (probeData.direction == Qt::Vertical) {
         // add probe lines from ymin to probed y values
         auto p1 = plot->windowToPixel(Point(probeData.p.x, dataRange.getYMin()));
@@ -3713,6 +3728,7 @@ showProbeLines(const Point &p)
           addVerticalProbeBand(probeInd, plot, tip, p1.x, p1.y, p3.y, p2.y);
         }
       }
+      // horizontal probe line
       else {
         // add probe lines from xmin to probed x values
         auto p1 = plot->windowToPixel(Point(dataRange.getXMin(), probeData.p.y));
@@ -4719,12 +4735,8 @@ doResize(int w, int h)
 
   //---
 
-  prect_ = BBox(0, 0, w, h);
-
-  if (prect().getHeight() > 0)
-    aspect_ = (1.0*prect().getWidth())/prect().getHeight();
-  else
-    aspect_ = 1.0;
+  prect_  = BBox(0, 0, w, h);
+  aspect_ = prect().aspect();
 
   displayRange_->setPixelRange(prect_.getXMin(), prect_.getYMin(),
                                prect_.getXMax(), prect_.getYMax());

@@ -61,6 +61,12 @@ CQChartsPlotControlFrame(QWidget *parent) :
   layout->addStretch(1);
 }
 
+CQChartsPlotControlFrame::
+~CQChartsPlotControlFrame()
+{
+  //delete groupButtonGroup_;
+}
+
 CQChartsPlotControlFrame::Plot *
 CQChartsPlotControlFrame::
 plot() const

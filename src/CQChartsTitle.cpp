@@ -625,7 +625,7 @@ draw(PaintDevice *device)
 
     CQChartsDrawUtil::drawTextInBox(device, tbbox1, textStr(), textOptions);
 
-    plot_->setRefLength(Plot::OptReal());
+    plot_->resetRefLength();
   }
 
   //---
@@ -666,7 +666,7 @@ draw(PaintDevice *device)
 
     CQChartsDrawUtil::drawTextInBox(device, tbbox1, subTitle_->textStr(), textOptions);
 
-    plot_->setRefLength(Plot::OptReal());
+    plot_->resetRefLength();
   }
 
   //---

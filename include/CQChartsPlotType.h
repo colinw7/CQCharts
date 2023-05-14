@@ -112,9 +112,10 @@ class CQChartsPlotType : public QObject {
 
   enum Category {
     NONE,
-    ONE_D,
-    TWO_D,
-    CONNECTION
+    ONE_D,      // 1d value (distrib, bar, ...)
+    TWO_D,      // 2d value (xy, scatter, ...)
+    CONNECTION, // edge connectivity (sankey, force directed, ...)
+    HIER        // hier tree (treemap, dendrogram, ...)
   };
 
  public:

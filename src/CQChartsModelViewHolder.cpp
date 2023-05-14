@@ -13,6 +13,7 @@
 
 #include <QStackedWidget>
 #include <QVBoxLayout>
+#include <QThread>
 
 CQChartsModelViewHolder::
 CQChartsModelViewHolder(CQCharts *charts, QWidget *parent) :
@@ -226,6 +227,15 @@ CQChartsModelViewHolder::
 setModel(ModelP model, bool hierarchical)
 {
   hierarchical_ = hierarchical;
+  model_        = model;
+
+  //---
+
+  auto *thread1 = modelView_->thread();
+  auto *thread2 = QThread::currentThread();
+
+  if (thread1 != thread2)
+    return;
 
 #ifdef CQCHARTS_MODEL_VIEW
   modelView_->setModelP(model);

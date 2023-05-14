@@ -971,6 +971,8 @@ class CQChartsView : public QFrame,
   //---
 
   // probe lines
+  void probeMouseMotion();
+
   void showProbeLines(const Point &p);
 
   bool isProbeObjects() const { return probeData_.nearestObject; }
