@@ -633,10 +633,10 @@ CQChartsGeom::Range
 CQChartsSankeyPlot::
 calcRange() const
 {
-  double dx = 0.0;
-  double dy = 0.0;
-
   if (! isTextInternal()) {
+    double dx = 0.0;
+    double dy = 0.0;
+
     auto font = view()->plotFont(this, textFont());
 
     QFontMetricsF fm(font);
@@ -5210,6 +5210,11 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->setObjectRoot(path1, this);
 
   CQChartsPlotObj::addProperties(model, path1);
+
+  model->addProperty(path1, this, "value" )->setDesc("Value");
+#ifdef CQCHARTS_GRAPH_PATH_ID
+  model->addProperty(path1, this, "pathId")->setDesc("Path Id");
+#endif
 }
 
 //---

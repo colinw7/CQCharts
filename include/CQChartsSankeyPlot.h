@@ -807,7 +807,10 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   Q_OBJECT
 
-  Q_PROPERTY(double value READ value)
+  Q_PROPERTY(double value  READ value)
+#ifdef CQCHARTS_GRAPH_PATH_ID
+  Q_PROPERTY(double pathId READ pathId)
+#endif
 
  public:
   using SankeyPlot = CQChartsSankeyPlot;
@@ -842,7 +845,13 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   void setSrcRect (const BBox &rect) { srcRect_  = rect; }
   void setDestRect(const BBox &rect) { destRect_ = rect; }
 
+  //---
+
   double value() const { return (edge()->hasValue() ? edge()->value().real() : 0.0); }
+
+#ifdef CQCHARTS_GRAPH_PATH_ID
+  int pathId() const { return edge()->pathId(); }
+#endif
 
   //---
 
@@ -1271,7 +1280,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  // min/max X
+  // min/max position
   int minPos() const { return graph_->minNodeX(); }
   int maxPos() const { return graph_->maxNodeX(); }
 

@@ -771,7 +771,9 @@ updateCurrentPlot()
     if (plot) {
       disconnect(plot, SIGNAL(controlColumnsChanged()), this, SLOT(updatePlotControls()));
       disconnect(plot, SIGNAL(customWidgetChanged()), this, SLOT(updatePlotControls()));
+#ifdef CQCHARTS_MODULE_SHLIB
       disconnect(plot, SIGNAL(plotModuleChanged()), this, SLOT(reloadPlotControls()));
+#endif
 
       disconnect(plot, SIGNAL(plotObjsAdded()), this, SLOT(updatePlotObjects()));
       disconnect(plot, SIGNAL(layersChanged()), this, SLOT(updateLayers()));
@@ -788,7 +790,9 @@ updateCurrentPlot()
   if (plot) {
     connect(plot, SIGNAL(controlColumnsChanged()), this, SLOT(updatePlotControls()));
     connect(plot, SIGNAL(customWidgetChanged()), this, SLOT(updatePlotControls()));
+#ifdef CQCHARTS_MODULE_SHLIB
     connect(plot, SIGNAL(plotModuleChanged()), this, SLOT(reloadPlotControls()));
+#endif
 
     connect(plot, SIGNAL(plotObjsAdded()), this, SLOT(updatePlotObjects()));
     connect(plot, SIGNAL(layersChanged()), this, SLOT(updateLayers()));

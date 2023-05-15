@@ -7034,6 +7034,10 @@ createObjs()
 
   //---
 
+  restoreSelection();
+
+  //---
+
   applyVisibleFilter();
 
   return true;
@@ -9712,6 +9716,36 @@ rectSelect(const BBox &r, SelMod selMod)
   //---
 
   return ! objs.empty();
+}
+
+void
+CQChartsPlot::
+saveSelection()
+{
+  selectedObjNames_.clear();
+
+  for (auto &plotObj : plotObjects()) {
+    if (plotObj->isSelected())
+      selectedObjNames_.insert(plotObj->id());
+  }
+}
+
+void
+CQChartsPlot::
+restoreSelection()
+{
+  PlotObjs objs;
+
+  for (auto &plotObj : plotObjects()) {
+    auto po = selectedObjNames_.find(plotObj->id());
+
+    if (po != selectedObjNames_.end())
+      objs.push_back(plotObj);
+  }
+
+  selectObjs(objs, /*exportSel*/true);
+
+  selectedObjNames_.clear();
 }
 
 void
@@ -15397,6 +15431,8 @@ void
 CQChartsPlot::
 autoFitUpdate()
 {
+  saveSelection();
+
   updateRangeAndObjs();
 }
 

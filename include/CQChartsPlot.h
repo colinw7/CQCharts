@@ -2424,6 +2424,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  void saveSelection();
+  void restoreSelection();
+
+  //---
+
   void selectObjs(const PlotObjs &objs, bool exportSel);
 
   //---
@@ -4137,6 +4142,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   };
 
   ErrorData errorData_;
+
+  //---
+
+  using ObjNames = std::set<QString>;
+
+  ObjNames selectedObjNames_;
 
   //---
 
