@@ -300,6 +300,14 @@ removeNode(Node *node)
   nodes_.pop_back();
 }
 
+void
+CQChartsDendrogram::Node::
+removeAll()
+{
+  children_.clear();
+  nodes_   .clear();
+}
+
 //---
 
 void

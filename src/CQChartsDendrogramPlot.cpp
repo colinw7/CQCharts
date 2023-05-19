@@ -838,7 +838,7 @@ bool
 CQChartsDendrogramPlot::
 createObjs(PlotObjs &objs) const
 {
-  CQPerfTrace trace("QChartsDendrogramPlot::createObjs");
+  CQPerfTrace trace("CQChartsDendrogramPlot::createObjs");
 
   NoUpdate noUpdate(this);
 
@@ -1439,6 +1439,27 @@ placeModel() const
 
   auto *root = rootNode();
 
+  while (root->getChildren().size() == 1) {
+    auto &child = root->getChildren()[0];
+
+    auto *childNode  = child.node;
+ // auto  childValue = child.value;
+
+    root->removeChild(childNode);
+
+  //root->setValue(childValue);
+
+    for (auto &node1 : childNode->getNodes())
+      root->addNode(node1.node, node1.value);
+
+    for (auto &child1 : childNode->getChildren())
+      root->addChild(child1.node, child1.value);
+
+    childNode->removeAll();
+
+    delete childNode;
+  }
+
   if (root)
     root->setOpen(true);
 
@@ -1862,7 +1883,7 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
 
     const auto &nname = nameList1[n - 1];
 
-    auto *node = dendrogram_->addNode(hierNode, nname, value.realOr(0.0));
+    auto *node = dendrogram_->addHierNode(hierNode, nname, value.realOr(0.0));
     assert(node);
 
     auto *node1 = dynamic_cast<PlotDendrogram::PlotNode *>(node); assert(node1);
@@ -1925,7 +1946,7 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
       }
     }
 
-    auto *node = dendrogram_->addNode(hierNode, name1, value.realOr(0.0));
+    auto *node = dendrogram_->addHierNode(hierNode, name1, value.realOr(0.0));
     assert(node);
 
     auto *node1 = dynamic_cast<PlotDendrogram::PlotNode *>(node); assert(node1);
@@ -2014,7 +2035,7 @@ execMoveNonRoot(const PlotObjs &objs)
         dp = dd2 - rect.getYMid();
       }
 
-      nodeObj->movePerpBy(dp);
+      nodeObj->moveParBy(dp);
     }
 
     dd1 += dd;
@@ -2129,7 +2150,7 @@ execRemoveOverlaps(const PlotObjs &objs)
 
   //---
 
-  // calc y margin
+  // calc perp margin
   double perpMargin = 0.0;
 
   if (overlapMargin().value() > 0.0) {
@@ -2454,11 +2475,18 @@ calcHierColor(const Node *hierNode) const
   // get hier color value sum for hier node
   double color = 0.0;
 
-  for (const auto &child : hierNode->getChildren())
-    color += calcHierColor(child.node);
+  if (hierNode->isHier()) {
+    for (const auto &child : hierNode->getChildren())
+      color += calcHierColor(child.node);
 
-  for (const auto &node : hierNode->getNodes()) {
-    auto *node1 = dynamic_cast<const PlotDendrogram::PlotNode *>(node.node); assert(node1);
+    for (const auto &node : hierNode->getNodes()) {
+      auto *node1 = dynamic_cast<const PlotDendrogram::PlotNode *>(node.node); assert(node1);
+
+      color += node1->colorValue().realOr(0.0);
+    }
+  }
+  else {
+    auto *node1 = dynamic_cast<const PlotDendrogram::PlotNode *>(hierNode); assert(node1);
 
     color += node1->colorValue().realOr(0.0);
   }
@@ -2474,11 +2502,18 @@ calcHierSize(const Node *hierNode) const
   // TODO: same as hierNode->size() !?
   double size = 0.0;
 
-  for (const auto &child : hierNode->getChildren())
-    size += calcHierSize(child.node);
+  if (hierNode->isHier()) {
+    for (const auto &child : hierNode->getChildren())
+      size += calcHierSize(child.node);
 
-  for (const auto &node : hierNode->getNodes()) {
-    auto *node1 = dynamic_cast<const PlotDendrogram::PlotNode *>(node.node); assert(node1);
+    for (const auto &node : hierNode->getNodes()) {
+      auto *node1 = dynamic_cast<const PlotDendrogram::PlotNode *>(node.node); assert(node1);
+
+      size += node1->sizeValue().realOr(0.0);
+    }
+  }
+  else {
+    auto *node1 = dynamic_cast<const PlotDendrogram::PlotNode *>(hierNode); assert(node1);
 
     size += node1->sizeValue().realOr(0.0);
   }
@@ -3134,7 +3169,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
     double color = 0.0;
 
-    if (isHier())
+    if (isHier() && ! this->color().isSet())
       color = hierColor();
     else
       color = this->color().realOr(0.0);
@@ -3484,6 +3519,7 @@ calcScaledShapeSize() const
   return leafSize;
 }
 
+#if 0
 void
 CQChartsDendrogramNodeObj::
 movePerpCenter(double pos)
@@ -3503,6 +3539,7 @@ movePerpCenter(double pos)
 
   this->setRect(rect);
 }
+#endif
 
 void
 CQChartsDendrogramNodeObj::
@@ -3514,6 +3551,20 @@ movePerpBy(double d)
     rect.moveBy(Point(0.0, d));
   else
     rect.moveBy(Point(d, 0.0));
+
+  this->setRect(rect);
+}
+
+void
+CQChartsDendrogramNodeObj::
+moveParBy(double d)
+{
+  auto rect = this->rect();
+
+  if (dendrogramPlot_->orientation() == Qt::Horizontal)
+    rect.moveBy(Point(d, 0.0));
+  else
+    rect.moveBy(Point(0.0, d));
 
   this->setRect(rect);
 }

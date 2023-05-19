@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + dendrogram
+   + move overlap removal testing with vertical
  + sankey
    + bar chart like node width
 

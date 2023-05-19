@@ -143,6 +143,8 @@ class CQChartsDendrogram {
     void addNode(Node *node, const OptReal &value=OptReal());
     void removeNode(Node *node);
 
+    void removeAll();
+
     int numNodes() const;
 
     int maxNodes(bool ignoreOpen=false);

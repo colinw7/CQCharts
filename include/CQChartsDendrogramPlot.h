@@ -180,9 +180,10 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   BBox displayRect() const;
 
-  void movePerpCenter(double pos);
+//void movePerpCenter(double pos);
 
   void movePerpBy(double d);
+  void moveParBy(double d);
 
  private:
   double calcScaledShapeSize() const;

@@ -662,7 +662,8 @@ fixOverlaps()
         //std::cerr << "Move tree " << ltree->hierName() <<
         //             " in parent " << lparent->hierName() << "\n";
 
-        moveChildren(lparent, ltree);
+        if (lparent)
+          moveChildren(lparent, ltree);
 
         changed = true;
 
