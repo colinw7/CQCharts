@@ -4038,7 +4038,7 @@ addBaseProperties()
   if (type()->allowYLog()) addProp("log", "logY", "y", "Use log y axis");
 #endif
 
-  addProp("polar", "polar", "enabled", "Use polar values");
+  if (type()->allowPolar()) addProp("polar", "polar", "enabled", "Use polar values");
 
   // animation
   addProp("animation", "animating", "running", "Is Animation Running");

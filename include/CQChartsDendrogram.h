@@ -145,10 +145,10 @@ class CQChartsDendrogram {
 
     int numNodes() const;
 
-    int maxNodes();
-    int maxEdges();
+    int maxNodes(bool ignoreOpen=false);
+    int maxEdges(bool ignoreOpen=false);
 
-    int calcDepth() const;
+    int calcDepth(bool ignoreOpen=false) const;
 
     //---
 

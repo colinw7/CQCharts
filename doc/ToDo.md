@@ -4,6 +4,9 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + sankey
+   + bar chart like node width
+
  + use MinMax map for more scaling (handles negative values). Handle zero as min ?
  
  + all connection plots node model
@@ -383,6 +386,8 @@ TODO:
    + track space below and reuse if possible
      + spread by smallest and use groups
    + adjust bezier to reduce overlaps
+   + edge label
+   + better node label control (vert format)
  + better title bar renderer for tip
  + annotations for all plot draw types
    + contour

@@ -31,10 +31,14 @@ class CQChartsShapeTypeEdit : public CQSwitchLineEdit {
   void shapeChanged();
 
  private Q_SLOTS:
+  void editSwitched(bool);
+
   void comboChanged();
   void textChangedSlot();
 
  private:
+  static bool s_isAlt;
+
   CQChartsShapeType shapeType_;
   QComboBox*        combo_ { nullptr };
 };

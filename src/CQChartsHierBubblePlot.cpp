@@ -25,7 +25,11 @@ void
 CQChartsHierBubblePlotType::
 addParameters()
 {
-  CQChartsHierPlotType::addParameters();
+  CQChartsHierPlotType::addHierParameters("Hier Bubble");
+
+  //---
+
+  CQChartsPlotType::addParameters();
 }
 
 QString

@@ -8,6 +8,7 @@
 
 class CQChartsLineDashEditAction;
 class CQChartsLineEdit;
+class CQPropertyViewTree;
 class QMenu;
 class QToolButton;
 class CQIconCombo;
@@ -23,18 +24,21 @@ class CQChartsLineDashEdit : public QFrame {
   Q_PROPERTY(CQChartsLineDash lineDash READ getLineDash WRITE setLineDash)
 
  public:
+  using LineDash = CQChartsLineDash;
+
+ public:
   CQChartsLineDashEdit(QWidget *parent=nullptr);
  ~CQChartsLineDashEdit();
 
   bool editable() const { return editable_; }
   void setEditable(bool b);
 
-  void setLineDash(const CQChartsLineDash &dash);
-  const CQChartsLineDash &getLineDash() const { return dash_; }
+  const LineDash &getLineDash() const { return dash_; }
+  void setLineDash(const LineDash &dash);
 
-  void addDashOption(const std::string &id, const CQChartsLineDash &dash);
+  void addDashOption(const std::string &id, const LineDash &dash);
 
-  static QIcon dashIcon(const CQChartsLineDash &dash, bool bg=true);
+  static QIcon dashIcon(const LineDash &dash, bool bg=true);
 
  private:
   void updateState();
@@ -51,7 +55,7 @@ class CQChartsLineDashEdit : public QFrame {
   using Actions = std::map<std::string, CQChartsLineDashEditAction *>;
 
   bool              editable_ { false };
-  CQChartsLineDash  dash_;
+  LineDash          dash_;
   CQChartsLineEdit* edit_     { nullptr };
   QToolButton*      button_   { nullptr };
   QMenu*            menu_     { nullptr };
@@ -59,7 +63,51 @@ class CQChartsLineDashEdit : public QFrame {
   Actions           actions_;
 };
 
-//---
+//------
+
+#include <CQSwitchLineEdit.h>
+
+class CQChartsSwitchLineDashEdit : public CQSwitchLineEdit {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsLineDash lineDash READ getLineDash WRITE setLineDash)
+
+ public:
+  using LineDash = CQChartsLineDash;
+
+ public:
+  CQChartsSwitchLineDashEdit(QWidget *parent=nullptr);
+
+  CQChartsLineDashEdit *edit() const { return edit_; }
+
+  LineDash getLineDash() const;
+  void setLineDash(const LineDash &l);
+
+  void setPropertyView(CQPropertyViewTree *pv);
+
+  void updatePlacement() override;
+
+ private:
+  void connectSlots(bool b);
+
+ Q_SIGNALS:
+  void valueChanged(const CQChartsLineDash &dash);
+  void altEditingFinished();
+
+ private Q_SLOTS:
+  void editSwitched(bool);
+
+  void valueChangedSlot(const CQChartsLineDash &dash);
+  void textChangedSlot();
+
+ private:
+  static bool s_isAlt;
+
+  CQChartsLineDashEdit *edit_ { nullptr };
+  CQPropertyViewTree   *pv_   { nullptr };
+};
+
+//------
 
 /*!
  * \brief line dash edit action
@@ -79,7 +127,7 @@ class CQChartsLineDashEditAction : public QAction {
   CQChartsLineDash      dash_;
 };
 
-//---
+//------
 
 #include <CQPropertyViewType.h>
 
@@ -93,9 +141,9 @@ class CQChartsLineDashPropertyViewType : public CQPropertyViewType {
 
   CQPropertyViewEditorFactory *getEditor() const override;
 
-  bool setEditorData(CQPropertyViewItem *item, const QVariant &value) override;
+  bool setEditorData(ViewItem *item, const QVariant &value) override;
 
-  void draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter *painter,
+  void draw(ViewItem *item, const ViewDelegate *delegate, QPainter *painter,
             const QStyleOptionViewItem &option, const QModelIndex &index,
             const QVariant &value, const ItemState &itemState) override;
 

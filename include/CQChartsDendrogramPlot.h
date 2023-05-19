@@ -180,6 +180,10 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   BBox displayRect() const;
 
+  void movePerpCenter(double pos);
+
+  void movePerpBy(double d);
+
  private:
   double calcScaledShapeSize() const;
 
@@ -326,11 +330,14 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_PROPERTY(CQChartsLength minEdgeWidth READ minEdgeWidth WRITE setMinEdgeWidth)
 //Q_PROPERTY(double         arrowWidth   READ arrowWidth   WRITE setArrowWidth  )
 
-
   // options
   Q_PROPERTY(Qt::Orientation orientation READ orientation WRITE setOrientation )
 
   Q_PROPERTY(PlaceType placeType READ placeType WRITE setPlaceType)
+
+  Q_PROPERTY(int hideDepth READ hideDepth WRITE setHideDepth)
+
+  Q_PROPERTY(double sizeScale READ sizeScale WRITE setSizeScale)
 
   Q_PROPERTY(bool removeNodeOverlaps  READ isRemoveNodeOverlaps  WRITE setRemoveNodeOverlaps)
   Q_PROPERTY(bool removeGroupOverlaps READ isRemoveGroupOverlaps WRITE setRemoveGroupOverlaps)
@@ -531,6 +538,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   double edgeValueScale(const EdgeObj *edge, double value) const;
 
+  double mapColor(double value) const;
+
   //---
 
   //! get/set orientation
@@ -540,6 +549,12 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   //! get/set place type
   const PlaceType &placeType() const { return placeType_; }
   void setPlaceType(const PlaceType &t);
+
+  int hideDepth() const { return hideDepth_; }
+  void setHideDepth(int i);
+
+  double sizeScale() const { return sizeScale_; }
+  void setSizeScale(double r);
 
   //---
 
@@ -717,6 +732,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   // plot data
   Qt::Orientation orientation_ { Qt::Horizontal };      //!< draw direction
   PlaceType       placeType_   { PlaceType::BUCHHEIM }; //!< place type
+  int             hideDepth_   { -1 };                  //!< place type
+  double          sizeScale_   { 1.0 };                 //!< size scale
 
   // overlap
   bool           removeNodeOverlaps_  { false };              //!< remove node overlaps
@@ -726,6 +743,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   mutable double overlapScale_        { 1.0 };                //!< overlap scale factor
 
   RMinMax valueRange_; //!< value range
+  RMinMax colorRange_; //!< color range
 
   //---
 

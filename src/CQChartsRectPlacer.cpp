@@ -64,6 +64,7 @@ stepPlace()
 
   //---
 
+  // move all rects inside optional clip rect
   if (clipRect_.isSet()) {
     for (const auto &rectData : rectDatas_) {
       auto rect = rectData->rect();

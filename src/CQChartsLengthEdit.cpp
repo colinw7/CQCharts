@@ -10,7 +10,7 @@
 #include <QHBoxLayout>
 #include <cassert>
 
-bool CQChartsSwitchLengthEdit::isAlt_ { false };
+bool CQChartsSwitchLengthEdit::s_isAlt { true };
 
 CQChartsSwitchLengthEdit::
 CQChartsSwitchLengthEdit(QWidget *parent) :
@@ -18,16 +18,32 @@ CQChartsSwitchLengthEdit(QWidget *parent) :
 {
   setObjectName("switchLengthEdit");
 
+  setToolTip("Set Length");
+
+  //---
+
   edit_ = new CQChartsLengthEdit(parent);
 
   setAltEdit(edit_);
+  setShowAltEdit(s_isAlt);
 
-  connect(this, SIGNAL(editSwitched(bool)), this, SLOT(editSwitched(bool)));
-  connect(this, SIGNAL(editingFinished()), this, SLOT(textChangedSlot()));
-  connect(edit_, SIGNAL(lengthChanged()), this, SIGNAL(lengthChanged()));
+  connectSlots(true);
+}
 
-  connect(this, SIGNAL(editingFinished()), this, SIGNAL(altEditingFinished()));
-  connect(edit_, SIGNAL(editingFinished()), this, SIGNAL(altEditingFinished()));
+void
+CQChartsSwitchLengthEdit::
+connectSlots(bool b)
+{
+  auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
+    CQUtil::connectDisconnect(b, w, from, this, to);
+  };
+
+  connectDisconnect(this, SIGNAL(editSwitched(bool)), SLOT(editSwitched(bool)));
+  connectDisconnect(this, SIGNAL(editingFinished()), SLOT(textChangedSlot()));
+  connectDisconnect(edit_, SIGNAL(lengthChanged()), SLOT(lengthChangedSlot()));
+
+  connectDisconnect(this, SIGNAL(editingFinished()), SIGNAL(altEditingFinished()));
+  connectDisconnect(edit_, SIGNAL(editingFinished()), SIGNAL(altEditingFinished()));
 }
 
 CQChartsLength
@@ -50,7 +66,7 @@ void
 CQChartsSwitchLengthEdit::
 editSwitched(bool b)
 {
-  isAlt_ = b;
+  s_isAlt = b;
 }
 
 void
@@ -64,8 +80,23 @@ setPropertyView(CQPropertyViewTree *pv)
 
 void
 CQChartsSwitchLengthEdit::
+lengthChangedSlot()
+{
+  connectSlots(false);
+
+  setText(edit_->length().toString());
+
+  Q_EMIT lengthChanged();
+
+  connectSlots(true);
+}
+
+void
+CQChartsSwitchLengthEdit::
 textChangedSlot()
 {
+  connectSlots(false);
+
   CQChartsLength l;
 
   if (! l.fromString(text()))
@@ -74,6 +105,8 @@ textChangedSlot()
   edit_->setLength(l);
 
   Q_EMIT lengthChanged();
+
+  connectSlots(true);
 }
 
 void
@@ -333,8 +366,6 @@ CQChartsLengthPropertyViewEditor::
 createEdit(QWidget *parent)
 {
   auto *edit = new CQChartsSwitchLengthEdit(parent);
-
-  edit->setShowAltEdit(CQChartsSwitchLengthEdit::isAlt());
 
   auto *pv = dynamic_cast<CQPropertyViewTree *>(parent ? parent->parentWidget() : nullptr);
 

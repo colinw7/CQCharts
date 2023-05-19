@@ -27,17 +27,27 @@ class CQChartsScatterPlotType : public CQChartsPointPlotType {
   QString name() const override { return "scatter"; }
   QString desc() const override { return "Scatter"; }
 
-  void addParameters() override;
+  //---
+
+  bool allowPolar() const override { return true; }
+
+  bool canEqualScale() const override { return true; }
+
+  QString description() const override;
 
   bool canProbe() const override { return true; }
 
-  bool canEqualScale() const override { return true; }
+  //---
 
   bool supportsAlphaColumn() const override { return true; }
   bool supportsFontColumn () const override { return true; }
   bool supportsImageColumn() const override { return true; }
 
-  QString description() const override;
+  //---
+
+  void addParameters() override;
+
+  //---
 
   Plot *create(View *view, const ModelP &model) const override;
 };

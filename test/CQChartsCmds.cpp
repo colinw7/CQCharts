@@ -13345,7 +13345,7 @@ execCmd(CQChartsCmdArgs &argv)
     newRects.push_back(BBox(0, 2, 1, 3));
     newRects.push_back(BBox(0, 4, 1, 5));
 
-    CQChartsUtil::adjustRectsToOriginal(oldRects, newRects);
+    CQChartsUtil::adjustRectsToOriginal(oldRects, newRects, Qt::Horizontal);
   }
   else
     return errorMsg("Invalid test type");

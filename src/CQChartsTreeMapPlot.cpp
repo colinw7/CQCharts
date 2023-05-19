@@ -25,7 +25,11 @@ void
 CQChartsTreeMapPlotType::
 addParameters()
 {
-  CQChartsHierPlotType::addParameters();
+  CQChartsHierPlotType::addHierParameters("Tree Map");
+
+  //---
+
+  CQChartsPlotType::addParameters();
 }
 
 QString

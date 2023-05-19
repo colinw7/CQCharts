@@ -143,8 +143,6 @@ class CQChartsPaintDevice {
 
   //---
 
-  void drawPolygonSides(const BBox &bbox, int n, const Angle &angle=Angle());
-
   void drawDiamond(const BBox &bbox);
 
   //---
@@ -153,8 +151,6 @@ class CQChartsPaintDevice {
   virtual void drawPolyline(const Polygon &) { assert(false); }
 
   virtual void drawLine(const Point &, const Point &) { assert(false); }
-
-  void drawRoundedLine(const Point &p1, const Point &p2, double w);
 
   virtual void drawPoint(const Point &) { assert(false); }
 

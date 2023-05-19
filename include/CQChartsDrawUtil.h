@@ -237,8 +237,10 @@ void drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox, boo
 
 //---
 
+void drawPolygonSides(PaintDevice *device, const BBox &bbox, int n, const Angle &angle);
 bool polygonSidesPath(QPainterPath &path, const BBox &bbox, int n, const Angle &angle=Angle());
 
+void drawDiamond(PaintDevice *device, const BBox &bbox);
 void diamondPath(QPainterPath &path, const BBox &bbox);
 
 void trianglePath(QPainterPath &path, const Point &p1, const Point &p2, const Point &p3);
@@ -250,6 +252,7 @@ void editHandlePath(PaintDevice *device, QPainterPath &path, const BBox &bbox);
 //---
 
 void drawRoundedLine(PaintDevice *device, const Point &p1, const Point &p2, double w);
+void fillRoundedLine(PaintDevice *device, const Point &p1, const Point &p2, double w);
 void roundedLinePath(QPainterPath &path, const Point &p1, const Point &p2, double w);
 
 #if 0

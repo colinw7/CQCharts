@@ -783,6 +783,8 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   void drawFgImage(PaintDevice *device, const BBox &rect) const;
   void drawFgText (PaintDevice *device, const BBox &rect) const;
 
+  void setTextPen(PaintDevice *device) const;
+
   void drawValueLabel(PaintDevice *device, const BBox &rect) const;
 
   //---
@@ -874,11 +876,17 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void setTextPen(PaintDevice *device) const;
+
+  void drawValueLabel(PaintDevice *device, const Point &p) const;
+
   void drawConnectionMouseOver(PaintDevice *device, int mouseColoring) const;
 
 #if 0
   void drawFg(PaintDevice *device) const override;
 #endif
+
+  bool calcEdgePath(QPainterPath &path, bool isLine=false) const;
 
   bool edgePath(QPainterPath &path, bool isLine=false) const;
 
@@ -891,7 +899,8 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   Edge*                edge_       { nullptr }; //!< edge
   BBox                 srcRect_;                //!< src rect
   BBox                 destRect_;               //!< dest rect
-  mutable QPainterPath path_;                   //!< painter path
+  mutable QPainterPath linePath_;               //!< painter path
+  mutable QPainterPath edgePath_;               //!< painter path
 };
 
 //---
@@ -901,9 +910,10 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
  * \ingroup Charts
  */
 class CQChartsSankeyPlot : public CQChartsConnectionPlot,
- public CQChartsObjTextData<CQChartsSankeyPlot>,
  public CQChartsObjNodeShapeData<CQChartsSankeyPlot>,
- public CQChartsObjEdgeShapeData<CQChartsSankeyPlot> {
+ public CQChartsObjNodeTextData <CQChartsSankeyPlot>,
+ public CQChartsObjEdgeShapeData<CQChartsSankeyPlot>,
+ public CQChartsObjEdgeTextData <CQChartsSankeyPlot> {
   Q_OBJECT
 
   // extra columns
@@ -932,13 +942,16 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(Qt::Orientation orientation   READ orientation   WRITE setOrientation  )
 
   // node options
-  Q_PROPERTY(CQChartsLength  nodeMargin    READ nodeMargin    WRITE setNodeMargin   )
-  Q_PROPERTY(double          minNodeMargin READ minNodeMargin WRITE setMinNodeMargin)
-  Q_PROPERTY(CQChartsLength  nodeWidth     READ nodeWidth     WRITE setNodeWidth    )
-  Q_PROPERTY(bool            valueLabel    READ isValueLabel  WRITE setValueLabel   )
+  Q_PROPERTY(CQChartsLength  nodeMargin       READ nodeMargin       WRITE setNodeMargin      )
+  Q_PROPERTY(double          minNodeMargin    READ minNodeMargin    WRITE setMinNodeMargin   )
+  Q_PROPERTY(CQChartsLength  nodeWidth        READ nodeWidth        WRITE setNodeWidth       )
+  Q_PROPERTY(bool            nodeValueLabel   READ isNodeValueLabel WRITE setNodeValueLabel  )
+  Q_PROPERTY(bool            nodeValueBar     READ isNodeValueBar   WRITE setNodeValueBar    )
+  Q_PROPERTY(double          nodeValueBarSize READ nodeValueBarSize WRITE setNodeValueBarSize)
 
   // edge options
-  Q_PROPERTY(bool edgeLine READ isEdgeLine WRITE setEdgeLine)
+  Q_PROPERTY(bool edgeLine       READ isEdgeLine       WRITE setEdgeLine)
+  Q_PROPERTY(bool edgeValueLabel READ isEdgeValueLabel WRITE setEdgeValueLabel)
 
   // coloring
   Q_PROPERTY(bool           srcColoring       READ isSrcColoring       WRITE setSrcColoring      )
@@ -962,7 +975,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 //Q_PROPERTY(bool   adjustEdgeOverlaps READ isAdjustEdgeOverlaps WRITE setAdjustEdgeOverlaps)
 //Q_PROPERTY(bool   adjustSelected     READ isAdjustSelected     WRITE setAdjustSelected    )
   Q_PROPERTY(int    adjustIterations   READ adjustIterations     WRITE setAdjustIterations  )
-  Q_PROPERTY(bool   adjustText         READ isAdjustText         WRITE setAdjustText        )
   Q_PROPERTY(bool   constrainMove      READ isConstrainMove      WRITE setConstrainMove     )
 
   // edge scaling
@@ -977,9 +989,12 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool selectedTextVisible READ isSelectedTextVisible WRITE setSelectedTextVisible)
 
   // text style
-  CQCHARTS_TEXT_DATA_PROPERTIES
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Node, node)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Edge, edge)
 
+  // general text
   Q_PROPERTY(bool textInternal READ isTextInternal WRITE setTextInternal)
+  Q_PROPERTY(bool adjustText   READ isAdjustText   WRITE setAdjustText)
 
   // pos scale
   Q_PROPERTY(int minPos READ minPos)
@@ -1129,25 +1144,39 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  //! get/set node y margin
+  //! get/set node perp margin
   const Length &nodeMargin() const { return nodeMargin_; }
   void setNodeMargin(const Length &l);
 
-  //! get/set min node y margin
+  //! get/set min node perp margin
   double minNodeMargin() const { return minNodeMargin_; }
   void setMinNodeMargin(double r);
 
-  //---
-
-  //! get/set x width
+  //! get/set node width
   const Length &nodeWidth() const { return nodeWidth_; }
   void setNodeWidth(const Length &l);
+
+  //! get/set show node value label
+  bool isNodeValueLabel() const { return nodeValueLabel_; }
+  void setNodeValueLabel(bool b);
+
+  //! get/set show node value bar
+  bool isNodeValueBar() const { return nodeValueBar_; }
+  void setNodeValueBar(bool b);
+
+  //! get/set show node value bar size
+  double nodeValueBarSize() const { return nodeValueBarSize_; }
+  void setNodeValueBarSize(double s);
 
   //---
 
   //! get/set edge line
   bool isEdgeLine() const { return edgeLine_; }
   void setEdgeLine(bool b);
+
+  //! get/set show edge value label
+  bool isEdgeValueLabel() const { return edgeValueLabel_; }
+  void setEdgeValueLabel(bool b);
 
   //---
 
@@ -1157,12 +1186,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   bool isHorizontal() const { return orientation() == Qt::Horizontal; }
   bool isVertical  () const { return orientation() == Qt::Vertical  ; }
-
-  //---
-
-  //! get/set show value label
-  bool isValueLabel() const { return valueLabel_; }
-  void setValueLabel(bool b);
 
   //---
 
@@ -1246,12 +1269,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  //! get/set adjust text
-  bool isAdjustText() const { return adjustText_; }
-  void setAdjustText(bool b);
-
-  //---
-
   //! get/set constraint move
   bool isConstrainMove() const { return constrainMove_; }
   void setConstrainMove(bool b) { constrainMove_ = b; }
@@ -1277,6 +1294,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //! text is internal to plot
   bool isTextInternal() const { return textInternal_; }
   void setTextInternal(bool b);
+
+  //! get/set adjust text
+  bool isAdjustText() const { return adjustText_; }
+  void setAdjustText(bool b);
 
   //---
 
@@ -1327,6 +1348,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void addPathValue(const PathData &pathData) const override;
 
   void propagatePathValues();
+  void propagateHierValues();
+
+  double calcHierValue(Node *node) const;
 
   //---
 
@@ -1526,22 +1550,24 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 //bool   adjustEdgeOverlaps_ { false };              //!< adjust edge overlaps
 //bool   adjustSelected_     { false };              //!< adjust only selected
   int    adjustIterations_   { 25 };                 //!< number of adjust iterations
-  bool   adjustText_         { false };              //!< adjust text position
   bool   constrainMove_      { true };               //!< constrain move
 
   // options
   Qt::Orientation orientation_ { Qt::Horizontal }; //!< orientation
 
-  // edge options
-  bool edgeLine_ { false }; //!< draw line for edge
-
   // node options
-  //   bbox, margin, node width
-  BBox   targetBBox_    { -1, -1, 1, 1 };      //!< target range bbox
-  Length nodeMargin_    { Length::plot(0.2) }; //!< node margin (perp)
-  double minNodeMargin_ { 0.1 };               //!< minimum node margin (in pixels)
-  Length nodeWidth_     { Length::pixel(16) }; //!< node x width in pixels
-  bool   valueLabel_    { false };             //!< node value label
+  //   bbox, margin, node width, value label
+  BBox   targetBBox_       { -1, -1, 1, 1 };      //!< target range bbox
+  Length nodeMargin_       { Length::plot(0.2) }; //!< node margin (perp)
+  double minNodeMargin_    { 0.1 };               //!< minimum node margin (in pixels)
+  Length nodeWidth_        { Length::pixel(16) }; //!< node width in pixels
+  bool   nodeValueLabel_   { false };             //!< draw node value label
+  bool   nodeValueBar_     { false };             //!< draw node value bar
+  double nodeValueBarSize_ { 0.5 };               //!< draw node value bar size
+
+  // edge options
+  bool edgeLine_       { false }; //!< draw line for edge
+  bool edgeValueLabel_ { false }; //!< draw edge value label
 
   // mouse inside/selected text visible
   bool insideTextVisible_   { false }; //!< is inside text visble (when text invisible)
@@ -1553,8 +1579,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   ConnectionType mouseColoring_     { ConnectionType::NONE };    //!< mouse over color connections
   bool           mouseNodeColoring_ { false };                   //!< mouse over color nodes
 
-  // text
-  bool textInternal_ { true }; //!< text internal to plot
+  // general text options
+  bool textInternal_ { true };  //!< text internal to plot
+  bool adjustText_   { false }; //!< adjust text position
 
   // data
   NameNodeMap nameNodeMap_;               //!< name node map
@@ -1571,7 +1598,11 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   mutable IMinMax pathIdMinMax_; //!< min/max path id
 #endif
 
-  mutable CQChartsTextPlacer *placer_;
+  mutable CQChartsGeom::RMinMax valueRange_;
+
+  using TextPlacerP = std::unique_ptr<CQChartsTextPlacer>;
+
+  mutable TextPlacerP placer_;
 };
 
 //---

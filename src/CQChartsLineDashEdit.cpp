@@ -2,6 +2,9 @@
 #include <CQChartsUtil.h>
 #include <CQChartsLineEdit.h>
 
+#include <CQPropertyView.h>
+#include <CQPropertyViewTree.h>
+
 #include <CQIconCombo.h>
 #include <CQUtil.h>
 #include <CQStyleMgr.h>
@@ -66,13 +69,137 @@ class CQChartsLineDashEditIconEngine : public QIconEngine {
 
 //------
 
+bool CQChartsSwitchLineDashEdit::s_isAlt { true };
+
+CQChartsSwitchLineDashEdit::
+CQChartsSwitchLineDashEdit(QWidget *parent) :
+ CQSwitchLineEdit(parent)
+{
+  setObjectName("switchLengthEdit");
+
+  setToolTip("Set Length");
+
+  //---
+
+  edit_ = new CQChartsLineDashEdit(parent);
+
+  setAltEdit(edit_);
+  setShowAltEdit(s_isAlt);
+
+  connectSlots(true);
+}
+
+void
+CQChartsSwitchLineDashEdit::
+connectSlots(bool b)
+{
+  auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
+    CQUtil::connectDisconnect(b, w, from, this, to);
+  };
+
+  connectDisconnect(this, SIGNAL(editSwitched(bool)), SLOT(editSwitched(bool)));
+  connectDisconnect(this, SIGNAL(editingFinished()), SLOT(textChangedSlot()));
+  connectDisconnect(edit_, SIGNAL(valueChanged(const CQChartsLineDash &)),
+                    SLOT(valueChangedSlot(const CQChartsLineDash &)));
+
+  connectDisconnect(this, SIGNAL(editingFinished()), SIGNAL(altEditingFinished()));
+  connectDisconnect(edit_, SIGNAL(dashChangedSlot()), SIGNAL(altEditingFinished()));
+}
+
+CQChartsLineDash
+CQChartsSwitchLineDashEdit::
+getLineDash() const
+{
+  return edit_->getLineDash();
+}
+
+void
+CQChartsSwitchLineDashEdit::
+setLineDash(const CQChartsLineDash &d)
+{
+  edit_->setLineDash(d);
+
+  setText(getLineDash().toString());
+}
+
+void
+CQChartsSwitchLineDashEdit::
+editSwitched(bool b)
+{
+  // TODO: ensure edit contents sync'ed
+  s_isAlt = b;
+}
+
+void
+CQChartsSwitchLineDashEdit::
+setPropertyView(CQPropertyViewTree *pv)
+{
+  pv_ = pv;
+
+  connect(this, SIGNAL(altEditingFinished()), pv_, SLOT(closeEditorSlot()));
+}
+
+void
+CQChartsSwitchLineDashEdit::
+textChangedSlot()
+{
+  connectSlots(false);
+
+  CQChartsLineDash d;
+
+  if (! d.fromString(text()))
+    setText(getLineDash().toString());
+
+  edit_->setLineDash(d);
+
+  Q_EMIT valueChanged(d);
+
+  connectSlots(true);
+}
+
+void
+CQChartsSwitchLineDashEdit::
+valueChangedSlot(const CQChartsLineDash &dash)
+{
+  connectSlots(false);
+
+  setText(dash.toString());
+
+  Q_EMIT valueChanged(dash);
+
+  connectSlots(true);
+}
+
+void
+CQChartsSwitchLineDashEdit::
+updatePlacement()
+{
+  if (pv_) {
+    disconnect(this, SIGNAL(altEditingFinished()), pv_, SLOT(closeEditorSlot()));
+
+    auto triggers = pv_->editTriggers();
+
+    pv_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    CQSwitchLineEdit::updatePlacement();
+
+    pv_->setEditTriggers(triggers);
+
+    connect(this, SIGNAL(altEditingFinished()), pv_, SLOT(closeEditorSlot()));
+  }
+  else
+    CQSwitchLineEdit::updatePlacement();
+}
+
+//---
+
 CQChartsLineDashEdit::
 CQChartsLineDashEdit(QWidget *parent) :
  QFrame(parent)
 {
-  setObjectName("lineDash");
+  setObjectName("lineDashEdit");
 
-  setToolTip("Line Dash");
+  setToolTip("Set Line Dash");
 
   //---
 
@@ -444,7 +571,7 @@ QWidget *
 CQChartsLineDashPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  auto *edit = new CQChartsLineDashEdit(parent);
+  auto *edit = new CQChartsSwitchLineDashEdit(parent);
 
   return edit;
 }
@@ -453,7 +580,7 @@ void
 CQChartsLineDashPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto *edit = qobject_cast<CQChartsLineDashEdit *>(w);
+  auto *edit = qobject_cast<CQChartsSwitchLineDashEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(valueChanged(const CQChartsLineDash &)), obj, method);
@@ -463,7 +590,7 @@ QVariant
 CQChartsLineDashPropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto *edit = qobject_cast<CQChartsLineDashEdit *>(w);
+  auto *edit = qobject_cast<CQChartsSwitchLineDashEdit *>(w);
   assert(edit);
 
   return CQChartsLineDash::toVariant(edit->getLineDash());
@@ -473,7 +600,7 @@ void
 CQChartsLineDashPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto *edit = qobject_cast<CQChartsLineDashEdit *>(w);
+  auto *edit = qobject_cast<CQChartsSwitchLineDashEdit *>(w);
   assert(edit);
 
   auto dash = CQChartsLineDash::fromVariant(var);

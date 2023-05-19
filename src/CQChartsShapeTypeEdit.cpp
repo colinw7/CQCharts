@@ -9,6 +9,8 @@
 #include <QComboBox>
 #include <QHBoxLayout>
 
+bool CQChartsShapeTypeEdit::s_isAlt { true };
+
 CQChartsShapeTypeEdit::
 CQChartsShapeTypeEdit(QWidget *parent) :
  CQSwitchLineEdit(parent)
@@ -25,6 +27,7 @@ CQChartsShapeTypeEdit(QWidget *parent) :
   combo_->addItems(CQChartsShapeType::typeNames());
 
   setAltEdit(combo_);
+  setShowAltEdit(s_isAlt);
 
   //---
 
@@ -35,6 +38,8 @@ void
 CQChartsShapeTypeEdit::
 connectSlots(bool b)
 {
+  CQUtil::connectDisconnect(b,
+    this, SIGNAL(editSwitched(bool)), this, SLOT(editSwitched(bool)));
   CQUtil::connectDisconnect(b,
     this, SIGNAL(editingFinished()), this, SLOT(textChangedSlot()));
   CQUtil::connectDisconnect(b,
@@ -73,6 +78,13 @@ comboChanged()
     shapeType = CQChartsShapeType();
 
   setShapeType(shapeType);
+}
+
+void
+CQChartsShapeTypeEdit::
+editSwitched(bool b)
+{
+  s_isAlt = b;
 }
 
 void

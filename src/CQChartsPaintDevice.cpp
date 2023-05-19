@@ -51,40 +51,6 @@ calcCharts() const
   return charts_;
 }
 
-void
-CQChartsPaintDevice::
-drawPolygonSides(const BBox &bbox, int n, const Angle &angle)
-{
-  QPainterPath path;
-
-  if (! CQChartsDrawUtil::polygonSidesPath(path, bbox, n, angle))
-    return;
-
-  drawPath(path);
-}
-
-void
-CQChartsPaintDevice::
-drawDiamond(const BBox &bbox)
-{
-  QPainterPath path;
-
-  CQChartsDrawUtil::diamondPath(path, bbox);
-
-  drawPath(path);
-}
-
-void
-CQChartsPaintDevice::
-drawRoundedLine(const Point &p1, const Point &p2, double w)
-{
-  QPainterPath path;
-
-  CQChartsDrawUtil::roundedLinePath(path, p1, p2, w);
-
-  fillPath(path, QBrush(pen().color()));
-}
-
 CQChartsGeom::BBox
 CQChartsPaintDevice::
 windowToPixel(const BBox &r) const

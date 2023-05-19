@@ -54,7 +54,7 @@ drawShape(PaintDevice *device, const CQChartsShapeTypeData &data, const BBox &re
       }
       else {
         if (! data.angle.isZero())
-          device->drawPolygonSides(rect, 4, data.angle + Angle::degrees(45));
+          drawPolygonSides(device, rect, 4, data.angle + Angle::degrees(45));
         else
           device->drawRect(rect);
       }
@@ -63,7 +63,7 @@ drawShape(PaintDevice *device, const CQChartsShapeTypeData &data, const BBox &re
     }
     case CQChartsShapeType::Type::POLYGON: {
       // rounded ?
-      device->drawPolygonSides(rect, data.numSides > 2 ? data.numSides : 4, data.angle);
+      drawPolygonSides(device, rect, data.numSides > 2 ? data.numSides : 4, data.angle);
 
       break;
     }
@@ -84,15 +84,15 @@ drawShape(PaintDevice *device, const CQChartsShapeTypeData &data, const BBox &re
     }
     case CQChartsShapeType::Type::TRIANGLE: {
       // rounded ?
-      device->drawPolygonSides(rect, 3, data.angle);
+      drawPolygonSides(device, rect, 3, data.angle);
 
       break;
     }
     case CQChartsShapeType::Type::DIAMOND: {
       if (! data.angle.isZero())
-        device->drawPolygonSides(rect, 4, data.angle);
+        drawPolygonSides(device, rect, 4, data.angle);
       else
-        device->drawDiamond(rect);
+        drawDiamond(device, rect);
 
       break;
     }
@@ -141,22 +141,22 @@ drawShape(PaintDevice *device, const CQChartsShapeTypeData &data, const BBox &re
       break;
     }
     case CQChartsShapeType::Type::PENTAGON: {
-      device->drawPolygonSides(rect, 5, data.angle);
+      drawPolygonSides(device, rect, 5, data.angle);
 
       break;
     }
     case CQChartsShapeType::Type::HEXAGON: {
-      device->drawPolygonSides(rect, 6, data.angle);
+      drawPolygonSides(device, rect, 6, data.angle);
 
       break;
     }
     case CQChartsShapeType::Type::SEPTAGON: {
-      device->drawPolygonSides(rect, 7, data.angle);
+      drawPolygonSides(device, rect, 7, data.angle);
 
       break;
     }
     case CQChartsShapeType::Type::OCTAGON: {
-      device->drawPolygonSides(rect, 8, data.angle);
+      drawPolygonSides(device, rect, 8, data.angle);
 
       break;
     }
@@ -1335,6 +1335,17 @@ drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c,
 
 //---
 
+void
+drawPolygonSides(PaintDevice *device, const BBox &bbox, int n, const Angle &angle)
+{
+  QPainterPath path;
+
+  if (! polygonSidesPath(path, bbox, n, angle))
+    return;
+
+  device->drawPath(path);
+}
+
 bool
 polygonSidesPath(QPainterPath &path, const BBox &bbox, int n, const Angle &angle)
 {
@@ -1369,6 +1380,16 @@ polygonSidesPath(QPainterPath &path, const BBox &bbox, int n, const Angle &angle
   path.closeSubpath();
 
   return true;
+}
+
+void
+drawDiamond(PaintDevice *device, const BBox &bbox)
+{
+  QPainterPath path;
+
+  diamondPath(path, bbox);
+
+  device->drawPath(path);
 }
 
 void
@@ -1439,6 +1460,16 @@ drawRoundedLine(PaintDevice *device, const Point &p1, const Point &p2, double w)
   roundedLinePath(path, p1, p2, w);
 
   device->drawPath(path);
+}
+
+void
+fillRoundedLine(PaintDevice *device, const Point &p1, const Point &p2, double w)
+{
+  QPainterPath path;
+
+  roundedLinePath(path, p1, p2, w);
+
+  device->fillPath(path, QBrush(device->pen().color()));
 }
 
 void

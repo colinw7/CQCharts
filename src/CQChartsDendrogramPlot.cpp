@@ -478,6 +478,13 @@ edgeValueScale(const EdgeObj * /*edge*/, double value) const
   return valueRange_.map(value, 0.0, 1.0);
 }
 
+double
+CQChartsDendrogramPlot::
+mapColor(double value) const
+{
+  return colorRange_.map(value, 0.0, 1.0);
+}
+
 //---
 
 void
@@ -550,6 +557,26 @@ setPlaceType(const PlaceType &t)
 
 void
 CQChartsDendrogramPlot::
+setHideDepth(int d)
+{
+  CQChartsUtil::testAndSet(hideDepth_, d, [&]() {
+    cacheData_.needsPlace = true; updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsDendrogramPlot::
+setSizeScale(double r)
+{
+  CQChartsUtil::testAndSet(sizeScale_, r, [&]() {
+    drawObjs();
+  } );
+}
+
+//---
+
+void
+CQChartsDendrogramPlot::
 setRemoveNodeOverlaps(bool b)
 {
   CQChartsUtil::testAndSet(removeNodeOverlaps_, b, [&]() {
@@ -578,6 +605,10 @@ setRemoveGroupOverlaps(bool b)
   CQChartsUtil::testAndSet(removeGroupOverlaps_, b, [&]() {
     if (isRemoveNodeOverlaps()) {
       //updateRangeAndObjs();
+      overlapScale_ = 1.0;
+
+      restoreOverlapRects();
+
       execRemoveOverlaps(); drawObjs();
     }
   } );
@@ -590,6 +621,10 @@ setAdjustOverlaps(bool b)
   CQChartsUtil::testAndSet(adjustOverlaps_, b, [&]() {
     if (isRemoveNodeOverlaps()) {
       //updateRangeAndObjs();
+      overlapScale_ = 1.0;
+
+      restoreOverlapRects();
+
       execRemoveOverlaps(); drawObjs();
     }
   } );
@@ -602,6 +637,10 @@ setOverlapMargin(const Length &l)
   CQChartsUtil::testAndSet(overlapMargin_, l, [&]() {
     if (isRemoveNodeOverlaps()) {
       //updateRangeAndObjs();
+      overlapScale_ = 1.0;
+
+      restoreOverlapRects();
+
       execRemoveOverlaps(); drawObjs();
     }
   } );
@@ -647,6 +686,8 @@ addProperties()
 
   addProp("options", "orientation", "orientation", "Draw orientation");
   addProp("options", "placeType"  , "placeType"  , "Place type");
+  addProp("options", "hideDepth"  , "hideDepth"  , "Hide depth");
+  addProp("options", "sizeScale"  , "sizeScale"  , "Size scale");
 
   addProp("options", "removeNodeOverlaps" , "removeNodeOverlaps" , "Remove node overlaps");
   addProp("options", "removeGroupOverlaps", "removeGroupOverlaps", "Remove group overlaps");
@@ -729,6 +770,11 @@ addProperties()
 
   addProp("edge/fill", "edgeFilled", "visible", "Edge fill visible");
   addFillProperties("edge/fill", "edgeFill", "Edge");
+
+  //---
+
+  // mapping
+  addProp("mapping/color", "colorMapped", "enabled", "Color values mapped");
 }
 
 //---
@@ -894,10 +940,11 @@ createObjs(PlotObjs &objs) const
   if (rootNodeObj())
     rootNodeObj()->setModelIndex(rootModelInd);
 
-  if (rootModelInd1.isValid())
+  if (rootNodeObj() && rootModelInd1.isValid())
     rootNodeObj()->setModelInd(normalizeIndex(rootModelInd1));
 
-  th->setOpen(rootNodeObj(), true);
+  if (rootNodeObj())
+    th->setOpen(rootNodeObj(), true);
 
   //---
 
@@ -1143,6 +1190,7 @@ placeModel() const
     }
 
     const RMinMax &valueRange() const { return valueRange_; }
+    const RMinMax &colorRange() const { return colorRange_; }
 
    private:
     State addDataError(const ModelIndex &ind, const QString &msg) const {
@@ -1348,6 +1396,7 @@ placeModel() const
     }
 
     const RMinMax &valueRange() const { return valueRange_; }
+    const RMinMax &colorRange() const { return colorRange_; }
 
    private:
     State addDataError(const ModelIndex &ind, const QString &msg) const {
@@ -1369,12 +1418,13 @@ placeModel() const
 
   Edges edges;
 
-  if (isHierarchical()) {
+  if (isHierarchical() || linkColumn().isValid()) {
     HierRowVisitor visitor(this, edges);
 
     visitModel(visitor);
 
     th->valueRange_ = visitor.valueRange();
+    th->colorRange_ = visitor.colorRange();
   }
   else {
     FlatRowVisitor visitor(this, edges);
@@ -1382,6 +1432,7 @@ placeModel() const
     visitModel(visitor);
 
     th->valueRange_ = visitor.valueRange();
+    th->colorRange_ = visitor.colorRange();
   }
 
   //---
@@ -1401,8 +1452,8 @@ placeModel() const
     for (auto *edge : edges) {
       // link to -> from if to has bad parent (tempRoot_)
       if (edge->to->parent() == tempRoot_) {
-        std::cerr << "Connect " << edge->from->name().toStdString() <<
-                     " -> " << edge->to->name().toStdString() << "\n";
+        //std::cerr << "Connect " << edge->from->name().toStdString() <<
+        //             " -> " << edge->to->name().toStdString() << "\n";
         edge->from->addChild(edge->to, edge->value.value());
       }
     }
@@ -1410,7 +1461,7 @@ placeModel() const
     for (auto *edge : edges) {
       // link root -> from if bad parent (tempRoot_)
       if (root && edge->from->parent() == tempRoot_) {
-        std::cerr << "Connect root -> " << edge->from->name().toStdString() << "\n";
+        //std::cerr << "Connect root -> " << edge->from->name().toStdString() << "\n";
         root->addChild(edge->from, CQChartsDendrogram::OptReal());
       }
     }
@@ -1418,8 +1469,8 @@ placeModel() const
     for (auto *edge : edges) {
       // link from and to if bad parent (tempRoot_)
       if (! edge->from->hasChild(edge->to)) {
-        std::cerr << "Bad edge " << edge->from->name().toStdString() <<
-                     " -> " << edge->to->name().toStdString() << "\n";
+        //std::cerr << "Bad edge " << edge->from->name().toStdString() <<
+        //             " -> " << edge->to->name().toStdString() << "\n";
         // edge->from->addChild(edge->to, edge->value.value());
       }
     }
@@ -1487,12 +1538,24 @@ void
 CQChartsDendrogramPlot::
 addBuchheimHierNode(CBuchHeim::Tree *tree, Node *hierNode, int depth) const
 {
+  auto isHideDepth = [&](Node *node, int depth1) {
+    if (hideDepth() <= 0) return false;
+
+    int depth2 = depth1 + node->calcDepth(/*ignoreOpen*/true);
+    return (depth2 < hideDepth());
+  };
+
+  //---
+
   hierNode->setDepth(depth);
 
   if (! hierNode->isOpen())
     return;
 
   for (auto &hierNode1 : hierNode->getChildren()) {
+    if (isHideDepth(hierNode1.node, depth + 1))
+      continue;
+
     auto *childTree = new Tree(hierNode1.node);
 
     tree->addChild(CBuchHeim::TreeP(childTree));
@@ -1501,6 +1564,9 @@ addBuchheimHierNode(CBuchHeim::Tree *tree, Node *hierNode, int depth) const
   }
 
   for (auto &node : hierNode->getNodes()) {
+    if (isHideDepth(node.node, depth + 1))
+      continue;
+
     auto *childTree = new Tree(node.node);
 
     tree->addChild(CBuchHeim::TreeP(childTree));
@@ -1929,23 +1995,29 @@ execMoveNonRoot(const PlotObjs &objs)
   if (depthObjs.size() <= 1)
     return;
 
-  double dx = 1.0/(depthObjs.size() - 1);
-  double x  = dx/2.0;
+  double dd  = 1.0/(depthObjs.size() - 1);
+  double dd1 = dd/2.0;
 
   for (const auto &pd : depthObjs) {
-    if (pd.first == 0) continue;
+    if (pd.first == 0) continue; // skip root
 
     for (auto *nodeObj : pd.second) {
       auto rect = nodeObj->rect();
 
-      auto dx1 = x - rect.getXMid();
+      double dp = 0.0;
 
-      rect.moveBy(Point(dx1, 0.0));
+      if (orientation() == Qt::Horizontal)
+        dp = dd1 - rect.getXMid();
+      else {
+        auto dd2 = 1.0 - dd1; // vertical is 1.0 -> 0.0 so flip
 
-      nodeObj->setRect(rect);
+        dp = dd2 - rect.getYMid();
+      }
+
+      nodeObj->movePerpBy(dp);
     }
 
-    x += dx;
+    dd1 += dd;
   }
 }
 
@@ -1999,9 +2071,35 @@ void
 CQChartsDendrogramPlot::
 execRemoveOverlaps(const PlotObjs &objs)
 {
+  double sizeScale = 1.0;
+
+  std::swap(sizeScale, sizeScale_);
+
   overlapScale_ = 1.0;
 
   //---
+
+  auto getPerpMin = [&](const BBox &r) {
+    return (orientation() == Qt::Horizontal ? r.getYMin() : r.getXMin());
+  };
+
+//auto getPerpMax = [&](const BBox &r) {
+//  return (orientation() == Qt::Horizontal ? r.getYMax() : r.getXMax());
+//};
+
+  auto getPerpMid = [&](const BBox &r) {
+    return (orientation() == Qt::Horizontal ? r.getYMid() : r.getXMid());
+  };
+
+  auto getPerpSize = [&](const BBox &r) {
+    return (orientation() == Qt::Horizontal ? r.getHeight() : r.getWidth());
+  };
+
+  auto getParSize = [&](const BBox &r) {
+    return (orientation() == Qt::Horizontal ? r.getWidth() : r.getHeight());
+  };
+
+  //--
 
   using NodeObjs            = std::vector<NodeObj *>;
   using RectNodeObjs        = std::pair<BBox, NodeObjs>;
@@ -2009,10 +2107,11 @@ execRemoveOverlaps(const PlotObjs &objs)
   using ParentNodeObjs      = std::map<PosParent, RectNodeObjs>;
   using DepthParentNodeObjs = std::map<int, ParentNodeObjs>;
 
-  auto makePosParent = [](const NodeObj *nodeObj) {
+  auto makePosParent = [&](const NodeObj *nodeObj) {
     auto *parent = nodeObj->parent();
     if (! parent) return PosParent(0.5, parent);
-    return PosParent(parent->displayRect().getYMid(), parent);
+
+    return PosParent(getPerpMid(parent->displayRect()), parent);
   };
 
   DepthParentNodeObjs depthParentNodeObjs;
@@ -2031,12 +2130,18 @@ execRemoveOverlaps(const PlotObjs &objs)
   //---
 
   // calc y margin
-  double ymargin = 0.0;
+  double perpMargin = 0.0;
 
   if (overlapMargin().value() > 0.0) {
-    setRefLength(OptReal(lengthPlotWidth(leafSize())));
+    if (orientation() == Qt::Horizontal)
+      setRefLength(OptReal(lengthPlotWidth(leafSize())));
+    else
+      setRefLength(OptReal(lengthPlotHeight(leafSize())));
 
-    ymargin = std::max(lengthPlotWidth(overlapMargin()), 0.0);
+    if (orientation() == Qt::Horizontal)
+      perpMargin = std::max(lengthPlotWidth(overlapMargin()), 0.0);
+    else
+      perpMargin = std::max(lengthPlotHeight(overlapMargin()), 0.0);
 
     resetRefLength();
   }
@@ -2044,32 +2149,32 @@ execRemoveOverlaps(const PlotObjs &objs)
   //---
 
   // calc scale such that all nodes can stack vertically in range (0.0 -> 1.0)
-  auto calcHeightScale = [&]() {
-    double maxH = 0.0;
+  auto calcPerpScale = [&]() {
+    double maxPerp = 0.0;
 
     for (auto &dpn : depthParentNodeObjs) {
-      double h = -ymargin;
+      double perp = -perpMargin;
 
       for (auto &pn : dpn.second) {
         for (auto *nodeObj : pn.second.second) {
           auto bbox = nodeObj->displayRect();
 
-          h += bbox.getHeight() + ymargin;
+          perp += getPerpSize(bbox) + perpMargin;
         }
       }
 
-      maxH = std::max(maxH, h);
+      maxPerp = std::max(maxPerp, perp);
     }
 
-    return (maxH > 0.0 ? 1.0/maxH : 1.0);
+    return (maxPerp > 0.0 ? 1.0/maxPerp : 1.0);
   };
 
-  overlapScale_ = calcHeightScale();
-//overlapScale_ = std::min(calcHeightScale(), 1.0);
+  overlapScale_ = calcPerpScale();
+//overlapScale_ = std::min(calcPerpScale(), 1.0);
 
-  // adjust scale so not too wide
-  auto calcWidthScale = [&]() {
-    double maxWidth = 0.0;
+  // adjust scale so not too wide/tall
+  auto calcSizeScale = [&]() {
+    double maxSize  = 0.0;
     int    maxDepth = 0;
 
     for (auto &dpn : depthParentNodeObjs) {
@@ -2077,28 +2182,28 @@ execRemoveOverlaps(const PlotObjs &objs)
 
       //---
 
-      double w = 0.0;
+      double size = 0.0;
 
       for (auto &pn : dpn.second) {
         for (auto *nodeObj : pn.second.second) {
           auto bbox = nodeObj->displayRect();
 
-          w = std::max(w, bbox.getWidth());
+          size = std::max(size, getParSize(bbox));
         }
       }
 
-      maxWidth = std::max(maxWidth, w);
+      maxSize = std::max(maxSize, size);
     }
 
-    auto depthWidth = 1.0/(maxDepth + 1);
+    auto depthSize = 1.0/(maxDepth + 1);
 
-    if (maxWidth > 0.0 && maxWidth > depthWidth)
-      return depthWidth/maxWidth;
+    if (maxSize > 0.0 && maxSize > depthSize)
+      return depthSize/maxSize;
     else
       return 1.0;
   };
 
-  overlapScale_ *= calcWidthScale();
+  overlapScale_ *= calcSizeScale();
 
   //---
 
@@ -2113,12 +2218,12 @@ execRemoveOverlaps(const PlotObjs &objs)
       std::vector<BBox> rects;
 
       // get node bounding box and non-overlap height
-      double h = -ymargin;
+      double perp = -perpMargin;
 
       for (auto *nodeObj : pn.second.second) {
         auto bbox1 = nodeObj->displayRect();
 
-        h += bbox1.getHeight() + ymargin;
+        perp += getPerpSize(bbox1) + perpMargin;
 
         pn.second.first += bbox1;
 
@@ -2133,7 +2238,7 @@ execRemoveOverlaps(const PlotObjs &objs)
         if (CQChartsUtil::checkOverlaps(rects))
           overlaps1 = true;
 
-        if (h > pn.second.first.getHeight()) {
+        if (perp > getPerpSize(pn.second.first)) {
           overlaps1    = true;
           needsSpread1 = true;
         }
@@ -2149,30 +2254,30 @@ execRemoveOverlaps(const PlotObjs &objs)
 
       if (overlaps1) {
         // place from bottom to top
-        auto y = (needsSpread1 ? pn.second.first.getYMid() - h/2.0 : pn.second.first.getYMin());
+        auto pos = (needsSpread1 ? getPerpMid(pn.second.first) - perp/2.0 :
+                                   getPerpMin(pn.second.first));
 
         auto numObjs1 = pn.second.second.size();
-        auto ymargin1 = (numObjs1 > 0 ? (pn.second.first.getHeight() - h)/numObjs1 : 0.0);
 
-        ymargin1 = std::max(ymargin, ymargin1);
+        auto perpMargin1 = (numObjs1 > 0 ? (getPerpSize(pn.second.first) - perp)/numObjs1 : 0.0);
+
+        perpMargin1 = std::max(perpMargin, perpMargin1);
 
         pn.second.first = BBox();
 
-        double h1 = -ymargin1;
+      //double perp1 = -perpMargin1;
 
         for (auto *nodeObj : pn.second.second) {
           auto bbox1 = nodeObj->displayRect();
 
           auto rect = nodeObj->rect();
 
-          auto dy = y + bbox1.getHeight()/2.0 - rect.getYMid();
+          auto dp = pos + getPerpSize(bbox1)/2.0 - getPerpMid(rect);
 
-          rect.moveBy(Point(0.0, dy));
+          nodeObj->movePerpBy(dp);
 
-          nodeObj->setRect(rect);
-
-          y  += bbox1.getHeight() + ymargin1;
-          h1 += bbox1.getHeight() + ymargin1;
+          pos   += getPerpSize(bbox1) + perpMargin1;
+        //perp1 += getPerpSize(bbox1) + perpMargin1;
 
           pn.second.first += nodeObj->displayRect();
         }
@@ -2191,7 +2296,7 @@ execRemoveOverlaps(const PlotObjs &objs)
       BBox              dbbox;
       BBox              pbbox;
       std::vector<BBox> drects;
-      double            dh = 0.0;
+      double            dperp = 0.0;
 
       // calc bbox for each set of parent nodes
       for (auto &pn : dpn.second) {
@@ -2213,7 +2318,7 @@ execRemoveOverlaps(const PlotObjs &objs)
 
         dbbox += dbbox1;
 
-        dh += dbbox1.getHeight();
+        dperp += getPerpSize(dbbox1);
       }
 
       // remove depth overlaps if not enough space
@@ -2223,7 +2328,7 @@ execRemoveOverlaps(const PlotObjs &objs)
         if (CQChartsUtil::checkOverlaps(drects))
           overlaps = true;
 
-        if (dh > dbbox.getHeight())
+        if (dperp > getPerpSize(dbbox))
           overlaps = true;
       }
 
@@ -2235,7 +2340,7 @@ execRemoveOverlaps(const PlotObjs &objs)
 
       if (overlaps) {
         // place from bottom to top
-        auto y = pbbox.getYMid() - dh/2.0;
+        auto pos = getPerpMid(pbbox) - dperp/2.0;
 
         // move all parent nodes to new center
         int ip = 0;
@@ -2243,17 +2348,12 @@ execRemoveOverlaps(const PlotObjs &objs)
         for (auto &pn : dpn.second) {
           const auto &prect = drects[ip];
 
-          double dy = y - prect.getYMin();
+          auto dp = pos - getPerpMin(prect);
 
-          for (auto *nodeObj : pn.second.second) {
-            auto rect = nodeObj->rect();
+          for (auto *nodeObj : pn.second.second)
+            nodeObj->movePerpBy(dp);
 
-            rect.moveBy(Point(0.0, dy));
-
-            nodeObj->setRect(rect);
-          }
-
-          y += prect.getHeight();
+          pos += getPerpSize(prect);
 
           ++ip;
         }
@@ -2264,7 +2364,7 @@ execRemoveOverlaps(const PlotObjs &objs)
   //---
 
   if (isAdjustOverlaps()) {
-    std::cerr << "Adjust overlaps\n";
+    //std::cerr << "Adjust overlaps\n";
 
     // move back to closest to original rect
     for (auto &dpn : depthParentNodeObjs) {
@@ -2275,7 +2375,7 @@ execRemoveOverlaps(const PlotObjs &objs)
       if (adjustDepths.find(depth) == adjustDepths.end())
         continue;
 
-      std::cerr << "Depth changed : " << depth << "\n";
+      //std::cerr << "Depth changed : " << depth << "\n";
 
       std::vector<BBox> oldRects, newRects;
 
@@ -2288,22 +2388,26 @@ execRemoveOverlaps(const PlotObjs &objs)
         }
       }
 
-      CQChartsUtil::adjustRectsToOriginal(oldRects, newRects);
+      CQChartsUtil::adjustRectsToOriginal(oldRects, newRects, orientation());
 
+#if 0
       uint i = 0;
 
       for (auto &pn : dpn.second) {
         for (auto *nodeObj : pn.second.second) {
-          auto y1 = nodeObj->displayRect().getYMid();
-          auto y2 = newRects[i].getYMid();
+          auto pos1 = getPerpMid(nodeObj->displayRect());
+          auto pos2 = getPerpMid(newRects[i]);
 
-          std::cerr << "Move " << nodeObj->name().toStdString() << " " << y2 - y1 << "\n";
+          std::cerr << "Move " << nodeObj->name().toStdString() << " " << pos2 - pos1 << "\n";
 
           ++i;
         }
       }
+#endif
     }
   }
+
+  std::swap(sizeScale, sizeScale_);
 }
 
 #if 0
@@ -3026,7 +3130,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 //bool colored = false;
 
   if (plot()->colorColumn().isValid()) {
-    auto maxColor = (parent() ? parent()->hierColor() : this->color().realOr(0.0));
+    Color c;
 
     double color = 0.0;
 
@@ -3035,7 +3139,16 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     else
       color = this->color().realOr(0.0);
 
-    auto c = plot()->colorFromColorMapPaletteValue(maxColor > 0 ? color/maxColor : color);
+    if (plot()->isColorMapped()) {
+      auto color1 = plot()->mapColor(color);
+
+      c = plot()->colorFromColorMapPaletteValue(color1);
+    }
+    else {
+      auto maxColor = (parent() ? parent()->hierColor() : this->color().realOr(0.0));
+
+      c = plot()->colorFromColorMapPaletteValue(maxColor > 0 ? color/maxColor : color);
+    }
 
     fillColor = plot()->interpColor(c, colorInd);
   //colored   = true;
@@ -3320,7 +3433,7 @@ displayRect() const
   };
 
   auto aspect = calcAspect();
-  if (aspect < 0.0) aspect = 1.0;
+  if (aspect <= 0.0) aspect = 1.0;
 
   auto shapeWidth  = aspect*dendrogramPlot_->pixelToWindowWidth (ss);
   auto shapeHeight = dendrogramPlot_->pixelToWindowHeight(ss)/aspect;
@@ -3328,8 +3441,10 @@ displayRect() const
   auto xf = shapeWidth /rect1.getWidth ();
   auto yf = shapeHeight/rect1.getHeight();
 
-  xf *= dendrogramPlot_->overlapScale();
-  yf *= dendrogramPlot_->overlapScale();
+  auto scale = dendrogramPlot_->overlapScale()*dendrogramPlot_->sizeScale();
+
+  xf *= scale;
+  yf *= scale;
 
   rect1 = rect1.centerScaled(xf, yf);
 
@@ -3361,12 +3476,46 @@ calcScaledShapeSize() const
     if (isHier)
       size = hierSize();
     else
-      size = this->size().real();
+      size = this->size().realOr(0.0);
 
     leafSize = CMathUtil::mapSqr(size, 0.0, maxSize, 0.0, leafSize);
   }
 
   return leafSize;
+}
+
+void
+CQChartsDendrogramNodeObj::
+movePerpCenter(double pos)
+{
+  auto rect = this->rect();
+
+  if (dendrogramPlot_->orientation() == Qt::Horizontal) {
+    auto d = pos - rect.getYMid();
+
+    rect.moveBy(Point(0.0, d));
+  }
+  else {
+    auto d = pos - rect.getXMid();
+
+    rect.moveBy(Point(d, 0.0));
+  }
+
+  this->setRect(rect);
+}
+
+void
+CQChartsDendrogramNodeObj::
+movePerpBy(double d)
+{
+  auto rect = this->rect();
+
+  if (dendrogramPlot_->orientation() == Qt::Horizontal)
+    rect.moveBy(Point(0.0, d));
+  else
+    rect.moveBy(Point(d, 0.0));
+
+  this->setRect(rect);
 }
 
 //---
@@ -3609,7 +3758,8 @@ addColumnWidgets()
   // columns group
   auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
 
-  addNamedColumnWidgets(QStringList() << "name" << "value" << "color" << "size", columnsFrame);
+  addNamedColumnWidgets(QStringList() << "name" << "link" << "value" << "color" << "size",
+                        columnsFrame);
 }
 
 void

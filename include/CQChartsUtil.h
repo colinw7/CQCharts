@@ -700,7 +700,8 @@ namespace CQChartsUtil {
 
 bool checkOverlaps(const std::vector<BBox> &rects);
 
-bool adjustRectsToOriginal(const std::vector<BBox> &oldRects, std::vector<BBox> &newRects);
+bool adjustRectsToOriginal(const std::vector<BBox> &oldRects, std::vector<BBox> &newRects,
+                           const Qt::Orientation &orient);
 
 }
 

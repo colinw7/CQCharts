@@ -145,15 +145,15 @@ numNodes() const
 
 int
 CQChartsDendrogram::Node::
-maxNodes()
+maxNodes(bool ignoreOpen)
 {
   int maxNum = 1;
 
-  if (isOpen()) {
+  if (ignoreOpen || isOpen()) {
     maxNum += int(nodes_.size());
 
     for (const auto &c : children_)
-      maxNum += c.node->maxNodes();
+      maxNum += c.node->maxNodes(ignoreOpen);
   }
 
   return std::max(maxNum, 1);
@@ -161,15 +161,15 @@ maxNodes()
 
 int
 CQChartsDendrogram::Node::
-maxEdges()
+maxEdges(bool ignoreOpen)
 {
   int maxNum = 0;
 
-  if (isOpen()) {
+  if (ignoreOpen || isOpen()) {
     maxNum += int(nodes_.size());
 
     for (const auto &c : children_)
-      maxNum += c.node->maxEdges() + 1;
+      maxNum += c.node->maxEdges(ignoreOpen) + 1;
   }
 
   return std::max(maxNum, 0);
@@ -177,16 +177,16 @@ maxEdges()
 
 int
 CQChartsDendrogram::Node::
-calcDepth() const
+calcDepth(bool ignoreOpen) const
 {
   int max_depth = 0;
 
-  if (isOpen()) {
+  if (ignoreOpen || isOpen()) {
     if (! nodes_.empty())
       max_depth = 1;
 
     for (const auto &c : children_)
-      max_depth = std::max(max_depth, c.node->calcDepth());
+      max_depth = std::max(max_depth, c.node->calcDepth(ignoreOpen));
   }
 
   return max_depth + 1;

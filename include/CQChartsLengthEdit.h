@@ -18,13 +18,14 @@ class CQChartsLengthEdit : public QFrame {
   Q_PROPERTY(CQChartsLength length READ length WRITE setLength)
 
  public:
-  using Units = CQChartsUnits::Type;
+  using Length = CQChartsLength;
+  using Units  = CQChartsUnits::Type;
 
  public:
   CQChartsLengthEdit(QWidget *parent=nullptr);
 
-  const CQChartsLength &length() const;
-  void setLength(const CQChartsLength &l);
+  const Length &length() const;
+  void setLength(const Length &l);
 
  Q_SIGNALS:
   void lengthChanged();
@@ -37,13 +38,13 @@ class CQChartsLengthEdit : public QFrame {
   void spinKeyPress(int, int);
 
  private:
+  void connectSlots(bool b);
+
 //void widgetsToLength();
   void lengthToWidgets();
 
-  void connectSlots(bool b);
-
  private:
-  CQChartsLength     length_;                //!< length data
+  Length             length_;                //!< length data
   CQRealSpin*        edit_      { nullptr }; //!< length edit
   CQChartsUnitsEdit* unitsEdit_ { nullptr }; //!< units edit
   bool               connected_ { false };   //!< is connected
@@ -59,18 +60,22 @@ class CQChartsSwitchLengthEdit : public CQSwitchLineEdit {
   Q_PROPERTY(CQChartsLength length READ length WRITE setLength)
 
  public:
-  static bool isAlt() { return isAlt_; }
+  using Length = CQChartsLength;
 
+ public:
   CQChartsSwitchLengthEdit(QWidget *parent=nullptr);
 
   CQChartsLengthEdit *edit() const { return edit_; }
 
-  CQChartsLength length() const;
-  void setLength(const CQChartsLength &l);
+  Length length() const;
+  void setLength(const Length &l);
 
   void setPropertyView(CQPropertyViewTree *pv);
 
   void updatePlacement() override;
+
+ private:
+  void connectSlots(bool b);
 
  Q_SIGNALS:
   void lengthChanged();
@@ -79,9 +84,10 @@ class CQChartsSwitchLengthEdit : public CQSwitchLineEdit {
  private Q_SLOTS:
   void editSwitched(bool);
   void textChangedSlot();
+  void lengthChangedSlot();
 
  private:
-  static bool isAlt_;
+  static bool s_isAlt;
 
   CQChartsLengthEdit *edit_ { nullptr };
   CQPropertyViewTree *pv_   { nullptr };
@@ -101,9 +107,9 @@ class CQChartsLengthPropertyViewType : public CQPropertyViewType {
 
   CQPropertyViewEditorFactory *getEditor() const override;
 
-  bool setEditorData(CQPropertyViewItem *item, const QVariant &value) override;
+  bool setEditorData(ViewItem *item, const QVariant &value) override;
 
-  void draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter *painter,
+  void draw(ViewItem *item, const ViewDelegate *delegate, QPainter *painter,
             const QStyleOptionViewItem &option, const QModelIndex &index,
             const QVariant &value, const ItemState &itemState) override;
 
@@ -112,7 +118,7 @@ class CQChartsLengthPropertyViewType : public CQPropertyViewType {
   QString userName() const override { return "length"; }
 };
 
-//---
+//------
 
 #include <CQPropertyViewEditor.h>
 

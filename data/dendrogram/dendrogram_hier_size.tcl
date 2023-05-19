@@ -26,4 +26,4 @@ set_charts_property -plot $plot -name leaf.shape -value box
 set_charts_property -plot $plot -name leaf.label.position -value CENTER
 set_charts_property -plot $plot -name leaf.label.scaled -value 1
 
-test_charts -type adjust_rects
+#test_charts -type adjust_rects

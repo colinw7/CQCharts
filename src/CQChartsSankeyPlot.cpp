@@ -105,9 +105,10 @@ create(View *view, const ModelP &model) const
 CQChartsSankeyPlot::
 CQChartsSankeyPlot(View *view, const ModelP &model) :
  CQChartsConnectionPlot(view, view->charts()->plotType("sankey"), model),
- CQChartsObjTextData      <CQChartsSankeyPlot>(this),
- CQChartsObjNodeShapeData <CQChartsSankeyPlot>(this),
- CQChartsObjEdgeShapeData <CQChartsSankeyPlot>(this)
+ CQChartsObjNodeShapeData<CQChartsSankeyPlot>(this),
+ CQChartsObjNodeTextData <CQChartsSankeyPlot>(this),
+ CQChartsObjEdgeShapeData<CQChartsSankeyPlot>(this),
+ CQChartsObjEdgeTextData <CQChartsSankeyPlot>(this)
 {
 }
 
@@ -172,7 +173,7 @@ init()
 
   //---
 
-  placer_ = new CQChartsTextPlacer;
+  placer_ = std::make_unique<CQChartsTextPlacer>();
 }
 
 void
@@ -185,10 +186,6 @@ term()
   clearNodesAndEdges();
 
   clearGraph();
-
-  //---
-
-  delete placer_;
 }
 
 //---
@@ -367,6 +364,27 @@ setNodeWidth(const Length &l)
   CQChartsUtil::testAndSet(nodeWidth_, l, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsSankeyPlot::
+setNodeValueLabel(bool b)
+{
+  CQChartsUtil::testAndSet(nodeValueLabel_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setNodeValueBar(bool b)
+{
+  CQChartsUtil::testAndSet(nodeValueBar_, b, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setNodeValueBarSize(double s)
+{
+  CQChartsUtil::testAndSet(nodeValueBarSize_, s, [&]() { updateObjs(); } );
+}
+
 //---
 
 void
@@ -378,16 +396,18 @@ setEdgeLine(bool b)
 
 void
 CQChartsSankeyPlot::
-setOrientation(const Qt::Orientation &o)
+setEdgeValueLabel(bool b)
 {
-  CQChartsUtil::testAndSet(orientation_, o, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(edgeValueLabel_, b, [&]() { drawObjs(); } );
 }
+
+//---
 
 void
 CQChartsSankeyPlot::
-setValueLabel(bool b)
+setOrientation(const Qt::Orientation &o)
 {
-  CQChartsUtil::testAndSet(valueLabel_, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(orientation_, o, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -498,6 +518,15 @@ setAdjustIterations(int n)
   CQChartsUtil::testAndSet(adjustIterations_, n, [&]() { updateRangeAndObjs(); } );
 }
 
+//---
+
+void
+CQChartsSankeyPlot::
+setTextInternal(bool b)
+{
+  CQChartsUtil::testAndSet(textInternal_, b, [&]() { drawObjs(); } );
+}
+
 void
 CQChartsSankeyPlot::
 setAdjustText(bool b)
@@ -512,15 +541,6 @@ CQChartsSankeyPlot::
 setUseMaxTotals(bool b)
 {
   CQChartsUtil::testAndSet(useMaxTotals_, b, [&]() { updateRangeAndObjs(); } );
-}
-
-//---
-
-void
-CQChartsSankeyPlot::
-setTextInternal(bool b)
-{
-  CQChartsUtil::testAndSet(textInternal_, b, [&]() { drawObjs(); } );
 }
 
 //---
@@ -567,7 +587,6 @@ addProperties()
   // options
   addProp("options", "useMaxTotals", "useMaxTotals", "Use max of src/dest totals for edge scaling");
   addProp("options", "orientation" , "orientation" , "Plot orientation");
-  addProp("options", "valueLabel"  , "valueLabel"  , "Draw node value as label");
 
   // coloring
   addProp("coloring", "srcColoring"      , "", "Color by Source Nodes");
@@ -576,9 +595,12 @@ addProperties()
   addProp("coloring", "mouseNodeColoring", "", "Mouse Over Node Coloring");
 
   // node
-  addProp ("node", "nodeMargin"   , "margin", "Node margin (Y)");
-  addPropI("node", "minNodeMargin", "margin", "Min Node margin (Pixels)");
-  addProp ("node", "nodeWidth"    , "width" , "Node width");
+  addProp ("node", "nodeMargin"      , "margin"      , "Node margin (Y)");
+  addPropI("node", "minNodeMargin"   , "minMargin"   , "Min Node margin (Pixels)");
+  addProp ("node", "nodeWidth"       , "width"       , "Node width");
+  addProp ("node", "nodeValueLabel"  , "valueLabel"  , "Draw node value as label");
+  addProp ("node", "nodeValueBar"    , "valueBar"    , "Draw node value bar");
+  addProp ("node", "nodeValueBarSize", "valueBarSize", "Draw node value bar size");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -591,8 +613,18 @@ addProperties()
 
   //---
 
+  // node text
+  addProp("node/text", "nodeTextVisible"    , "visible"        , "Node text label visible");
+  addProp("node/text", "insideTextVisible"  , "insideVisible"  , "Inside text label visible");
+  addProp("node/text", "selectedTextVisible", "selectedVisible", "Selected text label visible");
+
+  addTextProperties("node/text", "nodeText", "", TextOptions::ValueType::ALL);
+
+  //---
+
   // edge
-  addProp("edge", "edgeLine", "line", "Draw line for edge");
+  addProp("edge", "edgeLine"      , "line"      , "Draw line for edge");
+  addProp("edge", "edgeValueLabel", "valueLabel", "Draw edge value as label");
 
   // edge style
   addProp("edge/stroke", "edgeStroked", "visible", "Edge stroke visible");
@@ -603,20 +635,16 @@ addProperties()
 
   addFillProperties("edge/fill", "edgeFill", "Edge");
 
+  // edge text
+  addProp("edge/text", "edgeTextVisible", "visible", "Edge text label visible");
+
+  addTextProperties("edge/text", "edgeText", "", TextOptions::ValueType::ALL);
+
   //---
 
-  // text
-  addProp("text", "textVisible"        , "visible"        , "Text label visible");
-  addProp("text", "insideTextVisible"  , "insideVisible"  , "Inside text label visible");
-  addProp("text", "selectedTextVisible", "selectedVisible", "Selected text label visible");
-
-  addTextProperties("text", "text", "", TextOptions::ValueType::CONTRAST |
-                    TextOptions::ValueType::CLIP_LENGTH |
-                    TextOptions::ValueType::CLIP_ELIDE);
-
-  addProp("text", "textInternal", "internal", "Draw text internal to plot");
-
-  addProp("text", "adjustText", "adjustText", "Adjust text placement");
+  // general text properties
+  addProp("text", "textInternal", "internal"  , "Draw text internal to plot");
+  addProp("text", "adjustText"  , "adjustText", "Adjust text placement");
 
   //---
 
@@ -637,7 +665,7 @@ calcRange() const
     double dx = 0.0;
     double dy = 0.0;
 
-    auto font = view()->plotFont(this, textFont());
+    auto font = view()->plotFont(this, nodeTextFont());
 
     QFontMetricsF fm(font);
 
@@ -715,6 +743,8 @@ createObjs(PlotObjs &objs) const
 #ifdef CQCHARTS_GRAPH_PATH_ID
   pathIdMinMax_.reset();
 #endif
+
+  valueRange_.reset();
 
   //---
 
@@ -1054,7 +1084,19 @@ initHierObjs() const
 {
   CQPerfTrace trace("CQChartsSankeyPlot::initHierObjs");
 
-  return CQChartsConnectionPlot::initHierObjs();
+  auto *th = const_cast<CQChartsSankeyPlot *>(this);
+
+  //---
+
+  if (! CQChartsConnectionPlot::initHierObjs())
+    return false;
+
+  //---
+
+  if (isPropagate())
+    th->propagateHierValues();
+
+  return true;
 }
 
 void
@@ -1075,6 +1117,8 @@ initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
 
     if (! srcHierData.linkStrs.empty())
       srcStr = srcHierData.linkStrs.back();
+
+    valueRange_.add(destHierData.total);
 
     srcNode->setValue(OptReal(destHierData.total));
     srcNode->setName (srcStr);
@@ -1099,6 +1143,8 @@ initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
 
     if (! destHierData.linkStrs.empty())
       destStr = destHierData.linkStrs.back();
+
+    valueRange_.add(destHierData.total);
 
     destNode->setValue(OptReal(destHierData.total));
     destNode->setName (destStr);
@@ -1146,13 +1192,11 @@ initPathObjs() const
 {
   CQPerfTrace trace("CQChartsSankeyPlot::initPathObjs");
 
-  //---
-
   auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
   th->maxNodeDepth_ = 0;
 
-  //--
+  //---
 
   if (! CQChartsConnectionPlot::initPathObjs())
     return false;
@@ -1226,6 +1270,9 @@ addPathValue(const PathData &pathData) const
       //---
 
       // set destination node value (will be propagated up)
+      if (pathData.value.isSet())
+        valueRange_.add(pathData.value.real());
+
       destNode->setValue(pathData.value);
     }
 
@@ -1286,6 +1333,41 @@ propagatePathValues()
       }
     }
   }
+}
+
+void
+CQChartsSankeyPlot::
+propagateHierValues()
+{
+  for (const auto &pn : nameNodeMap_) {
+    auto *node = pn.second;
+
+    if (node->value().isSet())
+      continue;
+
+    auto value = calcHierValue(node);
+
+    node->setValue(OptReal(value));
+  }
+}
+
+double
+CQChartsSankeyPlot::
+calcHierValue(Node *node) const
+{
+  // TODO: catch loops ?
+  double hierValue = 0.0;
+
+  for (auto *edge : node->destEdges()) {
+    auto *destNode = edge->destNode();
+
+    if (destNode->value().isSet())
+      hierValue += destNode->value().real();
+    else
+      hierValue += calcHierValue(destNode);
+  }
+
+  return hierValue;
 }
 
 //---
@@ -1482,6 +1564,9 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
   //---
 
   // set value on dest node (NEEDED ?)
+  if (linkConnectionData.value.isSet())
+    valueRange_.add(linkConnectionData.value.real());
+
   destNode->setValue(linkConnectionData.value);
 
   //---
@@ -1583,6 +1668,8 @@ addConnectionObj(int id, const ConnectionsData &connectionsData, const NodeIndex
     //---
 
     // set value
+    valueRange_.add(connection.value);
+
     destNode->setValue(OptReal(connection.value));
   }
 }
@@ -2204,11 +2291,33 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
 
     double nodePos1 = CMathUtil::map(pos1, minPos, maxPos, posStart, posEnd);
 
-    // center align
-    if (isHorizontal())
-      rect = BBox(nodePos1 - posMargin/2.0, nodePerpPos1, nodePos1 + posMargin/2.0, nodePerpPos2);
-    else
-      rect = BBox(nodePerpPos1, nodePos1 - posMargin/2.0, nodePerpPos2, nodePos1 + posMargin/2.0);
+    if (isNodeValueBar()) {
+      double nodePos2 = CMathUtil::map(pos1 + 1, minPos, maxPos, posStart, posEnd);
+
+      auto size = 0.0;
+
+      if (node->value().isSet()) {
+        auto scale = valueRange_.map(node->value().real(), 0.0, 1.0);
+
+        auto barSize = std::min(std::max(nodeValueBarSize(), 0.0), 1.0);
+
+        size = barSize*scale*(nodePos2 - nodePos1);
+      }
+
+      if (isHorizontal())
+        rect = BBox(nodePos1, nodePerpPos1, nodePos1 + size, nodePerpPos2);
+      else
+        rect = BBox(nodePerpPos1, nodePos1, nodePerpPos2, nodePos1 + size);
+    }
+    else {
+      // center align
+      if (isHorizontal())
+        rect = BBox(nodePos1 - posMargin/2.0, nodePerpPos1,
+                    nodePos1 + posMargin/2.0, nodePerpPos2);
+      else
+        rect = BBox(nodePerpPos1, nodePos1 - posMargin/2.0,
+                    nodePerpPos2, nodePos1 + posMargin/2.0);
+    }
 
     //---
 
@@ -4240,12 +4349,50 @@ edgePath(QPainterPath &path, bool isLine) const
 
   //---
 
-  auto angle = Angle::fromOrientation(sankeyPlot_->orientation());
+  if (! isLine) {
+    auto angle = Angle::fromOrientation(sankeyPlot_->orientation());
 
-  if (! isLine)
     CQChartsDrawUtil::edgePath(path, srcRect, destRect, CQChartsDrawUtil::EdgeType::ARC, angle);
-  else
-    CQChartsDrawUtil::curvePath(path, srcRect, destRect, CQChartsDrawUtil::EdgeType::ARC, angle);
+  }
+  else {
+    auto p1 = srcRect .getCenter();
+    auto p2 = destRect.getCenter();
+
+    Angle angle1, angle2;
+
+    if (sankeyPlot_->isHorizontal()) {
+      if (p1.x < p2.x) {
+        p1.x   = srcRect .getXMax();
+        p2.x   = destRect.getXMin();
+        angle1 = Angle::degrees(0);
+        angle2 = Angle::degrees(180);
+      }
+      else {
+        p1.x   = srcRect .getXMin();
+        p2.x   = destRect.getXMax();
+        angle1 = Angle::degrees(180);
+        angle2 = Angle::degrees(0);
+      }
+
+      CQChartsDrawUtil::curvePath(path, p1, p2, CQChartsDrawUtil::EdgeType::ARC, angle1, angle2);
+    }
+    else {
+      if (p1.y < p2.y) {
+        p1.y   = srcRect .getYMax();
+        p2.y   = destRect.getYMin();
+        angle1 = Angle::degrees(90);
+        angle2 = Angle::degrees(270);
+      }
+      else {
+        p1.y   = srcRect .getYMin();
+        p2.y   = destRect.getYMax();
+        angle1 = Angle::degrees(270);
+        angle2 = Angle::degrees(90);
+      }
+
+      CQChartsDrawUtil::curvePath(path, p1, p2, CQChartsDrawUtil::EdgeType::ARC, angle1, angle2);
+    }
+  }
 
   return true;
 }
@@ -4646,7 +4793,7 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
       if (edge) {
         auto rect = (isSrc ? node->destEdgeRect(edge) : node->srcEdgeRect(edge));
 
-        if (! sankeyPlot()->isTextVisible() && rect.isSet())
+        if (! sankeyPlot()->isNodeTextVisible() && rect.isSet())
           nodeObj->drawFgRect(device, rect);
       }
       else {
@@ -4738,32 +4885,30 @@ void
 CQChartsSankeyNodeObj::
 drawFgRect(PaintDevice *device, const BBox &rect) const
 {
-  if (! sankeyPlot_->isTextVisible()) {
-    bool visible = false;
+  bool visible = true;
+
+  if (! sankeyPlot_->isNodeTextVisible()) {
+    visible = false;
 
     if (sankeyPlot_->isInsideTextVisible() && isInside())
       visible = true;
 
     if (sankeyPlot_->isSelectedTextVisible() && isSelected())
       visible = true;
+  }
 
-    if (! visible)
-      return;
+  if (visible) {
+    //---
+
+    if (node()->image().isValid())
+      drawFgImage(device, rect);
+    else
+      drawFgText(device, rect);
   }
 
   //---
 
-  // set font
-  sankeyPlot_->setPainterFont(device, sankeyPlot_->textFont());
-
-  //---
-
-  if (node()->image().isValid())
-    drawFgImage(device, rect);
-  else
-    drawFgText(device, rect);
-
-  if (sankeyPlot_->isValueLabel())
+  if (sankeyPlot_->isNodeValueLabel())
     drawValueLabel(device, rect);
 }
 
@@ -4771,6 +4916,10 @@ void
 CQChartsSankeyNodeObj::
 drawFgImage(PaintDevice *device, const BBox &rect) const
 {
+  setTextPen(device);
+
+  //---
+
   double pTextMargin = 4; // pixels
 
   QFontMetricsF fm(device->font());
@@ -4785,7 +4934,7 @@ drawFgImage(PaintDevice *device, const BBox &rect) const
 
     double yc;
 
-    if (sankeyPlot_->isValueLabel())
+    if (sankeyPlot_->isNodeValueLabel())
       yc = rect.getYMin() + ih/2;
     else
       yc = rect.getYMid();
@@ -4814,7 +4963,7 @@ drawFgImage(PaintDevice *device, const BBox &rect) const
 
     double xc;
 
-    if (sankeyPlot_->isValueLabel())
+    if (sankeyPlot_->isNodeValueLabel())
       xc = rect.getXMin() + iw/2;
     else
       xc = rect.getXMid();
@@ -4850,20 +4999,9 @@ drawFgText(PaintDevice *device, const BBox &rect) const
 
   auto prect = sankeyPlot()->windowToPixel(rect);
 
-  QFontMetricsF fm(device->font());
-
   //---
 
-  // set text pen
-  auto ic = calcColorInd();
-
-  PenBrush penBrush;
-
-  auto c = sankeyPlot_->interpTextColor(ic);
-
-  sankeyPlot_->setPen(penBrush, PenData(true, c, sankeyPlot_->textAlpha()));
-
-  device->setPen(penBrush.pen);
+  setTextPen(device);
 
   //---
 
@@ -4874,9 +5012,11 @@ drawFgText(PaintDevice *device, const BBox &rect) const
 
   //---
 
+  QFontMetricsF fm(device->font());
+
   double ptw = fm.horizontalAdvance(str);
 
-  auto clipLength = sankeyPlot_->lengthPixelWidth(sankeyPlot()->textClipLength());
+  auto clipLength = sankeyPlot_->lengthPixelWidth(sankeyPlot()->nodeTextClipLength());
 
   if (clipLength > 0.0)
     ptw = std::min(ptw, clipLength);
@@ -4937,9 +5077,9 @@ drawFgText(PaintDevice *device, const BBox &rect) const
   }
 
   // only support contrast
-  auto textOptions = sankeyPlot()->textOptions();
+  auto textOptions = sankeyPlot()->nodeTextOptions();
 
-  textOptions.angle      = Angle();
+//textOptions.angle      = Angle();
   textOptions.align      = Qt::AlignLeft;
   textOptions.clipLength = clipLength;
 
@@ -4952,14 +5092,45 @@ drawFgText(PaintDevice *device, const BBox &rect) const
 
 void
 CQChartsSankeyNodeObj::
+setTextPen(PaintDevice *device) const
+{
+  // set font
+  sankeyPlot_->setPainterFont(device, sankeyPlot_->nodeTextFont());
+
+  // set text pen
+  auto ic = calcColorInd();
+
+  PenBrush penBrush;
+
+  auto c = sankeyPlot_->interpNodeTextColor(ic);
+
+  sankeyPlot_->setPen(penBrush, PenData(true, c, sankeyPlot_->nodeTextAlpha()));
+
+  device->setPen(penBrush.pen);
+}
+
+void
+CQChartsSankeyNodeObj::
 drawValueLabel(PaintDevice *device, const BBox &rect) const
 {
+  setTextPen(device);
+
+  //---
+
   double pTextMargin = 4; // pixels
 
   auto prect = sankeyPlot()->windowToPixel(rect);
 
-  double value = node()->edgeSum();
-  if (value <= 1) return; // TODO: check value column type
+  double value;
+
+  if (node()->hasValue())
+    value = this->value();
+  else {
+    value = node()->edgeSum();
+    if (value <= 1) return; // TODO: check value column type
+  }
+
+  //---
 
   QFontMetricsF fm(device->font());
 
@@ -4975,38 +5146,56 @@ drawValueLabel(PaintDevice *device, const BBox &rect) const
     double xm = sankeyPlot_->getCalcDataRange().xmid();
 
     if (sankeyPlot_->isTextInternal()) {
-      if (rect.getXMid() < xm - tw)
+      // on left side
+      if (rect.getXMid() < xm - tw) {
         pt = Point(prect.getXMax() + pTextMargin, prect.getYMax() - fm.ascent()); // left
-      else
+      }
+      // on right side
+      else {
         pt = Point(prect.getXMin() - pTextMargin - ptw, prect.getYMax() - fm.ascent()); // right
+      }
     }
     else {
-      if (rect.getXMid() < xm - tw)
+      // on left side
+      if (rect.getXMid() < xm - tw) {
         pt = Point(prect.getXMin() - pTextMargin - ptw, prect.getYMax() - fm.ascent()); // right
-      else
+      }
+      // on right side
+      else {
         pt = Point(prect.getXMax() + pTextMargin, prect.getYMax() - fm.ascent()); // left
+      }
     }
   }
   else {
     double ym = sankeyPlot_->getCalcDataRange().ymid();
 
     if (sankeyPlot_->isTextInternal()) {
-      if (rect.getYMid() < ym - tw)
+      // on bottom side
+      if (rect.getYMid() < ym - tw) {
         pt = Point(prect.getXMax() - ptw, prect.getYMin() - pTextMargin - fm.descent()); // bottom
-      else
+      }
+      // on top side
+      else {
         pt = Point(prect.getXMax() - ptw, prect.getYMax() + pTextMargin + fm.ascent()); // top
+      }
     }
     else {
-      if (rect.getYMid() < ym - tw)
+      // on bottom side
+      if (rect.getYMid() < ym - tw) {
         pt = Point(prect.getXMax() - ptw, prect.getYMax() + pTextMargin + fm.ascent()); // bottom
-      else
+      }
+      // on top side
+      else {
         pt = Point(prect.getXMax() - ptw, prect.getYMin() - pTextMargin - fm.descent()); // top
+      }
     }
   }
 
-  CQChartsTextOptions options;
+  auto textOptions = sankeyPlot()->nodeTextOptions();
 
-  CQChartsDrawUtil::drawTextAtPoint(device, sankeyPlot()->pixelToWindow(pt), str, options);
+  textOptions.align = Qt::AlignLeft | Qt::AlignVCenter;
+
+  CQChartsDrawUtil::drawTextAtPoint(device, sankeyPlot()->pixelToWindow(pt), str, textOptions);
 }
 
 void
@@ -5186,8 +5375,8 @@ calcTipId() const
     tableTip.addTableRow(namedColumn("Value"), edge()->value().real());
 
 #ifdef CQCHARTS_GRAPH_PATH_ID
-  if (edge()->pathId() >= 0)
-    tableTip.addTableRow(namedColumn("PathId", "Path Id"), edge()->pathId());
+  if (pathId() >= 0)
+    tableTip.addTableRow(namedColumn("PathId", "Path Id"), pathId());
 #endif
 
   //---
@@ -5223,7 +5412,7 @@ bool
 CQChartsSankeyEdgeObj::
 inside(const Point &p) const
 {
-  return path_.contains(p.qpoint());
+  return edgePath_.contains(p.qpoint());
 }
 
 //---
@@ -5258,8 +5447,9 @@ CQChartsSankeyEdgeObj::
 draw(PaintDevice *device) const
 {
   // get edge path
-  if (! edgePath(path_, edge()->isLine()))
-    return;
+  bool rc1 = calcEdgePath(linePath_, /*isLine*/true );
+  bool rc2 = calcEdgePath(edgePath_, /*isLine*/false);
+  if (! rc1 && ! rc2) return;
 
   //---
 
@@ -5278,9 +5468,9 @@ draw(PaintDevice *device) const
   device->setColorNames();
 
   if (! edge()->isLine())
-    device->drawPath(path_);
+    device->drawPath(edgePath_);
   else
-    device->strokePath(path_, penBrush.pen);
+    device->strokePath(linePath_, penBrush.pen);
 
   device->resetColorNames();
 
@@ -5296,6 +5486,53 @@ draw(PaintDevice *device) const
       sankeyPlot()->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
     }
   }
+
+  //---
+
+  if (sankeyPlot_->isEdgeValueLabel()) {
+    auto p = Point(linePath_.pointAtPercent(0.5));
+
+    drawValueLabel(device, p);
+  }
+}
+
+void
+CQChartsSankeyEdgeObj::
+drawValueLabel(PaintDevice *device, const Point &p) const
+{
+  if (! edge()->hasValue())
+    return;
+
+  setTextPen(device);
+
+  auto value = edge()->value().real();
+
+  auto str = QString::number(value);
+
+  auto textOptions = sankeyPlot()->edgeTextOptions();
+
+  textOptions.align = Qt::AlignHCenter | Qt::AlignVCenter;
+
+  CQChartsDrawUtil::drawTextAtPoint(device, p, str, textOptions);
+}
+
+void
+CQChartsSankeyEdgeObj::
+setTextPen(PaintDevice *device) const
+{
+  // set font
+  sankeyPlot_->setPainterFont(device, sankeyPlot_->edgeTextFont());
+
+  // set text pen
+  auto ic = calcColorInd();
+
+  PenBrush penBrush;
+
+  auto c = sankeyPlot_->interpEdgeTextColor(ic);
+
+  sankeyPlot_->setPen(penBrush, PenData(true, c, sankeyPlot_->edgeTextAlpha()));
+
+  device->setPen(penBrush.pen);
 }
 
 void
@@ -5317,7 +5554,7 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
     if (sankeyPlot()->isMouseNodeColoring())
       nodeObj->draw(device);
 
-    if (! sankeyPlot()->isTextVisible())
+    if (! sankeyPlot()->isNodeTextVisible())
       nodeObj->drawFgRect(device, rect);
 
     nodeObj->setInside(false);
@@ -5382,7 +5619,7 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
 
 bool
 CQChartsSankeyEdgeObj::
-edgePath(QPainterPath &path, bool isLine) const
+calcEdgePath(QPainterPath &path, bool isLine) const
 {
   return edge()->edgePath(path, isLine);
 }
@@ -5393,7 +5630,7 @@ void
 CQChartsSankeyEdgeObj::
 drawFg(PaintDevice *device) const
 {
-  if (! sankeyPlot()->isTextVisible())
+  if (! sankeyPlot()->isNodeTextVisible())
     return;
 
   auto str = edge()->label();
@@ -5421,25 +5658,11 @@ drawFg(PaintDevice *device) const
 
   //---
 
-  // set font
-  sankeyPlot()->setPainterFont(device, sankeyPlot()->textFont());
+  setTextPen(device);
+
+  //---
 
   QFontMetricsF fm(device->font());
-
-  //---
-
-  // set text pen
-  auto ic = calcColorInd();
-
-  PenBrush penBrush;
-
-  auto c = sankeyPlot()->interpTextColor(ic);
-
-  sankeyPlot()->setPen(penBrush, PenData(true, c, sankeyPlot()->textAlpha()));
-
-  device->setPen(penBrush.pen);
-
-  //---
 
   double pTextMargin = 4; // pixels
 
@@ -5473,11 +5696,11 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   ColorInd colorInd;
 
 #ifdef CQCHARTS_GRAPH_PATH_ID
-  if (edge()->pathId() >= 0) {
+  if (pathId() >= 0) {
     const auto &pathIdMinMax = sankeyPlot()->pathIdMinMax();
 
     if (pathIdMinMax.isSet())
-      colorInd = ColorInd(edge()->pathId() - pathIdMinMax.min(),
+      colorInd = ColorInd(pathId() - pathIdMinMax.min(),
                           pathIdMinMax.max() - pathIdMinMax.min() + 1);
   }
 #endif

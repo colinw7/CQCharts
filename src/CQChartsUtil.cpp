@@ -1853,8 +1853,18 @@ bool checkOverlaps(const std::vector<BBox> &rects)
   return false;
 }
 
-bool adjustRectsToOriginal(const std::vector<BBox> &oldRects, std::vector<BBox> &newRects)
+bool adjustRectsToOriginal(const std::vector<BBox> &oldRects, std::vector<BBox> &newRects,
+                           const Qt::Orientation &orient)
 {
+  struct Range {
+    double        min  { 0.0 };
+    double        max  { 0.0 };
+    double        size { 0.0 };
+    std::set<int> used;
+  };
+
+  using Ranges = std::vector<Range>;
+
   assert(oldRects.size() == newRects.size());
 
   bool changed = true;
@@ -1865,130 +1875,235 @@ bool adjustRectsToOriginal(const std::vector<BBox> &oldRects, std::vector<BBox> 
     uint i = 0;
 
     for (auto &r : newRects) {
-      std::cerr << "Adjust rect: " << i << "\n";
+      //std::cerr << "Adjust rect: " << i << "\n";
 
       assert(r.isSet());
 
-      // build list of sorted unique yvals (for intervals);
-      uint j = 0;
+      //---
 
-      std::set<double> yvals;
+      // build list of sorted unique values (for intervals);
+      std::set<double> vals;
 
-      for (auto &r : newRects) {
-        if (i != j) {
-          auto ymin = r.getYMin();
-          auto ymax = r.getYMax();
+      if (orient == Qt::Horizontal) {
+        uint j = 0;
 
-          yvals.insert(ymin);
-          yvals.insert(ymax);
+        for (auto &r : newRects) {
+          if (i != j) {
+            auto ymin = r.getYMin();
+            auto ymax = r.getYMax();
+
+            vals.insert(ymin);
+            vals.insert(ymax);
+          }
+
+          ++j;
         }
+      }
+      else {
+        uint j = 0;
 
-        ++j;
+        for (auto &r : newRects) {
+          if (i != j) {
+            auto xmin = r.getXMin();
+            auto xmax = r.getXMax();
+
+            vals.insert(xmin);
+            vals.insert(xmax);
+          }
+
+          ++j;
+        }
       }
 
-      // create y range intervals (each pair of unqiue yvals)
-      auto ny = yvals.size();
+      //---
 
-      struct YRange {
-        double        ymin { 0.0 };
-        double        ymax { 0.0 };
-        double        h    { 0.0 };
-        std::set<int> used;
-      };
+      // create range intervals (each pair of unique vals)
+      Ranges ranges;
 
-      using YRanges = std::vector<YRange>;
+      if (orient == Qt::Horizontal) {
+        auto ny = vals.size();
 
-      YRanges yranges;
+        ranges.resize(ny - 1);
 
-      yranges.resize(ny - 1);
+        uint j = 0;
 
-      j = 0;
+        for (const auto &y : vals) {
+          if      (j > 0) {
+            ranges[j - 1].max  = y;
+            ranges[j - 1].size = y - ranges[j - 1].min;
+          }
+          else if (j < ny - 1) {
+            ranges[j].min = y;
+            ranges[j].max = y;
+          }
 
-      for (const auto &y : yvals) {
-        if      (j > 0) {
-          yranges[j - 1].ymax = y;
-          yranges[j - 1].h    = y - yranges[j - 1].ymin;
+          ++j;
         }
-        else if (j < ny - 1) {
-          yranges[j].ymin = y;
-          yranges[j].ymax = y;
-        }
+      }
+      else {
+        auto nx = vals.size();
 
-        ++j;
+        ranges.resize(nx - 1);
+
+        uint j = 0;
+
+        for (const auto &x : vals) {
+          if      (j > 0) {
+            ranges[j - 1].max  = x;
+            ranges[j - 1].size = x - ranges[j - 1].min;
+          }
+          else if (j < nx - 1) {
+            ranges[j].min = x;
+            ranges[j].max = x;
+          }
+
+          ++j;
+        }
       }
 
       //---
 
       // set inside for ranges
-      j = 0;
+      if (orient == Qt::Horizontal) {
+        uint j = 0;
 
-      for (auto &r : newRects) {
-        if (i != j) {
-          auto ymin = r.getYMin();
-          auto ymax = r.getYMax();
+        for (auto &r : newRects) {
+          if (i != j) {
+            auto ymin = r.getYMin();
+            auto ymax = r.getYMax();
 
-          for (auto &yrange : yranges) {
-            // check if range center inside rect
-            auto ym = (yrange.ymin + yrange.ymax)/2.0;
+            for (auto &yrange : ranges) {
+              // check if range center inside rect
+              auto ym = (yrange.min + yrange.max)/2.0;
 
-            if (ym > ymin && ym < ymax)
-              yrange.used.insert(j);
+              if (ym > ymin && ym < ymax)
+                yrange.used.insert(j);
+            }
           }
-        }
 
-        ++j;
+          ++j;
+        }
+      }
+      else {
+        uint j = 0;
+
+        for (auto &r : newRects) {
+          if (i != j) {
+            auto xmin = r.getXMin();
+            auto xmax = r.getXMax();
+
+            for (auto &xrange : ranges) {
+              // check if range center inside rect
+              auto xm = (xrange.min + xrange.max)/2.0;
+
+              if (xm > xmin && xm < xmax)
+                xrange.used.insert(j);
+            }
+          }
+
+          ++j;
+        }
       }
 
       //---
 
-      for (auto &yrange : yranges) {
-        std::cerr << " " << yrange.ymin << " " << yrange.ymax << " " << yrange.used.size() << "\n";
+#if 0
+      for (auto &range : ranges) {
+        std::cerr << " " << range.min << " " << range.max << " " <<
+                            range.used.size() << "\n";
       }
+#endif
 
       //---
 
       // get ideal pos
-      auto y2 = newRects[i].getYMid();
-      auto h2 = newRects[i].getHeight();
+      if (orient == Qt::Horizontal) {
+        auto y2 = newRects[i].getYMid();
+        auto h2 = newRects[i].getHeight();
 
-      auto   y1 = oldRects[i].getYMid();
-      double dy = y1 - y2;
+        auto   y1 = oldRects[i].getYMid();
+        double dy = y1 - y2;
 
-      bool foundGap = false;
+        bool foundGap = false;
 
-      std::cerr << "  Check gap " << dy << "\n";
+        //std::cerr << "  Check gap " << dy << "\n";
 
-      // check ranges for fit
-      for (auto &yrange : yranges) {
-        if (! yrange.used.empty())
-          continue;
+        // check ranges for fit
+        for (auto &yrange : ranges) {
+          if (! yrange.used.empty())
+            continue;
 
-        if (y2 < yrange.ymin || y2 > yrange.ymax || h2 > yrange.h)
-          continue;
+          if (y2 < yrange.min || y2 > yrange.max || h2 > yrange.size)
+            continue;
 
-        auto ym = (yrange.ymin + yrange.ymax)/2.0;
+          auto ym = (yrange.min + yrange.max)/2.0;
 
-        double y3;
+          double y3;
 
-        if (y1 >= ym)
-          y3 = yrange.ymax - h2/2.0;
-        else
-          y3 = yrange.ymin + h2/2.0;
+          if (y1 >= ym)
+            y3 = yrange.max - h2/2.0;
+          else
+            y3 = yrange.min + h2/2.0;
 
-        double dy1 = (y1 - y3);
+          double dy1 = (y1 - y3);
 
-        if (abs(dy1) < abs(dy))
-          dy = dy1;
+          if (abs(dy1) < abs(dy))
+            dy = dy1;
 
-        foundGap = true;
+          foundGap = true;
 
-        std::cerr << "  Found gap " << dy1 << "\n";
+          //std::cerr << "  Found gap " << dy1 << "\n";
+        }
+
+        if (foundGap) {
+          newRects[i].moveBy(Point(0, dy));
+
+          changed = false;
+        }
       }
+      else {
+        auto x2 = newRects[i].getXMid();
+        auto w2 = newRects[i].getWidth();
 
-      if (foundGap) {
-        newRects[i].moveBy(Point(0, dy));
+        auto   x1 = oldRects[i].getXMid();
+        double dx = x1 - x2;
 
-        changed = false;
+        bool foundGap = false;
+
+        //std::cerr << "  Check gap " << dx << "\n";
+
+        // check ranges for fit
+        for (auto &xrange : ranges) {
+          if (! xrange.used.empty())
+            continue;
+
+          if (x2 < xrange.min || x2 > xrange.max || w2 > xrange.size)
+            continue;
+
+          auto xm = (xrange.min + xrange.max)/2.0;
+
+          double x3;
+
+          if (x1 >= xm)
+            x3 = xrange.max - w2/2.0;
+          else
+            x3 = xrange.min + w2/2.0;
+
+          double dx1 = (x1 - x3);
+
+          if (abs(dx1) < abs(dx))
+            dx = dx1;
+
+          foundGap = true;
+
+          //std::cerr << "  Found gap " << dx1 << "\n";
+        }
+
+        if (foundGap) {
+          newRects[i].moveBy(Point(dx, 0));
+
+          changed = false;
+        }
       }
 
       //---

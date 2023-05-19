@@ -23,7 +23,11 @@ void
 CQChartsSunburstPlotType::
 addParameters()
 {
-  CQChartsHierPlotType::addParameters();
+  CQChartsHierPlotType::addHierParameters("Sunburst");
+
+  //---
+
+  CQChartsPlotType::addParameters();
 }
 
 QString
