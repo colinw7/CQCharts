@@ -3344,11 +3344,11 @@ updateWidgets()
   valueCheck_     ->setChecked(treeMapPlot_->isValueLabel());
   followViewCheck_->setChecked(treeMapPlot_->isFollowViewExpand());
 
-  CQChartsHierPlotCustomControls::updateWidgets();
-
   //---
 
   connectSlots(true);
+
+  CQChartsHierPlotCustomControls::updateWidgets();
 }
 
 void

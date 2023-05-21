@@ -2549,15 +2549,7 @@ void
 CQChartsChordPlotCustomControls::
 updateWidgets()
 {
-  connectSlots(false);
-
-  //---
-
   CQChartsConnectionPlotCustomControls::updateWidgets();
-
-  //---
-
-  connectSlots(true);
 }
 
 CQChartsColor

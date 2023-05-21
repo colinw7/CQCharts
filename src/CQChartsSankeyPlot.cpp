@@ -134,10 +134,6 @@ init()
 
   //---
 
-  nodeModel_.setCharts(charts());
-
-  //---
-
   auto bg = Color::makePalette();
 
   setNodeFilled(true);
@@ -192,41 +188,18 @@ term()
 
 void
 CQChartsSankeyPlot::
-setNodeModel(const CQChartsModelInd &model)
+initNodeColumns()
 {
-  if (nodeModel_ != model) {
-    if (nodeModel_.isValid())
-      removeExtraModel(nodeModel_.modelData());
+  CQChartsConnectionPlot::initNodeColumns();
 
-    nodeModel_ = model;
-
-    nodeModel_.setCharts(charts());
-
-    nodeIdColumn_         .setModelInd(nodeModel_.modelInd());
-    nodeLabelColumn_      .setModelInd(nodeModel_.modelInd());
-    nodeFillColorColumn_  .setModelInd(nodeModel_.modelInd());
-    nodeFillAlphaColumn_  .setModelInd(nodeModel_.modelInd());
-    nodeFillPatternColumn_.setModelInd(nodeModel_.modelInd());
-    nodeStrokeColorColumn_.setModelInd(nodeModel_.modelInd());
-    nodeStrokeAlphaColumn_.setModelInd(nodeModel_.modelInd());
-    nodeStrokeWidthColumn_.setModelInd(nodeModel_.modelInd());
-    nodeStrokeDashColumn_ .setModelInd(nodeModel_.modelInd());
-
-    addExtraModel(nodeModel_.modelData());
-
-    updateRangeAndObjs();
-  }
-}
-
-void
-CQChartsSankeyPlot::
-setNodeIdColumn(const CQChartsModelColumn &c)
-{
-  CQChartsUtil::testAndSet(nodeIdColumn_, c, [&]() {
-    nodeIdColumn_.setCharts(charts());
-
-    updateRangeAndObjs();
-  } );
+  nodeLabelColumn_      .setModelInd(nodeModel_.modelInd());
+  nodeFillColorColumn_  .setModelInd(nodeModel_.modelInd());
+  nodeFillAlphaColumn_  .setModelInd(nodeModel_.modelInd());
+  nodeFillPatternColumn_.setModelInd(nodeModel_.modelInd());
+  nodeStrokeColorColumn_.setModelInd(nodeModel_.modelInd());
+  nodeStrokeAlphaColumn_.setModelInd(nodeModel_.modelInd());
+  nodeStrokeWidthColumn_.setModelInd(nodeModel_.modelInd());
+  nodeStrokeDashColumn_ .setModelInd(nodeModel_.modelInd());
 }
 
 void
@@ -554,8 +527,6 @@ addProperties()
   //---
 
   // node columns
-  addPropI("nodeModel", "nodeModel"            , "model"            , "Node id nodel");
-  addPropI("nodeModel", "nodeIdColumn"         , "idColumn"         , "Node id column");
   addPropI("nodeModel", "nodeLabelColumn"      , "labelColumn"      , "Node label column");
   addPropI("nodeModel", "nodeFillColorColumn"  , "fillColorColumn"  , "Node fill color column");
   addPropI("nodeModel", "nodeFillAlphaColumn"  , "fillAlphaColumn"  , "Node fill alpha column");
@@ -771,7 +742,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-//processMetaData();
+  processMetaData();
 
   //---
 
@@ -1726,6 +1697,15 @@ initTableObjs() const
 }
 
 //----
+
+bool
+CQChartsSankeyPlot::
+processMetaNodeValue(const QString &name, const QString &key, const QVariant &value)
+{
+  auto *node = findNode(name);
+
+  return processNodeNameVar(node, key, value);
+}
 
 void
 CQChartsSankeyPlot::
@@ -5959,15 +5939,7 @@ void
 CQChartsSankeyPlotCustomControls::
 updateWidgets()
 {
-  connectSlots(false);
-
-  //---
-
   CQChartsConnectionPlotCustomControls::updateWidgets();
-
-  //---
-
-  connectSlots(true);
 }
 
 CQChartsColor

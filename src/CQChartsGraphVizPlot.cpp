@@ -3524,15 +3524,7 @@ void
 CQChartsGraphVizPlotCustomControls::
 updateWidgets()
 {
-  connectSlots(false);
-
-  //---
-
   CQChartsConnectionPlotCustomControls::updateWidgets();
-
-  //---
-
-  connectSlots(true);
 }
 
 CQChartsColor

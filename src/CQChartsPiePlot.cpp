@@ -3850,7 +3850,8 @@ CQChartsPiePlotCustomControls::
 addOptionsWidgets()
 {
   // options group
-  optionsFrame_ = createGroupFrame("Options", "optionsFrame", "groupBox", /*stretch*/false);
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame", "groupBox",
+                                   FrameOpts::makeNoStretch());
 
   drawTypeCombo_ = CQUtil::makeWidget<CQEnumCombo>("drawTypeCombo");
 
@@ -3927,11 +3928,11 @@ updateWidgets()
   if (dumbbellCheck_) dumbbellCheck_->setChecked(piePlot_->isDumbbell());
   if (countCheck_   ) countCheck_   ->setChecked(piePlot_->isCount   ());
 
-  CQChartsGroupPlotCustomControls::updateWidgets();
-
   //---
 
   connectSlots(true);
+
+  CQChartsGroupPlotCustomControls::updateWidgets();
 }
 
 void

@@ -5,7 +5,6 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
-#include <CQChartsModelColumn.h>
 
 class CQChartsTextPlacer;
 
@@ -917,10 +916,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_OBJECT
 
   // extra columns
-  Q_PROPERTY(CQChartsModelInd    nodeModel
-             READ nodeModel             WRITE setNodeModel)
-  Q_PROPERTY(CQChartsModelColumn nodeIdColumn
-             READ nodeIdColumn          WRITE setNodeIdColumn)
   Q_PROPERTY(CQChartsModelColumn nodeLabelColumn
              READ nodeLabelColumn       WRITE setNodeLabelColumn)
   Q_PROPERTY(CQChartsModelColumn nodeFillColorColumn
@@ -1112,11 +1107,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  const CQChartsModelInd &nodeModel() const { return nodeModel_; }
-  void setNodeModel(const CQChartsModelInd &c);
-
-  const CQChartsModelColumn &nodeIdColumn() const { return nodeIdColumn_; }
-  void setNodeIdColumn(const CQChartsModelColumn &c);
+  void initNodeColumns() override;
 
   const CQChartsModelColumn &nodeLabelColumn() const { return nodeLabelColumn_; }
   void setNodeLabelColumn(const CQChartsModelColumn &c);
@@ -1377,6 +1368,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
+  bool processMetaNodeValue(const QString &name, const QString &key,
+                            const QVariant &value) override;
+
   void processNodeNameValues(Node *node, const NameValues &valueValues) const;
   void processNodeNameValue (Node *node, const QString &name, const QString &value) const;
   bool processNodeNameVar   (Node *node, const QString &name, const QVariant &var) const;
@@ -1522,8 +1516,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
  protected:
   // node columns
-  CQChartsModelInd    nodeModel_;             //!< node model
-  CQChartsModelColumn nodeIdColumn_;          //!< node id column
   CQChartsModelColumn nodeLabelColumn_;       //!< node label column
   CQChartsModelColumn nodeFillColorColumn_;   //!< node fill color column
   CQChartsModelColumn nodeFillAlphaColumn_;   //!< node fill alpha column

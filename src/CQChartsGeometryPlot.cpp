@@ -1174,15 +1174,7 @@ void
 CQChartsGeometryPlotCustomControls::
 updateWidgets()
 {
-  connectSlots(false);
-
-  //---
-
   CQChartsPlotCustomControls::updateWidgets();
-
-  //---
-
-  connectSlots(true);
 }
 
 CQChartsColor

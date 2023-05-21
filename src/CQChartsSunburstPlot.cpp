@@ -2293,15 +2293,7 @@ void
 CQChartsSunburstPlotCustomControls::
 updateWidgets()
 {
-  connectSlots(false);
-
-  //---
-
   CQChartsHierPlotCustomControls::updateWidgets();
-
-  //---
-
-  connectSlots(true);
 }
 
 void

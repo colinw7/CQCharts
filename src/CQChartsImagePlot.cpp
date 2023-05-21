@@ -1116,11 +1116,11 @@ updateWidgets()
 
   cellStyleCombo_->setCurrentValue(static_cast<int>(imagePlot_->cellStyle()));
 
-  CQChartsPlotCustomControls::updateWidgets();
-
   //---
 
   connectSlots(true);
+
+  CQChartsPlotCustomControls::updateWidgets();
 }
 
 void

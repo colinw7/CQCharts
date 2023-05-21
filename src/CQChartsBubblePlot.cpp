@@ -1694,15 +1694,7 @@ void
 CQChartsBubblePlotCustomControls::
 updateWidgets()
 {
-  connectSlots(false);
-
-  //---
-
   CQChartsGroupPlotCustomControls::updateWidgets();
-
-  //---
-
-  connectSlots(true);
 }
 
 CQChartsColor

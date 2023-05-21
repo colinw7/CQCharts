@@ -84,13 +84,13 @@ addGeneralParameters()
   addColumnParameter("pathId", "PathId", "pathIdColumn").
     setStringColumn().setPropPath("columns.pathId").setTip("Path Id");
 #endif
-  addColumnParameter("attributes", "Attributes", "attributesColumn").
-    setStringColumn().setPropPath("columns.attributes").setTip("Node/Edge attributes");
-
   addColumnParameter("group", "Group", "groupColumn").
     setNumericColumn().setPropPath("columns.group").setTip("Group column");
   addColumnParameter("name", "Name", "nameColumn").
     setStringColumn().setPropPath("columns.name").setTip("Optional node name");
+
+  addColumnParameter("attributes", "Attributes", "attributesColumn").
+    setStringColumn().setPropPath("columns.attributes").setTip("Node/Edge attributes");
 }
 
 bool
@@ -258,6 +258,10 @@ CQChartsConnectionPlot::
 init()
 {
   CQChartsPlot::init();
+
+  //---
+
+  nodeModel_.setCharts(charts());
 }
 
 void
@@ -360,6 +364,17 @@ setPathIdColumn(const Column &c)
 }
 #endif
 
+//---
+
+void
+CQChartsConnectionPlot::
+setNameColumn(const Column &c)
+{
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
 void
 CQChartsConnectionPlot::
 setAttributesColumn(const Column &c)
@@ -371,10 +386,39 @@ setAttributesColumn(const Column &c)
 
 void
 CQChartsConnectionPlot::
-setNameColumn(const Column &c)
+setNodeModel(const CQChartsModelInd &model)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() {
-    updateRangeAndObjs(); Q_EMIT customDataChanged();
+  if (nodeModel_ != model) {
+    if (nodeModel_.isValid())
+      removeExtraModel(nodeModel_.modelData());
+
+    nodeModel_ = model;
+
+    nodeModel_.setCharts(charts());
+
+    initNodeColumns();
+
+    addExtraModel(nodeModel_.modelData());
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsConnectionPlot::
+initNodeColumns()
+{
+  nodeIdColumn_.setModelInd(nodeModel_.modelInd());
+}
+
+void
+CQChartsConnectionPlot::
+setNodeIdColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeIdColumn_, c, [&]() {
+    nodeIdColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
   } );
 }
 
@@ -395,6 +439,7 @@ getNamedColumn(const QString &name) const
   else if (name == "value"      ) c = this->valueColumn();
   else if (name == "depth"      ) c = this->depthColumn();
   else if (name == "name"       ) c = this->nameColumn();
+  else if (name == "attributes" ) c = this->attributesColumn();
   else                            c = CQChartsPlot::getNamedColumn(name);
 
   return c;
@@ -414,6 +459,7 @@ setNamedColumn(const QString &name, const Column &c)
   else if (name == "value"      ) this->setValueColumn(c);
   else if (name == "depth"      ) this->setDepthColumn(c);
   else if (name == "name"       ) this->setNameColumn(c);
+  else if (name == "attributes" ) this->setAttributesColumn(c);
   else                            CQChartsPlot::setNamedColumn(name, c);
 }
 
@@ -490,12 +536,13 @@ addProperties()
     addProp("columns", "depthColumn", "depth", "Depth column");
 
 #ifdef CQCHARTS_GRAPH_PATH_ID
-  addProp("columns", "pathIdColumn"    , "pathId"    , "Path Id column");
+  addProp("columns", "pathIdColumn", "pathId", "Path Id column");
 #endif
-  addProp("columns", "attributesColumn", "attributes", "Attributes column");
 
   addProp("columns", "groupColumn", "group", "Grouping column");
   addProp("columns", "nameColumn" , "name" , "Node name column");
+
+  addProp("columns", "attributesColumn", "attributes", "Attributes column");
 
   addProp("options", "separator", "", "Model link value separator");
   addProp("options", "symmetric", "", "Model values are symmetric");
@@ -504,6 +551,12 @@ addProperties()
   addProp("options", "minValue" , "", "Min Node value");
   addProp("options", "propagate", "", "Propagate values up hierarchy");
   addProp("options", "hierName" , "", "Name is hierarchical");
+
+  //---
+
+  // node columns
+  addPropI("nodeModel", "nodeModel"   , "model"   , "Node id nodel");
+  addPropI("nodeModel", "nodeIdColumn", "idColumn", "Node id column");
 }
 
 //---
@@ -1537,6 +1590,77 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
 
 //---
 
+void
+CQChartsConnectionPlot::
+processMetaData() const
+{
+  bool isEdgeRows = true;
+
+  auto type = calcColumnDataType();
+
+  switch (type) {
+    // node rows
+    case ColumnDataType::HIER:
+    case ColumnDataType::FROM_TO:
+      isEdgeRows = false;
+      break;
+    // edge rows
+    case ColumnDataType::LINK:
+    case ColumnDataType::CONNECTIONS:
+    case ColumnDataType::PATH:
+    case ColumnDataType::TABLE:
+      isEdgeRows = false;
+      break;
+  }
+
+  //---
+
+  auto *th = const_cast<CQChartsConnectionPlot *>(this);
+
+  const auto &model = th->currentModel();
+
+  auto *pmodel = model.data();
+
+  auto names = CQChartsModelUtil::modelMetaNames(pmodel);
+
+  for (const auto &name : names) {
+    auto keys = CQChartsModelUtil::modelMetaNameKeys(pmodel, name);
+
+    for (const auto &key : keys) {
+      auto value = CQChartsModelUtil::getModelMetaValue(pmodel, name, key);
+
+      bool handled = false;
+
+      if (isEdgeRows) {
+        if (key.left(5) == "node_") {
+          auto key1 = key.mid(5);
+
+          if (th->processMetaNodeValue(name, key1, value))
+            handled = true;
+        }
+      }
+      else {
+        if (key.left(5) == "edge_") {
+          auto key1 = key.mid(5);
+
+          if (th->processMetaEdgeValue(name, key1, value))
+            handled = true;
+        }
+      }
+
+      if (! handled) {
+        std::cerr << "Unhandled:";
+        std::cerr << " name=" << name.toStdString();
+        std::cerr << " key=" << key.toStdString();
+        std::cerr << " value=" << value.toString().toStdString();
+        std::cerr << "\n";
+      }
+    }
+  }
+}
+
+//---
+
 bool
 CQChartsConnectionPlot::
 groupColumnData(const ModelIndex &groupModelInd, GroupData &groupData) const
@@ -1679,11 +1803,11 @@ updateWidgets()
 
   //---
 
-  CQChartsPlotCustomControls::updateWidgets();
+  connectSlots(true);
 
   //---
 
-  connectSlots(true);
+  CQChartsPlotCustomControls::updateWidgets();
 }
 
 void

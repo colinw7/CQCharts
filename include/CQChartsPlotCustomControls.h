@@ -87,7 +87,8 @@ class CQChartsPlotCustomControls : public QScrollArea {
   struct FrameData {
     CQGroupBox*  groupBox { nullptr };
     QFrame*      frame    { nullptr };
-    QGridLayout* layout   { nullptr };
+    QGridLayout* grid     { nullptr };
+    QBoxLayout*  box      { nullptr };
     int          row      { 0 };
     int          col      { 0 };
   };
@@ -99,14 +100,37 @@ class CQChartsPlotCustomControls : public QScrollArea {
     QFrame*                     columnControls { nullptr };
   };
 
-  FrameData createFrame(const QString &objName, bool stretch=true);
+  struct FrameOpts {
+    bool stretch { true };
+    bool grid    { true };
+    bool hbox    { false };
 
-  FrameData createGroupFrame(const QString &name, const QString &objName, bool stretch=true) {
-    return createGroupFrame(name, objName, "groupBox", stretch);
-  }
+    FrameOpts() { }
+
+    static FrameOpts makeHBox() {
+      FrameOpts opts;
+      opts.stretch = false;
+      opts.grid    = false;
+      opts.hbox    = true;
+      return opts;
+    }
+
+    static FrameOpts makeNoStretch() {
+      FrameOpts opts;
+      opts.stretch = false;
+      return opts;
+    }
+  };
+
+  FrameData createFrame(const QString &objName, const FrameOpts &frameOpts=FrameOpts());
 
   FrameData createGroupFrame(const QString &name, const QString &objName,
-                             const QString &groupName, bool stretch=true);
+                             const FrameOpts &frameOpts=FrameOpts()) {
+    return createGroupFrame(name, objName, "groupBox", frameOpts);
+  }
+
+  FrameData createGroupFrame(const QString &name, const QString &objName, const QString &groupName,
+                             const FrameOpts &frameOpts=FrameOpts());
 
   ColumnControlGroupData createColumnControlGroup(const QString &name, const QString &title);
 

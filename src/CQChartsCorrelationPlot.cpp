@@ -1383,11 +1383,11 @@ updateWidgets()
   upperDiagonalTypeCombo_->setCurrentValue(static_cast<int>(correlationPlot_->upperDiagonalType()));
   lowerDiagonalTypeCombo_->setCurrentValue(static_cast<int>(correlationPlot_->lowerDiagonalType()));
 
-  CQChartsPlotCustomControls::updateWidgets();
-
   //---
 
   connectSlots(true);
+
+  CQChartsPlotCustomControls::updateWidgets();
 }
 
 void

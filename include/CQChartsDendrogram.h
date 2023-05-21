@@ -15,26 +15,25 @@ class CQChartsDendrogram {
  public:
   using BBox = CQChartsGeom::BBox;
 
-  class RootNode;
   class Node;
 
   //---
 
   using OptReal = std::optional<double>;
 
-  struct Child {
-    Node*   node { nullptr };
-    OptReal value;
+  struct Edge {
+    Node*   node { nullptr }; // dest node
+    OptReal value;            // edge value
 
-    Child() = default;
+    Edge() = default;
 
-    Child(Node *node, const OptReal &value=OptReal()) :
+    Edge(Node *node, const OptReal &value=OptReal()) :
      node(node), value(value) {
     }
   };
 
-  using Nodes    = std::vector<Node *>;
-  using Children = std::vector<Child>;
+  using Nodes = std::vector<Node *>;
+  using Edges = std::vector<Edge>;
 
   //---
 
@@ -48,6 +47,8 @@ class CQChartsDendrogram {
     }
 
    public:
+    using Dendrogram = CQChartsDendrogram;
+
     Node(Node *parent, const QString &name="", const OptReal &size=OptReal());
 
     virtual ~Node();
@@ -59,7 +60,10 @@ class CQChartsDendrogram {
     const QString &name() const { return name_; }
     void setName(const QString &name) { name_ = name; }
 
-    bool calcSize(double &size) const;
+    const OptReal &size() const { return size_; }
+    void setSize(const OptReal &r) { size_ = r; }
+
+    bool calcHierSize(double &size) const;
 
     //! get/set depth
     int depth() const { return depth_; }
@@ -74,8 +78,7 @@ class CQChartsDendrogram {
     void setNumRows(double nr) { nr_ = nr; }
 
     double gap() const { return gap_; }
-
-    void setGap(double gap);
+    void setGap(double gap) { gap_ = gap; }
 
     //! get/set is placed
     bool isPlaced() const { return placed_; }
@@ -87,51 +90,40 @@ class CQChartsDendrogram {
     bool isOpen() const { return open_; }
     void setOpen(bool open) { open_ = open; }
 
+    //! get/set is root
+    bool isRoot() const { return root_; }
+    void setRoot(bool b) { root_ = b; };
+
+    //! get/set is temp
+    bool isTemp() const { return temp_; }
+    void setTemp(bool b) { temp_ = b; }
+
     //---
 
-    virtual bool isRoot() const { return false; }
+    const Edges &getChildren() const { return children_; }
 
-    const Children &getNodes   () const { return nodes_; }
-    const Children &getChildren() const { return children_; }
-
-    bool isHier() const { return ! nodes_.empty() || ! children_.empty(); }
+    bool isHier() const { return ! children_.empty(); }
 
     //---
 
-    double x() const {
-      if (bbox_.isValid()) return bbox_.getXMin();
+    double x() const { return bbox_.getXMin(); }
+    double y() const { return bbox_.getYMin(); }
 
-      return depth()*root()->dx();
-    }
-
-    double y() const {
-      if (bbox_.isValid()) return bbox_.getYMin();
-
-      return row()*root()->dy();
-    }
-
-    double w() const {
-      if (bbox_.isValid()) return bbox_.getWidth();
-
-      return root()->dx();
-    }
-
-    double h() const {
-      if (bbox_.isValid()) return bbox_.getHeight();
-
-      return numRows()*root()->dy();
-    }
+    double w() const { return bbox_.getWidth(); }
+    double h() const { return bbox_.getHeight(); }
 
     double xc() const { return x() + w()/2.0; }
     double yc() const { return y() + h()/2.0; }
+
+    bool hasBBox() const { return bbox_.isValid(); }
 
     const BBox &bbox() const { return bbox_; }
     void setBBox(const BBox &b) { bbox_ = b; }
 
     //---
 
-    RootNode *root();
-    const RootNode *root() const;
+    Node *root();
+    const Node *root() const;
 
     bool hasChildren() const;
 
@@ -139,9 +131,6 @@ class CQChartsDendrogram {
 
     void addChild(Node *child, const OptReal &value=OptReal());
     void removeChild(Node *child);
-
-    void addNode(Node *node, const OptReal &value=OptReal());
-    void removeNode(Node *node);
 
     void removeAll();
 
@@ -154,30 +143,15 @@ class CQChartsDendrogram {
 
     //---
 
+    bool hasChild(Node *child) const;
     Node *findChild(const QString &name) const;
 
-    bool hasChild(Node *child) const;
+    Node *findHierChild(const QString &name) const;
 
     //---
 
-    void setChildValue(Node *child, double value);
-
-    //---
-
-    virtual void moveNode(double d);
-
-    virtual void compressNode(double d);
-
-    //---
-
-    bool isNodeAtPoint(double x, double y, double tol) const;
-
-    Node *getNodeAtPoint(double x, double y, double tol);
-    const Node *getNodeAtPoint(double x, double y, double tol) const;
-
-    //---
-
-    void placeSubNodes(RootNode *root, int depth, double row);
+    OptReal childValue(const Node *child) const;
+    void setChildValue(const Node *child, double value);
 
    protected:
     void setParent(Node *parent) { parent_ = parent; }
@@ -192,82 +166,14 @@ class CQChartsDendrogram {
     double  nr_     { 0.0 };     //!< number of rows
     double  gap_    { 0.0 };     //!< gap
     bool    open_   { false };   //!< is open
+    bool    root_   { false };   //!< is root
+    bool    temp_   { false };   //!< is temp
     bool    placed_ { false };   //!< is placed
     BBox    bbox_;               //!< bbox
 
     //---
 
-    Children nodes_;    //!< child leaf nodes
-    Children children_; //!< child hier nodes
-  };
-
-  //---
-
-  //! Root Node
-  class RootNode : public Node {
-   public:
-    explicit RootNode(const QString &name="");
-
-    virtual ~RootNode() = default;
-
-    bool debug() const { return debug_; }
-    void setDebug(bool debug) { debug_ = debug; }
-
-    void setSingleStep(bool singleStep) { singleStep_ = singleStep; }
-    bool singleStep() const { return singleStep_; }
-
-    double dx() const { return dx_; }
-    double dy() const { return dy_; }
-
-    bool isRoot() const override { return true; }
-
-    // place child nodes in (1.0 by 1.0 rectangle)
-    void placeNodes();
-
-    // set gaps beneath each node
-    void setGaps();
-
-    // print node gaps
-    void printGaps() const;
-
-    // compress nodes by removing space below
-    void compressNodes();
-
-    // check if we can move node and children by delta
-    bool canMoveNode(Node *node, double &move_gap, Nodes &lowestChildren);
-
-    // get the child of node with lowest row
-    Node *getLowestChild(Node *hierNode);
-
-    // open all nodes down to depth and close all node below depth
-    void setOpenDepth(int depth);
-
-    // open node with name at depth
-    void openNode(int depth, const QString &name);
-
-    // compress node and children
-    void compressNodeAndChildren(Node *node, const Nodes &lowestChildren, double d);
-
-    //void moveChildNodes(Node *hierNode, double d);
-
-    // recursively move node, higher nodes and parent
-    void compressNodeUp(Node *node, double d);
-
-    // move all nodes higher than specified node
-    void moveHigherNodes(Node *node, double d);
-
-    // place node (set depth, row and number of rows)
-    void placeNode(Node *node, int depth, double row, double num_rows);
-
-   protected:
-    using DepthNodes = std::vector<Nodes>;
-
-    double     dx_         { 0.0 };   //!< dx
-    double     dy_         { 0.0 };   //!< dy
-    double     max_rows_   { 0.0 };   //!< max rows
-    bool       debug_      { false }; //!< is debug
-    bool       singleStep_ { false }; //!< single step
-    DepthNodes depthNodes_;           //!< nodes by depth
+    Edges children_; //!< child hier node edges
   };
 
   //------
@@ -277,41 +183,102 @@ class CQChartsDendrogram {
 
   virtual ~CQChartsDendrogram();
 
+  Node *root() const { return root_; }
+
   //! get/set debug
-  bool debug() const { return debug_; }
-  void setDebug(bool b);
+  bool isDebug() const { return debug_; }
+  void setDebug(bool b) { debug_ = b; }
 
   //! get/set single setp
-  bool singleStep() const;
-  void setSingleStep(bool b);
+  bool isSingleStep() const { return singleStep_; }
+  void setSingleStep(bool singleStep) { singleStep_ = singleStep; }
 
-  RootNode *root() const { return root_; }
+  double dx() const { return dx_; }
+  double dy() const { return dy_; }
 
-  RootNode *addRootNode(const QString &name);
+  Node *addRootNode(const QString &name);
 
-  Node *addHierNode(Node *hier, const QString &name, const OptReal &value=OptReal());
+  Node *addEdge(Node *hier, const QString &name, const OptReal &edgeValue=OptReal());
+  Node *addNode(Node *hier, const QString &name, const OptReal &nodeValue=OptReal());
 
-  Node *addNode(Node *hier, const QString &name, const OptReal &size=OptReal());
+  Node *createRootNode(const QString &name) const;
 
-  virtual RootNode *createRootNode(const QString &name) const;
   virtual Node *createNode(Node *hier, const QString &name, const OptReal &size=OptReal()) const;
 
+  // place child nodes in (1.0 by 1.0 rectangle)
   void placeNodes();
 
+  // compress nodes by removing space below
   void compressNodes();
 
+  // set gaps beneath each node
+  void setGaps();
+
+  // check if we can move node and children by delta
+  bool canMoveNode(Node *node, double &move_gap, Nodes &lowestChildren);
+
+  // get the child of node with lowest row
+  Node *getLowestChild(Node *hierNode);
+
+  // open all nodes down to depth and close all node below depth
   void setOpenDepth(int depth);
 
+  // open node with name at depth
   void openNode(int depth, const QString &name);
+
+  // compress node and children
+  void compressNodeAndChildren(Node *node, const Nodes &lowestChildren, double d);
+
+  // recursively move node, higher nodes and parent
+  void compressNodeUp(Node *node, double d);
+
+  void compressNode(Node *node, double d);
+
+  void setGap(Node *node, double gap);
+
+  // move all nodes higher than specified node
+  void moveHigherNodes(Node *node, double d);
+
+  //void moveChildNodes(Node *hierNode, double d);
+
+  void moveNode(Node *node, double d);
+
+  // place node (set depth, row and number of rows)
+  void placeNode(Node *node, int depth, double row, double num_rows);
+
+  void placeSubNodes(Node *root, Node *node, int depth, double row);
+
+  bool isNodeAtPoint(double x, double y, double tol) const;
+  bool isNodeAtPoint(Node *node, double x, double y, double tol) const;
 
   Node *getNodeAtPoint(double x, double y, double tol=1E-3);
   const Node *getNodeAtPoint(double x, double y, double tol=1E-3) const;
 
-  void printGaps();
+  Node *getNodeAtPoint(Node *node, double x, double y, double tol=1E-3);
+
+  // print node gaps
+  void printGaps() const;
+
+  //---
+
+  double nodeX(Node *node) const;
+  double nodeY(Node *node) const;
+  double nodeW(Node *node) const;
+  double nodeH(Node *node) const;
+
+  double nodeXC(Node *node) const;
+  double nodeYC(Node *node) const;
 
  private:
-  RootNode* root_  { nullptr }; //!< root node
-  bool      debug_ { false };   //!< is debug
+  using DepthNodes = std::vector<Nodes>;
+
+  Node*      root_       { nullptr }; //!< root node
+  bool       debug_      { false };   //!< is debug
+  bool       singleStep_ { false };   //!< single step
+  double     dx_         { 0.0 };     //!< dx
+  double     dy_         { 0.0 };     //!< dy
+  double     maxRows_    { 0.0 };     //!< max rows
+  DepthNodes depthNodes_;             //!< nodes by depth
 };
 
 #endif

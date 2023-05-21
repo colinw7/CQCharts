@@ -2085,13 +2085,5 @@ void
 CQChartsPivotPlotCustomControls::
 updateWidgets()
 {
-  connectSlots(false);
-
-  //---
-
   CQChartsPlotCustomControls::updateWidgets();
-
-  //---
-
-  connectSlots(true);
 }

@@ -84,7 +84,7 @@ addModuleWidgets()
   if (! properties.empty()) {
     auto frameTitle = QString("Module %1").arg(plot_->plotModule());
 
-    moduleFrame_ = createGroupFrame(frameTitle, "moduleFrame", "Module", "moduleFrame");
+    moduleFrame_ = createGroupFrame(frameTitle, "moduleFrame", "Module");
 
     int row = 0;
 
@@ -93,7 +93,7 @@ addModuleWidgets()
 
       auto *label = CQUtil::makeLabelWidget<QLabel>(name);
 
-      moduleFrame_.layout->addWidget(label, row, 0);
+      moduleFrame_.grid->addWidget(label, row, 0);
 
       auto type = p.second.first.toLower();
 
@@ -129,7 +129,7 @@ addModuleWidgets()
 
       edit->setProperty("CQChartsModuleProperty", name);
 
-      moduleFrame_.layout->addWidget(edit, row, 1);
+      moduleFrame_.grid->addWidget(edit, row, 1);
 
       moduleEdits_[name] = edit;
 
@@ -353,6 +353,8 @@ void
 CQChartsPlotCustomControls::
 connectSlots(bool b)
 {
+  assert(b != connected_);
+
   if (b == connected_)
     return;
 
@@ -570,9 +572,9 @@ createColumnControlGroup(const QString &name, const QString &title)
 CQChartsPlotCustomControls::FrameData
 CQChartsPlotCustomControls::
 createGroupFrame(const QString &name, const QString &objName, const QString &groupName,
-                 bool stretch)
+                 const FrameOpts &frameOpts)
 {
-  auto frameData = createFrame(objName, stretch);
+  auto frameData = createFrame(objName, frameOpts);
 
   frameData.groupBox = CQUtil::makeLabelWidget<CQGroupBox>(name, groupName);
 
@@ -590,15 +592,21 @@ createGroupFrame(const QString &name, const QString &objName, const QString &gro
 
 CQChartsPlotCustomControls::FrameData
 CQChartsPlotCustomControls::
-createFrame(const QString &objName, bool stretch)
+createFrame(const QString &objName, const FrameOpts &frameOpts)
 {
   FrameData frameData;
 
-  frameData.frame  = CQUtil::makeWidget<QFrame>(objName);
-  frameData.layout = CQUtil::makeLayout<QGridLayout>(frameData.frame, 2, 2);
+  frameData.frame = CQUtil::makeWidget<QFrame>(objName);
 
-  if (stretch)
-    frameData.layout->setColumnStretch(1, 1);
+  if      (frameOpts.grid)
+    frameData.grid = CQUtil::makeLayout<QGridLayout>(frameData.frame, 2, 2);
+  else if (frameOpts.hbox)
+    frameData.box = CQUtil::makeLayout<QHBoxLayout>(frameData.frame, 2, 2);
+  else
+    frameData.box = CQUtil::makeLayout<QVBoxLayout>(frameData.frame, 2, 2);
+
+  if (frameOpts.stretch && frameOpts.grid)
+    frameData.grid->setColumnStretch(1, 1);
 
   frameData.frame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
@@ -609,8 +617,8 @@ void
 CQChartsPlotCustomControls::
 addFrameWidget(FrameData &frameData, const QString &label, QWidget *w, bool nextRow)
 {
-  frameData.layout->addWidget(new QLabel(label), frameData.row, frameData.col++);
-  frameData.layout->addWidget(w                , frameData.row, frameData.col++);
+  frameData.grid->addWidget(new QLabel(label), frameData.row, frameData.col++);
+  frameData.grid->addWidget(w                , frameData.row, frameData.col++);
 
   if (nextRow) {
     frameData.col = 0;
@@ -623,7 +631,7 @@ void
 CQChartsPlotCustomControls::
 addFrameWidget(FrameData &frameData, QWidget *w, bool nextRow)
 {
-  frameData.layout->addWidget(w, frameData.row, frameData.col, 1, 2);
+  frameData.grid->addWidget(w, frameData.row, frameData.col, 1, 2);
 
   frameData.col += 2;
 
@@ -642,7 +650,7 @@ addFrameSpacer(FrameData &frameData, bool nextRow)
 
   spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-  frameData.layout->addWidget(spacer, frameData.row, frameData.col++);
+  frameData.grid->addWidget(spacer, frameData.row, frameData.col++);
 
   if (nextRow) {
     frameData.col = 0;
@@ -655,7 +663,7 @@ void
 CQChartsPlotCustomControls::
 addFrameColWidget(FrameData &frameData, QWidget *w, bool nextRow)
 {
-  frameData.layout->addWidget(w, frameData.row, frameData.col++);
+  frameData.grid->addWidget(w, frameData.row, frameData.col++);
 
   if (nextRow) {
     addFrameRowStretch(frameData);
@@ -670,14 +678,14 @@ void
 CQChartsPlotCustomControls::
 addFrameRowStretch(FrameData &frameData)
 {
-  frameData.layout->setRowStretch(frameData.row, 1);
+  frameData.grid->setRowStretch(frameData.row, 1);
 }
 
 void
 CQChartsPlotCustomControls::
 addFrameColStretch(FrameData &frameData)
 {
-  frameData.layout->setColumnStretch(frameData.col, 1);
+  frameData.grid->setColumnStretch(frameData.col, 1);
 }
 
 void

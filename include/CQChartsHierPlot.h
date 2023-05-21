@@ -18,6 +18,8 @@ class CQChartsHierPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn  valueColumn READ valueColumn WRITE setValueColumn)
   Q_PROPERTY(CQChartsColumn  groupColumn READ groupColumn WRITE setGroupColumn)
 
+  Q_PROPERTY(CQChartsColumn attributesColumn READ attributesColumn WRITE setAttributesColumn)
+
   //! hier separator
   Q_PROPERTY(QString separator READ separator WRITE setSeparator)
 
@@ -46,6 +48,10 @@ class CQChartsHierPlot : public CQChartsPlot {
   //! get/set group column
   const Column &groupColumn() const { return groupColumn_; }
   void setGroupColumn(const Column &c);
+
+  //! get/set attributes column
+  const Column &attributesColumn() const { return attributesColumn_; }
+  void setAttributesColumn(const Column &c);
 
   //---
 
@@ -86,11 +92,21 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   void addHierProperties();
 
+  //---
+
+  void processMetaData(bool isEdgeRows=true) const;
+
+  virtual bool processMetaNodeValue(const QString &, const QString &,
+                                    const QVariant &) { return false; }
+  virtual bool processMetaEdgeValue(const QString &, const QString &,
+                                    const QVariant &) { return false; }
+
  protected:
   // columns
-  Columns nameColumns_; //!< multiple name columns
-  Column  valueColumn_; //!< value column
-  Column  groupColumn_; //!< group column
+  Columns nameColumns_;      //!< multiple name columns
+  Column  valueColumn_;      //!< value column
+  Column  groupColumn_;      //!< group column
+  Column  attributesColumn_; //!< attributes column
 
   ColumnType valueColumnType_ { ColumnType::NONE }; //!< value column type
 

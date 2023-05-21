@@ -232,12 +232,14 @@ CQChartsWindow(View *view) :
 
   //---
 
+  // global toolbar (on top)
   toolbar_ = new CQChartsViewToolBar(this);
 
   layout->addWidget(toolbar_);
 
   //---
 
+  // view and settings splitter
   auto *settingsSplitter = CQUtil::makeWidget<QSplitter>("hsplitter");
 
   settingsSplitter->setOrientation(Qt::Horizontal);
@@ -246,12 +248,14 @@ CQChartsWindow(View *view) :
 
   //---
 
+  // status bar (on bottom)
   status_ = new CQChartsViewStatus(this);
 
   layout->addWidget(status_);
 
   //----
 
+  // add views splitter
   viewSplitter_ = CQUtil::makeWidget<CQTabSplit>("vsplitter");
 
   viewSplitter_->setState(CQTabSplit::State::VSPLIT);
@@ -261,6 +265,7 @@ CQChartsWindow(View *view) :
 
   //---
 
+  // add settings
   settings_ = new CQChartsViewSettings(this);
 
   connect(settings_, SIGNAL(propertyItemSelected(QObject *, const QString &)),
@@ -270,6 +275,7 @@ CQChartsWindow(View *view) :
 
   //---
 
+  // add view
   auto *viewFrame = CQUtil::makeWidget<QFrame>("viewFrame");
 
   viewFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

@@ -35,6 +35,9 @@ addHierParameters(const QString &title)
   addColumnParameter("group", "Group", "groupColumn").setBasic().
    setStringColumn().setPropPath("columns.group").setTip("Group column");
 
+  addColumnParameter("attributes", "Attributes", "attributesColumn").
+    setStringColumn().setPropPath("columns.attributes").setTip("Node/Edge attributes");
+
   addStringParameter("separator", "Separator", "separator", "/").setBasic().
    setTip("Separator for hierarchical path in name column");
 

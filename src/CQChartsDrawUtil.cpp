@@ -451,6 +451,33 @@ drawShape(PaintDevice *device, const CQChartsShapeTypeData &data, const BBox &re
   }
 }
 
+void
+drawShapeSwatch(PaintDevice *device, const CQChartsShapeTypeData &data, const BBox &rect)
+{
+  switch (data.shapeType) {
+    default:
+    case CQChartsShapeType::Type::NONE: {
+      break;
+    }
+    case CQChartsShapeType::Type::BOX: {
+      auto rect1 = BBox(rect.getXMin(), rect.getYMin(),
+                        rect.getXMax(), rect.getYMin() + 0.1*rect.getHeight());
+
+      if (data.cornerSize.isSet()) {
+        CQChartsDrawUtil::drawRoundedRect(device, rect1, data.cornerSize, data.sides, data.angle);
+      }
+      else {
+        if (! data.angle.isZero())
+          drawPolygonSides(device, rect1, 4, data.angle + Angle::degrees(45));
+        else
+          device->drawRect(rect1);
+      }
+
+      break;
+    }
+  }
+}
+
 //---
 
 void

@@ -5781,7 +5781,8 @@ CQChartsXYPlotCustomControls::
 addOptionsWidgets()
 {
   // options group
-  optionsFrame_ = createGroupFrame("Options", "optionsFrame", "groupBox", /*stretch*/false);
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame", "groupBox",
+                                   FrameOpts::makeNoStretch());
 
   //---
 
@@ -5874,11 +5875,11 @@ updateWidgets()
 
   //---
 
-  CQChartsPointPlotCustomControls::updateWidgets();
+  connectSlots(true);
 
   //---
 
-  connectSlots(true);
+  CQChartsPointPlotCustomControls::updateWidgets();
 }
 
 void

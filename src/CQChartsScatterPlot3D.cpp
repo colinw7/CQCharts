@@ -2292,13 +2292,5 @@ void
 CQChartsScatterPlot3DCustomControls::
 updateWidgets()
 {
-  connectSlots(false);
-
-  //---
-
   CQChartsPlotCustomControls::updateWidgets();
-
-  //---
-
-  connectSlots(true);
 }

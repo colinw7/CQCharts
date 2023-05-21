@@ -1845,13 +1845,5 @@ void
 CQChartsWheelPlotCustomControls::
 updateWidgets()
 {
-  connectSlots(false);
-
-  //---
-
   CQChartsPlotCustomControls::updateWidgets();
-
-  //---
-
-  connectSlots(true);
 }

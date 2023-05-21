@@ -873,13 +873,5 @@ void
 CQChartsGanttPlotCustomControls::
 updateWidgets()
 {
-  connectSlots(false);
-
-  //---
-
   CQChartsGroupPlotCustomControls::updateWidgets();
-
-  //---
-
-  connectSlots(true);
 }

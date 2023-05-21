@@ -3984,7 +3984,7 @@ addBaseProperties()
 
   if (type()->supportsColorColumn()) {
     addProp("columns", "colorColumn"     , "color"     , "Color column");
-    addProp("columns", "colorLabelColumn", "colorLabel", "Color label column");
+    addProp("columns", "colorLabelColumn", "colorLabel", "Color key label column");
   }
 
   if (type()->supportsAlphaColumn())

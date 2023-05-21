@@ -4,6 +4,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
 #include <CQChartsConnectionList.h>
+#include <CQChartsModelColumn.h>
 #include <CQChartsOptInt.h>
 #include <CSafeIndex.h>
 
@@ -83,9 +84,14 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn)
 
 #ifdef CQCHARTS_GRAPH_PATH_ID
-  Q_PROPERTY(CQChartsColumn pathIdColumn     READ pathIdColumn     WRITE setPathIdColumn    )
+  Q_PROPERTY(CQChartsColumn pathIdColumn READ pathIdColumn WRITE setPathIdColumn)
 #endif
+
   Q_PROPERTY(CQChartsColumn attributesColumn READ attributesColumn WRITE setAttributesColumn)
+
+  // extra columns
+  Q_PROPERTY(CQChartsModelInd    nodeModel    READ nodeModel    WRITE setNodeModel)
+  Q_PROPERTY(CQChartsModelColumn nodeIdColumn READ nodeIdColumn WRITE setNodeIdColumn)
 
   //---
 
@@ -171,10 +177,6 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   void setPathIdColumn(const Column &c);
 #endif
 
-  //! get/set attributes column
-  const Column &attributesColumn() const { return attributesColumn_; }
-  void setAttributesColumn(const Column &c);
-
   //! get/set group column
   const Column &groupColumn() const { return groupColumn_; }
   void setGroupColumn(const Column &c);
@@ -182,6 +184,20 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   //! get/set name column
   const Column &nameColumn() const { return nameColumn_; }
   void setNameColumn(const Column &c);
+
+  //! get/set attributes column
+  const Column &attributesColumn() const { return attributesColumn_; }
+  void setAttributesColumn(const Column &c);
+
+  //---
+
+  const CQChartsModelInd &nodeModel() const { return nodeModel_; }
+  void setNodeModel(const CQChartsModelInd &c);
+
+  virtual void initNodeColumns();
+
+  const CQChartsModelColumn &nodeIdColumn() const { return nodeIdColumn_; }
+  void setNodeIdColumn(const CQChartsModelColumn &c);
 
   //---
 
@@ -548,6 +564,15 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //---
 
+  void processMetaData() const;
+
+  virtual bool processMetaNodeValue(const QString &, const QString &,
+                                    const QVariant &) { return false; }
+  virtual bool processMetaEdgeValue(const QString &, const QString &,
+                                    const QVariant &) { return false; }
+
+  //---
+
   bool groupColumnData(const ModelIndex &groupModelInd, GroupData &groupData) const;
 
  protected:
@@ -577,10 +602,14 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 #ifdef CQCHARTS_GRAPH_PATH_ID
   Column     pathIdColumn_;                               //!< pathId column
 #endif
-  Column     attributesColumn_;                           //!< attributes column
   Column     groupColumn_;                                //!< group column
   ColumnType linkColumnType_ { ColumnType::NONE };        //!< link column type
   Column     nameColumn_;                                 //!< name column
+  Column     attributesColumn_;                           //!< attributes column
+
+  // node columns
+  CQChartsModelInd    nodeModel_;    //!< node model
+  CQChartsModelColumn nodeIdColumn_; //!< node id column
 
   bool hasDepthColumn_ { true }; //!< has depth column
 

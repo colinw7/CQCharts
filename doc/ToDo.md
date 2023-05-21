@@ -5,9 +5,12 @@ Abstract Painter/Javascript
 
 TODO:
  + dendrogram
-   + move overlap removal testing with vertical
+   + more overlap removal testing with vertical
+   + save/restore expand
  + sankey
    + bar chart like node width
+ + shape type
+   + add extra data (angle, double border, corner size, ...)
 
  + use MinMax map for more scaling (handles negative values). Handle zero as min ?
  

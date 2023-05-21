@@ -5424,7 +5424,8 @@ CQChartsScatterPlotCustomControls::
 addOptionsWidgets()
 {
   // options group
-  optionsFrame_ = createGroupFrame("Options", "optionsFrame", /*stretch*/false);
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame",
+                                   FrameOpts::makeNoStretch());
 
   bestFitCheck_ = createBoolEdit("bestFit"   , /*choice*/false);
   hullCheck_    = createBoolEdit("convexHull", /*choice*/false);
@@ -5616,11 +5617,11 @@ updateWidgets()
 
   //---
 
-  CQChartsPointPlotCustomControls::updateWidgets();
+  connectSlots(true);
 
   //---
 
-  connectSlots(true);
+  CQChartsPointPlotCustomControls::updateWidgets();
 }
 
 void

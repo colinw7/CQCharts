@@ -1,0 +1,30 @@
+# META_DATA
+#  global,A,node_value,100
+#  global,B,node_value,200
+#  global,C1,node_value,300
+#  global,C2,node_value,400
+#  global,C3,node_value,500
+#  global,D1,node_value,600
+#  global,D2,node_value,550
+#  global,D3,node_value,450
+#  global,D4,node_value,350
+#  global,D5,node_value,250
+#  global,D6,node_value,150
+#  global,D7,node_value,50
+#  global,D8,node_value,125
+#  global,D9,node_value,225
+# END_META_DATA
+Link,Size,Name
+A/B,200,bill
+B/C1,100,fred
+B/C2,100,harry
+B/C3,100,george
+C1/D1,50,fred
+C1/D2,80,harry
+C1/D3,30,william
+C1/D4,10,bert
+C2/D5,74,bill
+C2/D6,83,harry
+C2/D7,11,fred
+C3/D8,15,william
+C3/D9,23,orville

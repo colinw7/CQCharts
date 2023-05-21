@@ -764,13 +764,5 @@ void
 CQChartsFlamePlotCustomControls::
 updateWidgets()
 {
-  connectSlots(false);
-
-  //---
-
   CQChartsGroupPlotCustomControls::updateWidgets();
-
-  //---
-
-  connectSlots(true);
 }

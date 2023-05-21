@@ -933,7 +933,8 @@ CQChartsGridPlotCustomControls::
 addOptionsWidgets()
 {
   // options group
-  optionsFrame_ = createGroupFrame("Options", "optionsFrame", "groupBox", /*stretch*/false);
+  optionsFrame_ = createGroupFrame("Options", "optionsFrame", "groupBox",
+                                   FrameOpts::makeNoStretch());
 
   drawTypeCombo_ = createEnumEdit("drawType");
 
@@ -977,11 +978,11 @@ updateWidgets()
 
   //---
 
-  CQChartsPlotCustomControls::updateWidgets();
+  connectSlots(true);
 
   //---
 
-  connectSlots(true);
+  CQChartsPlotCustomControls::updateWidgets();
 }
 
 //---

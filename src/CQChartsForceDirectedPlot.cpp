@@ -138,8 +138,6 @@ init()
 
   //---
 
-  nodeModel_.setCharts(charts());
-
   forceDirected_ = std::make_unique<CQChartsForceDirected>();
 
   forceDirected_->setStiffness(stiffness());
@@ -209,38 +207,15 @@ setEdgeWidthColumn(const Column &c)
 
 void
 CQChartsForceDirectedPlot::
-setNodeModel(const CQChartsModelInd &model)
+initNodeColumns()
 {
-  if (nodeModel_ != model) {
-    if (nodeModel_.isValid())
-      removeExtraModel(nodeModel_.modelData());
+  CQChartsConnectionPlot::initNodeColumns();
 
-    nodeModel_ = model;
-
-    nodeModel_.setCharts(charts());
-
-    nodeIdColumn_     .setModelInd(nodeModel_.modelInd());
-    nodeShapeColumn_  .setModelInd(nodeModel_.modelInd());
-    nodeLabelColumn_  .setModelInd(nodeModel_.modelInd());
-    nodeValueColumn_  .setModelInd(nodeModel_.modelInd());
-    nodeInitPosColumn_.setModelInd(nodeModel_.modelInd());
-    nodeColorColumn_  .setModelInd(nodeModel_.modelInd());
-
-    addExtraModel(nodeModel_.modelData());
-
-    updateRangeAndObjs();
-  }
-}
-
-void
-CQChartsForceDirectedPlot::
-setNodeIdColumn(const CQChartsModelColumn &c)
-{
-  CQChartsUtil::testAndSet(nodeIdColumn_, c, [&]() {
-    nodeIdColumn_.setCharts(charts());
-
-    updateRangeAndObjs();
-  } );
+  nodeShapeColumn_  .setModelInd(nodeModel_.modelInd());
+  nodeLabelColumn_  .setModelInd(nodeModel_.modelInd());
+  nodeValueColumn_  .setModelInd(nodeModel_.modelInd());
+  nodeInitPosColumn_.setModelInd(nodeModel_.modelInd());
+  nodeColorColumn_  .setModelInd(nodeModel_.modelInd());
 }
 
 void
@@ -736,8 +711,6 @@ addProperties()
   addProp("columns", "edgeWidthColumn", "edgeWidth", "Edge width column");
 
   // node columns
-  addPropI("nodeModel", "nodeModel"        , "model"        , "Node id nodel");
-  addPropI("nodeModel", "nodeIdColumn"     , "idColumn"     , "Node id column");
   addPropI("nodeModel", "nodeShapeColumn"  , "shapeColumn"  , "Node shape column");
   addPropI("nodeModel", "nodeLabelColumn"  , "labelColumn"  , "Node label column");
   addPropI("nodeModel", "nodeValueColumn"  , "valueColumn"  , "Node value column");
@@ -1197,46 +1170,6 @@ execInitSteps()
   updateBusyButton();
 
   drawObjs();
-}
-
-void
-CQChartsForceDirectedPlot::
-processMetaData() const
-{
-  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
-
-  const auto &model = th->currentModel();
-
-  auto *pmodel = model.data();
-
-  auto names = CQChartsModelUtil::modelMetaNames(pmodel);
-
-  for (const auto &name : names) {
-    auto keys = CQChartsModelUtil::modelMetaNameKeys(pmodel, name);
-
-    for (const auto &key : keys) {
-      auto value = CQChartsModelUtil::getModelMetaValue(pmodel, name, key);
-
-      bool handled = false;
-
-      if (key.left(5) == "node_") {
-        auto key1 = key.mid(5);
-
-        auto &connectionsData = th->getConnections(name);
-
-        if (processNodeNameVar(connectionsData, key1, value))
-          handled = true;
-      }
-
-      if (! handled) {
-        std::cerr << "Unhandled:";
-        std::cerr << " name=" << name.toStdString();
-        std::cerr << " key=" << key.toStdString();
-        std::cerr << " value=" << value.toString().toStdString();
-        std::cerr << "\n";
-      }
-    }
-  }
 }
 
 void
@@ -2199,6 +2132,15 @@ initEdgeValueName(const Column &c)
 }
 
 //---
+
+bool
+CQChartsForceDirectedPlot::
+processMetaNodeValue(const QString &name, const QString &key, const QVariant &value)
+{
+  auto &connectionsData = getConnections(name);
+
+  return processNodeNameVar(connectionsData, key, value);
+}
 
 void
 CQChartsForceDirectedPlot::
@@ -4871,11 +4813,11 @@ updateWidgets()
 
   runningCheck_->setChecked(forceDirectedPlot_->isAnimating());
 
-  CQChartsConnectionPlotCustomControls::updateWidgets();
-
   //---
 
   connectSlots(true);
+
+  CQChartsConnectionPlotCustomControls::updateWidgets();
 }
 
 void

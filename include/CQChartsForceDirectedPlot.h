@@ -5,7 +5,6 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
-#include <CQChartsModelColumn.h>
 #include <CQChartsForceDirected.h>
 #include <CForceDirected.h>
 
@@ -157,10 +156,6 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(CQChartsColumn edgeWidthColumn READ edgeWidthColumn WRITE setEdgeWidthColumn)
 
   // extra columns
-  Q_PROPERTY(CQChartsModelInd    nodeModel
-             READ nodeModel         WRITE setNodeModel)
-  Q_PROPERTY(CQChartsModelColumn nodeIdColumn
-             READ nodeIdColumn      WRITE setNodeIdColumn)
   Q_PROPERTY(CQChartsModelColumn nodeShapeColumn
              READ nodeShapeColumn   WRITE setNodeShapeColumn)
   Q_PROPERTY(CQChartsModelColumn nodeLabelColumn
@@ -365,11 +360,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //--
 
-  const CQChartsModelInd &nodeModel() const { return nodeModel_; }
-  void setNodeModel(const CQChartsModelInd &c);
-
-  const CQChartsModelColumn &nodeIdColumn() const { return nodeIdColumn_; }
-  void setNodeIdColumn(const CQChartsModelColumn &c);
+  void initNodeColumns() override;
 
   const CQChartsModelColumn &nodeShapeColumn() const { return nodeShapeColumn_; }
   void setNodeShapeColumn(const CQChartsModelColumn &c);
@@ -675,13 +666,15 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
+  bool processMetaNodeValue(const QString &name, const QString &key,
+                            const QVariant &value) override;
+
   void processNodeNameValues(ConnectionsData &connectionsData,
                              const NameValues &nameValues) const;
-
-  bool processNodeNameVar(ConnectionsData &connectionsData, const QString &name,
-                          const QVariant &var) const;
-  void processNodeNameValue(ConnectionsData &connectionsData, const QString &name,
-                            const QString &valueStr) const;
+  void processNodeNameValue (ConnectionsData &connectionsData, const QString &name,
+                             const QString &valueStr) const;
+  bool processNodeNameVar   (ConnectionsData &connectionsData, const QString &name,
+                             const QVariant &var) const;
 
   void processEdgeNameValues(Connection *, const NameValues &nameValues) const;
 
@@ -695,8 +688,6 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   void postUpdateObjs() override;
 
   void filterObjs();
-
-  void processMetaData() const;
 
   void addIdConnections() const;
 
@@ -938,8 +929,6 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Column edgeWidthColumn_; //!< edge width column
 
   // node columns
-  CQChartsModelInd    nodeModel_;         //!< node model
-  CQChartsModelColumn nodeIdColumn_;      //!< node id column
   CQChartsModelColumn nodeShapeColumn_;   //!< node shape column
   CQChartsModelColumn nodeLabelColumn_;   //!< node label column
   CQChartsModelColumn nodeValueColumn_;   //!< node value column

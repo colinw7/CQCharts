@@ -152,6 +152,7 @@ using Point       = CQChartsGeom::Point;
 using EdgeType    = CQChartsEdgeType;
 
 void drawShape(PaintDevice *device, const CQChartsShapeTypeData &shapeData, const BBox &rect);
+void drawShapeSwatch(PaintDevice *device, const CQChartsShapeTypeData &shapeData, const BBox &rect);
 
 void drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
                  const Length &lineWidth, bool horizontal, const Symbol &symbol,

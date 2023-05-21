@@ -36,6 +36,7 @@ class Tree : public CBuchHeim::Tree {
 class PlotDendrogram : public CQChartsDendrogram {
  public:
   using ModelIndex = CQChartsModelIndex;
+  using Color      = CQChartsColor;
   using OptReal    = CQChartsOptReal;
 
  public:
@@ -53,16 +54,19 @@ class PlotDendrogram : public CQChartsDendrogram {
     const QModelIndex &ind() const { return ind_; }
     void setInd(const QModelIndex &v) { ind_ = v; }
 
+    const Color &color() const { return color_; }
+    void setColor(const Color &c) { color_ = c; }
+
     const OptReal &colorValue() const { return colorValue_; }
     void setColorValue(const OptReal &r) { colorValue_ = r; }
 
     const OptReal &sizeValue() const { return sizeValue_; }
     void setSizeValue(const OptReal &v) { sizeValue_ = v; }
 
-    const OptReal &edgeValue(const PlotNode *toNode) const {
-      return getIdOptReal(toNode, edgeValue_); }
-    void setEdgeValue(PlotNode *toNode, const OptReal &r) {
-      edgeValue_[toNode->id()] = r; }
+    const Color &edgeColor(const PlotNode *toNode) const {
+      return getIdColor(toNode, edgeColor_); }
+    void setEdgeColor(PlotNode *toNode, const Color &c) {
+      edgeColor_[toNode->id()] = c; }
 
     const OptReal &edgeColorValue(const PlotNode *toNode) const {
       return getIdOptReal(toNode, edgeColorValue_); }
@@ -75,7 +79,14 @@ class PlotDendrogram : public CQChartsDendrogram {
       edgeSizeValue_[toNode->id()] = v; }
 
    private:
+    using IdColor   = std::map<uint, Color>;
     using IdOptReal = std::map<uint, OptReal>;
+
+    const Color &getIdColor(const PlotNode *toNode, const IdColor &idColor) const {
+      static Color c;
+      auto p = idColor.find(toNode->id());
+      return (p != idColor.end() ? (*p).second : c);
+    }
 
     const OptReal &getIdOptReal(const PlotNode *toNode, const IdOptReal &idOptReal) const {
       static OptReal r;
@@ -86,9 +97,10 @@ class PlotDendrogram : public CQChartsDendrogram {
    private:
     ModelIndex  modelInd_;
     QModelIndex ind_;
+    Color       color_;
     OptReal     colorValue_;
     OptReal     sizeValue_;
-    IdOptReal   edgeValue_;
+    IdColor     edgeColor_;
     IdOptReal   edgeColorValue_;
     IdOptReal   edgeSizeValue_;
   };
@@ -287,6 +299,15 @@ setRootSize(const Length &s)
 
 void
 CQChartsDendrogramPlot::
+setRootMinSize(const Length &s)
+{
+  CQChartsUtil::testAndSet(rootNodeData_.minSize, s, [&]() {
+    cacheData_.needsPlace = true; updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsDendrogramPlot::
 setRootShape(const CQChartsShapeType &s)
 {
   CQChartsUtil::testAndSet(rootNodeData_.shape, s, [&]() {
@@ -338,6 +359,15 @@ CQChartsDendrogramPlot::
 setHierSize(const Length &s)
 {
   CQChartsUtil::testAndSet(hierNodeData_.size, s, [&]() {
+    cacheData_.needsPlace = true; updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsDendrogramPlot::
+setHierMinSize(const Length &s)
+{
+  CQChartsUtil::testAndSet(hierNodeData_.minSize, s, [&]() {
     cacheData_.needsPlace = true; updateRangeAndObjs();
   } );
 }
@@ -401,6 +431,15 @@ setLeafSize(const Length &s)
 
 void
 CQChartsDendrogramPlot::
+setLeafMinSize(const Length &s)
+{
+  CQChartsUtil::testAndSet(leafNodeData_.minSize, s, [&]() {
+    cacheData_.needsPlace = true; updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsDendrogramPlot::
 setLeafShape(const CQChartsShapeType &s)
 {
   CQChartsUtil::testAndSet(leafNodeData_.shape, s, [&]() {
@@ -445,36 +484,85 @@ calcLeafSize() const
   return ss;
 }
 
-//---
+void
+CQChartsDendrogramPlot::
+setNodeColorByValue(const ValueType &v)
+{
+  CQChartsUtil::testAndSet(leafNodeData_.colorByValue, v, [&]() { drawObjs(); } );
+}
 
 void
 CQChartsDendrogramPlot::
-setEdgeScaled(bool b)
+setNodeSizeByValue(const ValueType &v)
 {
-  CQChartsUtil::testAndSet(edgeScaled_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(leafNodeData_.sizeByValue, v, [&]() { drawObjs(); } );
 }
+
+void
+CQChartsDendrogramPlot::
+setColorClosed(bool b)
+{
+  CQChartsUtil::testAndSet(colorClosed_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsDendrogramPlot::
+setSwatchColor(bool b)
+{
+  CQChartsUtil::testAndSet(swatchColor_, b, [&]() { drawObjs(); } );
+}
+
+//---
 
 void
 CQChartsDendrogramPlot::
 setEdgeWidth(const Length &l)
 {
-  CQChartsUtil::testAndSet(edgeWidth_, l, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(edgeData_.width, l, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDendrogramPlot::
 setMinEdgeWidth(const Length &l)
 {
-  CQChartsUtil::testAndSet(minEdgeWidth_, l, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(edgeData_.minWidth, l, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDendrogramPlot::
+setEdgeColorByValue(bool b)
+{
+  CQChartsUtil::testAndSet(edgeData_.colorByValue, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsDendrogramPlot::
+setEdgeSizeByValue(bool b)
+{
+  CQChartsUtil::testAndSet(edgeData_.sizeByValue, b, [&]() { drawObjs(); } );
 }
 
 //---
 
 double
 CQChartsDendrogramPlot::
-edgeValueScale(const EdgeObj * /*edge*/, double value) const
+mapHierValue(double value) const
 {
-  //return value/edge->fromNode()->childTotal();
+  auto *root = rootNodeObj();
+  if (! root) return 0.0;
+
+  if (! root->hierValue().isSet())
+    return 0.0;
+
+  RMinMax valueRange(0.0, root->hierValue().real());
+
+  return valueRange.map(value, 0.0, 1.0);
+}
+
+double
+CQChartsDendrogramPlot::
+mapValue(double value) const
+{
   return valueRange_.map(value, 0.0, 1.0);
 }
 
@@ -483,6 +571,27 @@ CQChartsDendrogramPlot::
 mapColor(double value) const
 {
   return colorRange_.map(value, 0.0, 1.0);
+}
+
+double
+CQChartsDendrogramPlot::
+mapSize(double value) const
+{
+  return sizeRange_.map(value, 0.0, 1.0);
+}
+
+double
+CQChartsDendrogramPlot::
+mapNodeValue(double value) const
+{
+  return nodeValueRange_.map(value, 0.0, 1.0);
+}
+
+double
+CQChartsDendrogramPlot::
+mapEdgeValue(double value) const
+{
+  return edgeValueRange_.map(value, 0.0, 1.0);
 }
 
 //---
@@ -697,6 +806,7 @@ addProperties()
   // root
   addProp("root"      , "rootVisible"     , "visible" , "Root is visible");
   addProp("root"      , "rootSize"        , "size"    , "Node shape size");
+  addProp("root"      , "rootMinSize"     , "minSize" , "Node shape min size");
   addProp("root"      , "rootAspect"      , "aspect"  , "Node shape aspect");
   addProp("root"      , "rootShape"       , "shape"   , "Root shape");
   addProp("root/label", "rootTextPosition", "position", "Root label position");
@@ -719,6 +829,7 @@ addProperties()
   // hier
   addProp("hier"      , "hierSize"        , "size"    , "Hier shape size");
   addProp("hier"      , "hierAspect"      , "aspect"  , "Hier shape aspect");
+  addProp("hier"      , "hierMinSize"     , "minSize" , "Hier shape min size");
   addProp("hier"      , "hierShape"       , "shape"   , "Hier shape");
   addProp("hier/label", "hierTextVisible" , "visible" , "Hier labels visible");
   addProp("hier/label", "hierTextPosition", "position", "Hier labels position");
@@ -740,6 +851,7 @@ addProperties()
 
   // leaf
   addProp("leaf"      , "leafSize"        , "size"    , "Leaf shape size");
+  addProp("leaf"      , "leafMinSize"     , "minSize" , "Leaf shape min size");
   addProp("leaf"      , "leafAspect"      , "aspect"  , "Leaf shape aspect");
   addProp("leaf"      , "leafShape"       , "shape"   , "Leaf shape");
   addProp("leaf/label", "leafTextVisible" , "visible" , "Leaf labels visible");
@@ -760,10 +872,16 @@ addProperties()
   addProp("leaf/fill", "leafFilled", "visible", "Leaf fill visible");
   addFillProperties("leaf/fill", "leafFill", "Leaf");
 
+  addProp("node", "nodeColorByValue", "colorByValue", "Node is color by value");
+  addProp("node", "nodeSizeByValue" , "sizeByValue" , "Node is size by value");
+  addProp("node", "colorClosed"     , "colorClosed" , "Node color closed");
+  addProp("node", "swatchColor"     , "swatchColor" , "Node swatch color");
+
   // general edge
-  addProp("edge", "edgeScaled"  , "scaled"  , "Edge is scaled");
-  addProp("edge", "edgeWidth"   , "width"   , "Edge width");
-  addProp("edge", "minEdgeWidth", "minWidth", "Min Edge width");
+  addProp("edge", "edgeWidth"       , "width"       , "Edge width");
+  addProp("edge", "minEdgeWidth"    , "minWidth"    , "Min Edge width");
+  addProp("edge", "edgeColorByValue", "colorByValue", "Edge is color by value");
+  addProp("edge", "edgeSizeByValue" , "sizeByValue" , "Edge is size by value");
 
   addProp("edge/stroke", "edgeStroked", "visible", "Edge stroke visible");
   addLineProperties("edge/stroke", "edgeStroke", "Edge");
@@ -800,6 +918,9 @@ calcRange() const
   if (! checkColumn       (linkColumn (), "Link" )) columnsValid = false;
   if (! checkNumericColumn(valueColumn(), "Value")) columnsValid = false;
   if (! checkNumericColumn(sizeColumn (), "Size" )) columnsValid = false;
+
+  // attributes optional
+  if (! checkColumn(attributesColumn(), "Attributes")) columnsValid = false;
 
   if (! columnsValid)
     return Range(0.0, 0.0, 1.0, 1.0);
@@ -895,6 +1016,9 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  th->nodeValueRange_.reset();
+  th->edgeValueRange_.reset();
+
   // init sum of child values for all hier nodes (including root)
   for (auto *plotObj : nodeObjs) {
     auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
@@ -908,6 +1032,9 @@ createObjs(PlotObjs &objs) const
     }
 
     cacheData_.nodeObjs[const_cast<Node *>(hierNode)] = nodeObj;
+
+    if (hierNode->size())
+      th->nodeValueRange_.add(*hierNode->size());
   }
 
   //---
@@ -927,6 +1054,9 @@ createObjs(PlotObjs &objs) const
       auto *edgeObj = addEdgeObj(fromObj, toObj);
 
       edgeObjs.push_back(edgeObj);
+
+      if (edgeObj->value().isSet())
+        th->edgeValueRange_.add(edgeObj->value().real());
     }
   }
 
@@ -999,6 +1129,7 @@ placeModel() const
   //---
 
   th->tempRoot_ = th->dendrogram_->createNode(nullptr, "tempRoot");
+  th->tempRoot_->setTemp(true);
 
   //---
 
@@ -1016,9 +1147,9 @@ placeModel() const
       if (dendrogramPlot_->nameColumns().isValid()) {
         // get name and associated model index for row
         QString    name;
-        ModelIndex nameInd;
+        ModelIndex modelNameInd;
 
-        auto ok = getName(data, nameInd, name);
+        auto ok = getName(data, modelNameInd, name);
 
         // add parent path
         auto path = CQChartsModelUtil::parentPath(model, data.parent);
@@ -1026,7 +1157,7 @@ placeModel() const
         if (ok && path.length())
           name = path + "/" + name;
 
-        dendrogramPlot_->addHierName(name, nameInd);
+        dendrogramPlot_->addHierName(name, modelNameInd);
       }
 
       return State::OK;
@@ -1036,12 +1167,12 @@ placeModel() const
       // get name and associated model index for row
       QString          name;
       CQChartsNamePair namePair;
-      ModelIndex       nameInd;
+      ModelIndex       modelNameInd;
 
       // get name
       if      (dendrogramPlot_->nameColumns().isValid()) {
         // get node name
-        auto ok = getName(data, nameInd, name);
+        auto ok = getName(data, modelNameInd, name);
 
         // add parent path
         auto path = CQChartsModelUtil::parentPath(model, data.parent);
@@ -1083,17 +1214,13 @@ placeModel() const
       //---
 
       // get node or edge color
+      Color   color;
       OptReal colorValue;
 
       if (dendrogramPlot_->colorColumn().isValid()) {
-        double     color = 0.0;
         ModelIndex colorInd;
 
-        if (getColor(data, colorInd, color)) {
-          if (! CMathUtil::isNaN(color))
-            colorValue = OptReal(color);
-        }
-        else {
+        if (! getColor(data, colorInd, color, colorValue)) {
           if (! dendrogramPlot_->isSkipBad())
             return addDataError(colorInd, "Invalid Color");
         }
@@ -1120,11 +1247,28 @@ placeModel() const
 
       //---
 
+      // get attributes from optional column
+      CQChartsNameValues nameValues;
+
+      if (dendrogramPlot_->attributesColumn().isValid()) {
+        ModelIndex attributesModelInd(dendrogramPlot_, data.row,
+                                      dendrogramPlot_->attributesColumn(), data.parent);
+
+        bool ok;
+        auto attributesStr = dendrogramPlot_->modelString(attributesModelInd, ok);
+        if (! ok) return State::SKIP;
+
+        nameValues = CQChartsNameValues(attributesStr);
+      }
+
+      //---
+
       // add to nodes/edges
       dendrogramPlot_->addNameValue(name, namePair, QStringList(),
-                                    value, nameInd, colorValue, sizeValue, edges_);
+                                    value, modelNameInd, color, colorValue, sizeValue,
+                                    nameValues, edges_);
 
-      //--
+      //---
 
       return State::OK;
     }
@@ -1163,17 +1307,29 @@ placeModel() const
       return ok;
     }
 
-    bool getColor(const VisitData &data, ModelIndex &colorInd, double &color) {
+    bool getColor(const VisitData &data, ModelIndex &colorInd, Color &color, OptReal &colorValue) {
       colorInd = ModelIndex(dendrogramPlot_, data.row, dendrogramPlot_->colorColumn(),
                             data.parent);
 
       bool ok;
-      color = dendrogramPlot_->modelReal(colorInd, ok);
+      auto var = dendrogramPlot_->modelValue(colorInd, ok);
       if (! ok) return false;
 
-      colorRange_.add(color);
+      auto r = CQChartsVariant::toReal(var, ok);
 
-      return true;
+      if (ok) {
+        if (CMathUtil::isNaN(r)) return false;
+
+        color      = Color::makePaletteValue(r);
+        colorValue = OptReal(r);
+
+        colorRange_.add(r);
+      }
+      else {
+        color = CQChartsVariant::toColor(var, ok);
+      }
+
+      return ok;
     }
 
     bool getSize(const VisitData &data, ModelIndex &sizeInd, double &size) {
@@ -1191,6 +1347,7 @@ placeModel() const
 
     const RMinMax &valueRange() const { return valueRange_; }
     const RMinMax &colorRange() const { return colorRange_; }
+    const RMinMax &sizeRange () const { return sizeRange_; }
 
    private:
     State addDataError(const ModelIndex &ind, const QString &msg) const {
@@ -1309,17 +1466,13 @@ placeModel() const
       //---
 
       // get node color
+      Color   color;
       OptReal colorValue;
 
       if (dendrogramPlot_->colorColumn().isValid()) {
-        double     color = 0.0;
         ModelIndex colorInd;
 
-        if (getColor(data, colorInd, color)) {
-          if (! CMathUtil::isNaN(color))
-            colorValue = OptReal(color);
-        }
-        else {
+        if (! getColor(data, colorInd, color, colorValue)) {
           if (! dendrogramPlot_->isSkipBad())
             return addDataError(colorInd, "Invalid Color");
         }
@@ -1346,9 +1499,26 @@ placeModel() const
 
       //---
 
+      // get attributes from optional column
+      CQChartsNameValues nameValues;
+
+      if (dendrogramPlot_->attributesColumn().isValid()) {
+        ModelIndex attributesModelInd(dendrogramPlot_, data.row,
+                                      dendrogramPlot_->attributesColumn(), data.parent);
+
+        bool ok;
+        auto attributesStr = dendrogramPlot_->modelString(attributesModelInd, ok);
+        if (! ok) return State::SKIP;
+
+        nameValues = CQChartsNameValues(attributesStr);
+      }
+
+      //---
+
       // add to nodes/edges
       dendrogramPlot_->addNameValue(groupName, CQChartsNamePair(), nameStrs,
-                                    value, modelNameInd, colorValue, sizeValue, edges_);
+                                    value, modelNameInd, color, colorValue, sizeValue,
+                                    nameValues, edges_);
 
       //---
 
@@ -1369,17 +1539,29 @@ placeModel() const
       return ok;
     }
 
-    bool getColor(const VisitData &data, ModelIndex &colorInd, double &color) {
+    bool getColor(const VisitData &data, ModelIndex &colorInd, Color &color, OptReal &colorValue) {
       colorInd = ModelIndex(dendrogramPlot_, data.row, dendrogramPlot_->colorColumn(),
                             data.parent);
 
       bool ok;
-      color = dendrogramPlot_->modelReal(colorInd, ok);
+      auto var = dendrogramPlot_->modelValue(colorInd, ok);
       if (! ok) return false;
 
-      colorRange_.add(color);
+      auto r = CQChartsVariant::toReal(var, ok);
 
-      return true;
+      if (ok) {
+        if (CMathUtil::isNaN(r)) return false;
+
+        color      = Color::makePaletteValue(r);
+        colorValue = OptReal(r);
+
+        colorRange_.add(r);
+      }
+      else {
+        color = CQChartsVariant::toColor(var, ok);
+      }
+
+      return ok;
     }
 
     bool getSize(const VisitData &data, ModelIndex &sizeInd, double &size) {
@@ -1397,6 +1579,7 @@ placeModel() const
 
     const RMinMax &valueRange() const { return valueRange_; }
     const RMinMax &colorRange() const { return colorRange_; }
+    const RMinMax &sizeRange () const { return sizeRange_; }
 
    private:
     State addDataError(const ModelIndex &ind, const QString &msg) const {
@@ -1417,6 +1600,7 @@ placeModel() const
   //---
 
   Edges edges;
+  bool  isEdgeRows = false;
 
   if (isHierarchical() || linkColumn().isValid()) {
     HierRowVisitor visitor(this, edges);
@@ -1425,6 +1609,10 @@ placeModel() const
 
     th->valueRange_ = visitor.valueRange();
     th->colorRange_ = visitor.colorRange();
+    th->sizeRange_  = visitor.sizeRange ();
+
+    if (linkColumn().isValid())
+      isEdgeRows = true;
   }
   else {
     FlatRowVisitor visitor(this, edges);
@@ -1433,37 +1621,12 @@ placeModel() const
 
     th->valueRange_ = visitor.valueRange();
     th->colorRange_ = visitor.colorRange();
+    th->sizeRange_  = visitor.sizeRange ();
   }
 
   //---
 
   auto *root = rootNode();
-
-  while (root->getChildren().size() == 1) {
-    auto &child = root->getChildren()[0];
-
-    auto *childNode  = child.node;
- // auto  childValue = child.value;
-
-    root->removeChild(childNode);
-
-  //root->setValue(childValue);
-
-    for (auto &node1 : childNode->getNodes())
-      root->addNode(node1.node, node1.value);
-
-    for (auto &child1 : childNode->getChildren())
-      root->addChild(child1.node, child1.value);
-
-    childNode->removeAll();
-
-    delete childNode;
-  }
-
-  if (root)
-    root->setOpen(true);
-
-  //---
 
   // process from/to edges to build tree
   if (! edges.empty()) {
@@ -1504,8 +1667,70 @@ placeModel() const
 
   //---
 
+  // remove extra roots
+  while (root->getChildren().size() == 1 && root->isTemp()) {
+    auto &child = root->getChildren()[0];
+
+    auto *childNode  = child.node;
+  //auto  childValue = child.value;
+
+    root->removeChild(childNode);
+
+  //root->setValue(childValue);
+
+    for (auto &child1 : childNode->getChildren()) {
+      root->addChild(child1.node, child1.value);
+    }
+
+    childNode->removeAll();
+
+    root->setName(childNode->name());
+
+    if (childNode->size())
+      root->setSize(childNode->size());
+
+    root->setTemp(childNode->isTemp());
+
+    delete childNode;
+  }
+
+  //---
+
+  if (root)
+    root->setOpen(true);
+
+  //---
+
+  processMetaData(isEdgeRows);
+
+  //---
+
   place();
 }
+
+//---
+
+bool
+CQChartsDendrogramPlot::
+processMetaNodeValue(const QString &name, const QString &key, const QVariant &value)
+{
+  auto *root = rootNode();
+  if (! root) return false;
+
+  auto *node = root->findHierChild(name);
+  if (! node) return false;
+
+  return processNodeNameVar(node, key, value);
+}
+
+bool
+CQChartsDendrogramPlot::
+processMetaEdgeValue(const QString &, const QString &, const QVariant &)
+{
+  return false;
+}
+
+//---
 
 void
 CQChartsDendrogramPlot::
@@ -1582,17 +1807,6 @@ addBuchheimHierNode(CBuchHeim::Tree *tree, Node *hierNode, int depth) const
     tree->addChild(CBuchHeim::TreeP(childTree));
 
     addBuchheimHierNode(childTree, hierNode1.node, depth + 1);
-  }
-
-  for (auto &node : hierNode->getNodes()) {
-    if (isHideDepth(node.node, depth + 1))
-      continue;
-
-    auto *childTree = new Tree(node.node);
-
-    tree->addChild(CBuchHeim::TreeP(childTree));
-
-    node.node->setDepth(depth + 1);
   }
 }
 
@@ -1680,7 +1894,7 @@ placeCircular() const
           da = (*pa).second.da;
         }
 
-        auto n = pnode->getChildren().size() + pnode->getNodes().size();
+        auto n = pnode->getChildren().size();
 
         if (n > 1) {
           a1  = a;
@@ -1730,9 +1944,6 @@ initCircularDepth(Node *hierNode, CircularDepth &circularDepth, int depth, int &
 
     for (const auto &child : hierNode->getChildren())
       initCircularDepth(child.node, circularDepth, depth + 1, maxDepth);
-
-    for (const auto &node : hierNode->getNodes())
-      circularDepth[depth + 1].nodes.push_back(node.node);
   }
 }
 
@@ -1744,6 +1955,7 @@ addHierName(const QString &nameStr, const ModelIndex &modelInd) const
 
   if (! root) {
     auto *hierNode = dendrogram_->addRootNode("root");
+    hierNode->setTemp(true);
 
     hierNode->setOpen(false);
   }
@@ -1786,7 +1998,7 @@ addHierName(const QString &nameStr, const ModelIndex &modelInd) const
       auto *hierNode1 = hierNode->findChild(n);
 
       if (! hierNode1) {
-        hierNode = dendrogram_->addHierNode(hierNode, n);
+        hierNode = dendrogram_->addEdge(hierNode, n);
 
         hierNode->setOpen(false);
       }
@@ -1808,13 +2020,15 @@ addHierName(const QString &nameStr, const ModelIndex &modelInd) const
 void
 CQChartsDendrogramPlot::
 addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QStringList &nameList,
-             const OptReal &value, const ModelIndex &modelInd, const OptReal &colorValue,
-             OptReal &sizeValue, Edges &edges) const
+             const OptReal &value, const ModelIndex &modelInd, const Color &color,
+             const OptReal &colorValue, OptReal &sizeValue,
+             const CQChartsNameValues &nameValues, Edges &edges) const
 {
   auto *root = rootNode();
 
   if (! root) {
     auto *hierNode = dendrogram_->addRootNode("root");
+    hierNode->setTemp(true);
 
     hierNode->setOpen(false);
   }
@@ -1823,16 +2037,17 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
 
   QStringList names;
 
+  // edge for namePair names
   if      (namePair.isValid()) {
     // get from/to node and create edge
     auto *fromNode = tempRoot_->findChild(namePair.name1());
     auto *toNode   = tempRoot_->findChild(namePair.name2());
 
     if (! fromNode)
-      fromNode = dendrogram_->addHierNode(tempRoot_, namePair.name1());
+      fromNode = dendrogram_->addEdge(tempRoot_, namePair.name1());
 
     if (! toNode)
-      toNode = dendrogram_->addHierNode(tempRoot_, namePair.name2());
+      toNode = dendrogram_->addEdge(tempRoot_, namePair.name2());
 
     auto *edge = new Edge(fromNode, toNode, value);
 
@@ -1840,11 +2055,13 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
     auto *toNode1   = dynamic_cast<PlotDendrogram::PlotNode *>(toNode); assert(toNode1);
 
     if (value.isSet())
-      fromNode1->setEdgeValue(toNode1, value);
+      fromNode->setChildValue(toNode, value.real());
 
-    if (colorValue.isSet()) {
+    if (color.isValid() || colorValue.isSet()) {
+      edge->color      = color;
       edge->colorValue = colorValue;
 
+      fromNode1->setEdgeColor     (toNode1, color);
       fromNode1->setEdgeColorValue(toNode1, colorValue);
     }
 
@@ -1855,7 +2072,10 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
     }
 
     edges.push_back(edge);
+
+    processEdgeNameValues(edge, nameValues);
   }
+  // edges for hier names
   else if (nameList.count() > 0) {
     auto nameList1 = nameList;
 
@@ -1873,7 +2093,7 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
       auto *hierNode1 = hierNode->findChild(name);
 
       if (! hierNode1) {
-        hierNode = dendrogram_->addHierNode(hierNode, name);
+        hierNode = dendrogram_->addEdge(hierNode, name);
 
         hierNode->setOpen(false);
       }
@@ -1883,7 +2103,7 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
 
     const auto &nname = nameList1[n - 1];
 
-    auto *node = dendrogram_->addHierNode(hierNode, nname, value.realOr(0.0));
+    auto *node = dendrogram_->addNode(hierNode, nname, value.realOr(0.0));
     assert(node);
 
     auto *node1 = dynamic_cast<PlotDendrogram::PlotNode *>(node); assert(node1);
@@ -1893,12 +2113,17 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
     node1->setModelInd(modelInd);
     node1->setInd     (normalizeIndex(modelInd1));
 
-    if (colorValue.isSet())
+    if (color.isValid() || colorValue.isSet()) {
+      node1->setColor     (color);
       node1->setColorValue(colorValue);
+    }
 
     if (sizeValue.isSet())
       node1->setSizeValue(sizeValue);
+
+    processNodeNameValues(node1, nameValues);
   }
+  // edges for separated names
   else {
     // split name into hier path elements
     auto name1 = nameStr;
@@ -1937,7 +2162,7 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
         auto *hierNode1 = hierNode->findChild(n);
 
         if (! hierNode1) {
-          hierNode = dendrogram_->addHierNode(hierNode, n);
+          hierNode = dendrogram_->addEdge(hierNode, n);
 
           hierNode->setOpen(false);
         }
@@ -1946,7 +2171,7 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
       }
     }
 
-    auto *node = dendrogram_->addHierNode(hierNode, name1, value.realOr(0.0));
+    auto *node = dendrogram_->addNode(hierNode, name1, value.realOr(0.0));
     assert(node);
 
     auto *node1 = dynamic_cast<PlotDendrogram::PlotNode *>(node); assert(node1);
@@ -1956,12 +2181,105 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
     node1->setModelInd(modelInd);
     node1->setInd     (normalizeIndex(modelInd1));
 
-    if (colorValue.isSet())
+    if (color.isValid() || colorValue.isSet()) {
+      node1->setColor     (color);
       node1->setColorValue(colorValue);
+    }
 
     if (sizeValue.isSet())
       node1->setSizeValue(sizeValue);
+
+    processNodeNameValues(node1, nameValues);
   }
+}
+
+//---
+
+void
+CQChartsDendrogramPlot::
+processEdgeNameValues(Edge *edge, const CQChartsNameValues &nameValues) const
+{
+  for (const auto &nv : nameValues.nameValues()) {
+    const auto &name     = nv.first;
+    auto        valueStr = nv.second.toString();
+
+    // custom value
+    if      (name == "label") {
+      edge->value = OptReal(valueStr.toDouble());
+    }
+    // handle custom value for source node
+    else if (name.left(4) == "src_") {
+      processNodeNameValue(edge->from, name.mid(4), valueStr);
+    }
+    // handle custom value for destination node
+    else if (name.left(5) == "dest_") {
+      processNodeNameValue(edge->to, name.mid(5), valueStr);
+    }
+  }
+}
+
+void
+CQChartsDendrogramPlot::
+processNodeNameValues(Node *node, const CQChartsNameValues &nameValues) const
+{
+  for (const auto &nv : nameValues.nameValues()) {
+    const auto &name  = nv.first;
+    auto        value = nv.second.toString();
+
+    processNodeNameValue(node, name, value);
+  }
+}
+
+void
+CQChartsDendrogramPlot::
+processNodeNameValue(Node *node, const QString &name, const QString &valueStr) const
+{
+  if (! processNodeNameVar(node, name, valueStr)) {
+    auto *th = const_cast<CQChartsDendrogramPlot *>(this);
+
+    th->addDataError(ModelIndex(), QString("Unhandled name '%1'").arg(name));
+  }
+}
+
+bool
+CQChartsDendrogramPlot::
+processNodeNameVar(Node *node, const QString &name, const QVariant &var) const
+{
+  bool ok;
+
+  // custom value
+  if      (name == "value") {
+    auto v = CQChartsVariant::toReal(var, ok);
+    if (! ok) return false;
+
+    node->setSize(v);
+  }
+  else if (name == "color") {
+    Color   color;
+    OptReal colorValue;
+
+    bool ok;
+    auto r = CQChartsVariant::toReal(var, ok);
+
+    if (ok) {
+      color      = Color::makePaletteValue(r);
+      colorValue = OptReal(r);
+    }
+    else {
+      color = CQChartsVariant::toColor(var, ok);
+    }
+
+    auto *node1 = dynamic_cast<PlotDendrogram::PlotNode *>(node); assert(node1);
+
+    if (node1) {
+      node1->setColor     (color);
+      node1->setColorValue(colorValue);
+    }
+  }
+  else
+    return false;
+
+  return true;
 }
 
 //---
@@ -1984,6 +2302,8 @@ calcExtraFitBBox() const
     bool isHier = nodeObj->isHier();
 
     bool textVisible = (isHier ? isHierTextVisible() : isLeafTextVisible());
+
+    bbox += nodeObj->displayRect();
 
     if (textVisible)
       bbox += nodeObj->textRect();
@@ -2478,12 +2798,6 @@ calcHierColor(const Node *hierNode) const
   if (hierNode->isHier()) {
     for (const auto &child : hierNode->getChildren())
       color += calcHierColor(child.node);
-
-    for (const auto &node : hierNode->getNodes()) {
-      auto *node1 = dynamic_cast<const PlotDendrogram::PlotNode *>(node.node); assert(node1);
-
-      color += node1->colorValue().realOr(0.0);
-    }
   }
   else {
     auto *node1 = dynamic_cast<const PlotDendrogram::PlotNode *>(hierNode); assert(node1);
@@ -2505,12 +2819,6 @@ calcHierSize(const Node *hierNode) const
   if (hierNode->isHier()) {
     for (const auto &child : hierNode->getChildren())
       size += calcHierSize(child.node);
-
-    for (const auto &node : hierNode->getNodes()) {
-      auto *node1 = dynamic_cast<const PlotDendrogram::PlotNode *>(node.node); assert(node1);
-
-      size += node1->sizeValue().realOr(0.0);
-    }
   }
   else {
     auto *node1 = dynamic_cast<const PlotDendrogram::PlotNode *>(hierNode); assert(node1);
@@ -2541,22 +2849,6 @@ addNodeObjs(Node *hier, int depth, NodeObj *parentObj, PlotObjs &objs) const
     }
 
     addNodeObjs(hierNode, depth + 1, hierNodeObj, objs);
-  }
-
-  //------
-
-  for (auto &nodeData : hier->getNodes()) {
-    auto       *node  = nodeData.node;
-    const auto &value = nodeData.value;
-
-    auto *nodeObj = addNodeObj(node, objs, /*hier*/false);
-    if (! nodeObj) continue;
-
-    if (parentObj) {
-      nodeObj->setParent(parentObj);
-
-      parentObj->addChild(nodeObj, value);
-    }
   }
 }
 
@@ -2710,9 +3002,9 @@ getBBox(Node *node) const
 
 //double mw = pixelToWindowWidth(tm);
 
-//double xc = node->x() + mw;
-  double xc = node->x();
-  double yc = node->yc();
+//double xc = dendrogram_->nodeX(node) + mw;
+  double xc = dendrogram_->nodeX(node);
+  double yc = dendrogram_->nodeYC(node);
 
   if (orientation() == Qt::Horizontal)
     return BBox(xc - cw/2.0, yc - ch/2.0, xc + cw/2.0, yc + ch/2.0);
@@ -2769,6 +3061,16 @@ createEdgeObj(NodeObj *fromNode, NodeObj *toNode, const BBox &rect,
 }
 
 //---
+
+bool
+CQChartsDendrogramPlot::
+isOpen(NodeObj *nodeObj) const
+{
+  auto *node = (nodeObj ? const_cast<Node *>(nodeObj->node()) : nullptr);
+  if (! node) return false;
+
+ return node->isOpen();
+}
 
 void
 CQChartsDendrogramPlot::
@@ -2849,19 +3151,30 @@ void
 CQChartsDendrogramPlot::
 expandNode(Node *hierNode, bool all)
 {
-  bool expandChildren = (all || hierNode->isOpen());
+  bool changed = false;
 
   auto pn = cacheData_.nodeObjs.find(hierNode);
 
-  if (pn != cacheData_.nodeObjs.end())
-    setOpen((*pn).second, true);
-  else
-    hierNode->setOpen(true);
+  if (pn != cacheData_.nodeObjs.end()) {
+    if (! isOpen((*pn).second)) {
+      setOpen((*pn).second, true);
 
-  if (expandChildren) {
-    for (const auto &child : hierNode->getChildren())
-      expandNode(child.node, all);
+      changed = true;
+    }
   }
+  else {
+    if (! hierNode->isOpen()) {
+      hierNode->setOpen(true);
+
+      changed = true;
+    }
+  }
+
+  if (! all && changed)
+    return;
+
+  for (const auto &child : hierNode->getChildren())
+    expandNode(child.node, all);
 }
 
 void
@@ -2912,8 +3225,11 @@ CQChartsDendrogramNodeObj(const DendrogramPlot *dendrogramPlot, Node *node, cons
 {
   double s;
 
-  if (node->calcSize(s))
-    setValue(OptReal(s));
+  if (node->size())
+    setValue(OptReal(*node->size()));
+
+  if (node->calcHierSize(s))
+    setHierValue(OptReal(s));
 
   setOpen(node->isOpen());
 
@@ -2925,8 +3241,9 @@ CQChartsDendrogramNodeObj(const DendrogramPlot *dendrogramPlot, Node *node, cons
     if (node1->ind().isValid())
       setModelInd(node1->ind());
 
-    setColor(node1->colorValue());
-    setSize (node1->sizeValue());
+    setColor     (node1->color());
+    setColorValue(node1->colorValue());
+    setSize      (node1->sizeValue());
   }
 }
 
@@ -2934,7 +3251,7 @@ void
 CQChartsDendrogramNodeObj::
 addChild(NodeObj *node, const OptReal &value)
 {
-  children_.push_back(Child(node, value));
+  children_.push_back(Edge(node, value));
 
   if (value.isSet())
     childTotal_ += value.real();
@@ -2964,8 +3281,13 @@ calcTipId() const
   if (value().isSet())
     tableTip.addTableRow("Value", value().real());
 
-  if (color().isSet())
-    tableTip.addTableRow("Color", color().real());
+  if (hierValue().isSet())
+    tableTip.addTableRow("Hier Value", hierValue().real());
+
+  if      (colorValue().isSet())
+    tableTip.addTableRow("Color", colorValue().real());
+  else if (color().isValid())
+    tableTip.addTableRow("Color", color().toString());
 
   if (size().isSet())
     tableTip.addTableRow("Size", size().real());
@@ -3121,6 +3443,18 @@ draw(PaintDevice *device) const
 
   CQChartsDrawUtil::drawShape(device, shapeData, rect1);
 
+  if (plot()->isSwatchColor() && color().isValid()) {
+    auto colorInd = calcColorInd();
+
+    auto fillColor = plot()->interpColor(color(), colorInd);
+
+    penBrush.brush = QBrush(fillColor);
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    CQChartsDrawUtil::drawShapeSwatch(device, shapeData, rect1);
+  }
+
   //---
 
   drawText(device);
@@ -3155,24 +3489,39 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   };
 
   auto strokeColor = calcStrokeColor();
-  auto fillColor   = calcFillColor  ();
 
   //---
 
-  bool closed = (isHier() && ! isOpen());
+  QColor fillColor;
+  bool   filled = true;
 
-  bool colored = true;
-//bool colored = false;
+  if (! plot()->isColorClosed() && isHier() && ! isOpen())
+    filled = false;
 
-  if (plot()->colorColumn().isValid()) {
+  if      (dendrogramPlot_->nodeColorByValue() == CQChartsDendrogramPlot::ValueType::HIER) {
+    auto value = this->hierValue().realOr(0.0);
+    auto color = dendrogramPlot_->mapHierValue(value);
+
+    fillColor = plot()->interpPaletteColor(ColorInd(color));
+  }
+  else if (dendrogramPlot_->nodeColorByValue() == CQChartsDendrogramPlot::ValueType::NODE) {
+    auto value = this->value().realOr(0.0);
+    auto color = dendrogramPlot_->mapValue(value);
+
+    fillColor = plot()->interpPaletteColor(ColorInd(color));
+  }
+  else if (color().isValid()) {
+    fillColor = plot()->interpColor(color(), colorInd);
+  }
+  else if (plot()->colorColumn().isValid()) {
     Color c;
 
     double color = 0.0;
 
-    if (isHier() && ! this->color().isSet())
+    if (isHier() && ! this->color().isValid())
       color = hierColor();
     else
-      color = this->color().realOr(0.0);
+      color = this->colorValue().realOr(0.0);
 
     if (plot()->isColorMapped()) {
       auto color1 = plot()->mapColor(color);
@@ -3180,26 +3529,35 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
       c = plot()->colorFromColorMapPaletteValue(color1);
     }
     else {
-      auto maxColor = (parent() ? parent()->hierColor() : this->color().realOr(0.0));
+      auto maxColor = (parent() ? parent()->hierColor() : this->colorValue().realOr(0.0));
 
       c = plot()->colorFromColorMapPaletteValue(maxColor > 0 ? color/maxColor : color);
     }
 
     fillColor = plot()->interpColor(c, colorInd);
-  //colored   = true;
+  }
+  else {
+    fillColor = calcFillColor();
   }
 
   //---
 
-  if      (isRoot())
-    plot()->setPenBrush(penBrush, plot()->rootPenData(strokeColor),
-      (closed || colored) ? plot()->rootBrushData(fillColor) : BrushData(false));
-  else if (isHier())
-    plot()->setPenBrush(penBrush, plot()->hierPenData(strokeColor),
-      (closed || colored) ? plot()->hierBrushData(fillColor) : BrushData(false));
+  auto calcPenData = [&]() {
+    if (isRoot()) return plot()->rootPenData(strokeColor);
+    if (isHier()) return plot()->hierPenData(strokeColor);
+    return plot()->leafPenData(strokeColor);
+  };
+
+  auto calcBrushData = [&]() {
+    if (isRoot()) return plot()->rootBrushData(fillColor);
+    if (isHier()) return plot()->hierBrushData(fillColor);
+    return plot()->leafBrushData(fillColor);
+  };
+
+  if (filled)
+    plot()->setPenBrush(penBrush, calcPenData(), calcBrushData());
   else
-    plot()->setPenBrush(penBrush, plot()->leafPenData(strokeColor),
-      (closed || colored) ? plot()->leafBrushData(fillColor) : BrushData(false));
+    plot()->setPenBrush(penBrush, calcPenData(), BrushData(false));
 
   //---
 
@@ -3457,7 +3815,7 @@ displayRect() const
   auto rect1 = rect();
 
   // get shape size (scaled to value)
-  auto ss = calcScaledShapeSize();
+  auto ss = calcScaledShapePixelSize();
 
   // aspect w/h (> 1.0 wider, < 1.0 taller)
    // get specified shape size
@@ -3488,7 +3846,7 @@ displayRect() const
 
 double
 CQChartsDendrogramNodeObj::
-calcScaledShapeSize() const
+calcScaledShapePixelSize() const
 {
   // get specified shape size
   auto calcSize = [&]() {
@@ -3497,12 +3855,36 @@ calcScaledShapeSize() const
     return plot()->calcLeafSize();
   };
 
-  auto leafSize = calcSize();
+  auto minSize = [&]() {
+    if (isRoot()) return plot()->rootMinSize();
+    if (isHier()) return plot()->hierMinSize();
+    return plot()->leafMinSize();
+  };
 
+  auto leafSize    = calcSize();
+  auto leafMinSize = plot()->lengthPixelWidth(minSize());
+
+  if      (plot()->nodeSizeByValue() == CQChartsDendrogramPlot::ValueType::HIER) {
+    auto value     = this->hierValue().realOr(0.0);
+    auto sizeScale = dendrogramPlot_->mapHierValue(value);
+
+    leafSize = CMathUtil::map(sizeScale, 0.0, 1.0, leafMinSize, leafSize);
+  }
+  else if (plot()->nodeSizeByValue() == CQChartsDendrogramPlot::ValueType::NODE) {
+    auto value     = this->value().realOr(0.0);
+    auto sizeScale = dendrogramPlot_->mapNodeValue(value);
+
+    leafSize = CMathUtil::map(sizeScale, 0.0, 1.0, leafMinSize, leafSize);
+  }
   // scale to size column value
-  if (parent() && plot()->sizeColumn().isValid()) {
+  else if (plot()->sizeColumn().isValid()) {
     // normalize to parent hierarchical size
-    auto maxSize = parent()->hierSize();
+    double maxSize = 0.0;
+
+    if (parent())
+      maxSize = parent()->hierSize();
+    else
+      maxSize = plot()->rootNodeObj()->hierSize();
 
     double size = 0.0;
 
@@ -3582,11 +3964,16 @@ CQChartsDendrogramEdgeObj(const DendrogramPlot *dendrogramPlot, NodeObj *fromNod
   auto *toNode1   = dynamic_cast<const PlotDendrogram::PlotNode *>(toNode->node());
 
   if (fromNode1) {
-    if (fromNode1->edgeValue(toNode1).isSet())
-      setValue(fromNode1->edgeValue(toNode1));
+    auto value = fromNode1->childValue(toNode1);
+
+    if (value)
+      setValue(OptReal(*value));
+
+    if (fromNode1->edgeColor(toNode1).isValid())
+      setColor(fromNode1->edgeColor(toNode1));
 
     if (fromNode1->edgeColorValue(toNode1).isSet())
-      setColor(fromNode1->edgeColorValue(toNode1));
+      setColorValue(fromNode1->edgeColorValue(toNode1));
 
     if (fromNode1->edgeSizeValue(toNode1).isSet())
       setSize(fromNode1->edgeSizeValue(toNode1));
@@ -3613,8 +4000,10 @@ calcTipId() const
   if (value().isSet())
     tableTip.addTableRow("Value", value().real());
 
-  if (color().isSet())
-    tableTip.addTableRow("Color", color().real());
+  if      (colorValue().isSet())
+    tableTip.addTableRow("Color", colorValue().real());
+  else if (color().isValid())
+    tableTip.addTableRow("Color", color().toString());
 
   if (size().isSet())
     tableTip.addTableRow("Size", size().real());
@@ -3657,8 +4046,6 @@ draw(PaintDevice *device) const
 
   bool updateState = device->isInteractive();
 
-  bool edgeFilled = plot()->isEdgeFilled();
-
   // calc pen and brush
   PenBrush lpenBrush;
 
@@ -3692,20 +4079,22 @@ draw(PaintDevice *device) const
   //---
 
   // calc edge width
-  double lw = 0.0;
+  auto lw    = dendrogramPlot_->lengthPlotWidth(dendrogramPlot_->edgeWidth());
+  auto minLw = dendrogramPlot_->lengthPlotWidth(dendrogramPlot_->minEdgeWidth());
 
-  if (dendrogramPlot_->isEdgeScaled()) {
-    if (value().isSet())
-      lw = dendrogramPlot_->lengthPlotWidth(dendrogramPlot_->edgeWidth())*
-           dendrogramPlot_->edgeValueScale(this, value().real());
+  if (dendrogramPlot_->isEdgeSizeByValue()) {
+    if (value().isSet()) {
+      auto widthScale = dendrogramPlot_->mapValue(value().real());
+
+      lw = CMathUtil::map(widthScale, 0.0, 1.0, minLw, lw);
+    }
   }
-  else
-    lw = dendrogramPlot_->lengthPlotWidth(dendrogramPlot_->edgeWidth());
 
-  if (lw <= 0.0)
-    lw = dendrogramPlot_->lengthPlotWidth(dendrogramPlot_->minEdgeWidth());
+  lw = std::max(lw, minLw);
 
   //---
+
+  bool edgeFilled = plot()->isEdgeFilled();
 
   path_ = QPainterPath();
 
@@ -3713,22 +4102,12 @@ draw(PaintDevice *device) const
     auto angle1 = Angle::fromOrientation(plot()->orientation());
     auto angle2 = angle1.flippedX();
 
-    if (edgeFilled) {
+    if (edgeFilled)
       CQChartsDrawUtil::edgePath(path_, p1, p4, lw, CQChartsDrawUtil::EdgeType::ARC,
                                  angle1, angle2);
-
-      device->drawPath(path_);
-
-      //CQChartsDrawUtil::drawEdgePath(device, p1, p4, lw, CQChartsDrawUtil::EdgeType::ARC,
-      //                               angle1, angle2);
-    }
-    else {
+    else
       CQChartsDrawUtil::curvePath(path_, p1, p4, CQChartsDrawUtil::EdgeType::ARC,
                                   angle1, angle2);
-
-      //CQChartsDrawUtil::drawCurvePath(device, p1, p4, CQChartsDrawUtil::EdgeType::ARC,
-      //                                angle1, angle2);
-    }
 
     device->drawPath(path_);
   }
@@ -3747,7 +4126,17 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto colorInd = calcColorInd();
 
   auto strokeColor = plot()->interpEdgeStrokeColor(colorInd);
-  auto fillColor   = plot()->interpEdgeFillColor  (colorInd);
+
+  QColor fillColor;
+
+  if (dendrogramPlot_->isEdgeColorByValue()) {
+    auto value = this->value().realOr(0.0);
+    auto color = dendrogramPlot_->mapValue(value);
+
+    fillColor = plot()->interpPaletteColor(ColorInd(color));
+  }
+  else
+    fillColor = plot()->interpEdgeFillColor(colorInd);
 
   plot()->setPenBrush(penBrush, plot()->edgePenData(strokeColor),
                       plot()->edgeBrushData(fillColor));
@@ -3790,6 +4179,8 @@ init()
 
   addLayoutStretch();
 
+  addButtonWidgets();
+
   connectSlots(true);
 }
 
@@ -3827,6 +4218,24 @@ addOptionsWidgets()
 
 void
 CQChartsDendrogramPlotCustomControls::
+addButtonWidgets()
+{
+  // buttons group
+  buttonsFrame_ = createGroupFrame("Functions", "buttonsFrame", FrameOpts::makeHBox());
+
+  expand_      = CQUtil::makeLabelWidget<QPushButton>("Expand");
+  expandAll_   = CQUtil::makeLabelWidget<QPushButton>("Expand All");
+  collapseAll_ = CQUtil::makeLabelWidget<QPushButton>("Collapse All");
+
+  buttonsFrame_.box->addWidget(expand_);
+  buttonsFrame_.box->addWidget(expandAll_);
+  buttonsFrame_.box->addWidget(collapseAll_);
+
+  buttonsFrame_.box->addStretch(1);
+}
+
+void
+CQChartsDendrogramPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
   if (plot_ && dendrogramPlot_)
@@ -3844,18 +4253,14 @@ void
 CQChartsDendrogramPlotCustomControls::
 updateWidgets()
 {
-  connectSlots(false);
-
-  //---
-
   CQChartsHierPlotCustomControls::updateWidgets();
 
   //---
 
+  connectSlots(false);
+
   if (orientationCombo_)
     orientationCombo_->setCurrentValue(static_cast<int>(dendrogramPlot_->orientation()));
-
-  //---
 
   connectSlots(true);
 }
@@ -3868,6 +4273,13 @@ connectSlots(bool b)
 
   CQUtil::optConnectDisconnect(b,
     orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
+
+  CQUtil::optConnectDisconnect(b,
+    expand_     , SIGNAL(clicked()), dendrogramPlot_, SLOT(expandSlot()));
+  CQUtil::optConnectDisconnect(b,
+    expandAll_  , SIGNAL(clicked()), dendrogramPlot_, SLOT(expandAllSlot()));
+  CQUtil::optConnectDisconnect(b,
+    collapseAll_, SIGNAL(clicked()), dendrogramPlot_, SLOT(collapseAllSlot()));
 }
 
 void

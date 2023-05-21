@@ -7,9 +7,9 @@ set plot [create_charts_plot -model $model -type dendrogram \
 
 set_charts_property -plot $plot -name options.placeType -value CIRCULAR
 
-set_charts_property -plot $plot -name label.hier.font -value {-8}
-set_charts_property -plot $plot -name label.leaf.font -value {-12}
-set_charts_property -plot $plot -name label.rotated -value {true}
+set_charts_property -plot $plot -name hier.label.font -value {-8}
+set_charts_property -plot $plot -name leaf.label.font -value {-12}
+set_charts_property -plot $plot -name hier.label.rotated -value {true}
 
 set_charts_property -plot $plot -name points.scaled -value {false}
 

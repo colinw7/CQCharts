@@ -1,4 +1,5 @@
 #include <CQChartsHierPlot.h>
+#include <CQChartsModelUtil.h>
 
 #include <CQPropertyViewItem.h>
 
@@ -57,6 +58,13 @@ setGroupColumn(const Column &c)
   } );
 }
 
+void
+CQChartsHierPlot::
+setAttributesColumn(const Column &c)
+{
+  CQChartsUtil::testAndSet(attributesColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 CQChartsColumn
@@ -64,9 +72,10 @@ CQChartsHierPlot::
 getNamedColumn(const QString &name) const
 {
   Column c;
-  if      (name == "value") c = this->valueColumn();
-  else if (name == "group") c = this->groupColumn();
-  else                      c = CQChartsPlot::getNamedColumn(name);
+  if      (name == "value"     ) c = this->valueColumn();
+  else if (name == "group"     ) c = this->groupColumn();
+  else if (name == "attributes") c = this->attributesColumn();
+  else                           c = CQChartsPlot::getNamedColumn(name);
 
   return c;
 }
@@ -75,9 +84,10 @@ void
 CQChartsHierPlot::
 setNamedColumn(const QString &name, const Column &c)
 {
-  if      (name == "value") this->setValueColumn(c);
-  else if (name == "group") this->setGroupColumn(c);
-  else                      CQChartsPlot::setNamedColumn(name, c);
+  if      (name == "value"     ) this->setValueColumn(c);
+  else if (name == "group"     ) this->setGroupColumn(c);
+  else if (name == "attributes") this->setAttributesColumn(c);
+  else                           CQChartsPlot::setNamedColumn(name, c);
 }
 
 CQChartsColumns
@@ -162,7 +172,57 @@ addHierProperties()
   addProp("columns", "valueColumn", "value", "Data value column");
   addProp("columns", "groupColumn", "group", "Group column");
 
+  addProp("columns", "attributesColumn", "attributes", "Attributes column");
+
   addProp("options", "separator", "", "Separator for hierarchical path in name column");
+}
+
+void
+CQChartsHierPlot::
+processMetaData(bool isEdgeRows) const
+{
+  auto *th = const_cast<CQChartsHierPlot *>(this);
+
+  const auto &model = th->currentModel();
+
+  auto *pmodel = model.data();
+
+  auto names = CQChartsModelUtil::modelMetaNames(pmodel);
+
+  for (const auto &name : names) {
+    auto keys = CQChartsModelUtil::modelMetaNameKeys(pmodel, name);
+
+    for (const auto &key : keys) {
+      auto value = CQChartsModelUtil::getModelMetaValue(pmodel, name, key);
+
+      bool handled = false;
+
+      if (isEdgeRows) {
+        if (key.left(5) == "node_") {
+          auto key1 = key.mid(5);
+
+          if (th->processMetaNodeValue(name, key1, value))
+            handled = true;
+        }
+      }
+      else {
+        if (key.left(5) == "edge_") {
+          auto key1 = key.mid(5);
+
+          if (th->processMetaEdgeValue(name, key1, value))
+            handled = true;
+        }
+      }
+
+      if (! handled) {
+        std::cerr << "Unhandled:";
+        std::cerr << " name=" << name.toStdString();
+        std::cerr << " key=" << key.toStdString();
+        std::cerr << " value=" << value.toString().toStdString();
+        std::cerr << "\n";
+      }
+    }
+  }
 }
 
 //------
@@ -211,13 +271,5 @@ void
 CQChartsHierPlotCustomControls::
 updateWidgets()
 {
-  connectSlots(false);
-
-  //---
-
   CQChartsPlotCustomControls::updateWidgets();
-
-  //---
-
-  connectSlots(true);
 }

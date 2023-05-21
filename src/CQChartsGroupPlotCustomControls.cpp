@@ -173,11 +173,11 @@ updateWidgets()
 
   //---
 
-  CQChartsPlotCustomControls::updateWidgets();
+  connectSlots(true);
 
   //---
 
-  connectSlots(true);
+  CQChartsPlotCustomControls::updateWidgets();
 }
 
 void

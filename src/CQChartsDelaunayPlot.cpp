@@ -1036,11 +1036,11 @@ updateWidgets()
   delaunayCheck_->setChecked(delaunayPlot_->isDelaunay());
   voronoiCheck_ ->setChecked(delaunayPlot_->isVoronoi ());
 
-  CQChartsPlotCustomControls::updateWidgets();
-
   //---
 
   connectSlots(true);
+
+  CQChartsPlotCustomControls::updateWidgets();
 }
 
 void

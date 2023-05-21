@@ -4220,11 +4220,11 @@ updateWidgets()
 
   //---
 
-  CQChartsGroupPlotCustomControls::updateWidgets();
+  connectSlots(true);
 
   //---
 
-  connectSlots(true);
+  CQChartsGroupPlotCustomControls::updateWidgets();
 }
 
 void

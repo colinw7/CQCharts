@@ -11,4 +11,4 @@ set plot1 [create_charts_plot -model $model1 -type dendrogram \
   -columns {{name 0} {value 1}} -title "dendrogram"]
 
 set_charts_property -plot $plot1 -name points.scaled -value 0
-set_charts_property -plot $plot1 -name node.symbolSize -value 8px
+set_charts_property -plot $plot1 -name hier.size -value 8px
