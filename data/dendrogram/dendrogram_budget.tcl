@@ -10,5 +10,5 @@ set_charts_property -plot $plot -name root.size -value 0.1P
 set_charts_property -plot $plot -name hier.size -value 0.1P
 set_charts_property -plot $plot -name leaf.size -value 0.1P
 
-set_charts_property -plot $plot -name edge.scaled -value 1
-set_charts_property -plot $plot -name edge.width -value 0.1P
+set_charts_property -plot $plot -name edge.sizeByValue -value 1
+set_charts_property -plot $plot -name edge.width       -value 0.1P

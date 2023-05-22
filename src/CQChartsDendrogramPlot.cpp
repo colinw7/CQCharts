@@ -891,8 +891,8 @@ addProperties()
 
   //---
 
-  // mapping
-  addProp("mapping/color", "colorMapped", "enabled", "Color values mapped");
+  // color map
+  addColorMapProperties();
 }
 
 //---
@@ -1326,7 +1326,7 @@ placeModel() const
         colorRange_.add(r);
       }
       else {
-        color = CQChartsVariant::toColor(var, ok);
+        ok = dendrogramPlot_->columnValueColor(var, color);
       }
 
       return ok;
@@ -1558,7 +1558,7 @@ placeModel() const
         colorRange_.add(r);
       }
       else {
-        color = CQChartsVariant::toColor(var, ok);
+        ok = dendrogramPlot_->columnValueColor(var, color);
       }
 
       return ok;
@@ -1679,7 +1679,16 @@ placeModel() const
   //root->setValue(childValue);
 
     for (auto &child1 : childNode->getChildren()) {
+      auto *plotNode1 = dynamic_cast<PlotDendrogram::PlotNode *>(childNode);
+      auto *plotNode2 = dynamic_cast<PlotDendrogram::PlotNode *>(child1.node);
+
+      auto edgeColor = plotNode1->edgeColor(plotNode2);
+
       root->addChild(child1.node, child1.value);
+
+      auto *rootNode = dynamic_cast<PlotDendrogram::PlotNode *>(root);
+
+      rootNode->setEdgeColor(plotNode2, edgeColor);
     }
 
     childNode->removeAll();
@@ -4129,11 +4138,14 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   QColor fillColor;
 
-  if (dendrogramPlot_->isEdgeColorByValue()) {
+  if      (dendrogramPlot_->isEdgeColorByValue()) {
     auto value = this->value().realOr(0.0);
     auto color = dendrogramPlot_->mapValue(value);
 
     fillColor = plot()->interpPaletteColor(ColorInd(color));
+  }
+  else if (color().isValid()) {
+    fillColor = plot()->interpColor(color(), colorInd);
   }
   else
     fillColor = plot()->interpEdgeFillColor(colorInd);

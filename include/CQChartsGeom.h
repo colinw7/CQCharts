@@ -878,6 +878,11 @@ class BBox :
     set_    = true;
   }
 
+  //---
+
+  double getMidPos(bool horizontal) const { return (horizontal ? getXMid() : getYMid()); }
+  double getMidPerpPos(bool horizontal) const { return (horizontal ? getYMid() : getXMid()); }
+
   double getMinExtent(bool horizontal) const { return (horizontal ? getXMin() : getYMin()); }
   double getMaxExtent(bool horizontal) const { return (horizontal ? getXMax() : getYMax()); }
 
@@ -898,6 +903,8 @@ class BBox :
 
     return update();
   }
+
+  //---
 
   void setXRange(double xl, double xr) { setXMin(xl); setXMax(xr); }
   void setYRange(double yb, double yt) { setYMin(yb); setYMax(yt); }
@@ -954,6 +961,7 @@ class BBox :
 #endif
 
   double getSize(bool horizontal) const { return (horizontal ? getWidth() : getHeight()); }
+  double getPerpSize(bool horizontal) const { return (horizontal ? getHeight() : getWidth()); }
 
   double getWidth () const { return std::abs(getXMax() - getXMin()); }
   double getHeight() const { return std::abs(getYMax() - getYMin()); }

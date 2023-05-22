@@ -1,0 +1,16 @@
+
+FILL     Filled Selected
+Inside   Yes    No
+Inside   Yes    Yes
+Inside   No     Yes
+Inside   No     No
+
+FILL     Filled Selected
+Selected Yes    No 
+Selected Yes    Yes
+Selected No     Yes
+Selected No     No 
+
+OUTLINE  Filled Selected
+Inside
+Selected

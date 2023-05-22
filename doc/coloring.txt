@@ -24,8 +24,21 @@ X Value
 Uses specified plot palette or default view palette
 
 Color of
-  + palette         : uses index interpolated into palette
-  + interface       : uses index interpolated into theme (grayscale) palette
+  + palette         : uses index value interpolated into palette
   + palette value   : uses fixed plot palette color
+  + indexed         : uses index index value interpolated into palette
+  + indexed value   : uses fixed plot palette index color
+  + interface       : uses index interpolated into theme (grayscale) palette
   + interface value : uses fixed interface palette color
+  + contrast        : contrast color
+  + contrast value  : contrast color (value for mix ?)
+  + model           : model palette color
+  + model value     : model palette value color
+  + lighter         : lighter
+  + lighter value   : lighter and value
+  + darker          : darker
+  + darker value    : darker and value
   + color name      : fixed plot color
+
+Color Map
+  + map color names to colors

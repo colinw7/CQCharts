@@ -18805,6 +18805,13 @@ lengthPlotSize(const Length &len, bool horizontal) const
 
 double
 CQChartsPlot::
+lengthPlotPerpSize(const Length &len, bool horizontal) const
+{
+  return (horizontal ? lengthPlotHeight(len) : lengthPlotWidth(len));
+}
+
+double
+CQChartsPlot::
 lengthPlotWidth(const Length &len) const
 {
   if (! len.isValid()) return 0.0;
@@ -19282,6 +19289,13 @@ pixelToWindowSize(double ps, bool horizontal) const
   return (horizontal ? pixelToWindowWidth(ps) : pixelToWindowHeight(ps));
 }
 
+double
+CQChartsPlot::
+pixelToWindowPerpSize(double ps, bool horizontal) const
+{
+  return (horizontal ? pixelToWindowHeight(ps) : pixelToWindowWidth(ps));
+}
+
 CQChartsGeom::Size
 CQChartsPlot::
 pixelToWindowSize(const Size &ps) const
@@ -19325,6 +19339,20 @@ CQChartsPlot::
 windowToSignedPixelHeight(double wh) const
 {
   return -CMathUtil::sign(wh)*windowToPixelHeight(wh);
+}
+
+double
+CQChartsPlot::
+windowToPixelSize(double ws, bool horizontal) const
+{
+  return (horizontal ? windowToPixelWidth(ws) : windowToPixelHeight(ws));
+}
+
+double
+CQChartsPlot::
+windowToPixelPerpSize(double ws, bool horizontal) const
+{
+  return (horizontal ? windowToPixelHeight(ws) : windowToPixelWidth(ws));
 }
 
 CQChartsGeom::Size

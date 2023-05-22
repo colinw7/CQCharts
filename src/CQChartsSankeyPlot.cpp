@@ -339,6 +339,13 @@ setNodeWidth(const Length &l)
 
 void
 CQChartsSankeyPlot::
+setNodeMinWidth(const Length &l)
+{
+  CQChartsUtil::testAndSet(nodeMinWidth_, l, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
 setNodeValueLabel(bool b)
 {
   CQChartsUtil::testAndSet(nodeValueLabel_, b, [&]() { drawObjs(); } );
@@ -569,6 +576,7 @@ addProperties()
   addProp ("node", "nodeMargin"      , "margin"      , "Node margin (Y)");
   addPropI("node", "minNodeMargin"   , "minMargin"   , "Min Node margin (Pixels)");
   addProp ("node", "nodeWidth"       , "width"       , "Node width");
+  addProp ("node", "nodeMinWidth"    , "minWidth"    , "Node min width");
   addProp ("node", "nodeValueLabel"  , "valueLabel"  , "Draw node value as label");
   addProp ("node", "nodeValueBar"    , "valueBar"    , "Draw node value bar");
   addProp ("node", "nodeValueBarSize", "valueBarSize", "Draw node value bar size");
@@ -2165,19 +2173,16 @@ double
 CQChartsSankeyPlot::
 calcNodeMargin() const
 {
-  double nodeMargin = (isHorizontal() ? lengthPlotHeight(this->nodeMargin()) :
-                                        lengthPlotWidth (this->nodeMargin()));
+  double nodeMargin = lengthPlotPerpSize(this->nodeMargin(), isHorizontal());
 
   nodeMargin = std::min(std::max(nodeMargin, 0.0), 1.0);
 
   // get pixel margin perp to position axis
-  auto pixelNodeMargin = (isHorizontal() ? windowToPixelHeight(nodeMargin) :
-                                           windowToPixelWidth (nodeMargin));
+  auto pixelNodeMargin = windowToPixelPerpSize(nodeMargin, isHorizontal());
 
   // stop margin from being too small
   if (pixelNodeMargin < minNodeMargin())
-    nodeMargin = (isHorizontal() ? pixelToWindowHeight(minNodeMargin()) :
-                                   pixelToWindowWidth (minNodeMargin()));
+    nodeMargin = pixelToWindowPerpSize(minNodeMargin(), isHorizontal());
 
   return nodeMargin;
 }
@@ -2202,13 +2207,12 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
   auto bbox = targetBBox_;
 
   // place nodes to fit in bbox (perp to position axis)
-  double boxSize = (isHorizontal() ? bbox.getHeight() : bbox.getWidth());
+  double boxSize = bbox.getPerpSize(isHorizontal());
 
   int minPos = this->minPos();
   int maxPos = this->maxPos();
 
-  double posMargin = (isHorizontal() ? lengthPlotWidth (nodeWidth()) :
-                                       lengthPlotHeight(nodeWidth()));
+  auto posMargin = lengthPlotSize(nodeWidth(), isHorizontal());
 
   //---
 
@@ -2260,19 +2264,21 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
 
     // map pos to bbox range minus margins
     if (isAlignEnds()) {
-      posStart = (isHorizontal() ? targetBBox_.getXMin() : targetBBox_.getYMin()) + posMargin/2.0;
-      posEnd   = (isHorizontal() ? targetBBox_.getXMax() : targetBBox_.getYMax()) - posMargin/2.0;
+      posStart = targetBBox_.getMinExtent(isHorizontal()) + posMargin/2.0;
+      posEnd   = targetBBox_.getMaxExtent(isHorizontal()) - posMargin/2.0;
     }
     // map pos to bbox range (use for left)
     else {
-      posStart = (isHorizontal() ? targetBBox_.getXMin() : targetBBox_.getYMin());
-      posEnd   = (isHorizontal() ? targetBBox_.getXMax() : targetBBox_.getYMax());
+      posStart = targetBBox_.getMinExtent(isHorizontal());
+      posEnd   = targetBBox_.getMaxExtent(isHorizontal());
     }
 
     double nodePos1 = CMathUtil::map(pos1, minPos, maxPos, posStart, posEnd);
 
     if (isNodeValueBar()) {
       double nodePos2 = CMathUtil::map(pos1 + 1, minPos, maxPos, posStart, posEnd);
+
+      auto minSize = lengthPlotSize(nodeMinWidth(), isHorizontal());
 
       auto size = 0.0;
 
@@ -2281,13 +2287,17 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
 
         auto barSize = std::min(std::max(nodeValueBarSize(), 0.0), 1.0);
 
-        size = barSize*scale*(nodePos2 - nodePos1);
+        auto maxSize = std::max(barSize*(nodePos2 - nodePos1), minSize);
+
+        size = CMathUtil::map(scale, 0.0, 1.0, minSize, maxSize);
       }
+      else
+        size = minSize;
 
       if (isHorizontal())
-        rect = BBox(nodePos1, nodePerpPos1, nodePos1 + size, nodePerpPos2);
+        rect = BBox(nodePos1 - minSize/2.0, nodePerpPos1, nodePos1 + size, nodePerpPos2);
       else
-        rect = BBox(nodePerpPos1, nodePos1, nodePerpPos2, nodePos1 + size);
+        rect = BBox(nodePerpPos1, nodePos1 - minSize/2.0, nodePerpPos2, nodePos1 + size);
     }
     else {
       // center align
@@ -2797,8 +2807,7 @@ bool
 CQChartsSankeyPlot::
 removePosOverlaps(int pos, const Nodes &nodes, bool spread, bool constrain) const
 {
-  double perpMargin = (isHorizontal() ? pixelToWindowHeight(minNodeMargin()) :
-                                        pixelToWindowWidth (minNodeMargin()));
+  auto perpMargin = pixelToWindowPerpSize(minNodeMargin(), isHorizontal());
 
   //---
 
@@ -3781,7 +3790,7 @@ calcSrcDepth(NodeSet &visited) const
       auto p = visited.find(node);
 
       if (p == visited.end()) {
-        //visited.insert(node);
+        visited.insert(node);
 
         depth = std::max(depth, node->calcSrcDepth(visited));
       }
@@ -3835,7 +3844,7 @@ calcDestDepth(NodeSet &visited) const
       auto p = visited.find(node);
 
       if (p == visited.end()) {
-        //visited.insert(node);
+        visited.insert(node);
 
         depth = std::max(depth, node->calcDestDepth(visited));
       }
@@ -4016,7 +4025,7 @@ placeEdges(bool reset)
 
         if (! hasSrcEdgeRect(edge))
           setSrcEdgeRect(edge, sankeyPlot_->isHorizontal() ?
-            BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
+                         BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
 
         perpPos3 = perpPos4;
       }
@@ -4045,7 +4054,7 @@ placeEdges(bool reset)
 
         if (! hasDestEdgeRect(edge))
           setDestEdgeRect(edge, sankeyPlot_->isHorizontal() ?
-            BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
+                          BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
 
         perpPos3 = perpPos4;
       }
@@ -4059,8 +4068,7 @@ placeEdges(bool reset)
     double dperp1 = (nodeSize - boxSize*srcTotal )/2.0;
     double dperp2 = (nodeSize - boxSize*destTotal)/2.0;
 
-    double perpPos3 = (sankeyPlot_->isHorizontal() ?
-      y2 - dperp1 : x2 - dperp1); // top/right
+    double perpPos3 = (sankeyPlot_->isHorizontal() ?  y2 - dperp1 : x2 - dperp1); // top/right
 
     for (const auto &edge : this->srcEdges()) {
       if (! edge->hasValue()) {
@@ -4073,7 +4081,7 @@ placeEdges(bool reset)
 
       if (! hasSrcEdgeRect(edge))
         setSrcEdgeRect(edge, sankeyPlot_->isHorizontal() ?
-          BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
+                       BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
 
       perpPos3 = perpPos4;
     }
@@ -4093,7 +4101,7 @@ placeEdges(bool reset)
 
       if (! hasDestEdgeRect(edge))
         setDestEdgeRect(edge, sankeyPlot_->isHorizontal() ?
-          BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
+                        BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
 
       perpPos3 = perpPos4;
     }
@@ -4145,8 +4153,8 @@ adjustPathIdSrcDestRects()
     if (! srcRect.isSet() || ! destRect.isSet())
       continue;
 
-    double perpPos1 = (sankeyPlot_->isHorizontal() ?  srcRect .getYMid() : srcRect .getXMid());
-    double perpPos2 = (sankeyPlot_->isHorizontal() ?  destRect.getYMid() : destRect.getXMid());
+    double perpPos1 = srcRect .getMidPerpPos(sankeyPlot_->isHorizontal());
+    double perpPos2 = destRect.getMidPerpPos(sankeyPlot_->isHorizontal());
 
     double dperp = perpPos1 - perpPos2;
 

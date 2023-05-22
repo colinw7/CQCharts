@@ -359,7 +359,7 @@ void
 CQChartsDendrogram::
 placeNodes()
 {
-  assert(! root_);
+  if (! root_) return;
 
   // reset placement state
   root_->resetPlaced();

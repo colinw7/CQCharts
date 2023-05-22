@@ -940,6 +940,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(CQChartsLength  nodeMargin       READ nodeMargin       WRITE setNodeMargin      )
   Q_PROPERTY(double          minNodeMargin    READ minNodeMargin    WRITE setMinNodeMargin   )
   Q_PROPERTY(CQChartsLength  nodeWidth        READ nodeWidth        WRITE setNodeWidth       )
+  Q_PROPERTY(CQChartsLength  nodeMinWidth     READ nodeMinWidth     WRITE setNodeMinWidth    )
   Q_PROPERTY(bool            nodeValueLabel   READ isNodeValueLabel WRITE setNodeValueLabel  )
   Q_PROPERTY(bool            nodeValueBar     READ isNodeValueBar   WRITE setNodeValueBar    )
   Q_PROPERTY(double          nodeValueBarSize READ nodeValueBarSize WRITE setNodeValueBarSize)
@@ -1146,6 +1147,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //! get/set node width
   const Length &nodeWidth() const { return nodeWidth_; }
   void setNodeWidth(const Length &l);
+
+  //! get/set node width
+  const Length &nodeMinWidth() const { return nodeMinWidth_; }
+  void setNodeMinWidth(const Length &l);
 
   //! get/set show node value label
   bool isNodeValueLabel() const { return nodeValueLabel_; }
@@ -1553,6 +1558,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Length nodeMargin_       { Length::plot(0.2) }; //!< node margin (perp)
   double minNodeMargin_    { 0.1 };               //!< minimum node margin (in pixels)
   Length nodeWidth_        { Length::pixel(16) }; //!< node width in pixels
+  Length nodeMinWidth_     { Length::pixel(8) };  //!< node min width in pixels
   bool   nodeValueLabel_   { false };             //!< draw node value label
   bool   nodeValueBar_     { false };             //!< draw node value bar
   double nodeValueBarSize_ { 0.5 };               //!< draw node value bar size

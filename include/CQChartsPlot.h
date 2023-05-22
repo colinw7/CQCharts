@@ -1661,6 +1661,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   double lengthPlotSize(const Length &len, bool horizontal) const;
+  double lengthPlotPerpSize(const Length &len, bool horizontal) const;
 
   double lengthPlotWidth (const Length &len) const;
   double lengthPlotHeight(const Length &len) const;
@@ -1700,6 +1701,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   double pixelToSignedWindowHeight(double wh) const;
 
   double pixelToWindowSize(double ps, bool horizontal) const;
+  double pixelToWindowPerpSize(double ps, bool horizontal) const;
   Size pixelToWindowSize(const Size &ps) const;
 
   double pixelToWindowWidth (double pw) const;
@@ -1708,6 +1710,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   double windowToSignedPixelWidth (double ww) const;
   double windowToSignedPixelHeight(double wh) const;
 
+  double windowToPixelSize(double ws, bool horizontal) const;
+  double windowToPixelPerpSize(double ws, bool horizontal) const;
   Size windowToPixelSize(const Size &s) const;
 
   double windowToPixelWidth (double ww) const;

@@ -1088,8 +1088,11 @@ interpColorValueI(const Color &c, int ig, int ng, double value, const QColor &ic
   if (! c.isValid())
     return QColor();
 
-  if      (c.type() == Color::Type::COLOR)
+  // explicit color
+  if      (c.type() == Color::Type::COLOR) {
     return c.color();
+  }
+  // interpolate into palette colors (real)
   else if (c.type() == Color::Type::PALETTE || c.type() == Color::Type::PALETTE_VALUE) {
     if      (c.hasPaletteIndex()) {
       int ind = c.getPaletteIndex();
@@ -1122,8 +1125,8 @@ interpColorValueI(const Color &c, int ig, int ng, double value, const QColor &ic
         return interpPaletteColorValue(ig, ng, value, c.isScale(), c.isInvert());
     }
   }
-  else if (c.type() == Color::Type::INDEXED ||
-           c.type() == Color::Type::INDEXED_VALUE) {
+  // interpolate into palette colors (integer)
+  else if (c.type() == Color::Type::INDEXED || c.type() == Color::Type::INDEXED_VALUE) {
     if      (c.hasPaletteIndex()) {
       int ind = c.getPaletteIndex();
 
@@ -1155,15 +1158,15 @@ interpColorValueI(const Color &c, int ig, int ng, double value, const QColor &ic
         return indexPaletteColor(ig, ng);
     }
   }
-  else if (c.type() == Color::Type::INTERFACE ||
-           c.type() == Color::Type::INTERFACE_VALUE) {
+  // interpolate into interface palette colors (real)
+  else if (c.type() == Color::Type::INTERFACE || c.type() == Color::Type::INTERFACE_VALUE) {
     if (c.type() == Color::Type::INTERFACE_VALUE)
       return interpThemeColor(ColorInd(c.value()));
     else
       return interpThemeColor(ColorInd(value));
   }
-  else if (c.type() == Color::Type::CONTRAST ||
-           c.type() == Color::Type::CONTRAST_VALUE) {
+  // use contrast of specified color
+  else if (c.type() == Color::Type::CONTRAST || c.type() == Color::Type::CONTRAST_VALUE) {
     value = 1.0; // no interp ?
 
     auto cc = contrastColor();
@@ -1185,22 +1188,22 @@ interpColorValueI(const Color &c, int ig, int ng, double value, const QColor &ic
 
     return c1;
   }
-  else if (c.type() == Color::Type::MODEL ||
-           c.type() == Color::Type::MODEL_VALUE) {
+  // use model color
+  else if (c.type() == Color::Type::MODEL || c.type() == Color::Type::MODEL_VALUE) {
     if (c.type() == Color::Type::MODEL_VALUE)
       return interpModelColor(c, c.value());
     else
       return interpModelColor(c, value);
   }
-  else if (c.type() == Color::Type::LIGHTER ||
-           c.type() == Color::Type::LIGHTER_VALUE) {
+  // use lighter of specified color
+  else if (c.type() == Color::Type::LIGHTER || c.type() == Color::Type::LIGHTER_VALUE) {
     if (c.type() == Color::Type::LIGHTER_VALUE)
       return ic.lighter(int(150 + c.value()));
     else
       return ic.lighter();
   }
-  else if (c.type() == Color::Type::DARKER ||
-           c.type() == Color::Type::DARKER_VALUE) {
+  // use darker of specified color
+  else if (c.type() == Color::Type::DARKER || c.type() == Color::Type::DARKER_VALUE) {
     if (c.type() == Color::Type::DARKER_VALUE)
       return ic.darker(int(150 + c.value()));
     else

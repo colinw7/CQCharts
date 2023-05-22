@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + use columnValueColor for all color column color lookups so gets any color map
+
  + dendrogram
    + more overlap removal testing with vertical
    + save/restore expand
