@@ -42,3 +42,6 @@ Color of
 
 Color Map
   + map color names to colors
+
+Color Map Key
+ + click should show/hide associated object

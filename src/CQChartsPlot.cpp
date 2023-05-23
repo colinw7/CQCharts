@@ -10328,6 +10328,57 @@ colorFromColorMapPaletteValue(double r) const
   return color;
 }
 
+bool
+CQChartsPlot::
+addColorTipColumn(CQChartsTableTip &tableTip, int row, const Column &column,
+                  const QModelIndex &parent, bool force) const
+{
+  bool exists = (column.isValid() && tableTip.hasColumn(column));
+
+  if (! force && exists)
+    return false;
+
+  QString value;
+
+  if (! column.isValid())
+    return false;
+
+  ModelIndex columnInd(this, row, column, parent);
+
+  bool ok;
+  auto var = this->modelValue(columnInd, ok);
+  if (! ok) return false;
+
+  value = var.toString();
+
+  Color color;
+
+  if (! columnValueColor(var, color))
+    return false;
+
+  if (! value.length())
+    value = color.toString();
+
+  auto headerStr = QString("Color");
+
+  if (column.isValid() && ! exists) {
+    headerStr = this->columnHeaderName(column, /*tip*/true);
+
+    if (headerStr == "")
+      headerStr = "Color";
+  }
+
+  if (color.color().isValid())
+    tableTip.addTableRow(headerStr, value, color.color());
+  else
+    tableTip.addTableRow(headerStr, value);
+
+  if (column.isValid())
+    tableTip.addColumn(column);
+
+  return true;
+}
+
 //------
 
 void

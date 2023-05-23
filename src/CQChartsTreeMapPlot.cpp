@@ -1017,6 +1017,9 @@ loadHier() const
 
       auto *node = treeMapPlot_->hierAddNode("", parentHier(), name, size, nameInd);
 
+      //---
+
+      // set color from color column
       if (node && treeMapPlot_->colorColumn().isValid()) {
         Color color;
 

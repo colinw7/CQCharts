@@ -935,6 +935,9 @@ loadHier() const
 
       auto *node = hierBubblePlot_->hierAddNode("", parentHier(), name, size, nameInd);
 
+      //---
+
+      // set color from color column
       if (node && hierBubblePlot_->colorColumn().isValid()) {
         Color color;
 

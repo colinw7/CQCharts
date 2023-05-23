@@ -2255,6 +2255,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   Color colorFromColorMapPaletteValue(double r) const;
 
+  bool addColorTipColumn(CQChartsTableTip &tableTip, int row, const Column &column,
+                         const QModelIndex &parent, bool force) const;
+
   //---
 
   // alpha column

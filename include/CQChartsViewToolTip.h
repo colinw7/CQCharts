@@ -5,8 +5,10 @@ class CQChartsView;
 
 #include <CQToolTip.h>
 
-#include <QLabel>
 #include <QPointer>
+
+class QLabel;
+class QTextEdit;
 
 /*!
  * \brief Charts View Tooltip
@@ -23,7 +25,7 @@ class CQChartsViewToolTip : public CQToolTipIFace {
 
   View *view() const;
 
-  QWidget *widget() const { return widget_; }
+  QWidget *widget() const;
 
   QWidget *showWidget(const QPoint &gpos) override;
 
@@ -44,15 +46,17 @@ class CQChartsViewToolTip : public CQToolTipIFace {
 
   bool showTip(const QPoint &gpos);
 
-  bool isVisible() const { return widget_ && widget_->isVisible(); }
+  bool isVisible() const;
 
   QSize sizeHint() const override;
 
  private:
-  using ViewP = QPointer<View>;
+  using ViewP  = QPointer<View>;
+//using LabelW = QTextEdit;
+  using LabelW = QLabel;
 
   ViewP   view_;                 //!< parent view
-  QLabel* widget_   { nullptr }; //!< tip widget
+  LabelW* widget_   { nullptr }; //!< tip widget
   QPoint  gpos_;                 //!< global position
   QFont   font_;                 //!< font
   double  hideSecs_ { 3.0 };     //!< hide seconds

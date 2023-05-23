@@ -810,7 +810,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   // leaf node data
   NodeData leafNodeData_; //!< leaf node data
 
-  // global node datya
+  // global node data
   bool colorClosed_ { true };  //! fill closed node
   bool swatchColor_ { false }; //! draw color as swatch
 

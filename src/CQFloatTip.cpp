@@ -1,11 +1,13 @@
 #include <CQFloatTip.h>
 
 #include <CQIconButton.h>
+
 //#include <CEnv.h>
 
 #include <QApplication>
 #include <QScrollArea>
 #include <QLabel>
+#include <QTextEdit>
 #include <QVBoxLayout>
 #include <QTimer>
 #include <QHelpEvent>
@@ -19,8 +21,9 @@
 #include <svg/float_query_svg.h>
 
 CQFloatTip::
-CQFloatTip(QWidget *widget) :
- QFrame(nullptr, Qt::Window | Qt::FramelessWindowHint), widget_(widget)
+CQFloatTip(QWidget *widget, bool isDocument) :
+ QFrame(nullptr, Qt::Window | Qt::FramelessWindowHint),
+ widget_(widget), isDocument_(isDocument)
 {
   init();
 }
@@ -114,11 +117,21 @@ init()
 
   //---
 
-  label_ = new QLabel;
+  if (! isDocument_) {
+    label_ = new QLabel;
 
-  label_->setObjectName("label");
+    label_->setObjectName("label");
 
-  scroll_->setWidget(label_);
+    scroll_->setWidget(label_);
+  }
+  else {
+    textEdit_ = new QTextEdit;
+
+    textEdit_->setObjectName("label");
+    textEdit_->setReadOnly(true);
+
+    scroll_->setWidget(textEdit_);
+  }
 
   //---
 
@@ -152,7 +165,10 @@ setText(const QString &text)
 {
   text_ = text;
 
-  label_->setText(text_);
+  if (! isDocument_)
+    label_->setText(text_);
+  else
+    textEdit_->setText(text_);
 
   //---
 
@@ -428,7 +444,7 @@ drawTitleBar(QPainter *painter)
       return int((v1*factor)/maxFactor + (v2*(maxFactor - factor))/maxFactor);
     };
 
-    QColor tmp = colorA;
+    auto tmp = colorA;
 
     tmp.setRed  (mergedValue(tmp.red  (), colorB.red  ()));
     tmp.setGreen(mergedValue(tmp.green(), colorB.green()));
@@ -439,11 +455,11 @@ drawTitleBar(QPainter *painter)
 
   QRect rect(x1, y1, x2 - x1, y2 - y1);
 
-  QColor barColor = (draggable ? QColor(100, 100, 220) : QColor(180, 180, 180));
-  QColor bgColor  = palette().color(QPalette::ToolTipBase);
+  auto barColor = (draggable ? QColor(100, 100, 220) : QColor(180, 180, 180));
+  auto bgColor  = palette().color(QPalette::ToolTipBase);
 
-  QColor gradientStartColor = mergedColors(barColor, bgColor, 40);
-  QColor gradientStopColor  = mergedColors(barColor, bgColor, 10);
+  auto gradientStartColor = mergedColors(barColor, bgColor, 40);
+  auto gradientStopColor  = mergedColors(barColor, bgColor, 10);
 
   QLinearGradient gradient(rect.left(), rect.top(), rect.right(), rect.bottom());
 
@@ -459,7 +475,7 @@ CQFloatTip::
 sizeHint() const
 {
   auto s1 = lockButton_->sizeHint();
-  auto s2 = label_->sizeHint();
+  auto s2 = (! isDocument_ ? label_->sizeHint() : textEdit_->sizeHint());
 
   return QSize(std::max(2*s1.width(), s2.width()) + 2*border(),
                         s1.height() + s2.height() + 2*border());
@@ -472,7 +488,8 @@ eventFilter(QObject *o, QEvent *e)
   auto *widget = static_cast<QWidget *>(o);
 
   auto isChildWidget = [&]() {
-    return (widget == lockButton_ || widget == queryButton_ || widget == label_);
+    return (widget == lockButton_ || widget == queryButton_ ||
+            widget == label_ || widget == textEdit_);
   };
 
   //---
@@ -668,7 +685,7 @@ eventFilter(QObject *o, QEvent *e)
       break;
     }
     case QEvent::FontChange: {
-      if ((widget_ == this || widget == label_) && isVisible()) {
+      if ((widget_ == this || widget == label_ || widget == textEdit_) && isVisible()) {
         QTimer::singleShot(50, this, SLOT(fontSlot()));
       }
 
@@ -702,7 +719,7 @@ void
 CQFloatTip::
 resizeFit()
 {
-  auto ls = label_->sizeHint();
+  auto ls = (! isDocument_ ? label_->sizeHint() : textEdit_->sizeHint());
 
   auto s1 = sizeHint();
   auto s2 = widget_->size();
@@ -715,7 +732,10 @@ resizeFit()
     dy = 20;
   }
 
-  label_->resize(ls);
+  if (! isDocument_)
+    label_->resize(ls);
+  else
+    textEdit_->resize(ls);
 
   int w = std::min(s1.width () + dx, s2.width ());
   int h = std::min(s1.height() + dy, s2.height());
@@ -792,7 +812,11 @@ void
 CQFloatTip::
 updateWidgetPalette()
 {
-  setWidgetPalette(label_      );
+  if (! isDocument_)
+    setWidgetPalette(label_);
+  else
+    setWidgetPalette(textEdit_);
+
   setWidgetPalette(lockButton_ );
   setWidgetPalette(queryButton_);
 }

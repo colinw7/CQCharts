@@ -828,8 +828,8 @@ addProperties()
 
   // hier
   addProp("hier"      , "hierSize"        , "size"    , "Hier shape size");
-  addProp("hier"      , "hierAspect"      , "aspect"  , "Hier shape aspect");
   addProp("hier"      , "hierMinSize"     , "minSize" , "Hier shape min size");
+  addProp("hier"      , "hierAspect"      , "aspect"  , "Hier shape aspect");
   addProp("hier"      , "hierShape"       , "shape"   , "Hier shape");
   addProp("hier/label", "hierTextVisible" , "visible" , "Hier labels visible");
   addProp("hier/label", "hierTextPosition", "position", "Hier labels position");
@@ -1668,7 +1668,7 @@ placeModel() const
   //---
 
   // remove extra roots
-  while (root->getChildren().size() == 1 && root->isTemp()) {
+  while (root && root->getChildren().size() == 1 && root->isTemp()) {
     auto &child = root->getChildren()[0];
 
     auto *childNode  = child.node;
@@ -2308,11 +2308,11 @@ calcExtraFitBBox() const
     if (nodeObj->isRoot() && ! isRootVisible())
       continue;
 
+    bbox += nodeObj->displayRect();
+
     bool isHier = nodeObj->isHier();
 
     bool textVisible = (isHier ? isHierTextVisible() : isLeafTextVisible());
-
-    bbox += nodeObj->displayRect();
 
     if (textVisible)
       bbox += nodeObj->textRect();
@@ -3078,7 +3078,7 @@ isOpen(NodeObj *nodeObj) const
   auto *node = (nodeObj ? const_cast<Node *>(nodeObj->node()) : nullptr);
   if (! node) return false;
 
- return node->isOpen();
+  return node->isOpen();
 }
 
 void

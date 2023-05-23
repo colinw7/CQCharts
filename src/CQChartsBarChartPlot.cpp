@@ -1055,11 +1055,14 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
   QString colorStr;
 
   if (colorColumn().isValid()) {
-    ModelIndex colorModelInd(th, data.row, colorColumn(), data.parent);
+    //ModelIndex colorModelInd(th, data.row, colorColumn(), data.parent);
 
-    bool ok4;
+    //bool ok4;
+    //colorStr = modelString(colorModelInd, ok4);
 
-    colorStr = modelString(colorModelInd, ok4);
+    Color color;
+    if (colorColumnColor(data.row, data.parent, color))
+      colorStr = color.toString();
   }
 
   //---
@@ -2436,7 +2439,6 @@ calcTipId() const
         ModelIndex columnInd(barChartPlot_, modelInd().row(), column, modelInd().parent());
 
         bool ok;
-
         value1 = barChartPlot_->modelString(columnInd, ok);
         if (! ok) return;
       }
@@ -2502,7 +2504,8 @@ calcTipId() const
   else
     addOptColumnsRow(columns, "Value", this->valueStr());
 
-  addOptColumnRow(barChartPlot_->colorColumn(), "Color");
+  barChartPlot_->addColorTipColumn(tableTip, modelInd().row(), barChartPlot_->colorColumn(),
+                                   modelInd().parent(), /*force*/true);
 
   //---
 

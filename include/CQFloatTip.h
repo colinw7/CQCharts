@@ -8,6 +8,7 @@ class CQIconButton;
 
 class QScrollArea;
 class QLabel;
+class QTextEdit;
 class QEvent;
 class QTimerEvent;
 
@@ -34,7 +35,7 @@ class CQFloatTip : public QFrame {
   };
 
  public:
-  CQFloatTip(QWidget *widget=nullptr);
+  CQFloatTip(QWidget *widget=nullptr, bool isDocument=false);
 
   virtual ~CQFloatTip();
 
@@ -123,6 +124,8 @@ class CQFloatTip : public QFrame {
   QWidgetP widget_; //!< parent widget for tip
   QString  text_;   //!< tip text
 
+  bool isDocument_ { false };
+
   bool enabled_ { true }; //!< is enabled
 
   // placement
@@ -144,6 +147,7 @@ class CQFloatTip : public QFrame {
   // widgets
   QScrollArea*  scroll_      { nullptr }; //!< scroll area
   QLabel*       label_       { nullptr }; //!< label widget
+  QTextEdit*    textEdit_    { nullptr }; //!< document label widget
   CQIconButton* lockButton_  { nullptr }; //!< lock widget
   CQIconButton* queryButton_ { nullptr }; //!< query widget
 

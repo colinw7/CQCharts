@@ -1,7 +1,7 @@
 #ifndef CQChartsPlotTip_H
 #define CQChartsPlotTip_H
 
-#include <CQChartsPlotTip.h>
+#include <CQToolTip.h>
 
 #if 0
 class CQChartsPlotTipLabel : public QLabel {

@@ -640,7 +640,7 @@ CQChartsGeom::Range
 CQChartsSankeyPlot::
 calcRange() const
 {
-  if (! isTextInternal()) {
+  if (! isTextInternal() || isNodeValueBar()) {
     double dx = 0.0;
     double dy = 0.0;
 
@@ -648,10 +648,23 @@ calcRange() const
 
     QFontMetricsF fm(font);
 
+    if (isNodeValueBar()) {
+      int maxDepth = this->maxDepth();
+
+      double db = (maxDepth > 1 ? 1.0/maxDepth : 0.0);
+
+      auto barSize = std::min(std::max(nodeValueBarSize(), 0.0), 1.0);
+
+      if (isHorizontal())
+        dx = barSize*db;
+      else
+        dy = barSize*db;
+    }
+
     if (isHorizontal())
-      dx = pixelToWindowWidth (fm.height())*1.1;
+      dx = std::max(dx, pixelToWindowWidth (fm.height())*1.1);
     else
-      dy = pixelToWindowHeight(fm.height())*1.1;
+      dy = std::max(dy, pixelToWindowHeight(fm.height())*1.1);
 
     return Range(targetBBox_.getXMin() - dx, targetBBox_.getYMin() - dy,
                  targetBBox_.getXMax() + dx, targetBBox_.getYMax() + dy);
@@ -1063,8 +1076,6 @@ initHierObjs() const
 {
   CQPerfTrace trace("CQChartsSankeyPlot::initHierObjs");
 
-  auto *th = const_cast<CQChartsSankeyPlot *>(this);
-
   //---
 
   if (! CQChartsConnectionPlot::initHierObjs())
@@ -1072,8 +1083,11 @@ initHierObjs() const
 
   //---
 
-  if (isPropagate())
+  if (isPropagate()) {
+    auto *th = const_cast<CQChartsSankeyPlot *>(this);
+
     th->propagateHierValues();
+  }
 
   return true;
 }
@@ -1497,7 +1511,16 @@ initLinkObjs() const
 {
   CQPerfTrace trace("CQChartsSankeyPlot::initLinkObjs");
 
-  return CQChartsConnectionPlot::initLinkObjs();
+  if (! CQChartsConnectionPlot::initLinkObjs())
+    return false;
+
+  if (isPropagate()) {
+    auto *th = const_cast<CQChartsSankeyPlot *>(this);
+
+    th->propagateLinkValues();
+  }
+
+  return true;
 }
 
 void
@@ -1542,11 +1565,13 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
 
   //---
 
-  // set value on dest node (NEEDED ?)
   if (linkConnectionData.value.isSet())
     valueRange_.add(linkConnectionData.value.real());
 
+#if 0
+  // set value on dest node (NEEDED ?)
   destNode->setValue(linkConnectionData.value);
+#endif
 
   //---
 
@@ -1577,6 +1602,19 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
 
   // set edge name values (attribute column)
   processEdgeNameValues(edge, linkConnectionData.nameValues);
+}
+
+void
+CQChartsSankeyPlot::
+propagateLinkValues()
+{
+  for (const auto &pn : nameNodeMap_) {
+    auto *node = pn.second;
+
+    auto sum = node->edgeSum();
+
+    node->setValue(OptReal(sum));
+  }
 }
 
 //---
@@ -4068,7 +4106,7 @@ placeEdges(bool reset)
     double dperp1 = (nodeSize - boxSize*srcTotal )/2.0;
     double dperp2 = (nodeSize - boxSize*destTotal)/2.0;
 
-    double perpPos3 = (sankeyPlot_->isHorizontal() ?  y2 - dperp1 : x2 - dperp1); // top/right
+    double perpPos3 = (sankeyPlot_->isHorizontal() ? y2 - dperp1 : x2 - dperp1); // top/right
 
     for (const auto &edge : this->srcEdges()) {
       if (! edge->hasValue()) {
@@ -4088,7 +4126,7 @@ placeEdges(bool reset)
 
     //---
 
-    perpPos3 = (sankeyPlot_->isHorizontal() ?  y2 - dperp2 : x2 - dperp2); // top/right
+    perpPos3 = (sankeyPlot_->isHorizontal() ? y2 - dperp2 : x2 - dperp2); // top/right
 
     for (const auto &edge : this->destEdges()) {
       if (! edge->hasValue()) {
@@ -4886,8 +4924,6 @@ drawFgRect(PaintDevice *device, const BBox &rect) const
   }
 
   if (visible) {
-    //---
-
     if (node()->image().isValid())
       drawFgImage(device, rect);
     else
@@ -5531,10 +5567,12 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
 
   //---
 
+  auto *edge = this->edge();
+
   auto drawNodeInside = [&](const Node *node, bool isSrc) {
     auto *nodeObj = node->obj(); if (! nodeObj) return;
 
-    auto rect = (isSrc ? node->destEdgeRect(edge()) : node->srcEdgeRect(edge()));
+    auto rect = (isSrc ? node->destEdgeRect(edge) : node->srcEdgeRect(edge));
     if (! rect.isSet()) return;
 
     nodeObj->setInside(true);
@@ -5550,8 +5588,8 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
 
   //---
 
-  auto *srcNode  = edge()->srcNode ();
-  auto *destNode = edge()->destNode();
+  auto *srcNode  = edge->srcNode ();
+  auto *destNode = edge->destNode();
 
   if      (mouseColoring == CQChartsSankeyPlot::ConnectionType::SRC) {
     drawNodeInside(srcNode , /*isSrc*/true );
@@ -5571,7 +5609,7 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
 
     if (srcNodeObj)
       srcNodeObj->drawConnectionMouseOver(device,
-        static_cast<int>(CQChartsSankeyPlot::ConnectionType::ALL_SRC), edge()->pathId());
+        static_cast<int>(CQChartsSankeyPlot::ConnectionType::ALL_SRC), pathId());
 #endif
   }
   else if (mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_DEST) {
@@ -5582,7 +5620,7 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
 
     if (destNodeObj)
       destNodeObj->drawConnectionMouseOver(device,
-        static_cast<int>(CQChartsSankeyPlot::ConnectionType::ALL_DEST), edge()->pathId());
+        static_cast<int>(CQChartsSankeyPlot::ConnectionType::ALL_DEST), pathId());
 #endif
   }
   else if (mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_SRC_DEST) {
@@ -5594,13 +5632,13 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
 
     if (srcNodeObj)
       srcNodeObj->drawConnectionMouseOver(device,
-        static_cast<int>(CQChartsSankeyPlot::ConnectionType::ALL_SRC), edge()->pathId());
+        static_cast<int>(CQChartsSankeyPlot::ConnectionType::ALL_SRC), pathId());
 
     auto *destNodeObj = destNode->obj();
 
     if (destNodeObj)
       destNodeObj->drawConnectionMouseOver(device,
-        static_cast<int>(CQChartsSankeyPlot::ConnectionType::ALL_DEST), edge()->pathId());
+        static_cast<int>(CQChartsSankeyPlot::ConnectionType::ALL_DEST), pathId());
 #endif
   }
 }

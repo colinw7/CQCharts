@@ -3,6 +3,9 @@
 #include <CQChartsUtil.h>
 #include <CQUtil.h>
 
+//#include <QTextEdit>
+#include <QLabel>
+
 #include <iostream>
 
 CQChartsViewToolTip::
@@ -14,6 +17,13 @@ CQChartsViewToolTip::
 ~CQChartsViewToolTip()
 {
   delete widget_;
+}
+
+QWidget *
+CQChartsViewToolTip::
+widget() const
+{
+  return widget_;
 }
 
 void
@@ -32,6 +42,8 @@ showWidget(const QPoint &gpos)
 {
   if (! widget_) {
     widget_ = CQUtil::makeLabelWidget<QLabel>("", "label");
+  //widget_ = CQUtil::makeLabelWidget<QTextEdit>("", "label");
+  //widget_->setReadOnly(true);
 
     widget_->setFont(font_);
   }
@@ -90,6 +102,13 @@ isHideKey(int key, Qt::KeyboardModifiers mod) const
   return CQToolTipIFace::isHideKey(key, mod);
 }
 
+bool
+CQChartsViewToolTip::
+isVisible() const
+{
+  return widget_ && widget_->isVisible();
+}
+
 QSize
 CQChartsViewToolTip::
 sizeHint() const
@@ -101,7 +120,8 @@ sizeHint() const
 
 CQChartsViewFloatTip::
 CQChartsViewFloatTip(CQChartsView *view) :
- CQFloatTip(view), view_(view) {
+ CQFloatTip(view), view_(view)
+{
 }
 
 void

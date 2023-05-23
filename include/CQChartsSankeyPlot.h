@@ -898,8 +898,8 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   Edge*                edge_       { nullptr }; //!< edge
   BBox                 srcRect_;                //!< src rect
   BBox                 destRect_;               //!< dest rect
-  mutable QPainterPath linePath_;               //!< painter path
-  mutable QPainterPath edgePath_;               //!< painter path
+  mutable QPainterPath linePath_;               //!< line painter path
+  mutable QPainterPath edgePath_;               //!< curve painter path
 };
 
 //---
@@ -1337,6 +1337,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void initHierObjsAddConnection(const QString &srcStr, const QString &destStr, int srcDepth,
                                  double value, Node* &srcNode, Node* &destNode) const;
 
+  void propagateHierValues();
+
   //---
 
   bool initPathObjs() const;
@@ -1344,7 +1346,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void addPathValue(const PathData &pathData) const override;
 
   void propagatePathValues();
-  void propagateHierValues();
 
   double calcHierValue(Node *node) const;
 
@@ -1359,6 +1360,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool initLinkObjs() const;
 
   void addLinkConnection(const LinkConnectionData &linkConnectionData) const override;
+
+  void propagateLinkValues();
 
   //---
 

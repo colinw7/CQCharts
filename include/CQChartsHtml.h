@@ -111,6 +111,18 @@ class CQChartsHtml {
       return "<td>&nbsp;</td>";
   }
 
+  static QString tableData(const QColor c) {
+    auto colorStr = [](const QColor &c1) {
+      char color_string[32];
+
+      sprintf(color_string, "#%02x%02x%02x", c1.red() & 0xFF, c1.green() & 0xFF, c1.blue() & 0xFF);
+
+      return QString(color_string);
+    };
+
+    return QString("<td><font color='%1'>&#x2588;&#x2588;</font></td>").arg(colorStr(c));
+  }
+
   template<typename T>
   static QString tableDataT(const T &value) {
     return QString("<td>%1</td>").arg(value);

@@ -46,6 +46,16 @@ class CQChartsTableTip {
     inTable_ = true;
   }
 
+  void addTableRow(const QString &name, const QString &value, const QColor &c) {
+    if (! inTable_)
+      str_ += "<table>\n";
+
+    str_ += tableRow(tableHeader(escapeText(name)) + tableData() +
+                     tableData(escapeText(value)) + tableData(c));
+
+    inTable_ = true;
+  }
+
   void addTableRow(const QString &name, const QString &value1, const QString &value2) {
     if (! inTable_)
       str_ += "<table>\n";
@@ -97,6 +107,8 @@ class CQChartsTableTip {
   QString tableHeader(const QString &str   ) const { return CQChartsHtml::tableHeader(str); }
   QString tableRow   (const QString &str   ) const { return CQChartsHtml::tableRow   (str); }
   QString tableData  (const QString &str="") const { return CQChartsHtml::tableData  (str); }
+
+  QString tableData(const QColor &c) const { return CQChartsHtml::tableData(c); }
 
   template<typename T>
   QString tableDataT(const T &value) const { return CQChartsHtml::tableDataT<T>(value); }

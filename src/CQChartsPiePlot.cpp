@@ -1701,11 +1701,11 @@ isIndexHidden(const ModelIndex &ind) const
   bool hidden = false;
 
   if (isColorKey) {
-    ModelIndex colorInd(th, ind.row(), colorColumn(), ind.parent());
+    ModelIndex colorModelInd(th, ind.row(), colorColumn(), ind.parent());
 
     bool ok;
 
-    auto colorValue = modelValue(colorInd, ok);
+    auto colorValue = modelValue(colorModelInd, ok);
 
     hidden = (ok && isHideValue(colorValue));
   }
