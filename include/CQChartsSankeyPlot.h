@@ -848,6 +848,7 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
 
   //---
 
+  // properties
   double value() const { return (edge()->hasValue() ? edge()->value().real() : 0.0); }
 
 #ifdef CQCHARTS_GRAPH_PATH_ID
@@ -886,8 +887,6 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
 #endif
 
   bool calcEdgePath(QPainterPath &path, bool isLine=false) const;
-
-  bool edgePath(QPainterPath &path, bool isLine=false) const;
 
   //---
 

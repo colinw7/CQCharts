@@ -641,33 +641,40 @@ CQChartsSankeyPlot::
 calcRange() const
 {
   if (! isTextInternal() || isNodeValueBar()) {
-    double dx = 0.0;
-    double dy = 0.0;
+    double dx1 = 0.0, dx2 = 0.0, dy1 = 0.0, dy2 = 0.0;
 
     auto font = view()->plotFont(this, nodeTextFont());
 
     QFontMetricsF fm(font);
 
     if (isNodeValueBar()) {
-      int maxDepth = this->maxDepth();
+      int depth = this->maxPos() - this->minPos();
 
-      double db = (maxDepth > 1 ? 1.0/maxDepth : 0.0);
+      double db = (depth > 1 ? 1.0/depth : 0.0);
 
       auto barSize = std::min(std::max(nodeValueBarSize(), 0.0), 1.0);
 
       if (isHorizontal())
-        dx = barSize*db;
+        dx2 = barSize*db;
       else
-        dy = barSize*db;
+        dy2 = barSize*db;
     }
 
-    if (isHorizontal())
-      dx = std::max(dx, pixelToWindowWidth (fm.height())*1.1);
-    else
-      dy = std::max(dy, pixelToWindowHeight(fm.height())*1.1);
+    if (isHorizontal()) {
+      auto fw = pixelToWindowWidth(fm.height())*1.1;
 
-    return Range(targetBBox_.getXMin() - dx, targetBBox_.getYMin() - dy,
-                 targetBBox_.getXMax() + dx, targetBBox_.getYMax() + dy);
+      dx1 = std::max(dx1, fw);
+      dx2 = std::max(dx2, fw);
+    }
+    else {
+      auto fh = pixelToWindowHeight(fm.height())*1.1;
+
+      dy1 = std::max(dy1, fh);
+      dy2 = std::max(dy2, fh);
+    }
+
+    return Range(targetBBox_.getXMin() - dx1, targetBBox_.getYMin() - dy1,
+                 targetBBox_.getXMax() + dx2, targetBBox_.getYMax() + dy2);
   }
   else {
     return Range(targetBBox_);
