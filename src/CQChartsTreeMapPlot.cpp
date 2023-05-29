@@ -9,6 +9,7 @@
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsVariant.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -225,17 +226,23 @@ double
 CQChartsTreeMapPlot::
 calcTitleHeight() const
 {
-  auto font = view()->plotFont(this, headerTextFont());
-
-  QFontMetricsF fm(font);
-
   if (titleHeight().isSet()) {
     double hh = lengthPixelHeight(*titleHeight().value());
 
     return std::max(hh, 4.0);
   }
 
-  return fm.height() + 4.0;
+  auto font = view()->plotFont(this, headerTextFont());
+
+  QFontMetricsF fm(font);
+
+  auto ph = fm.height() + 4.0;
+
+  double px1, py1;
+
+  zoomedPixelSize(ph, ph, px1, py1);
+
+  return py1;
 }
 
 //----
@@ -1636,7 +1643,7 @@ addMenuItems(QMenu *menu, const Point &pv)
   auto *currentRoot = this->currentRoot(menuGroupName_);
   auto *firstHier   = this->firstHier  (menuGroupName_);
 
-  pushAction  ->setEnabled(ng > 1 || ! objs.empty());
+  pushAction  ->setEnabled(ng > 1 || nodeObj);
   popAction   ->setEnabled(currentRoot != firstHier || treeData_.currentGroupName != "");
   popTopAction->setEnabled(currentRoot != firstHier || treeData_.currentGroupName != "");
 
@@ -2695,7 +2702,7 @@ drawText(PaintDevice *device, const BBox &pbbox, bool updateState) const
         CQChartsDrawUtil::drawTextInBox(device, bbox1, str1, textOptions);
       }
       else
-        CQChartsDrawUtil::drawStringsInBox(device, bbox1, strs, textOptions);
+        CQChartsDrawUtil::drawTextsInBox(device, bbox1, strs, textOptions);
     }
   }
 
@@ -3280,7 +3287,11 @@ init()
 {
   addWidgets();
 
+  addOverview();
+
   addLayoutStretch();
+
+  addButtonWidgets();
 
   connectSlots(true);
 }
@@ -3314,6 +3325,33 @@ addOptionsWidgets()
 
 void
 CQChartsTreeMapPlotCustomControls::
+addButtonWidgets()
+{
+  // buttons group
+  buttonsFrame_ = createGroupFrame("Functions", "buttonsFrame", FrameOpts::makeHBox());
+
+  push_   = CQUtil::makeLabelWidget<QPushButton>("Push", "pushButton");
+  pop_    = CQUtil::makeLabelWidget<QPushButton>("Pop", "popButton");
+  popTop_ = CQUtil::makeLabelWidget<QPushButton>("Pop Top", "popTopButton");
+
+  expand_   = CQUtil::makeLabelWidget<QPushButton>("Expand", "expandButton");
+  collapse_ = CQUtil::makeLabelWidget<QPushButton>("Collapse", "collapseButton");
+
+  buttonsFrame_.box->addWidget(push_);
+  buttonsFrame_.box->addWidget(pop_);
+  buttonsFrame_.box->addWidget(popTop_);
+
+  auto *spacer = CQChartsWidgetUtil::createHSpacer(8);
+  buttonsFrame_.box->addWidget(spacer);
+
+  buttonsFrame_.box->addWidget(expand_);
+  buttonsFrame_.box->addWidget(collapse_);
+
+  buttonsFrame_.box->addStretch(1);
+}
+
+void
+CQChartsTreeMapPlotCustomControls::
 connectSlots(bool b)
 {
   CQUtil::optConnectDisconnect(b,
@@ -3322,6 +3360,21 @@ connectSlots(bool b)
     valueCheck_, SIGNAL(stateChanged(int)), this, SLOT(valueSlot()));
   CQUtil::optConnectDisconnect(b,
     followViewCheck_, SIGNAL(stateChanged(int)), this, SLOT(followViewSlot()));
+
+  CQUtil::optConnectDisconnect(b,
+   push_  , SIGNAL(clicked()), treeMapPlot_, SLOT(pushSlot()));
+  CQUtil::optConnectDisconnect(b,
+   pop_   , SIGNAL(clicked()), treeMapPlot_, SLOT(popSlot()));
+  CQUtil::optConnectDisconnect(b,
+   popTop_, SIGNAL(clicked()), treeMapPlot_, SLOT(popTopSlot()));
+
+  CQUtil::optConnectDisconnect(b,
+    expand_  , SIGNAL(clicked()), treeMapPlot_, SLOT(expandSlot()));
+  CQUtil::optConnectDisconnect(b,
+    collapse_, SIGNAL(clicked()), treeMapPlot_, SLOT(collapseSlot()));
+
+  CQUtil::optConnectDisconnect(b,
+    treeMapPlot_, SIGNAL(selectionChanged()), this, SLOT(updateWidgets()));
 
   CQChartsHierPlotCustomControls::connectSlots(b);
 }
@@ -3346,6 +3399,34 @@ updateWidgets()
   headerCheck_    ->setChecked(treeMapPlot_->isTitles());
   valueCheck_     ->setChecked(treeMapPlot_->isValueLabel());
   followViewCheck_->setChecked(treeMapPlot_->isFollowViewExpand());
+
+  //---
+
+  CQChartsTreeMapPlot::PlotObjs objs;
+
+  treeMapPlot_->selectedPlotObjs(objs);
+
+  auto *obj = (! objs.empty() ? *objs.begin() : nullptr);
+
+  auto *nodeObj = dynamic_cast<CQChartsTreeMapNodeObj *>(obj);
+
+  auto menuGroupName = (nodeObj ? nodeObj->calcGroupName() : "");
+
+  auto *currentRoot = treeMapPlot_->currentRoot(menuGroupName);
+  auto *firstHier   = treeMapPlot_->firstHier  (menuGroupName);
+
+  int ng = treeMapPlot_->numGroups();
+
+  auto pushGroupName = treeMapPlot_->pushGroupName();
+
+  push_  ->setEnabled(ng > 1 || nodeObj);
+  pop_   ->setEnabled(currentRoot != firstHier || pushGroupName != "");
+  popTop_->setEnabled(currentRoot != firstHier || pushGroupName != "");
+
+  const auto *hierObj = dynamic_cast<CQChartsTreeMapHierObj *>(nodeObj);
+
+  expand_  ->setEnabled(hierObj);
+  collapse_->setEnabled(nodeObj);
 
   //---
 

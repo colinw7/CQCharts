@@ -448,17 +448,31 @@ using Point       = CQChartsGeom::Point;
 using BBox        = CQChartsGeom::BBox;
 using Polygon     = CQChartsGeom::Polygon;
 
+struct DrawData {
+  Length          width;
+  Qt::Orientation orientation { Qt::Vertical };
+  Length          cornerSize;
+  bool            notched     { false };
+  bool            median      { false };
+};
+
+struct PointData {
+  Point min;
+  Point lmd;
+  Point med;
+  Point umd;
+  Point max;
+};
+
 void drawWhisker(PaintDevice *device, const BoxWhisker &whisker, const BBox &bbox,
-                 const Length &width, const Qt::Orientation &orientation,
-                 const Length &cornerSize=Length());
+                 const DrawData &drawData, PointData &pointData);
 void drawWhisker(PaintDevice *device, const CQStatData &data, const std::vector<double> &outliers,
-                 const BBox &bbox, const Length &width, const Qt::Orientation &orientation,
-                 const Length &cornerSize=Length());
+                 const BBox &bbox, const DrawData &drawData, PointData &pointData);
 
 void drawWhiskerBar(PaintDevice *device, const CQStatData &data, double pos,
                     const Qt::Orientation &orientation, double ww, double bw,
                     const Length &cornerSize, bool notched, bool median,
-                    const std::vector<double> &outliers);
+                    const std::vector<double> &outliers, PointData &pointData);
 
 }
 

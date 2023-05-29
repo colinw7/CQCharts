@@ -1,0 +1,14 @@
+Link,Size,Name,Stage
+A/B,200,bill,Stage1
+B/C1,100,fred,Stage2
+B/C2,100,harry,Stage2
+B/C3,100,george,Stage2
+C1/D1,50,fred,Stage3
+C1/D2,80,harry,Stage3
+C1/D3,30,william,Stage3
+C1/D4,10,bert,Stage3
+C2/D5,74,bill,Stage3
+C2/D6,83,harry,Stage3
+C2/D7,11,fred,Stage3
+C3/D8,15,william,Stage3
+C3/D9,23,orville,Stage3

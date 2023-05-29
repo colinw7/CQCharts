@@ -30,6 +30,9 @@ class QGridLayout;
 class QVBoxLayout;
 
 class CQChartsPlotCustomKey;
+class CQChartsPlotOverview;
+
+//---
 
 class CQChartsPlotCustomControls : public QScrollArea {
   Q_OBJECT
@@ -104,6 +107,7 @@ class CQChartsPlotCustomControls : public QScrollArea {
     bool stretch { true };
     bool grid    { true };
     bool hbox    { false };
+    bool vbox    { false };
 
     FrameOpts() { }
 
@@ -112,6 +116,14 @@ class CQChartsPlotCustomControls : public QScrollArea {
       opts.stretch = false;
       opts.grid    = false;
       opts.hbox    = true;
+      return opts;
+    }
+
+    static FrameOpts makeVBox() {
+      FrameOpts opts;
+      opts.stretch = false;
+      opts.grid    = false;
+      opts.vbox    = true;
       return opts;
     }
 
@@ -166,6 +178,10 @@ class CQChartsPlotCustomControls : public QScrollArea {
 
   void updateColorKeyVisible();
 
+  //---
+
+  int overviewSize() const { return overviewSize_; }
+
  Q_SIGNALS:
   void numericOnlyChanged();
 
@@ -181,6 +197,10 @@ class CQChartsPlotCustomControls : public QScrollArea {
 
   void colorDetailsSlot();
 
+  void keyVisibleSlot();
+
+  void overviewChanged();
+
   void colorSlot();
   void colorColumnSlot();
   void colorRangeSlot();
@@ -193,7 +213,10 @@ class CQChartsPlotCustomControls : public QScrollArea {
   void numericOnlySlot(bool state);
 
   void showColorKeySlot(bool b);
+  void showPlotKeySlot(bool b);
   void showKeyListSlot(bool b);
+
+  void showOverviewSlot(bool b);
 
 #ifdef CQCHARTS_MODULE_SHLIB
   void moduleEditSlot();
@@ -209,6 +232,8 @@ class CQChartsPlotCustomControls : public QScrollArea {
   //QCheckBox *makeOptionCheck(const QString &param);
 
   void addKeyList();
+
+  void addOverview();
 
   virtual void connectSlots(bool b);
 
@@ -252,8 +277,13 @@ class CQChartsPlotCustomControls : public QScrollArea {
 
   CQChartsColor color_; //!< dummy color for getColorValue/setColorValue virtual
 
-  CQGroupBox*            keyGroup_ { nullptr }; //!< key group
-  CQChartsPlotCustomKey *keyList_  { nullptr }; //!< key list
+  QCheckBox*             plotKeyCheck_ { nullptr }; //!< plot key check
+  QCheckBox*             keyListCheck_ { nullptr }; //!< key list check
+  CQChartsPlotCustomKey *keyList_      { nullptr }; //!< key list
+
+  QCheckBox*            overviewCheck_ { nullptr }; //!< overview check
+  CQChartsPlotOverview *overview_      { nullptr }; //!< overview widget
+  int                   overviewSize_  { 256 };     //!< overview size
 
 #ifdef CQCHARTS_MODULE_SHLIB
   using WidgetP     = QPointer<QWidget>;
@@ -318,6 +348,35 @@ class CQChartsPlotCustomKey : public QFrame {
   PlotP          plot_;              //!< plot
   CQTableWidget* table_ { nullptr }; //!< table
   RowColItemData itemData_;          //!< item data
+};
+
+//---
+
+class CQChartsPlotOverview : public QFrame {
+  Q_OBJECT
+
+ public:
+  using Point = CQChartsGeom::Point;
+
+ public:
+  CQChartsPlotOverview(CQChartsPlotCustomControls *controls);
+
+  void mousePressEvent  (QMouseEvent *) override;
+  void mouseMoveEvent   (QMouseEvent *) override;
+  void mouseReleaseEvent(QMouseEvent *) override;
+
+  void wheelEvent(QWheelEvent *e) override;
+
+  void paintEvent(QPaintEvent *) override;
+
+  QSize sizeHint() const override;
+
+ private:
+  Point pixelToPlot(const Point &pp) const;
+
+ private:
+  CQChartsPlotCustomControls *controls_ { nullptr };
+  bool                        pressed_  { false };
 };
 
 //---

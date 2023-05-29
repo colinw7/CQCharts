@@ -160,9 +160,10 @@ update()
     valueNames << "Column Index" << "Column Name";
 
   valueNames << (QStringList() <<
-    "Type" << "Min" << "Max" << "Mean" << "StdDev" << "Monotonic" << "Num Unique" << "Num Null");
+    "Type" << "Min" << "Max" << "Mean" << "StdDev" << "Monotonic" << "Num Unique" << "Num Null" <<
+    "Median" << "Lower Median" << "Upper Median");
 
-  int nv = valueNames.size();
+  auto nv = valueNames.size();
 
   QStringList columnNames;
 
@@ -187,25 +188,42 @@ update()
     table_->setRowCount(nv);
   }
 
-  auto columnDetails = [&](int c, QString &nameStr, QString &typeStr, QString &minStr,
-                           QString &maxStr, QString &meanStr, QString &stdDevStr,
-                           QString &monoStr, QString &uniqueStr, QString &nullStr) {
+  struct ColumnDetailsData {
+    QString nameStr;
+    QString typeStr;
+    QString minStr;
+    QString maxStr;
+    QString meanStr;
+    QString stdDevStr;
+    QString monoStr;
+    QString uniqueStr;
+    QString nullStr;
+    QString medianStr;
+    QString lowerMedianStr;
+    QString upperMedianStr;
+  };
+
+  auto columnDetails = [&](int c, ColumnDetailsData &data) {
     const auto *columnDetails = details->columnDetails(CQChartsColumn(c));
 
-    nameStr   = columnDetails->headerName();
-    typeStr   = columnDetails->typeName();
-    minStr    = columnDetails->dataName(columnDetails->minValue   ()).toString();
-    maxStr    = columnDetails->dataName(columnDetails->maxValue   ()).toString();
-    meanStr   = columnDetails->dataName(columnDetails->meanValue  ()).toString();
-    stdDevStr = columnDetails->dataName(columnDetails->stdDevValue()).toString();
+    data.nameStr   = columnDetails->headerName();
+    data.typeStr   = columnDetails->typeName();
+    data.minStr    = columnDetails->dataName(columnDetails->minValue   ()).toString();
+    data.maxStr    = columnDetails->dataName(columnDetails->maxValue   ()).toString();
+    data.meanStr   = columnDetails->dataName(columnDetails->meanValue  ()).toString();
+    data.stdDevStr = columnDetails->dataName(columnDetails->stdDevValue()).toString();
 
     if (columnDetails->isMonotonic())
-      monoStr = (columnDetails->isIncreasing() ? "Increasing" : "Decreasing");
+      data.monoStr = (columnDetails->isIncreasing() ? "Increasing" : "Decreasing");
     else
-      monoStr.clear();
+      data.monoStr.clear();
 
-    uniqueStr = QString::number(columnDetails->numUnique());
-    nullStr   = QString::number(columnDetails->numNull());
+    data.uniqueStr = QString::number(columnDetails->numUnique());
+    data.nullStr   = QString::number(columnDetails->numNull());
+
+    data.medianStr      = columnDetails->medianValue     ().toString();
+    data.lowerMedianStr = columnDetails->lowerMedianValue().toString();
+    data.upperMedianStr = columnDetails->upperMedianValue().toString();
   };
 
   auto addWidgetItem = [&](const QString &name, int r, int c) {
@@ -220,26 +238,28 @@ update()
   };
 
   auto setTableRow = [&](int c) {
-    QString nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr, monoStr, uniqueStr, nullStr;
+    ColumnDetailsData data;
 
     if (! isFlip()) {
-      columnDetails(c, nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr,
-                    monoStr, uniqueStr, nullStr);
+      columnDetails(c, data);
 
       auto cstr = QString::number(c);
 
       int ic = 0;
 
-      addWidgetItem(cstr     , c, ic); ++ic;
-      addWidgetItem(nameStr  , c, ic); ++ic;
-      addWidgetItem(typeStr  , c, ic); ++ic;
-      addWidgetItem(minStr   , c, ic); ++ic;
-      addWidgetItem(maxStr   , c, ic); ++ic;
-      addWidgetItem(meanStr  , c, ic); ++ic;
-      addWidgetItem(stdDevStr, c, ic); ++ic;
-      addWidgetItem(monoStr  , c, ic); ++ic;
-      addWidgetItem(uniqueStr, c, ic); ++ic;
-      addWidgetItem(nullStr  , c, ic); ++ic;
+      addWidgetItem(cstr               , c, ic); ++ic;
+      addWidgetItem(data.nameStr       , c, ic); ++ic;
+      addWidgetItem(data.typeStr       , c, ic); ++ic;
+      addWidgetItem(data.minStr        , c, ic); ++ic;
+      addWidgetItem(data.maxStr        , c, ic); ++ic;
+      addWidgetItem(data.meanStr       , c, ic); ++ic;
+      addWidgetItem(data.stdDevStr     , c, ic); ++ic;
+      addWidgetItem(data.monoStr       , c, ic); ++ic;
+      addWidgetItem(data.uniqueStr     , c, ic); ++ic;
+      addWidgetItem(data.nullStr       , c, ic); ++ic;
+      addWidgetItem(data.medianStr     , c, ic); ++ic;
+      addWidgetItem(data.lowerMedianStr, c, ic); ++ic;
+      addWidgetItem(data.upperMedianStr, c, ic); ++ic;
     }
     else {
       if (c == 0) {
@@ -249,17 +269,21 @@ update()
           addWidgetItem(v, r++, c);
       }
       else {
-        columnDetails(c - 1, nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr,
-                      monoStr, uniqueStr, nullStr);
+        columnDetails(c - 1, data);
 
-        addWidgetItem(typeStr  , 0, c);
-        addWidgetItem(minStr   , 1, c);
-        addWidgetItem(maxStr   , 2, c);
-        addWidgetItem(meanStr  , 3, c);
-        addWidgetItem(stdDevStr, 4, c);
-        addWidgetItem(monoStr  , 5, c);
-        addWidgetItem(uniqueStr, 6, c);
-        addWidgetItem(nullStr  , 7, c);
+        int ic = 0;
+
+        addWidgetItem(data.typeStr       , ic, c); ++ic;
+        addWidgetItem(data.minStr        , ic, c); ++ic;
+        addWidgetItem(data.maxStr        , ic, c); ++ic;
+        addWidgetItem(data.meanStr       , ic, c); ++ic;
+        addWidgetItem(data.stdDevStr     , ic, c); ++ic;
+        addWidgetItem(data.monoStr       , ic, c); ++ic;
+        addWidgetItem(data.uniqueStr     , ic, c); ++ic;
+        addWidgetItem(data.nullStr       , ic, c); ++ic;
+        addWidgetItem(data.medianStr     , ic, c); ++ic;
+        addWidgetItem(data.lowerMedianStr, ic, c); ++ic;
+        addWidgetItem(data.upperMedianStr, ic, c); ++ic;
       }
     }
   };

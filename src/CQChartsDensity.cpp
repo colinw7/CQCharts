@@ -439,9 +439,15 @@ drawWhisker(PaintDevice *device, const BBox &rect, const Qt::Orientation &orient
     }
   }
 
+  CQChartsBoxWhiskerUtil::DrawData  drawData;
+  CQChartsBoxWhiskerUtil::PointData pointData;
+
+  drawData.width       = ws;
+  drawData.orientation = orientation;
+
   std::vector<double> outliers;
 
-  CQChartsBoxWhiskerUtil::drawWhisker(device, statData, outliers, rect, ws, orientation);
+  CQChartsBoxWhiskerUtil::drawWhisker(device, statData, outliers, rect, drawData, pointData);
 }
 
 void
@@ -475,14 +481,16 @@ drawWhiskerBar(PaintDevice *device, const BBox &rect, const Qt::Orientation &ori
   bool           notched { false };
   bool           median  { true };
 
+  CQChartsBoxWhiskerUtil::PointData pointData;
+
   if (orientation == Qt::Horizontal)
     CQChartsBoxWhiskerUtil::drawWhiskerBar(device, statData, rect.getYMid(),
                                            orientation, rect.getHeight(), rect.getHeight(),
-                                           cornerSize, notched, median, outliers);
+                                           cornerSize, notched, median, outliers, pointData);
   else
     CQChartsBoxWhiskerUtil::drawWhiskerBar(device, statData, rect.getXMid(),
                                            orientation, rect.getWidth(), rect.getWidth(),
-                                           cornerSize, notched, median, outliers);
+                                           cornerSize, notched, median, outliers, pointData);
 }
 
 //---

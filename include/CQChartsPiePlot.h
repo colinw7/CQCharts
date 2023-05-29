@@ -61,6 +61,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
   Q_PROPERTY(double        innerRadius READ innerRadius WRITE setInnerRadius)
   Q_PROPERTY(double        outerRadius READ outerRadius WRITE setOuterRadius)
   Q_PROPERTY(QString       label       READ label       WRITE setLabel      )
+  Q_PROPERTY(int           ind         READ ind         WRITE setInd        )
   Q_PROPERTY(QString       keyLabel    READ keyLabel    WRITE setKeyLabel   )
   Q_PROPERTY(bool          exploded    READ isExploded  WRITE setExploded   )
   Q_PROPERTY(double        value       READ value)
@@ -136,6 +137,9 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   const QString &label() const { return label_; }
   void setLabel(const QString &s) { label_ = s; }
+
+  int ind() const { return ind_; }
+  void setInd(int i) { ind_ = i; }
 
   void addValue(const OptReal &r);
   double calcValue(const ValueType &valueType) const;
@@ -247,6 +251,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
   double          ro_         { 0.0 };      //!< outer radius
   double          rv_         { 0.0 };      //!< value radius
   QString         label_      { "" };       //!< label
+  int             ind_        { -1 };       //!< bucket index
   CQChartsRValues values_;                  //!< value
   OptReal         radius_;                  //!< optional radius value
   double          radiusScale_ { 1.0 };     //!< radius scale
@@ -325,7 +330,10 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   void addObject(PieObj *obj);
 
-  PieObj *lookupObj(const QString &name) const;
+  int bucketValue(const ModelIndex &ind, double v, QString &label) const;
+
+  PieObj *lookupObjByName(const QString &name) const;
+  PieObj *lookupObjByInd(int ind) const;
 
   int numObjs() const { return int(objs_.size()); }
 
@@ -506,6 +514,10 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Q_PROPERTY(bool dumbbell    READ isDumbbell    WRITE setDumbbell   )
   Q_PROPERTY(bool dumbbellPie READ isDumbbellPie WRITE setDumbbellPie)
 
+  // . bucket
+  Q_PROPERTY(bool bucketed   READ isBucketed WRITE setBucketed)
+  Q_PROPERTY(int  numBuckets READ numBuckets WRITE setNumBuckets)
+
   // value
   Q_PROPERTY(ValueType valueType READ valueType WRITE setValueType)
   // . min/max value
@@ -646,6 +658,14 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   bool isCount() const { return count_; }
 
   bool isDonutTitle() const { return donutTitle_; }
+
+  //---
+
+  bool isBucketed() const { return bucketed_; }
+  void setBucketed(bool b);
+
+  int numBuckets() const { return numBuckets_; }
+  void setNumBuckets(int i);
 
   //---
 
@@ -820,7 +840,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   void addRowColumnDataTotal(const ModelIndex &ind) const;
 
-  bool getColumnSizeValue(const ModelIndex &ind, double &value, bool &missing) const;
+  bool getColumnSizeValue(const ModelIndex &ind, OptReal &value) const;
 
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;
@@ -874,6 +894,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   bool      summary_     { false };          //!< show summary
   bool      dumbbell_    { false };          //!< show dumbbell
   bool      dumbbellPie_ { true };           //!< show dumbbell pie
+  bool      bucketed_    { false };          //!< is bucketed
+  int       numBuckets_  { 20 };             //!< num buckets
   bool      count_       { false };          //!< show value counts
   bool      donutTitle_  { false };          //!< show title in donut center
   ValueType valueType_   { ValueType::SUM }; //!< Value type (when multiple values per name)
@@ -889,8 +911,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   bool      separated_   { true };           //!< are grouped pie objects drawn separately
   bool      rotatedText_ { false };          //!< is label rotated
 
-  ExplodeData     explodeData_; //!< explode data
-  InsideData      insideData_;  //!< inside data
+  ExplodeData explodeData_; //!< explode data
+  InsideData  insideData_;  //!< inside data
 
   bool textLabels_   { true }; //!< show labels
   bool radiusLabels_ { true }; //!< show radius labels

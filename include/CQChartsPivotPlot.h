@@ -383,6 +383,16 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
   //---
 
+  // customize zoom in x/y based on orientation
+  bool allowZoomX() const override { return ! isHorizontal(); }
+  bool allowZoomY() const override { return   isHorizontal(); }
+
+  // customize pan in x/y based on orientation
+  bool allowPanX() const override { return ! isHorizontal(); }
+  bool allowPanY() const override { return   isHorizontal(); }
+
+  //---
+
   bool isXSorted() const { return xsorted_; }
   void setXSorted(bool b);
 

@@ -9,6 +9,8 @@
 class CQChartsScatterPlot;
 class CQChartsDistributionPlot;
 class CQChartsParallelPlot;
+class CQChartsBoxPlot;
+class CQChartsPiePlot;
 
 //---
 
@@ -126,6 +128,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   using ScatterPlot      = CQChartsScatterPlot;
   using DistributionPlot = CQChartsDistributionPlot;
   using ParallelPlot     = CQChartsParallelPlot;
+  using BoxPlot          = CQChartsBoxPlot;
+  using PiePlot          = CQChartsPiePlot;
   using CellObj          = CQChartsSummaryCellObj;
   using Length           = CQChartsLength;
   using ColorInd         = CQChartsUtil::ColorInd;
@@ -273,6 +277,13 @@ class CQChartsSummaryPlot : public CQChartsPlot,
  protected:
   void updatePlots();
 
+  //---
+
+  //! handle double click
+  bool handleSelectDoubleClick(const Point &p, SelMod selMod) override;
+
+  //---
+
   virtual CellObj *createCellObj(const BBox &bbox, int row, int col) const;
 
  public Q_SLOTS:
@@ -324,6 +335,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   ScatterPlot*      scatterPlot_      { nullptr };
   DistributionPlot* distributionPlot_ { nullptr };
   ParallelPlot*     parallelPlot_     { nullptr };
+  BoxPlot*          boxPlot_          { nullptr };
+  PiePlot*          piePlot_          { nullptr };
 
   bool bestFit_ { false };
   bool density_ { false };
@@ -467,6 +480,7 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
   CQChartsSummaryPlot* summaryPlot_ { nullptr };
 
   FrameData optionsFrame_;
+  FrameData buttonsFrame_;
 
   CQChartsEnumParameterEdit* plotTypeCombo_          { nullptr };
   CQChartsEnumParameterEdit* diagonalTypeCombo_      { nullptr };

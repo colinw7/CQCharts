@@ -2826,6 +2826,11 @@ setKeyVisible(bool b)
 
   if (key())
     key()->setVisible(b);
+
+  if (b)
+    updateKeyPosition(/*force*/true);
+
+  Q_EMIT keyVisibleChanged(b);
 }
 
 bool
@@ -4212,6 +4217,14 @@ addBaseProperties()
   // scaled symbol
   addPropI("points", "scaleSymbolSize", "scaled", "Are symbols scaled on zoom");
   addPropI("points", "defaultSymbolSetName", "defaultSymbolSet", "Default symbol set");
+
+  // overview
+  addProp("overview", "overviewDisplayed"  , "displayed"  , "Overview displayed");
+  addProp("overview", "overviewSize"       , "size"       , "Overview size");
+  addProp("overview", "overviewFillColor"  , "fillColor"  , "Overview fill color");
+  addProp("overview", "overviewFillAlpha"  , "fillAlpha"  , "Overview fill alpha");
+  addProp("overview", "overviewStrokeColor", "strokeColor", "Overview stroke color");
+  addProp("overview", "overviewStrokeAlpha", "strokeAlpha", "Overview stroke alpha");
 }
 
 void
@@ -4559,7 +4572,8 @@ propertyItemSelected(QObject *obj, const QString &)
     if (isSelectable()) {
       setSelected(true);
 
-      view()->setCurrentPlot(this);
+      if (isVisible())
+        view()->setCurrentPlot(this);
 
       drawObjs();
 
@@ -7543,6 +7557,85 @@ insideObjectText1() const
   }
 
   return objText;
+}
+
+//------
+
+void
+CQChartsPlot::
+setOverviewDisplayed(bool b)
+{
+  if (b != overviewData_.displayed) {
+    overviewData_.displayed = b;
+
+    if (overviewData_.displayed)
+      updateOverview();
+  }
+}
+
+void
+CQChartsPlot::
+setOverviewSize(int s)
+{
+  overviewData_.size = s;
+
+  if (overviewData_.displayed)
+    updateOverview();
+
+  Q_EMIT overviewChanged();
+}
+
+void
+CQChartsPlot::
+setOverviewFillColor(const QColor &c)
+{
+  overviewData_.fillColor = c;
+
+  Q_EMIT overviewChanged();
+}
+
+void
+CQChartsPlot::
+setOverviewFillAlpha(double a)
+{
+  overviewData_.fillAlpha = a;
+
+  Q_EMIT overviewChanged();
+}
+
+void
+CQChartsPlot::
+setOverviewStrokeColor(const QColor &c)
+{
+  overviewData_.strokeColor = c;
+
+  Q_EMIT overviewChanged();
+}
+
+void
+CQChartsPlot::
+setOverviewStrokeAlpha(double a)
+{
+  overviewData_.strokeAlpha = a;
+
+  Q_EMIT overviewChanged();
+}
+
+void
+CQChartsPlot::
+updateOverview()
+{
+  auto saveZoomData = this->zoomData();
+
+  setZoomData(ZoomData());
+
+  setLayersChanged(true);
+
+  waitDraw();
+
+  setZoomData(saveZoomData);
+
+  setLayersChanged(true);
 }
 
 //------
@@ -12491,16 +12584,29 @@ bool
 CQChartsPlot::
 printLayer(Layer::Type type, const QString &filename) const
 {
+  auto *image = layerImage(type);
+
+  if (! image || image->isNull())
+    return false;
+
+  image->save(filename);
+
+  return true;
+}
+
+QImage *
+CQChartsPlot::
+layerImage(Layer::Type type) const
+{
   auto *layer = getLayer(type);
+  if (! layer) return nullptr;
 
   const auto *buffer = getBuffer(layer->buffer());
 
   if (! buffer->image())
-    return false;
+    return nullptr;
 
-  buffer->image()->save(filename);
-
-  return true;
+  return buffer->image();
 }
 
 //------
@@ -12902,6 +13008,7 @@ drawLayer(QPainter *painter, Layer::Type type) const
   assert(! parentPlot());
 
   auto *layer = getLayer(type);
+  if (! layer) return;
 
   auto *buffer = getBuffer(layer->buffer());
 
@@ -12965,6 +13072,51 @@ drawParts(QPainter *painter) const
   //---
 
   drawOverlayParts(painter);
+
+  //---
+
+  if (zoomData_.isFullScreen()) {
+    auto *th = const_cast<Plot *>(this);
+
+    QImage image;
+
+    if (isOverviewDisplayed()) {
+      QPainter painter;
+
+      auto initImage = [&](CQChartsBuffer *buffer) {
+        if (image.isNull()) {
+          image = QImage(buffer->image()->size(), QImage::Format_ARGB32_Premultiplied);
+
+          painter.begin(&image);
+        }
+      };
+
+      auto *bgBuffer = getBuffer(Buffer::Type::BACKGROUND);
+      auto *mdBuffer = getBuffer(Buffer::Type::MIDDLE);
+      auto *fgBuffer = getBuffer(Buffer::Type::FOREGROUND);
+
+      if (bgBuffer->isActive() && bgBuffer->image()) {
+        initImage(bgBuffer);
+        painter.drawImage(0, 0, *bgBuffer->image());
+      }
+
+      if (mdBuffer->isActive() && mdBuffer->image()) {
+        initImage(mdBuffer);
+
+        painter.drawImage(0, 0, *mdBuffer->image());
+      }
+
+      if (fgBuffer->isActive() && fgBuffer->image()) {
+        initImage(fgBuffer);
+
+        painter.drawImage(0, 0, *fgBuffer->image());
+      }
+
+      painter.end();
+    }
+
+    th->saveOverview(&image);
+  }
 }
 
 void
@@ -13206,6 +13358,35 @@ drawMiddleParts(QPainter *painter) const
   //---
 
   endPaint(buffer);
+}
+
+void
+CQChartsPlot::
+saveOverview(QImage *image)
+{
+  if (isOverviewDisplayed()) {
+    auto pixelRect = calcPlotPixelRect();
+
+    overviewData_.image = (image ? *image : QImage());
+
+    if (! overviewData_.image.isNull()) {
+      //auto transform = Qt::FastTransformation;
+      auto transform = Qt::SmoothTransformation;
+
+      if (pixelRect.getWidth() > pixelRect.getHeight())
+        overviewData_.image = overviewData_.image.scaledToWidth(overviewData_.size, transform);
+      else
+        overviewData_.image = overviewData_.image.scaledToHeight(overviewData_.size, transform);
+    }
+
+    overviewData_.plotRect = calcPlotRect();
+  }
+  else {
+    if (! overviewData_.image.isNull())
+      overviewData_.image = QImage();
+  }
+
+  Q_EMIT overviewChanged();
 }
 
 void
@@ -13651,10 +13832,15 @@ drawBackgroundRects(PaintDevice *device) const
                        fitBorderSides());
 
   if (isDataFilled() || isDataStroked()) {
-    auto clipBBox = (isDataRawClip() ? unequalDataRange_.bbox() : displayRangeBBox());
+    auto isClip = (isDataRawClip() || isDataClip());
 
     device->save();
-    device->setClipRect(clipBBox);
+
+    if (isClip) {
+      auto clipBBox = (isDataRawClip() ? unequalDataRange_.bbox() : displayRangeBBox());
+
+      device->setClipRect(clipBBox);
+    }
 
     auto drawBBox = (isDataRawRange() ? unequalDataRange_.bbox() : displayRangeBBox());
 
@@ -16315,6 +16501,7 @@ setLayerActive1(const Layer::Type &type, bool b)
   assert(! parentPlot());
 
   auto *layer = getLayer(type);
+  if (! layer) return;
 
   layer->setActive(b);
 
@@ -16346,6 +16533,7 @@ isLayerActive1(const Layer::Type &type) const
   assert(! parentPlot());
 
   auto *layer = getLayer(type);
+  if (! layer) return false;
 
   return layer->isActive();
 }
@@ -16475,7 +16663,10 @@ setLayersChanged(bool update)
   //---
 
   {
-    LockMutex lock(this, "setLayersChanged");
+    TryLockMutex lock(this, "setLayersChanged");
+
+    if (! lock.locked)
+      return;
 
     interruptDraw();
   }
@@ -16512,7 +16703,7 @@ CQChartsPlot::
 getLayer(const Layer::Type &type) const
 {
   auto p = layers_.find(type);
-  assert(p != layers_.end());
+  if (p == layers_.end()) return nullptr;
 
   return (*p).second;
 }
@@ -19500,6 +19691,23 @@ windowToPixel(const QPainterPath &path) const
   CQChartsDrawUtil::visitPath(path, visitor);
 
   return visitor.path();
+}
+
+//---
+
+void
+CQChartsPlot::
+zoomedPixelSize(double px, double py, double &px1, double &py1) const
+{
+  useRawRange_ = true;
+
+  double wx = pixelToWindowWidth (px);
+  double wy = pixelToWindowHeight(py);
+
+  useRawRange_ = false;
+
+  px1 = windowToPixelWidth (wx);
+  py1 = windowToPixelHeight(wy);
 }
 
 //------

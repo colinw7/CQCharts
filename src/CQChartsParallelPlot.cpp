@@ -1716,6 +1716,8 @@ init()
 {
   addWidgets();
 
+  addOverview();
+
   addLayoutStretch();
 
   connectSlots(true);

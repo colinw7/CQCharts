@@ -4,6 +4,7 @@
 #include <CQChartsColumnCombo.h>
 #include <CQChartsColumnTypeCombo.h>
 #include <CQChartsModelData.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsLineEdit.h>
 #include <CQChartsModelUtil.h>
 #include <CQCharts.h>
@@ -65,8 +66,14 @@ setModelData(CQChartsModelData *modelData)
     if (modelData_ && ! generalFrame_)
       init();
 
-    if (modelData_)
-      setColumnData(modelData_->currentColumn());
+    if (modelData_) {
+      int icolumn = modelData_->currentColumn();
+
+      if (icolumn < 0 && modelData_->details()->numColumns() > 0)
+        icolumn = 0;
+
+      setColumnData(0);
+    }
 
     if (modelData_)
       connect(modelData_, SIGNAL(currentColumnChanged(int)), this, SLOT(setColumnData(int)));

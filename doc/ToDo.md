@@ -4,15 +4,34 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + use columnValueColor for all color column color lookups so gets any color map
+ + tab current coloring
+ + save plot image (when multiple plots)
+
+ + key control checks for both custom and plot.
+
+ + scroll bars on zoom
+
+ + summary
+   + all types on grid and zoom
+   + all model data on summary (box plot shows min, max, mean, ...)
+   + pie chart zoom uses bucketed values
+   + diagonal/off diagonal fallback types (non numeric).
+
+ + use generic column data mapping for all column lookups so supports string -> value conversion
 
  + dendrogram
    + more overlap removal testing with vertical
    + save/restore expand
+   + key(s) when color by value
+
  + sankey
-   + bar chart like node width
+   + node/edge value labels (improve)
+
  + shape type
    + add extra data (angle, double border, corner size, ...)
+
+ + improve overlap removal
+   + DRC like algorithm, direction hints/restrictions
 
  + use MinMax map for more scaling (handles negative values). Handle zero as min ?
  

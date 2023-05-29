@@ -18,10 +18,12 @@
 #include <CQIntegerSpin.h>
 #include <CQRealSpin.h>
 #include <CQUtil.h>
+#include <CQWidgetUtil.h>
 
 #include <QLabel>
 #include <QCheckBox>
 #include <QVBoxLayout>
+#include <QMouseEvent>
 
 CQChartsPlotCustomControls::
 CQChartsPlotCustomControls(CQCharts *charts, const QString &plotType) :
@@ -332,21 +334,56 @@ addKeyList()
   assert(! keyList_);
 
   // key frame
-  auto keyFrame = createGroupFrame("Key", "keyFrame", QString("keyGroup"));
+  auto keyFrame = createGroupFrame("Key", "keyFrame", FrameOpts::makeVBox());
 
-  keyGroup_ = keyFrame.groupBox;
+  auto *checkFrame  = CQUtil::makeWidget<QFrame>("checkFrame");
+  auto *checkLayout = CQUtil::makeLayout<QHBoxLayout>(checkFrame, 2, 2);
 
-  keyGroup_->setCheckable(true);
+  keyFrame.box->addWidget(checkFrame);
 
-  keyGroup_->setToolTip("Show Key Table");
+  plotKeyCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Plot Key", "plotKey");
+  plotKeyCheck_->setToolTip("Show Key in Plot");
 
-  connect(keyGroup_, SIGNAL(clicked(bool)), this, SLOT(showKeyListSlot(bool)));
+  connect(plotKeyCheck_, SIGNAL(clicked(bool)), this, SLOT(showPlotKeySlot(bool)));
 
-  keyList_  = new CQChartsPlotCustomKey;
+  keyListCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Key Table", "keyTable");
+  keyListCheck_->setToolTip("Show Key Table in Controls");
+
+  connect(keyListCheck_, SIGNAL(clicked(bool)), this, SLOT(showKeyListSlot(bool)));
+
+  checkLayout->addWidget(plotKeyCheck_);
+  checkLayout->addWidget(keyListCheck_);
+  checkLayout->addStretch(1);
+
+  keyList_ = new CQChartsPlotCustomKey;
 
   keyList_->setPlot(plot());
 
-  addFrameWidget(keyFrame, keyList_);
+  keyFrame.box->addWidget(keyList_);
+}
+
+void
+CQChartsPlotCustomControls::
+addOverview()
+{
+  auto overviewFrame = createGroupFrame("Overview", "overviewFrame", FrameOpts::makeVBox());
+
+  auto *checkFrame  = CQUtil::makeWidget<QFrame>("checkFrame");
+  auto *checkLayout = CQUtil::makeLayout<QHBoxLayout>(checkFrame, 2, 2);
+
+  overviewFrame.box->addWidget(checkFrame);
+
+  overviewCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Overview", "overview");
+  overviewCheck_->setToolTip("Show Overview");
+
+  connect(overviewCheck_, SIGNAL(clicked(bool)), this, SLOT(showOverviewSlot(bool)));
+
+  checkLayout->addWidget(overviewCheck_);
+  checkLayout->addStretch(1);
+
+  overview_ = new CQChartsPlotOverview(this);
+
+  overviewFrame.box->addWidget(overview_);
 }
 
 void
@@ -407,6 +444,9 @@ setPlot(Plot *plot)
     disconnect(plot_, SIGNAL(destroyed(QObject *)), this, SLOT(resetPlot()));
     disconnect(plot_, SIGNAL(plotDrawn()), this, SLOT(plotDrawnSlot()));
     disconnect(plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
+    disconnect(plot_, SIGNAL(keyVisibleChanged(bool)), this, SLOT(keyVisibleSlot()));
+    disconnect(plot_, SIGNAL(overviewChanged()), this, SLOT(overviewChanged()));
+    disconnect(plot_, SIGNAL(zoomPanChanged()), this, SLOT(overviewChanged()));
   }
 
   plot_ = plot;
@@ -415,6 +455,9 @@ setPlot(Plot *plot)
     connect(plot_, SIGNAL(destroyed(QObject *)), this, SLOT(resetPlot()));
     connect(plot_, SIGNAL(plotDrawn()), this, SLOT(plotDrawnSlot()));
     connect(plot_, SIGNAL(colorDetailsChanged()), this, SLOT(colorDetailsSlot()));
+    connect(plot_, SIGNAL(keyVisibleChanged(bool)), this, SLOT(keyVisibleSlot()));
+    connect(plot_, SIGNAL(overviewChanged()), this, SLOT(overviewChanged()));
+    connect(plot_, SIGNAL(zoomPanChanged()), this, SLOT(overviewChanged()));
   }
 }
 
@@ -501,6 +544,39 @@ colorDetailsSlot()
 {
   // plot color details changed
   updateWidgets();
+}
+
+void
+CQChartsPlotCustomControls::
+keyVisibleSlot()
+{
+  if (plotKeyCheck_ && plot_)
+    plotKeyCheck_->setChecked(plot_->isKeyVisible());
+}
+
+void
+CQChartsPlotCustomControls::
+overviewChanged()
+{
+  if (overview_) {
+    int s = 256;
+
+    if (plot())
+      s = plot()->overviewSize();
+
+    if (overviewSize_ != s) {
+      overviewSize_ = s;
+
+      overview_->resize(sizeHint());
+
+      if (plot()->isOverviewDisplayed()) {
+        overview_->setVisible(false);
+        overview_->setVisible(true);
+      }
+    }
+
+    overview_->update();
+  }
 }
 
 void
@@ -598,12 +674,12 @@ createFrame(const QString &objName, const FrameOpts &frameOpts)
 
   frameData.frame = CQUtil::makeWidget<QFrame>(objName);
 
-  if      (frameOpts.grid)
-    frameData.grid = CQUtil::makeLayout<QGridLayout>(frameData.frame, 2, 2);
-  else if (frameOpts.hbox)
+  if      (frameOpts.hbox)
     frameData.box = CQUtil::makeLayout<QHBoxLayout>(frameData.frame, 2, 2);
-  else
+  else if (frameOpts.vbox)
     frameData.box = CQUtil::makeLayout<QVBoxLayout>(frameData.frame, 2, 2);
+  else if (frameOpts.grid)
+    frameData.grid = CQUtil::makeLayout<QGridLayout>(frameData.frame, 2, 2);
 
   if (frameOpts.stretch && frameOpts.grid)
     frameData.grid->setColumnStretch(1, 1);
@@ -773,6 +849,17 @@ showColorKeySlot(bool)
 
 void
 CQChartsPlotCustomControls::
+showPlotKeySlot(bool b)
+{
+  if (! plot_) return;
+
+  plot_->setKeyVisible(b);
+
+  updateWidgets();
+}
+
+void
+CQChartsPlotCustomControls::
 showKeyListSlot(bool b)
 {
   if (! plot_) return;
@@ -781,6 +868,19 @@ showKeyListSlot(bool b)
 
   updateWidgets();
 }
+
+void
+CQChartsPlotCustomControls::
+showOverviewSlot(bool b)
+{
+  if (! plot_) return;
+
+  plot_->setOverviewDisplayed(b);
+
+  updateWidgets();
+}
+
+//---
 
 CQChartsEnumParameterEdit *
 CQChartsPlotCustomControls::
@@ -913,11 +1013,11 @@ updateWidgets()
   if (keyList_) {
     bool keyListVisible = plot_->isControlsKey();
 
-    disconnect(keyGroup_, SIGNAL(clicked(bool)), this, SLOT(showKeyListSlot(bool)));
+    disconnect(keyListCheck_, SIGNAL(clicked(bool)), this, SLOT(showKeyListSlot(bool)));
 
-    keyGroup_->setChecked(keyListVisible);
+    keyListCheck_->setChecked(keyListVisible);
 
-    connect(keyGroup_, SIGNAL(clicked(bool)), this, SLOT(showKeyListSlot(bool)));
+    connect(keyListCheck_, SIGNAL(clicked(bool)), this, SLOT(showKeyListSlot(bool)));
 
     keyList_->setPlot   (plot_);
     keyList_->setVisible(keyListVisible);
@@ -926,7 +1026,18 @@ updateWidgets()
       keyList_->updateWidgets();
   }
 
+  if (plotKeyCheck_)
+    plotKeyCheck_->setChecked(plot_->isKeyVisible());
+
   //--
+
+  if (overviewCheck_) {
+    overviewCheck_->setChecked(plot_->isOverviewDisplayed());
+
+    overview_->setVisible(overviewCheck_->isChecked());
+  }
+
+  //---
 
   connectSlots(true);
 }
@@ -1202,6 +1313,164 @@ sizeHint() const
   int nr = std::min(table_->rowCount() + 1, 6);
 
   return QSize(fm.horizontalAdvance("X")*40, (fm.height() + 6)*nr + 8);
+}
+
+//------
+
+CQChartsPlotOverview::
+CQChartsPlotOverview(CQChartsPlotCustomControls *controls) :
+ controls_(controls)
+{
+  setObjectName("overview");
+
+  setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+}
+
+void
+CQChartsPlotOverview::
+mousePressEvent(QMouseEvent *e)
+{
+  pressed_ = true;
+
+  auto *plot = controls_->plot();
+  if (! plot) return;
+
+  plot->centerAt(pixelToPlot(Point(e->pos())));
+}
+
+void
+CQChartsPlotOverview::
+mouseMoveEvent(QMouseEvent *e)
+{
+  if (pressed_) {
+    auto *plot = controls_->plot();
+    if (! plot) return;
+
+    plot->centerAt(pixelToPlot(Point(e->pos())));
+  }
+}
+
+void
+CQChartsPlotOverview::
+mouseReleaseEvent(QMouseEvent *)
+{
+  pressed_ = false;
+}
+
+void
+CQChartsPlotOverview::
+wheelEvent(QWheelEvent *e)
+{
+  auto *plot = controls_->plot();
+  if (! plot) return;
+
+  auto delta = CQWidgetUtil::wheelDelta(e);
+
+  double zoomFactor = 1.10;
+
+  auto pp1 = pixelToPlot(Point(e->position()));
+
+  if      (delta > 0)
+    plot->updateDataScale(plot->dataScale()*zoomFactor);
+  else if (delta < 0)
+    plot->updateDataScale(plot->dataScale()/zoomFactor);
+
+  auto pp2 = pixelToPlot(Point(e->position()));
+
+  plot->pan(pp1.x - pp2.x, pp1.y - pp2.y);
+}
+
+void
+CQChartsPlotOverview::
+paintEvent(QPaintEvent *)
+{
+  QPainter painter(this);
+
+  painter.fillRect(rect(), Qt::white);
+
+  auto *plot = controls_->plot();
+  if (! plot) return;
+
+  auto image = plot->overviewImage();
+  if (image.isNull()) return;
+
+  painter.drawImage(0, 0, image);
+
+  auto plotRect1 = plot->overviewPlotRect();
+  auto plotRect2 = plot->calcPlotRect();
+
+  auto mapX = [&](double x) {
+    return CMathUtil::map(x, plotRect1.getXMin(), plotRect1.getXMax(), 0, image.width() - 1);
+  };
+
+  auto mapY = [&](double y) {
+    return CMathUtil::map(y, plotRect1.getYMin(), plotRect1.getYMax(), image.height() - 1, 0);
+  };
+
+  auto x1 = mapX(plotRect2.getXMin());
+  auto y1 = mapY(plotRect2.getYMin());
+  auto x2 = mapX(plotRect2.getXMax());
+  auto y2 = mapY(plotRect2.getYMax());
+
+  auto plotRect = QRectF(x1, y1, x2 - x1, y2 - y1);
+
+  auto fc = plot->overviewFillColor();
+  auto fa = plot->overviewFillAlpha();
+
+  fc.setAlphaF(fa);
+
+  painter.fillRect(plotRect, fc);
+
+  auto sc = plot->overviewStrokeColor();
+  auto sa = plot->overviewStrokeAlpha();
+
+  sc.setAlphaF(sa);
+
+  painter.setPen(sc);
+
+  painter.drawRect(plotRect);
+}
+
+CQChartsGeom::Point
+CQChartsPlotOverview::
+pixelToPlot(const Point &pp) const
+{
+  Point wp;
+
+  auto *plot = controls_->plot();
+  if (! plot) return wp;
+
+  auto image = plot->overviewImage();
+  if (image.isNull()) return wp;
+
+  auto plotRect1 = plot->overviewPlotRect();
+
+  auto mapX = [&](double px) {
+    return CMathUtil::map(px, 0, image.width() - 1, plotRect1.getXMin(), plotRect1.getXMax());
+  };
+
+  auto mapY = [&](double py) {
+    return CMathUtil::map(py, image.height() - 1, 0, plotRect1.getYMin(), plotRect1.getYMax());
+  };
+
+  return Point(mapX(pp.x), mapY(pp.y));
+}
+
+QSize
+CQChartsPlotOverview::
+sizeHint() const
+{
+  int s = 256;
+
+  auto *plot = controls_->plot();
+  if (! plot) return QSize(s, s);
+
+  s = plot->overviewSize();
+
+  auto image = plot->overviewImage();
+  if (image.isNull()) return QSize(s, s);
+
+  return image.size();
 }
 
 //------

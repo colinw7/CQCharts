@@ -367,6 +367,14 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(bool showBoxes         READ showBoxes         WRITE setShowBoxes        )
   Q_PROPERTY(bool showSelectedBoxes READ showSelectedBoxes WRITE setShowSelectedBoxes)
 
+  // overview
+  Q_PROPERTY(bool   overviewDisplayed   READ isOverviewDisplayed WRITE setOverviewDisplayed  )
+  Q_PROPERTY(int    overviewSize        READ overviewSize        WRITE setOverviewSize       )
+  Q_PROPERTY(QColor overviewFillColor   READ overviewFillColor   WRITE setOverviewFillColor  )
+  Q_PROPERTY(double overviewFillAlpha   READ overviewFillAlpha   WRITE setOverviewFillAlpha  )
+  Q_PROPERTY(QColor overviewStrokeColor READ overviewStrokeColor WRITE setOverviewStrokeColor)
+  Q_PROPERTY(double overviewStrokeAlpha READ overviewStrokeAlpha WRITE setOverviewStrokeAlpha)
+
 #ifdef CQCHARTS_MODULE_SHLIB
   // module
   Q_PROPERTY(QString plotModule READ plotModule WRITE setPlotModule)
@@ -732,6 +740,16 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   struct ZoomData {
     Point dataScale  { 1.0, 1.0 }; //!< data scale (zoom in x/y direction)
     Point dataOffset { 0.0, 0.0 }; //!< data offset (pan)
+
+    bool isFullScreen() const {
+      return (dataScale .x == 1.0 && dataScale .y == 1.0 &&
+              dataOffset.x == 0.0 && dataOffset.y == 0.0);
+    }
+
+    void reset() {
+      dataScale  = Point(1.0, 1.0);
+      dataOffset = Point(0.0, 0.0);
+    }
   };
 
   virtual double dataScaleX() const;
@@ -1736,9 +1754,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual void windowToPixelI(double wx, double wy, double &px, double &py) const;
   virtual void windowToViewI (double wx, double wy, double &vx, double &vy) const;
 
+ public:
+  void zoomedPixelSize(double px, double py, double &px1, double &py1) const;
+
   //---
 
- public:
   void plotSymbolSize(const Length &xs, const Length &ys,
                       double &sx, double &sy, bool scale) const;
   void plotSymbolSize(const Length &xs, const Length &ys, double &sx, double &sy) const;
@@ -2867,6 +2887,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  void saveOverview(QImage *image);
+
+  //---
+
   QStringList clipTextsToLength(PaintDevice *device, const QStringList &strs, const BBox &bbox,
                                 double clipLength, const Qt::TextElideMode &clipElide,
                                 bool isScaled) const;
@@ -3259,6 +3283,32 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  bool isOverviewDisplayed() const { return overviewData_.displayed; }
+  void setOverviewDisplayed(bool b);
+
+  int overviewSize() const { return overviewData_.size; }
+  void setOverviewSize(int s);
+
+  const QColor &overviewFillColor() const { return overviewData_.fillColor; }
+  void setOverviewFillColor(const QColor &c);
+
+  double overviewFillAlpha() const { return overviewData_.fillAlpha; }
+  void setOverviewFillAlpha(double a);
+
+  const QColor &overviewStrokeColor() const { return overviewData_.strokeColor; }
+  void setOverviewStrokeColor(const QColor &c);
+
+  double overviewStrokeAlpha() const { return overviewData_.strokeAlpha; }
+  void setOverviewStrokeAlpha(double a);
+
+  QImage overviewImage() const { return overviewData_.image; }
+
+  const BBox overviewPlotRect() const { return overviewData_.plotRect; }
+
+  void updateOverview();
+
+  //---
+
   void update();
 
   //---
@@ -3293,6 +3343,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // print layer data
   bool printLayer(Layer::Type type, const QString &filename) const;
+
+  QImage *layerImage(Layer::Type type) const;
 
   //---
 
@@ -3391,6 +3443,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void mapKeyPressed(MapKey *);
 
+  void keyVisibleChanged(bool);
+
   // title signals (title changed)
   void titleChanged();
 
@@ -3447,6 +3501,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // emitted on anim
   void updateAnimData();
+
+  // emitted when overview image changed
+  void overviewChanged();
 
 #ifdef CQCHARTS_MODULE_SHLIB
   // plot module changed
@@ -3626,7 +3683,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   bool updateTryLock(const char *id) {
     //std::cerr << "> " << id << "\n";
-    assert(! hasLockId());
+    if (hasLockId()) return false;
     bool locked = updateData_.lockData.lock.try_lock();
     setLockId(id);
     return locked;
@@ -4131,6 +4188,27 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  //! preview data
+  enum class PreviewPosition {
+    BOTTOM_RIGHT
+  };
+
+  struct OverviewData {
+    bool            displayed   { false };
+    int             size        { 256 };
+    QColor          fillColor   { Qt::red };
+    double          fillAlpha   { 0.5 };
+    QColor          strokeColor { Qt::black };
+    double          strokeAlpha { 0.5 };
+    BBox            plotRect;
+    QImage          image;
+    PreviewPosition position    { PreviewPosition::BOTTOM_RIGHT };
+  };
+
+  OverviewData overviewData_;
+
+  //---
+
   //! \brief error data
   struct ErrorData {
     Errors       globalErrors; //!< global errors
@@ -4152,6 +4230,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  //! selected object names
   using ObjNames = std::set<QString>;
 
   ObjNames selectedObjNames_;

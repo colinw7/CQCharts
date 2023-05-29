@@ -318,6 +318,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_PROPERTY(TextPosition rootTextPosition READ rootTextPosition  WRITE setRootTextPosition)
   Q_PROPERTY(bool         rootRotatedText  READ isRootRotatedText WRITE setRootRotatedText )
   Q_PROPERTY(double       rootTextMargin   READ rootTextMargin    WRITE setRootTextMargin  )
+  Q_PROPERTY(bool         rootValueLabel   READ isRootValueLabel  WRITE setRootValueLabel  )
 
   // hier node data
   Q_PROPERTY(CQChartsLength    hierSize    READ hierSize    WRITE setHierSize   )
@@ -328,6 +329,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_PROPERTY(TextPosition hierTextPosition READ hierTextPosition  WRITE setHierTextPosition)
   Q_PROPERTY(bool         hierRotatedText  READ isHierRotatedText WRITE setHierRotatedText )
   Q_PROPERTY(double       hierTextMargin   READ hierTextMargin    WRITE setHierTextMargin  )
+  Q_PROPERTY(bool         hierValueLabel   READ isHierValueLabel  WRITE setHierValueLabel  )
 
   // leaf node data
   Q_PROPERTY(CQChartsLength    leafSize    READ leafSize    WRITE setLeafSize   )
@@ -338,6 +340,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_PROPERTY(TextPosition leafTextPosition READ leafTextPosition  WRITE setLeafTextPosition)
   Q_PROPERTY(bool         leafRotatedText  READ isLeafRotatedText WRITE setLeafRotatedText )
   Q_PROPERTY(double       leafTextMargin   READ leafTextMargin    WRITE setLeafTextMargin  )
+  Q_PROPERTY(bool         leafValueLabel   READ isLeafValueLabel  WRITE setLeafValueLabel  )
 
   // gen node data
   Q_PROPERTY(ValueType nodeColorByValue READ nodeColorByValue WRITE setNodeColorByValue)
@@ -352,6 +355,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 //Q_PROPERTY(double         arrowWidth       READ arrowWidth         WRITE setArrowWidth      )
   Q_PROPERTY(bool           edgeColorByValue READ isEdgeColorByValue WRITE setEdgeColorByValue)
   Q_PROPERTY(bool           edgeSizeByValue  READ isEdgeSizeByValue  WRITE setEdgeSizeByValue )
+  Q_PROPERTY(bool           edgeSelectable   READ isEdgeSelectable   WRITE setEdgeSelectable  )
 
   // options
   Q_PROPERTY(Qt::Orientation orientation READ orientation WRITE setOrientation )
@@ -493,6 +497,10 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   double rootTextMargin() const { return rootNodeData_.textMargin; }
   void setRootTextMargin(double r);
 
+  // get/set is root value label
+  bool isRootValueLabel() const { return rootNodeData_.valueLabel; }
+  void setRootValueLabel(bool b);
+
   double calcRootSize() const;
 
   //---
@@ -527,6 +535,10 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   double hierTextMargin() const { return hierNodeData_.textMargin; }
   void setHierTextMargin(double r);
 
+  // get/set is root value label
+  bool isHierValueLabel() const { return hierNodeData_.valueLabel; }
+  void setHierValueLabel(bool b);
+
   double calcHierSize() const;
 
   //---
@@ -560,6 +572,10 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   //! get/set leaf text margin
   double leafTextMargin() const { return leafNodeData_.textMargin; }
   void setLeafTextMargin(double r);
+
+  // get/set is value label
+  bool isLeafValueLabel() const { return leafNodeData_.valueLabel; }
+  void setLeafValueLabel(bool b);
 
   double calcLeafSize() const;
 
@@ -596,6 +612,10 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   //! get/set is edge size by value
   bool isEdgeSizeByValue() const { return edgeData_.sizeByValue; }
   void setEdgeSizeByValue(bool b);
+
+  //! get/set is edge selectable
+  bool isEdgeSelectable() const { return edgeData_.selectable; }
+  void setEdgeSelectable(bool b);
 
   //---
 
@@ -706,8 +726,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   //---
 
-  //! handle select press
-  bool handleSelectPress(const Point &p, SelMod selMod) override;
+  //! handle double click
+  bool handleSelectDoubleClick(const Point &p, SelMod selMod) override;
 
   //---
 
@@ -795,6 +815,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
     CQChartsShapeType shape        { CQChartsShapeType::Type::DIAMOND }; //!< shape
     TextPosition      textPosition { TextPosition::RIGHT };              //!< text position
     bool              rotatedText  { false };                            //!< is label rotated
+    bool              valueLabel   { false };                            //!< is value in label
     double            textMargin   { 4.0 };                              //!< text margin
     ValueType         colorByValue { ValueType::NONE };                  //!< color by value
     ValueType         sizeByValue  { ValueType::NONE };                  //!< size by value
@@ -821,6 +842,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
     Length minWidth     { Length::pixel(1.0) }; //!< min width
     bool   colorByValue { false };              //!< color by value
     bool   sizeByValue  { false };              //!< size by value
+    bool   selectable   { true };               //!< is selectable
   };
 
   EdgeData edgeData_;

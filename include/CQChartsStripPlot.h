@@ -141,6 +141,25 @@ class CQChartsStripPlot : public CQChartsGroupPlot,
 
   //---
 
+  // get/set orientation
+  const Qt::Orientation &orientation() const { return orientation_; }
+  void setOrientation(const Qt::Orientation &orient);
+
+  bool isHorizontal() const { return orientation() == Qt::Horizontal; }
+  bool isVertical  () const { return orientation() == Qt::Vertical  ; }
+
+  //---
+
+  // customize zoom in x/y based on orientation
+  bool allowZoomX() const override { return ! isHorizontal(); }
+  bool allowZoomY() const override { return   isHorizontal(); }
+
+  // customize pan in x/y based on orientation
+  bool allowPanX() const override { return ! isHorizontal(); }
+  bool allowPanY() const override { return   isHorizontal(); }
+
+  //---
+
   double margin() const { return margin_; }
   void setMargin(double r) { margin_ = r; }
 
@@ -205,14 +224,15 @@ class CQChartsStripPlot : public CQChartsGroupPlot,
   using PosYValues = std::map<int, YValues>;
   using PosValues  = std::map<int, PosValuesData>;
 
-  Column     valueColumn_;           //!< value column
-  Column     nameColumn_;            //!< name column
-  Column     positionColumn_;        //!< position column
-  double     margin_       { 0.25 }; //!< strip margin
-  NamePos    namePos_;               //!< name position
-  IMinMax    posRange_;              //!< position range
-  PosValues  posValues_;             //!< position values
-  PosYValues posYValues_;            //!< position values per mapped y
+  Column          valueColumn_;                  //!< value column
+  Column          nameColumn_;                   //!< name column
+  Column          positionColumn_;               //!< position column
+  Qt::Orientation orientation_ { Qt::Vertical }; //!< orientation
+  double          margin_      { 0.25 };         //!< strip margin
+  NamePos         namePos_;                      //!< name position
+  IMinMax         posRange_;                     //!< position range
+  PosValues       posValues_;                    //!< position values
+  PosYValues      posYValues_;                   //!< position values per mapped y
 };
 
 //---

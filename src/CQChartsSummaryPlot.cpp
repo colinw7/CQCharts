@@ -22,6 +22,8 @@
 #include <CQChartsScatterPlot.h>
 #include <CQChartsDistributionPlot.h>
 #include <CQChartsParallelPlot.h>
+#include <CQChartsBoxPlot.h>
+#include <CQChartsPiePlot.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQTableWidget.h>
@@ -187,7 +189,10 @@ init()
   scatterPlot_      = dynamic_cast<ScatterPlot      *>(createPlot("scatter"));
   distributionPlot_ = dynamic_cast<DistributionPlot *>(createPlot("distribution"));
   parallelPlot_     = dynamic_cast<ParallelPlot     *>(createPlot("parallel"));
-  assert(scatterPlot_ && distributionPlot_ && parallelPlot_);
+  boxPlot_          = dynamic_cast<BoxPlot          *>(createPlot("box"));
+  piePlot_          = dynamic_cast<PiePlot          *>(createPlot("pie"));
+
+  assert(scatterPlot_ && distributionPlot_ && parallelPlot_ && boxPlot_ && piePlot_);
 
   scatterPlot_->setXColumn(Column::makeRow());
   scatterPlot_->setYColumn(Column::makeRow());
@@ -195,6 +200,11 @@ init()
   distributionPlot_->setValueColumns(Columns(Column::makeRow()));
 
   parallelPlot_->setYColumns(Columns(Column::makeRow()));
+
+  boxPlot_->setValueColumns(Columns(Column::makeRow()));
+
+  piePlot_->setValueColumns(Columns(Column::makeRow()));
+  piePlot_->setBucketed(true);
 
   //---
 
@@ -245,6 +255,8 @@ updatePlots()
   //NoUpdate parallelNoUpdate    (parallelPlot_);
   //NoUpdate scatterNoUpdate     (scatterPlot_);
   //NoUpdate distributionNoUpdate(distributionPlot_);
+  //NoUpdate boxNoUpdate         (boxPlot_);
+  //NoUpdate pieNoUpdate         (piePlot_);
 
   //---
 
@@ -280,12 +292,26 @@ updatePlots()
   }
 
   if (isExpanded() && (expandRow_ == expandCol_)) {
-     auto column = visibleColumns().getColumn(expandRow_);
+    auto column = visibleColumns().getColumn(expandRow_);
 
-    distributionPlot_->setValueColumns(Columns(column));
-    distributionPlot_->setTipColumns(visibleColumns());
+    if      (diagonalType() == CQChartsSummaryPlot::DiagonalType::DISTRIBUTION) {
+      distributionPlot_->setValueColumns(Columns(column));
+      distributionPlot_->setTipColumns(visibleColumns());
 
-    currentPlot = distributionPlot_;
+      currentPlot = distributionPlot_;
+    }
+    else if (diagonalType() == CQChartsSummaryPlot::DiagonalType::BOXPLOT) {
+      boxPlot_->setValueColumns(Columns(column));
+      boxPlot_->setTipColumns(visibleColumns());
+
+      currentPlot = boxPlot_;
+    }
+    else if (diagonalType() == CQChartsSummaryPlot::DiagonalType::PIE) {
+      piePlot_->setValueColumns(Columns(column));
+      piePlot_->setTipColumns(visibleColumns());
+
+      currentPlot = piePlot_;
+    }
   }
   else {
     distributionPlot_->setValueColumns(Columns(Column::makeRow()));
@@ -306,6 +332,12 @@ updatePlots()
 
   if (distributionPlot_ != currentPlot)
     distributionPlot_->setVisible(false);
+
+  if (boxPlot_ != currentPlot)
+    boxPlot_->setVisible(false);
+
+  if (piePlot_ != currentPlot)
+    piePlot_->setVisible(false);
 }
 
 //---
@@ -718,10 +750,17 @@ CQChartsSummaryPlot::
 collapseCell()
 {
   if (isExpanded()) {
-    if (expandRow_ != expandCol_)
+    if (expandRow_ != expandCol_) {
       scatterPlot_->collapseRoot();
-    else
-      distributionPlot_->collapseRoot();
+    }
+    else {
+      if      (diagonalType() == CQChartsSummaryPlot::DiagonalType::DISTRIBUTION)
+        distributionPlot_->collapseRoot();
+      else if (diagonalType() == CQChartsSummaryPlot::DiagonalType::BOXPLOT)
+        boxPlot_->collapseRoot();
+      else if (diagonalType() == CQChartsSummaryPlot::DiagonalType::PIE)
+        piePlot_->collapseRoot();
+    }
   }
 }
 
@@ -1012,6 +1051,29 @@ calcValueCounts(const Column &column, ValueCounts &valueCounts, int &maxCount) c
 
 //------
 
+bool
+CQChartsSummaryPlot::
+handleSelectDoubleClick(const Point &p, SelMod /*selMod*/)
+{
+  PlotObjs plotObjs;
+
+  plotObjsAtPoint(p, plotObjs, Constraints::SELECTABLE);
+
+  CQChartsSummaryCellObj *cellObj = nullptr;
+
+  for (auto *plotObj : plotObjs) {
+    cellObj = dynamic_cast<CQChartsSummaryCellObj *>(plotObj);
+    if (cellObj) break;
+  }
+
+  if (cellObj)
+    expandCell(cellObj);
+
+  return true;
+}
+
+//------
+
 CQChartsSummaryCellObj *
 CQChartsSummaryPlot::
 createCellObj(const BBox &bbox, int row, int col) const
@@ -1113,6 +1175,7 @@ calcTipId() const
     if (details) {
       tableTip.addTableRow("Num Values", details->valueCount());
       tableTip.addTableRow("Num Unique", details->numUnique());
+      tableTip.addTableRow("Max Unique", details->maxUnique());
       tableTip.addTableRow("Num Null"  , details->numNull());
 
       if (details->isNumeric()) {
@@ -1502,6 +1565,8 @@ drawBoxPlot(PaintDevice *device) const
   auto *details = summaryPlot_->columnDetails(column);
   if (! details) return;
 
+  BBox bbox(pxmin_, pymin_, pxmax_, pymax_);
+
   int nc = summaryPlot_->visibleColumns().count();
 
   auto pc = summaryPlot_->interpInterfaceColor(1.0);
@@ -1509,8 +1574,9 @@ drawBoxPlot(PaintDevice *device) const
 
   if (details->isNumeric()) {
     bool ok;
-    double min = CQChartsVariant::toReal(details->minValue(), ok);
-    double max = CQChartsVariant::toReal(details->maxValue(), ok);
+    double min  = CQChartsVariant::toReal(details->minValue (), ok);
+    double max  = CQChartsVariant::toReal(details->maxValue (), ok);
+    double mean = CQChartsVariant::toReal(details->meanValue(), ok);
 
     int n = details->numRows();
 
@@ -1532,13 +1598,27 @@ drawBoxPlot(PaintDevice *device) const
       whisker.addValue(r1);
     }
 
-    BBox bbox(pxmin_, pymin_, pxmax_, pymax_);
+    CQChartsBoxWhiskerUtil::DrawData  drawData;
+    CQChartsBoxWhiskerUtil::PointData pointData;
 
-    auto width = Length::plot(0.1);
+    drawData.width       = Length::plot(0.1);
+    drawData.orientation = Qt::Vertical;
+    drawData.median      = true;
 
-    CQChartsBoxWhiskerUtil::drawWhisker(device, whisker, bbox, width, Qt::Vertical);
+    CQChartsBoxWhiskerUtil::drawWhisker(device, whisker, bbox, drawData, pointData);
+
+    CQChartsTextOptions options;
+
+    options.align = Qt::AlignRight | Qt::AlignVCenter;
+    CQChartsDrawUtil::drawTextAtPoint(device, pointData.min, QString::number(min ), options);
+    options.align = Qt::AlignLeft | Qt::AlignVCenter;
+    CQChartsDrawUtil::drawTextAtPoint(device, pointData.med, QString::number(mean), options);
+    CQChartsDrawUtil::drawTextAtPoint(device, pointData.max, QString::number(max ), options);
   }
   else {
+    CQChartsTextOptions options;
+
+    CQChartsDrawUtil::drawTextInBox(device, bbox, "N/A", options);
   }
 }
 
@@ -2064,8 +2144,6 @@ init()
 {
   addWidgets();
 
-  addLayoutStretch();
-
   connectSlots(true);
 }
 
@@ -2078,6 +2156,10 @@ addWidgets()
   addGroupStatsWidgets();
 
   addOptionsWidgets();
+
+  addOverview();
+
+  addLayoutStretch();
 
   addExpandControls();
 }
@@ -2143,17 +2225,13 @@ void
 CQChartsSummaryPlotCustomControls::
 addExpandControls()
 {
-  auto *buttonFrame  = CQUtil::makeWidget<QFrame>("buttonFrame");
-  auto *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(buttonFrame, 0, 0);
+  // buttons group
+  buttonsFrame_ = createGroupFrame("Functions", "buttonsFrame", FrameOpts::makeHBox());
 
   expandButton_ = CQUtil::makeLabelWidget<QPushButton>("Expand", "expandButton");
 
-  buttonLayout->addWidget (expandButton_);
-  buttonLayout->addStretch(1);
-
-  connect(expandButton_, SIGNAL(clicked()), this, SLOT(expandSlot()));
-
-  layout_->addWidget(buttonFrame);
+  buttonsFrame_.box->addWidget (expandButton_);
+  buttonsFrame_.box->addStretch(1);
 }
 
 void
@@ -2173,6 +2251,9 @@ connectSlots(bool b)
     bestFitCheck_, SIGNAL(stateChanged(int)), this, SLOT(bestFitSlot(int)));
   CQUtil::optConnectDisconnect(b,
     densityCheck_, SIGNAL(stateChanged(int)), this, SLOT(densitySlot(int)));
+
+  CQUtil::optConnectDisconnect(b,
+    expandButton_, SIGNAL(clicked()), this, SLOT(expandSlot()));
 
   CQChartsPlotCustomControls::connectSlots(b);
 }

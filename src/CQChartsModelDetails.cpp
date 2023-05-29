@@ -372,15 +372,16 @@ CQChartsModelColumnDetails::
 ~CQChartsModelColumnDetails()
 {
   delete valueSet_;
-  delete bucketer_;
 }
 
 bool
 CQChartsModelColumnDetails::
 isNamedValue(const QString &name)
 {
-  return getLongNamedValues ().contains(name) ||
-         getShortNamedValues().contains(name);
+  auto lname = name.toLower();
+
+  return getLongNamedValues ().contains(lname) ||
+         getShortNamedValues().contains(lname);
 }
 
 const QStringList &
@@ -410,48 +411,36 @@ QVariant
 CQChartsModelColumnDetails::
 getNamedValue(const QString &name) const
 {
-  if      (name == "name")
-    return this->headerName();
-  else if (name == "type")
-    return this->typeName();
-  else if (name == "min" || name == "minimum")
-    return this->minValue();
-  else if (name == "max" || name == "maximum")
-    return this->maxValue();
-  else if (name == "mean" || name == "avg" || name == "average")
-    return this->meanValue();
-  else if (name == "sum")
-    return this->sumValue();
-  else if (name == "bad_value")
-    return this->badValue();
-  else if (name == "stdev"   || name == "stddev" ||
-           name == "std_dev" || name == "standard_deviation")
+  auto lname = name.toLower();
+
+  if      (lname == "name") return this->headerName();
+  else if (lname == "type") return this->typeName();
+
+  else if (lname == "min" || lname == "minimum") return this->minValue();
+  else if (lname == "max" || lname == "maximum") return this->maxValue();
+
+  else if (lname == "mean" || lname == "avg" || lname == "average") return this->meanValue();
+  else if (lname == "sum")                                          return this->sumValue();
+  else if (lname == "stdev" || lname == "stddev" ||
+           lname == "std_dev" || lname == "standard_deviation")
     return this->stdDevValue();
 
-  else if (name == "monotonic")
-    return this->isMonotonic();
-  else if (name == "increasing")
-    return this->isIncreasing();
+  else if (lname == "bad_value") return this->badValue();
 
-  else if (name == "num_unique")
-    return this->numUnique();
-  else if (name == "unique_values")
-    return this->uniqueValues();
-  else if (name == "unique_counts")
-    return this->uniqueCounts();
+  else if (lname == "monotonic" ) return this->isMonotonic();
+  else if (lname == "increasing") return this->isIncreasing();
 
-  else if (name == "num_null")
-    return this->numNull();
+  else if (lname == "num_unique"   ) return this->numUnique();
+  else if (lname == "unique_values") return this->uniqueValues();
+  else if (lname == "unique_counts") return this->uniqueCounts();
 
-  else if (name == "median")
-    return this->medianValue();
-  else if (name == "lower_median")
-    return this->lowerMedianValue();
-  else if (name == "upper_median")
-    return this->upperMedianValue();
+  else if (lname == "num_null") return this->numNull();
 
-  else if (name == "outliers")
-    return this->outlierValues();
+  else if (lname == "median"      ) return this->medianValue();
+  else if (lname == "lower_median") return this->lowerMedianValue();
+  else if (lname == "upper_median") return this->upperMedianValue();
+
+  else if (lname == "outliers") return this->outlierValues();
 
   return QVariant();
 }
@@ -777,6 +766,17 @@ numUnique() const
     return 0;
 }
 
+int
+CQChartsModelColumnDetails::
+maxUnique() const
+{
+  auto counts = uniqueCounts();
+
+  auto var = *std::max_element(counts.begin(), counts.end());
+
+  return var.toInt();
+}
+
 QVariantList
 CQChartsModelColumnDetails::
 uniqueValues() const
@@ -993,11 +993,15 @@ uniqueValue(int i) const
 
 //---
 
-int
+void
 CQChartsModelColumnDetails::
-numBuckets() const
+setNumBuckets(int n)
 {
-  return 20;
+  if (n != numBuckets_) {
+    numBuckets_ = n;
+
+    initBucketer(/*force*/true);
+  }
 }
 
 int
@@ -1968,9 +1972,9 @@ calcType()
 
 void
 CQChartsModelColumnDetails::
-initBucketer() const
+initBucketer(bool force) const
 {
-  if (! bucketer_) {
+  if (! bucketer_ || force) {
     if (bucketing_.load())
       return;
 
@@ -1978,7 +1982,7 @@ initBucketer() const
 
     assert(! bucketing_.load());
 
-    if (! bucketer_) {
+    if (! bucketer_ || force) {
       bucketing_.store(true);
 
       auto *th = const_cast<CQChartsModelColumnDetails *>(this);
@@ -1996,7 +2000,8 @@ void
 CQChartsModelColumnDetails::
 calcBucketer()
 {
-  bucketer_ = new CQBucketer;
+  if (! bucketer_)
+    bucketer_ = std::make_unique<CQBucketer>();
 
   int num = numBuckets();
 

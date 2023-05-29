@@ -3359,7 +3359,11 @@ drawParts(QPainter *painter) const
 
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
-  CQChartsPlotPaintDevice device(th, painter);
+  CQChartsBuffer buffer(view());
+
+  auto *painter1 = buffer.beginPaint(painter, calcPlotPixelRect().qrect());
+
+  CQChartsPlotPaintDevice device(th, painter1);
 
   BackgroundParts bgParts;
 
@@ -3375,6 +3379,18 @@ drawParts(QPainter *painter) const
   fgParts.annotations = hasGroupedAnnotations(Layer::Type::FG_ANNOTATION);
 
   drawForegroundDeviceParts(&device, fgParts);
+
+  //---
+
+  buffer.endPaint();
+
+  //---
+
+  if (zoomData_.isFullScreen()) {
+    auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
+
+    th->saveOverview(buffer.image());
+  }
 }
 
 void
@@ -4067,9 +4083,9 @@ drawTextData(PaintDevice *device, const DrawTextData &textData,
   if      (textData.shape == NodeShape::NONE)
     CQChartsDrawUtil::drawTextsAtPoint(device, textData.point, strs1, textOptions);
   else if (textData.shape == NodeShape::CIRCLE)
-    CQChartsDrawUtil::drawStringsInCircle(device, textData.bbox, strs1, textOptions);
+    CQChartsDrawUtil::drawTextsInCircle(device, textData.bbox, strs1, textOptions);
   else
-    CQChartsDrawUtil::drawStringsInBox(device, textData.bbox, strs1, textOptions);
+    CQChartsDrawUtil::drawTextsInBox(device, textData.bbox, strs1, textOptions);
 
   //---
 
@@ -4724,6 +4740,8 @@ CQChartsForceDirectedPlotCustomControls::
 init()
 {
   addWidgets();
+
+  addOverview();
 
   addLayoutStretch();
 

@@ -8,51 +8,49 @@ namespace CQChartsBoxWhiskerUtil {
 
 void
 drawWhisker(PaintDevice *device, const BoxWhisker &whisker, const BBox &bbox,
-            const Length &width, const Qt::Orientation &orientation, const Length &cornerSize)
+            const DrawData &drawData, PointData &pointData)
 {
   std::vector<double> outliers;
 
-  drawWhisker(device, whisker.statData(), outliers, bbox, width, orientation, cornerSize);
+  drawWhisker(device, whisker.statData(), outliers, bbox, drawData, pointData);
 }
 
 void
 drawWhisker(PaintDevice *device, const CQStatData &statData,
-            const std::vector<double> &outliers, const BBox &bbox, const Length &width,
-            const Qt::Orientation &orientation, const Length &cornerSize)
+            const std::vector<double> &outliers, const BBox &bbox,
+            const DrawData &drawData, PointData &pointData)
 {
   // calc widths and position
   double ww, bw;
 
-  if (orientation == Qt::Horizontal) {
-    ww = device->lengthWindowHeight(width);
+  if (drawData.orientation == Qt::Horizontal) {
+    ww = device->lengthWindowHeight(drawData.width);
     bw = ww;
   }
   else {
-    ww = device->lengthWindowWidth(width);
+    ww = device->lengthWindowWidth(drawData.width);
     bw = ww;
   }
 
   double pos;
 
-  if (orientation == Qt::Horizontal)
+  if (drawData.orientation == Qt::Horizontal)
     pos = bbox.getYMid();
   else
     pos = bbox.getXMid();
 
   //---
 
-  bool notched = false;
-  bool median  = false;
-
-  drawWhiskerBar(device, statData, pos, orientation, ww, bw, cornerSize,
-                 notched, median, outliers);
+  drawWhiskerBar(device, statData, pos, drawData.orientation, ww, bw,
+                 drawData.cornerSize, drawData.notched, drawData.median,
+                 outliers, pointData);
 }
 
 void
 drawWhiskerBar(PaintDevice *device, const CQStatData &statData,
                double pos, const Qt::Orientation &orientation, double ww, double bw,
                const Length &cornerSize, bool notched, bool median,
-               const std::vector<double> &outliers)
+               const std::vector<double> &outliers, PointData &pointData)
 {
   auto pointPosValue = [&](double pos, double value) {
     if (statData.scaled)
@@ -65,11 +63,11 @@ drawWhiskerBar(PaintDevice *device, const CQStatData &statData,
       return Point(value, pos);
   };
 
-  auto p1 = pointPosValue(pos - ww/2, statData.min        );
-  auto p2 = pointPosValue(pos - bw/2, statData.lowerMedian);
-  auto p3 = pointPosValue(pos       , statData.median     );
-  auto p4 = pointPosValue(pos + bw/2, statData.upperMedian);
-  auto p5 = pointPosValue(pos + ww/2, statData.max        );
+  pointData.min = pointPosValue(pos - ww/2, statData.min        );
+  pointData.lmd = pointPosValue(pos - bw/2, statData.lowerMedian);
+  pointData.med = pointPosValue(pos       , statData.median     );
+  pointData.umd = pointPosValue(pos + bw/2, statData.upperMedian);
+  pointData.max = pointPosValue(pos + ww/2, statData.max        );
 
   //---
 
@@ -82,42 +80,42 @@ drawWhiskerBar(PaintDevice *device, const CQStatData &statData,
 
     Polygon poly;
 
-    poly.addPoint(Point(p2.x, p2.y));
+    poly.addPoint(Point(pointData.lmd.x, pointData.lmd.y));
 
     if (orientation != Qt::Horizontal) {
-      poly.addPoint(Point(p4.x, p2.y));
-      poly.addPoint(Point(p4.x, p6.y));
-      poly.addPoint(Point(p7.x, p3.y));
-      poly.addPoint(Point(p4.x, p7.y));
+      poly.addPoint(Point(pointData.umd.x, pointData.lmd.y));
+      poly.addPoint(Point(pointData.umd.x, p6           .y));
+      poly.addPoint(Point(p7           .x, pointData.med.y));
+      poly.addPoint(Point(pointData.umd.x, p7           .y));
     }
     else {
-      poly.addPoint(Point(p2.x, p4.y));
-      poly.addPoint(Point(p6.x, p4.y));
-      poly.addPoint(Point(p3.x, p7.y));
-      poly.addPoint(Point(p7.x, p4.y));
+      poly.addPoint(Point(pointData.lmd.x, pointData.umd.y));
+      poly.addPoint(Point(p6           .x, pointData.umd.y));
+      poly.addPoint(Point(pointData.med.x, p7           .y));
+      poly.addPoint(Point(p7           .x, pointData.umd.y));
     }
 
-    poly.addPoint(Point(p4.x, p4.y));
+    poly.addPoint(Point(pointData.umd.x, pointData.umd.y));
 
     if (orientation != Qt::Horizontal) {
-      poly.addPoint(Point(p2.x, p4.y));
-      poly.addPoint(Point(p2.x, p7.y));
-      poly.addPoint(Point(p6.x, p3.y));
-      poly.addPoint(Point(p2.x, p6.y));
+      poly.addPoint(Point(pointData.lmd.x, pointData.umd.y));
+      poly.addPoint(Point(pointData.lmd.x, p7           .y));
+      poly.addPoint(Point(p6           .x, pointData.med.y));
+      poly.addPoint(Point(pointData.lmd.x, p6           .y));
     }
     else {
-      poly.addPoint(Point(p4.x, p2.y));
-      poly.addPoint(Point(p7.x, p2.y));
-      poly.addPoint(Point(p3.x, p6.y));
-      poly.addPoint(Point(p6.x, p2.y));
+      poly.addPoint(Point(pointData.umd.x, pointData.lmd.y));
+      poly.addPoint(Point(p7           .x, pointData.lmd.y));
+      poly.addPoint(Point(pointData.med.x, p6           .y));
+      poly.addPoint(Point(p6           .x, pointData.lmd.y));
     }
 
-    poly.addPoint(Point(p2.x, p2.y));
+    poly.addPoint(Point(pointData.lmd.x, pointData.lmd.y));
 
     device->drawPolygon(poly);
   }
   else {
-    BBox pbbox(p2, p4);
+    BBox pbbox(pointData.lmd, pointData.umd);
 
     if (pbbox.isValid())
       CQChartsDrawUtil::drawRoundedRect(device, pbbox, cornerSize);
@@ -128,20 +126,26 @@ drawWhiskerBar(PaintDevice *device, const CQStatData &statData,
   // draw extent line
   if (orientation != Qt::Horizontal) {
     if (! median) {
-      device->drawLine(Point(p3.x, p1.y), Point(p3.x, p2.y));
-      device->drawLine(Point(p3.x, p4.y), Point(p3.x, p5.y));
+      device->drawLine(Point(pointData.med.x, pointData.min.y),
+                       Point(pointData.med.x, pointData.lmd.y));
+      device->drawLine(Point(pointData.med.x, pointData.umd.y),
+                       Point(pointData.med.x, pointData.max.y));
     }
     else {
-      device->drawLine(Point(p3.x, p1.y), Point(p3.x, p5.y));
+      device->drawLine(Point(pointData.med.x, pointData.min.y),
+                       Point(pointData.med.x, pointData.max.y));
     }
   }
   else {
     if (! median) {
-      device->drawLine(Point(p1.x, p3.y), Point(p2.x, p3.y));
-      device->drawLine(Point(p4.x, p3.y), Point(p5.x, p3.y));
+      device->drawLine(Point(pointData.min.x, pointData.med.y),
+                       Point(pointData.lmd.x, pointData.med.y));
+      device->drawLine(Point(pointData.umd.x, pointData.med.y),
+                       Point(pointData.max.x, pointData.med.y));
     }
     else {
-      device->drawLine(Point(p1.x, p3.y), Point(p5.x, p3.y));
+      device->drawLine(Point(pointData.min.x, pointData.med.y),
+                       Point(pointData.max.x, pointData.med.y));
     }
   }
 
@@ -149,12 +153,16 @@ drawWhiskerBar(PaintDevice *device, const CQStatData &statData,
 
   // draw lower/upper horizontal lines
   if (orientation != Qt::Horizontal) {
-    device->drawLine(Point(p1.x, p1.y), Point(p5.x, p1.y));
-    device->drawLine(Point(p1.x, p5.y), Point(p5.x, p5.y));
+    device->drawLine(Point(pointData.min.x, pointData.min.y),
+                     Point(pointData.max.x, pointData.min.y));
+    device->drawLine(Point(pointData.min.x, pointData.max.y),
+                     Point(pointData.max.x, pointData.max.y));
   }
   else {
-    device->drawLine(Point(p1.x, p1.y), Point(p1.x, p5.y));
-    device->drawLine(Point(p5.x, p1.y), Point(p5.x, p5.y));
+    device->drawLine(Point(pointData.min.x, pointData.min.y),
+                     Point(pointData.min.x, pointData.max.y));
+    device->drawLine(Point(pointData.max.x, pointData.min.y),
+                     Point(pointData.max.x, pointData.max.y));
   }
 
   //---
@@ -162,9 +170,11 @@ drawWhiskerBar(PaintDevice *device, const CQStatData &statData,
   // draw median line
   if (median) {
     if (orientation != Qt::Horizontal)
-      device->drawLine(Point(p2.x, p3.y), Point(p4.x, p3.y));
+      device->drawLine(Point(pointData.lmd.x, pointData.med.y),
+                       Point(pointData.umd.x, pointData.med.y));
     else
-      device->drawLine(Point(p3.x, p2.y), Point(p3.x, p4.y));
+      device->drawLine(Point(pointData.med.x, pointData.lmd.y),
+                       Point(pointData.med.x, pointData.umd.y));
   }
 
   //---
@@ -176,9 +186,9 @@ drawWhiskerBar(PaintDevice *device, const CQStatData &statData,
       Point po;
 
       if (orientation != Qt::Horizontal)
-        po = Point(p3.x, outlier);
+        po = Point(pointData.med.x, outlier);
       else
-        po = Point(outlier, p3.y);
+        po = Point(outlier, pointData.med.y);
 
       if (symbol.symbol().isValid())
         CQChartsDrawUtil::drawSymbol(device, symbol.symbol(), po, symbol.size(), /*scale*/true);
@@ -404,9 +414,17 @@ draw(PaintDevice *device, const PenBrush &penBrush, int ind, double delta)
   }
 
   switch (drawType()) {
-    case DrawType::WHISKER:
-      CQChartsBoxWhiskerUtil::drawWhisker(device, whisker_, rect, width(), direction());
+    case DrawType::WHISKER: {
+      CQChartsBoxWhiskerUtil::DrawData  drawData;
+      CQChartsBoxWhiskerUtil::PointData pointData;
+
+      drawData.width       = width();
+      drawData.orientation = direction();
+
+      CQChartsBoxWhiskerUtil::drawWhisker(device, whisker_, rect, drawData, pointData);
+
       break;
+    }
     case DrawType::WHISKER_BAR: {
       std::vector<double> outliers;
 
@@ -415,8 +433,15 @@ draw(PaintDevice *device, const PenBrush &penBrush, int ind, double delta)
           outliers.push_back(x);
       }
 
+      CQChartsBoxWhiskerUtil::DrawData  drawData;
+      CQChartsBoxWhiskerUtil::PointData pointData;
+
+      drawData.width       = width();
+      drawData.orientation = direction();
+
       CQChartsBoxWhiskerUtil::drawWhisker(device, whisker_.statData(), outliers, rect,
-                                          width(), direction());
+                                          drawData, pointData);
+
       break;
     }
     default:

@@ -403,6 +403,22 @@ setDumbbellPie(bool b)
 
 void
 CQChartsPiePlot::
+setBucketed(bool b)
+{
+  CQChartsUtil::testAndSet(bucketed_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPiePlot::
+setNumBuckets(int n)
+{
+  CQChartsUtil::testAndSet(numBuckets_, n, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsPiePlot::
 setCount(bool b)
 {
   CQChartsUtil::testAndSet(count_, b, [&]() {
@@ -606,6 +622,10 @@ addProperties()
   addProp("options", "startAngle" , "", "Start angle for first segment");
   addProp("options", "angleExtent", "", "Angle extent for pie segments");
   addProp("options", "gapAngle"   , "", "Gap angle");
+
+  // buckets
+  addProp("bucket", "bucketed"  , "enabled", "Is value bucketing enabled");
+  addProp("bucket", "numBuckets", "count", "Number of buckets");
 
   // fill
   addProp("fill", "filled", "visible", "Fill visible");
@@ -1103,24 +1123,21 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
   //---
 
   // get column value
-  double value        = 1.0;
-  bool   valueMissing = false;
+  OptReal value;
 
-  if (! getColumnSizeValue(ind, value, valueMissing))
+  if (! getColumnSizeValue(ind, value))
     return;
 
   //---
 
   // get column radius
-  double radius        = 0.0;
-  bool   radiusMissing = false;
-
-  bool hasRadius = false;
+  OptReal radius;
 
   if (radiusColumn().isValid()) {
     ModelIndex rind(th, ind.row(), radiusColumn(), ind.parent());
 
-    hasRadius = getColumnSizeValue(rind, radius, radiusMissing);
+    if (! getColumnSizeValue(rind, radius))
+      radius = OptReal();
   }
 
   //---
@@ -1129,19 +1146,6 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
   QString labelName;
 
   auto label = calcIndLabel(modelIndex(ind), labelName);
-
-  //---
-
-  // get key label
-  auto keyLabel = label;
-
-  if (keyLabelColumn().isValid()) {
-    ModelIndex kind(th, ind.row(), keyLabelColumn(), ind.parent());
-
-    bool ok;
-
-    keyLabel = modelString(kind, ok);
-  }
 
   //---
 
@@ -1167,8 +1171,11 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
 
   bool radiusScaled = (groupObj && groupObj->isRadiusScaled());
 
-  if (hasRadius && radiusScaled)
-    rs = (groupObj->radiusMax() > 0.0 ? radius/groupObj->radiusMax() : 1.0);
+  if (radius.isSet() && radiusScaled) {
+    auto r = radius.real();
+
+    rs = (groupObj->radiusMax() > 0.0 ? r/groupObj->radiusMax() : 1.0);
+  }
 
   //---
 
@@ -1182,7 +1189,32 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
   //---
 
   // get pie object (by label)
-  auto *obj = (groupObj ? groupObj->lookupObj(label) : nullptr);
+  PieObj *obj       = nullptr;
+  int     bucketInd = -1;
+
+  if (isBucketed() && value.isSet()) {
+    bucketInd = groupObj->bucketValue(ind, value.real(), label);
+
+    obj = (groupObj ? groupObj->lookupObjByInd(bucketInd) : nullptr);
+  }
+  else {
+    obj = (groupObj ? groupObj->lookupObjByName(label) : nullptr);
+  }
+
+  //---
+
+  // get key label
+  auto keyLabel = label;
+
+  if (keyLabelColumn().isValid()) {
+    ModelIndex kind(th, ind.row(), keyLabelColumn(), ind.parent());
+
+    bool ok;
+
+    keyLabel = modelString(kind, ok);
+  }
+
+  //---
 
   if (! obj) {
     BBox rect(center_.x - ro, center_.y - ro, center_.x + ro, center_.y + ro);
@@ -1205,10 +1237,13 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
     obj->setValueRadius(rv);
 
     obj->setLabel(label);
-    obj->addValue(value);
+    obj->setInd(bucketInd);
 
-    if (hasRadius)
-      obj->setOptRadius(radius);
+    if (value.isSet())
+      obj->addValue(value.real());
+
+    if (radius.isSet())
+      obj->setOptRadius(radius.real());
 
     obj->setRadiusScale(rs);
 
@@ -1231,22 +1266,21 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
   else {
     // duplicate labels add to value (and radius ?)
 
-    if (! valueMissing)
-      obj->addValue(CQChartsPieObj::OptReal(value));
-    else
-      obj->addValue(CQChartsPieObj::OptReal());
+    obj->addValue(value.value());
 
-    if (hasRadius) {
+    if (radius.isSet()) {
+      auto r = radius.real();
+
       if (obj->optRadius())
-        radius += *obj->optRadius();
+        r += *obj->optRadius();
 
       if (radiusScaled) {
-        double rs = (groupObj->radiusMax() > 0.0 ? radius/groupObj->radiusMax() : 1.0);
+        double rs = (groupObj->radiusMax() > 0.0 ? r/groupObj->radiusMax() : 1.0);
 
         obj->setRadiusScale(rs);
       }
 
-      obj->setOptRadius(radius);
+      obj->setOptRadius(r);
     }
 
     // TODO: add dataInd
@@ -1395,10 +1429,9 @@ addRowColumnDataTotal(const ModelIndex &ind) const
   //---
 
   // get column value
-  double value        = 1.0;
-  bool   valueMissing = false;
+  OptReal value;
 
-  if (! getColumnSizeValue(ind, value, valueMissing))
+  if (! getColumnSizeValue(ind, value))
     return;
 
   //---
@@ -1417,18 +1450,10 @@ addRowColumnDataTotal(const ModelIndex &ind) const
 
   auto &valueData = (*pv).second;
 
-  if (! valueMissing) {
-    if (! hidden)
-      valueData.values.addValue(CQChartsRValues::OptReal(value));
+  if (! hidden)
+    valueData.values.addValue(value.value());
 
-    th->values_.addValue(CQChartsRValues::OptReal(value));
-  }
-  else {
-    if (! hidden)
-      valueData.values.addValue(CQChartsRValues::OptReal());
-
-    th->values_.addValue(CQChartsRValues::OptReal());
-  }
+  th->values_.addValue(value.value());
 
   //---
 
@@ -1436,13 +1461,12 @@ addRowColumnDataTotal(const ModelIndex &ind) const
   if (radiusColumn().isValid()) {
     ModelIndex rind(th, ind.row(), radiusColumn(), ind.parent());
 
-    double radius        = 0.0;
-    bool   radiusMissing = false;
+    OptReal radius;
 
-    if (getColumnSizeValue(rind, radius, radiusMissing)) {
+    if (getColumnSizeValue(rind, radius)) {
       if (! hidden) {
         groupData.radiusScaled = true;
-        groupData.radiusMax    = std::max(groupData.radiusMax, radius);
+        groupData.radiusMax    = std::max(groupData.radiusMax, radius.real());
       }
     }
   }
@@ -1450,55 +1474,58 @@ addRowColumnDataTotal(const ModelIndex &ind) const
 
 bool
 CQChartsPiePlot::
-getColumnSizeValue(const ModelIndex &ind, double &value, bool &missing) const
+getColumnSizeValue(const ModelIndex &ind, OptReal &value) const
 {
   auto *th = const_cast<CQChartsPiePlot *>(this);
 
-  missing = false;
-  value   = 1.0;
+  value = OptReal();
 
   auto columnType = columnValueType(ind.column());
 
   if (columnType == ColumnType::INTEGER || columnType == ColumnType::REAL) {
     bool ok;
 
-    value = modelReal(ind, ok);
+    auto r = modelReal(ind, ok);
 
     // allow missing value in numeric column
     if (! ok) {
-      missing = true;
+      value = OptReal();
       return true;
     }
 
     // TODO: check allow nan
-    if (CMathUtil::isNaN(value)) {
+    if (CMathUtil::isNaN(r)) {
       th->addDataError(ind, "Invalid value");
       return false;
     }
+
+    value = OptReal(r);
   }
   else {
     // if has radius column then assume named segments are equal size
     if (radiusColumn().isValid()) {
-      value = 1.0;
+      value = OptReal(1.0);
       return true;
     }
 
     // try convert model string to real
     bool ok;
 
-    value = modelReal(ind, ok);
+    auto r = modelReal(ind, ok);
 
     // string non-real -> 1.0
     if (! ok) {
       th->addDataError(ind, "Invalid value");
       return false;
     }
+
+    value = OptReal(r);
   }
 
   // size must be positive or zero
-  if (value < 0.0) {
+  if (value.isSet() && value.real() < 0.0) {
     th->addDataError(ind, "Negative value");
-    value = 1.0;
+    value = OptReal(1.0);
     return false;
   }
 
@@ -2047,6 +2074,11 @@ calcTipId() const
 
   //---
 
+  if (values_.size() > 1)
+    tableTip.addTableRow("Count", values_.size());
+
+  //---
+
   piePlot()->addTipColumns(tableTip, modelInd());
 
   //---
@@ -2067,7 +2099,10 @@ calcTipData(QString &groupName, QString &labelName, QString &label, QString &val
   // get label
   auto ind = piePlot_->unnormalizeIndex(modelInd());
 
-  label = piePlot_->calcIndLabel(ind, labelName);
+  label = this->label();
+
+  if (label == "")
+    label = piePlot_->calcIndLabel(ind, labelName);
 
   // get value string
   valueStr = this->valueStr();
@@ -2803,7 +2838,7 @@ drawTreeMapLabel(PaintDevice *device) const
 
   auto bbox = calcTreeMapBBox();
 
-  CQChartsDrawUtil::drawStringsInBox(device, bbox, labels, textOptions);
+  CQChartsDrawUtil::drawTextsInBox(device, bbox, labels, textOptions);
 }
 
 void
@@ -2833,7 +2868,7 @@ drawWaffleLabel(PaintDevice *device) const
 
   textOptions = piePlot_->adjustTextOptions(textOptions);
 
-  CQChartsDrawUtil::drawStringsInBox(device, waffleBBox_, labels, textOptions);
+  CQChartsDrawUtil::drawTextsInBox(device, waffleBBox_, labels, textOptions);
 }
 
 void
@@ -3010,8 +3045,12 @@ bool
 CQChartsPieObj::
 isHidden() const
 {
-  if (piePlot()->numGroups() > 1)
-    return piePlot()->isGroupHidden(groupObj_->groupInd().i);
+  if (piePlot()->numGroups() > 1) {
+    if (groupObj_)
+      return piePlot()->isGroupHidden(groupObj_->groupInd().i);
+    else
+      return false;
+  }
 
   if (modelInd().isValid()) {
     auto modelInd1 = piePlot()->unnormalizeIndex(modelInd());
@@ -3068,13 +3107,45 @@ addObject(CQChartsPieObj *obj)
   objs_.push_back(obj);
 }
 
+int
+CQChartsPieGroupObj::
+bucketValue(const ModelIndex &ind, double v, QString &label) const
+{
+  auto *details = plot()->columnDetails(ind.column());
+  if (! details) return int(v);
+
+  details->setNumBuckets(piePlot_->numBuckets());
+
+  int bucket = details->bucket(v);
+
+  QVariant vmin, vmax;
+  details->bucketRange(bucket, vmin, vmax);
+
+  label = QString("%1-%2").arg(QString::number(vmin.toDouble())).
+                           arg(QString::number(vmax.toDouble()));
+
+  return bucket;
+}
+
 CQChartsPieObj *
 CQChartsPieGroupObj::
-lookupObj(const QString &name) const
+lookupObjByName(const QString &name) const
 {
   // TODO: use map
   for (const auto &obj : objs_)
     if (obj->label() == name)
+      return obj;
+
+  return nullptr;
+}
+
+CQChartsPieObj *
+CQChartsPieGroupObj::
+lookupObjByInd(int ind) const
+{
+  // TODO: use map
+  for (const auto &obj : objs_)
+    if (obj->ind() == ind)
       return obj;
 
   return nullptr;
@@ -3813,6 +3884,8 @@ CQChartsPiePlotCustomControls::
 init()
 {
   addWidgets();
+
+  addOverview();
 
   addLayoutStretch();
 

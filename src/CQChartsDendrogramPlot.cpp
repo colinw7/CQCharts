@@ -333,6 +333,15 @@ setRootTextMargin(double r)
   } );
 }
 
+void
+CQChartsDendrogramPlot::
+setRootValueLabel(bool b)
+{
+  CQChartsUtil::testAndSet(rootNodeData_.valueLabel, b, [&]() {
+    drawObjs();
+  } );
+}
+
 double
 CQChartsDendrogramPlot::
 calcRootSize() const
@@ -399,6 +408,15 @@ setHierTextMargin(double r)
   } );
 }
 
+void
+CQChartsDendrogramPlot::
+setHierValueLabel(bool b)
+{
+  CQChartsUtil::testAndSet(hierNodeData_.valueLabel, b, [&]() {
+    drawObjs();
+  } );
+}
+
 double
 CQChartsDendrogramPlot::
 calcHierSize() const
@@ -461,6 +479,15 @@ CQChartsDendrogramPlot::
 setLeafTextMargin(double r)
 {
   CQChartsUtil::testAndSet(leafNodeData_.textMargin, r, [&]() {
+    drawObjs();
+  } );
+}
+
+void
+CQChartsDendrogramPlot::
+setLeafValueLabel(bool b)
+{
+  CQChartsUtil::testAndSet(leafNodeData_.valueLabel, b, [&]() {
     drawObjs();
   } );
 }
@@ -540,6 +567,20 @@ CQChartsDendrogramPlot::
 setEdgeSizeByValue(bool b)
 {
   CQChartsUtil::testAndSet(edgeData_.sizeByValue, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsDendrogramPlot::
+setEdgeSelectable(bool b)
+{
+  CQChartsUtil::testAndSet(edgeData_.selectable, b, [&]() {
+    for (const auto &plotObj : plotObjects()) {
+      auto *edgeObj = dynamic_cast<EdgeObj *>(plotObj);
+      if (! edgeObj) continue;
+
+      edgeObj->setSelectable(edgeData_.selectable);
+    }
+  } );
 }
 
 //---
@@ -804,15 +845,16 @@ addProperties()
   addProp("options", "overlapMargin"      , "overlapMargin"      , "Overlap margin");
 
   // root
-  addProp("root"      , "rootVisible"     , "visible" , "Root is visible");
-  addProp("root"      , "rootSize"        , "size"    , "Node shape size");
-  addProp("root"      , "rootMinSize"     , "minSize" , "Node shape min size");
-  addProp("root"      , "rootAspect"      , "aspect"  , "Node shape aspect");
-  addProp("root"      , "rootShape"       , "shape"   , "Root shape");
-  addProp("root/label", "rootTextPosition", "position", "Root label position");
-  addProp("root/label", "rootRotatedText" , "rotated" , "Root is rotated text");
-  addProp("root/label", "rootTextMargin"  , "margin"  , "Root text margin in pixels")->
+  addProp("root"      , "rootVisible"     , "visible"   , "Root is visible");
+  addProp("root"      , "rootSize"        , "size"      , "Node shape size");
+  addProp("root"      , "rootMinSize"     , "minSize"   , "Node shape min size");
+  addProp("root"      , "rootAspect"      , "aspect"    , "Node shape aspect");
+  addProp("root"      , "rootShape"       , "shape"     , "Root shape");
+  addProp("root/label", "rootTextPosition", "position"  , "Root label position");
+  addProp("root/label", "rootRotatedText" , "rotated"   , "Root is rotated text");
+  addProp("root/label", "rootTextMargin"  , "margin"    , "Root text margin in pixels")->
     setMinValue(1.0);
+  addProp("root/label", "rootValueLabel"  , "valueLabel", "Root value label");
 
   addProp("root/stroke", "rootStroked", "visible", "Root stroke visible");
   addLineProperties("root/stroke", "rootStroke", "Root");
@@ -827,15 +869,16 @@ addProperties()
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
   // hier
-  addProp("hier"      , "hierSize"        , "size"    , "Hier shape size");
-  addProp("hier"      , "hierMinSize"     , "minSize" , "Hier shape min size");
-  addProp("hier"      , "hierAspect"      , "aspect"  , "Hier shape aspect");
-  addProp("hier"      , "hierShape"       , "shape"   , "Hier shape");
-  addProp("hier/label", "hierTextVisible" , "visible" , "Hier labels visible");
-  addProp("hier/label", "hierTextPosition", "position", "Hier labels position");
-  addProp("hier/label", "hierRotatedText" , "rotated" , "Hier is rotated text");
-  addProp("hier/label", "hierTextMargin"  , "margin"  , "Hier text margin in pixels")->
+  addProp("hier"      , "hierSize"        , "size"      , "Hier shape size");
+  addProp("hier"      , "hierMinSize"     , "minSize"   , "Hier shape min size");
+  addProp("hier"      , "hierAspect"      , "aspect"    , "Hier shape aspect");
+  addProp("hier"      , "hierShape"       , "shape"     , "Hier shape");
+  addProp("hier/label", "hierTextVisible" , "visible"   , "Hier labels visible");
+  addProp("hier/label", "hierTextPosition", "position"  , "Hier labels position");
+  addProp("hier/label", "hierRotatedText" , "rotated"   , "Hier is rotated text");
+  addProp("hier/label", "hierTextMargin"  , "margin"    , "Hier text margin in pixels")->
     setMinValue(1.0);
+  addProp("hier/label", "hierValueLabel"  , "valueLabel", "Hier value label");
 
   addProp("hier/stroke", "hierStroked", "visible", "Hier stroke visible");
   addLineProperties("hier/stroke", "hierStroke", "Hier");
@@ -850,15 +893,16 @@ addProperties()
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
   // leaf
-  addProp("leaf"      , "leafSize"        , "size"    , "Leaf shape size");
-  addProp("leaf"      , "leafMinSize"     , "minSize" , "Leaf shape min size");
-  addProp("leaf"      , "leafAspect"      , "aspect"  , "Leaf shape aspect");
-  addProp("leaf"      , "leafShape"       , "shape"   , "Leaf shape");
-  addProp("leaf/label", "leafTextVisible" , "visible" , "Leaf labels visible");
-  addProp("leaf/label", "leafTextPosition", "position", "Leaf labels position");
-  addProp("leaf/label", "leafRotatedText" , "rotated" , "Leaf is rotated text");
-  addProp("leaf/label", "leafTextMargin"  , "margin"  , "Leaf text margin in pixels")->
+  addProp("leaf"      , "leafSize"        , "size"      , "Leaf shape size");
+  addProp("leaf"      , "leafMinSize"     , "minSize"   , "Leaf shape min size");
+  addProp("leaf"      , "leafAspect"      , "aspect"    , "Leaf shape aspect");
+  addProp("leaf"      , "leafShape"       , "shape"     , "Leaf shape");
+  addProp("leaf/label", "leafTextVisible" , "visible"   , "Leaf labels visible");
+  addProp("leaf/label", "leafTextPosition", "position"  , "Leaf labels position");
+  addProp("leaf/label", "leafRotatedText" , "rotated"   , "Leaf is rotated text");
+  addProp("leaf/label", "leafTextMargin"  , "margin"    , "Leaf text margin in pixels")->
     setMinValue(1.0);
+  addProp("leaf/label", "leafValueLabel"  , "valueLabel", "Leaf value label");
 
   addTextProperties("leaf/label", "leafText", "Leaf Label",
                     CQChartsTextOptions::ValueType::CONTRAST |
@@ -882,6 +926,7 @@ addProperties()
   addProp("edge", "minEdgeWidth"    , "minWidth"    , "Min Edge width");
   addProp("edge", "edgeColorByValue", "colorByValue", "Edge is color by value");
   addProp("edge", "edgeSizeByValue" , "sizeByValue" , "Edge is size by value");
+  addProp("edge", "edgeSelectable"  , "selectable"  , "Edge is selectable");
 
   addProp("edge/stroke", "edgeStroked", "visible", "Edge stroke visible");
   addLineProperties("edge/stroke", "edgeStroke", "Edge");
@@ -2899,6 +2944,8 @@ addEdgeObj(NodeObj *fromNode, NodeObj *toNode) const
 
   obj->setInd(cacheData_.edgeInd++);
 
+  obj->setSelectable(isEdgeSelectable());
+
   obj->connectDataChanged(this, SLOT(updateSlot()));
 
   return obj;
@@ -3025,7 +3072,7 @@ getBBox(Node *node) const
 
 bool
 CQChartsDendrogramPlot::
-handleSelectPress(const Point &p, SelMod /*selMod*/)
+handleSelectDoubleClick(const Point &p, SelMod /*selMod*/)
 {
   PlotObjs plotObjs;
 
@@ -3638,9 +3685,26 @@ drawText(PaintDevice *device) const
 
   //---
 
+  auto isValueLabel = [&]() {
+    if (isRoot()) return dendrogramPlot_->isRootValueLabel();
+    if (isHier()) return dendrogramPlot_->isHierValueLabel();
+    return dendrogramPlot_->isLeafValueLabel();
+  };
+
   // draw node text
   // only support contrast and clip
   const auto &name = this->name();
+
+  QStringList strs;
+
+  strs << name;
+
+  if (isValueLabel()) {
+    if      (value().isSet())
+      strs << QString::number(value().real());
+    else if (hierValue().isSet())
+      strs << QString::number(hierValue().real());
+  }
 
   auto calcTextOptions = [&]() {
     if (isRoot()) return dendrogramPlot_->rootTextOptions(device);
@@ -3659,12 +3723,18 @@ drawText(PaintDevice *device) const
 
   if (textOptions.scaled && TextPosition(position) == TextPosition::CENTER) {
     auto rect1 = displayRect();
+    if (! rect1.isValid()) return;
 
-    if (rect1.isValid())
+    if (strs.size() == 1)
       CQChartsDrawUtil::drawTextInBox(device, rect1, name, textOptions);
+    else
+      CQChartsDrawUtil::drawTextsInBox(device, rect1, strs, textOptions);
   }
   else {
-    CQChartsDrawUtil::drawTextAtPoint(device, p, name, textOptions, centered);
+    if (strs.size() == 1)
+      CQChartsDrawUtil::drawTextAtPoint(device, p, name, textOptions, centered);
+    else
+      CQChartsDrawUtil::drawTextsAtPoint(device, p, strs, textOptions);
   }
 }
 
@@ -4189,6 +4259,8 @@ init()
 {
   addWidgets();
 
+  addOverview();
+
   addLayoutStretch();
 
   addButtonWidgets();
@@ -4235,9 +4307,9 @@ addButtonWidgets()
   // buttons group
   buttonsFrame_ = createGroupFrame("Functions", "buttonsFrame", FrameOpts::makeHBox());
 
-  expand_      = CQUtil::makeLabelWidget<QPushButton>("Expand");
-  expandAll_   = CQUtil::makeLabelWidget<QPushButton>("Expand All");
-  collapseAll_ = CQUtil::makeLabelWidget<QPushButton>("Collapse All");
+  expand_      = CQUtil::makeLabelWidget<QPushButton>("Expand", "expandButton");
+  expandAll_   = CQUtil::makeLabelWidget<QPushButton>("Expand All", "expandAllButton");
+  collapseAll_ = CQUtil::makeLabelWidget<QPushButton>("Collapse All", "collapseAllButton");
 
   buttonsFrame_.box->addWidget(expand_);
   buttonsFrame_.box->addWidget(expandAll_);

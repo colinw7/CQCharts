@@ -736,7 +736,7 @@ draw(PaintDevice *device) const
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    CQChartsDrawUtil::drawStringsInBox(device, cellRect, labels, textOptions, adjustScale);
+    CQChartsDrawUtil::drawTextsInBox(device, cellRect, labels, textOptions, adjustScale);
   }
 
   //---
@@ -902,6 +902,8 @@ CQChartsGridPlotCustomControls::
 init()
 {
   addWidgets();
+
+  addOverview();
 
   addLayoutStretch();
 

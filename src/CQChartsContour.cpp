@@ -485,7 +485,7 @@ fillContourBox(PaintDevice *device, double x1, double y1, double x2, double y2,
            z3 > levels[levels.size() - 1] && z4 > levels[levels.size() - 1])
     l = int(levels.size());
   else {
-    for (uint l = 1; l < uint(levels.size()); l++) {
+    for (l = 1; l < int(levels.size()); l++) {
       if (z1 >= levels[l - 1] && z2 >= levels[l - 1] &&
           z3 >= levels[l - 1] && z4 >= levels[l - 1] &&
           z1 <= levels[l    ] && z2 <= levels[l    ] &&

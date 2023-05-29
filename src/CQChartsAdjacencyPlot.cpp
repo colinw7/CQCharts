@@ -1844,6 +1844,8 @@ init()
 {
   addWidgets();
 
+  addOverview();
+
   //---
 
   addLayoutStretch();

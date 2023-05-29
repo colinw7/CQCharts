@@ -103,7 +103,8 @@ connectSlots(bool b)
                     SLOT(valueChangedSlot(const CQChartsLineDash &)));
 
   connectDisconnect(this, SIGNAL(editingFinished()), SIGNAL(altEditingFinished()));
-  connectDisconnect(edit_, SIGNAL(dashChangedSlot()), SIGNAL(altEditingFinished()));
+  connectDisconnect(edit_, SIGNAL(valueChanged(const CQChartsLineDash &)),
+                    SIGNAL(altEditingFinished()));
 }
 
 CQChartsLineDash

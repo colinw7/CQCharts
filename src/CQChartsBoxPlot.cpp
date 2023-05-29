@@ -2358,8 +2358,10 @@ CQChartsBoxPlotWhiskerObj(const BoxPlot *boxPlot, const BBox &rect, int setId, i
 
   setDetailHint(DetailHint::MAJOR);
 
-  for (auto &value : whisker_->values())
-    addModelInd(value.ind);
+  for (auto &value : whisker_->values()) {
+    if (value.ind.isValid())
+      addModelInd(value.ind);
+  }
 }
 
 double
@@ -2691,11 +2693,12 @@ draw(PaintDevice *device) const
 
     bool median = true;
 
-    std::vector<double> outliers;
+    std::vector<double>               outliers;
+    CQChartsBoxWhiskerUtil::PointData pointData;
 
     CQChartsBoxWhiskerUtil::drawWhiskerBar(device, statData, pos, orientation, ww, bw,
                                            boxPlot_->boxCornerSize(), boxPlot_->isNotched(),
-                                           median, outliers);
+                                           median, outliers, pointData);
   }
 
   //---
@@ -3203,10 +3206,12 @@ draw(PaintDevice *device) const
   bool notched = false;
   bool median  = true;
 
-  std::vector<double> outliers;
+  std::vector<double>               outliers;
+  CQChartsBoxWhiskerUtil::PointData pointData;
 
   CQChartsBoxWhiskerUtil::drawWhiskerBar(device, statData, pos, orientation, ww, bw,
-                                         boxPlot_->boxCornerSize(), notched, median, outliers);
+                                         boxPlot_->boxCornerSize(), notched, median,
+                                         outliers, pointData);
 
   //---
 
@@ -4040,6 +4045,8 @@ CQChartsBoxPlotCustomControls::
 init()
 {
   addWidgets();
+
+  addOverview();
 
   addLayoutStretch();
 

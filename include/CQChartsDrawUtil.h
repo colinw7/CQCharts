@@ -184,10 +184,10 @@ void drawTextInCircle(PaintDevice *device, const BBox &rect, const QString &text
 void drawTextInBox(PaintDevice *device, const BBox &rect, const QString &text,
                    const TextOptions &options, double adjustScale=1.0);
 
-void drawStringsInCircle(PaintDevice *device, const BBox &rect, const QStringList &strs,
-                         const TextOptions &options);
-void drawStringsInBox(PaintDevice *device, const BBox &rect, const QStringList &strs,
-                      const TextOptions &options, double adjustScale=1.0);
+void drawTextsInCircle(PaintDevice *device, const BBox &rect, const QStringList &strs,
+                       const TextOptions &options);
+void drawTextsInBox(PaintDevice *device, const BBox &rect, const QStringList &strs,
+                    const TextOptions &options, double adjustScale=1.0);
 
 void drawRotatedTextInBox(PaintDevice *device, const BBox &rect, const QString &text,
                           const QPen &pen, const TextOptions &options);

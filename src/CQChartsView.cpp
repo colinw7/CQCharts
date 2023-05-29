@@ -3936,7 +3936,8 @@ selectPointPress()
   if (processMouseDataPlots([&](Plot *plot, const SelData &data) {
     if (plot->selectMousePress(data.pos, data.selMod)) {
       auto *selPlot = plot->selectionPlot();
-      setCurrentPlot(selPlot);
+      if (selPlot->isVisible())
+        setCurrentPlot(selPlot);
       return true;
     }
     return false;
@@ -4080,7 +4081,8 @@ selectMouseDoubleClick()
   if (processMouseDataPlots([&](Plot *plot, const SelData &data) {
     if (plot->selectMouseDoubleClick(data.pos, data.selMod)) {
       auto *selPlot = plot->selectionPlot();
-      setCurrentPlot(selPlot);
+      if (selPlot->isVisible())
+        setCurrentPlot(selPlot);
       return true;
     }
     return false;
@@ -6936,17 +6938,8 @@ plotKeyVisibleSlot(bool b)
   auto *currentPlot = this->currentPlot(/*remap*/true);
   auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
-  auto *plotKey = (basePlot ? basePlot->key() : nullptr);
-
-  if (! plotKey)
-    return;
-
-  if (b != plotKey->isVisible()) {
-    plotKey->setVisible(b);
-
-    if (b)
-      basePlot->updateKeyPosition(/*force*/true);
-  }
+  if (b != basePlot->isKeyVisible())
+    basePlot->setKeyVisible(b);
 }
 
 void

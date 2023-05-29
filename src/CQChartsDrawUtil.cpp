@@ -787,7 +787,7 @@ drawTextInBox(PaintDevice *device, const BBox &rect,
 
     //---
 
-    drawStringsInBox(device, rect, strs, options, adjustScale);
+    drawTextsInBox(device, rect, strs, options, adjustScale);
   }
   else {
     if (options.clipped)
@@ -801,15 +801,15 @@ drawTextInBox(PaintDevice *device, const BBox &rect,
 }
 
 void
-drawStringsInCircle(PaintDevice *device, const BBox &rect, const QStringList &strs,
-                    const TextOptions &options)
+drawTextsInCircle(PaintDevice *device, const BBox &rect, const QStringList &strs,
+                  const TextOptions &options)
 {
-  drawStringsInBox(device, rect, strs, options, 1/sqrt(2.0));
+  drawTextsInBox(device, rect, strs, options, 1/sqrt(2.0));
 }
 
 void
-drawStringsInBox(PaintDevice *device, const BBox &rect, const QStringList &strs,
-                 const TextOptions &options, double adjustScale)
+drawTextsInBox(PaintDevice *device, const BBox &rect, const QStringList &strs,
+               const TextOptions &options, double adjustScale)
 {
   auto prect = device->windowToPixel(rect);
 

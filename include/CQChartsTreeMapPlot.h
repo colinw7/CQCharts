@@ -722,6 +722,10 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   //---
 
+  QString pushGroupName() const { return treeData_.currentGroupName; }
+
+  //---
+
   bool hasValueRange() const { return hasValueRange_; }
 
   double minValue() const { return minValue_; }
@@ -958,6 +962,8 @@ class CQChartsTreeMapPlotCustomControls : public CQChartsHierPlotCustomControls 
 
   void addOptionsWidgets() override;
 
+  void addButtonWidgets();
+
   void setPlot(Plot *plot) override;
 
  public Q_SLOTS:
@@ -984,6 +990,14 @@ class CQChartsTreeMapPlotCustomControls : public CQChartsHierPlotCustomControls 
   QCheckBox* headerCheck_     { nullptr };
   QCheckBox* valueCheck_      { nullptr };
   QCheckBox* followViewCheck_ { nullptr };
+
+  FrameData buttonsFrame_;
+
+  QPushButton *push_     { nullptr };
+  QPushButton *pop_      { nullptr };
+  QPushButton *popTop_   { nullptr };
+  QPushButton *expand_   { nullptr };
+  QPushButton *collapse_ { nullptr };
 };
 
 #endif

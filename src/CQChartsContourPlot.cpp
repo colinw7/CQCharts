@@ -443,6 +443,8 @@ init()
 {
   addWidgets();
 
+  addOverview();
+
   addLayoutStretch();
 
   connectSlots(true);
@@ -471,14 +473,6 @@ addOptionsWidgets()
 
 void
 CQChartsContourPlotCustomControls::
-connectSlots(bool b)
-{
-  CQUtil::optConnectDisconnect(b,
-    solidCheck_, SIGNAL(stateChanged(int)), this, SLOT(solidSlot()));
-}
-
-void
-CQChartsContourPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
   if (plot_ && contourPlot_)
@@ -496,15 +490,25 @@ void
 CQChartsContourPlotCustomControls::
 updateWidgets()
 {
-  connectSlots(false);
+  CQChartsPlotCustomControls::updateWidgets();
 
   //---
+
+  connectSlots(false);
 
   solidCheck_->setChecked(contourPlot_->isSolid());
 
-  //---
-
   connectSlots(true);
+}
+
+void
+CQChartsContourPlotCustomControls::
+connectSlots(bool b)
+{
+  CQChartsPlotCustomControls::connectSlots(b);
+
+  CQUtil::optConnectDisconnect(b,
+    solidCheck_, SIGNAL(stateChanged(int)), this, SLOT(solidSlot()));
 }
 
 void
