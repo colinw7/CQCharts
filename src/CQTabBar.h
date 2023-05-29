@@ -21,11 +21,12 @@ class CQTabBarScrollButton;
 class CQTabBar : public QWidget {
   Q_OBJECT
 
-  Q_PROPERTY(Position            position    READ position    WRITE setPosition)
-  Q_PROPERTY(bool                allowNoTab  READ allowNoTab  WRITE setAllowNoTab)
-  Q_PROPERTY(Qt::ToolButtonStyle buttonStyle READ buttonStyle WRITE setButtonStyle)
-  Q_PROPERTY(QSize               iconSize    READ iconSize    WRITE setIconSize)
-  Q_PROPERTY(bool                flowTabs    READ isFlowTabs  WRITE setFlowTabs)
+  Q_PROPERTY(Position            position     READ position     WRITE setPosition)
+  Q_PROPERTY(bool                allowNoTab   READ allowNoTab   WRITE setAllowNoTab)
+  Q_PROPERTY(Qt::ToolButtonStyle buttonStyle  READ buttonStyle  WRITE setButtonStyle)
+  Q_PROPERTY(QSize               iconSize     READ iconSize     WRITE setIconSize)
+  Q_PROPERTY(bool                flowTabs     READ isFlowTabs   WRITE setFlowTabs)
+  Q_PROPERTY(QColor              pendingColor READ pendingColor WRITE setPendingColor)
 
   Q_ENUMS(Position)
 
@@ -71,6 +72,10 @@ class CQTabBar : public QWidget {
   //! get/set flow tabs
   bool isFlowTabs() const { return flowTabs_; }
   void setFlowTabs(bool b) { flowTabs_ = b; }
+
+  //! get/set pending color
+  const QColor &pendingColor() const { return pendingColor_; }
+  void setPendingColor(const QColor &c) { pendingColor_ = c; update(); }
 
   //---
 
@@ -249,6 +254,8 @@ class CQTabBar : public QWidget {
 
   bool flowTabs_ { false }; //!< flow tabs
 
+  QColor pendingColor_ { Qt::red };
+
   Qt::ToolButtonStyle buttonStyle_ { Qt::ToolButtonIconOnly };
                                    //!< tab button style (text and/or icon)
 
@@ -274,6 +281,9 @@ class CQTabBar : public QWidget {
 /*! base class for tab bar button
 */
 class CQTabBarButton {
+ private:
+  enum { TAB_BORDER=8 };
+
  public:
   CQTabBarButton(CQTabBar *bar);
 

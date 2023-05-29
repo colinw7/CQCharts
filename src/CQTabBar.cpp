@@ -660,8 +660,11 @@ paintEvent(QPaintEvent *)
     else
       tabStyle.position = QStyleOptionTab::Middle;
 
+    if (button->index() == currentIndex())
+      tabStyle.palette.setColor(QPalette::WindowText, palette().highlight().color());
+
     if (button->pending())
-      tabStyle.palette.setColor(QPalette::Button, QColor("#0000FF"));
+      tabStyle.palette.setColor(QPalette::Button, pendingColor());
 
     // draw button
     stylePainter.drawControl(QStyle::CE_TabBarTab, tabStyle);
@@ -946,7 +949,8 @@ mouseMoveEvent(QMouseEvent *e)
   // If left button pressed check for drag
   if (e->buttons() & Qt::LeftButton) {
     // check drag distance
-    if ((e->pos() - pressPos_).manhattanLength() >= QApplication::startDragDistance()) {
+    if (pressIndex_ >= 0 &&
+        (e->pos() - pressPos_).manhattanLength() >= QApplication::startDragDistance()) {
       auto *button = tabButton(pressIndex_);
 
       auto icon = (button ? button->icon() : QIcon());
@@ -1105,10 +1109,8 @@ dragValid(const QMimeData *m, QString &name, int &num) const
   auto *numStr = m->data(mimeTabId).data();
 
   bool ok;
-
   num = QString(numStr).toInt(&ok);
-
-  assert(ok);
+  if (! ok) return false;
 
   return true;
 }
@@ -1342,7 +1344,7 @@ height() const
 {
   QFontMetrics fm(bar_->font());
 
-  return fm.height() + 6;
+  return fm.height() + TAB_BORDER;
 }
 
 //---------

@@ -367,6 +367,8 @@ class CQChartsPlotOverview : public QFrame {
 
   void wheelEvent(QWheelEvent *e) override;
 
+  void contextMenuEvent(QContextMenuEvent *) override;
+
   void paintEvent(QPaintEvent *) override;
 
   QSize sizeHint() const override;
@@ -375,8 +377,9 @@ class CQChartsPlotOverview : public QFrame {
   Point pixelToPlot(const Point &pp) const;
 
  private:
-  CQChartsPlotCustomControls *controls_ { nullptr };
-  bool                        pressed_  { false };
+  CQChartsPlotCustomControls *controls_    { nullptr };
+  bool                        pressed_     { false };
+  int                         pressButton_ { -1 };
 };
 
 //---

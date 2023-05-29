@@ -4,7 +4,6 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + tab current coloring
  + save plot image (when multiple plots)
 
  + key control checks for both custom and plot.

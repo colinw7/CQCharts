@@ -1,0 +1,9 @@
+Map Column String to Value
+ . Color
+ . Alpha
+ . Symbol Type
+ . Symbol Size
+ . Font Size
+
+TODO
+ . Shape Type

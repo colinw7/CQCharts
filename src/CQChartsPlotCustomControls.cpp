@@ -1324,13 +1324,19 @@ CQChartsPlotOverview(CQChartsPlotCustomControls *controls) :
   setObjectName("overview");
 
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+  setContextMenuPolicy(Qt::DefaultContextMenu);
 }
 
 void
 CQChartsPlotOverview::
 mousePressEvent(QMouseEvent *e)
 {
-  pressed_ = true;
+  pressed_     = true;
+  pressButton_ = e->button();
+
+  if (pressButton_ != Qt::LeftButton)
+    return;
 
   auto *plot = controls_->plot();
   if (! plot) return;
@@ -1343,6 +1349,9 @@ CQChartsPlotOverview::
 mouseMoveEvent(QMouseEvent *e)
 {
   if (pressed_) {
+    if (pressButton_ != Qt::LeftButton)
+      return;
+
     auto *plot = controls_->plot();
     if (! plot) return;
 
@@ -1354,7 +1363,8 @@ void
 CQChartsPlotOverview::
 mouseReleaseEvent(QMouseEvent *)
 {
-  pressed_ = false;
+  pressed_     = false;
+  pressButton_ = -1;
 }
 
 void
@@ -1378,6 +1388,22 @@ wheelEvent(QWheelEvent *e)
   auto pp2 = pixelToPlot(Point(e->position()));
 
   plot->pan(pp1.x - pp2.x, pp1.y - pp2.y);
+}
+
+void
+CQChartsPlotOverview::
+contextMenuEvent(QContextMenuEvent *e)
+{
+  auto *plot = controls_->plot();
+  if (! plot) return;
+
+  auto *menu = new QMenu(this);
+
+  CQUtil::addAction(menu, "Zoom Full", plot, SLOT(zoomFull()));
+
+  (void) menu->exec(e->globalPos());
+
+  delete menu;
 }
 
 void

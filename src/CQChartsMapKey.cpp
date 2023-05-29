@@ -2972,7 +2972,7 @@ void
 CQChartsMapKeyFrame::
 contextMenuEvent(QContextMenuEvent *e)
 {
-  auto *menu = new QMenu;
+  auto *menu = new QMenu(this);
 
   CQUtil::addCheckedAction(menu, "Plot Key", w_->key()->isVisible(),
                            this, SLOT(showKeySlot(bool)));
