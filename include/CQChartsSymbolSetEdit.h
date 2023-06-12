@@ -2,6 +2,7 @@
 #define CQChartsSymbolSetEdit_H
 
 #include <CQChartsSymbolSet.h>
+#include <CQChartsEditBase.h>
 #include <QFrame>
 
 class CQCharts;
@@ -11,7 +12,7 @@ class QComboBox;
  * \brief symbol set name edit
  * \ingroup Charts
  */
-class CQChartsSymbolSetEdit : public QFrame {
+class CQChartsSymbolSetEdit : public CQChartsFrame {
   Q_OBJECT
 
   Q_PROPERTY(QString symbolSetName READ symbolSetName WRITE setSymbolSetName)
@@ -20,8 +21,7 @@ class CQChartsSymbolSetEdit : public QFrame {
   CQChartsSymbolSetEdit(QWidget *parent=nullptr);
 
   //! get/set charts
-  const CQCharts *charts() const { return charts_; }
-  void setCharts(const CQCharts *charts);
+  void setCharts(const CQCharts *charts) override;
 
   //! get/set symbol set name
   const QString &symbolSetName() const;
@@ -41,9 +41,8 @@ class CQChartsSymbolSetEdit : public QFrame {
   void comboChanged();
 
  private:
-  const CQCharts* charts_ { nullptr };
-  QString         symbolSetName_;
-  QComboBox*      combo_ { nullptr };
+  QString    symbolSetName_;
+  QComboBox* combo_ { nullptr };
 };
 
 //------

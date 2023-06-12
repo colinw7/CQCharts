@@ -10,6 +10,14 @@
 #include <QGridLayout>
 #include <QPainter>
 
+CQChartsFrame::
+CQChartsFrame(QWidget *parent) :
+ QFrame(parent)
+{
+}
+
+//---
+
 CQChartsEditBase::
 CQChartsEditBase(QWidget *parent) :
  QFrame(parent)

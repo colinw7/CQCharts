@@ -4,11 +4,34 @@
 #include <QFrame>
 #include <QPointer>
 
+class CQCharts;
 class CQChartsPlot;
 class CQChartsView;
 class CQChartsColor;
 
 class QGridLayout;
+
+/*!
+ * \brief frame class for charts editor
+ * \ingroup Charts
+ */
+class CQChartsFrame : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsFrame(QWidget *parent=nullptr);
+
+  virtual ~CQChartsFrame() = default;
+
+  //! get/set charts
+  const CQCharts *charts() const { return charts_; }
+  virtual void setCharts(const CQCharts *charts) { charts_ = charts; }
+
+ protected:
+  const CQCharts* charts_ { nullptr };
+};
+
+//------
 
 /*!
  * \brief base class for editor

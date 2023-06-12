@@ -14,7 +14,7 @@
 
 CQChartsPaletteNameEdit::
 CQChartsPaletteNameEdit(QWidget *parent) :
- QFrame(parent)
+ CQChartsFrame(parent)
 {
   setObjectName("paletteName");
 
@@ -35,7 +35,7 @@ setCharts(const CQCharts *charts)
 {
   connectSlots(false);
 
-  charts_ = charts;
+  CQChartsFrame::setCharts(charts);
 
   const auto *theme = charts_->theme();
 

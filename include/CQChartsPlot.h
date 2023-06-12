@@ -2536,6 +2536,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual bool allowPanX() const { return true; }
   virtual bool allowPanY() const { return true; }
 
+  //---
+
+  virtual void updateOverview();
+
  public:
   virtual void cycleNextPrev(bool prev);
 
@@ -3304,8 +3308,6 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   QImage overviewImage() const { return overviewData_.image; }
 
   const BBox overviewPlotRect() const { return overviewData_.plotRect; }
-
-  void updateOverview();
 
   //---
 
@@ -4188,21 +4190,16 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  //! preview data
-  enum class PreviewPosition {
-    BOTTOM_RIGHT
-  };
-
+  //! overview data
   struct OverviewData {
-    bool            displayed   { false };
-    int             size        { 256 };
-    QColor          fillColor   { Qt::red };
-    double          fillAlpha   { 0.5 };
-    QColor          strokeColor { Qt::black };
-    double          strokeAlpha { 0.5 };
-    BBox            plotRect;
-    QImage          image;
-    PreviewPosition position    { PreviewPosition::BOTTOM_RIGHT };
+    bool   displayed   { false };
+    int    size        { 256 };
+    QColor fillColor   { Qt::red };
+    double fillAlpha   { 0.5 };
+    QColor strokeColor { Qt::black };
+    double strokeAlpha { 0.5 };
+    BBox   plotRect;
+    QImage image;
   };
 
   OverviewData overviewData_;

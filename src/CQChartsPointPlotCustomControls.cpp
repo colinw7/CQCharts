@@ -206,7 +206,7 @@ updateWidgets()
     symbolSizeLengthEdit_ ->setLength(pointPlot_->fixedSymbolSize());
     symbolSizeColumnCombo_->setModelColumn(pointPlot_->getModelData(pointModel),
                                            pointPlot_->symbolSizeColumn());
-    symbolSizeRange_      ->setPlot(pointPlot_);
+    symbolSizeRange_      ->setPlot(pointPlot_, /*force*/false);
     symbolSizeMappingEdit_->setText(pointPlot_->symbolSizeMap().toString());
 
     if (hasSymbolSizeColumn)
@@ -233,7 +233,7 @@ updateWidgets()
     symbolTypeColumnCombo_->setModelColumn(pointPlot_->getModelData(pointModel),
                                            pointPlot_->symbolTypeColumn());
     symbolTypeSetEdit_    ->setSymbolSetName(symbolSet ? symbolSet->name() : "");
-    symbolTypeRange_      ->setPlot(pointPlot_);
+    symbolTypeRange_      ->setPlot(pointPlot_, /*force*/false);
     symbolTypeRange_      ->setSymbolSetName(symbolSet ? symbolSet->name() : "");
     symbolTypeMappingEdit_->setText(pointPlot_->symbolTypeMap().toString());
 

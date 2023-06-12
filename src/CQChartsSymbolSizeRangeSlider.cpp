@@ -17,8 +17,11 @@ CQChartsSymbolSizeRangeSlider(QWidget *parent) :
 
 void
 CQChartsSymbolSizeRangeSlider::
-setPlot(CQChartsPlot *plot)
+setPlot(CQChartsPlot *plot, bool force)
 {
+  if (! force && plot == plot_)
+    return;
+
   plot_ = plot;
 
   auto *pointPlot = dynamic_cast<CQChartsPointPlot *>(plot_.data());

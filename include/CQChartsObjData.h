@@ -54,7 +54,7 @@ class CQChartsObjLineData {
   using Invalidator = CQChartsInvalidator;
 
  public:
-  CQChartsObjLineData(OBJ *obj) :
+  explicit CQChartsObjLineData(OBJ *obj) :
    lineDataObj_(obj), invalidator_(obj) {
   }
 
@@ -196,7 +196,7 @@ class CQChartsObj##UNAME##LineData { \
   using Invalidator = CQChartsInvalidator; \
 \
  public: \
-  CQChartsObj##UNAME##LineData(OBJ *obj) : \
+  explicit CQChartsObj##UNAME##LineData(OBJ *obj) : \
    LNAME##LineDataObj_(obj), LNAME##Invalidator_(obj) { \
   } \
 \
@@ -355,7 +355,7 @@ class CQChartsObjPointData {
   using Invalidator = CQChartsInvalidator;
 
  public:
-  CQChartsObjPointData(OBJ *obj) :
+  explicit CQChartsObjPointData(OBJ *obj) :
    pointDataObj_(obj), invalidator_(obj) {
   }
 
@@ -567,7 +567,7 @@ class CQChartsObj##UNAME##PointData { \
   using Invalidator = CQChartsInvalidator; \
 \
  public: \
-  CQChartsObj##UNAME##PointData(OBJ *obj) : \
+  explicit CQChartsObj##UNAME##PointData(OBJ *obj) : \
    LNAME##PointDataObj_(obj), LNAME##Invalidator_(obj) { \
   } \
 \
@@ -752,7 +752,7 @@ class CQChartsObj##UNAME##FillData { \
   using Invalidator = CQChartsInvalidator; \
 \
  public: \
-  CQChartsObj##UNAME##FillData(OBJ *obj) : \
+  explicit CQChartsObj##UNAME##FillData(OBJ *obj) : \
    LNAME##FillDataObj_(obj), LNAME##Invalidator_(obj) { \
   } \
 \
@@ -853,7 +853,7 @@ class CQChartsObjTextData {
   using Invalidator = CQChartsInvalidator;
 
  public:
-  CQChartsObjTextData(OBJ *obj) :
+  explicit CQChartsObjTextData(OBJ *obj) :
    textDataObj_(obj), invalidator_(obj) {
   }
 
@@ -1045,7 +1045,7 @@ class CQChartsObj##UNAME##TextData { \
   using Invalidator = CQChartsInvalidator; \
 \
  public: \
-  CQChartsObj##UNAME##TextData(OBJ *obj) : \
+  explicit CQChartsObj##UNAME##TextData(OBJ *obj) : \
    LNAME##TextDataObj_(obj), LNAME##Invalidator_(obj) { \
   } \
 \
@@ -1231,7 +1231,7 @@ class CQChartsObjStrokeData {
   using Invalidator = CQChartsInvalidator;
 
  public:
-  CQChartsObjStrokeData(OBJ *obj) :
+  explicit CQChartsObjStrokeData(OBJ *obj) :
    strokeDataObj_(obj), invalidator_(obj) {
   }
 
@@ -1370,7 +1370,7 @@ class CQChartsObjShapeData {
   using Invalidator = CQChartsInvalidator;
 
  public:
-  CQChartsObjShapeData(OBJ *obj) :
+  explicit CQChartsObjShapeData(OBJ *obj) :
    shapeDataObj_(obj), invalidator_(obj) {
   }
 
@@ -1568,7 +1568,7 @@ class CQChartsObj##UNAME##ShapeData { \
   using Invalidator = CQChartsInvalidator; \
 \
  public: \
-  CQChartsObj##UNAME##ShapeData(OBJ *obj) : \
+  explicit CQChartsObj##UNAME##ShapeData(OBJ *obj) : \
    LNAME##ShapeDataObj_(obj), LNAME##Invalidator_(obj) { \
   } \
 \
@@ -1778,7 +1778,7 @@ class CQChartsObjBoxData {
   using Invalidator = CQChartsInvalidator;
 
  public:
-  CQChartsObjBoxData(OBJ *obj) :
+  explicit CQChartsObjBoxData(OBJ *obj) :
    boxDataObj_(obj), invalidator_(obj) {
   }
 
@@ -1983,7 +1983,7 @@ class CQChartsObj##UNAME##BoxData { \
   using Invalidator = CQChartsInvalidator; \
 \
  public: \
-  CQChartsObj##UNAME##BoxData(OBJ *obj) : \
+  explicit CQChartsObj##UNAME##BoxData(OBJ *obj) : \
    LNAME##BoxDataObj_(obj), LNAME##Invalidator_(obj) { \
   } \
 \

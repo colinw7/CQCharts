@@ -2,6 +2,7 @@
 #define CQChartsImageEdit_H
 
 #include <CQChartsImage.h>
+#include <CQChartsEditBase.h>
 #include <QFrame>
 
 class CQChartsLineEdit;
@@ -11,16 +12,13 @@ class CQIconButton;
  * \brief image edit
  * \ingroup Charts
  */
-class CQChartsImageEdit : public QFrame {
+class CQChartsImageEdit : public CQChartsFrame {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsImage image READ image WRITE setImage)
 
  public:
   CQChartsImageEdit(QWidget *parent=nullptr);
-
-  CQCharts *charts() const { return charts_; }
-  void setCharts(CQCharts *charts) { charts_ = charts; }
 
   const CQChartsImage &image() const;
   void setImage(const CQChartsImage &image);
@@ -37,7 +35,6 @@ class CQChartsImageEdit : public QFrame {
   void fileSlot();
 
  private:
-  CQCharts*         charts_ { nullptr };
   CQChartsImage     image_;
   CQChartsLineEdit* edit_   { nullptr };
   CQIconButton*     button_ { nullptr };

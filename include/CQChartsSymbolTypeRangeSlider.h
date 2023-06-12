@@ -20,7 +20,7 @@ class CQChartsSymbolTypeRangeSlider : public CQIntRangeSlider {
   CQChartsSymbolTypeRangeSlider(QWidget *parent=nullptr);
 
   Plot *plot() const;
-  void setPlot(Plot *plot);
+  void setPlot(Plot *plot, bool force=true);
 
   void setSymbolSetName(const QString &name);
 

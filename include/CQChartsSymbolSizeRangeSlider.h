@@ -16,7 +16,7 @@ class CQChartsSymbolSizeRangeSlider : public CQDoubleRangeSlider {
  public:
   CQChartsSymbolSizeRangeSlider(QWidget *parent=nullptr);
 
-  void setPlot(Plot *plot);
+  void setPlot(Plot *plot, bool force=true);
 
  public:
   using PlotP = QPointer<Plot>;

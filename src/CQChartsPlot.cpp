@@ -13362,35 +13362,6 @@ drawMiddleParts(QPainter *painter) const
 
 void
 CQChartsPlot::
-saveOverview(QImage *image)
-{
-  if (isOverviewDisplayed()) {
-    auto pixelRect = calcPlotPixelRect();
-
-    overviewData_.image = (image ? *image : QImage());
-
-    if (! overviewData_.image.isNull()) {
-      //auto transform = Qt::FastTransformation;
-      auto transform = Qt::SmoothTransformation;
-
-      if (pixelRect.getWidth() > pixelRect.getHeight())
-        overviewData_.image = overviewData_.image.scaledToWidth(overviewData_.size, transform);
-      else
-        overviewData_.image = overviewData_.image.scaledToHeight(overviewData_.size, transform);
-    }
-
-    overviewData_.plotRect = calcPlotRect();
-  }
-  else {
-    if (! overviewData_.image.isNull())
-      overviewData_.image = QImage();
-  }
-
-  Q_EMIT overviewChanged();
-}
-
-void
-CQChartsPlot::
 drawMiddleDeviceParts(PaintDevice *device, bool bg, bool mid, bool fg) const
 {
   // draw objects (background, mid, foreground)
@@ -13483,6 +13454,39 @@ drawForegroundDeviceParts(PaintDevice *device, const ForegroundParts &fgParts) c
   if (fgParts.tabbed)
     drawTabs(device);
 }
+
+//---
+
+void
+CQChartsPlot::
+saveOverview(QImage *image)
+{
+  if (isOverviewDisplayed()) {
+    auto pixelRect = calcPlotPixelRect();
+
+    overviewData_.image = (image ? *image : QImage());
+
+    if (! overviewData_.image.isNull()) {
+      //auto transform = Qt::FastTransformation;
+      auto transform = Qt::SmoothTransformation;
+
+      if (pixelRect.getWidth() > pixelRect.getHeight())
+        overviewData_.image = overviewData_.image.scaledToWidth(overviewData_.size, transform);
+      else
+        overviewData_.image = overviewData_.image.scaledToHeight(overviewData_.size, transform);
+    }
+
+    overviewData_.plotRect = calcPlotRect();
+  }
+  else {
+    if (! overviewData_.image.isNull())
+      overviewData_.image = QImage();
+  }
+
+  Q_EMIT overviewChanged();
+}
+
+//---
 
 void
 CQChartsPlot::

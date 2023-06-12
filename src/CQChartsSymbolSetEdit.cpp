@@ -12,7 +12,7 @@
 
 CQChartsSymbolSetEdit::
 CQChartsSymbolSetEdit(QWidget *parent) :
- QFrame(parent)
+ CQChartsFrame(parent)
 {
   setObjectName("symbolSet");
 
@@ -33,7 +33,7 @@ setCharts(const CQCharts *charts)
 {
   connectSlots(false);
 
-  charts_ = charts;
+  CQChartsFrame::setCharts(charts);
 
   const auto *symbolSetMgr = charts_->symbolSetMgr();
 

@@ -58,14 +58,12 @@ class CQChartsMapColumnData {
 
   //! get/set user map min/max/range
   T userMapMin() const { return userMapMin_; }
-  void setUserMapMin(T t) { userMapMin_ = t; setValid(false); }
+  void setUserMapMin(T t) { userMapMin_ = t; }
 
   double userMapMax() const { return userMapMax_; }
-  void setUserMapMax(T t) { userMapMax_ = t; setValid(false); }
+  void setUserMapMax(T t) { userMapMax_ = t; }
 
-  void setUserMapRange(T min, T max) {
-    userMapMin_ = min; userMapMax_ = max; setValid(false);
-  }
+  void setUserMapRange(T min, T max) { userMapMin_ = min; userMapMax_ = max; }
 
   //---
 

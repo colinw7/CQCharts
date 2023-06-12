@@ -8,7 +8,7 @@ TODO:
 
  + key control checks for both custom and plot.
 
- + scroll bars on zoom
+ + scroll bars on zoom (use overview)
 
  + summary
    + all types on grid and zoom

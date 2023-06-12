@@ -52,7 +52,7 @@ class CQChartsBuffer : public QObject {
 #endif
 
  public:
-  CQChartsBuffer(QWidget *widget=nullptr, const Type &type=CQChartsBuffer::Type::NONE);
+  CQChartsBuffer(QWidget *widget=nullptr, const Type &type=Type::NONE);
  ~CQChartsBuffer();
 
   const Type &type() const { return type_; }

@@ -28,8 +28,11 @@ plot() const
 
 void
 CQChartsSymbolTypeRangeSlider::
-setPlot(Plot *plot)
+setPlot(Plot *plot, bool force)
 {
+  if (! force && plot_ == plot)
+    return;
+
   plot_ = plot;
 
   update();

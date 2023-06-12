@@ -1084,9 +1084,9 @@ colorRangeSlot()
   plot()->setColorMapMin(colorRange_->sliderMin());
   plot()->setColorMapMax(colorRange_->sliderMax());
 
-  updateWidgets();
-
   connectSlots(true);
+
+  updateWidgets();
 }
 
 void
@@ -1400,6 +1400,7 @@ contextMenuEvent(QContextMenuEvent *e)
   auto *menu = new QMenu(this);
 
   CQUtil::addAction(menu, "Zoom Full", plot, SLOT(zoomFull()));
+  CQUtil::addAction(menu, "Update", plot, SLOT(updateOverview()));
 
   (void) menu->exec(e->globalPos());
 

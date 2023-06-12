@@ -14,7 +14,7 @@
 
 CQChartsImageEdit::
 CQChartsImageEdit(QWidget *parent) :
- QFrame(parent)
+ CQChartsFrame(parent)
 {
   setObjectName("imageName");
 

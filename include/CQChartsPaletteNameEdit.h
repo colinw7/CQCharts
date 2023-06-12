@@ -2,6 +2,7 @@
 #define CQChartsPaletteNameEdit_H
 
 #include <CQChartsPaletteName.h>
+#include <CQChartsEditBase.h>
 #include <QFrame>
 
 class CQCharts;
@@ -11,7 +12,7 @@ class QComboBox;
  * \brief palette name edit
  * \ingroup Charts
  */
-class CQChartsPaletteNameEdit : public QFrame {
+class CQChartsPaletteNameEdit : public CQChartsFrame {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsPaletteName paletteName READ paletteName WRITE setPaletteName)
@@ -19,9 +20,8 @@ class CQChartsPaletteNameEdit : public QFrame {
  public:
   CQChartsPaletteNameEdit(QWidget *parent=nullptr);
 
-  //! get/set charts
-  const CQCharts *charts() const { return charts_; }
-  void setCharts(const CQCharts *charts);
+  //! set charts
+  void setCharts(const CQCharts *charts) override;
 
   //! get/set palette name
   const CQChartsPaletteName &paletteName() const;
@@ -41,7 +41,6 @@ class CQChartsPaletteNameEdit : public QFrame {
   void comboChanged();
 
  private:
-  const CQCharts*     charts_ { nullptr };
   CQChartsPaletteName name_;
   QComboBox*          combo_ { nullptr };
 };
