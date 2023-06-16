@@ -110,8 +110,9 @@ drawContents(PaintDevice *device)
 //---
 
 CQChartsDrawText::
-CQChartsDrawText(const Point &p, const QString &str, const QFont &font, const PenBrush &penBrush) :
- CQChartsDrawObj(), p_(p), str_(str), font_(font)
+CQChartsDrawText(const Point &p, const QString &str, const QFont &font,
+                 const PenBrush &penBrush, bool scale) :
+ CQChartsDrawObj(), p_(p), str_(str), font_(font), fontScale_(scale)
 {
   penBrush_ = penBrush;
 }
@@ -138,7 +139,7 @@ drawContents(PaintDevice *device)
 
   device->save();
 
-  device->setFont(font);
+  device->setFont(font, fontScale_);
 
   //QFontMetricsF fm(device->font());
   //double fa = device->pixelToWindowHeight(fm.ascent ());

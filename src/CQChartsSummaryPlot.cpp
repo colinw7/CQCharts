@@ -1489,7 +1489,8 @@ drawCorrelation(PaintDevice *device) const
 
       auto cstr = CQChartsUtil::realToString(correlation, 5);
 
-      auto *drawText = new CQChartsDrawText(Point(x, y), cstr, device->font(), tpenBrush);
+      auto *drawText = new CQChartsDrawText(Point(x, y), cstr, device->font(),
+                                            tpenBrush, /*scale*/false);
 
       drawObj->addChild(drawText);
     }
@@ -1527,7 +1528,7 @@ drawCorrelation(PaintDevice *device) const
           auto cstr = CQChartsUtil::realToString(correlation, 5);
 
           auto *drawText = new CQChartsDrawText(Point(x + dx + 2*bx, y + dy/2.0), cstr,
-                                                device->font(), tpenBrush);
+                                                device->font(), tpenBrush, /*scale*/false);
 
           drawObj->addChild(drawText);
         }

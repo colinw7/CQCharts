@@ -64,7 +64,7 @@ class CQChartsDrawRect : public CQChartsDrawObj {
 class CQChartsDrawText : public CQChartsDrawObj {
  public:
   CQChartsDrawText(const Point &p, const QString &str, const QFont &font,
-                   const PenBrush &penBrush);
+                   const PenBrush &penBrush, bool scale=true);
 
   BBox calcBBox(PaintDevice *device) const override;
 
@@ -74,6 +74,7 @@ class CQChartsDrawText : public CQChartsDrawObj {
   Point   p_;
   QString str_;
   QFont   font_;
+  bool    fontScale_ { true };
 };
 
 #endif

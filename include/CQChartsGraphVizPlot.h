@@ -1037,9 +1037,9 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   using NameNameMap = std::map<QString, QString>;
 
   // node data
-  CQChartsShapeType nodeShape_;                         //!< node shape
-  bool              nodeScaled_ { false };              //!< is node scaled
-  Length            nodeSize_   { Length::pixel(128) }; //!< node size
+  CQChartsShapeType nodeShape_  { CQChartsShapeType::Type::BOX }; //!< node shape
+  bool              nodeScaled_ { false };                        //!< is node scaled
+  Length            nodeSize_   { Length::pixel(128) };           //!< node size
 
   bool nodeTextSingleScale_ { true }; //!< node text single scale factor
 
@@ -1058,7 +1058,7 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   OutputFormat    outputFormat_ { OutputFormat::XDOT }; //!< output format
 
   // bbox, margin, node width
-  BBox   targetBBox_ { -1, -1, 1, 1 }; //!< target range bbox
+  BBox targetBBox_ { -1, -1, 1, 1 }; //!< target range bbox
 
   // coloring
   bool blendEdgeColor_ { false }; //!< blend edge color
