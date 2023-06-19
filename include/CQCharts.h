@@ -409,7 +409,7 @@ class CQCharts : public QObject {
 
   void addPath(const QString &path);
 
-  QString lookupFile(const QString &fileName) const;
+  QString lookupFile(const QString &fileName, bool exists=true) const;
 
   //---
 

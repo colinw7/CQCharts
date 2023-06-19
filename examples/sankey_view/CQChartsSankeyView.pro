@@ -2,12 +2,12 @@ TEMPLATE = app
 
 TARGET = CQChartsSankeyView
 
-QT += widgets svg xml
+QT += widgets svg xml opengl
 
 DEPENDPATH += .
 
 QMAKE_CXXFLAGS += \
--std=c++14 \
+-std=c++17 \
 -DCQCHARTS_FOLDED_MODEL \
 
 MOC_DIR = .moc
@@ -55,9 +55,13 @@ unix:LIBS += \
 -L$$GIT_DIR/CQUtil/lib \
 -L$$GIT_DIR/CJson/lib \
 -L$$GIT_DIR/CCsv/lib \
+-L$$GIT_DIR/CTsv/lib \
 -L$$GIT_DIR/CXML/lib \
 -L$$GIT_DIR/CQPerfMonitor/lib \
+-L$$GIT_DIR/CQDot/lib \
+-L$$GIT_DIR/CQDot/graphviz/lib \
 -L$$GIT_DIR/CConfig/lib \
+-L$$GIT_DIR/CCommand/lib \
 -L$$GIT_DIR/CImageLib/lib \
 -L$$GIT_DIR/CFont/lib \
 -L$$GIT_DIR/CMath/lib \
@@ -69,8 +73,9 @@ unix:LIBS += \
 -L$$GIT_DIR/CStrUtil/lib \
 -L$$GIT_DIR/COS/lib \
 -lCQCharts -lCQPropertyView -lCQModelView -lCQBaseModel -lCQColors \
--lCQCustomCombo -lCQUtil -lCQPerfMonitor -lCJson -lCCsv \
--lCXML -lCConfig -lCImageLib -lCFont -lCMath \
+-lCQCustomCombo -lCQUtil -lCQPerfMonitor -lCQGraphViz -lCGraphViz -lCJson -lCCsv -lCTsv \
+-lCXML -lCCommand -lCConfig -lCImageLib -lCFont -lCMath \
 -lCReadLine -lCFileUtil -lCFile -lCRegExp \
 -lCUtil -lCStrUtil -lCOS \
--lreadline -lpng -ljpeg -ltre -ltcl
+-lreadline -lpng -ljpeg -ltre -ltcl \
+-lGLU -lglut

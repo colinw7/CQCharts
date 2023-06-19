@@ -4,6 +4,9 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + summary plot correlation zoom inconsistent (box and text)
+ + summary plot expand correlation to correlation plot ?
+
  + save plot image (when multiple plots)
 
  + key control checks for both custom and plot.

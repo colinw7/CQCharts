@@ -47,33 +47,26 @@ loadFile(const CQChartsFile &file, CQChartsFileType type, const InputData &input
 
   hierarchical = false;
 
+  auto loadError = [&]() {
+    charts_->errorMsg("Failed to load '" + file.resolve(/*exists*/false) + "'");
+    return nullptr;
+  };
+
   if      (type == CQChartsFileType::CSV) {
     auto *csv = loadCsv(file, inputData);
-
-    if (! csv) {
-      charts_->errorMsg("Failed to load '" + file.resolve() + "'");
-      return nullptr;
-    }
+    if (! csv) return loadError();
 
     return csv;
   }
   else if (type == CQChartsFileType::TSV) {
     auto *tsv = loadTsv(file, inputData);
-
-    if (! tsv) {
-      charts_->errorMsg("Failed to load '" + file.resolve() + "'");
-      return nullptr;
-    }
+    if (! tsv) return loadError();
 
     return tsv;
   }
   else if (type == CQChartsFileType::JSON) {
     auto *json = loadJson(file, inputData);
-
-    if (! json) {
-      charts_->errorMsg("Failed to load '" + file.resolve() + "'");
-      return nullptr;
-    }
+    if (! json) return loadError();
 
     auto *jsonModel = qobject_cast<CQJsonModel *>(json->baseModel());
     assert(jsonModel);
@@ -84,41 +77,25 @@ loadFile(const CQChartsFile &file, CQChartsFileType type, const InputData &input
   }
   else if (type == CQChartsFileType::DATA) {
     auto *data = loadData(file, inputData);
-
-    if (! data) {
-      charts_->errorMsg("Failed to load '" + file.resolve() + "'");
-      return nullptr;
-    }
+    if (! data) return loadError();
 
     return data;
   }
   else if (type == CQChartsFileType::EXPR) {
     auto *model = createExprModel(inputData.numRows);
-
-    if (! model) {
-      charts_->errorMsg("Failed to load '" + file.resolve() + "'");
-      return nullptr;
-    }
+    if (! model) return loadError();
 
     return model;
   }
   else if (type == CQChartsFileType::VARS) {
     auto *model = createVarsModel(inputData);
-
-    if (! model) {
-      charts_->errorMsg("Failed to load '" + file.resolve() + "'");
-      return nullptr;
-    }
+    if (! model) return loadError();
 
     return model;
   }
   else if (type == CQChartsFileType::TCL) {
     auto *model = createTclModel(inputData);
-
-    if (! model) {
-      charts_->errorMsg("Failed to load '" + file.resolve() + "'");
-      return nullptr;
-    }
+    if (! model) return loadError();
 
     return model;
   }

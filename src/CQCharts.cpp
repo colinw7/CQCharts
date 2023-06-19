@@ -2047,13 +2047,18 @@ addPath(const QString &path)
 
 QString
 CQCharts::
-lookupFile(const QString &fileName) const
+lookupFile(const QString &fileName, bool exists) const
 {
   auto fileName1 = fileName.trimmed();
   if (fileName1 == "") return "";
 
-  if (fileName1[0] == "/")
+  // fully specified path so don't search path list
+  if (fileName1[0] == "/") {
+    if (exists && ! QFileInfo(fileName1).exists())
+      return "";
+
     return fileName1;
+  }
 
   for (const auto &path : pathList_) {
     auto fileName2 = path + "/" + fileName;
@@ -2065,7 +2070,10 @@ lookupFile(const QString &fileName) const
   if (QFileInfo(fileName1).exists())
     return fileName1;
 
-  return "";
+  if (exists)
+    return "";
+
+  return fileName1;
 }
 
 //---

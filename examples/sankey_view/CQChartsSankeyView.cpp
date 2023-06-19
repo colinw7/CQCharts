@@ -35,12 +35,16 @@ MainWindow::MainWindow() :
   CQChartsFile file(charts_, QString("sankey_energy.csv") );
   auto *model = loader.loadFile(file, CQChartsFileType::CSV, inputData, hierarchical);
 
-  CQCharts::ModelP modelp(model);
+  CQCharts::ModelP modelp;
 
-  // register model with charts
-  auto *modelData = charts_->initModelData(modelp);
+  if (model) {
+    modelp = CQCharts::ModelP(model);
 
-  charts_->setModelFileName(modelData, file.resolve());
+    // register model with charts
+    auto *modelData = charts_->initModelData(modelp);
+
+    charts_->setModelFileName(modelData, file.resolve());
+  }
 
   //---
 

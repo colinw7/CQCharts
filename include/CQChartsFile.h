@@ -16,7 +16,7 @@ class CQChartsFile {
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
-  QString resolve() const;
+  QString resolve(bool exists=true) const;
 
  private:
   CQCharts *charts_ { nullptr };

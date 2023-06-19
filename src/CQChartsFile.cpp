@@ -1,6 +1,8 @@
 #include <CQChartsFile.h>
 #include <CQCharts.h>
 
+#include <QFileInfo>
+
 CQChartsFile::
 CQChartsFile(CQCharts *charts, const QString &name) :
  charts_(charts), name_(name)
@@ -16,10 +18,14 @@ isValid() const
 
 QString
 CQChartsFile::
-resolve() const
+resolve(bool exists) const
 {
-  if (! charts_)
-    return name_;
+  if (! charts_) {
+    if (exists && ! QFileInfo(name_).exists())
+      return "";
 
-  return charts_->lookupFile(name_);
+    return name_;
+  }
+
+  return charts_->lookupFile(name_, exists);
 }
