@@ -7,6 +7,9 @@
 #include <CQChartsVariant.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsFilterModel.h>
+#include <CQChartsModelData.h>
+#include <CQChartsModelDetails.h>
+#include <CQChartsModelProcess.h>
 #include <CQChartsModelIndex.h>
 #include <CQCharts.h>
 
@@ -695,6 +698,63 @@ setColumnType(CQCharts *charts, QAbstractItemModel *model, const Column &column,
 //---
 
 bool
+getColumnNullValue(CQCharts *charts, QAbstractItemModel *model, const Column &column,
+                   QVariant &value)
+{
+  return getColumnParam(charts, model, column, "null_value", value);
+}
+
+bool
+setColumnNullValue(CQCharts *charts, QAbstractItemModel *model, const Column &column,
+                   const QVariant &value)
+{
+  if (! setColumnParam(charts, model, column, "null_value", value))
+    return false;
+
+  auto *modelData = charts->getModelData(model);
+
+  auto *details = (modelData ? modelData->details() : nullptr);
+
+  auto *columnDetails = (details ? details->columnDetails(column) : nullptr);
+
+  if (columnDetails)
+    columnDetails->resetTypeInitialized();
+
+  return true;
+}
+
+bool
+getColumnParam(CQCharts *charts, QAbstractItemModel *model, const Column &column,
+               const QString &name, QVariant &value)
+{
+  ModelTypeData columnTypeData;
+
+  if (! columnValueType(charts, model, column, columnTypeData))
+    return false;
+
+  return columnTypeData.nameValues.nameValue(name, value);
+}
+
+bool
+setColumnParam(CQCharts *charts, QAbstractItemModel *model, const Column &column,
+               const QString &name, const QVariant &value)
+{
+  ModelTypeData columnTypeData;
+
+  if (! columnValueType(charts, model, column, columnTypeData))
+    return false;
+
+  auto *columnTypeMgr = charts->columnTypeMgr();
+
+  columnTypeData.nameValues.setNameValue(name, value);
+
+  return columnTypeMgr->setModelColumnType(model, column, columnTypeData.type,
+                                           columnTypeData.nameValues);
+}
+
+//---
+
+bool
 setHeaderTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &columnTypes)
 {
   bool rc = true;
@@ -844,6 +904,7 @@ setHeaderTypeStrI(CQCharts *charts, QAbstractItemModel *model, const Column &col
 
 namespace CQChartsModelUtil {
 
+#if 0
 void
 processAddExpression(QAbstractItemModel *model, const QString &exprStr)
 {
@@ -858,14 +919,15 @@ processAddExpression(QAbstractItemModel *model, const QString &exprStr)
 
   exprModel->addExtraColumnExpr(exprStr, column);
 }
+#endif
 
 #if 0
 int
 processExpression(QAbstractItemModel *model, const QString &exprStr)
 {
-  CQChartsExprModel::Function function;
-  Column                      column;
-  QString                     expr;
+  Function function;
+  Column   column;
+  QString  expr;
 
   if (! decodeExpression(model, exprStr, function, column, expr))
     errorMsg("Invalid model expression '" + exprStr + "'");
@@ -878,9 +940,9 @@ processExpression(QAbstractItemModel *model, const QString &exprStr)
 
 bool
 decodeExpression(QAbstractItemModel *model, const QString &exprStr,
-                 CQChartsExprModel::Function &function, Column &column, QString &expr)
+                 Function &function, Column &column, QString &expr)
 {
-  function = CQChartsExprModel::Function::EVAL;
+  function = Function::EVAL;
 
   auto *exprModel = getExprModel(model);
   if (! exprModel) return false;
@@ -896,10 +958,9 @@ decodeExpression(QAbstractItemModel *model, const QString &exprStr,
 }
 
 int
-processExpression(QAbstractItemModel *model, CQChartsExprModel::Function function,
-                  const Column &column, const QString &expr)
+processExpression(ModelP model, Function function, const Column &column, const QString &expr)
 {
-  auto *exprModel = getExprModel(model);
+  auto *exprModel = getExprModel(model.data());
 
   if (! exprModel) {
     errorMsg("Expression not supported for model");
@@ -907,45 +968,62 @@ processExpression(QAbstractItemModel *model, CQChartsExprModel::Function functio
   }
 
   // add column <expr>
-  if      (function == CQChartsExprModel::Function::ADD) {
-    int column1;
+  if      (function == Function::ADD) {
+    QString header, expr1;
 
-    if (! exprModel->addExtraColumnExpr(expr, column1))
+    if (! exprModel->decodeExpression(expr, header, expr1))
       return -1;
 
-    return column1;
+    CQChartsModelProcessData::AddData addData;
+
+    addData.expr   = expr1;
+    addData.header = header;
+
+    auto errorType = CQChartsModelProcess::addColumn(model, addData);
+    if (errorType != CQChartsModelProcess::ErrorType::NONE) return -1;
+
+    return addData.column.column();
   }
   // delete column <n>
-  else if (function == CQChartsExprModel::Function::DELETE) {
-    int icolumn = column.column();
-
-    if (icolumn < 0) {
+  else if (function == Function::DELETE) {
+    if (column.column() < 0) {
       errorMsg("Invalid column");
       return -1;
     }
 
-    bool rc = exprModel->removeExtraColumn(icolumn);
+    CQChartsModelProcessData::DeleteData deleteData;
 
-    if (! rc) {
-      errorMsg(QString("Failed to delete column '%1'").arg(icolumn));
+    deleteData.column = column;
+
+    if (! CQChartsModelProcess::deleteColumn(model, deleteData)) {
+      errorMsg(QString("Failed to delete column '%1'").arg(column.column()));
       return -1;
     }
 
-    return icolumn;
+    return column.column();
   }
   // modify column <n>:<expr>
-  else if (function == CQChartsExprModel::Function::ASSIGN) {
-    int icolumn = column.column();
-
-    if (icolumn < 0) {
+  else if (function == Function::ASSIGN) {
+    if (column.column() < 0) {
       errorMsg("Invalid column");
       return -1;
     }
 
-    if (! exprModel->assignExtraColumn(icolumn, expr))
+    QString header, expr1;
+
+    if (! exprModel->decodeExpression(expr, header, expr1))
       return -1;
 
-    return icolumn;
+    CQChartsModelProcessData::ModifyData modifyData;
+
+    modifyData.column = column;
+    modifyData.header = header;
+    modifyData.expr   = expr1;
+
+    auto errorType = CQChartsModelProcess::modifyColumn(model, modifyData);
+    if (errorType != CQChartsModelProcess::ErrorType::NONE) return -1;
+
+    return column.column();
   }
   else {
     exprModel->processExpr(expr);

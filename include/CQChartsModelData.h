@@ -3,6 +3,7 @@
 
 #include <CQChartsModelTypes.h>
 #include <CQChartsColumn.h>
+
 #include <QObject>
 #include <QSharedPointer>
 #include <QModelIndex>

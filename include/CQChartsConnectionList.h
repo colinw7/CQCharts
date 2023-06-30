@@ -1,7 +1,6 @@
 #ifndef CQChartsConnectionList_H
 #define CQChartsConnectionList_H
 
-#include <CQChartsUtil.h>
 #include <CQUtilMeta.h>
 
 /*!

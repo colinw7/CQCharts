@@ -527,6 +527,15 @@ setUseMaxTotals(bool b)
 
 void
 CQChartsSankeyPlot::
+setNewVisited(bool b)
+{
+  CQChartsUtil::testAndSet(newVisited_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsSankeyPlot::
 addProperties()
 {
   CQChartsConnectionPlot::addProperties();
@@ -561,6 +570,8 @@ addProperties()
 //addProp("placement", "adjustEdgeOverlaps", "adjustEdgeOverlaps", "Adjust edge overlaps");
   addProp("placement", "adjustIterations"  , "adjustIterations"  , "Adjust iterations");
   addProp("placement", "constrainMove"     , "constrainMove"     , "Constrain move in edit mode");
+
+  addProp("placement", "newVisited", "newVisited", "new visited calc");
 
   // options
   addProp("options", "useMaxTotals", "useMaxTotals", "Use max of src/dest totals for edge scaling");
@@ -2411,7 +2422,7 @@ calcPos(Node *node) const
     int srcDepth  = node->srcDepth (); // min depth of previous nodes
     int destDepth = node->destDepth(); // max depth of subsequent nodes
 
-    if      (srcDepth == 0) {
+    if      (srcDepth == 0 && align() != Align::SRC_ALL && align() != Align::DEST_ALL) {
       if (isAlignFirstLast()) {
         if (! node->destEdges().empty()) {
           int minDest = node->destDepth();
@@ -2430,7 +2441,7 @@ calcPos(Node *node) const
       else
         pos = 0;
     }
-    else if (destDepth == 0) {
+    else if (destDepth == 0 && align() != Align::SRC_ALL && align() != Align::DEST_ALL) {
       if (isAlignFirstLast()) {
         if (! node->srcEdges().empty()) {
           int maxSrc = 0;
@@ -2450,9 +2461,9 @@ calcPos(Node *node) const
         pos = maxNodeDepth;
     }
     else {
-      if      (align() == Align::SRC)
+      if      (align() == Align::SRC || align() == Align::SRC_ALL)
         pos = srcDepth;
-      else if (align() == Align::DEST)
+      else if (align() == Align::DEST || align() == Align::DEST_ALL)
         pos = maxNodeDepth - destDepth;
       else if (align() == Align::JUSTIFY || align() == Align::LARGEST) {
         double f = 1.0*srcDepth/(srcDepth + destDepth);
@@ -2531,9 +2542,9 @@ updateGraphMaxDepth(const Nodes &nodes) const
     int srcDepth  = node->srcDepth ();
     int destDepth = node->destDepth();
 
-    if      (align() == Align::SRC)
+    if      (align() == Align::SRC || align() == Align::SRC_ALL)
       updateNodeDepth(srcDepth);
-    else if (align() == Align::DEST)
+    else if (align() == Align::DEST || align() == Align::DEST_ALL)
       updateNodeDepth(destDepth);
     else {
       updateNodeDepth(srcDepth);
@@ -2667,7 +2678,7 @@ adjustNodeCentersLtoR(bool placed, bool force) const
   if (! force && ! isAdjustCenters())
     return false;
 
-  if (align() == Align::DEST)
+  if (align() == Align::DEST || align() == Align::DEST_ALL)
     return false;
 
   // adjust nodes so centered on src nodes
@@ -2680,7 +2691,7 @@ adjustNodeCentersLtoR(bool placed, bool force) const
   int startPos = minPos + 1;
   int endPos   = maxPos - 1;
 
-  if (align() == Align::SRC)
+  if (align() == Align::SRC || align() == Align::SRC_ALL)
     ++endPos;
 
   for (int pos = startPos; pos <= endPos; ++pos) {
@@ -2698,7 +2709,7 @@ adjustNodeCentersRtoL(bool placed, bool force) const
   if (! force && ! isAdjustCenters())
     return false;
 
-  if (align() == Align::SRC)
+  if (align() == Align::SRC || align() == Align::SRC_ALL)
     return false;
 
   // adjust nodes so centered on src nodes
@@ -2711,7 +2722,7 @@ adjustNodeCentersRtoL(bool placed, bool force) const
   int startPos = minPos + 1;
   int endPos   = maxPos - 1;
 
-  if (align() == Align::DEST)
+  if (align() == Align::DEST || align() == Align::DEST_ALL)
     startPos = minPos;
 
   for (int pos = endPos; pos >= startPos; --pos) {
@@ -3836,14 +3847,25 @@ calcSrcDepth(NodeSet &visited) const
 
       auto p = visited.find(node);
 
-      if (p == visited.end()) {
-        visited.insert(node);
+      if (! sankeyPlot_->isNewVisited()) {
+        if (p == visited.end()) {
+          visited.insert(node);
 
-        depth = std::max(depth, node->calcSrcDepth(visited));
+          depth = std::max(depth, node->calcSrcDepth(visited));
+        }
+        else {
+          depth = std::max(depth, int(visited.size() - 1));
+        //depth = std::max(depth, node->srcDepth());
+        }
       }
       else {
-        depth = std::max(depth, int(visited.size() - 1));
-      //depth = std::max(depth, node->srcDepth());
+        if (p == visited.end()) {
+          auto visited2 = visited;
+
+          visited2.insert(node);
+
+          depth = std::max(depth, node->calcSrcDepth(visited2));
+        }
       }
     }
 
@@ -3872,8 +3894,11 @@ int
 CQChartsSankeyPlotNode::
 calcDestDepth(NodeSet &visited) const
 {
+  // already calculated
   if (destDepth_ >= 0)
     return destDepth_;
+
+  //---
 
   auto *th = const_cast<CQChartsSankeyPlotNode *>(this);
 
@@ -3890,14 +3915,25 @@ calcDestDepth(NodeSet &visited) const
 
       auto p = visited.find(node);
 
-      if (p == visited.end()) {
-        visited.insert(node);
+      if (! sankeyPlot_->isNewVisited()) {
+        if (p == visited.end()) {
+          visited.insert(node);
 
-        depth = std::max(depth, node->calcDestDepth(visited));
+          depth = std::max(depth, node->calcDestDepth(visited));
+        }
+        else {
+          depth = std::max(depth, int(visited.size() - 1));
+        //depth = std::max(depth, node->destDepth());
+        }
       }
       else {
-        depth = std::max(depth, int(visited.size() - 1));
-      //depth = std::max(depth, node->destDepth());
+        if (p == visited.end()) {
+          auto visited2 = visited;
+
+          visited2.insert(node);
+
+          depth = std::max(depth, node->calcDestDepth(visited2));
+        }
       }
     }
 

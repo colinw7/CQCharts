@@ -11,6 +11,7 @@
 #include <CQChartsModelData.h>
 #include <CQChartsPlotType.h>
 #include <CQChartsAnalyzeModel.h>
+#include <CQChartsAnalyzeModelData.h>
 #include <CQChartsFilterModel.h>
 #include <CQChartsVariant.h>
 #include <CQChartsMargin.h>
@@ -483,9 +484,9 @@ exec(CQTclCmd::CmdArgs &argv)
 
       std::cout << "<td>";
 
-      const auto &analyzeModelData = tnc.second;
+      auto *analyzeModelData = tnc.second;
 
-      for (const auto &nc : analyzeModelData.parameterNameColumn) {
+      for (const auto &nc : analyzeModelData->parameterNameColumn) {
         const auto &paramName = nc.first;
         const auto &column    = nc.second;
 

@@ -4656,6 +4656,15 @@ objShapeType() const
   return ObjShapeType::RECT;
 }
 
+CQChartsGeom::BBox
+CQChartsForceDirectedNodeObj::
+intersectRect() const
+{
+  auto *snode = dynamic_cast<Node *>(node_.get());
+
+  return forceDirectedPlot_->nodeBBox(node_, snode);
+}
+
 //------
 
 CQChartsForceDirectedEdgeObj::

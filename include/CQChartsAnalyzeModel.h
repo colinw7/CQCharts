@@ -1,14 +1,14 @@
 #ifndef CQChartsAnalyzeModel_H
 #define CQChartsAnalyzeModel_H
 
-#include <CQChartsAnalyzeModelData.h>
-#include <CQChartsColumn.h>
+#include <QString>
 #include <map>
 
 class CQCharts;
 class CQChartsPlotType;
 class CQChartsPlot;
 class CQChartsModelData;
+class CQChartsAnalyzeModelData;
 
 /*!
  * \brief analyze a model to auto determine best plot type and columns
@@ -22,10 +22,11 @@ class CQChartsAnalyzeModel {
   using AnalyzeModelData = CQChartsAnalyzeModelData;
 
  public:
-  using TypeAnalyzeModelData = std::map<QString, AnalyzeModelData>;
+  using TypeAnalyzeModelData = std::map<QString, AnalyzeModelData *>;
 
  public:
   CQChartsAnalyzeModel(CQCharts *charts, ModelData *modelData);
+ ~CQChartsAnalyzeModel();
 
   void analyze();
 
@@ -40,12 +41,12 @@ class CQChartsAnalyzeModel {
   void initPlot(Plot *plot);
 
  private:
-  bool analyzeType(PlotType *type, AnalyzeModelData &analyzeModelData);
+  bool analyzeType(PlotType *type, AnalyzeModelData* &analyzeModelData);
 
  private:
-  CQCharts*            charts_                { nullptr }; //!< charts
-  ModelData*           modelData_             { nullptr }; //!< model data
-  TypeAnalyzeModelData typeAnalyzeModelData_;              //!< type's parameter name column
+  CQCharts*            charts_               { nullptr }; //!< charts
+  ModelData*           modelData_            { nullptr }; //!< model data
+  TypeAnalyzeModelData typeAnalyzeModelData_;             //!< type's parameter name column
 };
 
 #endif

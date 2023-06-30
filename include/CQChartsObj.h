@@ -101,6 +101,9 @@ class CQChartsObj : public QObject {
   //! intersect shape with line (used for arrow annotation connection point)
   virtual bool intersectShape(const Point &p1, const Point &p2, Point &pi) const;
 
+  //! return shape rectangle for annotation intersect
+  virtual BBox intersectRect() const { return rect(); }
+
   //---
 
   // tip id for object (string to display in tooltip)

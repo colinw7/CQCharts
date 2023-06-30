@@ -41,15 +41,16 @@ class CQTcl;
  *   setHeader : set header value for current column
  *
  *   // get/set column type
- *   type     : get type for current column
- *   setType  : set type for current column
+ *   type    : get type for current column
+ *   setType : set type for current column
  *
  *   // map values
- *   map     : map row value to min/max
- *   remap   : remap column value range to min/max
- *   bucket  : bucket value (for row/column)
- *   norm    : normalized column value
- *   scale   : scaled column value
+ *   map    : map row value to min/max
+ *   remap  : remap column value range to min/max
+ *   bucket : bucket value (for row/column)
+ *   index  : bucket value (for row/column)
+ *   norm   : normalized column value
+ *   scale  : scaled column value
  *
  *   // random
  *   rand  : random value
@@ -98,6 +99,8 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   //---
 
+  CQCharts *charts() const { return charts_; }
+
   CQChartsModelFilter *filter() const { return filter_; }
 
   QAbstractItemModel *model() const { return model_; }
@@ -124,8 +127,16 @@ class CQChartsExprModel : public QAbstractProxyModel {
   bool decodeExpressionFn(const QString &exprStr, Function &function,
                           long &column, QString &expr) const;
 
-  bool addExtraColumnExpr(const QString &expr, int &column);
-  bool addExtraColumnExpr(const QString &header, const QString &expr, int &column);
+  bool decodeExpression(const QString &exprStr, QString &header, QString &expr) const;
+
+  //---
+
+#if 0
+  bool addExtraColumnExpr(const QString &expr, int &column,
+                          const NameValues &varNameValues=NameValues());
+#endif
+  bool addExtraColumnExpr(const QString &header, const QString &expr, int &column,
+                          const NameValues &nameValues);
   bool addExtraColumnStrs(const QString &header, const QStringList &strs, int &column);
 
   bool removeExtraColumn(int column);
@@ -189,6 +200,10 @@ class CQChartsExprModel : public QAbstractProxyModel {
   bool checkIndex(int row, int col) const;
 
   virtual QVariant processCmd(const QString &name, const Values &values);
+
+  //---
+
+  const NameValues &nameValues() const { return nameValues_; }
 
   //---
 
@@ -259,8 +274,6 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   //---
 
-  bool decodeExpression(const QString &exprStr, QString &header, QString &expr) const;
-
   bool evaluateExpression(const QString &expr, QVariant &var) const;
 
   //---
@@ -285,6 +298,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   QVariant mapCmd   (const Values &values) const;
   QVariant remapCmd (const Values &values);
   QVariant bucketCmd(const Values &values) const;
+  QVariant indexCmd (const Values &values) const;
   QVariant normCmd  (const Values &values) const;
   QVariant scaleCmd (const Values &values) const;
 
@@ -324,6 +338,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   void headerDataChangedSlot(Qt::Orientation orient, int first, int last);
 
  protected:
+  using ExprTclP     = std::unique_ptr<CQChartsExprTcl>;
   using ExtraColumns = std::vector<ExtraColumn *>;
   using ColumnDatas  = std::map<int, ColumnData>;
   using ColumnNames  = std::map<int, QString>;
@@ -332,7 +347,8 @@ class CQChartsExprModel : public QAbstractProxyModel {
   CQCharts*            charts_     { nullptr }; //!< charts
   CQChartsModelFilter* filter_     { nullptr }; //!< parent filter model
   QAbstractItemModel*  model_      { nullptr }; //!< child data model
-  CQChartsExprTcl*     qtcl_       { nullptr }; //!< tcl expression
+  ExprTclP             qtcl_;                   //!< tcl expression
+  NameValues           nameValues_;             //!< tcl name/values
   TclCmds              tclCmds_;                //!< tcl commands
   FnNames              fnNames_;                //!< function names
   bool                 editable_   { true };    //!< is editable

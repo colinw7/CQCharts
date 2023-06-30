@@ -24,11 +24,11 @@ CQChartsExprModel::
 CQChartsExprModel(CQCharts *charts, CQChartsModelFilter *filter, QAbstractItemModel *model) :
  charts_(charts), filter_(filter), model_(model)
 {
-  assert(model);
+  assert(charts && model);
 
   setObjectName("exprModel");
 
-  qtcl_ = new CQChartsExprTcl(this);
+  qtcl_ = std::make_unique<CQChartsExprTcl>(this);
 
   addBuiltinFunctions();
 
@@ -45,8 +45,6 @@ CQChartsExprModel::
 {
   for (auto &tclCmd : tclCmds_)
     delete tclCmd;
-
-  delete qtcl_;
 
   for (auto &extraColumn : extraColumns_)
     delete extraColumn;
@@ -75,6 +73,7 @@ addBuiltinFunctions()
   // map values
   addFunction("map"   );
   addFunction("remap" );
+  addFunction("index" );
   addFunction("bucket");
   addFunction("norm"  );
   addFunction("scale" );
@@ -101,7 +100,7 @@ CQTcl *
 CQChartsExprModel::
 qtcl() const
 {
-  return qtcl_;
+  return qtcl_.get();
 }
 
 void
@@ -165,25 +164,36 @@ setReadOnly(bool b)
     dataModel->setReadOnly(b);
 }
 
+#if 0
 bool
 CQChartsExprModel::
-addExtraColumnExpr(const QString &exprStr, int &column)
+addExtraColumnExpr(const QString &exprStr, int &column, const NameValues &nameValues)
 {
   QString header, expr;
 
   if (! decodeExpression(exprStr, header, expr))
     return false;
 
-  return addExtraColumnExpr(header, expr, column);
+  return addExtraColumnExpr(header, expr, column, nameValues);
 }
+#endif
 
 bool
 CQChartsExprModel::
-addExtraColumnExpr(const QString &header, const QString &expr, int &column)
+addExtraColumnExpr(const QString &header, const QString &expr, int &column,
+                   const NameValues &nameValues)
 {
   CQPerfTrace trace("CQChartsExprModel::addExtraColumnExpr");
 
   initCalc();
+
+  //---
+
+  for (const auto & [name, value] : nameValues) {
+    nameValues_[name] = value;
+
+    qtcl_->createVar(name, value);
+  }
 
   //---
 
@@ -312,6 +322,7 @@ assignColumn(int column, const QString &exprStr)
 }
 #endif
 
+#if 0
 bool
 CQChartsExprModel::
 assignExtraColumn(int column, const QString &exprStr)
@@ -323,6 +334,7 @@ assignExtraColumn(int column, const QString &exprStr)
 
   return assignExtraColumn(header, column, expr);
 }
+#endif
 
 bool
 CQChartsExprModel::
@@ -441,10 +453,21 @@ calcColumn(int column, const QString &expr, Values &values, const NameValues &na
 
   initCalc();
 
-  int numErrors = 0;
+  //---
 
-  for (const auto &nv : nameValues)
-    qtcl_->createVar(nv.first, nv.second);
+  auto *th = const_cast<CQChartsExprModel *>(this);
+
+  auto oldNameValues = nameValues_;
+
+  for (const auto & [name, value] : nameValues) {
+    th->nameValues_[name] = value;
+
+    qtcl_->createVar(name, value);
+  }
+
+  //---
+
+  int numErrors = 0;
 
   for (int r = 0; r < nr_; ++r) {
     currentRow_ = r;
@@ -459,6 +482,28 @@ calcColumn(int column, const QString &expr, Values &values, const NameValues &na
 
     values.push_back(var);
   }
+
+  //---
+
+  // reset to name values to original(if changed)
+  for (const auto & [name, value] : oldNameValues) {
+    auto pn = nameValues.find(name);
+
+    if (pn == oldNameValues.end() || (*pn).second != value)
+      qtcl_->createVar(name, value);
+
+    th->nameValues_[name] = value;
+  }
+
+  // remove new name values that didn't exist in old
+  for (const auto &pv : nameValues_) {
+    if (oldNameValues.find(pv.first) == oldNameValues.end())
+      qtcl_->deleteVar(pv.first);
+  }
+
+  th->nameValues_ = oldNameValues;
+
+  //---
 
   return (numErrors == 0);
 }
@@ -539,7 +584,7 @@ initCalc()
 
   // add user defined functions
   // TODO: only add if needed ? (traces)
-  for (const auto &np : charts_->procs(CQCharts::ProcType::TCL)) {
+  for (const auto &np : charts()->procs(CQCharts::ProcType::TCL)) {
     const auto &proc = np.second;
 
     qtcl_->defineProc(proc.name, proc.args, proc.body);
@@ -847,12 +892,13 @@ decodeExpressionFn(const QString &exprStr, Function &function, long &column, QSt
   if (! exprStr.length())
     return true;
 
+  // add column (+<expr>)
   if      (exprStr[0] == '+') {
     function = Function::ADD;
 
     expr = exprStr.mid(1).trimmed();
   }
-  // delete column <n>
+  // delete column (-<column>)
   else if (expr[0] == '-') {
     function = Function::DELETE;
 
@@ -865,15 +911,14 @@ decodeExpressionFn(const QString &exprStr, Function &function, long &column, QSt
     if (! ok)
       return false;
   }
+  // assign column (=<column>:<expr>)
   else if (expr[0] == '=') {
     function = Function::ASSIGN;
 
     auto columnExprStr = exprStr.mid(1).trimmed();
 
     int pos = columnExprStr.indexOf(':');
-
-    if (pos < 0)
-      return false;
+    if (pos < 0) return false;
 
     auto columnStr = columnExprStr.mid(0, pos).trimmed();
 
@@ -886,6 +931,7 @@ decodeExpressionFn(const QString &exprStr, Function &function, long &column, QSt
 
     expr = expr.mid(1).trimmed();
   }
+  // eval expr
   else {
     function = Function::EVAL;
     expr     = exprStr;
@@ -898,6 +944,7 @@ bool
 CQChartsExprModel::
 decodeExpression(const QString &exprStr, QString &header, QString &expr) const
 {
+  // <expr> | <header>=<expr>
   expr = exprStr;
 
   int pos = expr.indexOf('=');
@@ -1299,6 +1346,7 @@ processCmd(const QString &name, const Values &values)
   // map values
   else if (name == "map"   ) return mapCmd   (values);
   else if (name == "remap" ) return remapCmd (values);
+  else if (name == "index" ) return indexCmd (values);
   else if (name == "bucket") return bucketCmd(values);
   else if (name == "norm"  ) return normCmd  (values);
   else if (name == "scale" ) return scaleCmd (values);
@@ -1369,7 +1417,7 @@ columnCmd(const Values &values) const
 //---
 
 // get row value for current column:
-//   row(), row(row) : get row value
+//   row(), row(row), row(row, defVal) : get row value
 QVariant
 CQChartsExprModel::
 rowCmd(const Values &values) const
@@ -1718,7 +1766,7 @@ mapCmd(const Values &values) const
 
 //---
 
-// remap column value range to min/max
+// remap value to rangemap column value range to min/max
 //   remap()              - current column, 0.0, 1.0
 //   remap(col)           - specified column, 0.0, 1.0
 //   remap(col, max)      - specified column, 0.0, max
@@ -1861,6 +1909,30 @@ bucketCmd(const Values &values) const
   }
 
   return CQChartsVariant::fromInt(bucket);
+}
+
+//---
+
+QVariant
+CQChartsExprModel::
+indexCmd(const Values &values) const
+{
+  if (values.size() == 2) {
+    QStringList strs;
+    if (! CQTcl::splitList(values[0].toString(), strs))
+      return QVariant();
+
+    bool ok;
+    auto i = CQChartsVariant::toInt(values[1], ok);
+    if (! ok) return QVariant();
+
+    if (i < 0 || i >= strs.length())
+      return QVariant();
+
+    return CQChartsVariant::fromString(strs[i]);
+  }
+  else
+    return QVariant();
 }
 
 //---
@@ -2196,7 +2268,7 @@ timevalCmd(const Values &values) const
 
   bool converted;
 
-  auto var1 = CQChartsModelUtil::columnUserData(charts_, th, column, var, converted);
+  auto var1 = CQChartsModelUtil::columnUserData(charts(), th, column, var, converted);
 
   if (var1.isValid())
     var = var1;
@@ -2356,13 +2428,13 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
     columnTypeData.nameValues = columnDetails->nameValues();
   }
   else {
-    if (! CQChartsModelUtil::columnValueType(charts_, this, column, columnTypeData))
+    if (! CQChartsModelUtil::columnValueType(charts(), this, column, columnTypeData))
       return false;
   }
 
   //---
 
-  auto *columnTypeMgr = charts_->columnTypeMgr();
+  auto *columnTypeMgr = charts()->columnTypeMgr();
 
   const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
 
@@ -2425,7 +2497,7 @@ CQChartsModelData *
 CQChartsExprModel::
 getModelData() const
 {
-  return charts_->getModelData(this->filter_);
+  return charts()->getModelData(this->filter_);
 }
 
 //---

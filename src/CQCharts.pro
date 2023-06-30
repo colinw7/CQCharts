@@ -287,6 +287,7 @@ CQChartsKeyPressBehavior.cpp \
 CQChartsTitleLocation.cpp \
 \
 CQChartsModelUtil.cpp \
+CQChartsModelProcess.cpp \
 CQChartsValueInd.cpp \
 CQChartsNameValues.cpp \
 CQChartsEnv.cpp \
@@ -611,6 +612,7 @@ HEADERS += \
 ../include/CQChartsKeyPressBehavior.h \
 \
 ../include/CQChartsModelUtil.h \
+../include/CQChartsModelProcess.h \
 ../include/CQChartsValueInd.h \
 ../include/CQChartsNameValues.h \
 ../include/CQChartsQuadTree.h \

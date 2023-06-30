@@ -28,6 +28,8 @@ using ModelTypeData = CQChartsModelTypeData;
 using ModelType     = CQBaseModelType;
 using NameValues    = CQChartsNameValues;
 
+using ModelP = QSharedPointer<QAbstractItemModel>;
+
 //---
 
 bool isHierarchical(const QAbstractItemModel *model);
@@ -89,6 +91,18 @@ bool setColumnType(CQCharts *charts, QAbstractItemModel *model, const CQChartsCo
 
 //---
 
+bool getColumnNullValue(CQCharts *charts, QAbstractItemModel *model, const Column &column,
+                        QVariant &value);
+bool setColumnNullValue(CQCharts *charts, QAbstractItemModel *model, const Column &column,
+                        const QVariant &value);
+
+bool getColumnParam(CQCharts *charts, QAbstractItemModel *model, const Column &column,
+                    const QString &name, QVariant &value);
+bool setColumnParam(CQCharts *charts, QAbstractItemModel *model, const Column &column,
+                    const QString &name, const QVariant &value);
+
+//---
+
 bool setHeaderTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &columnTypes);
 
 bool setHeaderTypeIndexStr(CQCharts *charts, QAbstractItemModel *model,
@@ -115,22 +129,25 @@ void remapColumnTime(const QAbstractItemModel *model, const Column &column,
 namespace CQChartsModelUtil {
 
 using ExprModel = CQChartsExprModel;
+using Function  = CQChartsExprModel::Function;
 
 #ifdef CQCHARTS_EXCEL
 using ExcelModel = CQExcel::Model;
 #endif
 
+#if 0
 void processAddExpression(QAbstractItemModel *model, const QString &exprStr);
+#endif
 
 #if 0
 int processExpression(QAbstractItemModel *model, const QString &exprStr);
 #endif
 
-int processExpression(QAbstractItemModel *model, ExprModel::Function function,
+int processExpression(ModelP model, ExprModel::Function function,
                       const Column &column, const QString &expr);
 
 bool decodeExpression(QAbstractItemModel *model, const QString &exprStr,
-                      CQChartsExprModel::Function &function, Column &column, QString &expr);
+                      Function &function, Column &column, QString &expr);
 
 #ifdef CQCHARTS_EXCEL
 const ExcelModel *getExcelModel(const QAbstractItemModel *model);

@@ -194,7 +194,7 @@ set sankey_plot [create_charts_plot -type sankey -model $sankey_month_model($cur
   -title "Weather for $current_city_title in $current_month"]
 
 set_charts_property -plot $sankey_plot -name options.orientation -value Vertical
-set_charts_property -plot $sankey_plot -name options.valueLabel  -value 1
+#set_charts_property -plot $sankey_plot -name options.valueLabel  -value 1
 set_charts_property -plot $sankey_plot -name text.internal       -value 0
 
 set_charts_property -plot $sankey_plot -name plotBox.clip         -value 0

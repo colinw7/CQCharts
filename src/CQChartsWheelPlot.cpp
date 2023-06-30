@@ -1062,7 +1062,7 @@ execDrawOverlay(PaintDevice *device) const
 
   //---
 
-  auto *details = columnDetails(innerBarColumn());
+  auto *details = (innerBarColumn().isValid() ? columnDetails(innerBarColumn()) : nullptr);
 
   if (details) {
     auto name = moveObj_->pointData().innerBar.toString();

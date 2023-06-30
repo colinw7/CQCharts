@@ -27,7 +27,7 @@ inline bool splitList(const QString &str, QStringList &strs) {
 
   std::string cstr = str.toStdString();
 
-  int rc = Tcl_SplitList(0, cstr.c_str(), &argc, const_cast<const char ***>(&argv));
+  int rc = Tcl_SplitList(nullptr, cstr.c_str(), &argc, const_cast<const char ***>(&argv));
 
   if (rc != TCL_OK)
     return false;
@@ -360,6 +360,10 @@ inline void createVar(Tcl_Interp *interp, const QString &name, const QVariant &v
   }
 }
 
+inline void deleteVar(Tcl_Interp *interp, const QString &name) {
+  Tcl_UnsetVar(interp, name.toLatin1().constData(), TCL_GLOBAL_ONLY);
+}
+
 //---
 
 inline QVariant getVar(Tcl_Interp *interp, const QString &name) {
@@ -387,7 +391,7 @@ inline Vars getListVar(Tcl_Interp *interp, const QString &name) {
   if (! obj)
     return Vars();
 
-  int       n = 0;
+  int       n    = 0;
   Tcl_Obj **objs = nullptr;
 
   int rc = Tcl_ListObjGetElements(interp, obj, &n, &objs);
@@ -523,6 +527,10 @@ class CQTcl : public QObject, public CTcl {
     CQTclUtil::createVar(interp(), name, var);
   }
 
+  void deleteVar(const QString &name) {
+    CQTclUtil::deleteVar(interp(), name);
+  }
+
   QVariant getVar(const QString &name) const {
     return CQTclUtil::getVar(interp(), name);
   }
@@ -601,6 +609,9 @@ class CQTcl : public QObject, public CTcl {
   }
 
   bool eval(const QString &cmd, EvalData &evalData) {
+    res_    = QVariant();
+    resSet_ = false;
+
     bool res = true;
 
     evalData.rc = CQTclUtil::eval(interp(), cmd);
@@ -624,7 +635,7 @@ class CQTcl : public QObject, public CTcl {
     return res;
   }
 
-  QString resToString(const QVariant &res) {
+  QString resToString(const QVariant &res) const {
     if      (res.type() == QVariant::StringList) {
       auto strs = res.value<QStringList>();
 
@@ -647,7 +658,7 @@ class CQTcl : public QObject, public CTcl {
       return res.toString();
   }
 
-  QStringList resToStrings(const QVariant &res) {
+  QStringList resToStrings(const QVariant &res) const {
     QStringList strs;
 
     if      (res.type() == QVariant::StringList) {
@@ -684,7 +695,8 @@ class CQTcl : public QObject, public CTcl {
     int flags = TCL_TRACE_READS | TCL_TRACE_WRITES | TCL_TRACE_UNSETS | TCL_GLOBAL_ONLY;
 
     ClientData data =
-      Tcl_VarTraceInfo(interp(), name.toLatin1().constData(), flags, &CQTcl::traceProc, 0);
+      Tcl_VarTraceInfo(interp(), name.toLatin1().constData(), flags,
+                       &CQTcl::traceProc, nullptr);
 
     if (! data) {
       Tcl_TraceVar(interp(), name.toLatin1().constData(), flags,
@@ -703,45 +715,81 @@ class CQTcl : public QObject, public CTcl {
     traces_.erase(name);
   }
 
-  virtual void handleTrace(const char *name, int flags) {
+  void handleTrace(const char *name, int flags) {
     // ignore unset called on trace destruction
     if (flags & TCL_TRACE_UNSETS) return;
 
-    std::cerr << "CQTcl::handleTrace (";
-    if (flags & TCL_TRACE_READS ) std::cerr << " read" ;
-    if (flags & TCL_TRACE_WRITES) std::cerr << " write";
-  //if (flags & TCL_TRACE_UNSETS) std::cerr << " unset";
-    std::cerr << ") " << name << "\n";
+    bool handled = false;
+
+    if (flags & TCL_TRACE_READS ) { handleRead (name); handled = true; }
+    if (flags & TCL_TRACE_WRITES) { handleWrite(name); handled = true; }
+  //if (flags & TCL_TRACE_UNSETS) { handleUnset(name); handled = true; }
+
+    assert(handled);
   }
 
-  virtual void outputError(const QString &msg) {
+  virtual void handleRead(const char *name) override {
+    std::cerr << "CQTcl::handleRead " << name << "\n";
+  }
+
+  virtual void handleWrite(const char *name) override {
+    std::cerr << "CQTcl::handleWrite " << name << "\n";
+  }
+
+#if 0
+  virtual void handleUnset(const char *name) {
+    std::cerr << "CQTcl::handleUnset " << name << "\n";
+  }
+#endif
+
+  virtual void outputError(const QString &msg) const {
     std::cerr << msg.toStdString() << std::endl;
   }
 
-  virtual void outputResult(const QVariant &res) {
+  virtual void outputResult() const {
+    outputResult(getTclResult());
+  }
+
+  virtual void outputResult(const QVariant &res) const {
     auto resStr = resToString(res);
 
     if (resStr.length())
       std::cout << resStr.toStdString() << "\n";
   }
 
-  bool isSupportedVariant(const QVariant &var) {
+  bool isSupportedVariant(const QVariant &var) const {
     return CQTclUtil::isSupportedVariant(var);
   }
 
-  void setResult(const QVariant &rc) {
-    CQTclUtil::setResult(interp(), rc);
+  void setResult(const QVariant &res) {
+    res_    = res;
+    resSet_ = true;
+
+    CQTclUtil::setResult(interp(), res);
   }
 
-  void setResult(const QStringList &rc) {
-    CQTclUtil::setResult(interp(), rc);
+  void setResult(const QStringList &res) {
+    res_    = res;
+    resSet_ = true;
+
+    CQTclUtil::setResult(interp(), res);
   }
 
-  void setResult(const QVariantList &rc) {
-    CQTclUtil::setResult(interp(), rc);
+  void setResult(const QVariantList &res) {
+    res_    = res;
+    resSet_ = true;
+
+    CQTclUtil::setResult(interp(), res);
   }
 
   QVariant getResult() const {
+    if (resSet_)
+      return res_;
+
+    return getTclResult();
+  }
+
+  QVariant getTclResult() const {
     return CQTclUtil::getResult(interp());
   }
 
@@ -773,6 +821,8 @@ class CQTcl : public QObject, public CTcl {
  private:
   Traces      traces_;
   QStringList commandNames_;
+  QVariant    res_;
+  bool        resSet_ { false };
 };
 
 #endif

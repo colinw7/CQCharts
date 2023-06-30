@@ -61,7 +61,8 @@ CQChartsModelFoldControl(QWidget *parent) :
 
   (void) addWidgetEdit("Column(s)", "column", columnEdit_);
 
-  columnEdit_->setToolTip("Fold Column(s)");
+  columnEdit_->setToolTip("Comma separated Fold Column(s)\n"
+                          "Column is colon separated column, type (i|r|a|s), delta");
 
   //---
 

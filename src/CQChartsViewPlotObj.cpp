@@ -209,7 +209,7 @@ positionToParent(const ObjRef &objRef, const Position &pos) const
   BBox         bbox;
   CQChartsObj *obj = nullptr;
 
-  if (! objectRect(objRef, obj, bbox))
+  if (! intersectObjectRect(objRef, obj, bbox))
     return positionToParent(pos);
 
   Length xlen(pos.p().x, pos.units());
@@ -243,7 +243,7 @@ positionFromParent(const ObjRef &objRef, const Position &pos) const
   BBox         bbox;
   CQChartsObj *obj = nullptr;
 
-  if (! objectRect(objRef, obj, bbox))
+  if (! intersectObjectRect(objRef, obj, bbox))
     return pos;
 
   Length xlen(pos.p().x, pos.units());
@@ -291,7 +291,7 @@ intersectObjRef(const ObjRef &objRef, const Point &p1, const Point &p2) const
   BBox         bbox;
   CQChartsObj *obj = nullptr;
 
-  if (! objectRect(objRef, obj, bbox))
+  if (! intersectObjectRect(objRef, obj, bbox))
     return p1;
 
   Point pi;
@@ -304,7 +304,7 @@ intersectObjRef(const ObjRef &objRef, const Point &p1, const Point &p2) const
 
 bool
 CQChartsViewPlotObj::
-objectRect(const ObjRef &objRef, CQChartsObj* &obj, BBox &bbox) const
+intersectObjectRect(const ObjRef &objRef, CQChartsObj* &obj, BBox &bbox) const
 {
   obj = nullptr;
 
@@ -318,7 +318,7 @@ objectRect(const ObjRef &objRef, CQChartsObj* &obj, BBox &bbox) const
 
   if (plotObj) {
     obj  = plotObj;
-    bbox = plotObj->rect();
+    bbox = plotObj->intersectRect();
   }
   else {
     auto *annotation = plot()->getAnnotationByPathId(objRef.name());

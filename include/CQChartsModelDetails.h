@@ -309,7 +309,7 @@ class CQChartsModelColumnDetails {
   //void setPreferredWidth(int w) { preferredWidth_ = w; }
 
   // get cached "null_value" column type value
-  const QString &nullValue() const { return nullValue_; }
+  const QString &nullValue() const;
   //void setNullValue(const QString &v) { nullValue_ = v; }
 
   // get cached "draw_color" column type value

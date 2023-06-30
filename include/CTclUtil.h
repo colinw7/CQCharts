@@ -171,10 +171,10 @@ inline bool isDomainError(Tcl_Interp *interp, int rc) {
 //---
 
 inline std::string errorInfo(Tcl_Interp *interp, int rc) {
-  Tcl_Obj *options = Tcl_GetReturnOptions(interp, rc);
+  auto *options = Tcl_GetReturnOptions(interp, rc);
 
-  Tcl_Obj *key1 = Tcl_NewStringObj("-errorcode", -1);
-  Tcl_Obj *key2 = Tcl_NewStringObj("-errorinfo", -1);
+  auto *key1 = Tcl_NewStringObj("-errorcode", -1);
+  auto *key2 = Tcl_NewStringObj("-errorinfo", -1);
 
   Tcl_Obj *errorMsg;
   Tcl_IncrRefCount(key1);

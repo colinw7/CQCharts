@@ -26,9 +26,9 @@ class CQChartsModelExprControl : public QFrame, public CQChartsWidgetIFace  {
   Q_OBJECT
 
   Q_PROPERTY(Mode                 mode   READ mode   WRITE setMode  )
-  Q_PROPERTY(QString              expr   READ expr   WRITE setExpr  )
   Q_PROPERTY(CQChartsColumn       column READ column WRITE setColumn)
-  Q_PROPERTY(QString              name   READ name   WRITE setName  )
+  Q_PROPERTY(QString              header READ header WRITE setHeader)
+  Q_PROPERTY(QString              expr   READ expr   WRITE setExpr  )
   Q_PROPERTY(CQChartsColumnTypeId type   READ type   WRITE setType  )
 
   Q_ENUMS(Mode)
@@ -37,40 +37,48 @@ class CQChartsModelExprControl : public QFrame, public CQChartsWidgetIFace  {
   enum class Mode {
     ADD,
     REMOVE,
-    MODIFY
+    MODIFY,
+    REPLACE
   };
 
+  using Column = CQChartsColumn;
   using ModelP = QSharedPointer<QAbstractItemModel>;
 
  public:
   CQChartsModelExprControl(QWidget *parent=nullptr);
 
-  const Mode &mode() const { return exprMode_; }
+  //---
+
+  Mode mode() const;
   void setMode(const Mode &m);
 
-  const QString &expr() const { return expr_; }
+  Column column() const;
+  void setColumn(const Column &c);
+
+  QString header() const;
+  void setHeader(const QString &s);
+
+  QString expr() const;
   void setExpr(const QString &s);
 
-  const CQChartsColumn &column() const { return column_; }
-  void setColumn(const CQChartsColumn &c);
+  QString var() const;
+  void setVar(const QString &s);
 
-  const QString &name() const { return name_; }
-  void setName(const QString &s);
-
-  const CQChartsColumnTypeId &type() const { return type_; }
+  CQChartsColumnTypeId type() const;
   void setType(const CQChartsColumnTypeId &t);
+
+  //---
 
   CQChartsModelData *modelData() const { return modelData_; }
   void setModelData(CQChartsModelData *modelData) override;
+
+  //---
 
   void init();
 
  private Q_SLOTS:
   void modeSlot();
-  void exprSlot();
   void columnSlot();
-  void nameSlot();
-  void typeSlot();
 
   void modelColumnSlot(int);
 
@@ -78,23 +86,27 @@ class CQChartsModelExprControl : public QFrame, public CQChartsWidgetIFace  {
 
  private:
   // data
-  CQChartsModelData*   modelData_ { nullptr };
-  Mode                 exprMode_  { Mode::ADD };
-  QString              expr_;
-  CQChartsColumn       column_;
-  QString              name_;
-  CQChartsColumnTypeId type_;
+  CQChartsModelData* modelData_ { nullptr };
 
   // widgets
   QRadioButton*            addRadio_      { nullptr };
   QRadioButton*            removeRadio_   { nullptr };
   QRadioButton*            modifyRadio_   { nullptr };
-  CQChartsColumnExprEdit*  exprEdit_      { nullptr };
+  QRadioButton*            replaceRadio_  { nullptr };
   QLabel*                  columnLabel_   { nullptr };
   CQChartsColumnCombo*     columnNumEdit_ { nullptr };
-  CQChartsLineEdit*        nameEdit_      { nullptr };
+  QLabel*                  headerLabel_   { nullptr };
+  CQChartsLineEdit*        headerEdit_    { nullptr };
+  QLabel*                  exprLabel_     { nullptr };
+  CQChartsColumnExprEdit*  exprEdit_      { nullptr };
+  QLabel*                  varLabel_      { nullptr };
+  CQChartsLineEdit*        varEdit_       { nullptr };
   QLabel*                  typeLabel_     { nullptr };
   CQChartsColumnTypeCombo* typeCombo_     { nullptr };
+  QLabel*                  oldValueLabel_ { nullptr };
+  CQChartsLineEdit*        oldValueEdit_  { nullptr };
+  QLabel*                  newValueLabel_ { nullptr };
+  CQChartsLineEdit*        newValueEdit_  { nullptr };
 };
 
 #endif

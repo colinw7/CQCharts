@@ -4,6 +4,13 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + summary plot selection range (per diagonal)
+   + general selection range on plot ?
+
+ + model variable list (old values) to allow query/undo
+
+ + model view which allows push/pop into 1->N filter models (stack) to bucket/filter/... root model
+
  + summary plot correlation zoom inconsistent (box and text)
  + summary plot expand correlation to correlation plot ?
 

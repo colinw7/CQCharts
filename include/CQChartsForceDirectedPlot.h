@@ -93,6 +93,8 @@ class CQChartsForceDirectedNodeObj : public CQChartsPlotObj {
 
   ObjShapeType objShapeType() const override;
 
+  BBox intersectRect() const override;
+
  protected:
   const ForceDirectedPlot* forceDirectedPlot_ { nullptr }; //!< parent plot
   ForceNodeP               node_;                          //!< associated node
@@ -809,6 +811,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Node::Shape calcNodeShape(Node *snode) const;
   Edge::Shape calcEdgeShape(Edge *sedge) const;
 
+  BBox nodeBBox(const ForceNodeP &node, Node *snode) const;
+  BBox edgeBBox(const ForceEdgeP &edge, Edge *sedge) const;
+
  private:
   using OptPoint = std::optional<Point>;
 
@@ -877,9 +882,6 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   int getStringId(const QString &str) const;
   //! get string for unique index
   QString getIdString(int id) const;
-
-  BBox nodeBBox(const ForceNodeP &node, Node *snode) const;
-  BBox edgeBBox(const ForceEdgeP &edge, Edge *sedge) const;
 
   void updateMaxNodeValue();
 

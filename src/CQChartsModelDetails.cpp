@@ -2121,6 +2121,15 @@ columnColor(const QVariant &var, CQChartsColor &color) const
   return true;
 }
 
+const QString &
+CQChartsModelColumnDetails::
+nullValue() const
+{
+  initType();
+
+  return nullValue_;
+}
+
 bool
 CQChartsModelColumnDetails::
 columnNameValue(const QString &name, QString &value) const

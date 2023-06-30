@@ -38,10 +38,10 @@ proc animateStateChanged { view plot b } {
   #set_charts_data -plot $plot -object $node1 -name select -value 1
   #set_charts_data -plot $plot -object $edge1 -name select -value 1
 
-  #set startPos "@($node1 intersect) 0 0"
-  #set endPos   "@($node2 intersect) 0 0"
-  set startPos "@($node1) 0 0"
-  set endPos   "@($node2) 0 0"
+  set startPos "@($node1 intersect) 0 0"
+  set endPos   "@($node2 intersect) 0 0"
+  #set startPos "@($node1) 0 0"
+  #set endPos   "@($node2) 0 0"
   echo "StartPos: $startPos, EndPos: $endPos"
 
   #set startPos [list "@(${node1})" 0 0]

@@ -896,17 +896,33 @@ initPlot(const CQChartsInitData &initData)
       if (! CQChartsModelUtil::decodeExpression(model.data(), strs[i], function, column, expr))
         errorMsg("Invalid model expression '" + strs[i] + "'");
 
-      CQChartsModelUtil::processExpression(model.data(), function, column, expr);
+      CQChartsModelUtil::processExpression(model, function, column, expr);
     }
   }
 
   if (initData.processAdd.length()) {
     ModelP model = modelData->currentModel();
 
-    auto strs = initData.processAdd.split(";", Qt::SkipEmptyParts);
+    auto *exprModel = CQChartsModelUtil::getExprModel(model.data());
 
-    for (int i = 0; i < strs.size(); ++i)
-      CQChartsModelUtil::processAddExpression(model.data(), strs[i]);
+    if (exprModel) {
+      auto strs = initData.processAdd.split(";", Qt::SkipEmptyParts);
+
+      for (int i = 0; i < strs.size(); ++i) {
+        int column;
+
+        QString header, expr;
+
+        if (! exprModel->decodeExpression(strs[i], header, expr))
+          return -1;
+
+        CQChartsExprModel::NameValues nameValues;
+
+        exprModel->addExtraColumnExpr(header, expr, column, nameValues);
+      }
+    }
+    else
+      errorMsg("Expression not supported for model");
   }
 
   //---

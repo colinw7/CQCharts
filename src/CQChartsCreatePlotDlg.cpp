@@ -14,6 +14,7 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelChooser.h>
 #include <CQChartsAnalyzeModel.h>
+#include <CQChartsAnalyzeModelData.h>
 #include <CQChartsPreviewPlot.h>
 #include <CQChartsPlotParameterEdit.h>
 #include <CQChartsOptRealEdit.h>

@@ -51,7 +51,7 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   exprFrame_ = addExprFrame();
 
-  controlTab->addTab(exprFrame_, "Extra Columns");
+  controlTab->addTab(exprFrame_, "Process");
 
   //---
 

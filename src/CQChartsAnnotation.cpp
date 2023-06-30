@@ -1534,8 +1534,8 @@ layoutGraph()
     BBox         bbox;
     CQChartsObj *startObj = nullptr, *endObj = nullptr;
 
-    if (! objectRect(connector->startObjRef(), startObj, bbox) ||
-        ! objectRect(connector->endObjRef  (), endObj  , bbox))
+    if (! intersectObjectRect(connector->startObjRef(), startObj, bbox) ||
+        ! intersectObjectRect(connector->endObjRef  (), endObj  , bbox))
       continue;
 
     auto *startAnnotation = dynamic_cast<CQChartsAnnotation *>(startObj);
@@ -5614,9 +5614,9 @@ calcPath(PaintDevice *device, QPainterPath &path) const
   BBox         ibbox, obbox;
   CQChartsObj *startObj = nullptr, *endObj = nullptr;
 
-  if (! startObjRef().isValid() || ! objectRect(startObjRef(), startObj, ibbox))
+  if (! startObjRef().isValid() || ! intersectObjectRect(startObjRef(), startObj, ibbox))
     ibbox = BBox(Point(start.x - lw2, start.y - lw2), Point(start.x + lw2, start.y + lw2));
-  if (! endObjRef  ().isValid() || ! objectRect(endObjRef  (), endObj  , obbox))
+  if (! endObjRef  ().isValid() || ! intersectObjectRect(endObjRef  (), endObj  , obbox))
     obbox = BBox(Point(end  .x - lw2, end  .y - lw2), Point(end  .x + lw2, end  .y + lw2));
 
   bool useBoxes = (startObj || endObj);

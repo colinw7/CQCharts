@@ -1,4 +1,6 @@
 #include <CQChartsConnectionList.h>
+#include <CQChartsUtil.h>
+
 #include <CQPropertyView.h>
 #include <CQStrParse.h>
 

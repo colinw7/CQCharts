@@ -29,12 +29,14 @@
 #include <CQChartsSVGUtil.h>
 #include <CQChartsFile.h>
 #include <CQChartsPointPlot.h>
+#include <CQChartsModelProcess.h>
 
 #include <CQChartsLoadModelDlg.h>
 #include <CQChartsManageModelsDlg.h>
 #include <CQChartsCreatePlotDlg.h>
 #include <CQChartsFilterModel.h>
 #include <CQChartsAnalyzeModel.h>
+#include <CQChartsAnalyzeModelData.h>
 #include <CQChartsTextDlg.h>
 #include <CQChartsHelpDlg.h>
 #include <CQChartsViewSettings.h>
@@ -569,7 +571,7 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-type"  , ArgType::String, "type data for add/modify");
   addArg(argv, "-expr"  , ArgType::String, "expression for add/modify/calc/query");
   addArg(argv, "-vars"  , ArgType::String, "variables for expression");
-  addArg(argv, "-tcl"   , ArgType::String, "tcl data for add/modify");
+  addArg(argv, "-tcl"   , ArgType::String, "tcl array data for add/modify");
   addArg(argv, "-value" , ArgType::String, "value for replace and replace null");
 
   addArg(argv, "-force", ArgType::Boolean, "force modify of original data");
@@ -690,45 +692,50 @@ execCmd(CQChartsCmdArgs &argv)
     if (! exprModel)
       return errorMsg("Expression not supported for model");
 
-    int column;
+    CQChartsModelProcessData::AddData addData;
 
+    addData.header        = header;
+    addData.expr          = expr;
+    addData.varNameValues = varNameValues;
+    addData.columnType    = type;
+
+    auto errorType = CQChartsModelProcess::ErrorType::NONE;
+
+    // tcl expression
     if      (argv.hasParseArg("expr")) {
-      if (! exprModel->addExtraColumnExpr(header, expr, column))
-        return errorMsg("Failed to add column");
+      addData.type = CQChartsModelProcessData::AddData::Type::EXPR;
+
+      errorType = CQChartsModelProcess::addColumn(model, addData);
     }
+    // tcl array data
     else if (argv.hasParseArg("tcl")) {
-      auto str = argv.getParseStr("tcl");
+      addData.type = CQChartsModelProcessData::AddData::Type::TCL;
 
       // split into extra column strings
-      QStringList strs;
+      (void) CQTcl::splitList(argv.getParseStr("tcl"), addData.strs);
 
-      (void) CQTcl::splitList(str, strs);
-
-      if (! exprModel->addExtraColumnStrs(header, strs, column))
-        return errorMsg("Failed to add column");
+      errorType = CQChartsModelProcess::addColumn(model, addData);
     }
-    else {
+    else
       return errorMsg("Missing -expr or -tcl value");
-    }
 
-    //---
+    if      (errorType == CQChartsModelProcess::ErrorType::ADD_FAILED)
+      return errorMsg("Failed to add column");
+    else if (errorType == CQChartsModelProcess::ErrorType::SET_TYPE_FAILED)
+      return errorMsg(QString("Invalid column type '%1'").arg(addData.columnType));
 
-    if (type.length()) {
-      if (! CQChartsModelUtil::setColumnTypeStr(charts(), model.data(),
-                                                CQChartsColumn(column), type))
-        return errorMsg(QString("Invalid column type '%1'").arg(type));
-    }
-
-    return cmdBase_->setCmdRc(column);
+    return cmdBase_->setCmdRc(addData.column.column());
   }
   // remove column (must be an added one)
   else if (argv.getParseBool("delete")) {
     if (! exprModel)
       return errorMsg("Expression not supported for model");
 
-    auto column = argv.getParseColumn("column", model.data());
+    CQChartsModelProcessData::DeleteData deleteData;
 
-    if (! exprModel->removeExtraColumn(column.column()))
+    deleteData.column = argv.getParseColumn("column", model.data());
+
+    if (! CQChartsModelProcess::deleteColumn(model, deleteData))
       return errorMsg("Failed to delete column");
 
     return cmdBase_->setCmdRc(-1);
@@ -741,41 +748,31 @@ execCmd(CQChartsCmdArgs &argv)
     if (! argv.hasParseArg("expr"))
       return errorMsg("Missing expression");
 
-    auto column = argv.getParseColumn("column", model.data());
+    CQChartsModelProcessData::ModifyData modifyData;
 
-    if (exprModel->isOrigColumn(column.column())) {
-      if (argv.getParseBool("force")) {
-        bool rc;
+    modifyData.column = argv.getParseColumn("column", model.data());
 
-        if (exprModel->isReadOnly()) {
-          exprModel->setReadOnly(false);
+    modifyData.header     = header;
+    modifyData.expr       = expr;
+    modifyData.columnType = type;
 
-          rc = exprModel->assignColumn(header, column.column(), expr);
+    auto errorType = CQChartsModelProcess::ErrorType::NONE;
 
-          exprModel->setReadOnly(true);
-        }
-        else
-          rc = exprModel->assignColumn(header, column.column(), expr);
-
-        if (! rc)
-          return errorMsg(QString("Failed to modify column '%1'").arg(column.column()));
-      }
-      else
+    if (exprModel->isOrigColumn(modifyData.column.column())) {
+      if (! argv.getParseBool("force"))
         return errorMsg("Use -force to modify original model data");
-    }
-    else {
-      if (! exprModel->assignExtraColumn(header, column.column(), expr))
-        return errorMsg(QString("Failed to modify column '%1'").arg(column.column()));
-    }
 
-    //---
-
-    if (type.length()) {
-      if (! CQChartsModelUtil::setColumnTypeStr(charts(), model.data(), column, type))
-        return errorMsg(QString("Invalid column type '%1'").arg(type));
+      errorType = CQChartsModelProcess::modifyColumn(model, modifyData);
     }
+    else
+      errorType = CQChartsModelProcess::modifyColumn(model, modifyData);
 
-    return cmdBase_->setCmdRc(column.column());
+    if      (errorType == CQChartsModelProcess::ErrorType::MODIFY_FAILED)
+      return errorMsg(QString("Failed to modify column '%1'").arg(modifyData.column.column()));
+    else if (errorType == CQChartsModelProcess::ErrorType::SET_TYPE_FAILED)
+      return errorMsg(QString("Invalid column type '%1'").arg(modifyData.columnType));
+
+    return cmdBase_->setCmdRc(modifyData.column.column());
   }
   // calculate values from result of expression
   else if (argv.getParseBool("calc")) {
@@ -819,6 +816,7 @@ execCmd(CQChartsCmdArgs &argv)
 
     return cmdBase_->setCmdRc(vars);
   }
+  // analyze model
   else if (argv.getParseBool("analyze")) {
     CQChartsAnalyzeModel analyzeModel(charts(), modelData);
 
@@ -865,9 +863,9 @@ execCmd(CQChartsCmdArgs &argv)
 
         QVariantList tncvars;
 
-        const auto &analyzeModelData = tnc.second;
+        auto *analyzeModelData = tnc.second;
 
-        for (const auto &nc : analyzeModelData.parameterNameColumn) {
+        for (const auto &nc : analyzeModelData->parameterNameColumn) {
           const auto &name   = nc.first;
           const auto &column = nc.second;
 
@@ -889,50 +887,71 @@ execCmd(CQChartsCmdArgs &argv)
     analyzeModel.print(std::cerr);
   }
   else if (argv.hasParseArg("replace")) {
-    auto oldValue = argv.getParseStr("replace");
+    CQChartsModelProcessData::ReplaceData replaceData;
+
+    replaceData.oldValue = argv.getParseStr("replace");
 
     //---
 
     if (! argv.hasParseArg("column"))
       return errorMsg("Missing column for -replace");
 
-    auto column = argv.getParseColumn("column", model.data());
+    replaceData.column = argv.getParseColumn("column", model.data());
 
-    if (! column.isValid())
+    if (! replaceData.column.isValid())
       return errorMsg("Invalid/missing column for -replace");
-
-    //---
 
     if (! argv.hasParseArg("value"))
       return errorMsg("Missing value for -replace");
 
-    auto newValue = argv.getParseStr("value");
+    replaceData.newValue = argv.getParseStr("value");
 
     //---
 
-    int n = modelData->replaceValue(column, oldValue, newValue);
+    auto *details       = modelData->details();
+    auto *columnDetails = details->columnDetails(replaceData.column);
+    auto  nullStr       = columnDetails->nullValue();
+
+    if (replaceData.oldValue == nullStr)
+      replaceData.oldValue = QVariant();
+
+    if (replaceData.newValue == nullStr)
+      replaceData.newValue = QVariant();
+
+    //---
+
+    auto n = CQChartsModelProcess::replaceColumn(charts(), model, replaceData);
 
     return cmdBase_->setCmdRc(n);
   }
   else if (argv.getParseBool("replace_null")) {
+    CQChartsModelProcessData::ReplaceData replaceData;
+
     if (! argv.hasParseArg("column"))
       return errorMsg("Missing column for -replace_null");
 
-    auto column = argv.getParseColumn("column", model.data());
+    replaceData.column = argv.getParseColumn("column", model.data());
 
-    if (! column.isValid())
+    if (! replaceData.column.isValid())
       return errorMsg("Invalid/missing column for -replace_null");
-
-    //---
 
     if (! argv.hasParseArg("value"))
       return errorMsg("Missing value for -replace_null");
 
-    auto value = argv.getParseStr("value");
+    replaceData.newValue = argv.getParseStr("value");
 
     //---
 
-    int n = modelData->replaceNullValues(column, value);
+    auto *details       = modelData->details();
+    auto *columnDetails = details->columnDetails(replaceData.column);
+    auto  nullStr       = columnDetails->nullValue();
+
+    if (replaceData.newValue == nullStr)
+      replaceData.newValue = QVariant();
+
+    //---
+
+    auto n = CQChartsModelProcess::replaceColumn(charts(), model, replaceData);
 
     return cmdBase_->setCmdRc(n);
   }
@@ -6368,7 +6387,8 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
         "num_rows" << "num_columns" << "hierarchical" <<
         "header" << "row" << "column" << "map" << "duplicates" << "column_index" <<
         "title" << "expr_model" << "data_model" << "base_model" <<
-        "name" << "ind" << "find" /* << "property.<name>" */ << "read_only";
+        "name" << "ind" << "find" /* << "property.<name>" */ << "read_only" <<
+        "null_value";
 
       auto detailsNames = CQChartsModelColumnDetails::getLongNamedValues();
 
@@ -6962,6 +6982,16 @@ execCmd(CQChartsCmdArgs &argv)
       auto b = dataModel->isReadOnly();
 
       return cmdBase_->setCmdRc(b);
+    }
+    else if (name == "null_value") {
+      if (! column.isValid())
+        return errorMsg("no/invalid column specified");
+
+      QVariant value;
+
+      CQChartsModelUtil::getColumnNullValue(charts, model.data(), column, value);
+
+      return cmdBase_->setCmdRc(value);
     }
     else if (name == "?") {
       NameValueMap nameValues; nameValues["model"] = "";
@@ -7684,7 +7714,7 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
     if      (hasModel) {
       auto names = QStringList() <<
         "value" << "column_type" << "header_type" << "meta_data" << "name" <<
-        "process_expression" << "size" << "read_only" << "details.parameter";
+        "process_expression" << "size" << "read_only" << "null_value" << "details.parameter";
 
       return names;
     }
@@ -7883,7 +7913,7 @@ execCmd(CQChartsCmdArgs &argv)
       if (! CQChartsModelUtil::decodeExpression(model.data(), value, function, column, expr))
         return errorMsg("Invalid model expression '" + value + "'");
 
-      CQChartsModelUtil::processExpression(model.data(), function, column, expr);
+      CQChartsModelUtil::processExpression(model, function, column, expr);
     }
     // data model size
     else if (name == "size") {
@@ -7935,6 +7965,15 @@ execCmd(CQChartsCmdArgs &argv)
       bool b = CQChartsCmdBaseArgs::stringToBool(value, &ok);
 
       dataModel->setReadOnly(b);
+    }
+    else if (name == "null_value") {
+      if (! column.isValid())
+        return errorMsg("no/invalid column specified");
+
+      if (! CQChartsModelUtil::setColumnNullValue(charts, model.data(), column, value))
+        return errorMsg(QString("Failed to set null value"));
+
+      return cmdBase_->setCmdRc(value);
     }
     // column details named value
     else if (name.left(8) == "details.") {

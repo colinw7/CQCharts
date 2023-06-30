@@ -995,6 +995,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(int minPos READ minPos)
   Q_PROPERTY(int maxPos READ maxPos)
 
+  Q_PROPERTY(bool newVisited READ isNewVisited WRITE setNewVisited)
+
   Q_ENUMS(ConnectionType)
   Q_ENUMS(Align)
   Q_ENUMS(Spread)
@@ -1013,7 +1015,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   enum class Align {
     SRC,
+    SRC_ALL,
     DEST,
+    DEST_ALL,
     JUSTIFY,
     LARGEST,
     RAND
@@ -1299,6 +1303,11 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   // min/max position
   int minPos() const { return graph_->minNodeX(); }
   int maxPos() const { return graph_->maxNodeX(); }
+
+  //---
+
+  bool isNewVisited() const { return newVisited_; }
+  void setNewVisited(bool b);
 
   //---
 
@@ -1599,6 +1608,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 #endif
 
   mutable CQChartsGeom::RMinMax valueRange_;
+
+  bool newVisited_ { true };
 
   using TextPlacerP = std::unique_ptr<CQChartsTextPlacer>;
 

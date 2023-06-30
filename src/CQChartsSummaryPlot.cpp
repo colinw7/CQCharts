@@ -52,7 +52,7 @@ addParameters()
    setGroupable().setBasic().setPropPath("columns.group").setTip("Group column");
 
   // options
-  addEnumParameter("plotType", "Plot Type", "plotTy[e").
+  addEnumParameter("plotType", "Plot Type", "plotType").
     addNameValue("MATRIX"  , static_cast<int>(SummaryPlot::PlotType::MATRIX  )).
     addNameValue("PARALLEL", static_cast<int>(SummaryPlot::PlotType::PARALLEL)).
     setTip("Plot Type");

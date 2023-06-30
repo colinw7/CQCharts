@@ -1,9 +1,11 @@
 #include <CQChartsAnalyzeModel.h>
+#include <CQChartsAnalyzeModelData.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsPlotType.h>
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
+
 #include <CQPerfMonitor.h>
 #include <set>
 
@@ -11,6 +13,13 @@ CQChartsAnalyzeModel::
 CQChartsAnalyzeModel(CQCharts *charts, CQChartsModelData *modelData) :
  charts_(charts), modelData_(modelData)
 {
+}
+
+CQChartsAnalyzeModel::
+~CQChartsAnalyzeModel()
+{
+  for (auto &tnc : typeAnalyzeModelData_)
+    delete tnc.second;
 }
 
 void
@@ -32,7 +41,7 @@ bool
 CQChartsAnalyzeModel::
 analyzeType(CQChartsPlotType *type)
 {
-  CQChartsAnalyzeModelData analyzeModelData;
+  CQChartsAnalyzeModelData *analyzeModelData { nullptr };
 
   if (! analyzeType(type, analyzeModelData))
     return false;
@@ -44,7 +53,7 @@ analyzeType(CQChartsPlotType *type)
 
 bool
 CQChartsAnalyzeModel::
-analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
+analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData* &analyzeModelData)
 {
   CQPerfTrace trace("CQChartsAnalyzeModel::analyzeType");
 
@@ -120,7 +129,9 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
 
   //---
 
-  auto &parameterNameColumn = analyzeModelData.parameterNameColumn;
+  analyzeModelData = new CQChartsAnalyzeModelData;
+
+  auto &parameterNameColumn = analyzeModelData->parameterNameColumn;
 
   // check for grouped columns
   using NameSet = std::set<QString>;
@@ -237,20 +248,22 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
   // fail if can't find column for required
   // (after check if type can set required columns)
   if (! requiredInvalid.empty()) {
-    type->analyzeModel(modelData_, analyzeModelData);
+    type->analyzeModel(modelData_, *analyzeModelData);
 
     bool valid = true;
 
     for (const auto &name : requiredInvalid) {
-      if (analyzeModelData.parameterNameColumn.find(name) ==
-            analyzeModelData.parameterNameColumn.end()) {
+      if (analyzeModelData->parameterNameColumn.find(name) ==
+            analyzeModelData->parameterNameColumn.end()) {
         valid = false;
         break;
       }
     }
 
-    if (! valid)
+    if (! valid) {
+      delete analyzeModelData;
       return false;
+    }
   }
 
   //---
@@ -304,7 +317,7 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
 
   //----
 
-  type->analyzeModel(modelData_, analyzeModelData);
+  type->analyzeModel(modelData_, *analyzeModelData);
 
   return true;
 }
@@ -313,7 +326,7 @@ const CQChartsAnalyzeModelData &
 CQChartsAnalyzeModel::
 analyzeModelData(const CQChartsPlotType *type)
 {
-  return typeAnalyzeModelData_[type->name()];
+  return *typeAnalyzeModelData_[type->name()];
 }
 
 void
@@ -325,9 +338,9 @@ print(std::ostream &os) const
 
     os << typeName.toStdString() << "\n";
 
-    const auto &analyzeModelData = tnc.second;
+    auto *analyzeModelData = tnc.second;
 
-    for (const auto &nc : analyzeModelData.parameterNameColumn) {
+    for (const auto &nc : analyzeModelData->parameterNameColumn) {
       const auto &name   = nc.first;
       const auto &column = nc.second;
 

@@ -106,7 +106,7 @@ class CQChartsViewPlotObj : public CQChartsObj,
 
   Point intersectObjRef(const ObjRef &objRef, const Point &p1, const Point &p2) const;
 
-  bool objectRect(const ObjRef &objRef, CQChartsObj* &obj, BBox &bbox) const;
+  bool intersectObjectRect(const ObjRef &objRef, CQChartsObj* &obj, BBox &bbox) const;
 
   //---
 

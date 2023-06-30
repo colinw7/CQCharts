@@ -78,11 +78,13 @@ bool
 CQChartsObj::
 intersectShape(const Point &p1, const Point &p2, Point &pi) const
 {
+  auto rect = this->intersectRect();
+
   std::vector<Point> ipoints;
 
   if      (objShapeType() == ObjShapeType::RECT) {
-    double x1 = rect().getXMin(); double y1 = rect().getYMin();
-    double x2 = rect().getXMax(); double y2 = rect().getYMax();
+    double x1 = rect.getXMin(); double y1 = rect.getYMin();
+    double x2 = rect.getXMax(); double y2 = rect.getYMax();
 
     auto intersectLines = [&](double x11, double y11, double x21, double y21,
                               double &xi, double &yi) {
@@ -108,7 +110,7 @@ intersectShape(const Point &p1, const Point &p2, Point &pi) const
   else if (objShapeType() == ObjShapeType::CIRCLE) {
     Point pi;
 
-    if (! CQChartsGeom::lineIntersectCircle(rect(), p1, p2, pi))
+    if (! CQChartsGeom::lineIntersectCircle(rect, p1, p2, pi))
       return false;
 
     ipoints.push_back(pi);

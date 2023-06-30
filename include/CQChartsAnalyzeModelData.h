@@ -2,6 +2,7 @@
 #define CQChartsAnalyzeModelData_H
 
 #include <CQChartsColumn.h>
+
 #include <QString>
 #include <map>
 

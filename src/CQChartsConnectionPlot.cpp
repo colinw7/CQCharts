@@ -667,11 +667,9 @@ checkColumns() const
     else
       columnsValid = false;
   }
-#ifdef CQCHARTS_GRAPH_PATH_ID
   else if (pathColumn().isValid()) {
     modelColumns_.push_back(pathColumn());
   }
-#endif
   else if (fromColumn().isValid() && toColumn().isValid()) {
     modelColumns_.push_back(fromColumn());
     modelColumns_.push_back(toColumn  ());
