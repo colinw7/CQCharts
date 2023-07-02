@@ -1574,6 +1574,12 @@ class MinMax {
     return CMathUtil::map(r, min_, max_, min, max);
   }
 
+  bool inside(const T &r) const {
+    if (! set_) return false;
+
+    return (r >= min_ && r <= max_);
+  }
+
  private:
   T    min_ { };
   T    max_ { };

@@ -111,8 +111,8 @@ drawContents(PaintDevice *device)
 
 CQChartsDrawText::
 CQChartsDrawText(const Point &p, const QString &str, const QFont &font,
-                 const PenBrush &penBrush, bool scale) :
- CQChartsDrawObj(), p_(p), str_(str), font_(font), fontScale_(scale)
+                 const PenBrush &penBrush, const TextOptions &textOptions, bool scale) :
+ CQChartsDrawObj(), p_(p), str_(str), font_(font), fontScale_(scale), textOptions_(textOptions)
 {
   penBrush_ = penBrush;
 }
@@ -147,13 +147,13 @@ drawContents(PaintDevice *device)
 
   auto p = Point(sbbox_.getXMid(), sbbox_.getYMid());
 
-  CQChartsTextOptions options;
+  auto textOptions = textOptions_;;
 
-  options.align = Qt::AlignHCenter | Qt::AlignVCenter;
+  textOptions.align = Qt::AlignHCenter | Qt::AlignVCenter;
 
   CQChartsDrawUtil::setPenBrush(device, penBrush_);
 
-  CQChartsDrawUtil::drawTextAtPoint(device, p, str_, options);
+  CQChartsDrawUtil::drawTextAtPoint(device, p, str_, textOptions);
 
   device->restore();
 }

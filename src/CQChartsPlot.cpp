@@ -17076,7 +17076,7 @@ updateObjPenBrushState(const Obj *obj, const ColorInd &ic, PenBrush &penBrush,
 
 void
 CQChartsPlot::
-updatePenBrushState(const ColorInd &ic, PenBrush &penBrush, bool selected, bool inside)
+updatePenBrushState(const ColorInd &ic, PenBrush &penBrush, bool selected, bool inside) const
 {
   view()->updatePenBrushState(ic, penBrush, selected, inside);
 }

@@ -3156,7 +3156,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
                               PenBrush &penBrush, DrawType drawType) const;
 
   void updatePenBrushState(const ColorInd &ic, PenBrush &penBrush,
-                           bool selected, bool inside);
+                           bool selected, bool inside) const;
 
  public:
   QColor insideColor  (const QColor &c) const;

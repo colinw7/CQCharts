@@ -56,13 +56,26 @@ class CQChartsSummaryCellObj;
 
 //---
 
+CQCHARTS_NAMED_POINT_DATA(Scatter     , scatter)
+CQCHARTS_NAMED_SHAPE_DATA(Distribution, distribution)
+CQCHARTS_NAMED_SHAPE_DATA(BoxPlot     , boxPlot)
+CQCHARTS_NAMED_TEXT_DATA (BoxPlot     , boxPlot)
+CQCHARTS_NAMED_TEXT_DATA (Correlation , correlation)
+CQCHARTS_NAMED_SHAPE_DATA(Pie         , pie)
+
 /*!
  * \brief Summary Plot
  * \ingroup Charts
  */
 class CQChartsSummaryPlot : public CQChartsPlot,
- public CQChartsObjXLabelTextData<CQChartsSummaryPlot>,
- public CQChartsObjYLabelTextData<CQChartsSummaryPlot> {
+ public CQChartsObjScatterPointData     <CQChartsSummaryPlot>,
+ public CQChartsObjDistributionShapeData<CQChartsSummaryPlot>,
+ public CQChartsObjBoxPlotShapeData     <CQChartsSummaryPlot>,
+ public CQChartsObjBoxPlotTextData      <CQChartsSummaryPlot>,
+ public CQChartsObjPieShapeData         <CQChartsSummaryPlot>,
+ public CQChartsObjCorrelationTextData  <CQChartsSummaryPlot>,
+ public CQChartsObjXLabelTextData       <CQChartsSummaryPlot>,
+ public CQChartsObjYLabelTextData       <CQChartsSummaryPlot> {
   Q_OBJECT
 
   // columns
@@ -90,7 +103,21 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Q_PROPERTY(OffDiagonalType lowerDiagonalType READ lowerDiagonalType WRITE setLowerDiagonalType)
 
   // scatter
-  Q_PROPERTY(CQChartsLength symbolSize READ symbolSize WRITE setSymbolSize)
+  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Scatter, scatter)
+
+  // distribution
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Distribution, distribution)
+
+  // boxplot
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(BoxPlot, boxPlot)
+
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(BoxPlot, boxPlot)
+
+  // pie
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Pie, pie)
+
+  // correlation
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Correlation, correlation)
 
   // best fit
   Q_PROPERTY(bool bestFit READ isBestFit WRITE setBestFit)
@@ -110,29 +137,50 @@ class CQChartsSummaryPlot : public CQChartsPlot,
     PARALLEL
   };
 
-  enum class DiagonalType {
+  enum class CellType {
     NONE,
+
+    // 1D
     BOXPLOT,
     DISTRIBUTION,
     PIE,
     TREEMAP,
-    BUBBLE
-  };
+    BUBBLE,
 
-  enum class OffDiagonalType {
-    NONE,
+    // 2D
     SCATTER,
     CORRELATION
   };
 
+  enum class DiagonalType {
+    NONE         = uint(CellType::NONE),
+    BOXPLOT      = uint(CellType::BOXPLOT),
+    DISTRIBUTION = uint(CellType::DISTRIBUTION),
+    PIE          = uint(CellType::PIE),
+    TREEMAP      = uint(CellType::TREEMAP),
+    BUBBLE       = uint(CellType::BUBBLE)
+  };
+
+  enum class OffDiagonalType {
+    NONE        = uint(CellType::NONE),
+    SCATTER     = uint(CellType::SCATTER),
+    CORRELATION = uint(CellType::CORRELATION)
+  };
+
+  using CellObj          = CQChartsSummaryCellObj;
   using ScatterPlot      = CQChartsScatterPlot;
   using DistributionPlot = CQChartsDistributionPlot;
   using ParallelPlot     = CQChartsParallelPlot;
   using BoxPlot          = CQChartsBoxPlot;
   using PiePlot          = CQChartsPiePlot;
-  using CellObj          = CQChartsSummaryCellObj;
+  using PenBrush         = CQChartsPenBrush;
+  using PenData          = CQChartsPenData;
+  using Symbol           = CQChartsSymbol;
   using Length           = CQChartsLength;
+  using Color            = CQChartsColor;
+  using Alpha            = CQChartsAlpha;
   using ColorInd         = CQChartsUtil::ColorInd;
+  using MinMax           = CQChartsGeom::RMinMax;
 
  public:
   CQChartsSummaryPlot(View *view, const ModelP &model);
@@ -196,8 +244,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
-  const Length &symbolSize() const { return symbolSize_; }
-  void setSymbolSize(const Length &l);
+  Length calcScatterSymbolSize() const;
 
   //---
 
@@ -226,6 +273,10 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
+
+  //---
+
+  QString posStr(const Point &w) const override;
 
   //---
 
@@ -269,7 +320,21 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
+  bool pointSelect(const Point &p, SelMod selMod) override;
+  bool rectSelect(const BBox &r, SelMod selMod) override;
+
+  //---
+
   CellObj *selectedCellObj() const;
+
+  CellObj *cellObjAtPoint(const Point &p) const;
+
+  MinMax columnRange(const Column &c) const;
+
+  void clearColumnRanges();
+  void selectColumnRanges();
+
+  //---
 
   void expandCell(CellObj *cellObj);
   void collapseCell();
@@ -341,11 +406,13 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   bool bestFit_ { false };
   bool density_ { false };
 
-  Length symbolSize_ { Length::plot(0.03) }; //!< scatter symbol size
-
   CQChartsPlotObj* menuObj_ { nullptr }; //!< menu plot object
 
   ColumnVisible columnVisible_;
+
+  using ColumnRange = std::map<Column, MinMax>;
+
+  ColumnRange columnRange_;
 };
 
 //---
@@ -367,6 +434,11 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   int row() const { return row_; }
   int col() const { return col_; }
 
+  Column rowColumn() const;
+  Column colColumn() const;
+
+  Column visibleColumn(int i) const;
+
   QString typeName() const override { return "cell"; }
 
   QString calcId() const override;
@@ -376,6 +448,11 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   void draw(PaintDevice *device) const override;
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
+  CQChartsSummaryPlot::CellType getCellType() const;
+
+  Point plotToParent(const Point &w) const;
+  Point parentToPlot(const Point &p) const;
 
  private:
   void drawScatter     (PaintDevice *device) const;
@@ -410,18 +487,32 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   const SummaryPlot* summaryPlot_ { nullptr }; //!< parent plot
   int                row_         { -1 };      //!< row
   int                col_         { -1 };      //!< column
-  mutable Polygon    poly_;
   GroupValues        groupValues_;
-  mutable double     pxmin_       { 0.0 };
-  mutable double     pymin_       { 0.0 };
-  mutable double     pxmax_       { 1.0 };
-  mutable double     pymax_       { 1.0 };
-  mutable double     xmin_        { 0.0 };
-  mutable double     ymin_        { 0.0 };
-  mutable double     xmax_        { 1.0 };
-  mutable double     ymax_        { 1.0 };
-  mutable double     bmin_        { 0.0 };
-  mutable double     bmax_        { 1.0 };
+
+  mutable Polygon poly_;
+  mutable BBox    rangeBox_;
+
+  // border
+  mutable double bx_ { 0.0 };
+  mutable double by_ { 0.0 };
+
+  // child plot position in parent plot coords
+  mutable double pxmin_ { 0.0 };
+  mutable double pymin_ { 0.0 };
+  mutable double pxmax_ { 1.0 };
+  mutable double pymax_ { 1.0 };
+
+  // child plot data range
+  mutable double xmin_ { 0.0 };
+  mutable double ymin_ { 0.0 };
+  mutable double xmax_ { 1.0 };
+  mutable double ymax_ { 1.0 };
+
+  // bucket x min/max and max bucket height for child distribution plot
+  // min/max range for box plot
+  mutable double bmin_     { 0.0 };
+  mutable double bmax_     { 1.0 };
+  mutable int    maxCount_ { 1 };
 };
 
 //---
@@ -475,6 +566,8 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
   void densitySlot(int);
 
   void expandSlot();
+  void deselectSlot();
+  void selectSlot();
 
  protected:
   CQChartsSummaryPlot* summaryPlot_ { nullptr };
@@ -493,7 +586,9 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
   CQChartsSummaryPlotGroupStats*    stats_   { nullptr };
   CQChartsSummaryPlotColumnChooser* chooser_ { nullptr };
 
-  QPushButton *expandButton_ { nullptr };
+  QPushButton *expandButton_   { nullptr };
+  QPushButton *deselectButton_ { nullptr };
+  QPushButton *selectButton_   { nullptr };
 };
 
 //---

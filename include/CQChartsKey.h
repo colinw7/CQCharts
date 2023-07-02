@@ -325,6 +325,9 @@ class CQChartsPlotKey : public CQChartsKey {
   using KeyItem  = CQChartsKeyItem;
   using KeyItems = std::vector<KeyItem *>;
 
+  using PenData = CQChartsPenData;
+
+
  public:
   CQChartsPlotKey(Plot *plot);
  ~CQChartsPlotKey();

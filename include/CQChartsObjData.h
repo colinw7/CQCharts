@@ -1033,13 +1033,16 @@ Q_PROPERTY(Qt::TextElideMode LNAME##TextClipElide \
 template<class OBJ> \
 class CQChartsObj##UNAME##TextData { \
  public: \
-  using Color    = CQChartsColor; \
-  using Alpha    = CQChartsAlpha; \
-  using Font     = CQChartsFont; \
-  using Angle    = CQChartsAngle; \
-  using Length   = CQChartsLength; \
-  using ColorInd = CQChartsUtil::ColorInd; \
-  using TextData = CQChartsTextData; \
+  using Color     = CQChartsColor; \
+  using Alpha     = CQChartsAlpha; \
+  using Font      = CQChartsFont; \
+  using Angle     = CQChartsAngle; \
+  using Length    = CQChartsLength; \
+  using TextData  = CQChartsTextData; \
+  using PenBrush  = CQChartsPenBrush; \
+  using PenData   = CQChartsPenData; \
+  using BrushData = CQChartsBrushData; \
+  using ColorInd  = CQChartsUtil::ColorInd; \
 \
  public: \
   using Invalidator = CQChartsInvalidator; \
@@ -1145,6 +1148,12 @@ class CQChartsObj##UNAME##TextData { \
 \
   void set##UNAME##TextData(const TextData &data) { \
     LNAME##TextData_ = data; LNAME##TextDataInvalidate(); \
+  } \
+\
+  void set##UNAME##TextPenBrush(PenBrush &penBrush, const ColorInd &ind) const { \
+    LNAME##TextDataObj_->setPenBrush(penBrush, \
+      PenData(true, interp##UNAME##TextColor(ind), LNAME##TextAlpha()), \
+      BrushData(false)); \
   } \
 \
   CQChartsTextOptions LNAME##TextOptions(CQChartsPaintDevice *device=nullptr) const { \

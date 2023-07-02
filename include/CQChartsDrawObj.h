@@ -3,6 +3,7 @@
 
 #include <CQChartsGeom.h>
 #include <CQChartsPenBrush.h>
+#include <CQChartsTextOptions.h>
 
 class CQChartsPaintDevice;
 
@@ -63,18 +64,23 @@ class CQChartsDrawRect : public CQChartsDrawObj {
 
 class CQChartsDrawText : public CQChartsDrawObj {
  public:
+  using TextOptions = CQChartsTextOptions;
+
+ public:
   CQChartsDrawText(const Point &p, const QString &str, const QFont &font,
-                   const PenBrush &penBrush, bool scale=true);
+                   const PenBrush &penBrush, const TextOptions &textOptions,
+                   bool scale=true);
 
   BBox calcBBox(PaintDevice *device) const override;
 
   void drawContents(PaintDevice *device) override;
 
  protected:
-  Point   p_;
-  QString str_;
-  QFont   font_;
-  bool    fontScale_ { true };
+  Point       p_;
+  QString     str_;
+  QFont       font_;
+  bool        fontScale_ { true };
+  TextOptions textOptions_;
 };
 
 #endif

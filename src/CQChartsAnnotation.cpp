@@ -8249,8 +8249,10 @@ drawPie(PaintDevice *device, const QPen &pen)
 
   auto bbox = rectangle_.bbox();
 
+  CQChartsPenBrush penBrush(pen, QBrush());
+
   CQChartsPlotDrawUtil::drawPie(const_cast<CQChartsPlot *>(plot()), device,
-                                values, bbox, calcPalette(), pen);
+                                values, bbox, calcPalette(), penBrush);
 }
 
 // draw radar
@@ -8273,8 +8275,10 @@ drawTreeMap(PaintDevice *device, const QPen &pen)
 
   auto bbox = rectangle_.bbox();
 
+  CQChartsPenBrush penBrush(pen, QBrush());
+
   CQChartsPlotDrawUtil::drawTreeMap(const_cast<CQChartsPlot *>(plot()), device,
-                                    values, bbox, calcPalette(), pen);
+                                    values, bbox, calcPalette(), penBrush);
 }
 
 // draw factor

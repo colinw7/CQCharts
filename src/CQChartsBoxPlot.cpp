@@ -556,8 +556,8 @@ addProperties()
   addProp("labels", "textVisible", "visible", "Value labels visible");
 
   addTextProperties("labels/text", "text", "Value", CQChartsTextOptions::ValueType::CONTRAST |
-      CQChartsTextOptions::ValueType::CLIP_LENGTH |
-      CQChartsTextOptions::ValueType::CLIP_ELIDE);
+                    CQChartsTextOptions::ValueType::CLIP_LENGTH |
+                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
   addProp("labels", "textMargin", "margin", "Value text margin in pixels")->setMinValue(0.0);
 

@@ -1431,3 +1431,9 @@
  + improve meta data handling
 # 2/27/2023
  + add support for annotation obj ref in tcl commands and improve string syntax
+# 6/30/2023
+ + improve sankey plot depth calc
+ + add align all to src/dest depth
+# 7/2/2023
+ + add range selection to summary plot
+ + add more styling to summary plot

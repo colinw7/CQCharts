@@ -747,11 +747,11 @@ draw(PaintDevice *device) const
   if (isInside() && nv > 1) {
     if      (gridPlot_->drawType() == CQChartsGridPlot::DrawType::PIE) {
       CQChartsPlotDrawUtil::drawPie(const_cast<CQChartsGridPlot *>(gridPlot_), device,
-                                    values_, cellRect, cellPalette, penBrush.pen);
+                                    values_, cellRect, cellPalette, penBrush);
     }
     else if (gridPlot_->drawType() == CQChartsGridPlot::DrawType::TREEMAP) {
       CQChartsPlotDrawUtil::drawTreeMap(const_cast<CQChartsGridPlot *>(gridPlot_), device,
-                                        values_, cellRect, cellPalette, penBrush.pen);
+                                        values_, cellRect, cellPalette, penBrush);
     }
 
     //---

@@ -1343,7 +1343,7 @@ void
 drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c,
            const Length &xsize, const Length &ysize, bool scale)
 {
-  if (! xsize.isValid() || ! ysize.isValid())
+  if (! symbol.isValid() || ! xsize.isValid() || ! ysize.isValid())
     return;
 
   CQChartsPlotSymbolRenderer srenderer(device, c, xsize, ysize);

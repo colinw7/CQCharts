@@ -4530,7 +4530,7 @@ drawTreeMap(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush) con
     values.addValue(r);
 
   CQChartsPlotDrawUtil::drawTreeMap(const_cast<CQChartsPlot *>(plot()), device, values,
-                                    bbox, distributionPlot_->defaultPalette(), penBrush.pen);
+                                    bbox, distributionPlot_->defaultPalette(), penBrush);
 }
 
 void
