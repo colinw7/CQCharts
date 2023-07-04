@@ -18,6 +18,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
 #include <CQChartsFitData.h>
+#include <CQChartsRotatedText.h>
 
 #include <CQChartsScatterPlot.h>
 #include <CQChartsDistributionPlot.h>
@@ -88,9 +89,23 @@ description() const
   return CQChartsHtml().
    h2("Table Plot").
     h3("Summary").
-     p("Draws summary of columns in grid.").
+     p("Draws summary plots of multiple column datas in a grid.").
+     p("Each off diagonal plot is a 2d plot of associated columns for grid "
+       "column (x) and grid row (y).").
+     p("Each diagonal plot is a 1d plot of column grid column/row.").
+    h3("Customization").
+     p("The plot types for the diagonal, upper off diagonal and lower off diagonal "
+       " can be customized from a selection of 1d and 2d plot types.").
+     p("The appearance of each plot type can be configured.").
+    h3("Functionality").
+     p("Selecting a plot and pushing in displays the associated data in the a "
+       "single plot of the specified type").
+     p("Selecting a range in a plot will define a data range for the associated column(s) "
+       "and select associated data in that range.").
+     p("The filtered values for each columns can be cross selected back to the model.").
     h3("Limitations").
-     p("None.").
+     p("The summary plots have limted functionality compared to the associated "
+       "expanded plot of the associated type.").
     h3("Example").
      p(IMG("images/summary_plot.png"));
 }
@@ -1038,7 +1053,17 @@ execDrawBackground(PaintDevice *device) const
     if (isXLabels()) {
       setPainterFont(device, xLabelTextFont());
 
-      auto tsize = CQChartsDrawUtil::calcTextSize(str, device->font(), CQChartsTextOptions());
+      auto textOptions = xLabelTextOptions(device);
+
+      textOptions.clipLength = lengthPixelWidth(Length::plot(1.0));
+      textOptions.clipped    = false;
+
+      textOptions = adjustTextOptions(textOptions);
+
+      //---
+
+    //auto tsize = CQChartsDrawUtil::calcTextSize(str, device->font(), textOptions);
+      auto tsize = CQChartsRotatedText::calcBBox(0.0, 0.0, str, device->font(), textOptions).size();
 
       //---
 
@@ -1053,19 +1078,11 @@ execDrawBackground(PaintDevice *device) const
 
       auto thh = pixelToWindowHeight(tsize.height());
 
-      Point p1(bbox.getXMid(), -thh/2.0);
-
-      auto textOptions = xLabelTextOptions(device);
-
-    //textOptions.angle      = Angle();
-      textOptions.clipLength = lengthPixelWidth(Length::plot(1.0));
-      textOptions.clipped    = false;
-
-      textOptions = adjustTextOptions(textOptions);
+      auto tbbox = BBox(bbox.getXMin(), -thh, bbox.getXMax(), 0.0);
 
       //---
 
-      CQChartsDrawUtil::drawTextAtPoint(device, p1, str, textOptions);
+      CQChartsDrawUtil::drawTextInBox(device, tbbox, str, textOptions);
     }
 
     //---
@@ -1073,7 +1090,17 @@ execDrawBackground(PaintDevice *device) const
     if (isYLabels()) {
       setPainterFont(device, yLabelTextFont());
 
-      auto tsize = CQChartsDrawUtil::calcTextSize(str, device->font(), CQChartsTextOptions());
+      auto textOptions = yLabelTextOptions(device);
+
+      textOptions.clipLength = lengthPixelWidth(Length::plot(1.0));
+      textOptions.clipped    = false;
+
+      textOptions = adjustTextOptions(textOptions);
+
+      //---
+
+    //auto tsize = CQChartsDrawUtil::calcTextSize(str, device->font(), textOptions);
+      auto tsize = CQChartsRotatedText::calcBBox(0.0, 0.0, str, device->font(), textOptions).size();
 
       //---
 
@@ -1088,19 +1115,11 @@ execDrawBackground(PaintDevice *device) const
 
       auto thw = pixelToWindowWidth(tsize.height());
 
-      Point p2(-thw/2.0, bbox.getYMid());
-
-      auto textOptions = yLabelTextOptions(device);
-
-    //textOptions.angle      = Angle(90.0);
-      textOptions.clipLength = lengthPixelWidth(Length::plot(1.0));
-      textOptions.clipped    = false;
-
-      textOptions = adjustTextOptions(textOptions);
+      auto tbbox = BBox(-thw, bbox.getYMin(), 0.0, bbox.getYMax());
 
       //---
 
-      CQChartsDrawUtil::drawTextAtPoint(device, p2, str, textOptions);
+      CQChartsDrawUtil::drawTextInBox(device, tbbox, str, textOptions);
     }
   }
 }
@@ -1111,16 +1130,16 @@ CQChartsGeom::BBox
 CQChartsSummaryPlot::
 fitBBox() const
 {
-  auto font = view()->viewFont(this->font());
+  auto xfont = view()->viewFont(xLabelTextFont());
+  auto yfont = view()->viewFont(yLabelTextFont());
 
-  auto tsize = CQChartsDrawUtil::calcTextSize("X", font, CQChartsTextOptions());
-
-  auto thw = pixelToWindowWidth (tsize.height());
-  auto thh = pixelToWindowHeight(tsize.height());
+  auto xTextOptions = xLabelTextOptions();
+  auto yTextOptions = yLabelTextOptions();
 
   //---
 
-  double maxWidth = 0.0;
+  double maxWidth  = 0.0;
+  double maxHeight = 0.0;
 
   int nc = visibleColumns().count();
 
@@ -1130,21 +1149,24 @@ fitBBox() const
     bool ok;
     auto str = modelHHeaderString(column, ok);
 
-    auto font = view()->viewFont(xLabelTextFont());
+  //auto xtsize = CQChartsDrawUtil::calcTextSize(str, xfont, xTextOptions);
+    auto xtsize = CQChartsRotatedText::calcBBox(0.0, 0.0, str, xfont, xTextOptions).size();
 
-    auto tsize = CQChartsDrawUtil::calcTextSize(str, font, CQChartsTextOptions());
+  //auto ytsize = CQChartsDrawUtil::calcTextSize(str, yfont, yTextOptions);
+    auto ytsize = CQChartsRotatedText::calcBBox(0.0, 0.0, str, yfont, yTextOptions).size();
 
-    maxWidth = std::max(maxWidth, pixelToWindowWidth(tsize.width()));
+    maxWidth  = std::max(maxWidth , pixelToWindowWidth (ytsize.width ()));
+    maxHeight = std::max(maxHeight, pixelToWindowHeight(xtsize.height()));
   }
 
-  if (maxWidth > 1.0)
-    maxWidth = 1.0;
+  if (maxWidth  > 1.0) maxWidth  = 1.0;
+  if (maxHeight > 1.0) maxHeight = 1.0;
 
   //---
 
   auto bbox = CQChartsPlot::fitBBox();
 
-  bbox += Point(-maxWidth - thw/2.0, -thh - thh/2.0);
+  bbox += Point(-maxWidth, -maxHeight);
 
   return bbox;
 }

@@ -726,13 +726,17 @@ addFrameSpacer(FrameData &frameData, bool nextRow)
 
   spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-  frameData.grid->addWidget(spacer, frameData.row, frameData.col++);
+  if (frameData.grid) {
+    frameData.grid->addWidget(spacer, frameData.row, frameData.col++);
 
-  if (nextRow) {
-    frameData.col = 0;
+    if (nextRow) {
+      frameData.col = 0;
 
-    ++frameData.row;
+      ++frameData.row;
+    }
   }
+  else
+    frameData.box->addWidget(spacer);
 }
 
 void
