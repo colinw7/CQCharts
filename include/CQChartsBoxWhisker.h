@@ -57,7 +57,7 @@ class CQChartsBoxWhiskerT {
   }
 
   void addValues(std::initializer_list<VALUE> values) {
-    for (auto value : values)
+    for (const auto &value : values)
       values_.push_back(value);
 
     invalidate();
@@ -151,7 +151,7 @@ class CQChartsBoxWhiskerT {
 
     int n = 0;
 
-    for (auto v : values_) {
+    for (const auto &v : values_) {
       if (statData_.isOutlier(v))
         outliers_.push_back(n);
 
@@ -466,8 +466,9 @@ struct PointData {
 
 void drawWhisker(PaintDevice *device, const BoxWhisker &whisker, const BBox &bbox,
                  const DrawData &drawData, PointData &pointData);
-void drawWhisker(PaintDevice *device, const CQStatData &data, const std::vector<double> &outliers,
-                 const BBox &bbox, const DrawData &drawData, PointData &pointData);
+void drawWhisker(PaintDevice *device, const CQStatData &data,
+                 const std::vector<double> &outliers, const BBox &bbox,
+                 const DrawData &drawData, PointData &pointData);
 
 void drawWhiskerBar(PaintDevice *device, const CQStatData &data, double pos,
                     const Qt::Orientation &orientation, double ww, double bw,

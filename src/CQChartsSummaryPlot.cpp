@@ -1722,7 +1722,6 @@ drawScatter(PaintDevice *device) const
 
     CQChartsDrawUtil::drawSymbol(device, penBrush1, symbol1, ps, symbolSize, /*scale*/true);
 
-
     //---
 
     // highlight selected
@@ -2075,6 +2074,8 @@ void
 CQChartsSummaryCellObj::
 drawDistribution(PaintDevice *device) const
 {
+  using MinMax = CQChartsSummaryPlot::MinMax;
+
   CQPerfTrace trace("CQChartsSummaryCellObj::drawDistribution");
 
   //---
@@ -2159,7 +2160,22 @@ drawDistribution(PaintDevice *device) const
 
       BBox bbox(x1, y1, x2, y2);
 
-      CQChartsDrawUtil::setPenBrush(device, penBrush1);
+      //---
+
+      PenBrush penBrush2 = penBrush1;
+
+      if (rangeBox_.isSet()) {
+        MinMax r1(rangeBox_.getXMin(), rangeBox_.getXMax());
+        MinMax r2(rmin1, rmax1);
+
+        if (r1.overlaps(r2))
+          summaryPlot_->updatePenBrushState(ColorInd(), penBrush2,
+                                            /*selected*/true, /*inside*/false);
+      }
+
+      //---
+
+      CQChartsDrawUtil::setPenBrush(device, penBrush2);
 
       drawRect(bbox);
 
@@ -2278,7 +2294,7 @@ drawDensity(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  // TODO: condig ?
+  // TODO: config ?
   summaryPlot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.5)), BrushData(false));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
@@ -2844,11 +2860,13 @@ updateWidgets()
   //---
 
   if (! summaryPlot_->isExpanded()) {
-    expandButton_->setText("Expand Selected Plot");
+    expandButton_->setText("Expand");
+    expandButton_->setToolTip("Expand Selected Plot");
     expandButton_->setEnabled(summaryPlot_->selectedCellObj());
   }
   else {
-    expandButton_->setText("Collapse back to Summary");
+    expandButton_->setText("Collapse");
+    expandButton_->setToolTip("Collapse back to Summary");
     expandButton_->setEnabled(true);
   }
 

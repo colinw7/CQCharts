@@ -244,7 +244,6 @@ showHideStyleItemsSlot(bool b)
   setShowStyleItems(b);
 }
 
-
 void
 CQChartsPropertyViewTree::
 initEditor(QWidget *w)

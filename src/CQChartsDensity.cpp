@@ -342,8 +342,7 @@ connectDataChanged(const QObject *obj, const char *slotName) const
 
 void
 CQChartsDensity::
-draw(const CQChartsPlot *plot, PaintDevice *device, const BBox &rect,
-     const DrawData &drawData)
+draw(const Plot *plot, PaintDevice *device, const BBox &rect, const DrawData &drawData)
 {
   constInit();
 
@@ -509,7 +508,7 @@ drawDistribution(const Plot *plot, PaintDevice *device, const BBox &rect,
 
 void
 CQChartsDensity::
-calcDistributionPoly(Polygon &poly, const CQChartsPlot *plot, const BBox &rect,
+calcDistributionPoly(Polygon &poly, const Plot *plot, const BBox &rect,
                      const Qt::Orientation &orientation, const CQChartsWhiskerOpts &opts) const
 {
   assert(rect.isSet());

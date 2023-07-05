@@ -147,7 +147,7 @@ drawContents(PaintDevice *device)
 
   auto p = Point(sbbox_.getXMid(), sbbox_.getYMid());
 
-  auto textOptions = textOptions_;;
+  auto textOptions = textOptions_;
 
   textOptions.align = Qt::AlignHCenter | Qt::AlignVCenter;
 

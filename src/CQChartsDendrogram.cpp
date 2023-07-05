@@ -795,7 +795,6 @@ moveNode(Node *node, double d)
   node->setRow(node->row() - d);
 }
 
-
 // place node (set depth, row and number of rows)
 void
 CQChartsDendrogram::

@@ -459,6 +459,7 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   using Length    = CQChartsLength;
   using Area      = CQChartsArea;
   using Color     = CQChartsColor;
+  using PenBrush  = CQChartsPenBrush;
   using PenData   = CQChartsPenData;
   using BrushData = CQChartsBrushData;
   using ColorInd  = CQChartsUtil::ColorInd;

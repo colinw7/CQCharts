@@ -327,7 +327,6 @@ class CQChartsPlotKey : public CQChartsKey {
 
   using PenData = CQChartsPenData;
 
-
  public:
   CQChartsPlotKey(Plot *plot);
  ~CQChartsPlotKey();

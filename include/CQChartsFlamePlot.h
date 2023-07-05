@@ -177,7 +177,6 @@ class CQChartsFlamePlot : public CQChartsGroupPlot,
   virtual CQChartsFlameBarObj *createBarObj(const BBox &rect, const QModelIndex &ind,
                                             const ColorInd &ig, const ColorInd &iv) const;
 
-
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;
 

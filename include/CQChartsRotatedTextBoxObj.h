@@ -16,6 +16,7 @@ class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
   using TextOptions = CQChartsTextOptions;
   using Length      = CQChartsLength;
   using Angle       = CQChartsAngle;
+  using PenBrush    = CQChartsPenBrush;
   using ColorInd    = CQChartsUtil::ColorInd;
 
  public:

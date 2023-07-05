@@ -42,6 +42,8 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   using BoxObj      = CQChartsBoxObj;
   using PaintDevice = CQChartsPaintDevice;
   using PenBrush    = CQChartsPenBrush;
+  using PenData     = CQChartsPenData;
+  using BrushData   = CQChartsBrushData;
   using Font        = CQChartsFont;
   using Angle       = CQChartsAngle;
   using Alpha       = CQChartsAlpha;

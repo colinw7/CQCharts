@@ -1428,11 +1428,11 @@ drawRowNodeLabelStr(PaintDevice *device, const Point &p, const QString &str, int
   //---
 
   // draw text
-  auto tc = interpTextColor(ColorInd());
+  PenBrush tpenBrush;
 
-  PenData penData(true, tc, textAlpha());
+  setTextPenBrush(tpenBrush, ColorInd());
 
-  setPen(device, penData);
+  CQChartsDrawUtil::setPenBrush(device, tpenBrush);
 
   //--
 
@@ -1503,11 +1503,11 @@ drawColNodeLabelStr(PaintDevice *device, const Point &p, const QString &str, int
   //---
 
   // draw text
-  auto tc = interpTextColor(ColorInd());
+  PenBrush tpenBrush;
 
-  PenData penData(true, tc, textAlpha());
+  setTextPenBrush(tpenBrush, ColorInd());
 
-  setPen(device, penData);
+  CQChartsDrawUtil::setPenBrush(device, tpenBrush);
 
   //--
 

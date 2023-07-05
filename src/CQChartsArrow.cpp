@@ -591,7 +591,6 @@ drawContents(PaintDevice *device, const Point &from, const Point &to,
     drawLine(device, endPoint, tailData.tipPoint2, strokeWidth1, penBrush);
   }
 
-
   if (midData.isLineEnds && ! linePoly) {
     drawLine(device, midData.headMid, midData.tipPoint1, strokeWidth1, penBrush);
     drawLine(device, midData.headMid, midData.tipPoint2, strokeWidth1, penBrush);

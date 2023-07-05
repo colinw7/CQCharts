@@ -240,7 +240,6 @@ class CQChartsGanttPlot : public CQChartsGroupPlot,
   virtual CQChartsGanttBarObj *createBarObj(const BBox &rect, const QModelIndex &ind,
                                             const ColorInd &ig, const ColorInd &iv) const;
 
-
  protected:
   CQChartsPlotCustomControls *createCustomControls() override;
 

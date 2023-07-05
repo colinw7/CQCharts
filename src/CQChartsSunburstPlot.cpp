@@ -408,7 +408,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsSunburstPlot::calcRange");
 
-  // fixed range (-1,-1 to 1,1)
+  // fixed range (-1, -1 to 1, 1)
   Range dataRange;
 
   double r = 1.0;

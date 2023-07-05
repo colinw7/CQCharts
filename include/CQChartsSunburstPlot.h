@@ -353,6 +353,7 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   using Angle     = CQChartsAngle;
   using Length    = CQChartsLength;
   using Color     = CQChartsColor;
+  using PenBrush  = CQChartsPenBrush;
   using PenData   = CQChartsPenData;
   using BrushData = CQChartsBrushData;
   using ColorInd  = CQChartsUtil::ColorInd;

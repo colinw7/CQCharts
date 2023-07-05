@@ -841,13 +841,16 @@ Q_PROPERTY(Qt::TextElideMode textClipElide     READ textClipElide     WRITE setT
 template<class OBJ>
 class CQChartsObjTextData {
  public:
-  using Color    = CQChartsColor;
-  using Alpha    = CQChartsAlpha;
-  using Font     = CQChartsFont;
-  using Angle    = CQChartsAngle;
-  using Length   = CQChartsLength;
-  using ColorInd = CQChartsUtil::ColorInd;
-  using TextData = CQChartsTextData;
+  using Color     = CQChartsColor;
+  using Alpha     = CQChartsAlpha;
+  using Font      = CQChartsFont;
+  using Angle     = CQChartsAngle;
+  using Length    = CQChartsLength;
+  using TextData  = CQChartsTextData;
+  using PenBrush  = CQChartsPenBrush;
+  using PenData   = CQChartsPenData;
+  using BrushData = CQChartsBrushData;
+  using ColorInd  = CQChartsUtil::ColorInd;
 
  public:
   using Invalidator = CQChartsInvalidator;
@@ -959,6 +962,12 @@ class CQChartsObjTextData {
   void setTextData(const TextData &data) {
     textData_ = data; textDataInvalidate();
   };
+
+  void setTextPenBrush(PenBrush &penBrush, const ColorInd &ind) const {
+    textDataObj_->setPenBrush(penBrush,
+      PenData(true, interpTextColor(ind), textAlpha()),
+      BrushData(false));
+  }
 
   CQChartsTextOptions textOptions(CQChartsPaintDevice *device=nullptr) const {
     CQChartsTextOptions textOptions;

@@ -310,7 +310,7 @@ QColor bwColor(const QColor &c) {
   return (g > 128 ? QColor(Qt::black) : QColor(Qt::white));
 }
 
-// get inverted color (r,g,b only)
+// get inverted color (r, g, b only)
 QColor invColor(const QColor &c) {
   return QColor(255 - c.red(), 255 - c.green(), 255 - c.blue(), c.alpha());
 }

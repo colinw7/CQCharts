@@ -125,6 +125,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   using ObjRefPos   = CQChartsObjRefPos;
   using Units       = CQChartsUnits::Type;
   using Alpha       = CQChartsAlpha;
+  using PenBrush    = CQChartsPenBrush;
+  using PenData     = CQChartsPenData;
+  using BrushData   = CQChartsBrushData;
   using PaletteName = CQChartsPaletteName;
   using OptReal     = CQChartsOptReal;
   using ModelIndex  = CQChartsModelIndex;
