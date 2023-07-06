@@ -4,8 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + summary plot selection range (per diagonal)
-   + general selection range on plot ?
+ + summary plot optional axes for scatter/distrib/...
 
  + model variable list (old values) to allow query/undo
 

@@ -229,6 +229,9 @@ init()
 
   //---
 
+  setXLabelTextAngle(Angle::degrees(0));
+  setYLabelTextAngle(Angle::degrees(90));
+
   setScatterSymbol(Symbol::circle());
 
   setScatterSymbolStroked(true);
@@ -259,6 +262,16 @@ init()
   // left, top, right, bottom
   setOuterMargin(PlotMargin(Length::plot(0.1), Length::plot(0.1),
                             Length::plot(0.1), Length::plot(0.1)));
+
+  //---
+
+  addAxes();
+
+  xAxis()->setAxesTickLabelTextFont(CQChartsFont().decFontSize(8));
+  xAxis()->setAxesTickLabelTextAngle(Angle::degrees(90));
+
+  yAxis()->setAxesTickLabelTextFont(CQChartsFont().decFontSize(8));
+  yAxis()->setAxesTickLabelTextAngle(Angle::degrees(0));
 }
 
 void
@@ -839,8 +852,8 @@ rectSelect(const BBox &r, SelMod)
   auto cellType = obj->getCellType();
 
   if      (cellType == CellType::SCATTER) {
-    auto column1 = obj->rowColumn();
-    auto column2 = obj->colColumn();
+    auto column1 = obj->colColumn();
+    auto column2 = obj->rowColumn();
 
     columnRange_[column1] = MinMax(r1.getXMin(), r1.getXMax());
     columnRange_[column2] = MinMax(r1.getYMin(), r1.getYMax());
@@ -1388,8 +1401,8 @@ calcTipId() const
   // off diagonal
   if (row_ != col_) {
     // column info
-    auto column1 = rowColumn();
-    auto column2 = colColumn();
+    auto column1 = colColumn();
+    auto column2 = rowColumn();
 
     bool ok;
     auto xtip = summaryPlot_->modelHHeaderTip(column1, ok);
@@ -1494,8 +1507,8 @@ draw(PaintDevice *device) const
   rangeBox_ = BBox();
 
   if (row_ != col_) {
-    auto column1 = rowColumn();
-    auto column2 = colColumn();
+    auto column1 = colColumn();
+    auto column2 = rowColumn();
 
     auto range1 = summaryPlot_->columnRange(column1);
     auto range2 = summaryPlot_->columnRange(column2);
@@ -1543,6 +1556,16 @@ draw(PaintDevice *device) const
 
   //---
 
+  nc_ = summaryPlot_->visibleColumns().count();
+
+  if (row_ == nc_ - 1)
+    drawXAxis(device);
+
+  if (col_ == nc_ - 1)
+    drawYAxis(device);
+
+  //---
+
   auto cellType = getCellType();
 
   if      (cellType == CQChartsSummaryPlot::CellType::SCATTER)
@@ -1555,6 +1578,76 @@ draw(PaintDevice *device) const
     drawDistribution(device);
   else if (cellType == CQChartsSummaryPlot::CellType::PIE)
     drawPie(device);
+}
+
+void
+CQChartsSummaryCellObj::
+drawXAxis(PaintDevice *device) const
+{
+  auto column = colColumn();
+
+  auto *details = summaryPlot_->columnDetails(column);
+  if (! details) return;
+
+  if (details->isNumeric()) {
+    bool ok;
+    xmin_ = CQChartsVariant::toReal(details->minValue(), ok);
+    xmax_ = CQChartsVariant::toReal(details->maxValue(), ok);
+  }
+  else {
+    xmin_ = 0.0;
+    xmax_ = details->numUnique();
+  }
+
+  //---
+
+  auto *xaxis = summaryPlot_->xAxis();
+
+  xaxis->setUpdatesEnabled(false);
+
+  xaxis->setPosition(CQChartsAxis::OptReal(row_ + 1));
+  xaxis->setRange(pxmin_, pxmax_);
+  xaxis->setValueRange(xmin_, xmax_);
+  xaxis->setSide(CQChartsAxis::AxisSide(CQChartsAxis::AxisSide::Type::TOP_RIGHT));
+
+  xaxis->setUpdatesEnabled(true);
+
+  xaxis->draw(summaryPlot_, device);
+}
+
+void
+CQChartsSummaryCellObj::
+drawYAxis(PaintDevice *device) const
+{
+  auto column = rowColumn();
+
+  auto *details = summaryPlot_->columnDetails(column);
+  if (! details) return;
+
+  if (details->isNumeric()) {
+    bool ok;
+    ymin_ = CQChartsVariant::toReal(details->minValue(), ok);
+    ymax_ = CQChartsVariant::toReal(details->maxValue(), ok);
+  }
+  else {
+    ymin_ = 0.0;
+    ymax_ = details->numUnique();
+  }
+
+  //---
+
+  auto *yaxis = summaryPlot_->yAxis();
+
+  yaxis->setUpdatesEnabled(false);
+
+  yaxis->setPosition(CQChartsAxis::OptReal(col_ + 1));
+  yaxis->setRange(pymin_, pymax_);
+  yaxis->setValueRange(ymin_, ymax_);
+  yaxis->setSide(CQChartsAxis::AxisSide(CQChartsAxis::AxisSide::Type::TOP_RIGHT));
+
+  yaxis->setUpdatesEnabled(true);
+
+  yaxis->draw(summaryPlot_, device);
 }
 
 CQChartsSummaryPlot::CellType
@@ -1610,8 +1703,8 @@ drawScatter(PaintDevice *device) const
 
   //---
 
-  auto column1 = rowColumn();
-  auto column2 = colColumn();
+  auto column1 = colColumn();
+  auto column2 = rowColumn();
 
   auto *details1 = summaryPlot_->columnDetails(column1);
   auto *details2 = summaryPlot_->columnDetails(column2);
@@ -1623,8 +1716,6 @@ drawScatter(PaintDevice *device) const
   int ng = (groupDetails ? groupDetails->numUnique() : 0);
 
   //---
-
-  int nc = summaryPlot_->visibleColumns().count();
 
   if (details1->isNumeric()) {
     bool ok;
@@ -1657,7 +1748,7 @@ drawScatter(PaintDevice *device) const
 
   PenBrush penBrush;
 
-  ColorInd colorInd(row_, nc);
+  ColorInd colorInd(row_, nc_);
 
   summaryPlot_->setScatterSymbolPenBrush(penBrush, colorInd);
 
@@ -1830,8 +1921,8 @@ drawCorrelation(PaintDevice *device) const
 
   //---
 
-  auto column1 = rowColumn();
-  auto column2 = colColumn();
+  auto column1 = colColumn();
+  auto column2 = rowColumn();
 
   auto *details1 = summaryPlot_->columnDetails(column1);
   auto *details2 = summaryPlot_->columnDetails(column2);
@@ -1959,13 +2050,11 @@ drawBoxPlot(PaintDevice *device) const
 
   BBox bbox(pxmin_, pymin_, pxmax_, pymax_);
 
-  int nc = summaryPlot_->visibleColumns().count();
-
   //---
 
   PenBrush penBrush;
 
-  ColorInd colorInd(row_, nc);
+  ColorInd colorInd(row_, nc_);
 
   auto bc = summaryPlot_->interpBoxPlotStrokeColor(colorInd);
   auto fc = summaryPlot_->interpBoxPlotFillColor  (colorInd);
@@ -2087,13 +2176,11 @@ drawDistribution(PaintDevice *device) const
 
   bool isGroup = (summaryPlot_->groupColumn() == column);
 
-  int nc = summaryPlot_->visibleColumns().count();
-
   //---
 
   PenBrush penBrush;
 
-  ColorInd colorInd(row_, nc);
+  ColorInd colorInd(row_, nc_);
 
   auto bc = summaryPlot_->interpDistributionStrokeColor(colorInd);
   auto fc = summaryPlot_->interpDistributionFillColor  (colorInd);
@@ -2325,13 +2412,11 @@ drawPie(PaintDevice *device) const
   auto *details = summaryPlot_->columnDetails(column);
   if (! details) return;
 
-  int nc = summaryPlot_->visibleColumns().count();
-
   //---
 
   PenBrush penBrush;
 
-  ColorInd colorInd(row_, nc);
+  ColorInd colorInd(row_, nc_);
 
   auto bc = summaryPlot_->interpPieStrokeColor(colorInd);
   auto fc = summaryPlot_->interpPieFillColor  (colorInd);
@@ -2433,8 +2518,8 @@ initGroupedValues()
   int nr = groupDetails->numRows();
 
   if (row_ != col_) {
-    auto column1 = rowColumn();
-    auto column2 = colColumn();
+    auto column1 = colColumn();
+    auto column2 = rowColumn();
 
     auto *details1 = summaryPlot_->columnDetails(column1);
     auto *details2 = summaryPlot_->columnDetails(column2);

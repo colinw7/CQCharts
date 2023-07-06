@@ -219,7 +219,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //! get/set direction (TODO: allow set direction)
   Qt::Orientation direction() const { return direction_; }
-  void setDirection(Qt::Orientation dir) { direction_ = dir; updatePlotPosition(); }
+  void setDirection(Qt::Orientation dir);
 
   bool isHorizontal() const { return direction() == Qt::Horizontal; }
 
@@ -246,7 +246,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //! get/set side (horizontal: top/bottom, vertical bottom/top)
   AxisSide side() const { return side_; }
-  void setSide(AxisSide side) { side_ = side; updatePlotPosition(); }
+  void setSide(AxisSide side);
 
   //---
 
@@ -512,6 +512,8 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   bool contains(const Point &p) const override;
 
   //---
+
+  void optRedraw();
 
   void redraw(bool wait=true);
 

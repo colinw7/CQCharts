@@ -211,9 +211,21 @@ setView(const View *view)
 
 void
 CQChartsAxis::
+setDirection(Qt::Orientation dir)
+{
+  CQChartsUtil::testAndSet(direction_, dir, [&]() {
+    if (isUpdatesEnabled())
+      updatePlotPosition();
+  });
+}
+
+//----
+
+void
+CQChartsAxis::
 setVisible(bool b)
 {
-  CQChartsUtil::testAndSet(visible_, b, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(visible_, b, [&]() { optRedraw(); } );
 }
 
 void
@@ -584,7 +596,7 @@ void
 CQChartsAxis::
 setTickLabel(long i, const QString &label)
 {
-  CQChartsUtil::testAndSet(tickLabels_[i], label, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(tickLabels_[i], label, [&]() { optRedraw(); } );
 }
 
 bool
@@ -664,9 +676,21 @@ setCustomTickLabelsStr(const QString &str)
 
 void
 CQChartsAxis::
+setSide(AxisSide side)
+{
+  CQChartsUtil::testAndSet(side_, side, [&]() {
+    if (isUpdatesEnabled())
+      updatePlotPosition();
+  });
+}
+
+//---
+
+void
+CQChartsAxis::
 setPosition(const CQChartsOptReal &r)
 {
-  CQChartsUtil::testAndSet(position_, r, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(position_, r, [&]() { optRedraw(); } );
 }
 
 //---
@@ -675,14 +699,14 @@ void
 CQChartsAxis::
 setColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(column_, c, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(column_, c, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setDataLabels(bool b)
 {
-  CQChartsUtil::testAndSet(dataLabels_, b, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(dataLabels_, b, [&]() { optRedraw(); } );
 }
 
 //---
@@ -722,7 +746,7 @@ setFormat(const QString &formatStr)
     }
 #endif
 
-    redraw();
+    optRedraw();
   } );
 
   return true;
@@ -734,7 +758,7 @@ void
 CQChartsAxis::
 setMaxFitExtent(double r)
 {
-  CQChartsUtil::testAndSet(maxFitExtent_, r, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(maxFitExtent_, r, [&]() { optRedraw(); } );
 }
 
 //---
@@ -743,7 +767,7 @@ void
 CQChartsAxis::
 setLabel(const CQChartsOptString &str)
 {
-  CQChartsUtil::testAndSet(label_, str, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(label_, str, [&]() { optRedraw(); } );
 }
 
 void
@@ -751,7 +775,7 @@ CQChartsAxis::
 setLabelStr(const QString &str)
 {
   if (label_.stringOr() != str) {
-    label_.setString(str); redraw();
+    label_.setString(str); optRedraw();
   }
 }
 
@@ -763,7 +787,7 @@ setDefLabel(const QString &str, bool notify)
     label_.setDefValue(str);
 
     if (notify)
-      redraw();
+      optRedraw();
   }
 }
 
@@ -771,21 +795,21 @@ void
 CQChartsAxis::
 setUserLabel(const QString &str)
 {
-  CQChartsUtil::testAndSet(userLabel_, str, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(userLabel_, str, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setScaleLabelFont(bool b)
 {
-  CQChartsUtil::testAndSet(scaleLabelFont_, b, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(scaleLabelFont_, b, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setScaleLabelExtent(const Length &l)
 {
-  CQChartsUtil::testAndSet(scaleLabelExtent_, l, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(scaleLabelExtent_, l, [&]() { optRedraw(); } );
 }
 
 //---
@@ -794,14 +818,14 @@ void
 CQChartsAxis::
 setGridLinesDisplayed(const GridLinesDisplayed &d)
 {
-  CQChartsUtil::testAndSet(gridLinesDisplayed_, d, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(gridLinesDisplayed_, d, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setGridFillDisplayed(const GridFillDisplayed &d)
 {
-  CQChartsUtil::testAndSet(gridFillDisplayed_, d, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(gridFillDisplayed_, d, [&]() { optRedraw(); } );
 }
 
 //---
@@ -810,14 +834,14 @@ void
 CQChartsAxis::
 setGridMid(bool b)
 {
-  CQChartsUtil::testAndSet(gridMid_, b, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(gridMid_, b, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setGridAbove(bool b)
 {
-  CQChartsUtil::testAndSet(gridAbove_, b, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(gridAbove_, b, [&]() { optRedraw(); } );
 }
 
 //---
@@ -826,7 +850,7 @@ void
 CQChartsAxis::
 setTicksDisplayed(const TicksDisplayed &d)
 {
-  CQChartsUtil::testAndSet(ticksDisplayed_, d, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(ticksDisplayed_, d, [&]() { optRedraw(); } );
 }
 
 //---
@@ -835,28 +859,28 @@ void
 CQChartsAxis::
 setMajorTickLen(int i)
 {
-  CQChartsUtil::testAndSet(majorTickLen_, i, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(majorTickLen_, i, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setMinorTickLen(int i)
 {
-  CQChartsUtil::testAndSet(minorTickLen_, i, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(minorTickLen_, i, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setTickInside(bool b)
 {
-  CQChartsUtil::testAndSet(tickInside_, b, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(tickInside_, b, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setMirrorTicks(bool b)
 {
-  CQChartsUtil::testAndSet(mirrorTicks_, b, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(mirrorTicks_, b, [&]() { optRedraw(); } );
 }
 
 //---
@@ -865,7 +889,7 @@ void
 CQChartsAxis::
 setTickLabelAutoHide(bool b)
 {
-  CQChartsUtil::testAndSet(tickLabelAutoHide_, b, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(tickLabelAutoHide_, b, [&]() { optRedraw(); } );
 }
 
 //---
@@ -888,7 +912,7 @@ setTickLabelPlacement(const CQChartsAxisTickLabelPlacement &p)
   CQChartsUtil::testAndSet(tickLabelPlacement_, p, [&]() {
     Q_EMIT tickPlacementChanged();
 
-    redraw();
+    optRedraw();
   } );
 }
 
@@ -911,14 +935,14 @@ void
 CQChartsAxis::
 setAnnotation(bool b)
 {
-  CQChartsUtil::testAndSet(annotation_, b, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(annotation_, b, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setAllowHtmlLabels(bool b)
 {
-  CQChartsUtil::testAndSet(allowHtmlLabels_, b, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(allowHtmlLabels_, b, [&]() { optRedraw(); } );
 }
 
 //---
@@ -938,12 +962,19 @@ setValueType(const CQChartsAxisValueType &v, bool notify)
 
 void
 CQChartsAxis::
+optRedraw()
+{
+  if (isUpdatesEnabled())
+    redraw();
+}
+
+void
+CQChartsAxis::
 calcAndRedraw()
 {
   needsCalc_ = true;
 
-  if (isUpdatesEnabled())
-    redraw();
+  optRedraw();
 }
 
 void

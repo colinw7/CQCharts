@@ -11,6 +11,7 @@ class CQChartsDistributionPlot;
 class CQChartsParallelPlot;
 class CQChartsBoxPlot;
 class CQChartsPiePlot;
+class CQChartsAxis;
 
 //---
 
@@ -177,6 +178,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   using PenData          = CQChartsPenData;
   using Symbol           = CQChartsSymbol;
   using Length           = CQChartsLength;
+  using Angle            = CQChartsAngle;
   using Color            = CQChartsColor;
   using Alpha            = CQChartsAlpha;
   using ColorInd         = CQChartsUtil::ColorInd;
@@ -403,6 +405,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   BoxPlot*          boxPlot_          { nullptr };
   PiePlot*          piePlot_          { nullptr };
 
+  CQChartsAxis *xaxis_ { nullptr };
+  CQChartsAxis *yaxis_ { nullptr };
+
   bool bestFit_ { false };
   bool density_ { false };
 
@@ -455,6 +460,9 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   Point parentToPlot(const Point &p) const;
 
  private:
+  void drawXAxis(PaintDevice *device) const;
+  void drawYAxis(PaintDevice *device) const;
+
   void drawScatter     (PaintDevice *device) const;
   void drawBestFit     (PaintDevice *device) const;
   void drawCorrelation (PaintDevice *device) const;
@@ -491,6 +499,9 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
 
   mutable Polygon poly_;
   mutable BBox    rangeBox_;
+
+  // global
+  mutable int nc_ { 0 };
 
   // border
   mutable double bx_ { 0.0 };

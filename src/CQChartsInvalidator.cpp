@@ -14,9 +14,7 @@ invalidate(bool reload)
   auto *axis = qobject_cast<CQChartsAxis *>(obj_);
 
   if (axis) {
-    if (axis->isUpdatesEnabled())
-      axis->redraw();
-
+    axis->optRedraw();
     return;
   }
 
