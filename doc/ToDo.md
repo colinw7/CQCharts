@@ -4,7 +4,10 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + summary plot optional axes for scatter/distrib/...
+ + summary plot axis control.
+ + tick inside backwards for right/top
+
+ + show/hide plot in properties ?
 
  + model variable list (old values) to allow query/undo
 

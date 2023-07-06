@@ -13968,6 +13968,20 @@ execDrawBackground(PaintDevice *) const
 
 //---
 
+void
+CQChartsPlot::
+redrawAxis(CQChartsAxis *, bool wait)
+{
+  if (wait) {
+    drawBackground();
+    drawForeground();
+  }
+  else {
+    invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+    invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+  }
+}
+
 bool
 CQChartsPlot::
 hasGroupedBgAxes() const

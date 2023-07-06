@@ -153,8 +153,6 @@ init()
 
   masterAxis_ = std::make_unique<CQChartsAxis>(this, Qt::Vertical, 0.0, 1.0);
 
-  masterAxis_->setDrawAll(true);
-
   //--
 
   //addKey(); TODO
@@ -986,6 +984,16 @@ addMenuItems(QMenu *menu, const Point &)
 }
 
 //---
+
+void
+CQChartsParallelPlot::
+redrawAxis(CQChartsAxis *, bool wait)
+{
+  if (wait)
+    drawObjs();
+  else
+    invalidateLayers();
+}
 
 CQChartsGeom::BBox
 CQChartsParallelPlot::

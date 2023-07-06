@@ -2920,6 +2920,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual void execDrawBackground(PaintDevice *device) const;
 
+  // request axis redraw
+  virtual void redrawAxis(CQChartsAxis *axis, bool wait=true);
+
   // draw axes on background
   virtual bool hasGroupedBgAxes() const;
 

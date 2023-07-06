@@ -1141,26 +1141,8 @@ redraw(bool wait)
 {
   auto *plot = const_cast<Plot *>(this->plot());
 
-  if (plot) {
-    if (wait) {
-      if (isDrawAll()) {
-        plot->drawObjs();
-      }
-      else {
-        plot->drawBackground();
-        plot->drawForeground();
-      }
-    }
-    else {
-      if (isDrawAll()) {
-        plot->invalidateLayers();
-      }
-      else {
-        plot->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
-        plot->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
-      }
-    }
-  }
+  if (plot)
+    plot->redrawAxis(this, wait);
 
   Q_EMIT appearanceChanged();
 }
@@ -2032,10 +2014,17 @@ drawTickLine(const Plot *plot, PaintDevice *device,
 
     double adt1 = pixelToWindowHeight(plot, device, dt1);
 
-    if (inside)
-      device->drawLine(Point(pp.x, pp.y), Point(pp.x, pp.y + adt1));
+    if (inside) {
+      if (isWindowBottom)
+        device->drawLine(Point(pp.x, pp.y), Point(pp.x, pp.y + adt1));
+      else
+        device->drawLine(Point(pp.x, pp.y), Point(pp.x, pp.y - adt1));
+    }
     else {
-      device->drawLine(Point(pp.x, pp.y), Point(pp.x, pp.y - adt1));
+      if (isWindowBottom)
+        device->drawLine(Point(pp.x, pp.y), Point(pp.x, pp.y - adt1));
+      else
+        device->drawLine(Point(pp.x, pp.y), Point(pp.x, pp.y + adt1));
 
       Point p;
 
@@ -2061,10 +2050,17 @@ drawTickLine(const Plot *plot, PaintDevice *device,
 
     double adt1 = pixelToWindowWidth(plot, device, dt1);
 
-    if (inside)
-      device->drawLine(Point(pp.x, pp.y), Point(pp.x + adt1, pp.y));
+    if (inside) {
+      if (isWindowLeft)
+        device->drawLine(Point(pp.x, pp.y), Point(pp.x + adt1, pp.y));
+      else
+        device->drawLine(Point(pp.x, pp.y), Point(pp.x - adt1, pp.y));
+    }
     else {
-      device->drawLine(Point(pp.x, pp.y), Point(pp.x - adt1, pp.y));
+      if (isWindowLeft)
+        device->drawLine(Point(pp.x, pp.y), Point(pp.x - adt1, pp.y));
+      else
+        device->drawLine(Point(pp.x, pp.y), Point(pp.x + adt1, pp.y));
 
       Point p;
 

@@ -294,6 +294,8 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
+  void redrawAxis(CQChartsAxis *axis, bool wait) override;
+
   BBox axesFitBBox() const override;
 
   BBox calcExtraFitBBox() const override;

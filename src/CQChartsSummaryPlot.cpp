@@ -268,10 +268,12 @@ init()
   addAxes();
 
   xAxis()->setVisible(false);
+  xAxis()->setTickInside(true);
   xAxis()->setAxesTickLabelTextFont(CQChartsFont().decFontSize(8));
   xAxis()->setAxesTickLabelTextAngle(Angle::degrees(90));
 
   yAxis()->setVisible(false);
+  yAxis()->setTickInside(true);
   yAxis()->setAxesTickLabelTextFont(CQChartsFont().decFontSize(8));
   yAxis()->setAxesTickLabelTextAngle(Angle::degrees(0));
 }
@@ -339,8 +341,8 @@ updatePlots()
     parallelPlot_->setYColumns(Columns(Column::makeRow()));
 
   if (isExpanded() && (expandRow_ != expandCol_)) {
-    auto column1 = visibleColumns().getColumn(expandRow_);
-    auto column2 = visibleColumns().getColumn(expandCol_);
+    auto column1 = visibleColumns().getColumn(expandCol_);
+    auto column2 = visibleColumns().getColumn(expandRow_);
 
     scatterPlot_->setXColumn(column1);
     scatterPlot_->setYColumn(column2);
@@ -1141,6 +1143,16 @@ execDrawBackground(PaintDevice *device) const
 
 void
 CQChartsSummaryPlot::
+redrawAxis(CQChartsAxis *, bool wait)
+{
+  if (wait)
+    drawObjs();
+  else
+    invalidateLayers();
+}
+
+void
+CQChartsSummaryPlot::
 drawXAxis(PaintDevice *) const
 {
   // drawn by cell
@@ -1624,6 +1636,9 @@ drawXAxis(PaintDevice *device) const
 
   //---
 
+  auto clip = summaryPlot_->isDataClip();
+  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false);
+
   xaxis->setUpdatesEnabled(false);
 
   xaxis->setPosition(CQChartsAxis::OptReal(row_ + 1));
@@ -1634,6 +1649,8 @@ drawXAxis(PaintDevice *device) const
   xaxis->setUpdatesEnabled(true);
 
   xaxis->draw(summaryPlot_, device);
+
+  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(clip);
 }
 
 void
@@ -1662,6 +1679,9 @@ drawYAxis(PaintDevice *device) const
 
   //---
 
+  auto clip = summaryPlot_->isDataClip();
+  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false);
+
   yaxis->setUpdatesEnabled(false);
 
   yaxis->setPosition(CQChartsAxis::OptReal(col_ + 1));
@@ -1672,6 +1692,8 @@ drawYAxis(PaintDevice *device) const
   yaxis->setUpdatesEnabled(true);
 
   yaxis->draw(summaryPlot_, device);
+
+  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(clip);
 }
 
 CQChartsSummaryPlot::CellType

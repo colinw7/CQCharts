@@ -11,7 +11,6 @@ class CQChartsDistributionPlot;
 class CQChartsParallelPlot;
 class CQChartsBoxPlot;
 class CQChartsPiePlot;
-class CQChartsAxis;
 
 //---
 
@@ -31,8 +30,7 @@ class CQChartsSummaryPlotType : public CQChartsPlotType {
 
   void addParameters() override;
 
-  bool hasAxes() const override { return false; }
-  bool hasKey () const override { return false; }
+  bool hasKey() const override { return false; }
 
   bool allowXLog() const override { return false; }
   bool allowYLog() const override { return false; }
@@ -294,6 +292,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   void execDrawBackground(PaintDevice *) const override;
 
+  void redrawAxis(CQChartsAxis *axis, bool wait) override;
+
   void drawXAxis(PaintDevice *device) const override;
   void drawYAxis(PaintDevice *device) const override;
 
@@ -407,9 +407,6 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   ParallelPlot*     parallelPlot_     { nullptr };
   BoxPlot*          boxPlot_          { nullptr };
   PiePlot*          piePlot_          { nullptr };
-
-  CQChartsAxis *xaxis_ { nullptr };
-  CQChartsAxis *yaxis_ { nullptr };
 
   bool bestFit_ { false };
   bool density_ { false };

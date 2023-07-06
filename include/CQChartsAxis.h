@@ -234,10 +234,6 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   bool isUpdatesEnabled() const { return updatesEnabled_; }
   void setUpdatesEnabled(bool b) { updatesEnabled_ = b; }
 
-  //! get/set update draws all plot data
-  bool isDrawAll() const { return drawAll_; }
-  void setDrawAll(bool b) { drawAll_ = b; }
-
   //---
 
   void setSelected(bool b) override;
@@ -277,7 +273,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   const OptReal &valueEnd() const { return valueEnd_; }
   void setValueEnd(const OptReal &v);
 
-  //! get/set custom start and end value
+  //! set custom start and end value
   void setValueRange(double start, double end);
 
   //---
@@ -680,7 +676,6 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   // general
   bool          updatesEnabled_ { true };  //!< axis updates enabled
-  bool          drawAll_        { false }; //!< axis updates enabled
   AxisSide      side_;                     //!< axis plot placement side
   OptReal       position_;                 //!< axis custom position
   AxisValueType valueType_;                //!< value type
