@@ -267,9 +267,11 @@ init()
 
   addAxes();
 
+  xAxis()->setVisible(false);
   xAxis()->setAxesTickLabelTextFont(CQChartsFont().decFontSize(8));
   xAxis()->setAxesTickLabelTextAngle(Angle::degrees(90));
 
+  yAxis()->setVisible(false);
   yAxis()->setAxesTickLabelTextFont(CQChartsFont().decFontSize(8));
   yAxis()->setAxesTickLabelTextAngle(Angle::degrees(0));
 }
@@ -1137,6 +1139,20 @@ execDrawBackground(PaintDevice *device) const
   }
 }
 
+void
+CQChartsSummaryPlot::
+drawXAxis(PaintDevice *) const
+{
+  // drawn by cell
+}
+
+void
+CQChartsSummaryPlot::
+drawYAxis(PaintDevice *) const
+{
+  // drawn by cell
+}
+
 //------
 
 CQChartsGeom::BBox
@@ -1584,6 +1600,13 @@ void
 CQChartsSummaryCellObj::
 drawXAxis(PaintDevice *device) const
 {
+  auto *xaxis = summaryPlot_->xAxis();
+
+  if (! xaxis->isVisible())
+    return;
+
+  //---
+
   auto column = colColumn();
 
   auto *details = summaryPlot_->columnDetails(column);
@@ -1601,8 +1624,6 @@ drawXAxis(PaintDevice *device) const
 
   //---
 
-  auto *xaxis = summaryPlot_->xAxis();
-
   xaxis->setUpdatesEnabled(false);
 
   xaxis->setPosition(CQChartsAxis::OptReal(row_ + 1));
@@ -1619,6 +1640,11 @@ void
 CQChartsSummaryCellObj::
 drawYAxis(PaintDevice *device) const
 {
+  auto *yaxis = summaryPlot_->yAxis();
+
+  if (! yaxis->isVisible())
+    return;
+
   auto column = rowColumn();
 
   auto *details = summaryPlot_->columnDetails(column);
@@ -1635,8 +1661,6 @@ drawYAxis(PaintDevice *device) const
   }
 
   //---
-
-  auto *yaxis = summaryPlot_->yAxis();
 
   yaxis->setUpdatesEnabled(false);
 

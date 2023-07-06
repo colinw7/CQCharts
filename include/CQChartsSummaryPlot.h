@@ -294,6 +294,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   void execDrawBackground(PaintDevice *) const override;
 
+  void drawXAxis(PaintDevice *device) const override;
+  void drawYAxis(PaintDevice *device) const override;
+
   //---
 
   CQChartsGeom::BBox fitBBox() const override;
