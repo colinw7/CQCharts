@@ -880,7 +880,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void setDataRawRange(bool b);
 
   bool isDataClip() const { return dataClip_; }
-  void setDataClip(bool b);
+  void setDataClip(bool b, bool notify=true);
 
   bool isDataRawClip() const { return dataRawClip_; }
   void setDataRawClip(bool b);
@@ -1468,7 +1468,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   QModelIndex modelIndex(const ModelIndex &ind) const;
 
- private:
+ protected:
   void updateModelInds();
 
   bool modelMappedReal(int row, const Column &col, const QModelIndex &ind,
@@ -2426,6 +2426,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void deselectAllPlotObjs();
 
   void deselectAll(SelectTypes selectTypes=SelectTypes::ALL);
+
+  void selectObjsFromModel();
+
+  //---
 
   // handle key press
   virtual bool keyPress(int key, int modifier);

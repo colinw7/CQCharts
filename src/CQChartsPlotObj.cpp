@@ -231,6 +231,30 @@ isSelectIndices(const Indices &indices) const
   return false;
 }
 
+// are all of the normalized indices in object's select indices
+bool
+CQChartsPlotObj::
+isAllSelectIndices(const Indices &indices) const
+{
+  Indices inds;
+
+  getSelectIndices(inds);
+
+  uint n = 0;
+
+  for (auto &ind1 : inds) {
+    //auto ind2 = plot()->normalizeIndex(ind1);
+
+    //if (indices.find(ind2) != indices.end())
+    //  return true;
+
+    if (indices.find(ind1) != indices.end())
+      ++n;
+  }
+
+  return (n > 0 && n == inds.size());
+}
+
 #if 0
 // is normalized index in object's select indices
 bool

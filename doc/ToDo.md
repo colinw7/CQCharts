@@ -5,7 +5,7 @@ Abstract Painter/Javascript
 
 TODO:
  + summary plot axis control.
- + tick inside backwards for right/top
+ + summary plot push should propagate selection (selected in model before plot should select obj)
 
  + show/hide plot in properties ?
 

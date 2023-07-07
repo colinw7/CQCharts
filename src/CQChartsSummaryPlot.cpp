@@ -861,23 +861,23 @@ rectSelect(const BBox &r, SelMod)
 
     columnRange_[column1] = MinMax(r1.getXMin(), r1.getXMax());
     columnRange_[column2] = MinMax(r1.getYMin(), r1.getYMax());
-
-    drawObjs();
   }
   else if (cellType == CellType::DISTRIBUTION) {
     auto column = obj->rowColumn();
 
     columnRange_[column] = MinMax(r1.getXMin(), r1.getXMax());
-
-    drawObjs();
   }
   else if (cellType == CellType::BOXPLOT) {
     auto column = obj->rowColumn();
 
     columnRange_[column] = MinMax(r1.getYMin(), r1.getYMax());
-
-    drawObjs();
   }
+  else
+    return false;
+
+  updateSelectedRows();
+
+  drawObjs();
 
   return true;
 }
@@ -924,7 +924,48 @@ clearColumnRanges()
 {
   columnRange_.clear();
 
+  updateSelectedRows();
+
   drawObjs();
+}
+
+void
+CQChartsSummaryPlot::
+updateSelectedRows()
+{
+  selectedRows_.clear();
+
+  int nc = visibleColumns().count();
+
+  for (int ic = 0; ic < nc; ++ic) {
+    auto column = visibleColumns().getColumn(ic);
+
+    auto *details = columnDetails(column);
+    if (! details) continue;
+
+    int n = details->numRows();
+
+    auto range = columnRange(column);
+
+    for (uint i = 0; i < uint(n); ++i) {
+      if (range.isSet()) {
+        double x = 0.0;
+
+        if (details->isNumeric()) {
+          bool ok;
+          x = CQChartsVariant::toReal(details->value(i), ok);
+          if (! ok) continue;
+        }
+        else
+          x = details->uniqueId(details->value(i));
+
+        if (range.inside(x))
+          selectedRows_[i].insert(ic);
+      }
+      else
+        selectedRows_[i].insert(ic);
+    }
+  }
 }
 
 void
@@ -965,16 +1006,27 @@ selectColumnRanges()
         rows.insert(i);
     }
 
-    int icolumn = std::max(column.column(), 0);
-
     for (const int &row : rows) {
-      auto ind = modelData->model()->index(row, icolumn, QModelIndex());
+      auto ind = modelIndex(row, column, QModelIndex());
+    //auto ind = modelData->model()->index(row, icolumn, QModelIndex());
 
       sel.select(ind, ind);
     }
   }
 
   modelData->select(sel);
+}
+
+bool
+CQChartsSummaryPlot::
+isSelectedRow(int r) const
+{
+  if (columnRange_.empty()) return false;
+
+  auto pr = selectedRows_.find(r);
+  if (pr == selectedRows_.end()) return false;
+
+  return (int((*pr).second.size()) == nc_);
 }
 
 //---
@@ -1055,9 +1107,9 @@ execDrawBackground(PaintDevice *device) const
 
   //---
 
-  int nc = visibleColumns().count();
+  nc_ = visibleColumns().count();
 
-  for (int ic = 0; ic < nc; ++ic) {
+  for (int ic = 0; ic < nc_; ++ic) {
     auto column = visibleColumns().getColumn(ic);
 
     auto bbox = cellBBox(ic, ic);
@@ -1099,7 +1151,8 @@ execDrawBackground(PaintDevice *device) const
 
       //---
 
-      CQChartsDrawUtil::drawTextInBox(device, tbbox, str, textOptions);
+      if (tbbox.isValid())
+        CQChartsDrawUtil::drawTextInBox(device, tbbox, str, textOptions);
     }
 
     //---
@@ -1136,7 +1189,8 @@ execDrawBackground(PaintDevice *device) const
 
       //---
 
-      CQChartsDrawUtil::drawTextInBox(device, tbbox, str, textOptions);
+      if (tbbox.isValid())
+        CQChartsDrawUtil::drawTextInBox(device, tbbox, str, textOptions);
     }
   }
 }
@@ -1182,9 +1236,9 @@ fitBBox() const
   double maxWidth  = 0.0;
   double maxHeight = 0.0;
 
-  int nc = visibleColumns().count();
+  nc_ = visibleColumns().count();
 
-  for (int ic = 0; ic < nc; ++ic) {
+  for (int ic = 0; ic < nc_; ++ic) {
     auto column = visibleColumns().getColumn(ic);
 
     bool ok;
@@ -1532,6 +1586,7 @@ draw(PaintDevice *device) const
 
   //---
 
+  // calc cell range box (if set)
   rangeBox_ = BBox();
 
   if (row_ != col_) {
@@ -1637,7 +1692,10 @@ drawXAxis(PaintDevice *device) const
   //---
 
   auto clip = summaryPlot_->isDataClip();
-  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false);
+  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false, /*notify*/false);
+
+  device->save();
+  summaryPlot_->setClipRect(device);
 
   xaxis->setUpdatesEnabled(false);
 
@@ -1650,7 +1708,9 @@ drawXAxis(PaintDevice *device) const
 
   xaxis->draw(summaryPlot_, device);
 
-  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(clip);
+  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(clip, /*notify*/false);
+
+  device->restore();
 }
 
 void
@@ -1680,7 +1740,10 @@ drawYAxis(PaintDevice *device) const
   //---
 
   auto clip = summaryPlot_->isDataClip();
-  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false);
+  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false, /*notify*/false);
+
+  device->save();
+  summaryPlot_->setClipRect(device);
 
   yaxis->setUpdatesEnabled(false);
 
@@ -1693,7 +1756,9 @@ drawYAxis(PaintDevice *device) const
 
   yaxis->draw(summaryPlot_, device);
 
-  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(clip);
+  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(clip, /*notify*/false);
+
+  device->restore();
 }
 
 CQChartsSummaryPlot::CellType
@@ -1824,7 +1889,8 @@ drawScatter(PaintDevice *device) const
 
     //---
 
-    bool selected = (rangeBox_.isSet() && rangeBox_.inside(p));
+    //bool selected = (rangeBox_.isSet() && rangeBox_.inside(p));
+    bool selected = summaryPlot_->isSelectedRow(i);
 
     //---
 

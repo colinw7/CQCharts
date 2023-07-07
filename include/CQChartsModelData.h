@@ -56,6 +56,9 @@ class CQChartsModelData : public QObject {
   using FoldedModels = std::vector<CQFoldedModel *>;
 #endif
 
+  using SelectionModelP = QPointer<QItemSelectionModel>;
+  using SelectionModels = std::vector<SelectionModelP>;
+
  public:
   //! fold data
   struct FoldData {
@@ -179,6 +182,12 @@ class CQChartsModelData : public QObject {
   const ModelDetails *details() const;
 
   void resetDetails();
+
+  //---
+
+  const SelectionModels &selectionModels() const { return selectionModels_; }
+
+  const QItemSelection &selection() const { return sel_; }
 
   //---
 
@@ -394,9 +403,6 @@ class CQChartsModelData : public QObject {
   void deleted();
 
  private:
-  using SelectionModelP = QPointer<QItemSelectionModel>;
-  using SelectionModels = std::vector<SelectionModelP>;
-
 #ifdef CQCHARTS_FOLDED_MODEL
   using ModelPArray = std::vector<ModelP>;
 #endif
@@ -442,6 +448,8 @@ class CQChartsModelData : public QObject {
   bool dataChanged_  { false };
 
   mutable std::mutex mutex_; //!< thread mutex
+
+  QItemSelection sel_;
 };
 
 #endif

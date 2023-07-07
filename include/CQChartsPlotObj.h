@@ -292,6 +292,9 @@ class CQChartsPlotObj : public CQChartsObj,
   // are any of the normalized indices in object's select indices
   bool isSelectIndices(const Indices &inds) const;
 
+  // are all of the normalized indices in object's select indices
+  bool isAllSelectIndices(const Indices &inds) const;
+
 //bool isSelectIndex(const QModelIndex &ind) const;
 
   // get object select indices (normalized)

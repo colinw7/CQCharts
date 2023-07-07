@@ -336,8 +336,12 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   MinMax columnRange(const Column &c) const;
 
+  void updateSelectedRows();
+
   void clearColumnRanges();
   void selectColumnRanges();
+
+  bool isSelectedRow(int r) const;
 
   //---
 
@@ -381,7 +385,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   BBox cellBBox(int row, int col) const;
 
  private:
-  using ColumnVisible = std::map<int, bool>;
+  using ColumnVisible      = std::map<int, bool>;
+  using SelectedColumns    = std::set<int>;
+  using SelectedRowColumns = std::map<int, SelectedColumns>;
 
   Columns columns_;        //!< columns
   Column  groupColumn_;    //!< group column
@@ -418,6 +424,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   using ColumnRange = std::map<Column, MinMax>;
 
   ColumnRange columnRange_;
+
+  mutable int                nc_ { 0 };
+  mutable SelectedRowColumns selectedRows_;
 };
 
 //---

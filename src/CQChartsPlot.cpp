@@ -809,6 +809,12 @@ void
 CQChartsPlot::
 selectionSlot(QItemSelectionModel *sm)
 {
+  startSelection();
+
+  // deselect all plot objects
+  deselectAllPlotObjs();
+
+  // select objects with matching indices
   // get selected (normalized) indices from selection model
   // TODO: optimize for row select or column select ?
   PlotObj::Indices selectIndices;
@@ -817,12 +823,6 @@ selectionSlot(QItemSelectionModel *sm)
 
   //---
 
-  startSelection();
-
-  // deselect all plot objects
-  deselectAllPlotObjs();
-
-  // select objects with matching indices
   for (auto &plotObj : plotObjects()) {
     if (! plotObj->isSelectable())
       continue;
@@ -839,6 +839,52 @@ selectionSlot(QItemSelectionModel *sm)
 
   if (selectInvalidateObjs())
     drawObjs();
+}
+
+void
+CQChartsPlot::
+selectObjsFromModel()
+{
+  startSelection();
+
+  // deselect all plot objects
+  deselectAllPlotObjs();
+
+  auto *modelData = currentModelData();
+
+  const auto &sel = modelData->selection();
+
+  auto indices = sel.indexes();
+
+  if (! indices.empty()) {
+    PlotObj::Indices selectIndices;
+
+    for (int i = 0; i < indices.size(); ++i) {
+      const auto &ind = indices[i];
+
+      auto ind1 = normalizeIndex(ind);
+
+      selectIndices.insert(ind1);
+    }
+
+    //---
+
+    // select objects with matching indices
+    for (auto &plotObj : plotObjects()) {
+      if (! plotObj->isSelectable())
+        continue;
+
+      if (plotObj->isAllSelectIndices(selectIndices)) {
+        plotObj->setNotificationsEnabled(false);
+
+        plotObj->setSelected(true);
+
+        plotObj->setNotificationsEnabled(true);
+      }
+    }
+  }
+
+  endSelection();
 }
 
 void
@@ -2720,9 +2766,12 @@ setDataBorderSides(const Sides &s)
 
 void
 CQChartsPlot::
-setDataClip(bool b)
+setDataClip(bool b, bool notify)
 {
-  CQChartsUtil::testAndSet(dataClip_, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(dataClip_, b, [&]() {
+    if (notify)
+      drawObjs();
+  } );
 }
 
 void
@@ -6985,6 +7034,8 @@ initObjs()
 
   if (! createObjs())
     return false;
+
+  selectObjsFromModel();
 
   //---
 

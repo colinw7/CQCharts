@@ -524,30 +524,32 @@ emitDataChanged()
 
 void
 CQChartsModelData::
-addSelectionModel(QItemSelectionModel *model)
+addSelectionModel(QItemSelectionModel *sm)
 {
-  connect(model, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+  sm->select(sel_, QItemSelectionModel::ClearAndSelect);
+
+  connect(sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
           this, SLOT(selectionSlot()));
 
-  selectionModels_.emplace_back(model);
+  selectionModels_.emplace_back(sm);
 }
 
 void
 CQChartsModelData::
-removeSelectionModel(QItemSelectionModel *model)
+removeSelectionModel(QItemSelectionModel *sm)
 {
   size_t i   = 0;
   auto   len = selectionModels_.size();
 
   for ( ; i < len; ++i) {
-    if (selectionModels_[size_t(i)] == model)
+    if (selectionModels_[size_t(i)] == sm)
       break;
   }
 
   if (i >= len)
     return;
 
-  disconnect(model, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+  disconnect(sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
              this, SLOT(selectionSlot()));
 
   ++i;
@@ -562,6 +564,8 @@ void
 CQChartsModelData::
 select(const QItemSelection &sel)
 {
+  sel_ = sel;
+
   for (auto &sm : selectionModels_) {
     if (! sm) continue;
 
@@ -579,6 +583,8 @@ selectionSlot()
 {
   auto *sm = qobject_cast<QItemSelectionModel *>(sender());
   assert(sm);
+
+  sel_ = sm->selection();
 
   Q_EMIT selectionChanged(sm);
 }

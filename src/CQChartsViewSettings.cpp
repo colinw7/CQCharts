@@ -1211,8 +1211,10 @@ setObjects(const PlotObjs &objs)
 
     //---
 
-    text += "<table>\n";
+    text += "</table>\n";
   }
+
+  //std::cerr << text.toStdString() << "\n";
 
   setHtml(text);
 }
