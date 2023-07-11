@@ -3,14 +3,16 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsAnnotation.h>
+#include <CQChartsModelData.h>
 
 #include <CQTclUtil.h>
 
 CQChartsCmdsSlot::
 CQChartsCmdsSlot(CQChartsCmds *cmds, CQChartsView *view, CQChartsPlot *plot,
-                 CQChartsAnnotation *annotation, const QString &procName) :
+                 CQChartsAnnotation *annotation, CQChartsModelData *modelData,
+                 const QString &procName) :
  QObject(cmds), cmds_(cmds), view_(view), plot_(plot), annotation_(annotation),
- procName_(procName)
+ modelData_(modelData), procName_(procName)
 {
 }
 
@@ -139,6 +141,15 @@ currentModelChanged()
 
 void
 CQChartsCmdsSlot::
+modelChanged()
+{
+  auto cmd = getTclCmd();
+
+  evalCmd(cmd);
+}
+
+void
+CQChartsCmdsSlot::
 themeChanged()
 {
   disconnect(cmds_->charts(), SIGNAL(themeChanged()), this, SLOT(themeChanged()));
@@ -219,6 +230,9 @@ getTclCmd() const
   if (annotation_)
     cmd += " \"" + annotation_->id() + "\"";
 
+  if (modelData_)
+    cmd += " \"" + modelData_->id() + "\"";
+
   return cmd;
 }
 
@@ -236,6 +250,9 @@ getTclIdCmd(const QString &id) const
 
   if (annotation_)
     cmd += " \"" + annotation_->id() + "\"";
+
+  if (modelData_)
+    cmd += " \"" + modelData_->id() + "\"";
 
   cmd += " \"" + id + "\"";
 

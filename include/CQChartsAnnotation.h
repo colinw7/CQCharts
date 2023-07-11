@@ -428,6 +428,12 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     return Units::NONE;
   }
 
+  //---
+
+  using NameValues = std::map<QString, QVariant>;
+
+  virtual void getChangedNameValues(NameValues &nameValues) const;
+
  protected:
   Type type_ { Type::NONE }; //!< type
   int  ind_  { 0 };          //!< unique ind
@@ -1565,6 +1571,8 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
 
   void calcStartEnd(Point &start, Point &end) const;
 
+  void getChangedNameValues(NameValues &nameValues) const override;
+
  protected:
   using ArrowP = std::unique_ptr<CQChartsArrow>;
 
@@ -2130,6 +2138,8 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
   void init();
 
   void updateAxis();
+
+  void getChangedNameValues(NameValues &nameValues) const override;
 
  protected:
   using AxisP = std::unique_ptr<Axis>;

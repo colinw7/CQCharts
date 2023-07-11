@@ -12295,6 +12295,7 @@ CQChartsConnectChartsSignalCmd::
 addCmdArgs(CQChartsCmdArgs &argv)
 {
   argv.startCmdGroup(CmdGroup::Type::OneOpt);
+  addArg(argv, "-model"     , ArgType::String, "model_id" );
   addArg(argv, "-view"      , ArgType::String, "view name");
   addArg(argv, "-plot"      , ArgType::String, "plot name");
   addArg(argv, "-annotation", ArgType::String, "annotation name");
@@ -12308,7 +12309,8 @@ QStringList
 CQChartsConnectChartsSignalCmd::
 getArgValues(const QString &arg, const NameValueMap &)
 {
-  if      (arg == "view"      ) return cmds()->viewArgValues();
+  if      (arg == "model"     ) return cmds()->modelArgValues();
+  else if (arg == "view"      ) return cmds()->viewArgValues();
   else if (arg == "plot"      ) return cmds()->plotArgValues(nullptr);
   else if (arg == "annotation") return cmds()->annotationArgValues(nullptr, nullptr);
 
@@ -12337,11 +12339,18 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  CQChartsModelData*  modelData  = nullptr;
   CQChartsView*       view       = nullptr;
   CQChartsPlot*       plot       = nullptr;
   CQChartsAnnotation* annotation = nullptr;
 
-  if      (argv.hasParseArg("view")) {
+  if      (argv.hasParseArg("model")) {
+    auto modelId = argv.getParseStr("model");
+
+    modelData = cmds()->getModelDataOrCurrent(modelId);
+    if (! modelData) return false;
+  }
+  else if (argv.hasParseArg("view")) {
     auto viewName = argv.getParseStr("view");
 
     view = cmds()->getViewByName(viewName);
@@ -12368,10 +12377,27 @@ execCmd(CQChartsCmdArgs &argv)
   auto toName   = argv.getParseStr("to"  );
 
   auto createCmdsSlot = [&]() {
-    return new CQChartsCmdsSlot(cmds(), view, plot, annotation, toName);
+    return new CQChartsCmdsSlot(cmds(), view, plot, annotation, modelData, toName);
   };
 
-  if      (plot) {
+  if      (modelData) {
+    if      (fromName == "selectionChanged") {
+      cmds()->connect(modelData, SIGNAL(selectionChanged(QItemSelectionModel *)),
+                      createCmdsSlot(), SLOT(selectionChanged()));
+    }
+    else if (fromName == "modelChanged") {
+      cmds()->connect(modelData, SIGNAL(modelChanged()),
+                      createCmdsSlot(), SLOT(modelChanged()));
+    }
+    else if (fromName == "?") {
+      static auto names = QStringList() <<
+        "selectionChanged" << "modelChanged";
+      return cmdBase_->setCmdRc(names);
+    }
+    else
+      return errorMsg("unknown slot");
+  }
+  else if (plot) {
     if      (fromName == "objIdPressed") {
       cmds()->connect(plot, SIGNAL(objIdPressed(const QString &)),
                       createCmdsSlot(), SLOT(objIdPressed(const QString &)));

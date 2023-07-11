@@ -234,13 +234,8 @@ writeProperties(std::ostream &os, const QString &varName) const
 
   CQPropertyViewModel::NameValues nameValues;
 
-  auto *propertyModel = this->propertyModel();
-
-  if (propertyModel)
-    propertyModel->getChangedNameValues(this, nameValues, /*tcl*/true);
-
-  if (nameValues.empty())
-    return;
+  getChangedNameValues(nameValues);
+  if (nameValues.empty()) return;
 
   os << "\n";
 
@@ -257,6 +252,16 @@ writeProperties(std::ostream &os, const QString &varName) const
 
     os << " -name " << name.toStdString() << " -value {" << str.toStdString() << "}\n";
   }
+}
+
+void
+CQChartsAnnotation::
+getChangedNameValues(NameValues &nameValues) const
+{
+  auto *propertyModel = this->propertyModel();
+
+  if (propertyModel)
+    propertyModel->getChangedNameValues(this, nameValues, /*tcl*/true);
 }
 
 //---
@@ -5333,15 +5338,10 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
   //---
 
   // write arrow properties
-  auto *propertyModel = this->propertyModel();
-
   PropertyModel::NameValues nameValues;
 
-  if (propertyModel)
-    propertyModel->getChangedNameValues(this, arrow(), nameValues, /*tcl*/true);
-
-  if (nameValues.empty())
-    return;
+  getChangedNameValues(nameValues);
+  if (nameValues.empty()) return;
 
   os << "\n";
 
@@ -5355,6 +5355,16 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
     os << " -name " << name.toStdString() << " -value {" << str.toStdString() << "}\n";
   }
+}
+
+void
+CQChartsArrowAnnotation::
+getChangedNameValues(NameValues &nameValues) const
+{
+  auto *propertyModel = this->propertyModel();
+
+  if (propertyModel)
+    propertyModel->getChangedNameValues(this, arrow(), nameValues, /*tcl*/true);
 }
 
 //------
@@ -6647,6 +6657,9 @@ draw(PaintDevice *device)
       (plot()->drawLayerType() == CQChartsLayer::Type::SELECTION  && isSelected()))
     forceColor = true;
 
+  if (axis_->isDrawGrid())
+    axis_->drawGrid(plot(), device);
+
   axis_->draw(plot(), device, usePen, forceColor);
 
   //---
@@ -6710,6 +6723,16 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
   //---
 
   writeProperties(os, varName);
+}
+
+void
+CQChartsAxisAnnotation::
+getChangedNameValues(NameValues &nameValues) const
+{
+  auto *propertyModel = this->propertyModel();
+
+  if (propertyModel)
+    propertyModel->getChangedNameValues(this, axis(), nameValues, /*tcl*/true);
 }
 
 //------

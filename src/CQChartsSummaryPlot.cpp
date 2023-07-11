@@ -317,14 +317,6 @@ void
 CQChartsSummaryPlot::
 updatePlots()
 {
-  //NoUpdate parallelNoUpdate    (parallelPlot_);
-  //NoUpdate scatterNoUpdate     (scatterPlot_);
-  //NoUpdate distributionNoUpdate(distributionPlot_);
-  //NoUpdate boxNoUpdate         (boxPlot_);
-  //NoUpdate pieNoUpdate         (piePlot_);
-
-  //---
-
   Plot *currentPlot = this;
 
   if (! isExpanded() && (plotType() == PlotType::PARALLEL)) {
@@ -1008,7 +1000,6 @@ selectColumnRanges()
 
     for (const int &row : rows) {
       auto ind = modelIndex(row, column, QModelIndex());
-    //auto ind = modelData->model()->index(row, icolumn, QModelIndex());
 
       sel.select(ind, ind);
     }

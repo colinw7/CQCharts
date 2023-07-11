@@ -1,7 +1,7 @@
-Id,Fill_Color,Fill_Alpha,Fill_Pattern,Stroke_Width,Stroke_Dash,Stroke_Color,Stroke_Alpha
-0,red,0.5,palette::plasma@90,2px,,white,
-1,green,0.5,horiz,4px,"2,2",green,
-2,blue,0.5,vert,4px,"4,4",,0.5
-3,purple,0.5,fdiag,2px,"8,8",,
-4,orange,0.5,bdiag,2px,"1,1",,
-5,cyan,0.5,palette:moreland@90,8px,"4,2",red,0.2
+Id,Value,Fill_Color,Fill_Alpha,Fill_Pattern,Stroke_Width,Stroke_Dash,Stroke_Color,Stroke_Alpha
+0,100,red,0.5,palette::plasma@90,2px,,white,
+1,200,green,0.5,horiz,4px,"2,2",green,
+2,300,blue,0.5,vert,4px,"4,4",,0.5
+3,260,purple,0.5,fdiag,2px,"8,8",,
+4,220,orange,0.5,bdiag,2px,"1,1",,
+5,175,cyan,0.5,palette:moreland@90,8px,"4,2",red,0.2

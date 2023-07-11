@@ -193,6 +193,7 @@ initNodeColumns()
   CQChartsConnectionPlot::initNodeColumns();
 
   nodeLabelColumn_      .setModelInd(nodeModel_.modelInd());
+  nodeValueColumn_      .setModelInd(nodeModel_.modelInd());
   nodeFillColorColumn_  .setModelInd(nodeModel_.modelInd());
   nodeFillAlphaColumn_  .setModelInd(nodeModel_.modelInd());
   nodeFillPatternColumn_.setModelInd(nodeModel_.modelInd());
@@ -208,6 +209,17 @@ setNodeLabelColumn(const CQChartsModelColumn &c)
 {
   CQChartsUtil::testAndSet(nodeLabelColumn_, c, [&]() {
     nodeLabelColumn_.setCharts(charts());
+
+    updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsSankeyPlot::
+setNodeValueColumn(const CQChartsModelColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeValueColumn_, c, [&]() {
+    nodeValueColumn_.setCharts(charts());
 
     updateRangeAndObjs();
   } );
@@ -544,6 +556,7 @@ addProperties()
 
   // node columns
   addPropI("nodeModel", "nodeLabelColumn"      , "labelColumn"      , "Node label column");
+  addPropI("nodeModel", "nodeValueColumn"      , "valueColumn"      , "Node value column");
   addPropI("nodeModel", "nodeFillColorColumn"  , "fillColorColumn"  , "Node fill color column");
   addPropI("nodeModel", "nodeFillAlphaColumn"  , "fillAlphaColumn"  , "Node fill alpha column");
   addPropI("nodeModel", "nodeFillPatternColumn", "fillPatternColumn", "Node fill pattern column");
@@ -792,13 +805,16 @@ createObjs(PlotObjs &objs) const
 
     class NodeVisitor : public CQChartsModelVisitor {
      public:
-      NodeVisitor(const CQChartsSankeyPlot *plot) :
-       plot_(plot) {
+      NodeVisitor(const CQChartsSankeyPlot *plot, CQChartsGeom::RMinMax &valueRange) :
+       plot_(plot), valueRange_(valueRange) {
         modelInd_ = plot_->nodeModel().modelInd();
         idColumn_ = plot_->nodeIdColumn().column();
 
         if (plot_->nodeLabelColumn().isValid())
           labelColumn_ = plot_->nodeLabelColumn().column();
+
+        if (plot_->nodeValueColumn().isValid())
+          valueColumn_ = plot_->nodeValueColumn().column();
 
         if (plot_->nodeFillColorColumn().isValid())
           fillColorColumn_ = plot_->nodeFillColorColumn().column();
@@ -834,7 +850,8 @@ createObjs(PlotObjs &objs) const
 
         auto *plot = const_cast<CQChartsSankeyPlot *>(plot_);
 
-        auto *node = plot->findNode(id);
+        auto *node = plot->findNode(id, /*create*/false);
+        if (! node) return State::SKIP;
 
         if (labelColumn_.isValid()) {
           auto labelVar = CQChartsModelUtil::modelValue(
@@ -842,6 +859,20 @@ createObjs(PlotObjs &objs) const
 
           if (labelVar.isValid())
             node->setLabel(labelVar.toString());
+        }
+
+        if (valueColumn_.isValid()) {
+          auto valueVar = CQChartsModelUtil::modelValue(
+            plot_->charts(), model, data.row, valueColumn_, data.parent, ok);
+
+          if (valueVar.isValid()) {
+            auto value = CQChartsVariant::toReal(valueVar, ok);
+            if (ok) {
+              node->setValue(OptReal(value));
+
+              valueRange_.add(value);
+            }
+          }
         }
 
         if (fillColorColumn_.isValid()) {
@@ -918,20 +949,23 @@ createObjs(PlotObjs &objs) const
       }
 
      private:
-      const CQChartsSankeyPlot *plot_ { nullptr };
-      int                       modelInd_ { - 1};
-      Column                    idColumn_;
-      Column                    labelColumn_;
-      Column                    fillColorColumn_;
-      Column                    fillAlphaColumn_;
-      Column                    fillPatternColumn_;
-      Column                    strokeColorColumn_;
-      Column                    strokeAlphaColumn_;
-      Column                    strokeWidthColumn_;
-      Column                    strokeDashColumn_;
+      const CQChartsSankeyPlot* plot_ { nullptr };
+      CQChartsGeom::RMinMax&    valueRange_;
+
+      int    modelInd_ { - 1};
+      Column idColumn_;
+      Column labelColumn_;
+      Column valueColumn_;
+      Column fillColorColumn_;
+      Column fillAlphaColumn_;
+      Column fillPatternColumn_;
+      Column strokeColorColumn_;
+      Column strokeAlphaColumn_;
+      Column strokeWidthColumn_;
+      Column strokeDashColumn_;
     };
 
-    NodeVisitor nodeVisitor(this);
+    NodeVisitor nodeVisitor(this, valueRange_);
 
     CQChartsModelVisit::exec(charts(), nodeModelData->model().data(), nodeVisitor);
   }
@@ -3487,12 +3521,15 @@ adjustNode(Node *node, bool placed, bool useSrc, bool useDest) const
 
 CQChartsSankeyPlotNode *
 CQChartsSankeyPlot::
-findNode(const QString &name) const
+findNode(const QString &name, bool create) const
 {
   auto p = nameNodeMap_.find(name);
 
   if (p != nameNodeMap_.end())
     return (*p).second;
+
+  if (! create)
+    return nullptr;
 
   auto *node = createNode(name);
 
@@ -4574,10 +4611,13 @@ calcTipId() const
     edge = *node()->destEdges().begin();
 
   auto namedColumn = [&](const QString &name, const QString &defName="") {
-    if (edge && edge->hasNamedColumn(name))
-      return sankeyPlot_->columnHeaderName(edge->namedColumn(name));
+    QString headerName;
 
-    auto headerName = (defName.length() ? defName : name);
+    if (edge && edge->hasNamedColumn(name))
+      headerName = sankeyPlot_->columnHeaderName(edge->namedColumn(name));
+
+    if (headerName == "")
+      headerName = (defName.length() ? defName : name);
 
     return headerName;
   };

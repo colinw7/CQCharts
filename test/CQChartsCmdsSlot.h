@@ -9,6 +9,7 @@ class CQChartsCmds;
 class CQChartsView;
 class CQChartsPlot;
 class CQChartsAnnotation;
+class CQChartsModelData;
 
 /*!
  * \brief Charts Tcl Command Callback Handler
@@ -19,7 +20,8 @@ class CQChartsCmdsSlot : public QObject {
 
  public:
   CQChartsCmdsSlot(CQChartsCmds *cmds, CQChartsView *view, CQChartsPlot *plot,
-                   CQChartsAnnotation *annotation, const QString &procName);
+                   CQChartsAnnotation *annotation, CQChartsModelData *modelData,
+                   const QString &procName);
 
  private:
   void evalCmd(const QString &cmd);
@@ -32,7 +34,7 @@ class CQChartsCmdsSlot : public QObject {
   void keyEventPress(const QString &);
   void viewResized  ();
 
-  // plot, view
+  // plot, view, model
   void objIdPressed    (const QString &);
   void selectionChanged();
 
@@ -45,6 +47,9 @@ class CQChartsCmdsSlot : public QObject {
   void animateStateChanged(bool);
   void currentModelChanged();
 
+  // model
+  void modelChanged();
+
   // global
   void themeChanged         ();
   void interfaceThemeChanged();
@@ -54,6 +59,7 @@ class CQChartsCmdsSlot : public QObject {
   CQChartsView*       view_       { nullptr };
   CQChartsPlot*       plot_       { nullptr };
   CQChartsAnnotation* annotation_ { nullptr };
+  CQChartsModelData*  modelData_  { nullptr };
   QString             procName_;
 };
 

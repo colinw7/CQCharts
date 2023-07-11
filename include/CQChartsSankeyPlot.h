@@ -917,6 +917,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   // extra columns
   Q_PROPERTY(CQChartsModelColumn nodeLabelColumn
              READ nodeLabelColumn       WRITE setNodeLabelColumn)
+  Q_PROPERTY(CQChartsModelColumn nodeValueColumn
+             READ nodeValueColumn       WRITE setNodeValueColumn)
   Q_PROPERTY(CQChartsModelColumn nodeFillColorColumn
              READ nodeFillColorColumn   WRITE setNodeFillColorColumn)
   Q_PROPERTY(CQChartsModelColumn nodeFillAlphaColumn
@@ -1116,6 +1118,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   const CQChartsModelColumn &nodeLabelColumn() const { return nodeLabelColumn_; }
   void setNodeLabelColumn(const CQChartsModelColumn &c);
 
+  const CQChartsModelColumn &nodeValueColumn() const { return nodeValueColumn_; }
+  void setNodeValueColumn(const CQChartsModelColumn &c);
+
   const CQChartsModelColumn &nodeFillColorColumn() const { return nodeFillColorColumn_; }
   void setNodeFillColorColumn(const CQChartsModelColumn &c);
 
@@ -1301,8 +1306,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //---
 
   // min/max position
-  int minPos() const { return graph_->minNodeX(); }
-  int maxPos() const { return graph_->maxNodeX(); }
+  int minPos() const { return (graph_ ? graph_->minNodeX() : 0); }
+  int maxPos() const { return (graph_ ? graph_->maxNodeX() : 0); }
 
   //---
 
@@ -1445,7 +1450,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
  protected:
   void clearNodesAndEdges();
 
-  Node *findNode(const QString &name) const;
+  Node *findNode(const QString &name, bool create=true) const;
 
   //---
 
@@ -1533,6 +1538,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
  protected:
   // node columns
   CQChartsModelColumn nodeLabelColumn_;       //!< node label column
+  CQChartsModelColumn nodeValueColumn_;       //!< node value column
   CQChartsModelColumn nodeFillColorColumn_;   //!< node fill color column
   CQChartsModelColumn nodeFillAlphaColumn_;   //!< node fill alpha column
   CQChartsModelColumn nodeFillPatternColumn_; //!< node fill pattern column

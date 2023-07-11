@@ -13,10 +13,14 @@ set_charts_data -plot $plot -name extra_model -value $model2
 set_charts_property -plot $plot -name nodeModel.model -value $model2
 
 set_charts_property -plot $plot -name nodeModel.idColumn          -value 0
-set_charts_property -plot $plot -name nodeModel.fillColorColumn   -value 1
-set_charts_property -plot $plot -name nodeModel.fillAlphaColumn   -value 2
-set_charts_property -plot $plot -name nodeModel.fillPatternColumn -value 3
-set_charts_property -plot $plot -name nodeModel.strokeWidthColumn -value 4
-set_charts_property -plot $plot -name nodeModel.strokeDashColumn  -value 5
-set_charts_property -plot $plot -name nodeModel.strokeColorColumn -value 6
-set_charts_property -plot $plot -name nodeModel.strokeAlphaColumn -value 7
+set_charts_property -plot $plot -name nodeModel.valueColumn       -value 1
+set_charts_property -plot $plot -name nodeModel.fillColorColumn   -value 2
+set_charts_property -plot $plot -name nodeModel.fillAlphaColumn   -value 3
+set_charts_property -plot $plot -name nodeModel.fillPatternColumn -value 4
+set_charts_property -plot $plot -name nodeModel.strokeWidthColumn -value 5
+set_charts_property -plot $plot -name nodeModel.strokeDashColumn  -value 6
+set_charts_property -plot $plot -name nodeModel.strokeColorColumn -value 7
+set_charts_property -plot $plot -name nodeModel.strokeAlphaColumn -value 8
+
+set_charts_property -plot $plot -name node.valueBar     -value 1
+set_charts_property -plot $plot -name node.valueBarSize -value 0.2

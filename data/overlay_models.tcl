@@ -15,9 +15,9 @@ set plot1 [create_charts_plot -model $model1 -type scatter -columns {{x 0} {y 1}
 set plot2 [create_charts_plot -model $model2 -type scatter -columns {{x 0} {y 1}}]
 set plot3 [create_charts_plot -model $model3 -type scatter -columns {{x 0} {y 1}}]
 
-set_charts_property -plot $plot1 -name selectable -value 0
-set_charts_property -plot $plot2 -name selectable -value 0
-set_charts_property -plot $plot3 -name selectable -value 0
+set_charts_property -plot $plot1 -name state.selectable -value 0
+set_charts_property -plot $plot2 -name state.selectable -value 0
+set_charts_property -plot $plot3 -name state.selectable -value 0
 
 group_charts_plots -overlay [list $plot1 $plot2 $plot3]
 
