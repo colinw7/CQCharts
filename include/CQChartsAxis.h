@@ -78,6 +78,9 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(CQChartsOptReal valueStart READ valueStart WRITE setValueStart)
   Q_PROPERTY(CQChartsOptReal valueEnd   READ valueEnd   WRITE setValueEnd  )
 
+  Q_PROPERTY(CQChartsOptReal gridStart READ gridStart WRITE setGridStart)
+  Q_PROPERTY(CQChartsOptReal gridEnd   READ gridEnd   WRITE setGridEnd  )
+
   // line
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Axes, axes)
 
@@ -275,6 +278,16 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //! set custom start and end value
   void setValueRange(double start, double end);
+
+  //---
+
+  //! get/set custom value start
+  const OptReal &gridStart() const { return gridStart_; }
+  void setGridStart(const OptReal &v);
+
+  //! get/set custom value end
+  const OptReal &gridEnd() const { return gridEnd_; }
+  void setGridEnd(const OptReal &v);
 
   //---
 
@@ -720,6 +733,9 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   OptReal valueStart_; //!< custom value start
   OptReal valueEnd_;   //!< custom value end
+
+  OptReal gridStart_; //!< custom grid start
+  OptReal gridEnd_;   //!< custom grid end
 
   // customization (for annotations)
   bool annotation_      { false }; //!< is annotation

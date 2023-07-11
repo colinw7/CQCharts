@@ -3866,8 +3866,11 @@ int
 CQChartsSankeyPlotNode::
 calcSrcDepth(NodeSet &visited) const
 {
+  // already calculated
   if (srcDepth_ >= 0)
     return srcDepth_;
+
+  //---
 
   auto *th = const_cast<CQChartsSankeyPlotNode *>(this);
 

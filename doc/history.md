@@ -1437,3 +1437,5 @@
 # 7/2/2023
  + add range selection to summary plot
  + add more styling to summary plot
+# 7/10/2023
+ + add sankey node value column

@@ -810,7 +810,7 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
 
   Q_PROPERTY(double value  READ value)
 #ifdef CQCHARTS_GRAPH_PATH_ID
-  Q_PROPERTY(double pathId READ pathId)
+  Q_PROPERTY(int    pathId READ pathId)
 #endif
 
  public:

@@ -454,6 +454,9 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
   addStyleProp(gridMajorFillPath, "axesGridFillAlpha"  , "alpha"  , "Axis grid fill alpha");
   addStyleProp(gridMajorFillPath, "axesGridFillPattern", "pattern", "Axis grid fill pattern");
 
+  addProp(gridPath, "gridStart", "start", "Axis custom grid start position");
+  addProp(gridPath, "gridEnd"  , "end"  , "Axis custom grid end position");
+
   //---
 
   addPropI(path, "column", "column", "Associated column");
@@ -497,6 +500,26 @@ setValueRange(double start, double end)
 {
   valueStart_ = OptReal(start);
   valueEnd_   = OptReal(end);
+
+  calcAndRedraw();
+}
+
+//---
+
+void
+CQChartsAxis::
+setGridStart(const OptReal &v)
+{
+  gridStart_ = v;
+
+  calcAndRedraw();
+}
+
+void
+CQChartsAxis::
+setGridEnd(const OptReal &v)
+{
+  gridEnd_ = v;
 
   calcAndRedraw();
 }
@@ -994,8 +1017,8 @@ void
 CQChartsAxis::
 calc()
 {
-  interval_.setStart(valueStart_.realOr(start()));
-  interval_.setEnd  (valueEnd_  .realOr(end  ()));
+  interval_.setStart(valueStart().realOr(start()));
+  interval_.setEnd  (valueEnd  ().realOr(end  ()));
 
   interval_.setIntegral(isIntegral());
   interval_.setDate    (isDate    ());
@@ -1277,15 +1300,24 @@ drawGrid(const Plot *plot, PaintDevice *device) const
 
   //---
 
-  auto dataRange = plot->calcDataRange();
-
   // get axis range
   double amin = start();
   double amax = end  ();
 
   // get perp data range
+  auto dataRange = plot->calcDataRange();
+
   double dmin, dmax;
   dataRange.getXYRange(! isHorizontal(), dmin, dmax);
+
+  if (gridStart().isSet())
+    dmin = gridStart().real();
+
+  if (gridEnd().isSet())
+    dmax = gridEnd().real();
+
+  if (dmin > dmax)
+    std::swap(dmin, dmax);
 
   //---
 
@@ -1515,10 +1547,10 @@ drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool
   //---
 
   auto mapPos = [&](double pos) {
-    if (! valueStart_.isSet() && ! valueEnd_.isSet())
+    if (! valueStart().isSet() && ! valueEnd().isSet())
       return pos;
 
-    return CMathUtil::map(pos, valueStart_.realOr(start()), valueEnd_.realOr(end()),
+    return CMathUtil::map(pos, valueStart().realOr(start()), valueEnd().realOr(end()),
                           start(), end());
   };
 
