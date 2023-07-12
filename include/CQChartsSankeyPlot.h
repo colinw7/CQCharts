@@ -1393,7 +1393,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
                             const QVariant &value) override;
 
   void processNodeNameValues(Node *node, const NameValues &valueValues) const;
-  void processNodeNameValue (Node *node, const QString &name, const QString &value) const;
+  void processNodeNameValue (Node *node, const QString &name, const QVariant &value) const;
   bool processNodeNameVar   (Node *node, const QString &name, const QVariant &var) const;
 
   void processEdgeNameValues(Edge *edge, const NameValues &valueValues) const;

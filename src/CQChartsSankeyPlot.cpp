@@ -1813,7 +1813,7 @@ processNodeNameValues(Node *node, const NameValues &nameValues) const
 {
   for (const auto &nv : nameValues.nameValues()) {
     const auto &name  = nv.first;
-    auto        value = nv.second.toString();
+    auto        value = nv.second;
 
     processNodeNameValue(node, name, value);
   }
@@ -1821,7 +1821,7 @@ processNodeNameValues(Node *node, const NameValues &nameValues) const
 
 void
 CQChartsSankeyPlot::
-processNodeNameValue(Node *node, const QString &name, const QString &value) const
+processNodeNameValue(Node *node, const QString &name, const QVariant &value) const
 {
   if (! processNodeNameVar(node, name, value)) {
     auto *th = const_cast<CQChartsSankeyPlot *>(this);
@@ -1834,19 +1834,26 @@ bool
 CQChartsSankeyPlot::
 processNodeNameVar(Node *node, const QString &name, const QVariant &var) const
 {
+  bool ok;
+
   // custom label
   if      (name == "label") {
     node->setLabel(var.toString());
   }
+  // custom value
+  else if (name == "value") {
+    auto r = CQChartsVariant::toReal(var, ok); if (! ok) return false;
+    node->setValue(OptReal(r));
+  }
   // custom fill color
   else if (name == "fill_color" || name == "color") {
-    bool ok;
     auto c = CQChartsVariant::toColor(var, ok); if (! ok) return false;
     node->setFillColor(c);
   }
   // custom fill alpha
   else if (name == "fill_alpha" || name == "alpha") {
-    node->setFillAlpha(CQChartsAlpha(var.toString()));
+    auto a = CQChartsVariant::toAlpha(var, ok); if (! ok) return false;
+    node->setFillAlpha(a);
   }
   // custom fill pattern
   else if (name == "fill_pattern" || name == "pattern") {
@@ -1854,17 +1861,18 @@ processNodeNameVar(Node *node, const QString &name, const QVariant &var) const
   }
   // custom stroke color
   else if (name == "stroke_color") {
-    bool ok;
     auto c = CQChartsVariant::toColor(var, ok); if (! ok) return false;
     node->setStrokeColor(c);
   }
   // custom stroke alpha
   else if (name == "stroke_alpha") {
-    node->setStrokeAlpha(CQChartsAlpha(var.toString()));
+    auto a = CQChartsVariant::toAlpha(var, ok); if (! ok) return false;
+    node->setStrokeAlpha(a);
   }
   // custom stroke width
   else if (name == "stroke_width" || name == "width") {
-    node->setStrokeWidth(CQChartsLength(var.toString()));
+    auto w = CQChartsVariant::toLength(var, ok); if (! ok) return false;
+    node->setStrokeWidth(w);
   }
   // custom stroke dash
   else if (name == "stroke_dash" || name == "dash") {
@@ -1884,37 +1892,40 @@ processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
   auto *destNode = edge->destNode();
 
   for (const auto &nv : nameValues.nameValues()) {
-    const auto &name     = nv.first;
-    auto        valueStr = nv.second.toString();
+    const auto &name = nv.first;
+    auto        var  = nv.second;
+
+    bool ok;
 
     // custom fill color
     if      (name == "fill_color" || name == "color") {
-      edge->setFillColor(CQChartsColor(valueStr));
+      auto c = CQChartsVariant::toColor(var, ok); if (! ok) continue;
+      edge->setFillColor(c);
     }
 #if 0
     else if (name == "label") {
-      edge->setLabel(valueStr);
+      edge->setLabel(var.toString());
+    }
+    else if (name == "value") {
+      auto r = CQChartsVariant::toReal(var, ok); if (! ok) continue;
+      edge->setValue(OptReal(r));
     }
 #endif
 #ifdef CQCHARTS_GRAPH_PATH_ID
     // TODO: remove path_id and color (use columns)
     else if (name == "path_id") {
-      bool ok;
-      long pathId = CQChartsUtil::toInt(valueStr, ok);
-      if (! ok || pathId < 0) continue;
-
+      long pathId = CQChartsUtil::toInt(valueStr, ok); if (! ok || pathId < 0) continue;
       edge->setPathId(int(pathId));
-
       pathIdMinMax_.add(int(pathId));
     }
 #endif
     // handle custom value for source node
     else if (name.left(4) == "src_") {
-      processNodeNameValue(srcNode, name.mid(4), valueStr);
+      processNodeNameValue(srcNode, name.mid(4), var);
     }
     // handle custom value for destination node
     else if (name.left(5) == "dest_") {
-      processNodeNameValue(destNode, name.mid(5), valueStr);
+      processNodeNameValue(destNode, name.mid(5), var);
     }
   }
 }
@@ -2355,14 +2366,20 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
     double posStart, posEnd;
 
     // map pos to bbox range minus margins
-    if (isAlignEnds()) {
-      posStart = targetBBox_.getMinExtent(isHorizontal()) + posMargin/2.0;
-      posEnd   = targetBBox_.getMaxExtent(isHorizontal()) - posMargin/2.0;
-    }
-    // map pos to bbox range (use for left)
-    else {
+    if (isNodeValueBar()) {
       posStart = targetBBox_.getMinExtent(isHorizontal());
       posEnd   = targetBBox_.getMaxExtent(isHorizontal());
+    }
+    else {
+      if (isAlignEnds()) {
+        posStart = targetBBox_.getMinExtent(isHorizontal()) + posMargin/2.0;
+        posEnd   = targetBBox_.getMaxExtent(isHorizontal()) - posMargin/2.0;
+      }
+      // map pos to bbox range (use for left)
+      else {
+        posStart = targetBBox_.getMinExtent(isHorizontal());
+        posEnd   = targetBBox_.getMaxExtent(isHorizontal());
+      }
     }
 
     double nodePos1 = CMathUtil::map(pos1, minPos, maxPos, posStart, posEnd);
@@ -2387,9 +2404,9 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
         size = minSize;
 
       if (isHorizontal())
-        rect = BBox(nodePos1 - minSize/2.0, nodePerpPos1, nodePos1 + size, nodePerpPos2);
+        rect = BBox(nodePos1, nodePerpPos1, nodePos1 + size, nodePerpPos2);
       else
-        rect = BBox(nodePerpPos1, nodePos1 - minSize/2.0, nodePerpPos2, nodePos1 + size);
+        rect = BBox(nodePerpPos1, nodePos1, nodePerpPos2, nodePos1 + size);
     }
     else {
       // center align

@@ -291,13 +291,13 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
     addPropI(path, "end"  , "", "Axis end position"  );
   }
 
-  addProp(path, "includeZero", "", "Axis force include zero", true);
+  addPropI(path, "includeZero", "", "Axis force include zero");
 
   addProp(path, "valueStart", "", "Axis custom start position");
   addProp(path, "valueEnd"  , "", "Axis custom end position");
 
-  addProp(path, "tickLabels"      , "", "Indexed Tick Labels", true);
-  addProp(path, "customTickLabels", "", "Custom Tick Labels", true);
+  addPropI(path, "tickLabels"      , "", "Indexed Tick Labels");
+  addPropI(path, "customTickLabels", "", "Custom Tick Labels");
 
   addProp(path, "maxFitExtent", "", "Axis maximum extent percent for auto fit")->
     setMinValue(0.0);
@@ -2228,15 +2228,15 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
           tbbox = BBox(xpos, ypos - wth, xpos + atw, ypos);
       }
       else {
-        TextOptions options;
+        TextOptions textOptions;
 
-        options.angle      = angle;
-        options.align      = align;
-        options.clipLength = clipLength;
-        options.clipElide  = clipElide;
+        textOptions.angle      = angle;
+        textOptions.align      = align;
+        textOptions.clipLength = clipLength;
+        textOptions.clipElide  = clipElide;
 
         auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
-                                                    options, 0, /*alignBox*/true);
+                                                    textOptions, 0, /*alignBox*/true);
 
         lbbox_ += ptbbox;
 
@@ -2341,15 +2341,15 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
           tbbox = BBox(xpos, ypos - wth, xpos + atw, ypos);
       }
       else {
-        TextOptions options;
+        TextOptions textOptions;
 
-        options.angle      = angle;
-        options.align      = align;
-        options.clipLength = clipLength;
-        options.clipElide  = clipElide;
+        textOptions.angle      = angle;
+        textOptions.align      = align;
+        textOptions.clipLength = clipLength;
+        textOptions.clipElide  = clipElide;
 
         auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
-                                                    options, 0, /*alignBox*/true);
+                                                    textOptions, 0, /*alignBox*/true);
 
         lbbox_ += ptbbox;
 
@@ -2484,15 +2484,15 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
           tbbox = BBox(xpos - atw, ypos, xpos, ypos + wth);
       }
       else {
-        TextOptions options;
+        TextOptions textOptions;
 
-        options.angle      = angle;
-        options.align      = align;
-        options.clipLength = clipLength;
-        options.clipElide  = clipElide;
+        textOptions.angle      = angle;
+        textOptions.align      = align;
+        textOptions.clipLength = clipLength;
+        textOptions.clipElide  = clipElide;
 
         auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
-                                                    options, 0, /*alignBox*/true);
+                                                    textOptions, 0, /*alignBox*/true);
 
         lbbox_ += ptbbox;
 
@@ -2595,15 +2595,15 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
           tbbox = BBox(xpos - atw, ypos, xpos, ypos + wth);
       }
       else {
-        TextOptions options;
+        TextOptions textOptions;
 
-        options.angle      = angle;
-        options.align      = align;
-        options.clipLength = clipLength;
-        options.clipElide  = clipElide;
+        textOptions.angle      = angle;
+        textOptions.align      = align;
+        textOptions.clipLength = clipLength;
+        textOptions.clipElide  = clipElide;
 
         auto ptbbox = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
-                                                    options, 0, /*alignBox*/true);
+                                                    textOptions, 0, /*alignBox*/true);
 
         lbbox_ += ptbbox;
 
@@ -2735,11 +2735,11 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
   auto html = ((allowHtml || isAllowHtmlLabels()) && isAxesLabelTextHtml());
 
   if (isScaleLabelFont()) {
-    TextOptions options;
+    TextOptions textOptions;
 
-    options.html = html;
+    textOptions.html = html;
 
-    auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), options);
+    auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), textOptions);
 
     auto len = Length::plot(amax - amin);
 
@@ -2773,11 +2773,11 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
   double tw = 0.0;
 
   if (html) {
-    TextOptions options;
+    TextOptions textOptions;
 
-    options.html = true;
+    textOptions.html = true;
 
-    tw = CQChartsDrawUtil::calcTextSize(text1, device->font(), options).width();
+    tw = CQChartsDrawUtil::calcTextSize(text1, device->font(), textOptions).width();
   }
   else {
     tw = fm.horizontalAdvance(text1);
