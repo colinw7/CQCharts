@@ -433,14 +433,14 @@ class CQChartsModelColumnDetails {
   QString       typeName_;                  //!< type name
 
   // cached data
-  bool        initialized_ { false };   //!< is data set
-  QVariant    minValue_;                //!< min value (as variant)
-  QVariant    maxValue_;                //!< max value (as variant)
-  QVariant    sumValue_;                //!< value sum (as variant)
-  QVariant    badValue_;                //!< bad value (as variant)
-  int         numRows_     { 0 };       //!< number of rows
-  bool        monotonic_   { true };    //!< values are monotonic
-  bool        increasing_  { true };    //!< values are increasing
+  bool     initialized_ { false }; //!< is data set
+  QVariant minValue_;              //!< min value (as variant)
+  QVariant maxValue_;              //!< max value (as variant)
+  QVariant sumValue_;              //!< value sum (as variant)
+  QVariant badValue_;              //!< bad value (as variant)
+  int      numRows_     { 0 };     //!< number of rows
+  bool     monotonic_   { true };  //!< values are monotonic
+  bool     increasing_  { true };  //!< values are increasing
 
   // values
   ValueSet*   valueSet_    { nullptr }; //!< values

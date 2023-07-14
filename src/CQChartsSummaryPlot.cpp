@@ -1670,14 +1670,16 @@ drawXAxis(PaintDevice *device) const
   auto *details = summaryPlot_->columnDetails(column);
   if (! details) return;
 
+  double xmin, xmax;
+
   if (details->isNumeric()) {
     bool ok;
-    xmin_ = CQChartsVariant::toReal(details->minValue(), ok);
-    xmax_ = CQChartsVariant::toReal(details->maxValue(), ok);
+    xmin = CQChartsVariant::toReal(details->minValue(), ok);
+    xmax = CQChartsVariant::toReal(details->maxValue(), ok);
   }
   else {
-    xmin_ = 0.0;
-    xmax_ = details->numUnique();
+    xmin = 0.0;
+    xmax = details->numUnique();
   }
 
   //---
@@ -1692,7 +1694,7 @@ drawXAxis(PaintDevice *device) const
 
   xaxis->setPosition(CQChartsAxis::OptReal(row_ + 1));
   xaxis->setRange(pxmin_, pxmax_);
-  xaxis->setValueRange(xmin_, xmax_);
+  xaxis->setValueRange(xmin, xmax);
   xaxis->setSide(CQChartsAxis::AxisSide(CQChartsAxis::AxisSide::Type::TOP_RIGHT));
 
   xaxis->setUpdatesEnabled(true);
@@ -1718,14 +1720,16 @@ drawYAxis(PaintDevice *device) const
   auto *details = summaryPlot_->columnDetails(column);
   if (! details) return;
 
+  double ymin, ymax;
+
   if (details->isNumeric()) {
     bool ok;
-    ymin_ = CQChartsVariant::toReal(details->minValue(), ok);
-    ymax_ = CQChartsVariant::toReal(details->maxValue(), ok);
+    ymin = CQChartsVariant::toReal(details->minValue(), ok);
+    ymax = CQChartsVariant::toReal(details->maxValue(), ok);
   }
   else {
-    ymin_ = 0.0;
-    ymax_ = details->numUnique();
+    ymin = 0.0;
+    ymax = details->numUnique();
   }
 
   //---
@@ -1740,7 +1744,7 @@ drawYAxis(PaintDevice *device) const
 
   yaxis->setPosition(CQChartsAxis::OptReal(col_ + 1));
   yaxis->setRange(pymin_, pymax_);
-  yaxis->setValueRange(ymin_, ymax_);
+  yaxis->setValueRange(ymin, ymax);
   yaxis->setSide(CQChartsAxis::AxisSide(CQChartsAxis::AxisSide::Type::TOP_RIGHT));
 
   yaxis->setUpdatesEnabled(true);

@@ -290,7 +290,7 @@ class CQChartsPlotParameter : public QObject {
   double mapMax() const { return attributes_.mapMax(); }
   CQChartsPlotParameter &setMapMax(double r) { attributes_.setMapMax(r); return *this; }
 
-  //! set map maximum and maximum
+  //! set map minimum and maximum
   CQChartsPlotParameter &setMapMinMax(double min, double max) {
     attributes_.setMapMinMax(min, max); return *this; }
 
@@ -484,8 +484,6 @@ class CQChartsEnumParameter : public CQChartsPlotParameter {
 
     return (*p).second;
   }
-
-  QWidget *createWidget();
 
  private:
   using NameValues = std::map<QString, int>;

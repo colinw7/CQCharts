@@ -102,7 +102,7 @@ description() const
     h3("Limitations").
      p("This plot does not support a user specified range, axes, logarithmic scales, "
        "or probing.").
-     p("The plot does not support a X/Y axes.").
+     p("The plot does not support X/Y axes.").
     h3("Example").
      p(IMG("images/piechart.png"));
 }
@@ -193,7 +193,7 @@ CQChartsPiePlot::
 setLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(labelColumn_, c, [&]() {
-    updateRangeAndObjs(); Q_EMIT customDataChanged();  } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -201,7 +201,7 @@ CQChartsPiePlot::
 setValueColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(valueColumns_, c, [&]() {
-    updateRangeAndObjs(); Q_EMIT customDataChanged();  } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
@@ -211,7 +211,7 @@ CQChartsPiePlot::
 setRadiusColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(radiusColumn_, c, [&]() {
-    updateRangeAndObjs(); Q_EMIT customDataChanged();  } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 void
@@ -219,7 +219,7 @@ CQChartsPiePlot::
 setKeyLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(keyLabelColumn_, c, [&]() {
-    updateRangeAndObjs(); Q_EMIT customDataChanged();  } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
