@@ -1844,6 +1844,8 @@ processNodeNameVar(Node *node, const QString &name, const QVariant &var) const
   else if (name == "value") {
     auto r = CQChartsVariant::toReal(var, ok); if (! ok) return false;
     node->setValue(OptReal(r));
+
+    valueRange_.add(r);
   }
   // custom fill color
   else if (name == "fill_color" || name == "color") {
@@ -4658,8 +4660,11 @@ calcTipId() const
 
   tableTip.addTableRow("Name", name);
 
-  if (node()->hasValue())
-    tableTip.addTableRow(namedColumn("Value"), value());
+  if (node()->hasValue()) {
+    auto valueName = (! sankeyPlot_->isEdgeRows() ? namedColumn("Value") : "Value");
+
+    tableTip.addTableRow(valueName, value());
+  }
 
   if (depth() >= 0)
     tableTip.addTableRow(namedColumn("Depth"), depth());
@@ -5497,15 +5502,25 @@ calcTipId() const
 
   //---
 
-  tableTip.addTableRow(namedColumn("From"), srcName);
-  tableTip.addTableRow(namedColumn("To"  ), destName);
+  if (sankeyPlot_->isEdgeRows()) {
+    tableTip.addTableRow(namedColumn("From"), srcName);
+    tableTip.addTableRow(namedColumn("To"  ), destName);
+  }
+  else {
+    tableTip.addTableRow("From", srcName);
+    tableTip.addTableRow("To"  , destName);
+  }
 
-  if (edge()->hasValue())
-    tableTip.addTableRow(namedColumn("Value"), edge()->value().real());
+  if (edge()->hasValue()) {
+    auto valueName = (sankeyPlot_->isEdgeRows() ? namedColumn("Value") : "Value");
+
+    tableTip.addTableRow(valueName, edge()->value().real());
+  }
 
 #ifdef CQCHARTS_GRAPH_PATH_ID
-  if (pathId() >= 0)
+  if (pathId() >= 0) {
     tableTip.addTableRow(namedColumn("PathId", "Path Id"), pathId());
+  }
 #endif
 
   //---

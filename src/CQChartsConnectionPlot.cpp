@@ -1592,24 +1592,7 @@ void
 CQChartsConnectionPlot::
 processMetaData() const
 {
-  bool isEdgeRows = true;
-
-  auto type = calcColumnDataType();
-
-  switch (type) {
-    // node rows
-    case ColumnDataType::HIER:
-    case ColumnDataType::FROM_TO:
-      isEdgeRows = false;
-      break;
-    // edge rows
-    case ColumnDataType::LINK:
-    case ColumnDataType::CONNECTIONS:
-    case ColumnDataType::PATH:
-    case ColumnDataType::TABLE:
-      isEdgeRows = false;
-      break;
-  }
+  bool isEdgeRows = this->isEdgeRows();
 
   //---
 
@@ -1655,6 +1638,32 @@ processMetaData() const
       }
     }
   }
+}
+
+bool
+CQChartsConnectionPlot::
+isEdgeRows() const
+{
+  bool isEdgeRows = true;
+
+  auto type = calcColumnDataType();
+
+  switch (type) {
+    // node rows
+    case ColumnDataType::HIER:        // column data for leaf node of hier
+    case ColumnDataType::PATH:        // column data for leaf node of path
+    case ColumnDataType::CONNECTIONS: // column data for node
+    case ColumnDataType::TABLE:       // no column data
+      isEdgeRows = false;
+      break;
+    // edge rows
+    case ColumnDataType::FROM_TO: // column data for edge
+    case ColumnDataType::LINK:    // column data for edge
+      isEdgeRows = true;
+      break;
+  }
+
+  return isEdgeRows;
 }
 
 //---

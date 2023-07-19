@@ -1368,6 +1368,16 @@ drawGrid(const Plot *plot, PaintDevice *device) const
 
   //---
 
+  auto mapPos = [&](double pos) {
+    if (! valueStart().isSet() && ! valueEnd().isSet())
+      return pos;
+
+    return CMathUtil::map(pos, valueStart().realOr(start()), valueEnd().realOr(end()),
+                          start(), end());
+  };
+
+  //---
+
   // draw fill
   if (isMajorGridFilled()) {
     auto dataRect = plot->pixelToWindow(plot->calcDataPixelRect()); // TODO: simplify
@@ -1389,12 +1399,15 @@ drawGrid(const Plot *plot, PaintDevice *device) const
     double pos2 = pos1;
 
     for (uint i = 0; i < numMajorTicks() + 1; i++) {
+      double mpos1 = mapPos(pos1);
+      double mpos2 = mapPos(pos2);
+
       // fill on alternate gaps (i = 1, 3, ...)
       if (i & 1) {
-        if (pos2 >= amin || pos1 <= amax) {
+        if (mpos2 >= amin || mpos1 <= amax) {
           // clip to axis range
-          double pos3 = std::max(pos1, amin);
-          double pos4 = std::min(pos2, amax);
+          double pos3 = std::max(mpos1, amin);
+          double pos4 = std::min(mpos2, amax);
 
           auto bbox = CQChartsGeom::makeDirBBox(! isHorizontal(), pos3, dmin, pos4, dmax);
 
@@ -1421,13 +1434,15 @@ drawGrid(const Plot *plot, PaintDevice *device) const
     // TODO: draw minor then major in case of overlap (e.g. log axis)
 
     for (uint i = 0; i < numMajorTicks() + 1; i++) {
+      double mpos1 = mapPos(pos1);
+
       // draw major line (grid and tick)
-      if (pos1 >= amin && pos1 <= amax) {
+      if (mpos1 >= amin && mpos1 <= amax) {
         // draw major grid line if major or minor displayed
         if      (isMajorGridLinesDisplayed())
-          drawMajorGridLine(plot, device, pos1, dmin, dmax);
+          drawMajorGridLine(plot, device, mpos1, dmin, dmax);
         else if (isMinorGridLinesDisplayed())
-          drawMinorGridLine(plot, device, pos1, dmin, dmax);
+          drawMinorGridLine(plot, device, mpos1, dmin, dmax);
       }
 
       if (isMinorGridLinesDisplayed()) {
@@ -1446,8 +1461,10 @@ drawGrid(const Plot *plot, PaintDevice *device) const
             continue;
 
           // draw minor grid line
-          if (pos2 >= amin && pos2 <= amax)
-            drawMinorGridLine(plot, device, pos2, dmin, dmax);
+          double mpos2 = mapPos(pos2);
+
+          if (mpos2 >= amin && mpos2 <= amax)
+            drawMinorGridLine(plot, device, mpos2, dmin, dmax);
         }
       }
 

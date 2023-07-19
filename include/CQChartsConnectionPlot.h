@@ -257,6 +257,8 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   ColumnDataType calcColumnDataType() const;
   void setCalcColumnDataType(const ColumnDataType &columnDataType);
 
+  bool isEdgeRows() const;
+
   //---
 
   const ColumnType &connectionsColumnType() const { return connectionsColumnType_; }
