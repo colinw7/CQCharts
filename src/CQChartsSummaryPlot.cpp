@@ -764,6 +764,13 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  for (auto *obj : objs) {
+    auto *cellObj = dynamic_cast<CellObj *>(obj);
+
+    if (cellObj)
+      cellObj->initCoords();
+  }
+
   return true;
 }
 
@@ -1565,6 +1572,52 @@ draw(PaintDevice *device) const
 
   //---
 
+  initCoords();
+
+  //---
+
+  auto bbox = this->rect();
+
+  PenBrush penBrush;
+
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(penBrush, updateState);
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  device->drawRect(bbox);
+
+  //---
+
+  nc_ = summaryPlot_->visibleColumns().count();
+
+  if (row_ == nc_ - 1)
+    drawXAxis(device);
+
+  if (col_ == nc_ - 1)
+    drawYAxis(device);
+
+  //---
+
+  auto cellType = getCellType();
+
+  if      (cellType == CQChartsSummaryPlot::CellType::SCATTER)
+    drawScatter(device);
+  else if (cellType == CQChartsSummaryPlot::CellType::CORRELATION)
+    drawCorrelation(device);
+  else if (cellType == CQChartsSummaryPlot::CellType::BOXPLOT)
+    drawBoxPlot(device);
+  else if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION)
+    drawDistribution(device);
+  else if (cellType == CQChartsSummaryPlot::CellType::PIE)
+    drawPie(device);
+}
+
+void
+CQChartsSummaryCellObj::
+initCoords() const
+{
   bx_ = summaryPlot_->lengthPlotWidth (summaryPlot_->border());
   by_ = summaryPlot_->lengthPlotHeight(summaryPlot_->border());
 
@@ -1615,43 +1668,6 @@ draw(PaintDevice *device) const
       }
     }
   }
-
-  //---
-
-  PenBrush penBrush;
-
-  bool updateState = device->isInteractive();
-
-  calcPenBrush(penBrush, updateState);
-
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-  device->drawRect(bbox);
-
-  //---
-
-  nc_ = summaryPlot_->visibleColumns().count();
-
-  if (row_ == nc_ - 1)
-    drawXAxis(device);
-
-  if (col_ == nc_ - 1)
-    drawYAxis(device);
-
-  //---
-
-  auto cellType = getCellType();
-
-  if      (cellType == CQChartsSummaryPlot::CellType::SCATTER)
-    drawScatter(device);
-  else if (cellType == CQChartsSummaryPlot::CellType::CORRELATION)
-    drawCorrelation(device);
-  else if (cellType == CQChartsSummaryPlot::CellType::BOXPLOT)
-    drawBoxPlot(device);
-  else if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION)
-    drawDistribution(device);
-  else if (cellType == CQChartsSummaryPlot::CellType::PIE)
-    drawPie(device);
 }
 
 void

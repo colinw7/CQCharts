@@ -1916,7 +1916,7 @@ processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
 #ifdef CQCHARTS_GRAPH_PATH_ID
     // TODO: remove path_id and color (use columns)
     else if (name == "path_id") {
-      long pathId = CQChartsUtil::toInt(valueStr, ok); if (! ok || pathId < 0) continue;
+      long pathId = CQChartsUtil::toInt(var, ok); if (! ok || pathId < 0) continue;
       edge->setPathId(int(pathId));
       pathIdMinMax_.add(int(pathId));
     }
@@ -5776,7 +5776,7 @@ void
 CQChartsSankeyEdgeObj::
 drawFg(PaintDevice *device) const
 {
-  if (! sankeyPlot()->isNodeTextVisible())
+  if (! sankeyPlot()->isEdgeTextVisible())
     return;
 
   auto str = edge()->label();

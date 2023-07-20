@@ -459,6 +459,8 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
+  void initCoords() const;
+
   void draw(PaintDevice *device) const override;
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
