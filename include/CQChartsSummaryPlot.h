@@ -81,6 +81,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Q_PROPERTY(CQChartsColumns columns     READ columns     WRITE setColumns    )
   Q_PROPERTY(CQChartsColumn  groupColumn READ groupColumn WRITE setGroupColumn)
 
+  Q_PROPERTY(CQChartsColumn symbolTypeColumn READ symbolTypeColumn WRITE setSymbolTypeColumn)
+  Q_PROPERTY(CQChartsColumn symbolSizeColumn READ symbolSizeColumn WRITE setSymbolSizeColumn)
+
   // plot type
   Q_PROPERTY(PlotType plotType READ plotType WRITE setPlotType)
 
@@ -200,6 +203,13 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   //! get/set group column
   const Column &groupColumn() const { return groupColumn_; }
   void setGroupColumn(const Column &c);
+
+  // symbol type and size columns
+  const Column &symbolTypeColumn() const { return symbolTypeColumn_; }
+  void setSymbolTypeColumn(const Column &c);
+
+  const Column &symbolSizeColumn() const { return symbolSizeColumn_; }
+  void setSymbolSizeColumn(const Column &c);
 
   //---
 
@@ -389,8 +399,12 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   using SelectedColumns    = std::set<int>;
   using SelectedRowColumns = std::map<int, SelectedColumns>;
 
-  Columns columns_;        //!< columns
-  Column  groupColumn_;    //!< group column
+  Columns columns_;     //!< columns
+  Column  groupColumn_; //!< group column
+
+  Column symbolTypeColumn_; //!< symbol type column
+  Column symbolSizeColumn_; //!< symbol size column
+
   Columns visibleColumns_; //!< visible columns
 
   Length border_ { Length::plot(0.05) }; //!< border

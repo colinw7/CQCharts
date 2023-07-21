@@ -52,6 +52,14 @@ addParameters()
   addColumnParameter("group", "Group", "groupColumn").
    setGroupable().setBasic().setPropPath("columns.group").setTip("Group column");
 
+  addColumnParameter("symbolType", "Symbol Type", "symbolTypeColumn").
+    setPropPath("columns.symbolType").setTip("Custom Symbol Type").setMapped().
+    setMapMinMax(CQChartsSymbolType::minFillValue(), CQChartsSymbolType::maxFillValue());
+
+  addColumnParameter("symbolSize", "Symbol Size", "symbolSizeColumn").
+    setPropPath("columns.symbolSize").setTip("Custom Symbol Size").setMapped().
+    setMapMinMax(CQChartsSymbolSize::minValue(), CQChartsSymbolSize::maxValue());
+
   // options
   addEnumParameter("plotType", "Plot Type", "plotType").
     addNameValue("MATRIX"  , static_cast<int>(SummaryPlot::PlotType::MATRIX  )).
@@ -507,6 +515,24 @@ setGroupColumn(const Column &c)
   } );
 }
 
+void
+CQChartsSummaryPlot::
+setSymbolTypeColumn(const Column &c)
+{
+  CQChartsUtil::testAndSet(symbolTypeColumn_, c, [&]() {
+    drawObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
+void
+CQChartsSummaryPlot::
+setSymbolSizeColumn(const Column &c)
+{
+  CQChartsUtil::testAndSet(symbolSizeColumn_, c, [&]() {
+    drawObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
 //---
 
 void
@@ -569,6 +595,9 @@ addProperties()
   // columns
   addProp("columns", "columns"    , "columns", "Columns");
   addProp("columns", "groupColumn", "group"  , "Group column");
+
+  addProp("columns", "symbolTypeColumn", "symbolType", "Symbol type column");
+  addProp("columns", "symbolSizeColumn", "symbolSize", "Symbol size column");
 
   // style
   addProp("options", "plotType", "plotType", "Plot type");
@@ -1825,17 +1854,21 @@ drawScatter(PaintDevice *device) const
 
   //---
 
-  auto column1 = colColumn();
-  auto column2 = rowColumn();
+  auto colColumn = this->colColumn();
+  auto rowColumn = this->rowColumn();
 
-  auto *details1 = summaryPlot_->columnDetails(column1);
-  auto *details2 = summaryPlot_->columnDetails(column2);
+  auto *details1 = summaryPlot_->columnDetails(colColumn);
+  auto *details2 = summaryPlot_->columnDetails(rowColumn);
   if (! details1 || ! details2) return;
 
   auto *groupDetails = (summaryPlot_->groupColumn().isValid() ?
     summaryPlot_->columnDetails(summaryPlot_->groupColumn()) : nullptr);
 
   int ng = (groupDetails ? groupDetails->numUnique() : 0);
+
+  auto *colorDetails      = summaryPlot_->columnDetails(summaryPlot_->colorColumn());
+  auto *symbolTypeDetails = summaryPlot_->columnDetails(summaryPlot_->symbolTypeColumn());
+  auto *symbolSizeDetails = summaryPlot_->columnDetails(summaryPlot_->symbolSizeColumn());
 
   //---
 
@@ -1867,6 +1900,8 @@ drawScatter(PaintDevice *device) const
 
   auto symbol     = summaryPlot_->scatterSymbol();
   auto symbolSize = summaryPlot_->calcScatterSymbolSize();
+
+  //---
 
   PenBrush penBrush;
 
@@ -1908,13 +1943,14 @@ drawScatter(PaintDevice *device) const
     // set pen/brush
     PenBrush       penBrush1;
     CQChartsSymbol symbol1;
+    ColorInd       colorInd1;
 
     if (groupDetails) {
       auto var = groupDetails->value(i);
 
       int ig = groupDetails->uniqueId(var);
 
-      ColorInd colorInd1(ig, ng);
+      colorInd1 = ColorInd(ig, ng);
 
       summaryPlot_->setScatterSymbolPenBrush(penBrush1, colorInd1);
 
@@ -1924,8 +1960,40 @@ drawScatter(PaintDevice *device) const
       symbol1 = symbolSet->interpI(ig).symbol;
     }
     else {
+      colorInd1 = colorInd;
       penBrush1 = penBrush;
       symbol1   = symbol;
+    }
+
+    auto symbolSize1 = symbolSize;
+
+    //---
+
+    if (colorDetails) {
+      bool ok;
+      auto color = CQChartsVariant::toColor(colorDetails->value(i), ok);
+
+      if (ok) {
+        auto c = summaryPlot_->interpColor(color, colorInd1);
+
+        penBrush1.brush.setColor(c);
+      }
+    }
+
+    if (symbolTypeDetails) {
+      bool ok;
+      auto symbol = CQChartsVariant::toSymbol(symbolTypeDetails->value(i), ok);
+
+      if (ok)
+        symbol1 = symbol;
+    }
+
+    if (symbolSizeDetails) {
+      bool ok;
+      auto size = CQChartsVariant::toLength(symbolSizeDetails->value(i), ok);
+
+      if (ok)
+        symbolSize1 = size;
     }
 
     //---
@@ -1934,7 +2002,7 @@ drawScatter(PaintDevice *device) const
 
     CQChartsDrawUtil::setPenBrush(device, penBrush1);
 
-    CQChartsDrawUtil::drawSymbol(device, penBrush1, symbol1, ps, symbolSize, /*scale*/true);
+    CQChartsDrawUtil::drawSymbol(device, penBrush1, symbol1, ps, symbolSize1, /*scale*/true);
 
     //---
 
@@ -1946,7 +2014,7 @@ drawScatter(PaintDevice *device) const
 
       CQChartsDrawUtil::setPenBrush(device, penBrush2);
 
-      double ss = 0.75*summaryPlot_->lengthPixelWidth(symbolSize);
+      double ss = 0.75*summaryPlot_->lengthPixelWidth(symbolSize1);
 
       auto pps = summaryPlot_->windowToPixel(ps);
 
