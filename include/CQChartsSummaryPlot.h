@@ -240,6 +240,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   bool isExpanded() const { return expanded_; }
   void setExpanded(bool b);
 
+  int expandRow() const { return expandRow_; }
+  int expandCol() const { return expandCol_; }
+
   //---
 
   //! get/set matrix cell types

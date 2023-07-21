@@ -340,9 +340,9 @@ updatePlots()
   else
     parallelPlot_->setYColumns(Columns(Column::makeRow()));
 
-  if (isExpanded() && (expandRow_ != expandCol_)) {
-    auto column1 = visibleColumns().getColumn(expandCol_);
-    auto column2 = visibleColumns().getColumn(expandRow_);
+  if (isExpanded() && (expandRow() != expandCol())) {
+    auto column1 = visibleColumns().getColumn(expandCol());
+    auto column2 = visibleColumns().getColumn(expandRow());
 
     scatterPlot_->setXColumn(column1);
     scatterPlot_->setYColumn(column2);
@@ -356,8 +356,8 @@ updatePlots()
     scatterPlot_->setYColumn(Column::makeRow());
   }
 
-  if (isExpanded() && (expandRow_ == expandCol_)) {
-    auto column = visibleColumns().getColumn(expandRow_);
+  if (isExpanded() && (expandRow() == expandCol())) {
+    auto column = visibleColumns().getColumn(expandRow());
 
     if      (diagonalType() == CQChartsSummaryPlot::DiagonalType::DISTRIBUTION) {
       distributionPlot_->setValueColumns(Columns(column));
@@ -507,7 +507,7 @@ setGroupColumn(const Column &c)
   CQChartsUtil::testAndSet(groupColumn_, c, [&]() {
     resetSetHidden();
 
-    if (isExpanded() && (expandRow_ != expandCol_)) {
+    if (isExpanded() && (expandRow() != expandCol())) {
       scatterPlot_->setGroupColumn(groupColumn());
     }
 
@@ -1083,7 +1083,7 @@ CQChartsSummaryPlot::
 collapseCell()
 {
   if (isExpanded()) {
-    if (expandRow_ != expandCol_) {
+    if (expandRow() != expandCol()) {
       scatterPlot_->collapseRoot();
     }
     else {
