@@ -4,6 +4,15 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + sankey
+   + value alignment
+   + value on mouse over
+
+ + floating overview on plot
+
+ + support tk widget in annotation
+ + support annotations in summary plot
+
  + summary plot axis control.
  + summary plot push should propagate selection (selected in model before plot should select obj)
 

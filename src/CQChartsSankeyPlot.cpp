@@ -5305,29 +5305,29 @@ drawValueLabel(PaintDevice *device, const BBox &rect) const
 
     if (sankeyPlot_->isTextInternal()) {
       // on bottom side
-      if (rect.getYMid() < ym - tw) {
-        pt = Point(prect.getXMax() - ptw, prect.getYMin() - pTextMargin - fm.descent()); // bottom
+      if (rect.getYMid() < ym) {
+        pt = Point(prect.getXMax() - pTextMargin - ptw, prect.getYMin() + fm.ascent()); // bottom
       }
       // on top side
       else {
-        pt = Point(prect.getXMax() - ptw, prect.getYMax() + pTextMargin + fm.ascent()); // top
+        pt = Point(prect.getXMax() - pTextMargin - ptw, prect.getYMax() - fm.descent()); // top
       }
     }
     else {
       // on bottom side
-      if (rect.getYMid() < ym - tw) {
-        pt = Point(prect.getXMax() - ptw, prect.getYMax() + pTextMargin + fm.ascent()); // bottom
+      if (rect.getYMid() < ym) {
+        pt = Point(prect.getXMax() + pTextMargin, prect.getYMax() + fm.ascent()); // bottom
       }
       // on top side
       else {
-        pt = Point(prect.getXMax() - ptw, prect.getYMin() - pTextMargin - fm.descent()); // top
+        pt = Point(prect.getXMax() + pTextMargin, prect.getYMin() - fm.descent()); // top
       }
     }
   }
 
   auto textOptions = sankeyPlot()->nodeTextOptions();
 
-  textOptions.align = Qt::AlignLeft | Qt::AlignVCenter;
+  textOptions.align = Qt::AlignLeft | Qt::AlignTop;
 
   CQChartsDrawUtil::drawTextAtPoint(device, sankeyPlot()->pixelToWindow(pt), str, textOptions);
 }
