@@ -12,7 +12,7 @@ set modelId [load_charts_model -csv data/arrowstyle.csv]
 
 set plotId [create_charts_plot -type xy -columns {{x 0} {y 1}} -title "This plot has a very long title which we might want to format on multiple lines"]
 
-set viewId [get_charts_property -plot $plotId -name viewId]
+set viewId [get_charts_property -plot $plotId -name state.viewId]
 
 set textAnnotationId1 [create_charts_text_annotation -plot $plotId -id one -position {0 -60} -text "One"]
 

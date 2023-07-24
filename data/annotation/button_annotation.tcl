@@ -14,7 +14,7 @@ proc plotAnnotationSlot { viewId plotId id } {
 
 set plot [create_charts_plot -type empty -xmin 0 -ymin 0 -xmax 100 -ymax 100]
 
-set view [get_charts_property -plot $plot -name viewId]
+set view [get_charts_property -plot $plot -name state.viewId]
 
 set button1 [create_charts_button_annotation -view $view -id one -position {25 25 V} -text "One"]
 set button2 [create_charts_button_annotation -plot $plot -id two -position {75 75 P} -text "Two"]

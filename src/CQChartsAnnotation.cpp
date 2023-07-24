@@ -3370,82 +3370,59 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 //------
 
-CQChartsTextAnnotation::
-CQChartsTextAnnotation(View *view, const ObjRefPos &position, const QString &textStr) :
- CQChartsAnnotation(view, Type::TEXT)
+CQChartsRectAnnotation::
+CQChartsRectAnnotation(View *view, Type type, const ObjRefPos &position) :
+ CQChartsAnnotation(view, type)
 {
   setPosition(position.position());
   setObjRef  (position.objRef());
-
-  init(textStr);
 }
 
-CQChartsTextAnnotation::
-CQChartsTextAnnotation(Plot *plot, const ObjRefPos &position, const QString &textStr) :
- CQChartsAnnotation(plot, Type::TEXT)
+CQChartsRectAnnotation::
+CQChartsRectAnnotation(Plot *plot, Type type, const ObjRefPos &position) :
+ CQChartsAnnotation(plot, type)
 {
   setPosition(position.position());
   setObjRef  (position.objRef());
-
-  init(textStr);
 }
 
-CQChartsTextAnnotation::
-CQChartsTextAnnotation(View *view, const Rect &rect, const QString &textStr) :
- CQChartsAnnotation(view, Type::TEXT)
+CQChartsRectAnnotation::
+CQChartsRectAnnotation(View *view, Type type, const Rect &rect) :
+ CQChartsAnnotation(view, type)
 {
   setRectangle(rect);
-
-  init(textStr);
 }
 
-CQChartsTextAnnotation::
-CQChartsTextAnnotation(Plot *plot, const Rect &rect, const QString &textStr) :
- CQChartsAnnotation(plot, Type::TEXT)
+CQChartsRectAnnotation::
+CQChartsRectAnnotation(Plot *plot, Type type, const Rect &rect) :
+ CQChartsAnnotation(plot, type)
 {
   setRectangle(rect);
-
-  init(textStr);
 }
 
-CQChartsTextAnnotation::
-~CQChartsTextAnnotation()
+CQChartsRectAnnotation::
+~CQChartsRectAnnotation()
 {
-}
-
-void
-CQChartsTextAnnotation::
-init(const QString &textStr)
-{
-  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
-
-  setTextStr  (textStr);
-  setTextColor(Color::makeInterfaceValue(1.0));
-
-  setStroked(false);
-  setFilled (true);
-
-  editHandles()->setMode(EditHandles::Mode::RESIZE);
 }
 
 //---
 
 CQChartsPosition
-CQChartsTextAnnotation::
+CQChartsRectAnnotation::
 positionValue() const
 {
   return position_.positionOr(Position());
 }
 
 void
-CQChartsTextAnnotation::
+CQChartsRectAnnotation::
 setPosition(const Position &p)
 {
   setPosition(OptPosition(p));
 }
 
 void
-CQChartsTextAnnotation::
+CQChartsRectAnnotation::
 setPosition(const OptPosition &p)
 {
   if (! p.isSet())
@@ -3461,22 +3438,24 @@ setPosition(const OptPosition &p)
   emitDataChanged();
 }
 
+//---
+
 CQChartsRect
-CQChartsTextAnnotation::
+CQChartsRectAnnotation::
 rectangleValue() const
 {
   return rectangle().rectOr(Rect());
 }
 
 void
-CQChartsTextAnnotation::
+CQChartsRectAnnotation::
 setRectangle(const Rect &r)
 {
   setRectangle(OptRect(r));
 }
 
 void
-CQChartsTextAnnotation::
+CQChartsRectAnnotation::
 setRectangle(const OptRect &r)
 {
   if (r.isSet()) {
@@ -3502,7 +3481,7 @@ setRectangle(const OptRect &r)
 }
 
 void
-CQChartsTextAnnotation::
+CQChartsRectAnnotation::
 rectToBBox()
 {
   if (rectangle().isSet()) {
@@ -3515,6 +3494,56 @@ rectToBBox()
   }
   else
     setAnnotationBBox(BBox());
+}
+
+//------
+
+CQChartsTextAnnotation::
+CQChartsTextAnnotation(View *view, const ObjRefPos &position, const QString &textStr) :
+ CQChartsRectAnnotation(view, Type::TEXT, position)
+{
+  init(textStr);
+}
+
+CQChartsTextAnnotation::
+CQChartsTextAnnotation(Plot *plot, const ObjRefPos &position, const QString &textStr) :
+ CQChartsRectAnnotation(plot, Type::TEXT, position)
+{
+  init(textStr);
+}
+
+CQChartsTextAnnotation::
+CQChartsTextAnnotation(View *view, const Rect &rect, const QString &textStr) :
+ CQChartsRectAnnotation(view, Type::TEXT, rect)
+{
+  init(textStr);
+}
+
+CQChartsTextAnnotation::
+CQChartsTextAnnotation(Plot *plot, const Rect &rect, const QString &textStr) :
+ CQChartsRectAnnotation(plot, Type::TEXT, rect)
+{
+  init(textStr);
+}
+
+CQChartsTextAnnotation::
+~CQChartsTextAnnotation()
+{
+}
+
+void
+CQChartsTextAnnotation::
+init(const QString &textStr)
+{
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
+
+  setTextStr  (textStr);
+  setTextColor(Color::makeInterfaceValue(1.0));
+
+  setStroked(false);
+  setFilled (true);
+
+  editHandles()->setMode(EditHandles::Mode::RESIZE);
 }
 
 //---
@@ -8557,39 +8586,29 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 CQChartsWidgetAnnotation::
 CQChartsWidgetAnnotation(View *view, const ObjRefPos &position, const Widget &widget) :
- CQChartsAnnotation(view, Type::WIDGET), widget_(widget)
+ CQChartsRectAnnotation(view, Type::WIDGET, position), widget_(widget)
 {
-  setPosition(position.position());
-  setObjRef  (position.objRef());
-
   init();
 }
 
 CQChartsWidgetAnnotation::
 CQChartsWidgetAnnotation(Plot *plot, const ObjRefPos &position, const Widget &widget) :
- CQChartsAnnotation(plot, Type::WIDGET), widget_(widget)
+ CQChartsRectAnnotation(plot, Type::WIDGET, position), widget_(widget)
 {
-  setPosition(position.position());
-  setObjRef  (position.objRef());
-
   init();
 }
 
 CQChartsWidgetAnnotation::
 CQChartsWidgetAnnotation(View *view, const Rect &rect, const Widget &widget) :
- CQChartsAnnotation(view, Type::WIDGET), widget_(widget)
+ CQChartsRectAnnotation(view, Type::WIDGET, rect), widget_(widget)
 {
-  setRectangle(rect);
-
   init();
 }
 
 CQChartsWidgetAnnotation::
 CQChartsWidgetAnnotation(Plot *plot, const Rect &rect, const Widget &widget) :
- CQChartsAnnotation(plot, Type::WIDGET), widget_(widget)
+ CQChartsRectAnnotation(plot, Type::WIDGET, rect), widget_(widget)
 {
-  setRectangle(rect);
-
   init();
 }
 
@@ -8638,33 +8657,11 @@ updateVisible()
 
 //---
 
-CQChartsPosition
-CQChartsWidgetAnnotation::
-positionValue() const
-{
-  return position_.positionOr(Position());
-}
-
-void
-CQChartsWidgetAnnotation::
-setPosition(const Position &p)
-{
-  setPosition(OptPosition(p));
-}
-
 void
 CQChartsWidgetAnnotation::
 setPosition(const OptPosition &p)
 {
-  if (! p.isSet())
-    return;
-
-  assert(p.position().isValid());
-
-  rectangle_ = OptRect();
-  position_  = p;
-
-  positionToBBox();
+  CQChartsRectAnnotation::setPosition(p);
 
   if (winWidget_) {
     disconnect(winWidget_, SIGNAL(geometryChanged()), this, SLOT(updateWinGeometry()));
@@ -8679,42 +8676,11 @@ setPosition(const OptPosition &p)
   emitDataChanged();
 }
 
-CQChartsRect
-CQChartsWidgetAnnotation::
-rectangleValue() const
-{
-  return rectangle().rectOr(Rect());
-}
-
-void
-CQChartsWidgetAnnotation::
-setRectangle(const Rect &r)
-{
-  setRectangle(OptRect(r));
-}
-
 void
 CQChartsWidgetAnnotation::
 setRectangle(const OptRect &r)
 {
-  if (r.isSet()) {
-    assert(r.rect().isValid());
-
-    position_  = OptPosition();
-    rectangle_ = r;
-  }
-  else {
-    if (! position_.isSet()) {
-      if (rectangle_.isSet())
-        position_  = OptPosition(rectangleValue().center());
-      else
-        position_  = OptPosition(Position::pixel(Point(0, 0)));
-    }
-
-    rectangle_ = OptRect();
-  }
-
-  rectToBBox();
+  CQChartsRectAnnotation::setRectangle(r);
 
   if (winWidget_) {
     disconnect(winWidget_, SIGNAL(geometryChanged()), this, SLOT(updateWinGeometry()));
@@ -8763,22 +8729,6 @@ updateWinGeometry()
   rectToBBox();
 
   emitDataChanged();
-}
-
-void
-CQChartsWidgetAnnotation::
-rectToBBox()
-{
-  if (rectangle().isSet()) {
-    auto rect = this->rectangleValue();
-
-    if (plot())
-      setAnnotationBBox(plot()->rectToPlot(rect));
-    else
-      setAnnotationBBox(view()->rectToView(rect));
-  }
-  else
-    setAnnotationBBox(BBox());
 }
 
 void
@@ -8935,7 +8885,7 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 
     auto position = Position(ll, parentUnits());
 
-    setPosition(position);
+    setPosition(OptPosition(position));
   }
 
   setAnnotationBBox(bbox);
@@ -9016,7 +8966,7 @@ initRectangle()
 
     auto rect = Rect(annotationBBox(), parentUnits());
 
-    setRectangle(rect);
+    setRectangle(OptRect(rect));
   }
 }
 

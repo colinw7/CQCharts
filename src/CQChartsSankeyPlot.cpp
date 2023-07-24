@@ -514,9 +514,9 @@ setAdjustIterations(int n)
 
 void
 CQChartsSankeyPlot::
-setTextInternal(bool b)
+setNodeTextInternal(bool b)
 {
-  CQChartsUtil::testAndSet(textInternal_, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(nodeTextInternal_, b, [&]() { drawObjs(); } );
 }
 
 void
@@ -617,9 +617,11 @@ addProperties()
   //---
 
   // node text
-  addProp("node/text", "nodeTextVisible"    , "visible"        , "Node text label visible");
-  addProp("node/text", "insideTextVisible"  , "insideVisible"  , "Inside text label visible");
-  addProp("node/text", "selectedTextVisible", "selectedVisible", "Selected text label visible");
+  addProp("node/text", "nodeTextVisible"        , "visible"        , "Node text label visible");
+  addProp("node/text", "nodeTextInsideVisible"  , "insideVisible"  , "Node text inside visible");
+  addProp("node/text", "nodeTextSelectedVisible", "selectedVisible", "Node text selected visible");
+
+  addProp("node/text", "nodeTextInternal", "internal", "Draw text internal to plot");
 
   addTextProperties("node/text", "nodeText", "", TextOptions::ValueType::ALL);
 
@@ -639,15 +641,16 @@ addProperties()
   addFillProperties("edge/fill", "edgeFill", "Edge");
 
   // edge text
-  addProp("edge/text", "edgeTextVisible", "visible", "Edge text label visible");
+  addProp("edge/text", "edgeTextVisible"        , "visible"        , "Edge text label visible");
+  addProp("edge/text", "edgeTextInsideVisible"  , "insideVisible"  , "Edge text inside visible");
+  addProp("edge/text", "edgeTextSelectedVisible", "selectedVisible", "Edge text selected visible");
 
   addTextProperties("edge/text", "edgeText", "", TextOptions::ValueType::ALL);
 
   //---
 
   // general text properties
-  addProp("text", "textInternal", "internal"  , "Draw text internal to plot");
-  addProp("text", "adjustText"  , "adjustText", "Adjust text placement");
+  addProp("text", "adjustText", "adjustText", "Adjust text placement");
 
   //---
 
@@ -664,7 +667,7 @@ CQChartsGeom::Range
 CQChartsSankeyPlot::
 calcRange() const
 {
-  if (! isTextInternal() || isNodeValueBar()) {
+  if (! isNodeTextInternal() || isNodeValueBar()) {
     double dx1 = 0.0, dx2 = 0.0, dy1 = 0.0, dy2 = 0.0;
 
     if (isNodeValueBar()) {
@@ -680,7 +683,7 @@ calcRange() const
         dy2 = barSize*db;
     }
 
-    if (! isTextInternal()) {
+    if (! isNodeTextInternal()) {
       auto font = view()->plotFont(this, nodeTextFont());
 
       QFontMetricsF fm(font);
@@ -5021,19 +5024,23 @@ void
 CQChartsSankeyNodeObj::
 drawFgRect(PaintDevice *device, const BBox &rect) const
 {
-  bool visible = true;
+  using TextVisibleType = CQChartsSankeyPlot::TextVisibleType;
+
+  bool nameVisible = true;
 
   if (! sankeyPlot_->isNodeTextVisible()) {
-    visible = false;
+    nameVisible = false;
 
-    if (sankeyPlot_->isInsideTextVisible() && isInside())
-      visible = true;
+    if ((uint(sankeyPlot_->nodeTextInsideVisible()) & uint(TextVisibleType::NAME)) &&
+        isInside())
+      nameVisible = true;
 
-    if (sankeyPlot_->isSelectedTextVisible() && isSelected())
-      visible = true;
+    if ((uint(sankeyPlot_->nodeTextSelectedVisible()) & uint(TextVisibleType::NAME)) &&
+        isSelected())
+      nameVisible = true;
   }
 
-  if (visible) {
+  if (nameVisible) {
     if (node()->image().isValid())
       drawFgImage(device, rect);
     else
@@ -5042,7 +5049,17 @@ drawFgRect(PaintDevice *device, const BBox &rect) const
 
   //---
 
-  if (sankeyPlot_->isNodeValueLabel())
+  bool valueVisible = sankeyPlot_->isNodeValueLabel();
+
+  if ((uint(sankeyPlot_->nodeTextInsideVisible()) & uint(TextVisibleType::VALUE)) &&
+      isInside())
+    valueVisible = true;
+
+  if ((uint(sankeyPlot_->nodeTextSelectedVisible()) & uint(TextVisibleType::VALUE)) &&
+      isSelected())
+    valueVisible = true;
+
+  if (valueVisible)
     drawValueLabel(device, rect);
 }
 
@@ -5075,7 +5092,7 @@ drawFgImage(PaintDevice *device, const BBox &rect) const
 
     double xm = sankeyPlot_->getCalcDataRange().xmid();
 
-    if (sankeyPlot_->isTextInternal()) {
+    if (sankeyPlot_->isNodeTextInternal()) {
       if (rect.getXMid() < xm - iw/2.0)
         irect = BBox(rect.getXMax() + textMargin     , yc - ih/2,
                      rect.getXMax() + textMargin + iw, yc + ih/2); // left
@@ -5104,7 +5121,7 @@ drawFgImage(PaintDevice *device, const BBox &rect) const
 
     double ym = sankeyPlot_->getCalcDataRange().ymid();
 
-    if (sankeyPlot_->isTextInternal()) {
+    if (sankeyPlot_->isNodeTextInternal()) {
       if (rect.getYMid() < ym - ih/2.0)
         irect = BBox(xc - iw/2, rect.getYMax() + textMargin,
                      xc + iw/2, rect.getYMax() + textMargin + ih); // bottom
@@ -5144,6 +5161,9 @@ drawFgText(PaintDevice *device, const BBox &rect) const
   if (! str.length())
     str = node()->name();
 
+  if (! str.length())
+    return;
+
   //---
 
   QFontMetricsF fm(device->font());
@@ -5167,7 +5187,7 @@ drawFgText(PaintDevice *device, const BBox &rect) const
 
     double tx;
 
-    if (sankeyPlot_->isTextInternal()) {
+    if (sankeyPlot_->isNodeTextInternal()) {
       if (rect.getXMid() < xm - tw)
         tx = prect.getXMax() + pTextMargin; // left
       else
@@ -5191,7 +5211,7 @@ drawFgText(PaintDevice *device, const BBox &rect) const
 
     double ty;
 
-    if (sankeyPlot_->isTextInternal()) {
+    if (sankeyPlot_->isNodeTextInternal()) {
       if (rect.getYMid() < ym - tw)
         ty = prect.getYMin() - pTextMargin - fm.descent(); // bottom
       else
@@ -5279,7 +5299,7 @@ drawValueLabel(PaintDevice *device, const BBox &rect) const
   if (sankeyPlot_->isHorizontal()) {
     double xm = sankeyPlot_->getCalcDataRange().xmid();
 
-    if (sankeyPlot_->isTextInternal()) {
+    if (sankeyPlot_->isNodeTextInternal()) {
       // on left side
       if (rect.getXMid() < xm - tw) {
         pt = Point(prect.getXMax() + pTextMargin, prect.getYMax() - fm.ascent()); // left
@@ -5303,7 +5323,7 @@ drawValueLabel(PaintDevice *device, const BBox &rect) const
   else {
     double ym = sankeyPlot_->getCalcDataRange().ymid();
 
-    if (sankeyPlot_->isTextInternal()) {
+    if (sankeyPlot_->isNodeTextInternal()) {
       // on bottom side
       if (rect.getYMid() < ym) {
         pt = Point(prect.getXMax() - pTextMargin - ptw, prect.getYMin() + fm.ascent()); // bottom
@@ -5633,7 +5653,38 @@ draw(PaintDevice *device) const
 
   //---
 
-  if (sankeyPlot_->isEdgeValueLabel()) {
+  using TextVisibleType = CQChartsSankeyPlot::TextVisibleType;
+
+  bool nameVisible = true;
+
+  if (! sankeyPlot_->isEdgeTextVisible()) {
+    nameVisible = false;
+
+    if ((uint(sankeyPlot_->edgeTextInsideVisible()) & uint(TextVisibleType::NAME)) &&
+        isInside())
+      nameVisible = true;
+
+    if ((uint(sankeyPlot_->edgeTextSelectedVisible()) & uint(TextVisibleType::NAME)) &&
+        isSelected())
+      nameVisible = true;
+  }
+
+  if (nameVisible)
+    drawFgText(device);
+
+  //---
+
+  bool valueVisible = sankeyPlot_->isEdgeValueLabel();
+
+  if ((uint(sankeyPlot_->edgeTextInsideVisible()) & uint(TextVisibleType::VALUE)) &&
+      isInside())
+    valueVisible = true;
+
+  if ((uint(sankeyPlot_->edgeTextSelectedVisible()) & uint(TextVisibleType::VALUE)) &&
+      isSelected())
+    valueVisible = true;
+
+  if (valueVisible) {
     auto p = Point(linePath_.pointAtPercent(0.5));
 
     drawValueLabel(device, p);
@@ -5648,6 +5699,9 @@ drawValueLabel(PaintDevice *device, const Point &p) const
     return;
 
   setTextPen(device);
+
+  if (! edge()->hasValue())
+    return;
 
   auto value = edge()->value().real();
 
@@ -5770,15 +5824,11 @@ calcEdgePath(QPainterPath &path, bool isLine) const
   return edge()->edgePath(path, isLine);
 }
 
-#if 0
 // for edge text
 void
 CQChartsSankeyEdgeObj::
-drawFg(PaintDevice *device) const
+drawFgText(PaintDevice *device) const
 {
-  if (! sankeyPlot()->isEdgeTextVisible())
-    return;
-
   auto str = edge()->label();
 
   if (! str.length())
@@ -5820,14 +5870,13 @@ drawFg(PaintDevice *device) const
   auto pt = sankeyPlot()->pixelToWindow(Point(tx, ty));
 
   // only support contrast
-  auto textOptions = sankeyPlot()->textOptions();
+  auto textOptions = sankeyPlot()->edgeTextOptions();
 
-  textOptions.angle = Angle();
+  textOptions.angle = CQChartsAngle();
   textOptions.align = Qt::AlignLeft;
 
   CQChartsDrawUtil::drawTextAtPoint(device, pt, str, textOptions);
 }
-#endif
 
 void
 CQChartsSankeyEdgeObj::

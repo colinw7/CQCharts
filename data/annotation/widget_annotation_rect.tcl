@@ -12,7 +12,7 @@ set modelId [load_charts_model -csv data/p2.csv]
 
 set plot [create_charts_plot -type empty -xmin -1 -ymin -1 -xmax 1 -ymax 1]
 
-set viewId [get_charts_property -plot $plot -name viewId]
+set viewId [get_charts_property -plot $plot -name state.viewId]
 
 set types [qt_create_widget -type ?]
 

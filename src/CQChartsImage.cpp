@@ -34,8 +34,10 @@ class CQChartsImageMgr {
     if (p == namedImages_.end()) {
       QImage image;
 
-      if (image.load(filename))
-        namedImages_[filename] = image;
+      if (! image.load(filename))
+        return QImage();
+
+      p = namedImages_.insert(p, NamedImages::value_type(filename, image));
     }
 
     return (*p).second;
@@ -87,8 +89,10 @@ class CQChartsIconMgr {
     if (p == namedIcons_.end()) {
       QIcon icon(filename);
 
-      if (! icon.isNull())
-        namedIcons_[filename] = icon;
+      if (icon.isNull())
+        return QIcon();
+
+      p = namedIcons_.insert(p, NamedIcons::value_type(filename, icon));
     }
 
     return (*p).second;

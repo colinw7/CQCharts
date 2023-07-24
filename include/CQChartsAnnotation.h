@@ -1142,14 +1142,7 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotationBase {
 
 //---
 
-/*!
- * \brief text annotation
- * \ingroup Charts
- *
- * Formatted text in optionally filled and/or stroked box.
- * Text can be drawn at any angle.
- */
-class CQChartsTextAnnotation : public CQChartsAnnotation {
+class CQChartsRectAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsOptPosition position  READ position  WRITE setPosition )
@@ -1160,6 +1153,65 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
   using Rect        = CQChartsRect;
   using OptRect     = CQChartsOptRect;
   using OptPosition = CQChartsOptPosition;
+
+ public:
+  CQChartsRectAnnotation(View *view, Type type, const ObjRefPos &p);
+  CQChartsRectAnnotation(Plot *plot, Type type, const ObjRefPos &p);
+
+  CQChartsRectAnnotation(View *view, Type type, const Rect &rect);
+  CQChartsRectAnnotation(Plot *plot, Type type, const Rect &rect);
+
+  virtual ~CQChartsRectAnnotation();
+
+  //---
+
+  //! get/set position
+  const OptPosition &position() const { return position_; }
+  virtual void setPosition(const OptPosition &p);
+
+  Position positionValue() const;
+  void setPosition(const Position &p);
+
+  //---
+
+  //! get/set rectangle
+  const OptRect &rectangle() const { return rectangle_; }
+  virtual void setRectangle(const OptRect &r);
+
+  Rect rectangleValue() const;
+  void setRectangle(const Rect &r);
+
+  //---
+
+  //! get/set object reference
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
+  //---
+
+ protected:
+  virtual void positionToBBox() { }
+
+  void rectToBBox();
+
+ protected:
+  OptPosition position_;  //!< text position
+  OptRect     rectangle_; //!< text bounding rect
+
+  ObjRef objRef_; //!< reference object
+};
+
+//---
+
+/*!
+ * \brief text annotation
+ * \ingroup Charts
+ *
+ * Formatted text in optionally filled and/or stroked box.
+ * Text can be drawn at any angle.
+ */
+class CQChartsTextAnnotation : public CQChartsRectAnnotation {
+  Q_OBJECT
 
  public:
   CQChartsTextAnnotation(View *view, const ObjRefPos &p=ObjRefPos(), const QString &text=QString());
@@ -1185,24 +1237,7 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   //---
 
-  //! get/set position
-  const OptPosition &position() const { return position_; }
-  void setPosition(const OptPosition &p);
-
-  Position positionValue() const;
-  void setPosition(const Position &p);
-
-  const OptRect &rectangle() const { return rectangle_; }
-  void setRectangle(const OptRect &r);
-
-  Rect rectangleValue() const;
-  void setRectangle(const Rect &r);
-
-  //---
-
-  //! get/set object reference
-  const ObjRef &objRef() const { return objRef_; }
-  void setObjRef(const ObjRef &o) { objRef_ = o; }
+  void positionToBBox() override;
 
   //---
 
@@ -1235,15 +1270,6 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
   void calcTextSize(Size &psize, Size &wsize) const;
 
   void positionToLL(double w, double h, double &x, double &y) const;
-
-  void rectToBBox();
-
-  void positionToBBox();
-
- protected:
-  OptPosition position_;  //!< text position
-  OptRect     rectangle_; //!< text bounding rect
-  ObjRef      objRef_;    //!< reference object
 };
 
 //---
@@ -2667,22 +2693,16 @@ class CQWinWidget;
  *
  * Widget at position or in rectangle
  */
-class CQChartsWidgetAnnotation : public CQChartsAnnotation {
+class CQChartsWidgetAnnotation : public CQChartsRectAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsOptPosition position    READ position      WRITE setPosition   )
-  Q_PROPERTY(CQChartsOptRect     rectangle   READ rectangle     WRITE setRectangle  )
-  Q_PROPERTY(CQChartsObjRef      objRef      READ objRef        WRITE setObjRef     )
-  Q_PROPERTY(CQChartsWidget      widget      READ widget        WRITE setWidget     )
-  Q_PROPERTY(Qt::Alignment       align       READ align         WRITE setAlign      )
-  Q_PROPERTY(QSizePolicy         sizePolicy  READ sizePolicy    WRITE setSizePolicy )
-  Q_PROPERTY(bool                interactive READ isInteractive WRITE setInteractive)
+  Q_PROPERTY(CQChartsWidget widget      READ widget        WRITE setWidget     )
+  Q_PROPERTY(Qt::Alignment  align       READ align         WRITE setAlign      )
+  Q_PROPERTY(QSizePolicy    sizePolicy  READ sizePolicy    WRITE setSizePolicy )
+  Q_PROPERTY(bool           interactive READ isInteractive WRITE setInteractive)
 
  public:
-  using Widget      = CQChartsWidget;
-  using Rect        = CQChartsRect;
-  using OptRect     = CQChartsOptRect;
-  using OptPosition = CQChartsOptPosition;
+  using Widget = CQChartsWidget;
 
  public:
   CQChartsWidgetAnnotation(View *view, const ObjRefPos &p=ObjRefPos(),
@@ -2710,6 +2730,9 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
 
   //---
 
+  void setPosition(const OptPosition &p) override;
+  void setRectangle(const OptRect &r) override;
+
  public:
   void setVisible(bool b) override;
 
@@ -2719,27 +2742,6 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
   //---
 
  public:
-  //! get/set position
-  const OptPosition &position() const { return position_; }
-  void setPosition(const OptPosition &p);
-
-  Position positionValue() const;
-  void setPosition(const Position &p);
-
-  const OptRect &rectangle() const { return rectangle_; }
-  void setRectangle(const OptRect &r);
-
-  Rect rectangleValue() const;
-  void setRectangle(const Rect &r);
-
-  //---
-
-  //! get/set object reference
-  const ObjRef &objRef() const { return objRef_; }
-  void setObjRef(const ObjRef &o) { objRef_ = o; }
-
-  //---
-
   const Widget &widget() const { return widget_; }
   void setWidget(const Widget &widget);
 
@@ -2784,9 +2786,7 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
 
   void positionToTopLeft(double w, double h, double &x, double &y) const;
 
-  void rectToBBox();
-
-  void positionToBBox();
+  void positionToBBox() override;
 
  protected Q_SLOTS:
   void updateWinGeometry();

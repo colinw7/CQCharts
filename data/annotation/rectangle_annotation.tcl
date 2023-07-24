@@ -6,7 +6,7 @@ set modelId [load_charts_model -csv data/arrowstyle.csv]
 
 set plotId [create_charts_plot -type xy -columns {{x 0} {y 1}} -title "Annotations"]
 
-set viewId [get_charts_property -plot $plotId -name viewId]
+set viewId [get_charts_property -plot $plotId -name state.viewId]
 
 set vrectId1 [create_charts_rectangle_annotation -view $viewId -id rectId1 -tip "Rectangle 1" \
   -start {10 10} -end {50 50} \

@@ -148,6 +148,7 @@ void
 CQChartsEmptyPlotCustomControls::
 init()
 {
+  connectSlots(true);
 }
 
 void

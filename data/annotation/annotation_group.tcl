@@ -12,7 +12,7 @@ set modelId [load_charts_model -csv data/p2.csv]
 
 set plotId [create_charts_plot -type scatter -columns {{x 0} {y 1}}]
 
-set viewId [get_charts_property -plot $plotId -name viewId]
+set viewId [get_charts_property -plot $plotId -name state.viewId]
 
 set group [create_charts_annotation_group -plot $plotId -id group]
 

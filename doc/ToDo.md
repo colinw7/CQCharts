@@ -5,7 +5,6 @@ Abstract Painter/Javascript
 
 TODO:
  + sankey
-   + value alignment
    + value on mouse over
 
  + floating overview on plot

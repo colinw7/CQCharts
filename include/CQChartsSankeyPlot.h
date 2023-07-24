@@ -437,11 +437,9 @@ class CQChartsSankeyPlotEdge {
 
   //---
 
-#if 0
   //! get/set label
   const QString &label() const { return label_; }
   void setLabel(const QString &s) { label_ = s; }
-#endif
 
   //---
 
@@ -499,7 +497,7 @@ class CQChartsSankeyPlotEdge {
   int               id_         { -1 };      //!< unique id
   OptReal           value_;                  //!< value
   NamedColumn       namedColumn_;            //!< named columns
-//QString           label_;                  //!< label
+  QString           label_;                  //!< label
   Color             color_;                  //!< color
 #ifdef CQCHARTS_GRAPH_PATH_ID
   int               pathId_     { -1 };      //!< path id
@@ -882,9 +880,7 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
 
   void drawConnectionMouseOver(PaintDevice *device, int mouseColoring) const;
 
-#if 0
-  void drawFg(PaintDevice *device) const override;
-#endif
+  void drawFgText(PaintDevice *device) const;
 
   bool calcEdgePath(QPainterPath &path, bool isLine=false) const;
 
@@ -981,17 +977,27 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
 
-  // text visible on mouse inside/selected (when text invisible)
-  Q_PROPERTY(bool insideTextVisible   READ isInsideTextVisible   WRITE setInsideTextVisible  )
-  Q_PROPERTY(bool selectedTextVisible READ isSelectedTextVisible WRITE setSelectedTextVisible)
+  // node text visible on mouse inside/selected (when text invisible)
+  Q_PROPERTY(TextVisibleType nodeTextInsideVisible
+             READ nodeTextInsideVisible   WRITE setNodeTextInsideVisible  )
+  Q_PROPERTY(TextVisibleType nodeTextSelectedVisible
+             READ nodeTextSelectedVisible WRITE setNodeTextSelectedVisible)
+
+  // node text inside rect
+  Q_PROPERTY(bool nodeTextInternal READ isNodeTextInternal WRITE setNodeTextInternal)
+
+  // edit text visible on mouse inside/selected (when text invisible)
+  Q_PROPERTY(TextVisibleType edgeTextInsideVisible
+             READ edgeTextInsideVisible   WRITE setEdgeTextInsideVisible  )
+  Q_PROPERTY(TextVisibleType edgeTextSelectedVisible
+             READ edgeTextSelectedVisible WRITE setEdgeTextSelectedVisible)
 
   // text style
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Node, node)
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Edge, edge)
 
   // general text
-  Q_PROPERTY(bool textInternal READ isTextInternal WRITE setTextInternal)
-  Q_PROPERTY(bool adjustText   READ isAdjustText   WRITE setAdjustText)
+  Q_PROPERTY(bool adjustText READ isAdjustText WRITE setAdjustText)
 
   // pos scale
   Q_PROPERTY(int minPos READ minPos)
@@ -1003,6 +1009,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_ENUMS(Align)
   Q_ENUMS(Spread)
   Q_ENUMS(BlendType)
+  Q_ENUMS(TextVisibleType)
 
  public:
   enum class ConnectionType {
@@ -1039,6 +1046,13 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
     STROKE_AVERAGE,
     FILL_STROKE_AVERAGE,
     FILL_GRADIENT
+  };
+
+  enum class TextVisibleType : unsigned int {
+    NONE        = 0,
+    NAME       = (1<<0),
+    VALUE      = (1<<1),
+    NAME_VALUE = NAME | VALUE
   };
 
   using Node        = CQChartsSankeyPlotNode;
@@ -1280,12 +1294,22 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //---
 
   //! text visible on inside (when text invisible)
-  bool isInsideTextVisible() const { return insideTextVisible_; }
-  void setInsideTextVisible(bool b) { insideTextVisible_ = b; }
+  const TextVisibleType &nodeTextInsideVisible() const { return nodeTextInsideVisible_; }
+  void setNodeTextInsideVisible(const TextVisibleType &b) { nodeTextInsideVisible_ = b; }
 
   //! text visible on selected (when text invisible)
-  bool isSelectedTextVisible() const { return selectedTextVisible_; }
-  void setSelectedTextVisible(bool b) { selectedTextVisible_ = b; }
+  const TextVisibleType &nodeTextSelectedVisible() const { return nodeTextSelectedVisible_; }
+  void setNodeTextSelectedVisible(const TextVisibleType &b) { nodeTextSelectedVisible_ = b; }
+
+  //---
+
+  //! text visible on inside (when text invisible)
+  const TextVisibleType &edgeTextInsideVisible() const { return edgeTextInsideVisible_; }
+  void setEdgeTextInsideVisible(const TextVisibleType &b) { edgeTextInsideVisible_ = b; }
+
+  //! text visible on selected (when text invisible)
+  const TextVisibleType &edgeTextSelectedVisible() const { return edgeTextSelectedVisible_; }
+  void setEdgeTextSelectedVisible(const TextVisibleType &b) { edgeTextSelectedVisible_ = b; }
 
   //---
 
@@ -1296,8 +1320,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //---
 
   //! text is internal to plot
-  bool isTextInternal() const { return textInternal_; }
-  void setTextInternal(bool b);
+  bool isNodeTextInternal() const { return nodeTextInternal_; }
+  void setNodeTextInternal(bool b);
 
   //! get/set adjust text
   bool isAdjustText() const { return adjustText_; }
@@ -1584,9 +1608,19 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool edgeLine_       { false }; //!< draw line for edge
   bool edgeValueLabel_ { false }; //!< draw edge value label
 
-  // mouse inside/selected text visible
-  bool insideTextVisible_   { false }; //!< is inside text visble (when text invisible)
-  bool selectedTextVisible_ { false }; //!< is selected text visble (when text invisible)
+  // inside/selected node text visible
+  TextVisibleType nodeTextInsideVisible_   { TextVisibleType::NONE };
+                  //!< is node text visible when inside (when node text invisible)
+  TextVisibleType nodeTextSelectedVisible_ { TextVisibleType::NONE };
+                  //!< is node text visible when selected (when node text invisible)
+
+  bool nodeTextInternal_ { true };  //!< node text internal to plot
+
+  // inside/selected edge text visible
+  TextVisibleType edgeTextInsideVisible_   { TextVisibleType::NONE };
+                  //!< is edge text visible when inside (when edge text invisible)
+  TextVisibleType edgeTextSelectedVisible_ { TextVisibleType::NONE };
+                  //!< is edge text visible when selected (when edge text invisible)
 
   // coloring
   bool           srcColoring_       { false };                   //!< color by source nodes
@@ -1595,8 +1629,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool           mouseNodeColoring_ { false };                   //!< mouse over color nodes
 
   // general text options
-  bool textInternal_ { true };  //!< text internal to plot
-  bool adjustText_   { false }; //!< adjust text position
+  bool adjustText_ { false }; //!< adjust text position
 
   // data
   NameNodeMap nameNodeMap_;               //!< name node map
