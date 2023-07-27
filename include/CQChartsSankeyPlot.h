@@ -279,6 +279,14 @@ class CQChartsSankeyPlotNode {
     }
   }
 
+  void scaleSrcEdgeRectsBy(double fx, double fy) {
+    for (auto &edgeRect : srcEdgeRect_) {
+      if (! edgeRect.second.isSet()) continue;
+
+      edgeRect.second.scale(fx, fy);
+    }
+  }
+
   //---
 
   void clearDestEdgeRects() { destEdgeRect_.clear(); }
@@ -306,6 +314,14 @@ class CQChartsSankeyPlotNode {
       if (! edgeRect.second.isSet()) continue;
 
       edgeRect.second.moveBy(delta);
+    }
+  }
+
+  void scaleDestEdgeRectsBy(double fx, double fy) {
+    for (auto &edgeRect : destEdgeRect_) {
+      if (! edgeRect.second.isSet()) continue;
+
+      edgeRect.second.scale(fx, fy);
     }
   }
 
@@ -984,7 +1000,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
              READ nodeTextSelectedVisible WRITE setNodeTextSelectedVisible)
 
   // node text inside rect
-  Q_PROPERTY(bool nodeTextInternal READ isNodeTextInternal WRITE setNodeTextInternal)
+  Q_PROPERTY(TextPosition  nodeTextPosition   READ nodeTextPosition   WRITE setNodeTextPosition)
+  Q_PROPERTY(Qt::Alignment nodeTextLabelAlign READ nodeTextLabelAlign WRITE setNodeTextLabelAlign)
 
   // edit text visible on mouse inside/selected (when text invisible)
   Q_PROPERTY(TextVisibleType edgeTextInsideVisible
@@ -1010,6 +1027,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_ENUMS(Spread)
   Q_ENUMS(BlendType)
   Q_ENUMS(TextVisibleType)
+  Q_ENUMS(TextPosition)
 
  public:
   enum class ConnectionType {
@@ -1053,6 +1071,12 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
     NAME       = (1<<0),
     VALUE      = (1<<1),
     NAME_VALUE = NAME | VALUE
+  };
+
+  enum class TextPosition {
+    INTERNAL,
+    EXTERNAL,
+    ALIGNED
   };
 
   using Node        = CQChartsSankeyPlotNode;
@@ -1320,8 +1344,11 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //---
 
   //! text is internal to plot
-  bool isNodeTextInternal() const { return nodeTextInternal_; }
-  void setNodeTextInternal(bool b);
+  const TextPosition &nodeTextPosition() const { return nodeTextPosition_; }
+  void setNodeTextPosition(const TextPosition &pos);
+
+  const Qt::Alignment &nodeTextLabelAlign() const { return nodeTextLabelAlign_; }
+  void setNodeTextLabelAlign(const Qt::Alignment &a);
 
   //! get/set adjust text
   bool isAdjustText() const { return adjustText_; }
@@ -1614,7 +1641,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   TextVisibleType nodeTextSelectedVisible_ { TextVisibleType::NONE };
                   //!< is node text visible when selected (when node text invisible)
 
-  bool nodeTextInternal_ { true };  //!< node text internal to plot
+  TextPosition  nodeTextPosition_   { TextPosition::INTERNAL }; //!< node text position
+  Qt::Alignment nodeTextLabelAlign_ { Qt::AlignCenter };        //!< node text align
 
   // inside/selected edge text visible
   TextVisibleType edgeTextInsideVisible_   { TextVisibleType::NONE };
