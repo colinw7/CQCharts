@@ -514,9 +514,9 @@ setAdjustIterations(int n)
 
 void
 CQChartsSankeyPlot::
-setNodeTextPosition(const TextPosition &pos)
+setNodeTextLabelPosition(const TextPosition &pos)
 {
-  CQChartsUtil::testAndSet(nodeTextPosition_, pos, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(nodeTextLabelPosition_, pos, [&]() { drawObjs(); } );
 }
 
 void
@@ -524,6 +524,20 @@ CQChartsSankeyPlot::
 setNodeTextLabelAlign(const Qt::Alignment &align)
 {
   CQChartsUtil::testAndSet(nodeTextLabelAlign_, align, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setNodeTextValuePosition(const TextPosition &pos)
+{
+  CQChartsUtil::testAndSet(nodeTextValuePosition_, pos, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setNodeTextValueAlign(const Qt::Alignment &align)
+{
+  CQChartsUtil::testAndSet(nodeTextValueAlign_, align, [&]() { drawObjs(); } );
 }
 
 void
@@ -628,8 +642,11 @@ addProperties()
   addProp("node/text", "nodeTextInsideVisible"  , "insideVisible"  , "Node text inside visible");
   addProp("node/text", "nodeTextSelectedVisible", "selectedVisible", "Node text selected visible");
 
-  addProp("node/text", "nodeTextPosition"  , "labelPosition", "Node text label position");
-  addProp("node/text", "nodeTextLabelAlign", "labelAlign"   , "Node text label alignment");
+  addProp("node/text", "nodeTextLabelPosition", "labelPosition", "Node text label position");
+  addProp("node/text", "nodeTextLabelAlign"   , "labelAlign"   , "Node text label alignment");
+
+  addProp("node/text", "nodeTextValuePosition", "valuePosition", "Node text value position");
+  addProp("node/text", "nodeTextValueAlign"   , "valueAlign"   , "Node text value alignment");
 
   addTextProperties("node/text", "nodeText", "", TextOptions::ValueType::ALL);
 
@@ -675,7 +692,7 @@ CQChartsGeom::Range
 CQChartsSankeyPlot::
 calcRange() const
 {
-  if (nodeTextPosition() != TextPosition::INTERNAL || isNodeValueBar()) {
+  if (nodeTextLabelPosition() != TextPosition::INTERNAL || isNodeValueBar()) {
     double dx1 = 0.0, dx2 = 0.0, dy1 = 0.0, dy2 = 0.0;
 
     if (isNodeValueBar()) {
@@ -691,7 +708,7 @@ calcRange() const
         dy2 = barSize*db;
     }
 
-    if (nodeTextPosition() != TextPosition::INTERNAL) {
+    if (nodeTextLabelPosition() != TextPosition::INTERNAL) {
       auto font = view()->plotFont(this, nodeTextFont());
 
       QFontMetricsF fm(font);
@@ -2152,7 +2169,7 @@ placeGraphNodes(const Nodes &nodes, bool placed) const
   //---
 
   if (this->spread() == Spread::NONE)
-    fitToBBox();
+    (void) fitToBBox();
 
   //---
 
@@ -2389,12 +2406,12 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
 
     double posStart, posEnd;
 
-    // map pos to bbox range minus margins
     if (isNodeValueBar()) {
       posStart = targetBBox_.getMinExtent(isHorizontal());
       posEnd   = targetBBox_.getMaxExtent(isHorizontal());
     }
     else {
+      // map pos to bbox range minus margins
       if (isAlignEnds()) {
         posStart = targetBBox_.getMinExtent(isHorizontal()) + posMargin/2.0;
         posEnd   = targetBBox_.getMaxExtent(isHorizontal()) - posMargin/2.0;
@@ -5109,13 +5126,13 @@ drawFgImage(PaintDevice *device, const BBox &rect) const
 
     Qt::Alignment align = sankeyPlot_->nodeTextLabelAlign();
 
-    if      (sankeyPlot_->nodeTextPosition() == TextPosition::INTERNAL) {
+    if      (sankeyPlot_->nodeTextLabelPosition() == TextPosition::INTERNAL) {
       if (rect.getXMid() < xm - iw/2.0)
         align = Qt::AlignRight;
       else
         align = Qt::AlignLeft;
     }
-    else if (sankeyPlot_->nodeTextPosition() == TextPosition::EXTERNAL) {
+    else if (sankeyPlot_->nodeTextLabelPosition() == TextPosition::EXTERNAL) {
       if (rect.getXMid() < xm - iw/2.0)
         align = Qt::AlignLeft;
       else
@@ -5124,13 +5141,13 @@ drawFgImage(PaintDevice *device, const BBox &rect) const
 
     if      (align & Qt::AlignLeft)
       irect = BBox(rect.getXMin() - textMargin - iw, yc - ih/2,
-                   rect.getXMin() - textMargin     , yc + ih/2); // left
+                   rect.getXMin() - textMargin     , yc + ih/2);
     else if (align & Qt::AlignRight)
       irect = BBox(rect.getXMax() + textMargin     , yc - ih/2,
-                   rect.getXMax() + textMargin + iw, yc + ih/2); // left
+                   rect.getXMax() + textMargin + iw, yc + ih/2);
     else
       irect = BBox(rect.getXMid() - iw/2.0, yc - ih/2,
-                   rect.getXMid() + iw/2.0, yc + ih/2); // center
+                   rect.getXMid() + iw/2.0, yc + ih/2);
   }
   else {
     double textMargin = sankeyPlot_->pixelToWindowHeight(pTextMargin);
@@ -5146,13 +5163,13 @@ drawFgImage(PaintDevice *device, const BBox &rect) const
 
     Qt::Alignment align = sankeyPlot_->nodeTextLabelAlign();
 
-    if      (sankeyPlot_->nodeTextPosition() == TextPosition::INTERNAL) {
+    if      (sankeyPlot_->nodeTextLabelPosition() == TextPosition::INTERNAL) {
       if (rect.getYMid() < ym - ih/2.0)
         align = Qt::AlignTop;
       else
         align = Qt::AlignBottom;
     }
-    else if (sankeyPlot_->nodeTextPosition() == TextPosition::EXTERNAL) {
+    else if (sankeyPlot_->nodeTextLabelPosition() == TextPosition::EXTERNAL) {
       if (rect.getYMid() < ym - ih/2.0)
         align = Qt::AlignBottom;
       else
@@ -5220,13 +5237,13 @@ drawFgText(PaintDevice *device, const BBox &rect) const
 
     Qt::Alignment align = sankeyPlot_->nodeTextLabelAlign();
 
-    if      (sankeyPlot_->nodeTextPosition() == TextPosition::INTERNAL) {
+    if      (sankeyPlot_->nodeTextLabelPosition() == TextPosition::INTERNAL) {
       if (rect.getXMid() < xm - tw)
         align = Qt::AlignRight;
       else
         align = Qt::AlignLeft;
     }
-    else if (sankeyPlot_->nodeTextPosition() == TextPosition::EXTERNAL) {
+    else if (sankeyPlot_->nodeTextLabelPosition() == TextPosition::EXTERNAL) {
       if (rect.getXMid() < xm - tw)
         align = Qt::AlignLeft;
       else
@@ -5253,13 +5270,13 @@ drawFgText(PaintDevice *device, const BBox &rect) const
 
     Qt::Alignment align = sankeyPlot_->nodeTextLabelAlign();
 
-    if      (sankeyPlot_->nodeTextPosition() == TextPosition::INTERNAL) {
+    if      (sankeyPlot_->nodeTextLabelPosition() == TextPosition::INTERNAL) {
       if (rect.getYMid() < ym - tw)
         align = Qt::AlignTop;
       else
         align = Qt::AlignBottom;
     }
-    else if (sankeyPlot_->nodeTextPosition() == TextPosition::EXTERNAL) {
+    else if (sankeyPlot_->nodeTextLabelPosition() == TextPosition::EXTERNAL) {
       if (rect.getYMid() < ym - tw)
         align = Qt::AlignBottom;
       else
@@ -5351,15 +5368,15 @@ drawValueLabel(PaintDevice *device, const BBox &rect) const
   if (sankeyPlot_->isHorizontal()) {
     double xm = sankeyPlot_->getCalcDataRange().xmid();
 
-    Qt::Alignment align = sankeyPlot_->nodeTextLabelAlign();
+    Qt::Alignment align = sankeyPlot_->nodeTextValueAlign();
 
-    if      (sankeyPlot_->nodeTextPosition() == TextPosition::INTERNAL) {
+    if      (sankeyPlot_->nodeTextValuePosition() == TextPosition::INTERNAL) {
       if (rect.getXMid() < xm - tw)
         align = Qt::AlignRight;
       else
         align = Qt::AlignLeft;
     }
-    else if (sankeyPlot_->nodeTextPosition() == TextPosition::EXTERNAL) {
+    else if (sankeyPlot_->nodeTextValuePosition() == TextPosition::EXTERNAL) {
       if (rect.getXMid() < xm - tw)
         align = Qt::AlignLeft;
       else
@@ -5378,15 +5395,15 @@ drawValueLabel(PaintDevice *device, const BBox &rect) const
   else {
     double ym = sankeyPlot_->getCalcDataRange().ymid();
 
-    Qt::Alignment align = sankeyPlot_->nodeTextLabelAlign();
+    Qt::Alignment align = sankeyPlot_->nodeTextValueAlign();
 
-    if      (sankeyPlot_->nodeTextPosition() == TextPosition::INTERNAL) {
+    if      (sankeyPlot_->nodeTextValuePosition() == TextPosition::INTERNAL) {
       if (rect.getYMid() < ym - tw)
         align = Qt::AlignTop;
       else
         align = Qt::AlignBottom;
     }
-    else if (sankeyPlot_->nodeTextPosition() == TextPosition::EXTERNAL) {
+    else if (sankeyPlot_->nodeTextValuePosition() == TextPosition::EXTERNAL) {
       if (rect.getYMid() < ym - tw)
         align = Qt::AlignBottom;
       else
@@ -5757,9 +5774,6 @@ drawValueLabel(PaintDevice *device, const Point &p) const
     return;
 
   setTextPen(device);
-
-  if (! edge()->hasValue())
-    return;
 
   auto value = edge()->value().real();
 

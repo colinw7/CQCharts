@@ -6,6 +6,8 @@ Abstract Painter/Javascript
 TODO:
  + sankey
    + value on mouse over
+   + value text position
+   + selected text not cleared on selection change (after property edit)
 
  + floating overview on plot
 

@@ -332,6 +332,27 @@ intersectObjectRect(const ObjRef &objRef, CQChartsObj* &obj, BBox &bbox) const
   return (obj != nullptr);
 }
 
+bool
+CQChartsViewPlotObj::
+getObjRefData(const ObjRef &objRef, ObjRefData &data) const
+{
+  auto *plotObj = plot()->getPlotObject(objRef.name());
+
+  if (plotObj) {
+    data.plotObj = plotObj;
+    return true;
+  }
+
+  auto *annotation = plot()->getAnnotationByPathId(objRef.name());
+
+  if (annotation) {
+    data.annotation = annotation;
+    return true;
+  }
+
+  return false;
+}
+
 CQChartsGeom::Point
 CQChartsViewPlotObj::
 positionToParent(const Position &pos) const

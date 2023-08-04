@@ -228,6 +228,10 @@ addCommands()
                new CQChartsCreateChartsValueSetAnnotationCmd    (this));
     addCommand("create_charts_widget_annotation",
                new CQChartsCreateChartsWidgetAnnotationCmd      (this));
+#ifdef CQCHARTS_TK_WIDGET
+    addCommand("create_charts_tk_widget_annotation",
+               new CQChartsCreateChartsTkWidgetAnnotationCmd    (this));
+#endif
     addCommand("create_charts_symbol_map_key_annotation",
                new CQChartsCreateChartsSymbolMapKeyAnnotationCmd(this));
     addCommand("remove_charts_annotation",
@@ -11846,6 +11850,142 @@ execCmd(CQChartsCmdArgs &argv)
 
   return cmdBase_->setCmdRc(annotation->pathId());
 }
+
+//------
+
+#ifdef CQCHARTS_TK_WIDGET
+// create_charts_tk_widget_annotation command
+
+void
+CQChartsCreateChartsTkWidgetAnnotationCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  argv.startCmdGroup(CmdGroup::Type::OneReq);
+  addArg(argv, "-view", ArgType::String, "view name");
+  addArg(argv, "-plot", ArgType::String, "plot name");
+  argv.endCmdGroup();
+
+  addArg(argv, "-group", ArgType::String, "annotation group");
+
+  addArg(argv, "-id" , ArgType::String, "annotation id" );
+  addArg(argv, "-tip", ArgType::String, "annotation tip");
+
+  addArg(argv, "-position" , ArgType::ObjRefPos, "position");
+  addArg(argv, "-rectangle", ArgType::Rect     , "rectangle bounding box");
+
+  addArg(argv, "-properties", ArgType::String, "name_values");
+}
+
+QStringList
+CQChartsCreateChartsTkWidgetAnnotationCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if      (arg == "view") return cmds()->viewArgValues();
+  else if (arg == "plot") return cmds()->plotArgValues(nullptr);
+
+  return QStringList();
+}
+
+bool
+CQChartsCreateChartsTkWidgetAnnotationCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCreateChartsTkWidgetAnnotationCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get parent plot or view
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if (! cmds()->getViewPlotArg(argv, view, plot))
+    return false;
+
+  //---
+
+  // get parent group
+  CQChartsAnnotationGroup *group = nullptr;
+
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(
+              cmds()->getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
+  }
+
+  //---
+
+  // get id and tip
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
+
+  if (id == "")
+    return errorMsg("Annotation id required");
+
+  //---
+
+  // create annotation
+  CQChartsTkWidgetAnnotation *annotation = nullptr;
+
+  if      (argv.hasParseArg("rectangle")) {
+    auto rect = argv.getParseRect(view, plot, "rectangle");
+
+    if (! rect.isValid())
+      return errorMsg("Invalid rectangle geometry");
+
+    if (     plot)
+      annotation = plot->addTkWidgetAnnotation(rect, id);
+    else if (view)
+      annotation = view->addTkWidgetAnnotation(rect, id);
+  }
+  else {
+    auto pos = CQChartsObjRefPos::plot(CQChartsGeom::Point(0, 0));
+
+    if (argv.hasParseArg("position"))
+      pos = argv.getParseObjRefPos(view, plot, "position");
+
+    if      (plot)
+      annotation = plot->addTkWidgetAnnotation(pos, id);
+    else if (view)
+      annotation = view->addTkWidgetAnnotation(pos, id);
+  }
+
+  if (! annotation)
+    return errorMsg("Failed to create widget annotation");
+
+  annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
+  // set properties
+  cmds()->setAnnotationArgProperties(argv, annotation);
+
+  //---
+
+  return cmdBase_->setCmdRc(annotation->pathId());
+}
+#endif
 
 //------
 

@@ -13,8 +13,7 @@
  * \brief Widget Data
  * \ingroup Charts
  */
-class CQChartsWidget :
-  public CQChartsEqBase<CQChartsWidget> {
+class CQChartsWidget : public CQChartsEqBase<CQChartsWidget> {
  public:
   static void registerMetaType();
 

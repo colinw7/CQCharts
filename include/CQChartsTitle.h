@@ -141,7 +141,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   bool editMove  (const Point &) override;
   bool editMotion(const Point &) override;
 
-  void editMoveBy(const Point &d) override;
+  bool editMoveBy(const Point &d) override;
 
   //---
 

@@ -505,7 +505,7 @@ editMotion(const Point &p)
   return editHandles()->selectInside(p);
 }
 
-void
+bool
 CQChartsTitle::
 editMoveBy(const Point &d)
 {
@@ -514,6 +514,8 @@ editMoveBy(const Point &d)
   setAbsolutePlotPosition(position_ + d);
 
   redraw(/*wait*/false);
+
+  return true;
 }
 
 //------

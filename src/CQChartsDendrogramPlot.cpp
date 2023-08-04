@@ -148,10 +148,10 @@ void
 CQChartsDendrogramPlotType::
 addExtraHierParameters()
 {
-  addColumnParameter ("link" , "Link" , "linkColumn").
-   setStringColumn ().setRequired().setPropPath("columns.line" ).setTip("Link column");
-  addColumnParameter ("size" , "Size" , "sizeColumn").
-   setNumericColumn().setPropPath("columns.size" ).setTip("Size column");
+  addColumnParameter("link", "Link", "linkColumn").
+   setStringColumn ().setRequired().setPropPath("columns.link").setTip("Link column");
+  addColumnParameter("size", "Size", "sizeColumn").
+   setNumericColumn().setPropPath("columns.size").setTip("Size column");
 }
 
 QString
@@ -803,9 +803,9 @@ CQChartsDendrogramPlot::
 getNamedColumn(const QString &name) const
 {
   Column c;
-  if      (name == "link" ) c = this->linkColumn();
-  else if (name == "size" ) c = this->sizeColumn();
-  else                      c = CQChartsHierPlot::getNamedColumn(name);
+  if      (name == "link") c = this->linkColumn();
+  else if (name == "size") c = this->sizeColumn();
+  else                     c = CQChartsHierPlot::getNamedColumn(name);
 
   return c;
 }
@@ -814,9 +814,9 @@ void
 CQChartsDendrogramPlot::
 setNamedColumn(const QString &name, const Column &c)
 {
-  if      (name == "link" ) this->setLinkColumn(c);
-  else if (name == "size" ) this->setSizeColumn(c);
-  else                      CQChartsHierPlot::setNamedColumn(name, c);
+  if      (name == "link") this->setLinkColumn(c);
+  else if (name == "size") this->setSizeColumn(c);
+  else                     CQChartsHierPlot::setNamedColumn(name, c);
 }
 
 //---
@@ -843,6 +843,8 @@ addProperties()
   addProp("options", "removeGroupOverlaps", "removeGroupOverlaps", "Remove group overlaps");
   addProp("options", "adjustOverlaps"     , "adjustOverlaps"     , "Adjust overlap");
   addProp("options", "overlapMargin"      , "overlapMargin"      , "Overlap margin");
+
+  addProp("options", "hierValueTip", "hierValueTip", "Show hier value in tip");
 
   // root
   addProp("root"      , "rootVisible"     , "visible"   , "Root is visible");
@@ -1156,6 +1158,15 @@ createObjs(PlotObjs &objs) const
 
 //---
 
+bool
+CQChartsDendrogramPlot::
+isEdgeValue() const
+{
+  return (linkColumn().isValid());
+}
+
+//---
+
 void
 CQChartsDendrogramPlot::
 placeModel() const
@@ -1181,7 +1192,7 @@ placeModel() const
   // add name values
   class HierRowVisitor : public ModelVisitor {
    public:
-  using DendrogramPlot = CQChartsDendrogramPlot;
+    using DendrogramPlot = CQChartsDendrogramPlot;
 
    public:
     HierRowVisitor(const DendrogramPlot *dendrogramPlot, Edges &edges) :
@@ -3334,10 +3345,19 @@ calcTipId() const
 
   tableTip.addTableRow("Name", name());
 
-  if (value().isSet())
-    tableTip.addTableRow("Value", value().real());
+  if (value().isSet()) {
+    QString valueName;
 
-  if (hierValue().isSet())
+    if (! plot()->isEdgeValue() && plot()->valueColumn().isValid())
+      valueName = plot()->columnHeaderName(plot()->valueColumn(), /*tip*/true);
+
+    if (valueName == "")
+      valueName = "Value";
+
+    tableTip.addTableRow(valueName, value().real());
+  }
+
+  if (hierValue().isSet() && plot()->isHierValueTip())
     tableTip.addTableRow("Hier Value", hierValue().real());
 
   if      (colorValue().isSet())

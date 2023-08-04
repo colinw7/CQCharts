@@ -79,6 +79,9 @@ class CQChartsShapeAnnotation;
 class CQChartsTextAnnotation;
 class CQChartsValueSetAnnotation;
 class CQChartsWidgetAnnotation;
+#ifdef CQCHARTS_TK_WIDGET
+class CQChartsTkWidgetAnnotation;
+#endif
 class CQChartsSymbolSizeMapKeyAnnotation;
 
 class CQChartsPlotParameter;
@@ -2664,6 +2667,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using TextAnnotation         = CQChartsTextAnnotation;
   using ValueSetAnnotation     = CQChartsValueSetAnnotation;
   using WidgetAnnotation       = CQChartsWidgetAnnotation;
+#ifdef CQCHARTS_TK_WIDGET
+  using TkWidgetAnnotation     = CQChartsTkWidgetAnnotation;
+#endif
   using SymbolMapKeyAnnotation = CQChartsSymbolSizeMapKeyAnnotation;
 
   // get annotations
@@ -2709,6 +2715,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   ValueSetAnnotation     *addValueSetAnnotation    (const Rect &rect, const CQChartsReals &values);
   WidgetAnnotation       *addWidgetAnnotation      (const ObjRefPos &pos, const Widget &widget);
   WidgetAnnotation       *addWidgetAnnotation      (const Rect &rect, const Widget &widget);
+#ifdef CQCHARTS_TK_WIDGET
+  TkWidgetAnnotation     *addTkWidgetAnnotation    (const ObjRefPos &pos, const QString &id);
+  TkWidgetAnnotation     *addTkWidgetAnnotation    (const Rect &rect, const QString &id);
+#endif
   SymbolMapKeyAnnotation *addSymbolMapKeyAnnotation();
 
   void initWidgetAnnotation(const Widget &widget);

@@ -13,6 +13,8 @@
 
 class  CQChartsView;
 class  CQChartsPlot;
+class  CQChartsPlotObj;
+class  CQChartsAnnotation;
 class  CQChartsEditHandles;
 class  CQChartsPaintDevice;
 class  CQChartsObjRef;
@@ -99,14 +101,25 @@ class CQChartsViewPlotObj : public CQChartsObj,
   Point positionToParent(const ObjRef &objRef, const Position &pos) const;
   Point positionToPixel (const ObjRef &objRef, const Position &pos) const;
 
+  // position in parent to this object
   Position positionFromParent(const ObjRef &objRef, const Position &pos) const;
-
+  // position in object to parent
   Point positionToParent(const Position &pos) const;
-  Point positionToPixel (const Position &pos) const;
+
+  Point positionToPixel(const Position &pos) const;
 
   Point intersectObjRef(const ObjRef &objRef, const Point &p1, const Point &p2) const;
 
   bool intersectObjectRect(const ObjRef &objRef, CQChartsObj* &obj, BBox &bbox) const;
+
+  //---
+
+  struct ObjRefData {
+    CQChartsPlotObj    *plotObj    { nullptr };
+    CQChartsAnnotation *annotation { nullptr };
+  };
+
+  bool getObjRefData(const ObjRef &objRef, ObjRefData &data) const;
 
   //---
 

@@ -1250,7 +1250,7 @@ editMotion(const Point &p)
   return editHandles()->selectInside(p);
 }
 
-void
+bool
 CQChartsAxis::
 editMoveBy(const Point &d)
 {
@@ -1268,6 +1268,8 @@ editMoveBy(const Point &d)
   setPosition(CQChartsOptReal(apos));
 
   redraw(/*wait*/false);
+
+  return true;
 }
 
 //---

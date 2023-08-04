@@ -1,6 +1,7 @@
 #include <CQChartsAnnotation.h>
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
+#include <CQChartsPlotObj.h>
 #include <CQChartsArrow.h>
 #include <CQChartsEditHandles.h>
 #include <CQChartsSmooth.h>
@@ -34,6 +35,9 @@
 #include <CQWinWidget.h>
 #include <CMathRound.h>
 #include <CCircleFactor.h>
+#ifdef CQCHARTS_TK_WIDGET
+#include <CTkWidget.h>
+#endif
 
 const QStringList &
 CQChartsAnnotation::
@@ -83,6 +87,9 @@ stringToType(const QString &str)
   else if (str == "value_set"      ) return Type::VALUE_SET;
   else if (str == "button"         ) return Type::BUTTON;
   else if (str == "widget"         ) return Type::WIDGET;
+#ifdef CQCHARTS_TK_WIDGET
+  else if (str == "tk_widget"      ) return Type::TK_WIDGET;
+#endif
   else if (str == "symbol_map_key" ) return Type::SYMBOL_MAP_KEY;
 
   return Type::NONE;
@@ -313,6 +320,15 @@ setDefaultPalette(const PaletteName &name)
 
 void
 CQChartsAnnotation::
+setObjRef(const ObjRef &o)
+{
+  CQChartsUtil::testAndSet(objRef_, o, [&]() { emitDataChanged(); } );
+}
+
+//---
+
+void
+CQChartsAnnotation::
 setValue(const OptReal &r)
 {
   value_ = r;
@@ -460,6 +476,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   //---
 
   addProp(model, path1, "value" , "", "Associated value");
+  addProp(model, path1, "objRef", "", "Object reference");
 
   // TODO: modelIndex
 }
@@ -847,6 +864,8 @@ editPress(const Point &p)
   if (! isEnabled())
     return false;
 
+//if (objRef().isValid()) return false;
+
   editHandles()->setDragPos(p);
 
   return true;
@@ -856,6 +875,9 @@ bool
 CQChartsAnnotation::
 editMove(const Point &p)
 {
+  if (! isEnabled())
+    return false;
+
   const auto &dragPos  = editHandles()->dragPos();
   const auto &dragSide = editHandles()->dragSide();
 
@@ -870,7 +892,24 @@ editMove(const Point &p)
   if (dragSide != ResizeSide::MOVE)
     initRectangle();
 
-  setEditBBox(editHandles()->bbox(), dragSide);
+  if (objRef().isValid()) {
+    ObjRefData data;
+
+    if (getObjRefData(objRef(), data)) {
+      if      (data.plotObj)
+        data.plotObj->editMoveBy(Point(dx, dy));
+      else if (data.annotation) {
+        auto bbox = data.annotation->calcBBox();
+
+        bbox.moveBy(Point(dx, dy));
+
+        data.annotation->setEditBBox(bbox, CQChartsResizeSide::NONE);
+      }
+    }
+  }
+  else {
+    setEditBBox(editHandles()->bbox(), dragSide);
+  }
 
   editHandles()->setDragPos(p);
 
@@ -883,13 +922,23 @@ bool
 CQChartsAnnotation::
 editMotion(const Point &p)
 {
+  if (! isEnabled())
+    return false;
+
+//if (objRef().isValid()) return false;
+
   return editHandles()->selectInside(p);
 }
 
-void
+bool
 CQChartsAnnotation::
 editMoveBy(const Point &f)
 {
+  if (! isEnabled())
+    return false;
+
+//if (objRef().isValid()) return false;
+
   editHandles()->setDragSide(ResizeSide::MOVE);
 
   editHandles()->updateBBox(f.x, f.y);
@@ -897,6 +946,8 @@ editMoveBy(const Point &f)
   setEditBBox(editHandles()->bbox(), ResizeSide::MOVE);
 
   invalidate();
+
+  return true;
 }
 
 //---
@@ -1860,13 +1911,6 @@ setAngle(const Angle &a)
 
 void
 CQChartsShapeAnnotationBase::
-setObjRef(const ObjRef &o)
-{
-  CQChartsUtil::testAndSet(objRef_, o, [&]() { emitDataChanged(); } );
-}
-
-void
-CQChartsShapeAnnotationBase::
 setTextInd(const QString &ind)
 {
   if (ind != textInd_) {
@@ -1895,7 +1939,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   auto path1 = path + "/" + propertyId();
 
   addProp(model, path1, "angle"  , "", "Shape angle");
-  addProp(model, path1, "objRef" , "", "Object reference");
   addProp(model, path1, "textInd", "", "Text annotation ind");
 
   CQChartsAnnotation::addProperties(model, path, desc);
@@ -3558,7 +3601,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
   addProp(model, path1, "position" , "", "Text origin");
   addProp(model, path1, "rectangle", "", "Text bounding box");
-  addProp(model, path1, "objRef"   , "", "Object reference");
 
   //---
 
@@ -6041,13 +6083,6 @@ setShapeType(const ShapeType &t)
   CQChartsUtil::testAndSet(shapeType_, t, [&]() { emitDataChanged(); } );
 }
 
-void
-CQChartsPointAnnotation::
-setObjRef(const ObjRef &o)
-{
-  CQChartsUtil::testAndSet(objRef_, o, [&]() { emitDataChanged(); } );
-}
-
 //---
 
 void
@@ -6071,7 +6106,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
   addProp(model, path1, "position" , "", "Point position");
   addProp(model, path1, "shapeType", "", "Shape type");
-  addProp(model, path1, "objRef"   , "", "Object reference");
 
   //---
 
@@ -6613,7 +6647,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp(model, path1, "start"    , "", "Axis start");
   addProp(model, path1, "end"      , "", "Axis end");
   addProp(model, path1, "position" , "", "Axis position");
-  addProp(model, path1, "objRef"   , "", "Object reference");
 }
 
 //---
@@ -6866,8 +6899,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   //---
 
   auto path1 = path + "/" + propertyId();
-
-  addProp(model, path1, "objRef", "", "Object reference");
 
   addStrokeProperties(model, path1 + "/stroke");
 
@@ -8445,7 +8476,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   auto path1 = path + "/" + propertyId();
 
   addProp(model, path1, "position", "", "Button origin");
-  addProp(model, path1, "objRef"  , "", "Object reference");
 
   //---
 
@@ -8809,7 +8839,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
   addProp(model, path1, "position"   , "", "Widget position");
   addProp(model, path1, "rectangle"  , "", "Widget bounding box");
-  addProp(model, path1, "objRef"     , "", "Object reference");
   addProp(model, path1, "widget"     , "", "Widget name");
   addProp(model, path1, "align"      , "", "Widget position alignment");
   addProp(model, path1, "sizePolicy" , "", "Widget size policy");
@@ -9052,6 +9081,364 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
   writeProperties(os, varName);
 }
+
+//------
+
+#ifdef CQCHARTS_TK_WIDGET
+CQChartsTkWidgetAnnotation::
+CQChartsTkWidgetAnnotation(View *view, const ObjRefPos &position, const QString &id) :
+ CQChartsRectAnnotation(view, Type::TK_WIDGET, position), widgetId_(id)
+{
+  init();
+}
+
+CQChartsTkWidgetAnnotation::
+CQChartsTkWidgetAnnotation(Plot *plot, const ObjRefPos &position, const QString &id) :
+ CQChartsRectAnnotation(plot, Type::TK_WIDGET, position), widgetId_(id)
+{
+  init();
+}
+
+CQChartsTkWidgetAnnotation::
+CQChartsTkWidgetAnnotation(View *view, const Rect &rect, const QString &id) :
+ CQChartsRectAnnotation(view, Type::TK_WIDGET, rect), widgetId_(id)
+{
+  init();
+}
+
+CQChartsTkWidgetAnnotation::
+CQChartsTkWidgetAnnotation(Plot *plot, const Rect &rect, const QString &id) :
+ CQChartsRectAnnotation(plot, Type::TK_WIDGET, rect), widgetId_(id)
+{
+  init();
+}
+
+CQChartsTkWidgetAnnotation::
+~CQChartsTkWidgetAnnotation()
+{
+  delete widget_;
+}
+
+void
+CQChartsTkWidgetAnnotation::
+init()
+{
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
+
+  widget_ = new CTkWidget(charts()->tkApp(), widgetId_);
+
+  editHandles()->setMode(EditHandles::Mode::RESIZE);
+
+  if (view()->is3D())
+    widget_->setParent(view()->glWidget());
+  else
+    widget_->setParent(view());
+}
+
+//---
+
+void
+CQChartsTkWidgetAnnotation::
+setVisible(bool b)
+{
+  CQChartsAnnotation::setVisible(b);
+
+  updateVisible();
+}
+
+void
+CQChartsTkWidgetAnnotation::
+updateVisible()
+{
+  widget_->setVisible(isVisible());
+}
+
+//---
+
+void
+CQChartsTkWidgetAnnotation::
+setPosition(const OptPosition &p)
+{
+  CQChartsRectAnnotation::setPosition(p);
+
+  emitDataChanged();
+}
+
+void
+CQChartsTkWidgetAnnotation::
+setRectangle(const OptRect &r)
+{
+  CQChartsRectAnnotation::setRectangle(r);
+
+  emitDataChanged();
+}
+
+void
+CQChartsTkWidgetAnnotation::
+setAlign(const Qt::Alignment &a)
+{
+  align_ = a;
+
+  emitDataChanged();
+}
+
+void
+CQChartsTkWidgetAnnotation::
+setSizePolicy(const QSizePolicy &p)
+{
+  sizePolicy_ = p;
+
+  emitDataChanged();
+}
+
+//---
+
+void
+CQChartsTkWidgetAnnotation::
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
+{
+  CQChartsAnnotation::addProperties(model, path, desc);
+
+  auto path1 = path + "/" + propertyId();
+
+  addProp(model, path1, "position"  , "", "Widget position");
+  addProp(model, path1, "rectangle" , "", "Widget bounding box");
+  addProp(model, path1, "align"     , "", "Widget position alignment");
+  addProp(model, path1, "sizePolicy", "", "Widget size policy");
+}
+
+void
+CQChartsTkWidgetAnnotation::
+calcWidgetSize(Size &psize, Size &wsize) const
+{
+  // convert to window size
+  psize = Size(widget_->size());
+
+  if      (plot()) wsize = plot()->pixelToWindowSize(psize);
+  else if (view()) wsize = view()->pixelToWindowSize(psize);
+  else             wsize = psize;
+}
+
+void
+CQChartsTkWidgetAnnotation::
+positionToTopLeft(double w, double h, double &x, double &y) const
+{
+  auto p = positionToParent(objRef(), positionValue());
+
+  //--
+
+  // get inner padding
+  double xlp, xrp, ytp, ybp;
+
+  getPaddingValues(xlp, xrp, ytp, ybp);
+
+  // get outer margin
+  double xlm, xrm, ytm, ybm;
+
+  getMarginValues(xlm, xrm, ytm, ybm);
+
+  //--
+
+  if      (align() & Qt::AlignLeft)
+    x = p.x + xlm + xlp;
+  else if (align() & Qt::AlignHCenter)
+    x = p.x - w/2;
+  else
+    x = p.x - w - xrp - xrm;
+
+  if      (align() & Qt::AlignBottom)
+    y = p.y - h - ybm - ybp;
+  else if (align() & Qt::AlignVCenter)
+    y = p.y - h/2;
+  else
+    y = p.y + ytp + ytm;
+}
+
+//---
+
+void
+CQChartsTkWidgetAnnotation::
+setEditBBox(const BBox &bbox, const ResizeSide &)
+{
+  if (rectangle().isSet()) {
+    auto rect = Rect(bbox, parentUnits());
+
+    rectangle_ = OptRect(rect);
+  }
+  else {
+    // get position
+    double x1 = bbox.getXMid();
+    double y1 = bbox.getYMid();
+
+    Point ll(x1, y1);
+
+    //---
+
+    auto position = Position(ll, parentUnits());
+
+    setPosition(OptPosition(position));
+  }
+
+  setAnnotationBBox(bbox);
+}
+
+//---
+
+bool
+CQChartsTkWidgetAnnotation::
+inside(const Point &p) const
+{
+  return CQChartsAnnotation::inside(p);
+}
+
+void
+CQChartsTkWidgetAnnotation::
+draw(PaintDevice *)
+{
+  updateVisible();
+
+  //---
+
+  // recalculate position to bbox on draw as can change depending on pixel mapping
+  if (! rectangle().isSet())
+    positionToBBox();
+
+  auto rect = annotationBBox();
+
+  if (! rect.isValid())
+    return;
+
+  //---
+
+  //drawInit(device);
+
+  // get inner padding
+  double xlp, xrp, ytp, ybp;
+
+  getPaddingValues(xlp, xrp, ytp, ybp);
+
+  // get outer margin
+  double xlm, xrm, ytm, ybm;
+
+  getMarginValues(xlm, xrm, ytm, ybm);
+
+  double tx =          rect.getXMin  () +       xlm + xlp;
+  double ty =          rect.getYMin  () +       ybm + ybp;
+  double tw = std::max(rect.getWidth () - xlm - xrm - xlp - xrp, 0.0);
+  double th = std::max(rect.getHeight() - ybm - ytm - ybp - ytp, 0.0);
+
+  BBox tbbox(tx, ty, tx + tw, ty + th);
+
+  //---
+
+  auto ptbbox = windowToPixel(tbbox);
+
+  widget_->resize(CMathRound::RoundNearest(ptbbox.getWidth()),
+                  CMathRound::RoundNearest(ptbbox.getHeight()));
+
+  widget_->move(int(ptbbox.getXMin()), int(ptbbox.getYMin()));
+
+  //---
+
+  //drawTerm(device);
+}
+
+void
+CQChartsTkWidgetAnnotation::
+initRectangle()
+{
+  // convert position to rectangle if needed
+  if (! rectangle().isSet()) {
+    positionToBBox();
+
+    //---
+
+    auto rect = Rect(annotationBBox(), parentUnits());
+
+    setRectangle(OptRect(rect));
+  }
+}
+
+void
+CQChartsTkWidgetAnnotation::
+positionToBBox()
+{
+  assert(! rectangle().isSet());
+
+  // get inner padding
+  double xlp, xrp, ytp, ybp;
+
+  getPaddingValues(xlp, xrp, ytp, ybp);
+
+  // get outer margin
+  double xlm, xrm, ytm, ybm;
+
+  getMarginValues(xlm, xrm, ytm, ybm);
+
+  Size psize, wsize;
+
+  calcWidgetSize(psize, wsize);
+
+  double w = wsize.width ();
+  double h = wsize.height();
+
+  double x, y;
+
+  positionToTopLeft(w, h, x, y);
+
+  double vr = view()->viewportRange();
+
+  if (sizePolicy().horizontalPolicy() == QSizePolicy::Expanding) {
+    if (plot())
+      w = plot()->viewToWindowWidth(vr);
+    else
+      w = vr;
+
+    w -= xlp + xlm + xrp + xrm;
+  }
+
+  if (sizePolicy().verticalPolicy() == QSizePolicy::Expanding) {
+    if (plot())
+      h = plot()->viewToWindowHeight(vr);
+    else
+      h = vr;
+
+    h -= xlp + xlm + xrp + xrm;
+  }
+
+  Point ll(x     - xlp - xlm, y - h - ybp - ybm);
+  Point ur(x + w + xrp + xrm, y     + ytp + ytm);
+
+  setAnnotationBBox(BBox(ll, ur));
+}
+
+void
+CQChartsTkWidgetAnnotation::
+parentViewChanged()
+{
+  widget_->setParent(view());
+}
+
+void
+CQChartsTkWidgetAnnotation::
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
+{
+  if (rectangle().isSet()) {
+    if (rectangleValue().isSet())
+      os << " -rectangle {" << rectangleValue().toString().toStdString() << "}";
+  }
+  else {
+    if (positionValue().isSet())
+      os << " -position {" << positionValue().toString().toStdString() << "}";
+  }
+
+  os << "]\n";
+
+  //---
+
+  writeProperties(os, varName);
+}
+#endif
 
 //------
 

@@ -67,6 +67,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   Q_PROPERTY(DrawLayer           drawLayer        READ drawLayer        WRITE setDrawLayer       )
   Q_PROPERTY(CQChartsPaletteName defaultPalette   READ defaultPalette   WRITE setDefaultPalette  )
 
+  // objref
+  Q_PROPERTY(CQChartsObjRef objRef READ objRef WRITE setObjRef)
+
   Q_ENUMS(DrawLayer)
 
  public:
@@ -93,6 +96,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     VALUE_SET      = int(CQChartsAnnotationType::VALUE_SET),
     BUTTON         = int(CQChartsAnnotationType::BUTTON),
     WIDGET         = int(CQChartsAnnotationType::WIDGET),
+#ifdef CQCHARTS_TK_WIDGET
+    TK_WIDGET      = int(CQChartsAnnotationType::TK_WIDGET),
+#endif
     SYMBOL_MAP_KEY = int(CQChartsAnnotationType::SYMBOL_MAP_KEY)
   };
 
@@ -106,6 +112,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     AXIS,
     KEY,
     WIDGET
+#ifdef CQCHARTS_TK_WIDGET
+  , TK_WIDGET
+#endif
   };
 
   // annotation draw layer
@@ -231,6 +240,12 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
+  //! get/set object reference
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o);
+
+  //---
+
   //! get/set value
   const OptReal &value() const { return value_; }
   void setValue(const OptReal &r);
@@ -335,7 +350,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   bool editMove  (const Point &) override;
   bool editMotion(const Point &) override;
 
-  void editMoveBy(const Point &d) override;
+  bool editMoveBy(const Point &d) override;
 
   //---
 
@@ -460,6 +475,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   // palette
   PaletteName defaultPalette_; //!< default palette
+
+  // objref
+  ObjRef objRef_; //!< object ref for ppsition
 
   mutable bool disableSignals_ { false }; //!< disable signals
 };
@@ -641,9 +659,8 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
 class CQChartsShapeAnnotationBase : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsAngle  angle   READ angle   WRITE setAngle  )
-  Q_PROPERTY(CQChartsObjRef objRef  READ objRef  WRITE setObjRef )
-  Q_PROPERTY(QString        textInd READ textInd WRITE setTextInd)
+  Q_PROPERTY(CQChartsAngle angle   READ angle   WRITE setAngle  )
+  Q_PROPERTY(QString       textInd READ textInd WRITE setTextInd)
 
  public:
   CQChartsShapeAnnotationBase(View *view, Type type);
@@ -660,10 +677,6 @@ class CQChartsShapeAnnotationBase : public CQChartsAnnotation {
   //! get/set angle
   const Angle &angle() const { return angle_; }
   void setAngle(const Angle &a);
-
-  //! get/set object reference
-  const ObjRef &objRef() const { return objRef_; }
-  void setObjRef(const ObjRef &o);
 
   //! get/set text ind
   const QString &textInd() const { return textInd_; }
@@ -682,7 +695,6 @@ class CQChartsShapeAnnotationBase : public CQChartsAnnotation {
 
  protected:
   Angle   angle_;   //!< rotation angle
-  ObjRef  objRef_;  //!< object ref for ppsition
   QString textInd_; //!< text ind for text label
 };
 
@@ -1147,7 +1159,6 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
 
   Q_PROPERTY(CQChartsOptPosition position  READ position  WRITE setPosition )
   Q_PROPERTY(CQChartsOptRect     rectangle READ rectangle WRITE setRectangle)
-  Q_PROPERTY(CQChartsObjRef      objRef    READ objRef    WRITE setObjRef   )
 
  public:
   using Rect        = CQChartsRect;
@@ -1183,12 +1194,6 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
 
   //---
 
-  //! get/set object reference
-  const ObjRef &objRef() const { return objRef_; }
-  void setObjRef(const ObjRef &o) { objRef_ = o; }
-
-  //---
-
  protected:
   virtual void positionToBBox() { }
 
@@ -1197,8 +1202,6 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
  protected:
   OptPosition position_;  //!< text position
   OptRect     rectangle_; //!< text bounding rect
-
-  ObjRef objRef_; //!< reference object
 };
 
 //---
@@ -1284,10 +1287,11 @@ class CQChartsTextAnnotation : public CQChartsRectAnnotation {
 class CQChartsImageAnnotation : public CQChartsShapeAnnotationBase {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsOptPosition position      READ position      WRITE setPosition     )
-  Q_PROPERTY(CQChartsOptRect     rectangle     READ rectangle     WRITE setRectangle    )
-  Q_PROPERTY(CQChartsImage       image         READ image         WRITE setImage        )
-  Q_PROPERTY(CQChartsImage       disabledImage READ disabledImage WRITE setDisabledImage)
+  Q_PROPERTY(CQChartsOptPosition position  READ position  WRITE setPosition )
+  Q_PROPERTY(CQChartsOptRect     rectangle READ rectangle WRITE setRectangle)
+
+  Q_PROPERTY(CQChartsImage image         READ image         WRITE setImage        )
+  Q_PROPERTY(CQChartsImage disabledImage READ disabledImage WRITE setDisabledImage)
 
  public:
   using Image       = CQChartsImage;
@@ -1883,7 +1887,6 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
 
   Q_PROPERTY(CQChartsPosition position  READ position  WRITE setPosition )
   Q_PROPERTY(ShapeType        shapeType READ shapeType WRITE setShapeType)
-  Q_PROPERTY(CQChartsObjRef   objRef    READ objRef    WRITE setObjRef   )
 
   CQCHARTS_POINT_DATA_PROPERTIES
 
@@ -1935,10 +1938,6 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
   const ShapeType &shapeType() const { return shapeType_; }
   void setShapeType(const ShapeType &t);
 
-  //! get/set object reference
-  const ObjRef &objRef() const { return objRef_; }
-  void setObjRef(const ObjRef &o);
-
   //---
 
   //! add properties
@@ -1964,7 +1963,6 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
  protected:
   Position  position_;                        //!< point position
   ShapeType shapeType_ { ShapeType::SYMBOL }; //!< shape type
-  ObjRef    objRef_;                          //!< reference object
 };
 
 //---
@@ -2090,7 +2088,6 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(double          position  READ position  WRITE setPosition )
   Q_PROPERTY(double          start     READ start     WRITE setStart    )
   Q_PROPERTY(double          end       READ end       WRITE setEnd      )
-  Q_PROPERTY(CQChartsObjRef  objRef    READ objRef    WRITE setObjRef   )
 
  public:
   using Axis = CQChartsAxis;
@@ -2133,10 +2130,6 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
   double end() const { return end_; }
   void setEnd(double r);
 
-  //! get/set object reference
-  const ObjRef &objRef() const { return objRef_; }
-  void setObjRef(const ObjRef &o) { objRef_ = o; }
-
   //---
 
   void connectAxis(bool b);
@@ -2171,7 +2164,6 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
   using AxisP = std::unique_ptr<Axis>;
 
   Qt::Orientation direction_ { Qt::Horizontal }; //!< direction
-  ObjRef          objRef_;                       //!< object ref
   double          position_  { 0.0 };            //!< position
   double          start_     { 0.0 };            //!< start
   double          end_       { 1.0 };            //!< end
@@ -2187,7 +2179,6 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
 class CQChartsKeyAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsObjRef objRef READ objRef WRITE setObjRef)
   Q_PROPERTY(CQChartsColumn column READ column WRITE setColumn)
 
  public:
@@ -2211,10 +2202,6 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
   SubType subType() const override { return SubType::KEY; }
 
   //---
-
-  //! get/set object reference
-  const ObjRef &objRef() const { return objRef_; }
-  void setObjRef(const ObjRef &o) { objRef_ = o; }
 
   Column column() const;
   void setColumn(const Column &c);
@@ -2254,8 +2241,7 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
   void updateLocationSlot();
 
  protected:
-  ObjRef objRef_;              //!< object ref
-  Key*   key_     { nullptr }; //!< key
+  Key* key_ { nullptr }; //!< key
 };
 
 //---
@@ -2614,7 +2600,6 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
-  Q_PROPERTY(CQChartsObjRef   objRef   READ objRef   WRITE setObjRef  )
 
  public:
   CQChartsButtonAnnotation(View *view, const ObjRefPos &p=ObjRefPos(),
@@ -2639,10 +2624,6 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
   //! get/set position
   const Position &position() const { return position_; }
   void setPosition(const Position &p);
-
-  //! get/set object reference
-  const ObjRef &objRef() const { return objRef_; }
-  void setObjRef(const ObjRef &o) { objRef_ = o; }
 
   //---
 
@@ -2678,7 +2659,6 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
 
  protected:
   Position position_;          //!< button position
-  ObjRef   objRef_;            //!< object ref
   QRect    prect_;             //!< pixel rect
   bool     pressed_ { false }; //!< is pressed
 };
@@ -2794,13 +2774,115 @@ class CQChartsWidgetAnnotation : public CQChartsRectAnnotation {
  protected:
   OptPosition   position_;                                     //!< widget position
   OptRect       rectangle_;                                    //!< widget bounding rectangle
-  ObjRef        objRef_;                                       //!< object ref
   Widget        widget_;                                       //!< widget
   Qt::Alignment align_       { Qt::AlignLeft | Qt::AlignTop }; //!< position alignment
   QSizePolicy   sizePolicy_;                                   //!< size policy
   bool          interactive_ { false };                        //!< is interactive
   CQWinWidget*  winWidget_   { nullptr };                      //!< window frame
 };
+
+//---
+
+#ifdef CQCHARTS_TK_WIDGET
+class CTkWidget;
+
+/*!
+ * \brief widget annotation
+ * \ingroup Charts
+ *
+ * Tk Widget at position or in rectangle
+ */
+class CQChartsTkWidgetAnnotation : public CQChartsRectAnnotation {
+  Q_OBJECT
+
+  Q_PROPERTY(Qt::Alignment align      READ align      WRITE setAlign     )
+  Q_PROPERTY(QSizePolicy   sizePolicy READ sizePolicy WRITE setSizePolicy)
+
+ public:
+  CQChartsTkWidgetAnnotation(View *view, const ObjRefPos &p=ObjRefPos(), const QString &id="");
+  CQChartsTkWidgetAnnotation(Plot *plot, const ObjRefPos &p=ObjRefPos(), const QString &id="");
+
+  CQChartsTkWidgetAnnotation(View *view, const Rect &r, const QString &id="");
+  CQChartsTkWidgetAnnotation(Plot *plot, const Rect &r, const QString &id="");
+
+  virtual ~CQChartsTkWidgetAnnotation();
+
+  //---
+
+  const char *typeName() const override { return "tkWidget"; }
+
+  const char *propertyName() const override { return "tkWidgetAnnotation"; }
+
+  const char *cmdName() const override { return "create_tk_charts_widget_annotation"; }
+
+  SubType subType() const override { return SubType::TK_WIDGET; }
+
+  bool hasMargin() const override { return true; }
+  bool hasPadding() const override { return true; }
+
+  //---
+
+  void setPosition(const OptPosition &p) override;
+  void setRectangle(const OptRect &r) override;
+
+ public:
+  void setVisible(bool b) override;
+
+ private:
+  void updateVisible();
+
+  //---
+
+ public:
+  const Qt::Alignment &align() const { return align_; }
+  void setAlign(const Qt::Alignment &a);
+
+  const QSizePolicy &sizePolicy() const { return sizePolicy_; }
+  void setSizePolicy(const QSizePolicy &p);
+
+  //---
+
+  //! add properties
+  void addProperties(PropertyModel *model, const QString &path,
+                     const QString &desc=QString()) override;
+
+  //---
+
+  void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
+
+  bool inside(const Point &p) const override;
+
+  //---
+
+  void draw(PaintDevice *device) override;
+
+  void writeDetails(std::ostream &os, const QString &parentVarName=QString(),
+                    const QString &varName=QString()) const override;
+
+  //---
+
+  void initRectangle() override;
+
+  void parentViewChanged() override;
+
+ protected:
+  void init();
+
+  void calcWidgetSize(Size &psize, Size &wsize) const;
+
+  void positionToTopLeft(double w, double h, double &x, double &y) const;
+
+  void positionToBBox() override;
+
+ protected:
+  OptPosition   position_;                                     //!< widget position
+  OptRect       rectangle_;                                    //!< widget bounding rectangle
+  QString       widgetId_;                                     //!< widget id
+  CTkWidget*    widget_;                                       //!< widget
+  Qt::Alignment align_       { Qt::AlignLeft | Qt::AlignTop }; //!< position alignment
+  QSizePolicy   sizePolicy_;                                   //!< size policy
+};
+#endif
 
 //---
 

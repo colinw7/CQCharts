@@ -309,6 +309,9 @@ CQCHARTS_DEF_CMD(CreateChartsShapeAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsTextAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsValueSetAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsWidgetAnnotation)
+#ifdef CQCHARTS_TK_WIDGET
+CQCHARTS_DEF_CMD(CreateChartsTkWidgetAnnotation)
+#endif
 CQCHARTS_DEF_CMD(CreateChartsSymbolMapKeyAnnotation)
 CQCHARTS_DEF_CMD(RemoveChartsAnnotation)
 

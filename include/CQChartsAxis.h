@@ -536,7 +536,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   bool editMove  (const Point &) override;
   bool editMotion(const Point &) override; // return true if inside
 
-  void editMoveBy(const Point &) override;
+  bool editMoveBy(const Point &) override;
 
   //---
 

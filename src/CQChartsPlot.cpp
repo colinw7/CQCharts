@@ -851,6 +851,7 @@ selectObjsFromModel()
   deselectAllPlotObjs();
 
   auto *modelData = currentModelData();
+  if (! modelData) return;
 
   const auto &sel = modelData->selection();
 
@@ -15954,6 +15955,10 @@ addAnnotation(CQChartsAnnotationType annotationType)
       return addAnnotationT<CQChartsButtonAnnotation>(this);
     case Annotation::Type::WIDGET:
       return addAnnotationT<CQChartsWidgetAnnotation>(this);
+#ifdef CQCHARTS_TK_WIDGET
+    case Annotation::Type::TK_WIDGET:
+      return addAnnotationT<CQChartsTkWidgetAnnotation>(this);
+#endif
     case Annotation::Type::SYMBOL_MAP_KEY:
       return addAnnotationT<CQChartsSymbolSizeMapKeyAnnotation>(this);
     default:
@@ -16140,6 +16145,22 @@ addWidgetAnnotation(const Rect &rect, const Widget &widget)
 
   return addAnnotationT<WidgetAnnotation>(new WidgetAnnotation(this, rect, widget));
 }
+
+#ifdef CQCHARTS_TK_WIDGET
+CQChartsTkWidgetAnnotation *
+CQChartsPlot::
+addTkWidgetAnnotation(const ObjRefPos &pos, const QString &id)
+{
+  return addAnnotationT<TkWidgetAnnotation>(new TkWidgetAnnotation(this, pos, id));
+}
+
+CQChartsTkWidgetAnnotation *
+CQChartsPlot::
+addTkWidgetAnnotation(const Rect &rect, const QString &id)
+{
+  return addAnnotationT<TkWidgetAnnotation>(new TkWidgetAnnotation(this, rect, id));
+}
+#endif
 
 void
 CQChartsPlot::

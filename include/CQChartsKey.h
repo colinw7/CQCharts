@@ -480,7 +480,7 @@ class CQChartsPlotKey : public CQChartsKey {
   void editDragMove(const Point &d);
   void editDragResize(const BBox &bbox);
 
-  void editMoveBy(const Point &d) override;
+  bool editMoveBy(const Point &d) override;
 
   bool isEditResize() const override;
 

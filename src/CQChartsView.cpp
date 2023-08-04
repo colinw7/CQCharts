@@ -1647,6 +1647,10 @@ addAnnotation(CQChartsAnnotationType annotationType)
       return addAnnotationT<CQChartsButtonAnnotation>(this);
     case Annotation::Type::WIDGET:
       return addAnnotationT<CQChartsWidgetAnnotation>(this);
+#ifdef CQCHARTS_TK_WIDGET
+    case Annotation::Type::TK_WIDGET:
+      return addAnnotationT<CQChartsTkWidgetAnnotation>(this);
+#endif
 #if 0
     case Annotation::Type::SYMBOL_MAP_KEY:
       return addAnnotationT<CQChartsSymbolSizeMapKeyAnnotation>(this);
@@ -1807,6 +1811,22 @@ addWidgetAnnotation(const CQChartsRect &rect, const CQChartsWidget &widget)
 {
   return addAnnotationT<WidgetAnnotation>(new WidgetAnnotation(this, rect, widget));
 }
+
+#ifdef CQCHARTS_TK_WIDGET
+CQChartsTkWidgetAnnotation *
+CQChartsView::
+addTkWidgetAnnotation(const ObjRefPos &pos, const QString &id)
+{
+  return addAnnotationT<TkWidgetAnnotation>(new TkWidgetAnnotation(this, pos, id));
+}
+
+CQChartsTkWidgetAnnotation *
+CQChartsView::
+addTkWidgetAnnotation(const CQChartsRect &rect, const QString &id)
+{
+  return addAnnotationT<TkWidgetAnnotation>(new TkWidgetAnnotation(this, rect, id));
+}
+#endif
 
 //------
 

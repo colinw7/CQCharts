@@ -35,6 +35,9 @@ class CQPropertyViewModel;
 class CQPropertyViewItem;
 
 class CQTcl;
+#ifdef CQCHARTS_TK_WIDGET
+class CTkApp;
+#endif
 
 class QTimer;
 
@@ -388,6 +391,13 @@ class CQCharts : public QObject {
 
   //---
 
+#ifdef CQCHARTS_TK_WIDGET
+  CTkApp *tkApp() const { return tkApp_; }
+  void setTkApp(CTkApp *app) { tkApp_ = app; }
+#endif
+
+  //---
+
   CQTcl *cmdTcl() const { return cmdTcl_; }
 
   //---
@@ -498,6 +508,11 @@ class CQCharts : public QObject {
   CQChartsManageModelsDlg* manageModelsDlg_ { nullptr }; //!< manage models dialog
   CQChartsEditModelDlg*    editModelDlg_    { nullptr }; //!< edit model dialog
   CQChartsCreatePlotDlg*   createPlotDlg_   { nullptr }; //!< create plot dialog
+
+#ifdef CQCHARTS_TK_WIDGET
+  // tk
+  CTkApp *tkApp_ { nullptr };
+#endif
 
   // tcl
   CQTcl*           cmdTcl_      { nullptr }; //!< command line tcl

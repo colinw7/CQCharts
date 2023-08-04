@@ -116,6 +116,7 @@ enum class CQChartsAnnotationType {
   VALUE_SET,
   BUTTON,
   WIDGET,
+  TK_WIDGET,
   SYMBOL_MAP_KEY
 };
 

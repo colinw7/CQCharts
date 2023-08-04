@@ -258,7 +258,7 @@ class CQChartsEditableIFace {
   virtual bool editRelease(const Point &) { return true; }
 
   //! handle edit move by (move)
-  virtual void editMoveBy(const Point &) { }
+  virtual bool editMoveBy(const Point &) { return false; }
 
   //! set new bounding box (resize)
   virtual void setEditBBox(const BBox &, const ResizeSide &) { }

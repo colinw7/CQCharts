@@ -50,6 +50,9 @@ class CQChartsShapeAnnotation;
 class CQChartsTextAnnotation;
 class CQChartsValueSetAnnotation;
 class CQChartsWidgetAnnotation;
+#ifdef CQCHARTS_TK_WIDGET
+class CQChartsTkWidgetAnnotation;
+#endif
 
 class CQChartsProbeBand;
 class CQChartsDisplayRange;
@@ -709,6 +712,9 @@ class CQChartsView : public QFrame,
   using TextAnnotation      = CQChartsTextAnnotation;
   using ValueSetAnnotation  = CQChartsValueSetAnnotation;
   using WidgetAnnotation    = CQChartsWidgetAnnotation;
+#ifdef CQCHARTS_TK_WIDGET
+  using TkWidgetAnnotation  = CQChartsTkWidgetAnnotation;
+#endif
   using Layer               = CQChartsLayer;
   using Buffer              = CQChartsBuffer;
   using BufferP             = std::unique_ptr<Buffer>;
@@ -745,6 +751,10 @@ class CQChartsView : public QFrame,
   ValueSetAnnotation  *addValueSetAnnotation (const Rect &rect, const CQChartsReals &values);
   WidgetAnnotation    *addWidgetAnnotation   (const ObjRefPos &pos, const Widget &widget);
   WidgetAnnotation    *addWidgetAnnotation   (const Rect &rect, const Widget &widget);
+#ifdef CQCHARTS_TK_WIDGET
+  TkWidgetAnnotation  *addTkWidgetAnnotation (const ObjRefPos &pos, const QString &id);
+  TkWidgetAnnotation  *addTkWidgetAnnotation (const Rect &rect, const QString &id);
+#endif
 
   Annotation *addAnnotationI(Annotation *annotation);
 

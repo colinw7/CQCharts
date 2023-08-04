@@ -26,8 +26,12 @@
 #include <CQMsgHandler.h>
 #include <CQPerfMonitor.h>
 #include <CQUtil.h>
+#include <CQTclUtil.h>
 
 #include <CConfig.h>
+#ifdef CQCHARTS_TK_WIDGET
+#include <CTkApp.h>
+#endif
 
 #include <QTextStream>
 
@@ -811,6 +815,16 @@ CQChartsTest() :
           this, SLOT(windowCreated(CQChartsWindow *)));
   connect(charts_, SIGNAL(plotAdded(CQChartsPlot *)),
           this, SLOT(plotAdded(CQChartsPlot *)));
+
+  //---
+
+#ifdef CQCHARTS_TK_WIDGET
+  auto *tk = new CTkApp(charts_->cmdTcl()->interp());
+
+  tk->setUseStyle(true);
+
+  charts_->setTkApp(tk);
+#endif
 }
 
 CQChartsTest::

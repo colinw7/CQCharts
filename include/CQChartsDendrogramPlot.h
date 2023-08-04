@@ -370,6 +370,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_PROPERTY(bool removeGroupOverlaps READ isRemoveGroupOverlaps WRITE setRemoveGroupOverlaps)
   Q_PROPERTY(bool adjustOverlaps      READ isAdjustOverlaps      WRITE setAdjustOverlaps)
 
+  Q_PROPERTY(bool hierValueTip READ isHierValueTip WRITE setHierValueTip)
+
   Q_PROPERTY(CQChartsLength overlapMargin READ overlapMargin WRITE setOverlapMargin)
 
   // node stroke/fill
@@ -662,6 +664,11 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   //---
 
+  bool isHierValueTip() const { return hierValueTip_; }
+  void setHierValueTip(bool b) { hierValueTip_ = b; }
+
+  //---
+
   void processEdgeNameValues(Edge *edge, const CQChartsNameValues &nameValues) const;
 
   void processNodeNameValues(Node *node, const CQChartsNameValues &nameValues) const;
@@ -671,6 +678,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   //---
 
   BBox calcExtraFitBBox() const override;
+
+  bool isEdgeValue() const;
 
   //---
 
@@ -859,6 +868,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Length         overlapMargin_       { Length::pixel(4.0) }; //!< overlap margin
   bool           adjustOverlaps_      { false };              //!< adjust overlaps
   mutable double overlapScale_        { 1.0 };                //!< overlap scale factor
+
+  bool hierValueTip_ { true }; //!< show hier value in tip
 
   RMinMax valueRange_; //!< value column range
   RMinMax colorRange_; //!< color column range

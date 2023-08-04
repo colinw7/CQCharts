@@ -1776,7 +1776,7 @@ editMotion(const Point &p)
   return editHandles()->selectInside(p);
 }
 
-void
+bool
 CQChartsPlotKey::
 editMoveBy(const Point &f)
 {
@@ -1790,6 +1790,8 @@ editMoveBy(const Point &f)
   }
 
   updatePosition();
+
+  return true;
 }
 
 //------
