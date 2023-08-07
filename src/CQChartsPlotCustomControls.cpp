@@ -458,6 +458,9 @@ setPlot(Plot *plot)
     connect(plot_, SIGNAL(keyVisibleChanged(bool)), this, SLOT(keyVisibleSlot()));
     connect(plot_, SIGNAL(overviewChanged()), this, SLOT(overviewChanged()));
     connect(plot_, SIGNAL(zoomPanChanged()), this, SLOT(overviewChanged()));
+
+    if (plotKeyCheck_)
+      plotKeyCheck_->setVisible(plot_->key());
   }
 }
 

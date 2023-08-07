@@ -1567,8 +1567,7 @@ execDrawForeground(PaintDevice *device) const
   if (insideObj())
     insideObj()->draw(device);
 
-  if (isColorMapKey())
-    drawColorMapKey(device);
+  CQChartsPlot::execDrawForeground(device);
 }
 
 //---

@@ -226,13 +226,13 @@ init()
 
   //---
 
-  // addKey() // TODO
+//addKey();
 
   addTitle();
 
   //---
 
-  // addColorMapKey();
+  addColorMapKey();
 
   //---
 
@@ -940,6 +940,9 @@ addProperties()
 
   // color map
   addColorMapProperties();
+
+  // color map key
+  addColorMapKeyProperties();
 }
 
 //---
@@ -3168,6 +3171,11 @@ addMenuItems(QMenu *menu, const Point &)
   addMenuAction(menu, "Expand All", SLOT(expandAllSlot()));
   addMenuAction(menu, "Collapse All", SLOT(collapseAllSlot()));
 
+  //---
+
+  if (canDrawColorMapKey())
+    addColorMapKeyItems(menu);
+
   return true;
 }
 
@@ -4295,6 +4303,10 @@ addWidgets()
   addColumnWidgets();
 
   addOptionsWidgets();
+
+  addColorColumnWidgets("Node/Edge Color");
+
+//addKeyList();
 }
 
 void

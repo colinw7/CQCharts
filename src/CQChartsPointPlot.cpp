@@ -792,6 +792,21 @@ fitBBox() const
 
 //---
 
+void
+CQChartsPointPlot::
+execDrawForeground(PaintDevice *device) const
+{
+  if (isSymbolSizeMapKey())
+    drawSymbolSizeMapKey(device);
+
+  if (isSymbolTypeMapKey())
+    drawSymbolTypeMapKey(device);
+
+  CQChartsPlot::execDrawForeground(device);
+}
+
+//---
+
 CQChartsPointBestFitObj *
 CQChartsPointPlot::
 createBestFitObj(int groupInd, const QString &name, const ColorInd &ig, const ColorInd &is,

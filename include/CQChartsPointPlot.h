@@ -610,6 +610,10 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   //---
 
  public:
+  void execDrawForeground(PaintDevice *device) const override;
+
+  //---
+
   void drawBestFit(PaintDevice *device, const BestFit *fitData, const PenBrush &penBrush) const;
 
   void initGroupBestFit(BestFit *fitData, int ind, const QVariant &var, bool isGroup) const;

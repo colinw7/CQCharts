@@ -3032,7 +3032,8 @@ addMenuItems(QMenu *menu, const Point &)
 
   //---
 
-  addRootMenuItems(menu);
+  if (rootPlot())
+    addRootMenuItems(menu);
 
   return true;
 }
@@ -3234,14 +3235,7 @@ void
 CQChartsScatterPlot::
 execDrawForeground(PaintDevice *device) const
 {
-  if (isColorMapKey())
-    drawColorMapKey(device);
-
-  if (isSymbolSizeMapKey())
-    drawSymbolSizeMapKey(device);
-
-  if (isSymbolTypeMapKey())
-    drawSymbolTypeMapKey(device);
+  CQChartsPointPlot::execDrawForeground(device);
 }
 
 //---

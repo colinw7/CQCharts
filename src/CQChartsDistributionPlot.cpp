@@ -3406,8 +3406,7 @@ execDrawForeground(PaintDevice *device) const
   if (isStatsLines())
     drawStatsLines(device);
 
-  if (isColorMapKey())
-    drawColorMapKey(device);
+  CQChartsPlot::execDrawForeground(device);
 }
 
 void

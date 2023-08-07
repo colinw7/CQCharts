@@ -15111,6 +15111,9 @@ bool
 CQChartsPlot::
 hasForeground() const
 {
+  if (isColorMapKey())
+    return true;
+
   return false;
 }
 
@@ -15138,8 +15141,10 @@ drawCustomForeground(PaintDevice *device) const
 
 void
 CQChartsPlot::
-execDrawForeground(PaintDevice *) const
+execDrawForeground(PaintDevice *device) const
 {
+  if (isColorMapKey())
+    drawColorMapKey(device);
 }
 
 //---

@@ -1787,8 +1787,7 @@ execDrawForeground(PaintDevice *device) const
     drawBounds(device, "", currentRoot(""));
   }
 
-  if (isColorMapKey())
-    drawColorMapKey(device);
+  CQChartsPlot::execDrawForeground(device);
 }
 
 void

@@ -1215,8 +1215,7 @@ void
 CQChartsParallelPlot::
 execDrawForeground(PaintDevice *device) const
 {
-  if (isColorMapKey())
-    drawColorMapKey(device);
+  CQChartsPlot::execDrawForeground(device);
 }
 
 //---

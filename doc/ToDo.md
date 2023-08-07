@@ -4,6 +4,11 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + dendrogram
+   + single zoom direction
+   + scrollbar
+   + auto fit
+ 
  + sankey
    + value on mouse over
    + value text position
