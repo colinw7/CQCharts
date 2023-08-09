@@ -3509,6 +3509,8 @@ draw(PaintDevice *device) const
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
+  auto shapeColor = penBrush.brush.color();
+
   //---
 
   // draw node
@@ -3541,7 +3543,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  drawText(device);
+  drawText(device, shapeColor);
 
   //---
 
@@ -3651,7 +3653,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 void
 CQChartsDendrogramNodeObj::
-drawText(PaintDevice *device) const
+drawText(PaintDevice *device, const QColor &shapeColor) const
 {
   auto calcTextVisible = [&]() {
     if (isRoot()) return dendrogramPlot_->isRootTextVisible();
@@ -3661,6 +3663,26 @@ drawText(PaintDevice *device) const
 
   auto textVisible = calcTextVisible();
   if (! textVisible) return;
+
+  //---
+
+  // calc position
+  Point         p;
+  Angle         angle;
+  uint          position;
+  Qt::Alignment align;
+  bool          centered;
+
+  calcTextPos(p, device->font(), angle, position, align, centered);
+
+  //---
+
+  using TextPosition = CQChartsDendrogramPlot::TextPosition;
+
+  bool textCenter = (TextPosition(position) == TextPosition::CENTER);
+
+  if (textCenter)
+    charts()->setContrastColor(shapeColor);
 
   //---
 
@@ -3702,17 +3724,6 @@ drawText(PaintDevice *device) const
 
   //---
 
-  // calc position
-  Point         p;
-  Angle         angle;
-  uint          position;
-  Qt::Alignment align;
-  bool          centered;
-
-  calcTextPos(p, device->font(), angle, position, align, centered);
-
-  //---
-
   auto isValueLabel = [&]() {
     if (isRoot()) return dendrogramPlot_->isRootValueLabel();
     if (isHier()) return dendrogramPlot_->isHierValueLabel();
@@ -3747,9 +3758,7 @@ drawText(PaintDevice *device) const
   textOptions.formatted = false;
   textOptions.html      = false;
 
-  using TextPosition = CQChartsDendrogramPlot::TextPosition;
-
-  if (textOptions.scaled && TextPosition(position) == TextPosition::CENTER) {
+  if (textOptions.scaled && textCenter) {
     auto rect1 = displayRect();
     if (! rect1.isValid()) return;
 
@@ -3764,6 +3773,11 @@ drawText(PaintDevice *device) const
     else
       CQChartsDrawUtil::drawTextsAtPoint(device, p, strs, textOptions);
   }
+
+  //---
+
+  if (textCenter)
+    charts()->resetContrastColor();
 }
 
 void
@@ -4070,7 +4084,7 @@ CQChartsDendrogramEdgeObj(const DendrogramPlot *dendrogramPlot, NodeObj *fromNod
   auto *fromNode1 = dynamic_cast<const PlotDendrogram::PlotNode *>(fromNode->node());
   auto *toNode1   = dynamic_cast<const PlotDendrogram::PlotNode *>(toNode->node());
 
-  if (fromNode1) {
+  if (fromNode1 && toNode1) {
     auto value = fromNode1->childValue(toNode1);
 
     if (value)

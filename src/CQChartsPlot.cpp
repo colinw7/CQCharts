@@ -72,6 +72,7 @@
 #include <QPainter>
 #include <QMenu>
 #include <QAction>
+#include <QScrollBar>
 
 //------
 
@@ -244,6 +245,9 @@ term()
 
   for (auto &annotation : annotations())
     delete annotation;
+
+  delete scrollData_.hbar;
+  delete scrollData_.vbar;
 }
 
 //---
@@ -1292,8 +1296,132 @@ applyVisibleFilter()
 
 void
 CQChartsPlot::
+updateZoomScroll()
+{
+  bool showH = false, showV = false;
+
+  if (isZoomScroll()) {
+    auto rawRange      = getDataRange();                // unzoomed
+    auto adjustedRange = adjustDataRangeBBox(rawRange); // zoomed
+
+    auto pixelRect = calcPlotPixelRect();
+
+    int wf = rawRange.getWidth ();
+    int hf = rawRange.getHeight();
+
+    int wz = adjustedRange.getWidth ();
+    int hz = adjustedRange.getHeight();
+
+    auto pfll = windowToPixel(rawRange.getLL());
+    auto pfur = windowToPixel(rawRange.getUR());
+
+    auto pzll = windowToPixel(adjustedRange.getLL());
+    auto pzur = windowToPixel(adjustedRange.getUR());
+
+    showH = (wf > wz);
+    showV = (hf > hz);
+
+    if (showH && ! scrollData_.hbar) {
+      scrollData_.hbar = new QScrollBar(Qt::Horizontal, view());
+      scrollData_.hbar->setObjectName("plotHBar");
+
+      connect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hbarScrollSlot(int)));
+    }
+
+    if (showV && ! scrollData_.vbar) {
+      scrollData_.vbar = new QScrollBar(Qt::Vertical, view());
+      scrollData_.vbar->setObjectName("plotVBar");
+
+      connect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vbarScrollSlot(int)));
+    }
+
+    int hh = (showH ? scrollData_.hbar->sizeHint().height() : 0);
+    int vw = (showV ? scrollData_.vbar->sizeHint().width () : 0);
+
+    if (showH) {
+      disconnect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hbarScrollSlot(int)));
+
+      scrollData_.hbar->move(pixelRect.getXMin(), pixelRect.getYMax() - hh);
+      scrollData_.hbar->resize(pixelRect.getWidth() - vw, hh);
+
+//    auto pwf = windowToPixelWidth(wf);
+      auto pwz = windowToPixelWidth(wz);
+
+      scrollData_.hbar->setRange(pfll.x, pfur.x - pwz);
+      scrollData_.hbar->setPageStep(pwz);
+      scrollData_.hbar->setSingleStep(1);
+
+      scrollData_.xvalue = pzll.x;
+      scrollData_.hbar->setValue(scrollData_.xvalue);
+
+      connect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hbarScrollSlot(int)));
+    }
+
+    if (showV) {
+      disconnect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vbarScrollSlot(int)));
+
+      scrollData_.vbar->move(pixelRect.getXMax() - vw, pixelRect.getYMin());
+      scrollData_.vbar->resize(vw, pixelRect.getHeight() - hh);
+
+//    auto phf = windowToPixelHeight(hf);
+      auto phz = windowToPixelHeight(hz);
+
+      scrollData_.vbar->setRange(pfur.y, pfll.y - phz);
+      scrollData_.vbar->setPageStep(phz);
+      scrollData_.vbar->setSingleStep(1);
+
+      scrollData_.yvalue = pzur.y;
+      scrollData_.vbar->setValue(scrollData_.yvalue);
+
+      connect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vbarScrollSlot(int)));
+    }
+  }
+
+  if (scrollData_.hbar)
+    scrollData_.hbar->setVisible(showH);
+
+  if (scrollData_.vbar)
+    scrollData_.vbar->setVisible(showV);
+}
+
+void
+CQChartsPlot::
+hbarScrollSlot(int v)
+{
+  auto dx = pixelToSignedWindowWidth(v - scrollData_.xvalue);
+
+  scrollData_.xvalue = v;
+
+  pan(dx, 0.0);
+
+  adjustPan();
+
+  applyDataRangeAndDraw();
+}
+
+void
+CQChartsPlot::
+vbarScrollSlot(int v)
+{
+  auto dy = pixelToSignedWindowHeight(v - scrollData_.yvalue);
+
+  scrollData_.yvalue = v;
+
+  pan(0.0, -dy);
+
+  adjustPan();
+
+  applyDataRangeAndDraw();
+}
+
+//---
+
+void
+CQChartsPlot::
 drawBackground()
 {
+  updateZoomScroll();
+
   if (! isUpdatesEnabled())
     return;
 
@@ -2126,12 +2254,12 @@ double
 CQChartsPlot::
 dataScale() const
 {
-  if (! allowZoomX() && ! allowZoomY())
+  if (! isAllowZoomX() && ! isAllowZoomY())
     return 1.0;
 
-  if      (! allowZoomX())
+  if      (! isAllowZoomX())
     return dataScaleY();
-  else if (! allowZoomY())
+  else if (! isAllowZoomY())
     return dataScaleX();
   else
     return CMathUtil::avg(dataScaleX(), dataScaleY());
@@ -2159,7 +2287,7 @@ setDataScaleX(double x)
 {
   assert(x > 0.0);
 
-  assert(allowZoomX());
+  assert(isAllowZoomX());
 
   assert(! isComposite());
 
@@ -2191,7 +2319,7 @@ setDataScaleY(double y)
 {
   assert(y > 0.0);
 
-  assert(allowZoomY());
+  assert(isAllowZoomY());
 
   assert(! isComposite());
 
@@ -2279,10 +2407,10 @@ void
 CQChartsPlot::
 updateDataScale(double r)
 {
-  if (allowZoomX())
+  if (isAllowZoomX())
     setDataScaleX(r);
 
-  if (allowZoomY())
+  if (isAllowZoomY())
     setDataScaleY(r);
 
   applyDataRangeAndDraw();
@@ -2292,7 +2420,7 @@ void
 CQChartsPlot::
 updateDataScaleX(double r)
 {
-  if (allowZoomX())
+  if (isAllowZoomX())
     setDataScaleX(r);
 
   applyDataRangeAndDraw();
@@ -2302,7 +2430,7 @@ void
 CQChartsPlot::
 updateDataScaleY(double r)
 {
-  if (allowZoomY())
+  if (isAllowZoomY())
     setDataScaleY(r);
 
   applyDataRangeAndDraw();
@@ -2950,7 +3078,7 @@ setEqualScale(bool b)
   CQChartsUtil::testAndSet(equalScale_, b, [&]() {
      updateRange();
 
-     if (allowZoomX() && allowZoomY() && isEqualScale()) {
+     if (isAllowZoomX() && isAllowZoomY() && isEqualScale()) {
        auto scale = std::min(dataScaleX(), dataScaleY());
 
        setDataScaleX(scale);
@@ -4267,6 +4395,14 @@ addBaseProperties()
   // scaled symbol
   addPropI("points", "scaleSymbolSize", "scaled", "Are symbols scaled on zoom");
   addPropI("points", "defaultSymbolSetName", "defaultSymbolSet", "Default symbol set");
+
+  // zoom/pan
+  addPropI("zoom", "allowZoomX", "x"     , "Allow zoom x");
+  addPropI("zoom", "allowZoomY", "y"     , "Allow zoom y");
+  addPropI("zoom", "zoomScroll", "scroll", "Add scrollbars on zoom");
+
+  addPropI("pan" , "allowPanX" , "x", "Allo pan x");
+  addPropI("pan" , "allowPanY" , "y", "Allo pan y");
 
   // overview
   addProp("overview", "overviewDisplayed"  , "displayed"  , "Overview displayed");
@@ -11608,7 +11744,7 @@ panLeft(double f)
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->panLeft(f);
 
-  if (! allowPanX())
+  if (! isAllowPanX())
     return;
 
   double dx = viewToWindowWidth(f)/getDataRange().getWidth();
@@ -11646,7 +11782,7 @@ panRight(double f)
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->panRight(f);
 
-  if (! allowPanX())
+  if (! isAllowPanX())
     return;
 
   double dx = viewToWindowWidth(f)/getDataRange().getWidth();
@@ -11684,7 +11820,7 @@ panUp(double f)
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->panUp(f);
 
-  if (! allowPanY())
+  if (! isAllowPanY())
     return;
 
   double dy = viewToWindowHeight(f)/getDataRange().getHeight();
@@ -11722,7 +11858,7 @@ panDown(double f)
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->panDown(f);
 
-  if (! allowPanY())
+  if (! isAllowPanY())
     return;
 
   double dy = viewToWindowHeight(f)/getDataRange().getHeight();
@@ -11760,10 +11896,10 @@ pan(double dx, double dy)
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->pan(dx, dy);
 
-  if (allowPanX())
+  if (isAllowPanX())
     setDataOffsetX(dataOffsetX() + dx/getDataRange().getWidth());
 
-  if (allowPanY())
+  if (isAllowPanY())
     setDataOffsetY(dataOffsetY() + dy/getDataRange().getHeight());
 
   adjustPan();
@@ -11782,10 +11918,10 @@ zoomIn(double f)
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->zoomIn(f);
 
-  if (allowZoomX())
+  if (isAllowZoomX())
     setDataScaleX(dataScaleX()*f);
 
-  if (allowZoomY())
+  if (isAllowZoomY())
     setDataScaleY(dataScaleY()*f);
 
   applyDataRangeAndDraw();
@@ -11800,10 +11936,10 @@ zoomOut(double f)
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->zoomOut(f);
 
-  if (allowZoomX())
+  if (isAllowZoomX())
     setDataScaleX(dataScaleX()/f);
 
-  if (allowZoomY())
+  if (isAllowZoomY())
     setDataScaleY(dataScaleY()/f);
 
   applyDataRangeAndDraw();
@@ -11844,21 +11980,21 @@ zoomTo(const BBox &bbox)
   double xscale = w1/w;
   double yscale = h1/h;
 
-  if (allowZoomX() && allowZoomY() && isEqualScale()) {
+  if (isAllowZoomX() && isAllowZoomY() && isEqualScale()) {
     xscale = std::min(xscale, yscale);
     yscale = xscale;
   }
 
-  if (allowZoomX())
+  if (isAllowZoomX())
     setDataScaleX(xscale);
 
-  if (allowZoomY())
+  if (isAllowZoomY())
     setDataScaleY(yscale);
 
   auto c1 = Point(dataRange().xmid(), dataRange().ymid());
 
-  double cx = (allowPanX() ? c.x - c1.x : 0.0)/getDataRange().getWidth ();
-  double cy = (allowPanY() ? c.y - c1.y : 0.0)/getDataRange().getHeight();
+  double cx = (isAllowPanX() ? c.x - c1.x : 0.0)/getDataRange().getWidth ();
+  double cy = (isAllowPanY() ? c.y - c1.y : 0.0)/getDataRange().getHeight();
 
   setDataOffsetX(cx);
   setDataOffsetY(cy);
@@ -11897,21 +12033,21 @@ unzoomTo(const BBox &bbox)
   double xscale = w*dataScaleX()/w1;
   double yscale = h*dataScaleY()/h1;
 
-  if (allowZoomX() && allowZoomY() && isEqualScale()) {
+  if (isAllowZoomX() && isAllowZoomY() && isEqualScale()) {
     xscale = std::min(xscale, yscale);
     yscale = xscale;
   }
 
-  if (allowZoomX())
+  if (isAllowZoomX())
     setDataScaleX(xscale*dataScaleX());
 
-  if (allowZoomY())
+  if (isAllowZoomY())
     setDataScaleY(yscale*dataScaleY());
 
   auto c1 = Point(dataRange().xmid(), dataRange().ymid());
 
-  double cx = (allowPanX() ? c.x - c1.x : 0.0)/getDataRange().getWidth ();
-  double cy = (allowPanY() ? c.y - c1.y : 0.0)/getDataRange().getHeight();
+  double cx = (isAllowPanX() ? c.x - c1.x : 0.0)/getDataRange().getWidth ();
+  double cy = (isAllowPanY() ? c.y - c1.y : 0.0)/getDataRange().getHeight();
 
   setDataOffsetX(cx);
   setDataOffsetY(cy);
@@ -11928,10 +12064,10 @@ isZoomFull() const
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->isZoomFull();
 
-  if (allowZoomX() && ! CMathUtil::realEq(dataScaleX(), 1.0))
+  if (isAllowZoomX() && ! CMathUtil::realEq(dataScaleX(), 1.0))
     return false;
 
-  if (allowZoomY() && ! CMathUtil::realEq(dataScaleY(), 1.0))
+  if (isAllowZoomY() && ! CMathUtil::realEq(dataScaleY(), 1.0))
     return false;
 
   if (! CMathUtil::realEq(dataOffsetX(), 0.0))
@@ -11957,10 +12093,10 @@ void
 CQChartsPlot::
 zoomFull1(bool notify)
 {
-  if (allowZoomX())
+  if (isAllowZoomX())
     setDataScaleX(1.0);
 
-  if (allowZoomY())
+  if (isAllowZoomY())
     setDataScaleY(1.0);
 
   setDataOffsetX(0.0);
@@ -12011,8 +12147,8 @@ centerAt(const Point &c)
 
   auto c1 = Point(dataRange().xmid(), dataRange().ymid());
 
-  double cx = (allowPanX() ? c.x - c1.x : 0.0)/getDataRange().getWidth ();
-  double cy = (allowPanY() ? c.y - c1.y : 0.0)/getDataRange().getHeight();
+  double cx = (isAllowPanX() ? c.x - c1.x : 0.0)/getDataRange().getWidth ();
+  double cy = (isAllowPanY() ? c.y - c1.y : 0.0)/getDataRange().getHeight();
 
   setDataOffsetX(cx);
   setDataOffsetY(cy);
@@ -12029,6 +12165,17 @@ updateTransform()
   postResize();
 
   drawObjs();
+}
+
+//------
+
+void
+CQChartsPlot::
+setZoomScroll(bool b)
+{
+  scrollData_.zoomScroll = b;
+
+  updateZoomScroll();
 }
 
 //------
@@ -12483,9 +12630,11 @@ void
 CQChartsPlot::
 addRootMenuItems(QMenu *menu)
 {
-  menu->addSeparator();
+  if (rootPlot()) {
+    menu->addSeparator();
 
-  addMenuAction(menu, "Collapse", SLOT(collapseRootSlot()));
+    addMenuAction(menu, "Collapse", SLOT(collapseRootSlot()));
+  }
 }
 
 void

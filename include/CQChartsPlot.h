@@ -117,6 +117,7 @@ class QMenu;
 class QLabel;
 class QPainter;
 class QCheckBox;
+class QScrollBar;
 
 //---
 
@@ -361,6 +362,13 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(CQChartsLength fitMarginTop    READ fitMarginTop    WRITE setFitMarginTop   )
   Q_PROPERTY(CQChartsLength fitMarginRight  READ fitMarginRight  WRITE setFitMarginRight )
   Q_PROPERTY(CQChartsLength fitMarginBottom READ fitMarginBottom WRITE setFitMarginBottom)
+
+  // zoom/pan
+  Q_PROPERTY(bool allowZoomX READ isAllowZoomX WRITE setAllowZoomX)
+  Q_PROPERTY(bool allowZoomY READ isAllowZoomY WRITE setAllowZoomY)
+  Q_PROPERTY(bool zoomScroll READ isZoomScroll WRITE setZoomScroll)
+  Q_PROPERTY(bool allowPanX  READ isAllowPanX  WRITE setAllowPanX)
+  Q_PROPERTY(bool allowPanY  READ isAllowPanY  WRITE setAllowPanY)
 
   // preview
   Q_PROPERTY(bool preview        READ isPreview      WRITE setPreview       )
@@ -697,6 +705,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void applyVisibleFilter();
 
   //---
+
+  void updateZoomScroll();
 
   void drawBackground();
   void drawForeground();
@@ -2537,8 +2547,23 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  bool isAllowZoomX() const { return allowZoomX_ && allowZoomX(); }
+  void setAllowZoomX(bool b) { allowZoomX_ = b; }
+
+  bool isAllowZoomY() const { return allowZoomY_ && allowZoomY(); }
+  void setAllowZoomY(bool b) { allowZoomY_ = b; }
+
+  bool isZoomScroll() const { return scrollData_.zoomScroll; }
+  void setZoomScroll(bool b);
+
   virtual bool allowZoomX() const { return true; }
   virtual bool allowZoomY() const { return true; }
+
+  bool isAllowPanX() const { return allowPanX_ && allowPanX(); }
+  void setAllowPanX(bool b) { allowPanX_ = b; }
+
+  bool isAllowPanY() const { return allowPanY_ && allowPanY(); }
+  void setAllowPanY(bool b) { allowPanY_ = b; }
 
   virtual bool allowPanX() const { return true; }
   virtual bool allowPanY() const { return true; }
@@ -3418,6 +3443,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void collapseRootSlot();
 
+  //---
+
+  void hbarScrollSlot(int);
+  void vbarScrollSlot(int);
+
  Q_SIGNALS:
   // model data changed
   void modelChanged();
@@ -3869,7 +3899,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Range         unequalDataRange_;              //!< raw data range
   Range         dataRange_;                     //!< equal range adjusted data range
   Range         outerDataRange_;                //!< outer data range
-  ZoomData      zoomData_;                      //!< zoom data
+
+  ZoomData zoomData_;            //!< zoom data
+  bool     allowZoomX_ { true };
+  bool     allowZoomY_ { true };
+  bool     allowPanX_  { true };
+  bool     allowPanY_  { true };
 
   // override range
   OptReal xmin_; //!< xmin override
@@ -4220,6 +4255,18 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   };
 
   OverviewData overviewData_;
+
+  //---
+
+  struct ScrollData {
+    bool        zoomScroll { false };
+    QScrollBar* hbar       { nullptr };
+    QScrollBar* vbar       { nullptr };
+    int         xvalue     { 0 };
+    int         yvalue     { 0 };
+  };
+
+  ScrollData scrollData_;
 
   //---
 

@@ -177,7 +177,7 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
-  void drawText(PaintDevice *device) const;
+  void drawText(PaintDevice *device, const QColor &shapeColor) const;
 
   void calcTextPos(Point &p, const QFont &font, Angle &angle, uint &position,
                    Qt::Alignment &align, bool &centered) const;

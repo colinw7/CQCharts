@@ -3032,8 +3032,7 @@ addMenuItems(QMenu *menu, const Point &)
 
   //---
 
-  if (rootPlot())
-    addRootMenuItems(menu);
+  addRootMenuItems(menu);
 
   return true;
 }
