@@ -192,7 +192,7 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
   void moveParBy(double d);
 
  private:
-  double calcScaledShapePixelSize() const;
+  QSizeF calcScaledShapePixelSize() const;
 
  private:
   const DendrogramPlot* dendrogramPlot_ { nullptr }; //!< plot
@@ -362,6 +362,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   Q_PROPERTY(PlaceType placeType READ placeType WRITE setPlaceType)
 
+  Q_PROPERTY(FitMode fitMode READ fitMode WRITE setFitMode)
+
   Q_PROPERTY(int hideDepth READ hideDepth WRITE setHideDepth)
 
   Q_PROPERTY(double sizeScale READ sizeScale WRITE setSizeScale)
@@ -369,6 +371,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_PROPERTY(bool removeNodeOverlaps  READ isRemoveNodeOverlaps  WRITE setRemoveNodeOverlaps)
   Q_PROPERTY(bool removeGroupOverlaps READ isRemoveGroupOverlaps WRITE setRemoveGroupOverlaps)
   Q_PROPERTY(bool adjustOverlaps      READ isAdjustOverlaps      WRITE setAdjustOverlaps)
+  Q_PROPERTY(bool spreadNodeOverlaps  READ isSpreadNodeOverlaps  WRITE setSpreadNodeOverlaps)
 
   Q_PROPERTY(bool hierValueTip READ isHierValueTip WRITE setHierValueTip)
 
@@ -388,6 +391,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Leaf, leaf)
 
   Q_ENUMS(PlaceType)
+  Q_ENUMS(FitMode)
   Q_ENUMS(TextPosition)
   Q_ENUMS(ValueType)
 
@@ -395,6 +399,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   using NodeObj   = CQChartsDendrogramNodeObj;
   using EdgeObj   = CQChartsDendrogramEdgeObj;
   using Node      = CQChartsDendrogram::Node;
+  using Font      = CQChartsFont;
   using Color     = CQChartsColor;
   using Length    = CQChartsLength;
   using PenBrush  = CQChartsPenBrush;
@@ -405,6 +410,11 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
     DENDROGRAM,
     BUCHHEIM,
     CIRCULAR
+  };
+
+  enum class FitMode {
+    SCALE,
+    SCROLL
   };
 
   enum class TextPosition {
@@ -503,7 +513,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   bool isRootValueLabel() const { return rootNodeData_.valueLabel; }
   void setRootValueLabel(bool b);
 
-  double calcRootSize() const;
+  QSizeF calcRootSize() const;
 
   //---
 
@@ -541,7 +551,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   bool isHierValueLabel() const { return hierNodeData_.valueLabel; }
   void setHierValueLabel(bool b);
 
-  double calcHierSize() const;
+  QSizeF calcHierSize() const;
 
   //---
 
@@ -579,7 +589,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   bool isLeafValueLabel() const { return leafNodeData_.valueLabel; }
   void setLeafValueLabel(bool b);
 
-  double calcLeafSize() const;
+  QSizeF calcLeafSize() const;
+
+  QSizeF lengthPixelSize(const Length &l, const Font &font) const;
 
   //---
 
@@ -640,6 +652,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   const PlaceType &placeType() const { return placeType_; }
   void setPlaceType(const PlaceType &t);
 
+  const FitMode &fitMode() const { return fitMode_; }
+  void setFitMode(const FitMode &m);
+
   int hideDepth() const { return hideDepth_; }
   void setHideDepth(int i);
 
@@ -653,6 +668,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   bool isRemoveGroupOverlaps() const { return removeGroupOverlaps_; }
   void setRemoveGroupOverlaps(bool b);
+
+  bool isSpreadNodeOverlaps() const { return spreadData_.enabled; }
+  void setSpreadNodeOverlaps(bool b);
 
   const Length &overlapMargin() const { return overlapMargin_; }
   void setOverlapMargin(const Length &l);
@@ -698,6 +716,18 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
+  void updateZoomScroll() override;
+
+  void hscrollBy(double dx) override;
+  void vscrollBy(double dx) override;
+
+  bool allowZoomX() const override;
+  bool allowZoomY() const override;
+
+  void wheelVScroll(int delta) override;
+
+  void updateScrollOffset();
+
   //---
 
   void execMoveNonRoot(const PlotObjs &objs);
@@ -710,6 +740,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   void execRemoveOverlaps();
   void execRemoveOverlaps(const PlotObjs &objs);
+
+  void execSpreadOverlaps();
+  void execSpreadOverlaps(const PlotObjs &objs);
 
 //void calcNodeSize(PlotObjs &objs);
 
@@ -859,6 +892,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   // plot data
   Qt::Orientation orientation_ { Qt::Horizontal };      //!< draw direction
   PlaceType       placeType_   { PlaceType::BUCHHEIM }; //!< place type
+  FitMode         fitMode_     { FitMode::SCALE };      //!< fit mode
   int             hideDepth_   { -1 };                  //!< place type
   double          sizeScale_   { 1.0 };                 //!< size scale
 
@@ -868,6 +902,21 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Length         overlapMargin_       { Length::pixel(4.0) }; //!< overlap margin
   bool           adjustOverlaps_      { false };              //!< adjust overlaps
   mutable double overlapScale_        { 1.0 };                //!< overlap scale factor
+
+  struct SpreadData {
+    bool   enabled { false }; //!< spread node overlaps
+    double scale   { 1.0 };   //!< spread scale
+    double pos     { 0.0 };   //!< spread pos
+    BBox   bbox;              //!< spread bbox
+
+    void reset() {
+      scale = 1.0;
+      pos   = 0.0;
+      bbox  = BBox();
+    }
+  };
+
+  SpreadData spreadData_;
 
   bool hierValueTip_ { true }; //!< show hier value in tip
 

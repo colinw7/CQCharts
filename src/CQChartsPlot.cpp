@@ -223,6 +223,20 @@ init()
 
   //---
 
+  scrollData_.hbar = new QScrollBar(Qt::Horizontal, view());
+  scrollData_.hbar->setObjectName("plotHBar");
+  scrollData_.hbar->setVisible(false);
+
+  connect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hbarScrollSlot(int)));
+
+  scrollData_.vbar = new QScrollBar(Qt::Vertical, view());
+  scrollData_.vbar->setObjectName("plotVBar");
+  scrollData_.vbar->setVisible(false);
+
+  connect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vbarScrollSlot(int)));
+
+  //---
+
   startThreadTimer();
 
   //---
@@ -1298,19 +1312,15 @@ void
 CQChartsPlot::
 updateZoomScroll()
 {
-  bool showH = false, showV = false;
-
   if (isZoomScroll()) {
     auto rawRange      = getDataRange();                // unzoomed
     auto adjustedRange = adjustDataRangeBBox(rawRange); // zoomed
 
-    auto pixelRect = calcPlotPixelRect();
+    auto wf = rawRange.getWidth ();
+    auto hf = rawRange.getHeight();
 
-    int wf = rawRange.getWidth ();
-    int hf = rawRange.getHeight();
-
-    int wz = adjustedRange.getWidth ();
-    int hz = adjustedRange.getHeight();
+    auto wz = adjustedRange.getWidth ();
+    auto hz = adjustedRange.getHeight();
 
     auto pfll = windowToPixel(rawRange.getLL());
     auto pfur = windowToPixel(rawRange.getUR());
@@ -1318,80 +1328,154 @@ updateZoomScroll()
     auto pzll = windowToPixel(adjustedRange.getLL());
     auto pzur = windowToPixel(adjustedRange.getUR());
 
-    showH = (wf > wz);
-    showV = (hf > hz);
+    bool showH = (wf > wz);
+    bool showV = (hf > hz);
 
-    if (showH && ! scrollData_.hbar) {
-      scrollData_.hbar = new QScrollBar(Qt::Horizontal, view());
-      scrollData_.hbar->setObjectName("plotHBar");
-
-      connect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hbarScrollSlot(int)));
-    }
-
-    if (showV && ! scrollData_.vbar) {
-      scrollData_.vbar = new QScrollBar(Qt::Vertical, view());
-      scrollData_.vbar->setObjectName("plotVBar");
-
-      connect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vbarScrollSlot(int)));
-    }
-
-    int hh = (showH ? scrollData_.hbar->sizeHint().height() : 0);
-    int vw = (showV ? scrollData_.vbar->sizeHint().width () : 0);
+    showScrollHBar(showH);
+    showScrollVBar(showV);
 
     if (showH) {
-      disconnect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hbarScrollSlot(int)));
-
-      scrollData_.hbar->move(pixelRect.getXMin(), pixelRect.getYMax() - hh);
-      scrollData_.hbar->resize(pixelRect.getWidth() - vw, hh);
+      placeScrollHBar();
 
 //    auto pwf = windowToPixelWidth(wf);
       auto pwz = windowToPixelWidth(wz);
 
-      scrollData_.hbar->setRange(pfll.x, pfur.x - pwz);
-      scrollData_.hbar->setPageStep(pwz);
-      scrollData_.hbar->setSingleStep(1);
-
-      scrollData_.xvalue = pzll.x;
-      scrollData_.hbar->setValue(scrollData_.xvalue);
-
-      connect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hbarScrollSlot(int)));
+      setHBarRange(pfll.x, pfur.x, pwz, pzll.x, 0.0, 1.0);
     }
 
     if (showV) {
-      disconnect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vbarScrollSlot(int)));
-
-      scrollData_.vbar->move(pixelRect.getXMax() - vw, pixelRect.getYMin());
-      scrollData_.vbar->resize(vw, pixelRect.getHeight() - hh);
+      placeScrollVBar();
 
 //    auto phf = windowToPixelHeight(hf);
       auto phz = windowToPixelHeight(hz);
 
-      scrollData_.vbar->setRange(pfur.y, pfll.y - phz);
-      scrollData_.vbar->setPageStep(phz);
-      scrollData_.vbar->setSingleStep(1);
-
-      scrollData_.yvalue = pzur.y;
-      scrollData_.vbar->setValue(scrollData_.yvalue);
-
-      connect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vbarScrollSlot(int)));
+      setVBarRange(pfur.y, pfll.y, phz, pzur.y, 0.0, 1.0);
     }
   }
+  else {
+    showScrollHBar(false);
+    showScrollVBar(false);
+  }
+}
 
-  if (scrollData_.hbar)
-    scrollData_.hbar->setVisible(showH);
+void
+CQChartsPlot::
+showScrollHBar(bool b)
+{
+  scrollData_.hShown = b;
 
-  if (scrollData_.vbar)
-    scrollData_.vbar->setVisible(showV);
+  scrollData_.hbar->setVisible(scrollData_.hShown);
+}
+
+void
+CQChartsPlot::
+showScrollVBar(bool b)
+{
+  scrollData_.vShown = b;
+
+  scrollData_.vbar->setVisible(scrollData_.vShown);
+}
+
+void
+CQChartsPlot::
+placeScrollHBar()
+{
+  int hh = (scrollData_.hShown ? scrollData_.hbar->sizeHint().height() : 0);
+  int vw = (scrollData_.vShown ? scrollData_.vbar->sizeHint().width () : 0);
+
+  auto pixelRect = calcPlotPixelRect();
+
+  scrollData_.hbar->move(pixelRect.getXMin(), pixelRect.getYMax() - hh);
+  scrollData_.hbar->resize(pixelRect.getWidth() - vw, hh);
+}
+
+void
+CQChartsPlot::
+placeScrollVBar()
+{
+  int hh = (scrollData_.hShown ? scrollData_.hbar->sizeHint().height() : 0);
+  int vw = (scrollData_.vShown ? scrollData_.vbar->sizeHint().width () : 0);
+
+  auto pixelRect = calcPlotPixelRect();
+
+  scrollData_.vbar->move(pixelRect.getXMax() - vw, pixelRect.getYMin());
+  scrollData_.vbar->resize(vw, pixelRect.getHeight() - hh);
+}
+
+void
+CQChartsPlot::
+setHBarRange(int start, int end, int step, int value, double min, double max)
+{
+  disconnect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hbarScrollSlot(int)));
+
+  scrollData_.hbar->setRange(start, end - step);
+  scrollData_.hbar->setPageStep(step);
+  scrollData_.hbar->setSingleStep(1);
+  scrollData_.hbar->setValue(value);
+
+  scrollData_.xvalue = value;
+  scrollData_.xmin   = min;
+  scrollData_.xmax   = max;
+
+  connect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hbarScrollSlot(int)));
+}
+
+void
+CQChartsPlot::
+setVBarRange(int start, int end, int step, int value, double min, double max)
+{
+  disconnect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vbarScrollSlot(int)));
+
+  scrollData_.vbar->setRange(start, end - step);
+  scrollData_.vbar->setPageStep(step);
+  scrollData_.vbar->setSingleStep(1);
+  scrollData_.vbar->setValue(value);
+
+  scrollData_.yvalue = value;
+  scrollData_.ymin   = min;
+  scrollData_.ymax   = max;
+
+  connect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vbarScrollSlot(int)));
 }
 
 void
 CQChartsPlot::
 hbarScrollSlot(int v)
 {
-  auto dx = pixelToSignedWindowWidth(v - scrollData_.xvalue);
+  scrollData_.oldXValue = scrollData_.xvalue;
+  scrollData_.xvalue    = v;
 
-  scrollData_.xvalue = v;
+  double ds = double(v - scrollData_.hbar->minimum())/
+              double(scrollData_.hbar->maximum() - scrollData_.hbar->minimum());
 
+  scrollData_.xpos = ds*(scrollData_.xmax - scrollData_.xmin) + scrollData_.xmin;
+
+  auto dx = pixelToSignedWindowWidth(scrollData_.xvalue - scrollData_.oldXValue);
+
+  hscrollBy(dx);
+}
+
+void
+CQChartsPlot::
+vbarScrollSlot(int v)
+{
+  scrollData_.oldYValue = scrollData_.yvalue;
+  scrollData_.yvalue    = v;
+
+  double ds = double(v - scrollData_.vbar->minimum())/
+              double(scrollData_.vbar->maximum() - scrollData_.vbar->minimum());
+
+  scrollData_.ypos = ds*(scrollData_.ymax - scrollData_.ymin) + scrollData_.ymin;
+
+  auto dy = pixelToSignedWindowHeight(scrollData_.yvalue - scrollData_.oldYValue);
+
+  vscrollBy(dy);
+}
+
+void
+CQChartsPlot::
+hscrollBy(double dx)
+{
   pan(dx, 0.0);
 
   adjustPan();
@@ -1401,12 +1485,8 @@ hbarScrollSlot(int v)
 
 void
 CQChartsPlot::
-vbarScrollSlot(int v)
+vscrollBy(double dy)
 {
-  auto dy = pixelToSignedWindowHeight(v - scrollData_.yvalue);
-
-  scrollData_.yvalue = v;
-
   pan(0.0, -dy);
 
   adjustPan();
@@ -1420,8 +1500,6 @@ void
 CQChartsPlot::
 drawBackground()
 {
-  updateZoomScroll();
-
   if (! isUpdatesEnabled())
     return;
 
@@ -6206,6 +6284,10 @@ updateAndAdjustRanges()
 
   if (isOverlay())
     updateOverlayRanges();
+
+  //---
+
+  scrollData_.invalid = false;
 }
 
 //------
@@ -7177,6 +7259,10 @@ initObjs()
   //---
 
   resetKeyItems(/*add*/true);
+
+  //---
+
+  scrollData_.invalid = false;
 
   //---
 
@@ -11718,6 +11804,11 @@ void
 CQChartsPlot::
 wheelZoom(const Point &pp, int delta)
 {
+  if (! isAllowZoomX() && ! isAllowZoomY())
+    return wheelVScroll(delta);
+
+  //---
+
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->wheelZoom(pp, delta);
 
@@ -13260,6 +13351,12 @@ drawParts(QPainter *painter) const
 
   //---
 
+  auto *th = const_cast<Plot *>(this);
+
+  th->updateZoomScroll();
+
+  //---
+
   drawBackgroundParts(painter);
 
   //---
@@ -13277,8 +13374,6 @@ drawParts(QPainter *painter) const
   //---
 
   if (zoomData_.isFullScreen()) {
-    auto *th = const_cast<Plot *>(this);
-
     QImage image;
 
     if (isOverviewDisplayed()) {

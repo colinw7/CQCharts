@@ -350,7 +350,7 @@ randRows(RowSet &rowSet, int n, int nr) const
 
   int numRandom = 0;
 
-  int iters = 0;
+  //int iters = 0;
 
   while (numRandom < n) {
     int r = rand.gen();
@@ -363,7 +363,7 @@ randRows(RowSet &rowSet, int n, int nr) const
       ++numRandom;
     }
 
-    ++iters;
+    //++iters;
   }
 }
 

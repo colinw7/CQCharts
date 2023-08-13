@@ -4,6 +4,7 @@
 #include <CQChartsGeom.h>
 
 #include <QObject>
+#include <map>
 
 class CQChartsCmds;
 class CQChartsView;
@@ -22,6 +23,13 @@ class CQChartsCmdsSlot : public QObject {
   CQChartsCmdsSlot(CQChartsCmds *cmds, CQChartsView *view, CQChartsPlot *plot,
                    CQChartsAnnotation *annotation, CQChartsModelData *modelData,
                    const QString &procName);
+
+ ~CQChartsCmdsSlot();
+
+  const QString &id() const { return id_; }
+  void setId(const QString &s) { id_ = s; }
+
+  void connectSlot(QObject *obj, const char *signalName, const char *methodName);
 
  private:
   void evalCmd(const QString &cmd);
@@ -61,6 +69,51 @@ class CQChartsCmdsSlot : public QObject {
   CQChartsAnnotation* annotation_ { nullptr };
   CQChartsModelData*  modelData_  { nullptr };
   QString             procName_;
+  QString             id_;
+
+  QObject* obj_ { nullptr };
+  QString  signal_;
+  QString  method_;
+
+  mutable bool enabled_ { true };
+};
+
+//---
+
+#define CQChartsCmdsSlotMgrInst CQChartsCmdsSlotMgr::instance()
+
+class CQChartsCmdsSlotMgr {
+ public:
+  static CQChartsCmdsSlotMgr *instance() {
+    static CQChartsCmdsSlotMgr *inst;
+    if (! inst)
+      inst = new CQChartsCmdsSlotMgr;
+    return inst;
+  }
+
+ ~CQChartsCmdsSlotMgr();
+
+  CQChartsCmdsSlot *createSlot(CQChartsCmds *cmds, CQChartsView *view, CQChartsPlot *plot,
+                               CQChartsAnnotation *annotation, CQChartsModelData *modelData,
+                               const QString &fromName, const QString &toName);
+
+  CQChartsCmdsSlot *getSlot(CQChartsCmds *cmds, CQChartsView *view, CQChartsPlot *plot,
+                            CQChartsAnnotation *annotation, CQChartsModelData *modelData,
+                            const QString &fromName, const QString &toName) const;
+
+  void deleteSlot(CQChartsCmdsSlot *slot);
+
+ private:
+  CQChartsCmdsSlotMgr();
+
+  QString encodeId(CQChartsView *view, CQChartsPlot *plot,
+                   CQChartsAnnotation *annotation, CQChartsModelData *modelData,
+                   const QString &fromName, const QString &toName) const;
+
+ private:
+  using Slots = std::map<QString, CQChartsCmdsSlot *>;
+
+  Slots slots_;
 };
 
 #endif

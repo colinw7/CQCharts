@@ -5,9 +5,10 @@ Abstract Painter/Javascript
 
 TODO:
  + dendrogram
+   + lock center (no pan) max/min zoom, zoom full directional
    + single zoom direction
    + scrollbar
-   + auto fit
+   + improve auto fit (scale to fix like sankey)
  
  + sankey
    + value on mouse over
@@ -26,7 +27,8 @@ TODO:
 
  + model variable list (old values) to allow query/undo
 
- + model view which allows push/pop into 1->N filter models (stack) to bucket/filter/... root model
+ + model view which allows push/pop into 1 -> N filter models (stack) to
+   bucket/filter/... root model
 
  + summary plot correlation zoom inconsistent (box and text)
  + summary plot expand correlation to correlation plot ?

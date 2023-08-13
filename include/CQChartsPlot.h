@@ -706,7 +706,21 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  void updateZoomScroll();
+  virtual void updateZoomScroll();
+
+  void showScrollHBar(bool b);
+  void showScrollVBar(bool b);
+
+  void placeScrollHBar();
+  void placeScrollVBar();
+
+  void setHBarRange(int start, int end, int step, int value, double xmin, double xmax);
+  void setVBarRange(int start, int end, int step, int value, double ymin, double ymax);
+
+  virtual void hscrollBy(double dx);
+  virtual void vscrollBy(double dy);
+
+  //---
 
   void drawBackground();
   void drawForeground();
@@ -4259,11 +4273,22 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   struct ScrollData {
+    bool        invalid    { true };
     bool        zoomScroll { false };
+    bool        hShown     { false };
+    bool        vShown     { false };
     QScrollBar* hbar       { nullptr };
     QScrollBar* vbar       { nullptr };
+    int         oldXValue  { 0 };
     int         xvalue     { 0 };
+    int         oldYValue  { 0 };
     int         yvalue     { 0 };
+    double      xmin       { 0.0 };
+    double      ymin       { 0.0 };
+    double      xmax       { 1.0 };
+    double      ymax       { 1.0 };
+    double      xpos       { 0.0 };
+    double      ypos       { 0.0 };
   };
 
   ScrollData scrollData_;

@@ -337,6 +337,7 @@ CQCHARTS_DEF_CMD(AddChartsSymbol)
 
 // connections
 CQCHARTS_DEF_CMD(ConnectChartsSignal)
+CQCHARTS_DEF_CMD(DisconnectChartsSignal)
 
 //---
 

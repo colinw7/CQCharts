@@ -251,6 +251,7 @@ addCommands()
 
     // connect
     addCommand("connect_charts_signal", new CQChartsConnectChartsSignalCmd(this));
+    addCommand("disconnect_charts_signal", new CQChartsDisconnectChartsSignalCmd(this));
 
     // widgets
     addCommand("add_custom_widget", new CQChartsAddCustomWidgetCmd(this));
@@ -12516,18 +12517,19 @@ execCmd(CQChartsCmdArgs &argv)
   auto fromName = argv.getParseStr("from");
   auto toName   = argv.getParseStr("to"  );
 
-  auto createCmdsSlot = [&]() {
-    return new CQChartsCmdsSlot(cmds(), view, plot, annotation, modelData, toName);
+  auto connectSlot = [&](QObject *obj, const char *signalName, const char *slotName) {
+    auto *slot = CQChartsCmdsSlotMgrInst->createSlot(cmds(), view, plot, annotation, modelData,
+                                                     fromName, toName);
+    slot->connectSlot(obj, signalName, slotName);
   };
 
   if      (modelData) {
     if      (fromName == "selectionChanged") {
-      cmds()->connect(modelData, SIGNAL(selectionChanged(QItemSelectionModel *)),
-                      createCmdsSlot(), SLOT(selectionChanged()));
+      connectSlot(modelData, SIGNAL(selectionChanged(QItemSelectionModel *)),
+                  SLOT(selectionChanged()));
     }
     else if (fromName == "modelChanged") {
-      cmds()->connect(modelData, SIGNAL(modelChanged()),
-                      createCmdsSlot(), SLOT(modelChanged()));
+      connectSlot(modelData, SIGNAL(modelChanged()), SLOT(modelChanged()));
     }
     else if (fromName == "?") {
       static auto names = QStringList() <<
@@ -12539,30 +12541,27 @@ execCmd(CQChartsCmdArgs &argv)
   }
   else if (plot) {
     if      (fromName == "objIdPressed") {
-      cmds()->connect(plot, SIGNAL(objIdPressed(const QString &)),
-                      createCmdsSlot(), SLOT(objIdPressed(const QString &)));
+      connectSlot(plot, SIGNAL(objIdPressed(const QString &)), SLOT(objIdPressed(const QString &)));
     }
     else if (fromName == "annotationIdPressed") {
-      cmds()->connect(plot, SIGNAL(annotationIdPressed(const QString &)),
-                      createCmdsSlot(), SLOT(annotationIdPressed(const QString &)));
+      connectSlot(plot, SIGNAL(annotationIdPressed(const QString &)),
+                  SLOT(annotationIdPressed(const QString &)));
     }
     else if (fromName == "plotObjsAdded") {
-      cmds()->connect(plot, SIGNAL(plotObjsAdded()), createCmdsSlot(), SLOT(plotObjsAdded()));
+      connectSlot(plot, SIGNAL(plotObjsAdded()), SLOT(plotObjsAdded()));
     }
     else if (fromName == "selectionChanged") {
-      cmds()->connect(plot, SIGNAL(selectionChanged()), createCmdsSlot(), SLOT(selectionChanged()));
+      connectSlot(plot, SIGNAL(selectionChanged()), SLOT(selectionChanged()));
     }
     else if (fromName == "selectPress") {
-      cmds()->connect(plot, SIGNAL(selectPressSignal(const CQChartsGeom::Point &)),
-                      createCmdsSlot(), SLOT(selectPress(const CQChartsGeom::Point &)));
+      connectSlot(plot, SIGNAL(selectPressSignal(const CQChartsGeom::Point &)),
+                  SLOT(selectPress(const CQChartsGeom::Point &)));
     }
     else if (fromName == "animateStateChanged") {
-      cmds()->connect(plot, SIGNAL(animateStateChanged(bool)),
-                      createCmdsSlot(), SLOT(animateStateChanged(bool)));
+      connectSlot(plot, SIGNAL(animateStateChanged(bool)), SLOT(animateStateChanged(bool)));
     }
     else if (fromName == "currentModelChanged") {
-      cmds()->connect(plot, SIGNAL(currentModelChanged()),
-                      createCmdsSlot(), SLOT(currentModelChanged()));
+      connectSlot(plot, SIGNAL(currentModelChanged()), SLOT(currentModelChanged()));
     }
     else if (fromName == "?") {
       static auto names = QStringList() <<
@@ -12575,23 +12574,21 @@ execCmd(CQChartsCmdArgs &argv)
   }
   else if (view) {
     if      (fromName == "objIdPressed") {
-      cmds()->connect(view, SIGNAL(objIdPressed(const QString &)),
-                      createCmdsSlot(), SLOT(objIdPressed(const QString &)));
+      connectSlot(view, SIGNAL(objIdPressed(const QString &)), SLOT(objIdPressed(const QString &)));
     }
     else if (fromName == "annotationIdPressed") {
-      cmds()->connect(view, SIGNAL(annotationIdPressed(const QString &)),
-                      createCmdsSlot(), SLOT(annotationIdPressed(const QString &)));
+      connectSlot(view, SIGNAL(annotationIdPressed(const QString &)),
+                  SLOT(annotationIdPressed(const QString &)));
     }
     else if (fromName == "selectionChanged") {
-      cmds()->connect(view, SIGNAL(selectionChanged()), createCmdsSlot(), SLOT(selectionChanged()));
+      connectSlot(view, SIGNAL(selectionChanged()), SLOT(selectionChanged()));
     }
     else if (fromName == "keyEventPress") {
-      cmds()->connect(view, SIGNAL(keyEventPress(const QString &)),
-                      createCmdsSlot(), SLOT(keyEventPress(const QString &)));
+      connectSlot(view, SIGNAL(keyEventPress(const QString &)),
+                  SLOT(keyEventPress(const QString &)));
     }
     else if (fromName == "viewResized") {
-      cmds()->connect(view, SIGNAL(viewResized()),
-                      createCmdsSlot(), SLOT(viewResized()));
+      connectSlot(view, SIGNAL(viewResized()), SLOT(viewResized()));
     }
     else if (fromName == "?") {
       static auto names = QStringList() <<
@@ -12603,8 +12600,8 @@ execCmd(CQChartsCmdArgs &argv)
   }
   else if (annotation) {
     if      (fromName == "annotationIdPressed") {
-      cmds()->connect(annotation, SIGNAL(pressed(const QString &)),
-                      createCmdsSlot(), SLOT(annotationIdPressed(const QString &)));
+      connectSlot(annotation, SIGNAL(pressed(const QString &)),
+                  SLOT(annotationIdPressed(const QString &)));
     }
     else if (fromName == "?") {
       static auto names = QStringList() << "annotationIdPressed";
@@ -12615,12 +12612,10 @@ execCmd(CQChartsCmdArgs &argv)
   }
   else {
     if      (fromName == "themeChanged") {
-      cmds()->connect(charts(), SIGNAL(themeChanged()), createCmdsSlot(),
-                      SLOT(themeChanged()));
+      connectSlot(charts(), SIGNAL(themeChanged()), SLOT(themeChanged()));
     }
     else if (fromName == "interfaceThemeChanged") {
-      cmds()->connect(charts(), SIGNAL(interfaceThemeChanged()),
-                      createCmdsSlot(), SLOT(interfaceThemeChanged()));
+      connectSlot(charts(), SIGNAL(interfaceThemeChanged()), SLOT(interfaceThemeChanged()));
     }
     else if (fromName == "?") {
       static auto names = QStringList() << "themeChanged" << "interfaceThemeChanged";
@@ -12629,6 +12624,109 @@ execCmd(CQChartsCmdArgs &argv)
     else
       return errorMsg("unknown slot");
   }
+
+  return true;
+}
+
+//---
+
+// disconnect_charts_signal command
+
+void
+CQChartsDisconnectChartsSignalCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  argv.startCmdGroup(CmdGroup::Type::OneOpt);
+  addArg(argv, "-model"     , ArgType::String, "model_id" );
+  addArg(argv, "-view"      , ArgType::String, "view name");
+  addArg(argv, "-plot"      , ArgType::String, "plot name");
+  addArg(argv, "-annotation", ArgType::String, "annotation name");
+  argv.endCmdGroup();
+
+  addArg(argv, "-from", ArgType::String, "from connection name");
+  addArg(argv, "-to"  , ArgType::String, "to procedure name");
+}
+
+QStringList
+CQChartsDisconnectChartsSignalCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if      (arg == "model"     ) return cmds()->modelArgValues();
+  else if (arg == "view"      ) return cmds()->viewArgValues();
+  else if (arg == "plot"      ) return cmds()->plotArgValues(nullptr);
+  else if (arg == "annotation") return cmds()->annotationArgValues(nullptr, nullptr);
+
+  return QStringList();
+}
+
+bool
+CQChartsDisconnectChartsSignalCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsDisconnectChartsSignalCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  CQChartsModelData*  modelData  = nullptr;
+  CQChartsView*       view       = nullptr;
+  CQChartsPlot*       plot       = nullptr;
+  CQChartsAnnotation* annotation = nullptr;
+
+  if      (argv.hasParseArg("model")) {
+    auto modelId = argv.getParseStr("model");
+
+    modelData = cmds()->getModelDataOrCurrent(modelId);
+    if (! modelData) return false;
+  }
+  else if (argv.hasParseArg("view")) {
+    auto viewName = argv.getParseStr("view");
+
+    view = cmds()->getViewByName(viewName);
+    if (! view) return false;
+  }
+  else if (argv.hasParseArg("plot")) {
+    auto plotName = argv.getParseStr("plot");
+
+    plot = cmds()->getPlotByName(nullptr, plotName);
+    if (! plot) return false;
+
+    view = plot->view();
+  }
+  else if (argv.hasParseArg("annotation")) {
+    auto annotationName = argv.getParseStr("annotation");
+
+    annotation = cmds()->getAnnotationByName(annotationName);
+    if (! annotation) return false;
+  }
+
+  //---
+
+  auto fromName = argv.getParseStr("from");
+  auto toName   = argv.getParseStr("to"  );
+
+  auto getCmdsSlot = [&]() {
+    return CQChartsCmdsSlotMgrInst->getSlot(cmds(), view, plot, annotation, modelData,
+                                            fromName, toName);
+  };
+
+  auto *slot = getCmdsSlot();
+  if (! slot) return errorMsg("No connected slot found");
+
+  CQChartsCmdsSlotMgrInst->deleteSlot(slot);
 
   return true;
 }
