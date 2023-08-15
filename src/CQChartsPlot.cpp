@@ -223,19 +223,7 @@ init()
 
   //---
 
-  scrollData_.hbar = new QScrollBar(Qt::Horizontal, view());
-  scrollData_.hbar->setObjectName("plotHBar");
-  scrollData_.hbar->setVisible(false);
-
-  connect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hbarScrollSlot(int)));
-
-  scrollData_.vbar = new QScrollBar(Qt::Vertical, view());
-  scrollData_.vbar->setObjectName("plotVBar");
-  scrollData_.vbar->setVisible(false);
-
-  connect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vbarScrollSlot(int)));
-
-  //---
+  createScrollBars();
 
   startThreadTimer();
 
@@ -260,6 +248,34 @@ term()
   for (auto &annotation : annotations())
     delete annotation;
 
+  deleteScrollBars();
+}
+
+//---
+
+void
+CQChartsPlot::
+createScrollBars()
+{
+  scrollData_.hbar = new QScrollBar(Qt::Horizontal, view());
+  scrollData_.hbar->setObjectName("plotHBar");
+  scrollData_.hbar->setVisible(false);
+
+  connect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hbarScrollSlot(int)));
+
+  scrollData_.vbar = new QScrollBar(Qt::Vertical, view());
+  scrollData_.vbar->setObjectName("plotVBar");
+  scrollData_.vbar->setVisible(false);
+
+  connect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vbarScrollSlot(int)));
+
+  scrollData_.invalid = true;
+}
+
+void
+CQChartsPlot::
+deleteScrollBars()
+{
   delete scrollData_.hbar;
   delete scrollData_.vbar;
 }
@@ -272,7 +288,11 @@ setView(View *view)
 {
   assert(view != view_);
 
+  deleteScrollBars();
+
   view_ = view;
+
+  createScrollBars();
 }
 
 QString
@@ -1313,6 +1333,11 @@ CQChartsPlot::
 updateZoomScroll()
 {
   if (isZoomScroll()) {
+    if (! scrollData_.invalid)
+      return;
+
+    scrollData_.invalid = false;
+
     auto rawRange      = getDataRange();                // unzoomed
     auto adjustedRange = adjustDataRangeBBox(rawRange); // zoomed
 
@@ -6287,7 +6312,7 @@ updateAndAdjustRanges()
 
   //---
 
-  scrollData_.invalid = false;
+  scrollData_.invalid = true;
 }
 
 //------
@@ -7262,7 +7287,7 @@ initObjs()
 
   //---
 
-  scrollData_.invalid = false;
+  scrollData_.invalid = true;
 
   //---
 
@@ -12806,6 +12831,8 @@ postResize()
 
   if (! isOverview() && isAutoFit())
     setNeedsAutoFit(true);
+
+  scrollData_.invalid = true;
 
   drawObjs();
 }

@@ -706,6 +706,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+ private:
+  void createScrollBars();
+  void deleteScrollBars();
+
+ public:
   virtual void updateZoomScroll();
 
   void showScrollHBar(bool b);

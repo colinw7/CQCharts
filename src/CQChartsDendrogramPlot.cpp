@@ -4281,7 +4281,7 @@ calcScaledShapePixelSize() const
     auto value     = this->hierValue().realOr(0.0);
     auto sizeScale = dendrogramPlot_->mapHierValue(value);
 
-    leafSize = QSize(
+    leafSize = QSizeF(
       CMathUtil::map(sizeScale, 0.0, 1.0, leafMinSize.width (), leafSize.width ()),
       CMathUtil::map(sizeScale, 0.0, 1.0, leafMinSize.height(), leafSize.height()));
   }
@@ -4289,7 +4289,7 @@ calcScaledShapePixelSize() const
     auto value     = this->value().realOr(0.0);
     auto sizeScale = dendrogramPlot_->mapNodeValue(value);
 
-    leafSize = QSize(
+    leafSize = QSizeF(
       CMathUtil::map(sizeScale, 0.0, 1.0, leafMinSize.width (), leafSize.width ()),
       CMathUtil::map(sizeScale, 0.0, 1.0, leafMinSize.height(), leafSize.height()));
   }
@@ -4312,7 +4312,7 @@ calcScaledShapePixelSize() const
     else
       size = this->size().realOr(0.0);
 
-    leafSize = QSize(
+    leafSize = QSizeF(
       CMathUtil::mapSqr(size, 0.0, maxSize, 0.0, leafSize.width ()),
       CMathUtil::mapSqr(size, 0.0, maxSize, 0.0, leafSize.height()));
   }

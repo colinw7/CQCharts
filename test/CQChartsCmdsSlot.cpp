@@ -96,8 +96,8 @@ CQChartsCmdsSlot(CQChartsCmds *cmds, CQChartsView *view, CQChartsPlot *plot,
 CQChartsCmdsSlot::
 ~CQChartsCmdsSlot()
 {
-  if (obj_)
-    disconnect(obj_, signal_.toLatin1().constData(), this, method_.toLatin1().constData());
+//if (obj_)
+//  disconnect(obj_, signal_.toLatin1().constData(), this, method_.toLatin1().constData());
 }
 
 void
