@@ -325,11 +325,11 @@ class CQChartsMapKey : public CQChartsBoxObj,
 class CQChartsColorMapKey : public CQChartsMapKey {
   Q_OBJECT
 
-  Q_PROPERTY(double              dataMin      READ dataMin      WRITE setDataMin     )
-  Q_PROPERTY(double              dataMax      READ dataMax      WRITE setDataMax     )
-  Q_PROPERTY(double              mapMin       READ mapMin       WRITE setMapMin      )
-  Q_PROPERTY(double              mapMax       READ mapMax       WRITE setMapMax      )
-  Q_PROPERTY(CQChartsLength      cornerRadius READ cornerRadius WRITE setCornerRadius)
+  Q_PROPERTY(double         dataMin      READ dataMin      WRITE setDataMin     )
+  Q_PROPERTY(double         dataMax      READ dataMax      WRITE setDataMax     )
+  Q_PROPERTY(double         mapMin       READ mapMin       WRITE setMapMin      )
+  Q_PROPERTY(double         mapMax       READ mapMax       WRITE setMapMax      )
+  Q_PROPERTY(CQChartsLength cornerRadius READ cornerRadius WRITE setCornerRadius)
 
  public:
   using ColorData = CQChartsColorColumnData;

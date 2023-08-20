@@ -152,6 +152,9 @@ addExtraHierParameters()
    setStringColumn ().setRequired().setPropPath("columns.link").setTip("Link column");
   addColumnParameter("size", "Size", "sizeColumn").
    setNumericColumn().setPropPath("columns.size").setTip("Size column");
+
+  addColumnParameter("swatchColor", "Swatch Color", "swatchColorColumn").
+   setNumericColumn().setPropPath("columns.swatchColor").setTip("Swatch color column");
 }
 
 QString
@@ -273,6 +276,15 @@ CQChartsDendrogramPlot::
 setSizeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(sizeColumn_, c, [&]() {
+    cacheData_.needsReload = true; updateRangeAndObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
+void
+CQChartsDendrogramPlot::
+setSwatchColorColumn(const Column &c)
+{
+  CQChartsUtil::testAndSet(swatchColorColumn_, c, [&]() {
     cacheData_.needsReload = true; updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
@@ -832,9 +844,10 @@ CQChartsDendrogramPlot::
 getNamedColumn(const QString &name) const
 {
   Column c;
-  if      (name == "link") c = this->linkColumn();
-  else if (name == "size") c = this->sizeColumn();
-  else                     c = CQChartsHierPlot::getNamedColumn(name);
+  if      (name == "link"        ) c = this->linkColumn();
+  else if (name == "size"        ) c = this->sizeColumn();
+  else if (name == "swatch_color") c = this->swatchColorColumn();
+  else                             c = CQChartsHierPlot::getNamedColumn(name);
 
   return c;
 }
@@ -843,9 +856,10 @@ void
 CQChartsDendrogramPlot::
 setNamedColumn(const QString &name, const Column &c)
 {
-  if      (name == "link") this->setLinkColumn(c);
-  else if (name == "size") this->setSizeColumn(c);
-  else                     CQChartsHierPlot::setNamedColumn(name, c);
+  if      (name == "link"        ) this->setLinkColumn(c);
+  else if (name == "size"        ) this->setSizeColumn(c);
+  else if (name == "swatch_color") this->setSwatchColorColumn(c);
+  else                             CQChartsHierPlot::setNamedColumn(name, c);
 }
 
 //---
@@ -859,6 +873,8 @@ addProperties()
   // columns
   addProp("columns", "linkColumn", "link" , "Link column");
   addProp("columns", "sizeColumn", "size" , "Size column");
+
+  addProp("columns", "swatchColorColumn", "swatchColor" , "Swatch color column");
 
   // options
   addProp("options", "followViewExpand", "", "Follow view expand");
@@ -999,6 +1015,9 @@ calcRange() const
   if (! checkColumn       (linkColumn (), "Link" )) columnsValid = false;
   if (! checkNumericColumn(valueColumn(), "Value")) columnsValid = false;
   if (! checkNumericColumn(sizeColumn (), "Size" )) columnsValid = false;
+
+  // swatch color optional
+  if (! checkColumn(swatchColorColumn(), "Swatch Color")) columnsValid = false;
 
   // attributes optional
   if (! checkColumn(attributesColumn(), "Attributes")) columnsValid = false;
@@ -1300,6 +1319,8 @@ wheelVScroll(int delta)
       scrollData_.ypos = spreadData_.pos;
     else
       scrollData_.xpos = spreadData_.pos;
+
+    scrollData_.invalid = true;
 
     updateScrollOffset();
   }
@@ -3668,6 +3689,9 @@ calcTipId() const
   if (size().isSet())
     tableTip.addTableRow("Size", size().real());
 
+  if (dendrogramPlot_->isSwatchColor() && dendrogramPlot_->swatchColorColumn().isValid())
+    plot()->addTipColumn(tableTip, dendrogramPlot_->swatchColorColumn(), modelInd());
+
   //---
 
   plot()->addTipColumns(tableTip, modelInd());
@@ -3821,10 +3845,34 @@ draw(PaintDevice *device) const
 
   CQChartsDrawUtil::drawShape(device, shapeData, rect1);
 
-  if (plot()->isSwatchColor() && color().isValid()) {
+  if (plot()->isSwatchColor()) {
+    Color swatchColor;
+
+    if      (plot()->swatchColorColumn().isValid()) {
+      auto modelInd = ModelIndex(plot(), this->modelInd().row(),
+                        plot()->swatchColorColumn(), this->modelInd().parent());
+
+      bool ok;
+      auto var = plot()->modelValue(modelInd, ok);
+
+      auto r = CQChartsVariant::toReal(var, ok);
+
+      if (ok && ! CMathUtil::isNaN(r))
+        swatchColor = Color::makePaletteValue(r);
+      else {
+        ok = plot()->columnValueColor(var, swatchColor);
+      }
+    }
+    else if (color().isValid()) {
+      swatchColor = color();
+    }
+    else {
+      swatchColor = Color(shapeColor);
+    }
+
     auto colorInd = calcColorInd();
 
-    auto fillColor = plot()->interpColor(color(), colorInd);
+    auto fillColor = plot()->interpColor(swatchColor, colorInd);
 
     penBrush.brush = QBrush(fillColor);
 

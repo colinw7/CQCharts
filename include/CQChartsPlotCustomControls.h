@@ -178,10 +178,6 @@ class CQChartsPlotCustomControls : public QScrollArea {
 
   void updateColorKeyVisible();
 
-  //---
-
-  int overviewSize() const { return overviewSize_; }
-
  Q_SIGNALS:
   void numericOnlyChanged();
 
@@ -283,7 +279,6 @@ class CQChartsPlotCustomControls : public QScrollArea {
 
   QCheckBox*            overviewCheck_ { nullptr }; //!< overview check
   CQChartsPlotOverview *overview_      { nullptr }; //!< overview widget
-  int                   overviewSize_  { 256 };     //!< overview size
 
 #ifdef CQCHARTS_MODULE_SHLIB
   using WidgetP     = QPointer<QWidget>;
@@ -348,38 +343,6 @@ class CQChartsPlotCustomKey : public QFrame {
   PlotP          plot_;              //!< plot
   CQTableWidget* table_ { nullptr }; //!< table
   RowColItemData itemData_;          //!< item data
-};
-
-//---
-
-class CQChartsPlotOverview : public QFrame {
-  Q_OBJECT
-
- public:
-  using Point = CQChartsGeom::Point;
-
- public:
-  CQChartsPlotOverview(CQChartsPlotCustomControls *controls);
-
-  void mousePressEvent  (QMouseEvent *) override;
-  void mouseMoveEvent   (QMouseEvent *) override;
-  void mouseReleaseEvent(QMouseEvent *) override;
-
-  void wheelEvent(QWheelEvent *e) override;
-
-  void contextMenuEvent(QContextMenuEvent *) override;
-
-  void paintEvent(QPaintEvent *) override;
-
-  QSize sizeHint() const override;
-
- private:
-  Point pixelToPlot(const Point &pp) const;
-
- private:
-  CQChartsPlotCustomControls *controls_    { nullptr };
-  bool                        pressed_     { false };
-  int                         pressButton_ { -1 };
 };
 
 //---

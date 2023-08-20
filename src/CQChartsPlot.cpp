@@ -2398,6 +2398,8 @@ setDataScaleX(double x)
 
   if (isScaleSymbolSize()) // TODO: only if symbols ?
     invalidateObjTree();
+
+  scrollData_.invalid = true;
 }
 
 double
@@ -2430,6 +2432,8 @@ setDataScaleY(double y)
 
   if (isScaleSymbolSize()) // TODO: only if symbols ?
     invalidateObjTree();
+
+  scrollData_.invalid = true;
 }
 
 double
@@ -4514,6 +4518,11 @@ addBaseProperties()
   addProp("overview", "overviewFillAlpha"  , "fillAlpha"  , "Overview fill alpha");
   addProp("overview", "overviewStrokeColor", "strokeColor", "Overview stroke color");
   addProp("overview", "overviewStrokeAlpha", "strokeAlpha", "Overview stroke alpha");
+
+  // ruler
+  addProp("ruler", "rulerDisplayed", "displayed", "Ruler displayed");
+  addProp("ruler", "rulerSize"     , "size"     , "Ruler size");
+  addProp("ruler", "rulerFontScale", "fontScale", "Ruler font scale");
 }
 
 void
@@ -4665,6 +4674,7 @@ addColorMapProperties()
   addProp("mapping/color", "colorMapMax"    , "max"      , "Color value map max");
   addProp("mapping/color", "colorMapPalette", "palette"  , "Color map palette");
   addProp("mapping/color", "colorMap"       , "color_map", "Value to color map");
+  addProp("mapping/color", "colorColumn"    , "column"   , "Color map column");
 }
 
 //--
@@ -5242,14 +5252,18 @@ bool
 CQChartsPlot::
 canDrawColorMapKey() const
 {
-  return (colorMapKey_ && colorColumn().isValid());
+  auto colorColumn = calcColorMapColumn();
+
+  return (colorMapKey_ && colorColumn.isValid());
 }
 
 void
 CQChartsPlot::
 drawColorMapKey(PaintDevice *device) const
 {
-  if (! colorColumn().isValid())
+  auto colorColumn = calcColorMapColumn();
+
+  if (! colorColumn.isValid())
     return;
 
   //---
@@ -5288,7 +5302,9 @@ updateColorMapKey() const
   QVariantList uniqueValues;
   QVariantList uniqueCounts;
 
-  auto *columnDetails = (colorColumn().isValid() ? this->columnDetails(colorColumn()) : nullptr);
+  auto colorColumn = calcColorMapColumn();
+
+  auto *columnDetails = (colorColumn.isValid() ? this->columnDetails(colorColumn) : nullptr);
 
   if (columnDetails) {
     isMapped = colorColumnData_.isMapped();
@@ -5465,6 +5481,18 @@ colorMapKeyInsideYSlot(bool b)
   if (b != colorMapKey_->isInsideY())
     colorMapKey_->setInsideY(b);
 }
+
+CQChartsColumn
+CQChartsPlot::
+calcColorMapColumn() const
+{
+  if (colorMapColumn().isValid())
+    return colorMapColumn();
+
+  return colorColumn();
+}
+
+//---
 
 void
 CQChartsPlot::
@@ -7941,6 +7969,41 @@ updateOverview()
 
 void
 CQChartsPlot::
+setRulerDisplayed(bool b)
+{
+  if (b != rulerData_.displayed) {
+    rulerData_.displayed = b;
+
+    drawObjs();
+  }
+}
+
+void
+CQChartsPlot::
+setRulerSize(int s)
+{
+  if (s != rulerData_.pixelSize) {
+    rulerData_.pixelSize = s;
+
+    drawObjs();
+  }
+}
+
+void
+CQChartsPlot::
+setRulerFontScale(double s)
+{
+  if (s != rulerData_.fontScale) {
+    rulerData_.fontScale = s;
+
+    drawObjs();
+  }
+}
+
+//------
+
+void
+CQChartsPlot::
 clearErrors()
 {
   if (parentPlot())
@@ -8538,6 +8601,16 @@ handleSelectMove(const Point &w, Constraints constraints, bool first)
     return false;
 
   //---
+
+  if (hasRulers()) {
+    invalidateOverlay();
+
+    //drawObjs();
+  }
+
+  //---
+
+  mouseData_.movePoint = w;
 
   if (isKeyVisible()) {
     bool handled = key()->selectMove(w);
@@ -10494,6 +10567,15 @@ setColorMap(const CQChartsColorMap &colorMap)
   }
 }
 
+void
+CQChartsPlot::
+setColorMapColumn(const Column &c)
+{
+  if (c != colorColumnData_.colorColumn()) {
+    colorColumnData_.setColorColumn(c); updateObjs(); Q_EMIT colorDetailsChanged();
+  }
+}
+
 //---
 
 void
@@ -11829,13 +11911,11 @@ void
 CQChartsPlot::
 wheelZoom(const Point &pp, int delta)
 {
-  if (! isAllowZoomX() && ! isAllowZoomY())
-    return wheelVScroll(delta);
-
-  //---
-
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->wheelZoom(pp, delta);
+
+  if (! isAllowZoomX() && ! isAllowZoomY())
+    return wheelVScroll(delta);
 
   double zoomFactor = 1.10;
 
@@ -13714,10 +13794,11 @@ drawForegroundParts(QPainter *painter) const
   fgParts.key         = hasGroupedFgKey();
   fgParts.annotations = hasGroupedAnnotations(Layer::Type::FG_ANNOTATION);
   fgParts.title       = hasTitle();
+  fgParts.rulers      = hasRulers();
   fgParts.custom      = hasForegroundI();
 
   if (! fgParts.axes && ! fgParts.key && ! fgParts.annotations &&
-      ! fgParts.title && ! fgParts.custom) {
+      ! fgParts.title && ! fgParts.rulers && ! fgParts.custom) {
     buffer->clear();
     return;
   }
@@ -13765,6 +13846,12 @@ drawForegroundDeviceParts(PaintDevice *device, const ForegroundParts &fgParts) c
   // draw title
   if (fgParts.title)
     drawTitle(device);
+
+  //---
+
+  // draw rulers
+  if (fgParts.rulers)
+    drawRulers(device);
 
   //---
 
@@ -13966,12 +14053,13 @@ drawOverlayParts(QPainter *painter) const
   overlayParts.editHandles     = hasGroupedEditHandles();
   overlayParts.overObjs        = hasGroupedObjs(Layer::Type::MOUSE_OVER);
   overlayParts.overAnnotations = hasGroupedAnnotations(Layer::Type::MOUSE_OVER);
+  overlayParts.rulers          = hasRulers();
   overlayParts.custom          = hasOverlayI();
 
   bool anyOverlayParts =
     overlayParts.selObjs || overlayParts.selAnnotations || overlayParts.boxes ||
     overlayParts.editHandles || overlayParts.overObjs || overlayParts.overAnnotations ||
-    overlayParts.custom;
+    overlayParts.rulers || overlayParts.custom;
 
   if (! anyOverlayParts) {
     buffer->clear();
@@ -14033,6 +14121,11 @@ drawOverlayDeviceParts(PaintDevice *device, const OverlayParts &overlayParts) co
 
   if (overlayParts.overAnnotations)
     drawGroupedAnnotations(device, Layer::Type::MOUSE_OVER);
+
+  //---
+
+  if (overlayParts.rulers)
+    drawRulerMarks(device);
 
   //---
 
@@ -15193,6 +15286,157 @@ drawTitle(PaintDevice *device) const
   CQPerfTrace trace("CQChartsPlot::drawTitle");
 
   title()->draw(device);
+}
+
+//---
+
+bool
+CQChartsPlot::
+hasRulers() const
+{
+  return isRulerDisplayed();
+}
+
+void
+CQChartsPlot::
+drawRulers(PaintDevice *device) const
+{
+  auto rawRange      = getDataRange(); // unzoomed
+  auto adjustedRange = adjustDataRangeBBox(rawRange); // zoomed
+
+  CInterval xinterval(adjustedRange.getXMin(), adjustedRange.getXMax(), 20);
+  CInterval yinterval(adjustedRange.getYMin(), adjustedRange.getYMax(), 20);
+
+  auto pixelRect = calcPlotPixelRect();
+
+  auto ll = pixelToWindow(pixelRect.getLL());
+  auto ur = pixelToWindow(pixelRect.getUR());
+
+  int rulerSize = rulerData_.pixelSize;
+
+  auto xs = pixelToWindowWidth (rulerSize);
+  auto ys = pixelToWindowHeight(rulerSize);
+
+  auto majorX = pixelToWindowWidth (rulerSize*0.8);
+  auto majorY = pixelToWindowHeight(rulerSize*0.8);
+
+  auto minorX = pixelToWindowWidth (rulerSize*0.3);
+  auto minorY = pixelToWindowHeight(rulerSize*0.3);
+
+  auto bg = interpColor(Color::makeInterfaceValue(0.2), ColorInd());
+  auto fg = interpColor(Color::makeInterfaceValue(1.0), ColorInd());
+
+  device->save();
+
+  device->setFont(CQChartsUtil::scaleFontSize(device->font(),
+    rulerData_.fontScale), /*scale*/false);
+
+  // left
+  device->setBrush(bg);
+
+  device->fillRect(BBox(ll.x, ur.y + ys, ll.x + xs, ll.y - ys));
+
+  device->setBrush(fg);
+
+  for (int i = 0; i < yinterval.calcNumMajor(); ++i) {
+    auto y = yinterval.interval(i);
+
+    device->drawLine(Point(ll.x + xs - majorX, y), Point(ll.x + xs, y));
+
+    for (int j = 1; j < yinterval.calcNumMinor(); ++j) {
+      auto y = yinterval.minorInterval(i, j);
+
+      device->drawLine(Point(ll.x + xs - minorX, y), Point(ll.x + xs, y));
+    }
+
+    auto text = (mappedYAxis() ? mappedYAxis()->valueStr(y) : QString::number(y));
+
+    device->drawText(Point(ll.x + xs/rulerSize, y + 2.0*ys/rulerSize), text);
+  }
+
+  // top
+  QFontMetricsF fm(device->font());
+
+  auto fh = pixelToWindowHeight(fm.height());
+
+  device->setBrush(bg);
+
+  device->fillRect(BBox(ll.x + xs, ll.y - ys, ur.x - xs, ll.y));
+
+  device->setBrush(fg);
+
+  for (int i = 0; i < xinterval.calcNumMajor(); ++i) {
+    auto x = xinterval.interval(i);
+
+    device->drawLine(Point(x, ll.y - ys), Point(x, ll.y - ys + majorY));
+
+    for (int j = 1; j < xinterval.calcNumMinor(); ++j) {
+      auto x = xinterval.minorInterval(i, j);
+
+      device->drawLine(Point(x, ll.y - ys), Point(x, ll.y - ys + minorY));
+    }
+
+    auto text = (mappedXAxis() ? mappedXAxis()->valueStr(x) : QString::number(x));
+
+    device->drawText(Point(x + 2.0*xs/rulerSize, ll.y - fh), text);
+  }
+
+  device->restore();
+}
+
+void
+CQChartsPlot::
+drawRulerMarks(PaintDevice *device) const
+{
+  auto rawRange      = getDataRange(); // unzoomed
+  auto adjustedRange = adjustDataRangeBBox(rawRange); // zoomed
+
+  auto pixelRect = calcPlotPixelRect();
+
+  auto ll = pixelToWindow(pixelRect.getLL());
+//auto ur = pixelToWindow(pixelRect.getUR());
+
+  int rulerSize = rulerData_.pixelSize;
+
+  auto xs = pixelToWindowWidth (rulerSize);
+  auto ys = pixelToWindowHeight(rulerSize);
+
+  auto xs1 = 0.5*xs;
+  auto ys1 = 0.5*ys;
+
+  auto bg = interpColor(Color::makeInterfaceValue(0.0), ColorInd());
+  auto fg = interpColor(Color::makeInterfaceValue(1.0), ColorInd());
+
+  QPen pen;
+  pen.setColor(fg);
+  device->setPen(pen);
+  device->setBrush(bg);
+
+  if (mouseData_.movePoint.y >= adjustedRange.getYMin() &&
+      mouseData_.movePoint.y <= adjustedRange.getYMax()) {
+    QPainterPath xpath;
+    xpath.moveTo(ll.x + xs - xs1, mouseData_.movePoint.y + ys1);
+    xpath.lineTo(ll.x + xs      , mouseData_.movePoint.y      );
+    xpath.lineTo(ll.x + xs - xs1, mouseData_.movePoint.y - ys1);
+    xpath.closeSubpath();
+
+    device->drawLine(Point(ll.x     , mouseData_.movePoint.y),
+                     Point(ll.x + xs, mouseData_.movePoint.y));
+    device->drawPath(xpath);
+  }
+
+  if (mouseData_.movePoint.x >= adjustedRange.getXMin() &&
+      mouseData_.movePoint.x <= adjustedRange.getXMax()) {
+    QPainterPath ypath;
+    ypath.moveTo(mouseData_.movePoint.x - xs1, ll.y - ys + ys1);
+    ypath.lineTo(mouseData_.movePoint.x      , ll.y - ys      );
+    ypath.lineTo(mouseData_.movePoint.x + xs1, ll.y - ys + ys1);
+    ypath.closeSubpath();
+
+    device->drawLine(Point(mouseData_.movePoint.x, ll.y - ys),
+                     Point(mouseData_.movePoint.x, ll.y     ));
+    device->drawPath(ypath);
+  }
 }
 
 //---

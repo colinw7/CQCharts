@@ -14,6 +14,7 @@ class CQChartsColorColumnData : public CQChartsMapColumnData<double> {
   using PaletteName = CQChartsPaletteName;
   using ColorStops  = CQChartsColorStops;
   using ColorMap    = CQChartsColorMap;
+  using Column      = CQChartsColumn;
 
  public:
   CQChartsColorColumnData() = default;
@@ -33,12 +34,16 @@ class CQChartsColorColumnData : public CQChartsMapColumnData<double> {
   const ColorMap &colorMap() const { return colorMap_; }
   void setColorMap(const ColorMap &m) { colorMap_ = m; }
 
+  const Column &colorColumn() const { return colorColumn_; }
+  void setColorColumn(const Column &c) { colorColumn_ = c; }
+
  private:
   ColorType   colorType_ { ColorType::AUTO }; //!< color type
   PaletteName palette_;                       //!< color palette
   ColorStops  xStops_;                        //!< color x stops
   ColorStops  yStops_;                        //!< color y stops
   ColorMap    colorMap_;                      //!< color map
+  Column      colorColumn_;                   //!< color map column
 };
 
 #endif

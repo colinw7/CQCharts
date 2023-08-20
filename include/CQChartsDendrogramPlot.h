@@ -308,6 +308,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_PROPERTY(CQChartsColumn linkColumn READ linkColumn WRITE setLinkColumn)
   Q_PROPERTY(CQChartsColumn sizeColumn READ sizeColumn WRITE setSizeColumn)
 
+  Q_PROPERTY(CQChartsColumn swatchColorColumn READ swatchColorColumn WRITE setSwatchColorColumn)
+
   // root node data
   Q_PROPERTY(bool              rootVisible READ isRootVisible WRITE setRootVisible)
   Q_PROPERTY(CQChartsLength    rootSize    READ rootSize      WRITE setRootSize   )
@@ -466,6 +468,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   void setSizeColumn(const Column &c);
 
   void setColorColumn(const Column &c) override;
+
+  const Column &swatchColorColumn() const { return swatchColorColumn_; }
+  void setSwatchColorColumn(const Column &c);
 
   //---
 
@@ -846,6 +851,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   // columns
   Column linkColumn_; //!< link column
   Column sizeColumn_; //!< size column
+
+  Column swatchColorColumn_; //!< swatch color column
 
   DendrogramP dendrogram_;             //!< dendrogram class
   Node*       tempRoot_   { nullptr }; //!< temp root for unconnected nodes

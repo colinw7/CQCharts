@@ -222,6 +222,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(CQChartsColorStops  colorXStops     READ colorXStops     WRITE setColorXStops    )
   Q_PROPERTY(CQChartsColorStops  colorYStops     READ colorYStops     WRITE setColorYStops    )
   Q_PROPERTY(CQChartsColorMap    colorMap        READ colorMap        WRITE setColorMap       )
+  Q_PROPERTY(CQChartsColumn      colorMapColumn  READ colorMapColumn  WRITE setColorMapColumn )
 
   // alpha map (for alpha column)
   Q_PROPERTY(bool   alphaMapped READ isAlphaMapped WRITE setAlphaMapped)
@@ -385,6 +386,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(double overviewFillAlpha   READ overviewFillAlpha   WRITE setOverviewFillAlpha  )
   Q_PROPERTY(QColor overviewStrokeColor READ overviewStrokeColor WRITE setOverviewStrokeColor)
   Q_PROPERTY(double overviewStrokeAlpha READ overviewStrokeAlpha WRITE setOverviewStrokeAlpha)
+
+  // ruler
+  Q_PROPERTY(bool   rulerDisplayed READ isRulerDisplayed WRITE setRulerDisplayed)
+  Q_PROPERTY(int    rulerSize      READ rulerSize        WRITE setRulerSize)
+  Q_PROPERTY(double rulerFontScale READ rulerFontScale   WRITE setRulerFontScale)
 
 #ifdef CQCHARTS_MODULE_SHLIB
   // module
@@ -2274,6 +2280,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   const CQChartsColorMap &colorMap() const { return colorColumnData_.colorMap(); }
   void setColorMap(const CQChartsColorMap &s);
 
+  const Column &colorMapColumn() const { return colorColumnData_.colorColumn(); }
+  void setColorMapColumn(const Column &name);
+
  protected:
   double colorMapDataMin() const { return colorColumnData_.dataMin(); }
   double colorMapDataMax() const { return colorColumnData_.dataMax(); }
@@ -2896,6 +2905,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     bool key         { false };
     bool annotations { false };
     bool title       { false };
+    bool rulers      { false };
     bool custom      { false };
     bool tabbed      { false };
   };
@@ -2907,6 +2917,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     bool editHandles     { false };
     bool overObjs        { false };
     bool overAnnotations { false };
+    bool rulers          { false };
     bool custom          { false };
   };
 
@@ -3056,6 +3067,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual void drawTitle(PaintDevice *device) const;
 
+  // draw rulers
+  virtual bool hasRulers() const;
+
+  virtual void drawRulers(PaintDevice *device) const;
+  virtual void drawRulerMarks(PaintDevice *device) const;
+
   // draw annotations
   virtual bool hasGroupedAnnotations(const Layer::Type &layerType) const;
 
@@ -3119,6 +3136,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   int maxMappedValues() const { return maxMappedValues_; }
   void setMaxMappedValues(int i) { maxMappedValues_ = i; }
+
+  Column calcColorMapColumn() const;
 
   //---
 
@@ -3369,6 +3388,17 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   QImage overviewImage() const { return overviewData_.image; }
 
   const BBox overviewPlotRect() const { return overviewData_.plotRect; }
+
+  //---
+
+  bool isRulerDisplayed() const { return rulerData_.displayed; }
+  void setRulerDisplayed(bool b);
+
+  int rulerSize() const { return rulerData_.pixelSize; }
+  void setRulerSize(int s);
+
+  double rulerFontScale() const { return rulerData_.fontScale; }
+  void setRulerFontScale(double s);
 
   //---
 
@@ -4274,6 +4304,17 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   };
 
   OverviewData overviewData_;
+
+  //---
+
+  //! ruler data
+  struct RulerData {
+    bool   displayed { false };
+    int    pixelSize { 34 };
+    double fontScale { 0.6 };
+  };
+
+  RulerData rulerData_;
 
   //---
 

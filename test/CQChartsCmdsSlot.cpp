@@ -15,7 +15,7 @@ CQChartsCmdsSlotMgr()
 CQChartsCmdsSlotMgr::
 ~CQChartsCmdsSlotMgr()
 {
-  for (auto ps : slots_)
+  for (auto &ps : slots_)
     delete ps.second;
 }
 
@@ -55,6 +55,8 @@ CQChartsCmdsSlotMgr::
 deleteSlot(CQChartsCmdsSlot *slot)
 {
   slots_.erase(slot->id());
+
+  slot->setEnabled(false);
 
   slot->deleteLater();
 }
@@ -233,13 +235,13 @@ void
 CQChartsCmdsSlot::
 evalCmd(const QString &cmd)
 {
-  if (! enabled_) return;
+  if (! isEnabled()) return;
 
-  enabled_ = false;
+  setEnabled(false);
 
   cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
 
-  enabled_ = true;
+  setEnabled(true);
 }
 
 QString

@@ -31,6 +31,9 @@ class CQChartsCmdsSlot : public QObject {
 
   void connectSlot(QObject *obj, const char *signalName, const char *methodName);
 
+  bool isEnabled() const { return enabled_; }
+  void setEnabled(bool b) { enabled_ = b; }
+
  private:
   void evalCmd(const QString &cmd);
 

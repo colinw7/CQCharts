@@ -4,6 +4,14 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + dendrogram swatch column and color column for color map
+
+ + ruler on outside
+
+ + overview dialog and resize control
+
+ + overview mouse interferred with by scrollbar (other widgets). grab or inline control
+
  + dendrogram
    + lock center (no pan) max/min zoom, zoom full directional
    + single zoom direction
