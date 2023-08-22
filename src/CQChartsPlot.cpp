@@ -5149,10 +5149,12 @@ addColorKeyItems(PlotKey *key)
     return colorItem;
   };
 
-  if (! colorColumn().isValid())
+  auto colorColumn1 = this->colorColumn();
+
+  if (! colorColumn1.isValid())
     return false;
 
-  auto *columnDetails = this->columnDetails(colorColumn());
+  auto *columnDetails = this->columnDetails(colorColumn1);
   if (! columnDetails) return false;
 
   auto uniqueValues = columnDetails->uniqueValues();
@@ -5165,7 +5167,7 @@ addColorKeyItems(PlotKey *key)
 
     Color color;
 
-    columnValueColor(value, color);
+    columnValueColor(value, color, colorColumn1);
 
     auto c = interpColor(color, ColorInd());
 
@@ -10588,17 +10590,19 @@ initColorColumnData()
 
   //---
 
+  auto colorColumn = calcColorMapColumn();
+
   colorColumnData_.setValid(false);
 
-  if (! colorColumn().isValid())
+  if (! colorColumn.isValid())
     return;
 
   //---
 
-  auto *columnDetails = this->columnDetails(colorColumn());
+  auto *columnDetails = this->columnDetails(colorColumn);
   if (! columnDetails) return;
 
-  if (colorColumn().isGroup()) {
+  if (colorColumn.isGroup()) {
     colorColumnData_.setDataRange(0.0, std::max(numGroups() - 1, 0));
   }
   else {
@@ -10612,7 +10616,7 @@ initColorColumnData()
 
     ModelTypeData columnTypeData;
 
-    (void) modelColumnValueType(colorColumn(), columnTypeData);
+    (void) modelColumnValueType(colorColumn, columnTypeData);
 
     if (columnTypeData.type == ColumnType::COLOR) {
       auto *columnTypeMgr = charts()->columnTypeMgr();
@@ -10623,7 +10627,7 @@ initColorColumnData()
 
       const auto &model = this->currentModel();
 
-      colorType->getMapData(charts(), model.data(), colorColumn(),
+      colorType->getMapData(charts(), model.data(), colorColumn,
                             columnTypeData.nameValues, colorColumnData_);
     }
 
@@ -10636,11 +10640,14 @@ initColorColumnData()
 // get color from colorColumn at specified row
 bool
 CQChartsPlot::
-colorColumnColor(int row, const QModelIndex &parent, Color &color) const
+colorColumnColor(int row, const QModelIndex &parent, Color &color,
+                 const Column &colorColumn) const
 {
   auto *th = const_cast<Plot *>(this);
 
-  ModelIndex colorInd(th, row, colorColumn(), parent);
+  auto colorColumn1 = (colorColumn.isValid() ? colorColumn : this->colorColumn());
+
+  ModelIndex colorInd(th, row, colorColumn1, parent);
 
   return modelIndexColor(colorInd, color);
 }
@@ -10663,8 +10670,10 @@ modelIndexColor(const ModelIndex &colorInd, Color &color) const
 
 bool
 CQChartsPlot::
-columnValueColor(const QVariant &var, Color &color) const
+columnValueColor(const QVariant &var, Color &color, const Column &colorColumn) const
 {
+  auto colorColumn1 = (colorColumn.isValid() ? colorColumn : this->colorColumn());
+
   CQChartsModelColumnDetails *columnDetails { nullptr };
   int                         numUnique     { 0 };
 
@@ -10673,7 +10682,7 @@ columnValueColor(const QVariant &var, Color &color) const
   // populate details
   auto getDetails = [&]() {
     if (! columnDetails) {
-      columnDetails = this->columnDetails(colorColumn());
+      columnDetails = this->columnDetails(colorColumn1);
       numUnique = (columnDetails ? columnDetails->numUnique() : 0);
     }
     return bool(columnDetails);
@@ -17824,9 +17833,16 @@ calcColorInd(const PlotObj *obj, const CQChartsColorBoxKeyItem *keyBox,
       x = keyBox->xColorValue(relative);
 
     if (hasStops) {
-      int ind = stops.ind(x);
+      if (stops.isDiscreet()) {
+        int ind = stops.ind(x);
 
-      colorInd = ColorInd(ind, stops.size() + 1);
+        colorInd = ColorInd(ind, stops.size() + 1);
+      }
+      else {
+        double c = stops.interp(x);
+
+        colorInd = ColorInd(c);
+      }
     }
     else
       colorInd = ColorInd(x);

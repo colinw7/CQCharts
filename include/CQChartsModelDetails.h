@@ -312,6 +312,10 @@ class CQChartsModelColumnDetails {
   const QString &nullValue() const;
   //void setNullValue(const QString &v) { nullValue_ = v; }
 
+  // get cached "extra_values" column type value
+  const QVariantList &extraValues() const;
+  //void setExtraValues(const QString &v) { extraValues_ = v; }
+
   // get cached "draw_color" column type value
   const Color &tableDrawColor() const { return tableDrawColor_; }
   //void setTableDrawColor(const Color &c) { tableDrawColor_ = c; }
@@ -453,8 +457,11 @@ class CQChartsModelColumnDetails {
   int       numBuckets_ { 20 }; //!< number of buckets
 
   // cached parameter values
-  int           preferredWidth_  { -1 };                     //!< preferred column width
-  QString       nullValue_;                                  //!< null value
+  int preferredWidth_  { -1 }; //!< preferred column width
+
+  QString      nullValue_;   //!< null value
+  QVariantList extraValues_; //!< extra values
+
   Color         tableDrawColor_;                             //!< table draw color
   TableDrawType tableDrawType_   { TableDrawType::HEATMAP }; //!< table draw type
   ColorStops    tableDrawStops_;                             //!< table draw stops

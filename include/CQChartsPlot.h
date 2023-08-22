@@ -2305,11 +2305,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
  public:
   // color column
-  bool colorColumnColor(int row, const QModelIndex &parent, Color &color) const;
+  bool colorColumnColor(int row, const QModelIndex &parent, Color &color,
+                        const Column &column=Column()) const;
 
   bool modelIndexColor(const ModelIndex &ind, Color &color) const;
 
-  bool columnValueColor(const QVariant &var, Color &color) const;
+  bool columnValueColor(const QVariant &var, Color &color, const Column &column=Column()) const;
 
   Color colorMapRealColor(double r) const;
   Color normalizedColorMapRealColor(double r) const;

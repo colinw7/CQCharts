@@ -872,6 +872,10 @@ CQChartsColumnType(Type type) :
   addParam("null_value", Type::STRING, "Null Value", "")->
     setDesc("Null value string").setNullValue(true);
 
+  // extra values
+  addParam("extra_values", Type::STRING, "Extra Values", "")->
+    setDesc("Extra values string");
+
   // draw color for table view
   addParam("draw_color", Type::COLOR, "Table Draw Color", "")->
     setDesc("Base color for table value coloring");
@@ -1005,6 +1009,27 @@ nullValue(const NameValues &nameValues) const
     nullStr.clear();
 
   return nullStr;
+}
+
+QVariantList
+CQChartsColumnType::
+extraValues(const NameValues &nameValues) const
+{
+  QVariantList extraValues;
+
+  QString extraValuesStr;
+
+  if (! nameValueString(nameValues, "extra_values", extraValuesStr))
+    extraValuesStr.clear();
+
+  QStringList strs;
+  if (! CQTcl::splitList(extraValuesStr, strs))
+    return extraValues;
+
+  for (const auto &str : strs)
+    extraValues.push_back(QVariant(str));
+
+  return extraValues;
 }
 
 CQChartsColor

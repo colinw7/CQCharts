@@ -969,6 +969,31 @@ calcRange() const
   }
   else {
     dataRange = visitor.range();
+
+    auto *xDetails = this->columnDetails(xColumn());
+    auto *yDetails = this->columnDetails(yColumn());
+
+    if (xDetails && xDetails->type() == ColumnType::REAL) {
+      auto y = dataRange.ymid();
+
+      bool ok;
+      auto x1 = xDetails->minValue().toReal(&ok);
+      auto x2 = xDetails->maxValue().toReal(&ok);
+
+      dataRange.updateRange(x1, y);
+      dataRange.updateRange(x2, y);
+    }
+
+    if (yDetails && yDetails->type() == ColumnType::REAL) {
+      auto x = dataRange.xmid();
+
+      bool ok;
+      auto y1 = yDetails->minValue().toReal(&ok);
+      auto y2 = yDetails->maxValue().toReal(&ok);
+
+      dataRange.updateRange(x, y1);
+      dataRange.updateRange(x, y2);
+    }
   }
 
   if (isPolar())

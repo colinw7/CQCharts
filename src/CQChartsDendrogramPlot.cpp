@@ -3860,7 +3860,7 @@ draw(PaintDevice *device) const
       if (ok && ! CMathUtil::isNaN(r))
         swatchColor = Color::makePaletteValue(r);
       else {
-        ok = plot()->columnValueColor(var, swatchColor);
+        ok = plot()->columnValueColor(var, swatchColor, plot()->swatchColorColumn());
       }
     }
     else if (color().isValid()) {
@@ -3924,6 +3924,11 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   if (! plot()->isColorClosed() && isHier() && ! isOpen())
     filled = false;
 
+  auto colorValue = this->colorValue();
+
+  if (isHier() && ! this->color().isValid())
+    colorValue = OptReal(hierColor());
+
   if      (dendrogramPlot_->nodeColorByValue() == CQChartsDendrogramPlot::ValueType::HIER) {
     auto value = this->hierValue().realOr(0.0);
     auto color = dendrogramPlot_->mapHierValue(value);
@@ -3939,26 +3944,20 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   else if (color().isValid()) {
     fillColor = plot()->interpColor(color(), colorInd);
   }
-  else if (plot()->colorColumn().isValid()) {
-    Color c;
+  else if (colorValue.isSet()) {
+    auto color = colorValue.realOr(0.0);
 
-    double color = 0.0;
+    double color1 = 0.0;
 
-    if (isHier() && ! this->color().isValid())
-      color = hierColor();
-    else
-      color = this->colorValue().realOr(0.0);
-
-    if (plot()->isColorMapped()) {
-      auto color1 = plot()->mapColor(color);
-
-      c = plot()->colorFromColorMapPaletteValue(color1);
-    }
+    if (plot()->isColorMapped())
+      color1 = plot()->mapColor(color);
     else {
-      auto maxColor = (parent() ? parent()->hierColor() : this->colorValue().realOr(0.0));
+      auto maxColor = (parent() ? parent()->hierColor() : color);
 
-      c = plot()->colorFromColorMapPaletteValue(maxColor > 0 ? color/maxColor : color);
+      color1 = (maxColor > 0 ? color/maxColor : color);
     }
+
+    auto c = plot()->colorFromColorMapPaletteValue(color1);
 
     fillColor = plot()->interpColor(c, colorInd);
   }

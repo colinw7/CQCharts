@@ -6649,9 +6649,12 @@ showMenu(const Point &p)
   if (hasPlots) {
     popupMenu->addSeparator();
 
-    addAction(popupMenu, "Fit"      , SLOT(fitSlot()));
-    addAction(popupMenu, "Zoom Data", SLOT(zoomDataSlot()));
-    addAction(popupMenu, "Zoom Full", SLOT(zoomFullSlot()));
+    addAction(popupMenu, "Fit", SLOT(fitSlot()));
+
+    if (basePlot && (basePlot->isAllowZoomX() || basePlot->isAllowZoomY())) {
+      addAction(popupMenu, "Zoom Data", SLOT(zoomDataSlot()));
+      addAction(popupMenu, "Zoom Full", SLOT(zoomFullSlot()));
+    }
   }
 
   //---

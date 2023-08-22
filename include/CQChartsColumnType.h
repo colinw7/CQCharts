@@ -206,11 +206,14 @@ class CQChartsColumnType {
   ColumnDetails *columnDetails(CQCharts *charts, const QAbstractItemModel *model,
                                const Column &column) const;
 
-  int        preferredWidth(const NameValues &nameValues) const;
-  QString    nullValue     (const NameValues &nameValues) const;
-  Color      drawColor     (const NameValues &nameValues) const;
-  DrawType   drawType      (const NameValues &nameValues) const;
-  ColorStops drawStops     (const NameValues &nameValues) const;
+  int preferredWidth(const NameValues &nameValues) const;
+
+  QString      nullValue  (const NameValues &nameValues) const;
+  QVariantList extraValues(const NameValues &nameValues) const;
+
+  Color      drawColor(const NameValues &nameValues) const;
+  DrawType   drawType (const NameValues &nameValues) const;
+  ColorStops drawStops(const NameValues &nameValues) const;
 
   QVariant remapNamedValue(CQCharts *charts, const QAbstractItemModel *model,
                            const Column &column, const QVariant &var) const;

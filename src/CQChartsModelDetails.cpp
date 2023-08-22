@@ -1473,7 +1473,9 @@ calcCache()
       if (ok)
         details_->addValue(var);
 
-      if      (details_->type() == CQBaseModelType::INTEGER) {
+      auto type = details_->type();
+
+      if      (type == CQBaseModelType::INTEGER) {
         long i = (ok ? CQChartsVariant::toInt(var, ok) : 0);
 
         if (ok && ! details_->checkRow(CQChartsVariant::fromInt(i)))
@@ -1484,7 +1486,7 @@ calcCache()
         if (ok)
           addInt(i);
       }
-      else if (details_->type() == CQBaseModelType::REAL) {
+      else if (type == CQBaseModelType::REAL) {
         double r = (ok ? CQChartsVariant::toReal(var, ok) : 0.0);
 
         if (ok && ! details_->checkRow(CQChartsVariant::fromReal(r)))
@@ -1495,7 +1497,7 @@ calcCache()
         if (ok)
           addReal(r);
       }
-      else if (details_->type() == CQBaseModelType::STRING) {
+      else if (type == CQBaseModelType::STRING) {
         QString s;
 
         if (ok)
@@ -1508,7 +1510,7 @@ calcCache()
 
         addString(s);
       }
-      else if (details_->type() == CQBaseModelType::TIME) {
+      else if (type == CQBaseModelType::TIME) {
         double t = (ok ? CQChartsVariant::toReal(var, ok) : 0.0);
 
         if (ok && ! details_->checkRow(CQChartsVariant::fromReal(t)))
@@ -1519,7 +1521,7 @@ calcCache()
         if (ok)
           addReal(t);
       }
-      else if (details_->type() == CQBaseModelType::COLOR) {
+      else if (type == CQBaseModelType::COLOR) {
         CQChartsColor color;
 
         if (ok)
@@ -1533,7 +1535,7 @@ calcCache()
         if (ok)
           addColor(color);
       }
-      else if (details_->type() == CQBaseModelType::SYMBOL_SIZE) {
+      else if (type == CQBaseModelType::SYMBOL_SIZE) {
         double r = (ok ? CQChartsVariant::toReal(var, ok) : 0.0);
 
         if (ok && ! details_->checkRow(CQChartsVariant::fromReal(r)))
@@ -1544,7 +1546,7 @@ calcCache()
         if (ok)
           addReal(r);
       }
-      else if (details_->type() == CQBaseModelType::FONT_SIZE) {
+      else if (type == CQBaseModelType::FONT_SIZE) {
         double r = (ok ? CQChartsVariant::toReal(var, ok) : 0.0);
 
         if (ok && ! details_->checkRow(CQChartsVariant::fromReal(r)))
@@ -1813,11 +1815,21 @@ calcCache()
   DetailVisitor detailVisitor(this);
 
   auto *charts = details()->charts();
-
-  if (! charts)
-    return false;
+  if (! charts) return false;
 
   CQChartsModelVisit::exec(charts, model, detailVisitor);
+
+  //---
+
+  if (type() == ColumnType::REAL) {
+    for (const auto &v : extraValues()) {
+      bool ok;
+      auto r = v.toDouble(&ok);
+      if (! ok) continue;
+
+      detailVisitor.addReal(r);
+    }
+  }
 
   //---
 
@@ -1951,6 +1963,8 @@ calcType()
     preferredWidth_ = columnType->preferredWidth(nameValues);
 
     nullValue_ = columnType->nullValue(nameValues);
+
+    extraValues_ = columnType->extraValues(nameValues);
 
     tableDrawColor_ = columnType->drawColor(nameValues);
     tableDrawType_  = columnType->drawType (nameValues);
@@ -2128,6 +2142,15 @@ nullValue() const
   initType();
 
   return nullValue_;
+}
+
+const QVariantList &
+CQChartsModelColumnDetails::
+extraValues() const
+{
+  initType();
+
+  return extraValues_;
 }
 
 bool

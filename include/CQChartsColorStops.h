@@ -27,7 +27,26 @@ class CQChartsColorStops :
     PERCENT
   };
 
-  using Values = std::vector<double>;
+  struct ValuePercent {
+    double value   { 0.0 };
+    double percent { -1.0 };
+
+    ValuePercent() { }
+
+    ValuePercent(double value1, double percent1) :
+     value(value1), percent(percent1) {
+    }
+
+    int cmp(const ValuePercent &rhs) const {
+      if (value   < rhs.value  ) return -1;
+      if (value   > rhs.value  ) return  1;
+      if (percent < rhs.percent) return -1;
+      if (percent > rhs.percent) return  1;
+      return 0;
+    }
+  };
+
+  using Values = std::vector<ValuePercent>;
 
  public:
   //! default constructor
@@ -63,22 +82,15 @@ class CQChartsColorStops :
 
   bool isValid() const { return ! values_.empty(); }
 
+  bool isDiscreet() const { return isDiscreet_; }
+
   //---
 
-  //! get value index
-  int ind(double v) const {
-    int n = size();
+  //! get discreet value index
+  int ind(double v) const;
 
-    if (n == 0)
-      return -1;
-
-    for (int i = 0; i < n; ++i) {
-      if (v < values_[size_t(i)])
-        return i;
-    }
-
-    return n;
-  }
+  //! get mapped value
+  double interp(double v) const;
 
   //---
 
@@ -97,8 +109,9 @@ class CQChartsColorStops :
   //---
 
  private:
-  Units  units_  { Units::ABSOLUTE }; //!< units
-  Values values_;                     //!< stop values
+  Units  units_      { Units::ABSOLUTE }; //!< units
+  Values values_;                         //!< stop values
+  bool   isDiscreet_ { true };            //!< is discreet
 };
 
 //---
