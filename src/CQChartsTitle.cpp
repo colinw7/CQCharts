@@ -370,6 +370,9 @@ void
 CQChartsTitle::
 preAutoFit()
 {
+  if (! isDrawn())
+    return;
+
   isTitleInsideX1_ = false;
   isTitleInsideY1_ = false;
 
@@ -387,6 +390,9 @@ void
 CQChartsTitle::
 postAutoFit()
 {
+  if (! isDrawn())
+    return;
+
   updateBBox();
 
   auto vbbox = plot_->calcPlotViewRect();

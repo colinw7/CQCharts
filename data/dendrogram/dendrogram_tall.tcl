@@ -19,6 +19,9 @@ proc expandAll { view plot } {
   disconnect_charts_signal -plot $plot -from plotObjsAdded -to expandAll
 
   execute_charts_slot -plot $plot -name expand_all
+
+  #thread issue !!!
+  #connect_charts_signal -plot $plot -from plotObjsAdded -to expandAll
 }
 
 connect_charts_signal -plot $plot -from plotObjsAdded -to expandAll

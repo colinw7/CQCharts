@@ -5,6 +5,7 @@ Abstract Painter/Javascript
 
 TODO:
  + dendrogram swatch column and color column for color map
+ + save/restore expansion state
 
  + ruler on outside
 

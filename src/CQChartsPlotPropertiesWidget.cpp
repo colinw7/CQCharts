@@ -122,12 +122,55 @@ updatePlots()
     auto *plot = view_->plot(i);
 
     int ind;
-
     (void) getPlotPropertyViewTree(plot, ind);
 
     if (ind < 0)
       (void) addPlotPropertyViewTree(plot);
   }
+
+  //---
+
+  // update tab order
+  struct PlotData {
+    CQChartsPlot*         plot             { nullptr };
+    PlotPropertiesWidget* propertiesWidget { nullptr };
+  };
+
+  using PlotWidgets = std::map<CQChartsPlot *, PlotPropertiesWidget *>;
+
+  PlotWidgets plotWidgets;
+
+  for (int i = 0; i < plotsTab_->count(); ++i) {
+    auto *plotWidget = qobject_cast<PlotPropertiesWidget *>(plotsTab_->widget(i));
+    assert(plotWidget);
+
+    plotWidgets[plotWidget->plot()] = plotWidget;
+  }
+
+  using PlotList = std::vector<CQChartsPlot *>;
+
+  PlotList plotList;
+
+  for (int i = 0; i < np; ++i) {
+    auto *plot = view_->plot(i);
+
+    if (! plot->subPlot())
+      plotList.push_back(plot);
+  }
+
+  for (int i = 0; i < np; ++i) {
+    auto *plot = view_->plot(i);
+
+    if (plot->subPlot())
+      plotList.push_back(plot);
+  }
+
+  plotsTab_->clear();
+
+  for (auto *plot : plotList)
+    (void) plotsTab_->addTab(plotWidgets[plot], plot->id());
+
+  //---
 
   // remove existing property views for deleted plots
   updatePlotPropertyViewTrees(plotSet);

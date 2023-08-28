@@ -1888,7 +1888,9 @@ inside(const Point &p) const
 
   //---
 
-  if (CQChartsUtil::PointPointDistance(p, Point(hierNode()->x(), hierNode()->y())) < this->radius())
+  auto p1 = Point(hierNode()->x(), hierNode()->y());
+
+  if (p.distanceTo(p1) < this->radius())
     return true;
 
   return false;
@@ -2098,7 +2100,9 @@ inside(const Point &p) const
   if (pnode && ! pnode->isHierExpanded())
     return false;
 
-  if (CQChartsUtil::PointPointDistance(p, Point(node()->x(), node()->y())) < this->radius())
+  auto p1 = Point(node()->x(), node()->y());
+
+  if (p.distanceTo(p1) < this->radius())
     return true;
 
   return false;

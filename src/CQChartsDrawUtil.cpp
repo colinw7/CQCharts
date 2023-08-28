@@ -452,7 +452,8 @@ drawShape(PaintDevice *device, const CQChartsShapeTypeData &data, const BBox &re
 }
 
 void
-drawShapeSwatch(PaintDevice *device, const CQChartsShapeTypeData &data, const BBox &rect)
+drawShapeSwatch(PaintDevice *device, const CQChartsShapeTypeData &data,
+                const BBox &rect, double size)
 {
   switch (data.shapeType) {
     default:
@@ -461,7 +462,7 @@ drawShapeSwatch(PaintDevice *device, const CQChartsShapeTypeData &data, const BB
     }
     case CQChartsShapeType::Type::BOX: {
       auto rect1 = BBox(rect.getXMin(), rect.getYMin(),
-                        rect.getXMax(), rect.getYMin() + 0.1*rect.getHeight());
+                        rect.getXMax(), rect.getYMin() + size*rect.getHeight());
 
       if (data.cornerSize.isSet()) {
         CQChartsDrawUtil::drawRoundedRect(device, rect1, data.cornerSize, data.sides, data.angle);
@@ -2073,7 +2074,7 @@ edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
     else
       p4 = Point(p2.x, CMathUtil::lerp(f2, p1.y, p2.y));
 #else
-    auto len = CQChartsUtil::PointPointDistance(p1, p2);
+    auto len = p1.distanceTo(p2);
 
     auto p3 = CQChartsGeom::movePointOnLine(p1, angle1.radians(), f1*len);
     auto p4 = CQChartsGeom::movePointOnLine(p2, angle2.radians(), f1*len);
@@ -2273,7 +2274,7 @@ curvePath(QPainterPath &path, const Point &p1, const Point &p4,
     else
       p3 = Point(p4.x, CMathUtil::lerp(f2, p1.y, p4.y));
 #else
-    auto len = CQChartsUtil::PointPointDistance(p1, p4);
+    auto len = p1.distanceTo(p4);
 
     auto p2 = CQChartsGeom::movePointOnLine(p1, angle1.radians(), f1*len);
     auto p3 = CQChartsGeom::movePointOnLine(p4, angle2.radians(), f1*len);
@@ -3037,7 +3038,7 @@ circleConnectionPoint(const Point &c1, double r1, const Point &c2, double /*r2*/
       auto sa1 = sa + da*i;
 
       auto p1 = CQChartsGeom::circlePoint(c1, r1, sa1.radians());
-      auto d1 = CQChartsUtil::PointPointDistance(pos.p, p1);
+      auto d1 = pos.p.distanceTo(p1);
 
       if (nearestSlot < 0 || d1 < nearestDist) {
         nearestSlot  = i;

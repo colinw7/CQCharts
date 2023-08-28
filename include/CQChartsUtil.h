@@ -166,7 +166,7 @@ bool intersectLines(double x11, double y11, double x21, double y21,
                     double &xi, double &yi, double &mu1, double &mu2);
 
 // distance between two points
-double PointPointDistance(const Point &point1, const Point &point2);
+//double PointPointDistance(const Point &point1, const Point &point2);
 
 // distance between point and line
 bool PointLineDistance(const Point &point, const Point &lineStart, const Point &lineEnd,

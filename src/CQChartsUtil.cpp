@@ -410,13 +410,12 @@ void penSetLineDash(QPen &pen, const CQChartsLineDash &dash) {
 
 namespace CQChartsUtil {
 
+#if 0
 // distance between two points
 double PointPointDistance(const Point &point1, const Point &point2) {
-  double dx = point1.x - point2.x;
-  double dy = point1.y - point2.y;
-
-  return std::hypot(dx, dy);
+  return point1.distanceTo(point2);
 }
+#endif
 
 // distance between point and line
 bool PointLineDistance(const Point &point, const Point &lineStart, const Point &lineEnd,
@@ -427,7 +426,7 @@ bool PointLineDistance(const Point &point, const Point &lineStart, const Point &
   double u2 = dx1*dx1 + dy1*dy1;
 
   if (u2 <= 0.0) {
-    *dist = PointPointDistance(point, lineStart);
+    *dist = point.distanceTo(lineStart);
     return false;
   }
 
@@ -439,17 +438,17 @@ bool PointLineDistance(const Point &point, const Point &lineStart, const Point &
   double u = u1/u2;
 
   if      (u < 0.0) {
-    *dist = PointPointDistance(point, lineStart);
+    *dist = point.distanceTo(lineStart);
     return false;
   }
   else if (u > 1.0) {
-    *dist = PointPointDistance(point, lineEnd);
+    *dist = point.distanceTo(lineEnd);
     return false;
   }
   else {
     auto intersection = lineStart + u*Point(dx1, dy1);
 
-    *dist = PointPointDistance(point, intersection);
+    *dist = point.distanceTo(intersection);
 
     return true;
   }
@@ -1699,18 +1698,14 @@ Point nearestRectPoint(const BBox &rect, const Point &pos, double &angle, bool u
 }
 
 Point nearestPointListPoint(const PointList &points, const Point &pos, int &i) {
-  auto pointPointDist = [](const Point &p1, const Point &p2) {
-    return std::hypot(p1.x - p2.x, p1.y - p2.y);
-  };
-
   auto np = points.size();
   assert(np > 0);
 
   int  i1 = -1;
-  auto d  = pointPointDist(points[0], pos);
+  auto d  = points[0].distanceTo(pos);
 
   for (size_t ip = 0; ip < np; ++ip) {
-    auto d1 = pointPointDist(points[ip], pos);
+    auto d1 = points[ip].distanceTo(pos);
 
     if (i1 < 0 || d1 < d) {
       i1 = int(ip);

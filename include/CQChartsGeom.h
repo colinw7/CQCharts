@@ -230,7 +230,7 @@ class Point :
   }
 
   double distanceTo(const Point &rhs) const {
-    return sqrt(distanceSqrTo(rhs));
+    return std::hypot(x - rhs.x, y - rhs.y);
   }
 
   //-----

@@ -1639,7 +1639,7 @@ drawNode(PaintDevice *device, Node *node, const PenBrush &penBrush,
       auto pp1 = windowToPixel(pw1);
       auto pp2 = windowToPixel(pw2);
 
-      double d = std::hypot(pp2.x - pp1.x, pp2.y - pp1.y);
+      double d = pp1.distanceTo(pp2);
 
       if (d < 1.5) // length less than 1.5 pixels
         return;

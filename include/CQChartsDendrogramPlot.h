@@ -349,6 +349,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_PROPERTY(ValueType nodeSizeByValue  READ nodeSizeByValue  WRITE setNodeSizeByValue )
   Q_PROPERTY(bool      colorClosed      READ isColorClosed    WRITE setColorClosed     )
   Q_PROPERTY(bool      swatchColor      READ isSwatchColor    WRITE setSwatchColor     )
+  Q_PROPERTY(double    swatchSize       READ swatchSize       WRITE setSwatchSize      )
 
   // edge data
 //Q_PROPERTY(bool           edgeArrow        READ isEdgeArrow        WRITE setEdgeArrow       )
@@ -613,6 +614,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   bool isSwatchColor() const { return swatchColor_; }
   void setSwatchColor(bool b);
+
+  double swatchSize() const { return swatchSize_; }
+  void setSwatchSize(double b);
 
   //---
 
@@ -881,8 +885,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   NodeData leafNodeData_; //!< leaf node data
 
   // global node data
-  bool colorClosed_ { true };  //! fill closed node
-  bool swatchColor_ { false }; //! draw color as swatch
+  bool   colorClosed_ { true };  //! fill closed node
+  bool   swatchColor_ { false }; //! draw color as swatch
+  double swatchSize_  { 0.1 };   //! swatch size
 
   // edge data
   struct EdgeData {

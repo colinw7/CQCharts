@@ -104,6 +104,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Q_PROPERTY(OffDiagonalType upperDiagonalType READ upperDiagonalType WRITE setUpperDiagonalType)
   Q_PROPERTY(OffDiagonalType lowerDiagonalType READ lowerDiagonalType WRITE setLowerDiagonalType)
 
+  // select mode
+  Q_PROPERTY(SelectMode selectMode READ selectMode WRITE setSelectMode)
+
   // scatter
   CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Scatter, scatter)
 
@@ -132,6 +135,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Q_ENUMS(PlotType)
   Q_ENUMS(DiagonalType)
   Q_ENUMS(OffDiagonalType)
+  Q_ENUMS(SelectMode)
 
  public:
   enum class PlotType {
@@ -167,6 +171,12 @@ class CQChartsSummaryPlot : public CQChartsPlot,
     NONE        = uint(CellType::NONE),
     SCATTER     = uint(CellType::SCATTER),
     CORRELATION = uint(CellType::CORRELATION)
+  };
+
+  enum class SelectMode {
+    NONE,
+    CELL,
+    DATA
   };
 
   using CellObj          = CQChartsSummaryCellObj;
@@ -257,6 +267,11 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
+  const SelectMode &selectMode() const { return selectMode_; }
+  void setSelectMode(const SelectMode &v);
+
+  //---
+
   Length calcScatterSymbolSize() const;
 
   //---
@@ -310,6 +325,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   void drawXAxis(PaintDevice *device) const override;
   void drawYAxis(PaintDevice *device) const override;
 
+  bool hasOverlay() const override;
+  void execDrawOverlay(PaintDevice *device) const override;
+
   //---
 
   CQChartsGeom::BBox fitBBox() const override;
@@ -337,6 +355,11 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   void calcValueCounts(const Column &column, ValueCounts &valueCounts, int &maxCount) const;
 
   //---
+
+  //! plot select interface
+  bool handleSelectPress  (const Point &p, SelMod selMod) override;
+  bool handleSelectMove   (const Point &p, Constraints constraints, bool first=false) override;
+  bool handleSelectRelease(const Point &p) override;
 
   bool pointSelect(const Point &p, SelMod selMod) override;
   bool rectSelect(const BBox &r, SelMod selMod) override;
@@ -425,6 +448,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   OffDiagonalType upperDiagonalType_ { OffDiagonalType::SCATTER };     //!< upper diagonal type
   OffDiagonalType lowerDiagonalType_ { OffDiagonalType::CORRELATION }; //!< lower diagonal type
 
+  SelectMode selectMode_ { SelectMode::CELL };
+
   ScatterPlot*      scatterPlot_      { nullptr };
   DistributionPlot* distributionPlot_ { nullptr };
   ParallelPlot*     parallelPlot_     { nullptr };
@@ -458,6 +483,7 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
  public:
   using SummaryPlot = CQChartsSummaryPlot;
   using Length      = CQChartsLength;
+  using Constraints = CQChartsPlot::Constraints;
 
  public:
   CQChartsSummaryCellObj(const SummaryPlot *plot, const BBox &bbox, int row, int col);
@@ -480,12 +506,21 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void drawOverlay(PaintDevice *device) const;
+
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   CQChartsSummaryPlot::CellType getCellType() const;
 
   Point plotToParent(const Point &w) const;
   Point parentToPlot(const Point &p) const;
+
+  bool handleSelectPress  (const Point &p, SelMod selMod);
+  bool handleSelectMove   (const Point &p, Constraints constraints, bool first=false);
+  bool handleSelectRelease(const Point &p);
+
+  void resetInside();
+  void updateSelectData(const Point &p);
 
  private:
   void drawXAxis(PaintDevice *device) const;
@@ -519,6 +554,35 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
     bool         set { false };
     GroupIndData groupIndData;
   };
+
+  //---
+
+  struct PointData {
+    int            ind { -1 };
+    Point          p;
+    CQChartsSymbol symbol;
+    Length         symbolSize;
+    bool           inside { false };
+  };
+
+  using PointDatas = std::vector<PointData>;
+
+  struct RectData {
+    int  ind { -1 };
+    BBox bbox;
+    BBox pbbox;
+    bool inside { false };
+  };
+
+  using RectDatas = std::vector<RectData>;
+
+  mutable PointDatas pointDatas_;
+  mutable RectDatas  rectDatas_;
+
+  mutable PointData* selectPointData_ { nullptr };
+  mutable RectData*  selectRectData_  { nullptr };
+
+  //---
 
   const SummaryPlot* summaryPlot_ { nullptr }; //!< parent plot
   int                row_         { -1 };      //!< row

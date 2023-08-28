@@ -1047,7 +1047,7 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
 
         tailNode->setEdgePoint(edge, pit);
 
-        //auto d = CQChartsUtil::PointPointDistance(points[size_t(it)], pit);
+        //auto d = points[size_t(it)].distanceTo(pit);
         //charts()->errorMsg("d=" + d);
         //pitValid = (d > delta);
       }
@@ -1067,7 +1067,7 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
 
         headNode->setEdgePoint(edge, pih);
 
-        //auto d = CQChartsUtil::PointPointDistance(points[size_t(ih)], pih);
+        //auto d = points[size_t(ih)].distanceTo(pih);
         //charts()->errorMsg("d=" + d);
         //pihValid = (d > delta);
       }
@@ -1092,8 +1092,8 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
                 tailNode->rect().inside(points[size_t(i)]))
               continue;
 
-            if (CQChartsUtil::PointPointDistance(points[size_t(i)], pih) < delta ||
-                CQChartsUtil::PointPointDistance(points[size_t(i)], pit) < delta)
+            if (points[size_t(i)].distanceTo(pih) < delta ||
+                points[size_t(i)].distanceTo(pit) < delta)
               continue;
 
             addPathPoint(path1, points[size_t(i)]);
@@ -1116,8 +1116,8 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
                 tailNode->rect().inside(points[size_t(i)]))
               continue;
 
-            if (CQChartsUtil::PointPointDistance(points[size_t(i)], pih) < delta ||
-                CQChartsUtil::PointPointDistance(points[size_t(i)], pit) < delta)
+            if (points[size_t(i)].distanceTo(pih) < delta ||
+                points[size_t(i)].distanceTo(pit) < delta)
               continue;
 
             addPathPoint(path1, points[size_t(i)]);

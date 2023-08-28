@@ -539,6 +539,13 @@ setSwatchColor(bool b)
   CQChartsUtil::testAndSet(swatchColor_, b, [&]() { drawObjs(); } );
 }
 
+void
+CQChartsDendrogramPlot::
+setSwatchSize(double s)
+{
+  CQChartsUtil::testAndSet(swatchSize_, s, [&]() { drawObjs(); } );
+}
+
 //---
 
 void
@@ -874,7 +881,7 @@ addProperties()
   addProp("columns", "linkColumn", "link" , "Link column");
   addProp("columns", "sizeColumn", "size" , "Size column");
 
-  addProp("columns", "swatchColorColumn", "swatchColor" , "Swatch color column");
+  addProp("columns", "swatchColorColumn", "swatchColor", "Swatch color column");
 
   // options
   addProp("options", "followViewExpand", "", "Follow view expand");
@@ -969,6 +976,7 @@ addProperties()
   addProp("node", "nodeSizeByValue" , "sizeByValue" , "Node is size by value");
   addProp("node", "colorClosed"     , "colorClosed" , "Node color closed");
   addProp("node", "swatchColor"     , "swatchColor" , "Node swatch color");
+  addProp("node", "swatchSize"      , "swatchSize" , "Node swatch size");
 
   // general edge
   addProp("edge", "edgeWidth"       , "width"       , "Edge width");
@@ -1311,7 +1319,7 @@ CQChartsDendrogramPlot::
 wheelVScroll(int delta)
 {
   if (isSpreadNodeOverlaps()) {
-    spreadData_.pos += (delta > 0 ? 0.1 : -0.1);
+    spreadData_.pos += (delta > 0 ? -0.1 : 0.1);
 
     spreadData_.pos = std::min(std::max(spreadData_.pos, 0.0), spreadData_.scale - 1.0);
 
@@ -2564,6 +2572,11 @@ calcExtraFitBBox() const
 
   BBox bbox;
 
+  auto scrollFit = (fitMode_ == FitMode::SCROLL);
+
+  if (scrollFit)
+    return bbox;
+
   for (const auto &plotObj : plotObjects()) {
     auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
     if (! nodeObj) continue;
@@ -3681,10 +3694,12 @@ calcTipId() const
   if (hierValue().isSet() && plot()->isHierValueTip())
     tableTip.addTableRow("Hier Value", hierValue().real());
 
-  if      (colorValue().isSet())
-    tableTip.addTableRow("Color", colorValue().real());
-  else if (color().isValid())
-    tableTip.addTableRow("Color", color().toString());
+  if (! plot()->colorColumn().isValid() || ! tableTip.hasColumn(plot()->colorColumn())) {
+    if      (colorValue().isSet())
+      tableTip.addTableRow("Color", colorValue().real());
+    else if (color().isValid())
+      tableTip.addTableRow("Color", color().toString());
+  }
 
   if (size().isSet())
     tableTip.addTableRow("Size", size().real());
@@ -3860,7 +3875,9 @@ draw(PaintDevice *device) const
       if (ok && ! CMathUtil::isNaN(r))
         swatchColor = Color::makePaletteValue(r);
       else {
-        ok = plot()->columnValueColor(var, swatchColor, plot()->swatchColorColumn());
+        Color columnColor;
+        if (plot()->columnValueColor(var, columnColor, plot()->swatchColorColumn()))
+          swatchColor = columnColor;
       }
     }
     else if (color().isValid()) {
@@ -3878,7 +3895,7 @@ draw(PaintDevice *device) const
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    CQChartsDrawUtil::drawShapeSwatch(device, shapeData, rect1);
+    CQChartsDrawUtil::drawShapeSwatch(device, shapeData, rect1, plot()->swatchSize());
   }
 
   //---
@@ -3941,15 +3958,12 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
     fillColor = plot()->interpPaletteColor(ColorInd(color));
   }
-  else if (color().isValid()) {
-    fillColor = plot()->interpColor(color(), colorInd);
-  }
   else if (colorValue.isSet()) {
-    auto color = colorValue.realOr(0.0);
+    auto color = colorValue.real();
 
     double color1 = 0.0;
 
-    if (plot()->isColorMapped())
+    if (plot()->calcColorMapped(dendrogramPlot_->colorColumn(), /*defValue*/true))
       color1 = plot()->mapColor(color);
     else {
       auto maxColor = (parent() ? parent()->hierColor() : color);
@@ -3960,6 +3974,9 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     auto c = plot()->colorFromColorMapPaletteValue(color1);
 
     fillColor = plot()->interpColor(c, colorInd);
+  }
+  else if (color().isValid()) {
+    fillColor = plot()->interpColor(color(), colorInd);
   }
   else {
     fillColor = calcFillColor();
@@ -4100,6 +4117,12 @@ drawText(PaintDevice *device, const QColor &shapeColor) const
   if (textOptions.scaled && textCenter) {
     auto rect1 = displayRect();
     if (! rect1.isValid()) return;
+
+    if (plot()->isSwatchColor()) {
+      auto dh = rect1.getHeight()*plot()->swatchSize();
+
+      rect1 = rect1.adjusted(0.0, dh, 0.0, 0.0);
+    }
 
     if (strs.size() == 1)
       CQChartsDrawUtil::drawTextInBox(device, rect1, name, textOptions);
@@ -4291,10 +4314,16 @@ displayRect() const
   auto shapeWidth  = aspect*dendrogramPlot_->pixelToWindowWidth(ss.width());
   auto shapeHeight = dendrogramPlot_->pixelToWindowHeight(ss.height())/aspect;
 
-  auto xf = shapeWidth /rect1.getWidth ();
-  auto yf = shapeHeight/rect1.getHeight();
+  double xf = 1.0, yf = 1.0;
+
+  if (rect1.getWidth() > 0.0)
+    xf = shapeWidth/rect1.getWidth();
+
+  if (rect1.getHeight() > 0.0)
+    yf = shapeHeight/rect1.getHeight();
 
   auto scale = dendrogramPlot_->overlapScale()*dendrogramPlot_->sizeScale();
+  if (scale <= 0.0) scale = 1.0;
 
   xf *= scale;
   yf *= scale;

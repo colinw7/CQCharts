@@ -125,7 +125,7 @@ intersectShape(const Point &p1, const Point &p2, Point &pi) const
   double minD = -1;
 
   for (const auto &p : ipoints) {
-    auto d = CQChartsUtil::PointPointDistance(p, p1);
+    auto d = p.distanceTo(p1);
 
     if (minD < 0 || d < minD) {
       minP = p;

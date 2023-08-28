@@ -223,6 +223,12 @@ init()
 
   assert(scatterPlot_ && distributionPlot_ && parallelPlot_ && boxPlot_ && piePlot_);
 
+  scatterPlot_     ->setSubPlot(this);
+  distributionPlot_->setSubPlot(this);
+  parallelPlot_    ->setSubPlot(this);
+  boxPlot_         ->setSubPlot(this);
+  piePlot_         ->setSubPlot(this);
+
   scatterPlot_->setXColumn(Column::makeRow());
   scatterPlot_->setYColumn(Column::makeRow());
 
@@ -436,6 +442,17 @@ setUpperDiagonalType(const OffDiagonalType &t)
 
 //---
 
+void
+CQChartsSummaryPlot::
+setSelectMode(const SelectMode &m)
+{
+  CQChartsUtil::testAndSet(selectMode_, m, [&]() {
+    resetObjTips(); drawObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
+//---
+
 CQChartsLength
 CQChartsSummaryPlot::
 calcScatterSymbolSize() const
@@ -600,7 +617,8 @@ addProperties()
   addProp("columns", "symbolSizeColumn", "symbolSize", "Symbol size column");
 
   // style
-  addProp("options", "plotType", "plotType", "Plot type");
+  addProp("options", "plotType"  , "plotType"  , "Plot type");
+  addProp("options", "selectMode", "selectMode", "Select mode");
 
   // x/y axis label text
   addProp("xaxis/text", "xLabels", "visible", "X labels visible");
@@ -1246,6 +1264,25 @@ drawYAxis(PaintDevice *) const
   // drawn by cell
 }
 
+bool
+CQChartsSummaryPlot::
+hasOverlay() const
+{
+  return true;
+}
+
+void
+CQChartsSummaryPlot::
+execDrawOverlay(PaintDevice *device) const
+{
+  for (const auto &plotObj : plotObjects()) {
+    auto *cellObj = dynamic_cast<CQChartsSummaryCellObj *>(plotObj);
+    if (! cellObj) continue;
+
+    cellObj->drawOverlay(device);
+  }
+}
+
 //------
 
 CQChartsGeom::BBox
@@ -1417,6 +1454,87 @@ calcValueCounts(const Column &column, ValueCounts &valueCounts, int &maxCount) c
 
 bool
 CQChartsSummaryPlot::
+handleSelectPress(const Point &p, SelMod selMod)
+{
+  if (selectMode() == SelectMode::CELL)
+    return CQChartsPlot::handleSelectPress(p, selMod);
+
+  PlotObjs plotObjs;
+
+  plotObjsAtPoint(p, plotObjs, Constraints::SELECTABLE);
+
+  CQChartsSummaryCellObj *cellObj = nullptr;
+
+  for (auto *plotObj : plotObjs) {
+    cellObj = dynamic_cast<CQChartsSummaryCellObj *>(plotObj);
+    if (cellObj) break;
+  }
+
+  if (cellObj)
+    cellObj->handleSelectPress(p, selMod);
+
+  return true;
+}
+
+bool
+CQChartsSummaryPlot::
+handleSelectMove(const Point &p, Constraints constraints, bool first)
+{
+  if (selectMode() == SelectMode::CELL)
+    return CQChartsPlot::handleSelectMove(p, constraints, first);
+
+  //---
+
+  for (const auto &plotObj : plotObjects()) {
+    auto *cellObj = dynamic_cast<CQChartsSummaryCellObj *>(plotObj);
+    if (! cellObj) continue;
+
+    cellObj->resetInside();
+  }
+
+  PlotObjs plotObjs;
+
+  plotObjsAtPoint(p, plotObjs, Constraints::SELECTABLE);
+
+  CQChartsSummaryCellObj *cellObj = nullptr;
+
+  for (auto *plotObj : plotObjs) {
+    cellObj = dynamic_cast<CQChartsSummaryCellObj *>(plotObj);
+    if (cellObj) break;
+  }
+
+  if (cellObj)
+    cellObj->handleSelectMove(p, constraints, first);
+
+  return true;
+}
+
+bool
+CQChartsSummaryPlot::
+handleSelectRelease(const Point &p)
+{
+  if (selectMode() == SelectMode::CELL)
+    return CQChartsPlot::handleSelectRelease(p);
+
+  PlotObjs plotObjs;
+
+  plotObjsAtPoint(p, plotObjs, Constraints::SELECTABLE);
+
+  CQChartsSummaryCellObj *cellObj = nullptr;
+
+  for (auto *plotObj : plotObjs) {
+    cellObj = dynamic_cast<CQChartsSummaryCellObj *>(plotObj);
+    if (cellObj) break;
+  }
+
+  if (cellObj)
+    cellObj->handleSelectRelease(p);
+
+  return true;
+}
+
+bool
+CQChartsSummaryPlot::
 handleSelectDoubleClick(const Point &p, SelMod /*selMod*/)
 {
   PlotObjs plotObjs;
@@ -1503,9 +1621,23 @@ QString
 CQChartsSummaryCellObj::
 calcTipId() const
 {
-  auto cellType = getCellType();
-
   CQChartsTableTip tableTip;
+
+  if (summaryPlot_->selectMode() == CQChartsSummaryPlot::SelectMode::DATA) {
+    if      (selectPointData_) {
+      tableTip.addTableRow("X", selectPointData_->p.x);
+      tableTip.addTableRow("Y", selectPointData_->p.y);
+      return tableTip.str();;
+    }
+    else if (selectRectData_) {
+      tableTip.addTableRow("Start", selectRectData_->bbox.getXMin());
+      tableTip.addTableRow("End"  , selectRectData_->bbox.getXMax());
+      tableTip.addTableRow("Num"  , selectRectData_->bbox.getYMax());
+      return tableTip.str();;
+    }
+  }
+
+  auto cellType = getCellType();
 
   // off diagonal
   if (row_ != col_) {
@@ -1854,6 +1986,10 @@ drawScatter(PaintDevice *device) const
 
   //---
 
+  pointDatas_.clear();
+
+  //---
+
   auto colColumn = this->colColumn();
   auto rowColumn = this->rowColumn();
 
@@ -1866,9 +2002,12 @@ drawScatter(PaintDevice *device) const
 
   int ng = (groupDetails ? groupDetails->numUnique() : 0);
 
-  auto *colorDetails      = summaryPlot_->columnDetails(summaryPlot_->colorColumn());
-  auto *symbolTypeDetails = summaryPlot_->columnDetails(summaryPlot_->symbolTypeColumn());
-  auto *symbolSizeDetails = summaryPlot_->columnDetails(summaryPlot_->symbolSizeColumn());
+  auto *colorDetails      = (summaryPlot_->colorColumn().isValid() ?
+    summaryPlot_->columnDetails(summaryPlot_->colorColumn()) : nullptr);
+  auto *symbolTypeDetails = (summaryPlot_->symbolTypeColumn().isValid() ?
+    summaryPlot_->columnDetails(summaryPlot_->symbolTypeColumn()) : nullptr);
+  auto *symbolSizeDetails = (summaryPlot_->symbolSizeColumn().isValid() ?
+    summaryPlot_->columnDetails(summaryPlot_->symbolSizeColumn()) : nullptr);
 
   //---
 
@@ -2004,6 +2143,19 @@ drawScatter(PaintDevice *device) const
 
     CQChartsDrawUtil::drawSymbol(device, penBrush1, symbol1, ps, symbolSize1, /*scale*/true);
 
+    auto ss = summaryPlot_->lengthPixelWidth(symbolSize1);
+
+    //---
+
+    PointData pointData;
+
+    pointData.ind        = i;
+    pointData.p          = p;
+    pointData.symbol     = symbol1;
+    pointData.symbolSize = symbolSize1;
+
+    pointDatas_.push_back(pointData);
+
     //---
 
     // highlight selected
@@ -2014,11 +2166,11 @@ drawScatter(PaintDevice *device) const
 
       CQChartsDrawUtil::setPenBrush(device, penBrush2);
 
-      double ss = 0.75*summaryPlot_->lengthPixelWidth(symbolSize1);
+      auto ss1 = 0.75*ss;
 
       auto pps = summaryPlot_->windowToPixel(ps);
 
-      auto pbbox = BBox(pps.x - ss, pps.y - ss, pps.x + ss, pps.y + ss);
+      auto pbbox = BBox(pps.x - ss1, pps.y - ss1, pps.x + ss1, pps.y + ss1);
 
       CQChartsDrawUtil::drawSelectedOutline(device, summaryPlot_->pixelToWindow(pbbox));
     }
@@ -2358,6 +2510,8 @@ drawDistribution(PaintDevice *device) const
 
   CQPerfTrace trace("CQChartsSummaryCellObj::drawDistribution");
 
+  rectDatas_.clear();
+
   //---
 
   auto column = rowColumn();
@@ -2456,6 +2610,16 @@ drawDistribution(PaintDevice *device) const
       CQChartsDrawUtil::setPenBrush(device, penBrush2);
 
       drawRect(bbox);
+
+      //---
+
+      RectData rectData;
+
+      rectData.ind   = ig;
+      rectData.bbox  = BBox(rmin1, 0, rmax1, n);
+      rectData.pbbox = bbox;
+
+      rectDatas_.push_back(rectData);
 
       //--
 
@@ -2647,6 +2811,35 @@ drawPie(PaintDevice *device) const
   }
 }
 
+void
+CQChartsSummaryCellObj::
+drawOverlay(PaintDevice *device) const
+{
+  PenBrush penBrush;
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  auto cellType = getCellType();
+
+  if      (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
+    for (const auto &pointData : pointDatas_) {
+      if (pointData.inside) {
+        auto ps = plotToParent(pointData.p);
+
+        CQChartsDrawUtil::drawSymbol(device, penBrush, pointData.symbol, ps,
+                                     pointData.symbolSize, /*scale*/true);
+      }
+    }
+  }
+  else if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION) {
+    for (const auto &rectData : rectDatas_) {
+      if (rectData.inside) {
+        device->drawRect(rectData.pbbox);
+      }
+    }
+  }
+}
+
 CQChartsGeom::Point
 CQChartsSummaryCellObj::
 plotToParent(const Point &w) const
@@ -2776,6 +2969,92 @@ initGroupedValues()
         indData.poly.addPoint(Point(r, r));
       }
     }
+  }
+}
+
+bool
+CQChartsSummaryCellObj::
+handleSelectPress(const Point &, SelMod)
+{
+  //updateSelectData(p);
+
+  return true;
+}
+
+bool
+CQChartsSummaryCellObj::
+handleSelectMove(const Point &p, Constraints, bool)
+{
+  updateSelectData(p);
+
+  if (selectPointData_) {
+    selectPointData_->inside = true;
+    const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay();
+  }
+
+  if (selectRectData_) {
+    selectRectData_->inside = true;
+    const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay();
+  }
+
+  return true;
+}
+
+bool
+CQChartsSummaryCellObj::
+handleSelectRelease(const Point &)
+{
+  //updateSelectData(p);
+
+  return true;
+}
+
+void
+CQChartsSummaryCellObj::
+resetInside()
+{
+  for (auto &pointData : pointDatas_)
+    pointData.inside = false;
+
+  for (auto &rectData : rectDatas_)
+    rectData.inside = false;
+}
+
+void
+CQChartsSummaryCellObj::
+updateSelectData(const Point &p)
+{
+  selectPointData_ = nullptr;
+  selectRectData_  = nullptr;
+
+  auto cellType = getCellType();
+
+  if      (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
+    auto p1 = parentToPlot(p);
+
+    double d = 0.0;
+
+    for (auto &pointData : pointDatas_) {
+      auto d1 = p1.distanceTo(pointData.p);
+      if (! selectPointData_ || d1 < d) {
+        selectPointData_ = &pointData;
+        d                = d1;
+      }
+    }
+
+    //if (selectPointData_)
+    //  std::cerr << "Point " << selectPointData_->ind << "\n";
+  }
+  else if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION) {
+    for (auto &rectData : rectDatas_) {
+      if (rectData.pbbox.inside(p)) {
+        selectRectData_ = &rectData;
+        break;
+      }
+    }
+
+    //if (selectRectData_)
+    //  std::cerr << "Rect " << selectRectData_->ind << "\n";
   }
 }
 

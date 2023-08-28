@@ -429,7 +429,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     ALL  = (PLOT | PLOT_OBJ | ANNOTATION | TITLE | KEY | AXIS | MAP_KEY)
   };
 
-  using Plot = CQChartsPlot;
+  using Plot  = CQChartsPlot;
+  using PlotP = QPointer<CQChartsPlot>;
 
   using Point    = CQChartsGeom::Point;
   using BBox     = CQChartsGeom::BBox;
@@ -444,7 +445,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //! \brief associated plot for overlay/y1y2
   struct ConnectData {
-    Plot* parent  { nullptr }; //!< parent plot (for composite)
+    PlotP parent;              //!< parent plot (for composite)
     Plot* root    { nullptr }; //!< root plot (for expand/collapse)
     bool  x1x2    { false };   //!< is double x axis plot
     bool  y1y2    { false };   //!< is double y axis plot
@@ -1201,6 +1202,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   int plotDepth() const { return (parentPlot() ? parentPlot()->plotDepth() + 1 : 0); }
 
   virtual Plot *currentPlot() const { return const_cast<Plot *>(this); }
+
+  //---
+
+  Plot *subPlot() const { return subPlot_; }
+  void setSubPlot(Plot *parent) { subPlot_ = parent; }
 
   //---
 
@@ -2283,6 +2289,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   const Column &colorMapColumn() const { return colorColumnData_.colorColumn(); }
   void setColorMapColumn(const Column &name);
 
+  bool calcColorMapped(const Column &colorColumn, bool defVal=true) const;
+
  protected:
   double colorMapDataMin() const { return colorColumnData_.dataMin(); }
   double colorMapDataMax() const { return colorColumnData_.dataMax(); }
@@ -2312,8 +2320,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   bool columnValueColor(const QVariant &var, Color &color, const Column &column=Column()) const;
 
-  Color colorMapRealColor(double r) const;
-  Color normalizedColorMapRealColor(double r) const;
+  Color colorMapRealColor(double r, const Column &column=Column()) const;
+  Color normalizedColorMapRealColor(double r, const Column &column=Column()) const;
 
   Color colorFromColorMapPaletteValue(double r) const;
 
@@ -4106,6 +4114,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // connect data (overlay, x1/x2, y1/y2)
   ConnectData connectData_; //!< associated plot data
+
+  PlotP subPlot_;
 
   bool showAllXOverlayAxes_ { false }; //!< show all x overlay axes
   bool showAllYOverlayAxes_ { false }; //!< show all y overlay axes

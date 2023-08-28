@@ -21,8 +21,8 @@ bool lineIntersectCircle(const BBox &rect, const Point &p1, const Point &p2, Poi
   auto pi2 = Point(rect.getXMid() - rect.getWidth ()*c/2.0,
                    rect.getYMid() - rect.getHeight()*s/2.0);
 
-  auto d1 = CQChartsUtil::PointPointDistance(p2, pi1);
-  auto d2 = CQChartsUtil::PointPointDistance(p2, pi2);
+  auto d1 = p2.distanceTo(pi1);
+  auto d2 = p2.distanceTo(pi2);
 
   if (d1 < d2)
     pi = pi1;
@@ -63,7 +63,7 @@ bool lineIntersectPolygon(const Points &points, const Point &p1, const Point &p2
     if (mu1 < 0.0 || mu1 > 1.0)
       continue;
 
-    auto d1 = CQChartsUtil::PointPointDistance(p2, pi1);
+    auto d1 = p2.distanceTo(pi1);
 
     if (d < 0.0 || d1 < d) {
       pi = pi1;

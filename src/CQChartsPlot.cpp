@@ -10578,6 +10578,19 @@ setColorMapColumn(const Column &c)
   }
 }
 
+bool
+CQChartsPlot::
+calcColorMapped(const Column &colorColumn, bool defVal) const
+{
+  auto colorColumn1 = (colorColumn     .isValid() ? colorColumn      : this->colorColumn());
+  auto colorColumn2 = (colorMapColumn().isValid() ? colorMapColumn() : this->colorColumn());
+
+  if (colorColumn1 == colorColumn2)
+    return isColorMapped();
+
+  return defVal;
+}
+
 //---
 
 void
@@ -10707,7 +10720,7 @@ columnValueColor(const QVariant &var, Color &color, const Column &colorColumn) c
 
   //---
 
-  if (CQChartsVariant::isInt(var) && isColorMapped()) {
+  if (CQChartsVariant::isInt(var) && calcColorMapped(colorColumn1)) {
     if (! getDetails()) return false;
 
     if (numUnique <= maxMappedValues()) {
@@ -10725,7 +10738,7 @@ columnValueColor(const QVariant &var, Color &color, const Column &colorColumn) c
     double r = CQChartsVariant::toReal(var, ok);
     if (! ok) return false;
 
-    color = colorMapRealColor(r);
+    color = colorMapRealColor(r, colorColumn1);
   }
   else if (CQChartsVariant::isColor(var)) {
     // use color value directly
@@ -10734,7 +10747,7 @@ columnValueColor(const QVariant &var, Color &color, const Column &colorColumn) c
     if (! ok) return false;
   }
   else {
-    if (isColorMapped())
+    if (calcColorMapped(colorColumn1))
       color = mapVarToColor(var);
     else {
       // assume value is color name
@@ -10751,12 +10764,14 @@ columnValueColor(const QVariant &var, Color &color, const Column &colorColumn) c
 
 CQChartsColor
 CQChartsPlot::
-colorMapRealColor(double r) const
+colorMapRealColor(double r, const Column &colorColumn) const
 {
+  auto colorColumn1 = (colorColumn.isValid() ? colorColumn : this->colorColumn());
+
   // map real from data range if enabled
   double r1;
 
-  if (isColorMapped())
+  if (calcColorMapped(colorColumn1))
     r1 = CMathUtil::map(r, colorMapDataMin(), colorMapDataMax(), colorMapMin(), colorMapMax());
   else
     r1 = r;
@@ -10771,12 +10786,14 @@ colorMapRealColor(double r) const
 
 CQChartsColor
 CQChartsPlot::
-normalizedColorMapRealColor(double r) const
+normalizedColorMapRealColor(double r, const Column &colorColumn) const
 {
+  auto colorColumn1 = (colorColumn.isValid() ? colorColumn : this->colorColumn());
+
   // map real from data range if enabled
   double r1;
 
-  if (isColorMapped())
+  if (calcColorMapped(colorColumn1))
     r1 = CMathUtil::map(r, 0.0, 1.0, colorMapMin(), colorMapMax());
   else
     r1 = r;
@@ -15635,7 +15652,7 @@ bool
 CQChartsPlot::
 hasForeground() const
 {
-  if (isColorMapKey())
+  if (colorMapKey_ && isColorMapKey())
     return true;
 
   return false;
@@ -15667,7 +15684,7 @@ void
 CQChartsPlot::
 execDrawForeground(PaintDevice *device) const
 {
-  if (isColorMapKey())
+  if (colorMapKey_ && isColorMapKey())
     drawColorMapKey(device);
 }
 

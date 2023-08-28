@@ -1446,7 +1446,7 @@ inside(const Point &p) const
 
       auto pl1 = plot()->windowToPixel(p1);
 
-      if (CQChartsUtil::PointPointDistance(p, pl1) < 4)
+      if (p.distanceTo(pl1) < 4)
         return true;
     }
   }

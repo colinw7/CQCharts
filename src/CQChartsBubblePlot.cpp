@@ -1062,7 +1062,9 @@ bool
 CQChartsBubbleHierObj::
 inside(const Point &p) const
 {
-  if (CQChartsUtil::PointPointDistance(p, Point(hier_->x(), hier_->y())) < this->radius())
+  auto p1 = Point(hier_->x(), hier_->y());
+
+  if (p.distanceTo(p1) < this->radius())
     return true;
 
   return false;
@@ -1192,7 +1194,9 @@ bool
 CQChartsBubbleNodeObj::
 inside(const Point &p) const
 {
-  if (CQChartsUtil::PointPointDistance(p, Point(node_->x(), node_->y())) < this->radius())
+  auto p1 = Point(node_->x(), node_->y());
+
+  if (p.distanceTo(p1) < this->radius())
     return true;
 
   return false;
