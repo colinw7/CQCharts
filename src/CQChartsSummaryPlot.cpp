@@ -198,12 +198,6 @@ init()
 
   assert(scatterPlot_ && distributionPlot_ && parallelPlot_ && boxPlot_ && piePlot_);
 
-  scatterPlot_     ->setSubPlot(this);
-  distributionPlot_->setSubPlot(this);
-  parallelPlot_    ->setSubPlot(this);
-  boxPlot_         ->setSubPlot(this);
-  piePlot_         ->setSubPlot(this);
-
   scatterPlot_->setXColumn(Column::makeRow());
   scatterPlot_->setYColumn(Column::makeRow());
 
@@ -3115,29 +3109,18 @@ updateSelectData(const Point &p)
   auto cellType = getCellType();
 
   if      (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
-    auto p1 = parentToPlot(p);
-
-    auto calcSymbolSize = [&](double &sx, double &sy) {
-      auto symbolSize = summaryPlot_->calcScatterSymbolSize();
-
-      double psx, psy;
-      summaryPlot_->plotSymbolSize(symbolSize, psx, psy, /*scale*/true);
-
-      auto ps1 = parentToPlot(Point(0.0, 0.0));
-      auto ps2 = parentToPlot(Point(psx, psy));
-
-      sx = std::abs(ps1.x - ps2.x);
-      sy = std::abs(ps1.y - ps2.y);
-    };
+    auto symbolSize = summaryPlot_->calcScatterSymbolSize();
 
     double sx, sy;
-    calcSymbolSize(sx, sy);
+    summaryPlot_->plotSymbolSize(symbolSize, sx, sy, /*scale*/true);
 
     double d = 0.0;
 
     for (auto &pointData : pointDatas_) {
-      auto dx = std::abs(p1.x - pointData.p.x);
-      auto dy = std::abs(p1.y - pointData.p.y);
+      auto p2 = plotToParent(pointData.p);
+
+      auto dx = std::abs(p.x - p2.x);
+      auto dy = std::abs(p.y - p2.y);
 
       if (dx > sx || dy > sy)
         continue;

@@ -154,14 +154,14 @@ updatePlots()
   for (int i = 0; i < np; ++i) {
     auto *plot = view_->plot(i);
 
-    if (! plot->subPlot())
+    if (! plot->rootPlot())
       plotList.push_back(plot);
   }
 
   for (int i = 0; i < np; ++i) {
     auto *plot = view_->plot(i);
 
-    if (plot->subPlot())
+    if (plot->rootPlot())
       plotList.push_back(plot);
   }
 

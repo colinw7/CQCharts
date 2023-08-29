@@ -1205,11 +1205,6 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  Plot *subPlot() const { return subPlot_; }
-  void setSubPlot(Plot *parent) { subPlot_ = parent; }
-
-  //---
-
   // expand/collapse control data
   const Plot *rootPlot() const { return connectData_.root; }
   void setRootPlot(Plot *root) { connectData_.root = root; }
@@ -4114,8 +4109,6 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // connect data (overlay, x1/x2, y1/y2)
   ConnectData connectData_; //!< associated plot data
-
-  PlotP subPlot_;
 
   bool showAllXOverlayAxes_ { false }; //!< show all x overlay axes
   bool showAllYOverlayAxes_ { false }; //!< show all y overlay axes
