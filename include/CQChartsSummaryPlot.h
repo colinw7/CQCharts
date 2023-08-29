@@ -206,6 +206,12 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
+  CQChartsPlot *createNamedPlot(const QString &typeName);
+
+  virtual CQChartsPlot *createNamedPlotInstance(const QString &typeName);
+
+  //---
+
   //! get/set columns
   const Columns &columns() const { return columns_; }
   void setColumns(const Columns &c);
@@ -371,6 +377,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   CellObj *cellObjAtPoint(const Point &p) const;
 
   MinMax columnRange(const Column &c) const;
+  void setColumnRange(const Column &c, double min, double max);
 
   void updateSelectedRows();
 
@@ -500,7 +507,13 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
 
   QString calcId() const override;
 
+  //---
+
+  bool dynamicTipId() const override;
+
   QString calcTipId() const override;
+
+  //---
 
   void initCoords() const;
 

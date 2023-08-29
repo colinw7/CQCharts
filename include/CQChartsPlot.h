@@ -3334,7 +3334,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // cached column names
   QString columnsHeaderName(const Columns &columns, bool tip=false) const;
-  QString columnHeaderName(const Column &column, bool tip=false) const;
+  QString columnHeaderName(const Column &column, bool tip=false, const QString &def="") const;
 
   QString idHeaderName   (bool tip=false) const { return columnHeaderName(idColumn   (), tip); }
   QString colorHeaderName(bool tip=false) const { return columnHeaderName(colorColumn(), tip); }

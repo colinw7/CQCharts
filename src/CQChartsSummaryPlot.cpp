@@ -190,36 +190,11 @@ init()
 
   //---
 
-  auto createPlot = [&](const QString &typeName) {
-    auto *type = charts()->plotType(typeName);
-    assert(type);
-
-    const auto &model = this->currentModel();
-
-    auto *plot = type->createAndInit(view(), model);
-
-    plot->setVisible(false);
-
-    int n = view()->numPlots();
-
-    plot->setId(QString("Chart.%1.%2").arg(n + 1).arg(typeName));
-
-    double vr = CQChartsView::viewportRange();
-
-    BBox bbox(0, 0, vr, vr);
-
-    view()->addPlot(plot, bbox);
-
-    plot->setRootPlot(this);
-
-    return plot;
-  };
-
-  scatterPlot_      = dynamic_cast<ScatterPlot      *>(createPlot("scatter"));
-  distributionPlot_ = dynamic_cast<DistributionPlot *>(createPlot("distribution"));
-  parallelPlot_     = dynamic_cast<ParallelPlot     *>(createPlot("parallel"));
-  boxPlot_          = dynamic_cast<BoxPlot          *>(createPlot("box"));
-  piePlot_          = dynamic_cast<PiePlot          *>(createPlot("pie"));
+  scatterPlot_      = dynamic_cast<ScatterPlot      *>(createNamedPlot("scatter"));
+  distributionPlot_ = dynamic_cast<DistributionPlot *>(createNamedPlot("distribution"));
+  parallelPlot_     = dynamic_cast<ParallelPlot     *>(createNamedPlot("parallel"));
+  boxPlot_          = dynamic_cast<BoxPlot          *>(createNamedPlot("box"));
+  piePlot_          = dynamic_cast<PiePlot          *>(createNamedPlot("pie"));
 
   assert(scatterPlot_ && distributionPlot_ && parallelPlot_ && boxPlot_ && piePlot_);
 
@@ -296,6 +271,43 @@ void
 CQChartsSummaryPlot::
 term()
 {
+}
+
+//---
+
+CQChartsPlot *
+CQChartsSummaryPlot::
+createNamedPlot(const QString &typeName)
+{
+  auto *plot = createNamedPlotInstance(typeName);
+
+  plot->setVisible(false);
+
+  int n = view()->numPlots();
+
+  plot->setId(QString("Chart.%1.%2").arg(n + 1).arg(typeName));
+
+  double vr = CQChartsView::viewportRange();
+
+  BBox bbox(0, 0, vr, vr);
+
+  view()->addPlot(plot, bbox);
+
+  plot->setRootPlot(this);
+
+  return plot;
+}
+
+CQChartsPlot *
+CQChartsSummaryPlot::
+createNamedPlotInstance(const QString &typeName)
+{
+  const auto &model = this->currentModel();
+
+  auto *type = charts()->plotType(typeName);
+  assert(type);
+
+  return type->createAndInit(view(), model);
 }
 
 //---
@@ -905,18 +917,18 @@ rectSelect(const BBox &r, SelMod)
     auto column1 = obj->colColumn();
     auto column2 = obj->rowColumn();
 
-    columnRange_[column1] = MinMax(r1.getXMin(), r1.getXMax());
-    columnRange_[column2] = MinMax(r1.getYMin(), r1.getYMax());
+    setColumnRange(column1, r1.getXMin(), r1.getXMax());
+    setColumnRange(column2, r1.getYMin(), r1.getYMax());
   }
   else if (cellType == CellType::DISTRIBUTION) {
     auto column = obj->rowColumn();
 
-    columnRange_[column] = MinMax(r1.getXMin(), r1.getXMax());
+    setColumnRange(column, r1.getXMin(), r1.getXMax());
   }
   else if (cellType == CellType::BOXPLOT) {
     auto column = obj->rowColumn();
 
-    columnRange_[column] = MinMax(r1.getYMin(), r1.getYMax());
+    setColumnRange(column, r1.getYMin(), r1.getYMax());
   }
   else
     return false;
@@ -962,6 +974,13 @@ columnRange(const Column &c) const
   auto pc = columnRange_.find(c);
 
   return (pc != columnRange_.end() ? (*pc).second : MinMax());
+}
+
+void
+CQChartsSummaryPlot::
+setColumnRange(const Column &c, double min, double max)
+{
+  columnRange_[c] = MinMax(min, max);
 }
 
 void
@@ -1617,6 +1636,13 @@ calcId() const
   return QString("%1:%2:%3").arg(typeName()).arg(row_).arg(col_);
 }
 
+bool
+CQChartsSummaryCellObj::
+dynamicTipId() const
+{
+  return (summaryPlot_->selectMode() == CQChartsSummaryPlot::SelectMode::DATA);
+}
+
 QString
 CQChartsSummaryCellObj::
 calcTipId() const
@@ -1625,15 +1651,37 @@ calcTipId() const
 
   if (summaryPlot_->selectMode() == CQChartsSummaryPlot::SelectMode::DATA) {
     if      (selectPointData_) {
-      tableTip.addTableRow("X", selectPointData_->p.x);
-      tableTip.addTableRow("Y", selectPointData_->p.y);
-      return tableTip.str();;
+      auto column1 = colColumn();
+      auto column2 = rowColumn();
+
+      auto name1 = summaryPlot_->columnHeaderName(column1, /*tip*/true, "X");
+      auto name2 = summaryPlot_->columnHeaderName(column2, /*tip*/true, "Y");
+
+      tableTip.addTableRow(name1, selectPointData_->p.x);
+      tableTip.addTableRow(name2, selectPointData_->p.y);
+
+      for (const auto &c : summaryPlot_->tipColumns().columns()) {
+        auto *details = summaryPlot_->columnDetails(c);
+        if (! details) continue;
+
+        auto name = summaryPlot_->columnHeaderName(c, /*tip*/true);
+
+        tableTip.addTableRow(name, details->value(selectPointData_->ind));
+      }
+
+      return tableTip.str();
     }
     else if (selectRectData_) {
-      tableTip.addTableRow("Start", selectRectData_->bbox.getXMin());
-      tableTip.addTableRow("End"  , selectRectData_->bbox.getXMax());
-      tableTip.addTableRow("Num"  , selectRectData_->bbox.getYMax());
-      return tableTip.str();;
+      auto column = rowColumn();
+
+      auto name = summaryPlot_->columnHeaderName(column, /*tip*/true, "X");
+
+      tableTip.addTableRow(name, QString("[%1,%2)").arg(selectRectData_->bbox.getXMin()).
+                                                    arg(selectRectData_->bbox.getXMax()));
+
+      tableTip.addTableRow("Count", selectRectData_->bbox.getYMax());
+
+      return tableTip.str();
     }
   }
 
@@ -2034,6 +2082,24 @@ drawScatter(PaintDevice *device) const
   int nx = details1->numRows();
   int ny = details2->numRows();
   if (nx != ny) return;
+
+  //---
+
+  double bmin1 = xmin_, bmax1 = xmax_;
+  double bmin2 = ymin_, bmax2 = ymax_;
+
+  if (summaryPlot_->diagonalType() == CQChartsSummaryPlot::DiagonalType::DISTRIBUTION) {
+    if (details1->isNumeric()) {
+      CQChartsSummaryPlot::BucketCount bucketCount1, bucketCount2;
+      int                              maxCount1 = 0, maxCount2 = 0;
+
+      summaryPlot_->calcBucketCounts(col_, bucketCount1, maxCount1, bmin1, bmax1);
+      summaryPlot_->calcBucketCounts(row_, bucketCount2, maxCount2, bmin2, bmax2);
+
+      xmin_ = bmin1; xmax_ = bmax1;
+      ymin_ = bmin2; ymax_ = bmax2;
+    }
+  }
 
   //---
 
@@ -3002,9 +3068,28 @@ handleSelectMove(const Point &p, Constraints, bool)
 
 bool
 CQChartsSummaryCellObj::
-handleSelectRelease(const Point &)
+handleSelectRelease(const Point &p)
 {
-  //updateSelectData(p);
+  updateSelectData(p);
+
+  auto cellType = getCellType();
+
+  if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION) {
+    if (selectRectData_) {
+      auto column = rowColumn();
+
+      auto *plot = const_cast<CQChartsSummaryPlot *>(summaryPlot_);
+
+      auto d = selectRectData_->bbox.getWidth()/1000.0;
+
+      plot->setColumnRange(column, selectRectData_->bbox.getXMin() + d,
+                                   selectRectData_->bbox.getXMax() - d);
+
+      plot->updateSelectedRows();
+
+      plot->drawObjs();
+    }
+  }
 
   return true;
 }
@@ -3032,10 +3117,33 @@ updateSelectData(const Point &p)
   if      (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
     auto p1 = parentToPlot(p);
 
+    auto calcSymbolSize = [&](double &sx, double &sy) {
+      auto symbolSize = summaryPlot_->calcScatterSymbolSize();
+
+      double psx, psy;
+      summaryPlot_->plotSymbolSize(symbolSize, psx, psy, /*scale*/true);
+
+      auto ps1 = parentToPlot(Point(0.0, 0.0));
+      auto ps2 = parentToPlot(Point(psx, psy));
+
+      sx = std::abs(ps1.x - ps2.x);
+      sy = std::abs(ps1.y - ps2.y);
+    };
+
+    double sx, sy;
+    calcSymbolSize(sx, sy);
+
     double d = 0.0;
 
     for (auto &pointData : pointDatas_) {
-      auto d1 = p1.distanceTo(pointData.p);
+      auto dx = std::abs(p1.x - pointData.p.x);
+      auto dy = std::abs(p1.y - pointData.p.y);
+
+      if (dx > sx || dy > sy)
+        continue;
+
+      auto d1 = std::hypot(dx, dy);
+
       if (! selectPointData_ || d1 < d) {
         selectPointData_ = &pointData;
         d                = d1;

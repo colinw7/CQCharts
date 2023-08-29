@@ -3049,6 +3049,10 @@ void
 CQChartsDendrogramPlot::
 execSpreadOverlaps(const PlotObjs &objs)
 {
+  spreadData_.reset();
+
+  //---
+
   using NodeObjs  = std::vector<NodeObj *>;
   using DepthObjs = std::map<int, NodeObjs>;
 
@@ -3084,8 +3088,11 @@ execSpreadOverlaps(const PlotObjs &objs)
     margin = std::max(lengthPlotHeight(overlapMargin()), 0.0);
 
   double maxS = 0.0;
+  size_t maxN = 0;
 
   for (const auto &pd : depthObjs) {
+    maxN = std::max(maxN, pd.second.size());
+
     double s = -margin;
 
     for (auto *obj : pd.second) {
@@ -3101,6 +3108,9 @@ execSpreadOverlaps(const PlotObjs &objs)
 
     maxS = std::max(maxS, s);
   }
+
+  if (maxN <= 1)
+    return;
 
   for (const auto &pd : depthObjs) {
     for (auto *obj : pd.second) {
@@ -3124,9 +3134,9 @@ execSpreadOverlaps(const PlotObjs &objs)
   }
 
   if (orientation() == Qt::Horizontal)
-    spreadData_.scale = spreadData_.bbox.getHeight();
+    spreadData_.scale = std::max(spreadData_.bbox.getHeight(), 1.0);
   else
-    spreadData_.scale = spreadData_.bbox.getWidth();
+    spreadData_.scale = std::max(spreadData_.bbox.getWidth(), 1.0);
 
   //---
 

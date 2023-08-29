@@ -7407,7 +7407,7 @@ columnsHeaderName(const Columns &columns, bool tip) const
 
 QString
 CQChartsPlot::
-columnHeaderName(const Column &column, bool tip) const
+columnHeaderName(const Column &column, bool tip, const QString &def) const
 {
   auto p = columnNames_.find(column);
   if (p != columnNames_.end()) return (*p).second;
@@ -7422,7 +7422,7 @@ columnHeaderName(const Column &column, bool tip) const
   auto str = modelHHeaderString(column, ok);
   if (ok && str.length()) return str;
 
-  return QString();
+  return def;
 }
 
 void

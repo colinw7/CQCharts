@@ -49,10 +49,10 @@ const QString &
 CQChartsObj::
 tipId() const
 {
-  if (! tipId_) {
+  if (! tipId_ || dynamicTipId()) {
     std::unique_lock<std::mutex> lock(mutex_);
 
-    if (! tipId_) {
+    if (! tipId_ || dynamicTipId()) {
       const_cast<CQChartsObj*>(this)->tipId_ = calcTipId();
 
       if (! (*tipId_).length())

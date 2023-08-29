@@ -115,9 +115,7 @@ inline bool splitList(const std::string &str, StringList &strs) {
   char **argv;
 
   int rc = Tcl_SplitList(nullptr, str.c_str(), &argc, const_cast<const char ***>(&argv));
-
-  if (rc != TCL_OK)
-    return false;
+  if (rc != TCL_OK) return false;
 
   for (int i = 0; i < argc; ++i)
     strs.push_back(std::string(argv[i]));
@@ -158,7 +156,7 @@ inline bool isDomainError(Tcl_Interp *interp, int rc) {
 
   Tcl_Obj *errorMsg;
   Tcl_IncrRefCount(key);
-  Tcl_DictObjGet(NULL, options, key, &errorMsg);
+  Tcl_DictObjGet(nullptr, options, key, &errorMsg);
   Tcl_DecrRefCount(key);
 
   auto msg = stringFromObj(errorMsg);
@@ -178,14 +176,14 @@ inline std::string errorInfo(Tcl_Interp *interp, int rc) {
 
   Tcl_Obj *errorMsg;
   Tcl_IncrRefCount(key1);
-  Tcl_DictObjGet(NULL, options, key1, &errorMsg);
+  Tcl_DictObjGet(nullptr, options, key1, &errorMsg);
   Tcl_DecrRefCount(key1);
 
   auto msg = stringFromObj(errorMsg);
 
   Tcl_Obj *stackTrace;
   Tcl_IncrRefCount(key2);
-  Tcl_DictObjGet(NULL, options, key2, &stackTrace);
+  Tcl_DictObjGet(nullptr, options, key2, &stackTrace);
   Tcl_DecrRefCount(key2);
 
   auto trace = stringFromObj(stackTrace);
@@ -363,6 +361,8 @@ class CTcl {
     return CTclUtil::mergeList(strs);
   }
 
+  //---
+
   void traceVar(const std::string &name) {
     int flags = TCL_TRACE_READS | TCL_TRACE_WRITES | TCL_TRACE_UNSETS | TCL_GLOBAL_ONLY;
 
@@ -398,6 +398,8 @@ class CTcl {
 
     assert(handled);
   }
+
+  //---
 
   virtual void handleRead(const char *name) {
     std::cerr << "CTcl::handleRead " << name << "\n";

@@ -121,6 +121,9 @@ class CQChartsObj : public QObject {
   //! calculate tip id (on demand)
   virtual QString calcTipId() const { return calcId(); }
 
+  //! is tip id dynamic (not same value for every query on object)
+  virtual bool dynamicTipId() const { return false; }
+
   //---
 
   //! get/set visible
