@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + summary distribution orientation
+
  + dendrogram swatch column and color column for color map
  + save/restore expansion state
 

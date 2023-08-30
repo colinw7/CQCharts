@@ -278,6 +278,14 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
+  ScatterPlot*      scatterPlot     () { return scatterPlot_; }
+  DistributionPlot* distributionPlot() { return distributionPlot_; }
+  ParallelPlot*     parallelPlot    () { return parallelPlot_; }
+  BoxPlot*          boxPlot         () { return boxPlot_; }
+  PiePlot*          piePlot         () { return piePlot_; }
+
+  //---
+
   Length calcScatterSymbolSize() const;
 
   //---
@@ -427,7 +435,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   BBox cellBBox(int row, int col) const;
 
- private:
+ protected:
   using ColumnVisible      = std::map<int, bool>;
   using SelectedColumns    = std::set<int>;
   using SelectedRowColumns = std::map<int, SelectedColumns>;
@@ -528,14 +536,18 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   Point plotToParent(const Point &w) const;
   Point parentToPlot(const Point &p) const;
 
-  bool handleSelectPress  (const Point &p, SelMod selMod);
-  bool handleSelectMove   (const Point &p, Constraints constraints, bool first=false);
-  bool handleSelectRelease(const Point &p);
+  //---
+
+  virtual bool handleSelectPress  (const Point &p, SelMod selMod);
+  virtual bool handleSelectMove   (const Point &p, Constraints constraints, bool first=false);
+  virtual bool handleSelectRelease(const Point &p);
+
+  //---
 
   void resetInside();
   void updateSelectData(const Point &p);
 
- private:
+ protected:
   void drawXAxis(PaintDevice *device) const;
   void drawYAxis(PaintDevice *device) const;
 
@@ -549,7 +561,7 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
 
   void initGroupedValues();
 
- private:
+ protected:
   using Values = std::vector<QVariant>;
   using Reals  = std::vector<double>;
 
@@ -571,7 +583,7 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   //---
 
   struct PointData {
-    int            ind { -1 };
+    int            ind { -1 }; // model row
     Point          p;
     CQChartsSymbol symbol;
     Length         symbolSize;
@@ -581,7 +593,7 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   using PointDatas = std::vector<PointData>;
 
   struct RectData {
-    int  ind { -1 };
+    int  ind { -1 }; // model row
     BBox bbox;
     BBox pbbox;
     bool inside { false };

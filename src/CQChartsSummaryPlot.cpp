@@ -340,58 +340,58 @@ updatePlots()
   Plot *currentPlot = this;
 
   if (! isExpanded() && (plotType() == PlotType::PARALLEL)) {
-    parallelPlot_->setYColumns(columns());
+    parallelPlot()->setYColumns(columns());
 
     for (const auto &cv : columnVisible_) {
       if (! cv.second)
-        parallelPlot_->setYColumnVisible(cv.first, false);
+        parallelPlot()->setYColumnVisible(cv.first, false);
     }
 
-    currentPlot = parallelPlot_;
+    currentPlot = parallelPlot();
   }
   else
-    parallelPlot_->setYColumns(Columns(Column::makeRow()));
+    parallelPlot()->setYColumns(Columns(Column::makeRow()));
 
   if (isExpanded() && (expandRow() != expandCol())) {
     auto column1 = visibleColumns().getColumn(expandCol());
     auto column2 = visibleColumns().getColumn(expandRow());
 
-    scatterPlot_->setXColumn(column1);
-    scatterPlot_->setYColumn(column2);
-    scatterPlot_->setGroupColumn(groupColumn());
-    scatterPlot_->setTipColumns(visibleColumns());
+    scatterPlot()->setXColumn(column1);
+    scatterPlot()->setYColumn(column2);
+    scatterPlot()->setGroupColumn(groupColumn());
+    scatterPlot()->setTipColumns(visibleColumns());
 
-    currentPlot = scatterPlot_;
+    currentPlot = scatterPlot();
   }
   else {
-    scatterPlot_->setXColumn(Column::makeRow());
-    scatterPlot_->setYColumn(Column::makeRow());
+    scatterPlot()->setXColumn(Column::makeRow());
+    scatterPlot()->setYColumn(Column::makeRow());
   }
 
   if (isExpanded() && (expandRow() == expandCol())) {
     auto column = visibleColumns().getColumn(expandRow());
 
     if      (diagonalType() == CQChartsSummaryPlot::DiagonalType::DISTRIBUTION) {
-      distributionPlot_->setValueColumns(Columns(column));
-      distributionPlot_->setTipColumns(visibleColumns());
+      distributionPlot()->setValueColumns(Columns(column));
+      distributionPlot()->setTipColumns(visibleColumns());
 
-      currentPlot = distributionPlot_;
+      currentPlot = distributionPlot();
     }
     else if (diagonalType() == CQChartsSummaryPlot::DiagonalType::BOXPLOT) {
-      boxPlot_->setValueColumns(Columns(column));
-      boxPlot_->setTipColumns(visibleColumns());
+      boxPlot()->setValueColumns(Columns(column));
+      boxPlot()->setTipColumns(visibleColumns());
 
-      currentPlot = boxPlot_;
+      currentPlot = boxPlot();
     }
     else if (diagonalType() == CQChartsSummaryPlot::DiagonalType::PIE) {
-      piePlot_->setValueColumns(Columns(column));
-      piePlot_->setTipColumns(visibleColumns());
+      piePlot()->setValueColumns(Columns(column));
+      piePlot()->setTipColumns(visibleColumns());
 
-      currentPlot = piePlot_;
+      currentPlot = piePlot();
     }
   }
   else {
-    distributionPlot_->setValueColumns(Columns(Column::makeRow()));
+    distributionPlot()->setValueColumns(Columns(Column::makeRow()));
   }
 
   currentPlot->setVisible(true);
@@ -401,20 +401,20 @@ updatePlots()
   if (this != currentPlot)
     this->setVisible(false);
 
-  if (parallelPlot_ != currentPlot)
-    parallelPlot_->setVisible(false);
+  if (parallelPlot() != currentPlot)
+    parallelPlot()->setVisible(false);
 
-  if (scatterPlot_ != currentPlot)
-    scatterPlot_->setVisible(false);
+  if (scatterPlot() != currentPlot)
+    scatterPlot()->setVisible(false);
 
-  if (distributionPlot_ != currentPlot)
-    distributionPlot_->setVisible(false);
+  if (distributionPlot() != currentPlot)
+    distributionPlot()->setVisible(false);
 
-  if (boxPlot_ != currentPlot)
-    boxPlot_->setVisible(false);
+  if (boxPlot() != currentPlot)
+    boxPlot()->setVisible(false);
 
-  if (piePlot_ != currentPlot)
-    piePlot_->setVisible(false);
+  if (piePlot() != currentPlot)
+    piePlot()->setVisible(false);
 }
 
 //---
@@ -531,7 +531,7 @@ setGroupColumn(const Column &c)
     resetSetHidden();
 
     if (isExpanded() && (expandRow() != expandCol())) {
-      scatterPlot_->setGroupColumn(groupColumn());
+      scatterPlot()->setGroupColumn(groupColumn());
     }
 
     Q_EMIT customDataChanged();
@@ -1018,7 +1018,7 @@ updateSelectedRows()
         else
           x = details->uniqueId(details->value(i));
 
-        if (range.inside(x))
+        if (range.insideHalfOpen(x))
           selectedRows_[i].insert(ic);
       }
       else
@@ -1061,7 +1061,7 @@ selectColumnRanges()
       else
         x = details->uniqueId(details->value(i));
 
-      if (range.inside(x))
+      if (range.insideHalfOpen(x))
         rows.insert(i);
     }
 
@@ -1115,15 +1115,15 @@ collapseCell()
 {
   if (isExpanded()) {
     if (expandRow() != expandCol()) {
-      scatterPlot_->collapseRoot();
+      scatterPlot()->collapseRoot();
     }
     else {
       if      (diagonalType() == CQChartsSummaryPlot::DiagonalType::DISTRIBUTION)
-        distributionPlot_->collapseRoot();
+        distributionPlot()->collapseRoot();
       else if (diagonalType() == CQChartsSummaryPlot::DiagonalType::BOXPLOT)
-        boxPlot_->collapseRoot();
+        boxPlot()->collapseRoot();
       else if (diagonalType() == CQChartsSummaryPlot::DiagonalType::PIE)
-        piePlot_->collapseRoot();
+        piePlot()->collapseRoot();
     }
   }
 }
@@ -1369,7 +1369,7 @@ setColumnVisible(int ic, bool visible)
   columnVisible_[ic] = visible;
 
   if (! isExpanded() && (plotType() == PlotType::PARALLEL))
-    parallelPlot_->setYColumnVisible(ic, visible);
+    parallelPlot()->setYColumnVisible(ic, visible);
 
   updateRangeAndObjs();
 
@@ -2134,7 +2134,7 @@ drawScatter(PaintDevice *device) const
 
     //---
 
-    //bool selected = (rangeBox_.isSet() && rangeBox_.inside(p));
+    //bool selected = (rangeBox_.isSet() && rangeBox_.insideHalfOpen(p));
     bool selected = summaryPlot_->isSelectedRow(i);
 
     //---
@@ -2203,8 +2203,6 @@ drawScatter(PaintDevice *device) const
 
     CQChartsDrawUtil::drawSymbol(device, penBrush1, symbol1, ps, symbolSize1, /*scale*/true);
 
-    auto ss = summaryPlot_->lengthPixelWidth(symbolSize1);
-
     //---
 
     PointData pointData;
@@ -2226,11 +2224,14 @@ drawScatter(PaintDevice *device) const
 
       CQChartsDrawUtil::setPenBrush(device, penBrush2);
 
-      auto ss1 = 0.75*ss;
+      double psx, psy;
+      summaryPlot_->pixelSymbolSize(symbolSize1, psx, psy, /*scale*/true);
+
+      auto pss = 0.75*std::min(psx, psy);
 
       auto pps = summaryPlot_->windowToPixel(ps);
 
-      auto pbbox = BBox(pps.x - ss1, pps.y - ss1, pps.x + ss1, pps.y + ss1);
+      auto pbbox = BBox(pps.x - pss, pps.y - pss, pps.x + pss, pps.y + pss);
 
       CQChartsDrawUtil::drawSelectedOutline(device, summaryPlot_->pixelToWindow(pbbox));
     }
@@ -2660,7 +2661,7 @@ drawDistribution(PaintDevice *device) const
         MinMax r1(rangeBox_.getXMin(), rangeBox_.getXMax());
         MinMax r2(rmin1, rmax1);
 
-        if (r1.overlaps(r2))
+        if (r1.overlapsHalfOpen(r2))
           summaryPlot_->updatePenBrushState(ColorInd(), penBrush2,
                                             /*selected*/true, /*inside*/false);
       }
@@ -3074,10 +3075,8 @@ handleSelectRelease(const Point &p)
 
       auto *plot = const_cast<CQChartsSummaryPlot *>(summaryPlot_);
 
-      auto d = selectRectData_->bbox.getWidth()/1000.0;
-
-      plot->setColumnRange(column, selectRectData_->bbox.getXMin() + d,
-                                   selectRectData_->bbox.getXMax() - d);
+      plot->setColumnRange(column, selectRectData_->bbox.getXMin(),
+                                   selectRectData_->bbox.getXMax());
 
       plot->updateSelectedRows();
 

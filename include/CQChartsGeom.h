@@ -1580,10 +1580,22 @@ class MinMax {
     return (r >= min_ && r <= max_);
   }
 
+  bool insideHalfOpen(const T &r) const {
+    if (! set_) return false;
+
+    return (r >= min_ && r < max_);
+  }
+
   bool overlaps(const MinMax &r) const {
     if (! set_ || ! r.set_) return false;
 
     return (max_ >= r.min_ && min_ <= r.max_);
+  }
+
+  bool overlapsHalfOpen(const MinMax &r) const {
+    if (! set_ || ! r.set_) return false;
+
+    return (max_ > r.min_ && min_ < r.max_);
   }
 
  private:
