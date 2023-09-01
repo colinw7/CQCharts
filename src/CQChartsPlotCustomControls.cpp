@@ -730,9 +730,9 @@ addFrameSpacer(FrameData &frameData, bool nextRow)
 
 void
 CQChartsPlotCustomControls::
-addFrameColWidget(FrameData &frameData, QWidget *w, bool nextRow)
+addFrameColWidget(FrameData &frameData, QWidget *w, int nc, bool nextRow)
 {
-  frameData.grid->addWidget(w, frameData.row, frameData.col++);
+  frameData.grid->addWidget(w, frameData.row, frameData.col++, 1, nc);
 
   if (nextRow) {
     addFrameRowStretch(frameData);

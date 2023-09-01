@@ -12,6 +12,8 @@
 
 #include <cassert>
 #include <algorithm>
+#include <set>
+#include <map>
 #include <cmath>
 #include <iostream>
 #include <cstring>
@@ -2658,6 +2660,14 @@ class Polygon3D {
  private:
   Points points_;
 };
+
+}
+
+//------
+
+namespace CQChartsGeom {
+
+Points calcParetoFront(const Points &points, const Point &origin);
 
 }
 

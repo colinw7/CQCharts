@@ -99,9 +99,12 @@ class CQChartsSymbol :
 
   static CQChartsSymbol fromSVGFile(const CQChartsFile &file, const QString &name, bool styled);
 
-  static CQChartsSymbol circle() { return CQChartsSymbol(SymbolType::Type::CIRCLE); }
+  static CQChartsSymbol plus    () { return CQChartsSymbol(SymbolType::Type::PLUS); }
+  static CQChartsSymbol cross   () { return CQChartsSymbol(SymbolType::Type::CROSS); }
   static CQChartsSymbol triangle() { return CQChartsSymbol(SymbolType::Type::TRIANGLE); }
-  static CQChartsSymbol diamond() { return CQChartsSymbol(SymbolType::Type::DIAMOND); }
+  static CQChartsSymbol box     () { return CQChartsSymbol(SymbolType::Type::BOX); }
+  static CQChartsSymbol diamond () { return CQChartsSymbol(SymbolType::Type::DIAMOND); }
+  static CQChartsSymbol circle  () { return CQChartsSymbol(SymbolType::Type::CIRCLE); }
 
   static CQChartsSymbol vline() { return CQChartsSymbol(SymbolType::Type::VLINE); }
   static CQChartsSymbol hline() { return CQChartsSymbol(SymbolType::Type::HLINE); }

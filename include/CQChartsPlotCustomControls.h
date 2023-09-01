@@ -157,7 +157,7 @@ class CQChartsPlotCustomControls : public QScrollArea {
 
   void addFrameSpacer(FrameData &frameData, bool nextRow=true);
 
-  void addFrameColWidget(FrameData &frameData, QWidget *w, bool nextRow=false);
+  void addFrameColWidget(FrameData &frameData, QWidget *w, int n=1, bool nextRow=false);
 
   void addFrameRowStretch(FrameData &frameData);
   void addFrameColStretch(FrameData &frameData);

@@ -46,6 +46,8 @@ class CQChartsParamEdit : public QFrame {
 
   QString getColor() const;
 
+  void updateTip(const QString &tip);
+
   void reset();
 
  private Q_SLOTS:

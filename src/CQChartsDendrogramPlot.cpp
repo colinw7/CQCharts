@@ -761,8 +761,6 @@ setRemoveNodeOverlaps(bool b)
     }
     // if disabling overlap removal restore saved (non overlap) positions
     else {
-      overlapScale_ = 1.0;
-
       restoreOverlapRects();
     }
 
@@ -776,9 +774,6 @@ setRemoveGroupOverlaps(bool b)
 {
   CQChartsUtil::testAndSet(removeGroupOverlaps_, b, [&]() {
     if (isRemoveNodeOverlaps()) {
-      //updateRangeAndObjs();
-      overlapScale_ = 1.0;
-
       restoreOverlapRects();
 
       execRemoveOverlaps(); drawObjs();
@@ -792,9 +787,6 @@ setAdjustOverlaps(bool b)
 {
   CQChartsUtil::testAndSet(adjustOverlaps_, b, [&]() {
     if (isRemoveNodeOverlaps()) {
-      //updateRangeAndObjs();
-      overlapScale_ = 1.0;
-
       restoreOverlapRects();
 
       execRemoveOverlaps(); drawObjs();
@@ -807,13 +799,15 @@ CQChartsDendrogramPlot::
 setOverlapMargin(const Length &l)
 {
   CQChartsUtil::testAndSet(overlapMargin_, l, [&]() {
-    if (isRemoveNodeOverlaps()) {
-      //updateRangeAndObjs();
-      overlapScale_ = 1.0;
-
+    if (isRemoveNodeOverlaps() || isSpreadNodeOverlaps()) {
       restoreOverlapRects();
 
-      execRemoveOverlaps(); drawObjs();
+      if (isRemoveNodeOverlaps())
+        execRemoveOverlaps();
+      else
+        execSpreadOverlaps();
+
+      drawObjs();
     }
   } );
 }
@@ -835,8 +829,6 @@ setSpreadNodeOverlaps(bool b)
     }
     // if disabling overlap removal restore saved (non overlap) positions
     else {
-      overlapScale_ = 1.0;
-
       restoreOverlapRects();
     }
 
@@ -2675,6 +2667,8 @@ void
 CQChartsDendrogramPlot::
 restoreOverlapRects()
 {
+  overlapScale_ = 1.0;
+
   for (auto *plotObj : plotObjects()) {
     auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
     if (! nodeObj) continue;
@@ -3080,12 +3074,8 @@ execSpreadOverlaps(const PlotObjs &objs)
   if (depthObjs.empty())
     return;
 
-  auto margin = 0.0;
-
-  if (orientation() == Qt::Horizontal)
-    margin = std::max(lengthPlotWidth(overlapMargin()), 0.0);
-  else
-    margin = std::max(lengthPlotHeight(overlapMargin()), 0.0);
+  auto margin = std::max(orientation() == Qt::Horizontal ?
+    lengthPlotHeight(overlapMargin()) : lengthPlotWidth(overlapMargin()), 0.0);
 
   double maxS = 0.0;
   size_t maxN = 0;
@@ -3130,7 +3120,9 @@ execSpreadOverlaps(const PlotObjs &objs)
 
     auto r = nodeObj->displayRect();
 
-    spreadData_.bbox += r;
+    auto r1 = r.expanded(-margin, -margin, margin, margin);
+
+    spreadData_.bbox += r1;
   }
 
   if (orientation() == Qt::Horizontal)

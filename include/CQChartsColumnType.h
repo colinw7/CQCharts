@@ -44,7 +44,8 @@ class CQChartsColumnTypeParam {
  public:
   enum class Attribute {
     NONE       = 0,
-    NULL_VALUE = (1<<0)
+    GENERIC    = (1<<0),
+    NULL_VALUE = (1<<1)
   };
 
  public:
@@ -80,10 +81,17 @@ class CQChartsColumnTypeParam {
   bool isHidden() const { return hidden_; }
   CQChartsColumnTypeParam &setHidden(bool b) { hidden_ = b; return *this; }
 
-  bool isNullValue() const { return hidden_; }
+  bool isGeneric() const { return hasAttribute(Attribute::GENERIC); }
+  CQChartsColumnTypeParam &setGeneric(bool b) { return setAttribute(b, Attribute::GENERIC); }
+
+  bool isNullValue() const { return hasAttribute(Attribute::NULL_VALUE); }
   CQChartsColumnTypeParam &setNullValue(bool b) { return setAttribute(b, Attribute::NULL_VALUE); }
 
  private:
+  bool hasAttribute(Attribute attribute) const {
+    return (attributes_ & uint(attribute));
+  }
+
   CQChartsColumnTypeParam &setAttribute(bool b, Attribute attribute) {
     if (b) attributes_ |=  uint(attribute);
     else   attributes_ &= ~uint(attribute);
@@ -99,7 +107,7 @@ class CQChartsColumnTypeParam {
   QVariant    def_;                         //!< default value
   QStringList values_;                      //!< enum values
   bool        hidden_     { false };        //!< is hidden param
-  uint        attributes_ { 0 };            //!< paramter attributes
+  uint        attributes_ { 0 };            //!< parameter attributes
 };
 
 //---
@@ -162,6 +170,11 @@ class CQChartsColumnType {
 
   virtual QString formatName() const { return "format"; }
 
+  ColumnTypeParam *addGenericParam(const QString &name, Type type, int role, const QString &tip,
+                                   const QVariant &def=QVariant());
+  ColumnTypeParam *addGenericParam(const QString &name, Type type, const QString &tip,
+                                   const QVariant &def=QVariant());
+
   ColumnTypeParam *addParam(const QString &name, Type type, int role, const QString &tip,
                             const QVariant &def=QVariant());
   ColumnTypeParam *addParam(const QString &name, Type type, const QString &tip,
@@ -193,6 +206,9 @@ class CQChartsColumnType {
 
   // get value sum
   virtual QVariant sumValue(const NameValues &) const { return QVariant(); }
+
+  // get bad value
+  virtual QVariant decreasing(const NameValues &) const { return QVariant(); }
 
   // get bad value
   virtual QVariant badValue(const NameValues &) const { return QVariant(); }
@@ -329,6 +345,9 @@ class CQChartsColumnRealType : public CQChartsColumnType {
 
   // get value sum
   QVariant sumValue(const NameValues &nameValues) const override;
+
+  // get decreasing
+  QVariant decreasing(const NameValues &nameValues) const override;
 
   // get bad value
   QVariant badValue(const NameValues &nameValues) const override;

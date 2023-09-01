@@ -207,6 +207,9 @@ class CQChartsModelColumnDetails {
   //! get bad value
   QVariant badValue() const;
 
+  //! get decreasing
+  QVariant decreasing() const;
+
   //---
 
   //! get column data value from variant
@@ -442,6 +445,7 @@ class CQChartsModelColumnDetails {
   QVariant maxValue_;              //!< max value (as variant)
   QVariant sumValue_;              //!< value sum (as variant)
   QVariant badValue_;              //!< bad value (as variant)
+  QVariant decreasing_;            //!< is decreasing sense (as variant)
   int      numRows_     { 0 };     //!< number of rows
   bool     monotonic_   { true };  //!< values are monotonic
   bool     increasing_  { true };  //!< values are increasing

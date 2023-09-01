@@ -503,6 +503,7 @@ class CQChartsScatterHexKeyItem : public CQChartsGradientKeyItem {
 //---
 
 CQCHARTS_NAMED_SHAPE_DATA(GridCell, gridCell)
+CQCHARTS_NAMED_SHAPE_DATA(Pareto, pareto)
 
 /*!
  * \brief Scatter Plot
@@ -511,7 +512,8 @@ CQCHARTS_NAMED_SHAPE_DATA(GridCell, gridCell)
 class CQChartsScatterPlot : public CQChartsPointPlot,
  public CQChartsObjPointData        <CQChartsScatterPlot>,
  public CQChartsObjLineData         <CQChartsScatterPlot>,
- public CQChartsObjGridCellShapeData<CQChartsScatterPlot> {
+ public CQChartsObjGridCellShapeData<CQChartsScatterPlot>,
+ public CQChartsObjParetoShapeData  <CQChartsScatterPlot> {
   Q_OBJECT
 
   // columns
@@ -541,6 +543,15 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   Q_PROPERTY(int gridNumY READ gridNumY WRITE setGridNumY)
 
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(GridCell, gridCell)
+
+  // pareto
+  Q_PROPERTY(bool pareto        READ isPareto        WRITE setPareto       )
+  Q_PROPERTY(bool paretoInvertX READ isParetoInvertX WRITE setParetoInvertX)
+  Q_PROPERTY(bool paretoInvertY READ isParetoInvertY WRITE setParetoInvertY)
+
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Pareto, pareto)
+
+  //---
 
   Q_ENUMS(PlotType)
 
@@ -703,6 +714,18 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   // hex cells
   void *hexMap() const { return hexMap_; }
   int hexMapMaxN() const { return hexMapMaxN_; }
+
+  //---
+
+  // pareto front
+  bool isPareto() const { return paretoData_.visible; }
+  void setPareto(bool b);
+
+  bool isParetoInvertX() const { return paretoData_.invertX; }
+  void setParetoInvertX(bool b);
+
+  bool isParetoInvertY() const { return paretoData_.invertY; }
+  void setParetoInvertY(bool b);
 
   //---
 
@@ -910,6 +933,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   void drawStatsLines(PaintDevice *device) const;
 
+  void drawPareto(PaintDevice *device) const;
+
   //---
 
   void drawXRug(PaintDevice *device) const;
@@ -1000,6 +1025,12 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     GroupThread  groupThread;                            //!< calc thread
   };
 
+  struct ParetoData {
+    bool visible { false };
+    bool invertX { false };
+    bool invertY { false };
+  };
+
  private:
   // columns
   Column xColumn_;     //!< x column
@@ -1046,6 +1077,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   mutable AxisSideSize xAxisSideHeight_; //!< top or bottom
   mutable AxisSideSize yAxisSideWidth_;  //!< left or right
+
+  ParetoData paretoData_;
 
   // cached labels
   struct DataLabelData {

@@ -7,6 +7,8 @@ TODO:
  + summary distribution orientation
 
  + dendrogram swatch column and color column for color map
+ + dendrogram overlap clean
+ + update spread on margin change
  + save/restore expansion state
 
  + ruler on outside

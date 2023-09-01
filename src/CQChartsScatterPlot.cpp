@@ -149,7 +149,8 @@ CQChartsScatterPlot(View *view, const ModelP &model) :
  CQChartsPointPlot(view, view->charts()->plotType("scatter"), model),
  CQChartsObjPointData        <CQChartsScatterPlot>(this),
  CQChartsObjLineData         <CQChartsScatterPlot>(this),
- CQChartsObjGridCellShapeData<CQChartsScatterPlot>(this)
+ CQChartsObjGridCellShapeData<CQChartsScatterPlot>(this),
+ CQChartsObjParetoShapeData  <CQChartsScatterPlot>(this)
 {
 }
 
@@ -194,6 +195,9 @@ init()
   setGridCellStrokeColor(Color::makeInterfaceValue(0.1));
 
   setDataLabelPosition(CQChartsLabelPosition::TOP_OUTSIDE);
+
+  setParetoStrokeColor(Color::makePalette());
+  setParetoStrokeWidth(Length::pixel(5));
 
   //---
 
@@ -576,6 +580,35 @@ setYWhisker(bool b)
   if (b != isYWhisker()) { yAxisWhisker_->setVisible(b); resetExtraFitBBox(); drawObjs(); }
 }
 
+//---
+
+void
+CQChartsScatterPlot::
+setPareto(bool b)
+{
+  CQChartsUtil::testAndSet(paretoData_.visible, b, [&]() {
+    drawObjs();
+  });
+}
+
+void
+CQChartsScatterPlot::
+setParetoInvertX(bool b)
+{
+  CQChartsUtil::testAndSet(paretoData_.invertX, b, [&]() {
+    drawObjs();
+  });
+}
+
+void
+CQChartsScatterPlot::
+setParetoInvertY(bool b)
+{
+  CQChartsUtil::testAndSet(paretoData_.invertY, b, [&]() {
+    drawObjs();
+  });
+}
+
 //------
 
 void
@@ -671,6 +704,14 @@ addProperties()
 
   hideProp(this, "gridCells.stroke.dash");
   hideProp(this, "gridCells.stroke.cap");
+
+  //---
+
+  addProp("pareto", "pareto"       , "visible", "Show pareto");
+  addProp("pareto", "paretoInvertX", "invertX", "Invert pareto X direction");
+  addProp("pareto", "paretoInvertY", "invertY", "Invert pareto Y direction");
+
+  addLineProperties("pareto/stroke", "paretoStroke", "Pareto");
 
   //---
 
@@ -3207,6 +3248,8 @@ hasBackground() const
   if (isXDensity()) return true;
   if (isYDensity()) return true;
 
+  if (isPareto()) return true;
+
   return false;
 }
 
@@ -3243,6 +3286,11 @@ execDrawBackground(PaintDevice *device) const
 
   if (isXDensity()) drawXDensity(device);
   if (isYDensity()) drawYDensity(device);
+
+  //---
+
+  if (isPareto())
+    drawPareto(device);
 }
 
 bool
@@ -3698,6 +3746,65 @@ drawStatsLines(PaintDevice *device) const
     drawYStatLine(statData.ystat.median     );
     drawYStatLine(statData.ystat.upperMedian);
     drawYStatLine(statData.ystat.uoutlier   );
+  }
+}
+
+//---
+
+void
+CQChartsScatterPlot::
+drawPareto(PaintDevice *device) const
+{
+  const auto &dataRange = this->dataRange();
+
+  auto origin = Point((isParetoInvertX() ? dataRange.xmax() : dataRange.xmin()),
+                      (isParetoInvertY() ? dataRange.ymax() : dataRange.ymin()));
+
+  int ig = 0;
+  int ng = int(groupInds_.size());
+
+  for (const auto &groupInd : groupInds_) {
+    auto pnv = groupNameValues_.find(groupInd);
+    assert(pnv != groupNameValues_.end());
+
+    //---
+
+    PenBrush penBrush;
+
+    ColorInd ic(ig, ng);
+
+    auto pc = interpParetoStrokeColor(ic);
+    auto fc = interpParetoFillColor(ic);
+
+    setPenBrush(penBrush, paretoPenData(pc), paretoBrushData(fc));
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    //---
+
+    const auto &nameValues = (*pnv).second;
+
+    Points points;
+
+    for (const auto &pn : nameValues) {
+      const auto &values = pn.second;
+
+      for (const auto &v : values.values)
+        points.push_back(v.p);
+    }
+
+    auto front = CQChartsGeom::calcParetoFront(points, origin);
+
+    Polygon poly;
+
+    for (const auto &p : front)
+      poly.addPoint(p);
+
+    device->drawPolyline(poly);
+
+    //---
+
+    ++ig;
   }
 }
 

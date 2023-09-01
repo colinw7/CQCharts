@@ -11,6 +11,8 @@ class CQChartsColumnCombo;
 class CQChartsColumnTypeCombo;
 class CQChartsLineEdit;
 
+class CQGroupBox;
+
 class QAbstractItemModel;
 class QGridLayout;
 class QVBoxLayout;
@@ -73,21 +75,23 @@ class CQChartsModelColumnDataControl : public QFrame, public CQChartsWidgetIFace
   ModelData* modelData_ { nullptr };
   int        icolumn_   { -1 };
 
-  QFrame*                  generalFrame_    { nullptr };
-  QGridLayout*             generalLayout_   { nullptr };
-  QFrame*                  paramFrame_      { nullptr };
-  QVBoxLayout*             paramLayout_     { nullptr };
-  QFrame*                  paramSubFrame_   { nullptr };
-  QGridLayout*             paramSubLayout_  { nullptr };
-  QFrame*                  nullValueFrame_  { nullptr };
-  QGridLayout*             nullValueLayout_ { nullptr };
-  CQChartsColumnCombo*     columnNumEdit_   { nullptr };
-  CQChartsLineEdit*        nameEdit_        { nullptr };
-  CQChartsColumnTypeCombo* typeCombo_       { nullptr };
-  CQChartsColumnTypeCombo* headerTypeCombo_ { nullptr };
-  int                      paramRow_        { 0 };
+  QFrame*                  generalFrame_          { nullptr };
+  QGridLayout*             generalLayout_         { nullptr };
+  QFrame*                  paramFrame_            { nullptr };
+  QVBoxLayout*             paramLayout_           { nullptr };
+  CQGroupBox*              paramGenericSubFrame_  { nullptr };
+  QGridLayout*             paramGenericSubLayout_ { nullptr };
+  CQGroupBox*              paramSubFrame_         { nullptr };
+  QGridLayout*             paramSubLayout_        { nullptr };
+  QFrame*                  nullValueFrame_        { nullptr };
+  QGridLayout*             nullValueLayout_       { nullptr };
+  CQChartsColumnCombo*     columnNumEdit_         { nullptr };
+  CQChartsLineEdit*        nameEdit_              { nullptr };
+  CQChartsColumnTypeCombo* typeCombo_             { nullptr };
+  CQChartsColumnTypeCombo* headerTypeCombo_       { nullptr };
+  int                      paramRow_              { 0 };
   ParamEdits               paramEdits_;
-  CQChartsLineEdit*        nullValueEdit_   { nullptr };
+  CQChartsLineEdit*        nullValueEdit_         { nullptr };
 };
 
 #endif

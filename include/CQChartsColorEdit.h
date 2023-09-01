@@ -26,6 +26,8 @@ class CQChartsColorLineEdit : public CQChartsLineEditBase {
 
   void setNoFocus();
 
+  void updateTip();
+
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
  Q_SIGNALS:

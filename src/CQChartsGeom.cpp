@@ -240,7 +240,130 @@ fromString(const QString &s)
   return true;
 }
 
+}
+
 //---
+
+namespace CQChartsGeom {
+
+Points
+calcParetoFront(const Points &points, const Point &origin)
+{
+  using Points    = std::vector<Point>;
+  using PosPoints = std::map<double, Points>;
+
+  PosPoints xvals, yvals;
+
+  for (auto &p : points) {
+    xvals[p.x].push_back(p);
+    yvals[p.y].push_back(p);
+  }
+
+  using IndPoints = std::vector<Points>;
+  using IndPos    = std::map<double, uint>;
+
+  IndPoints xinds, yinds;
+  IndPos    xpos, ypos;
+
+  for (const auto &px : xvals) {
+    xpos[px.first] = xinds.size();
+
+    xinds.push_back(px.second);
+  }
+
+  for (const auto &py : yvals) {
+    ypos[py.first] = yinds.size();
+
+    yinds.push_back(py.second);
+  }
+
+  auto xmin = xpos.begin ()->first;
+  auto xmax = xpos.rbegin()->first;
+  auto ymin = ypos.begin ()->first;
+  auto ymax = ypos.rbegin()->first;
+
+  bool invX = (origin.x > (xmax + xmin)/2.0);
+  bool invY = (origin.y > (ymax + ymin)/2.0);
+
+  auto nx = xinds.size();
+  auto ny = yinds.size();
+
+  //---
+
+  using PointSet = std::set<Point>;
+
+  PointSet pointSet;
+
+  for (auto &p : points) {
+    auto px = xpos.find(p.x); assert(px != xpos.end());
+    auto py = ypos.find(p.y); assert(py != ypos.end());
+
+    bool add = false;
+
+    auto xind = (*px).second;
+    auto yind = (*py).second;
+
+    if ((! invX && xind == 0) || (invX && xind == nx - 1) ||
+        (! invY && yind == 0) || (invY && yind == ny - 1)) {
+      add = true;
+    }
+    else {
+      auto d = std::hypot(p.x - origin.x, p.y - origin.y);
+
+      bool xadd = true;
+
+      int xind1 = int(invX ? xind + 1 : xind - 1);
+
+      while (xadd && xind1 >= 0 && xind1 <= int(nx - 1)) {
+        for (const auto &p1 : xinds[xind1]) {
+          auto d1 = std::hypot(p1.x - origin.x, p1.y - origin.y);
+          if (d1 < d) {
+            xadd = false;
+            break;
+          }
+        }
+
+        xind1 = (invX ? xind1 + 1 : xind1 - 1);
+      }
+
+      bool yadd = true;
+
+      int yind1 = (invY ? yind + 1 : yind - 1);
+
+      while (yadd && yind1 >= 0 && yind1 <= int(ny - 1)) {
+        for (const auto &p1 : yinds[yind1]) {
+          auto d1 = std::hypot(p1.x - origin.x, p1.y - origin.y);
+          if (d1 < d) {
+            yadd = false;
+            break;
+          }
+        }
+
+        yind1 = (invY ? yind1 + 1 : yind1 - 1);
+      }
+
+      add = (xadd || yadd);
+    }
+
+    if (add)
+      pointSet.insert(p);
+  }
+
+  //---
+
+  Points front;
+
+  for (const auto &p : pointSet)
+    front.push_back(p);
+
+  return front;
+}
+
+}
+
+//---
+
+namespace CQChartsGeom {
 
 int bboxMetaTypeId;
 int pointMetaTypeId;

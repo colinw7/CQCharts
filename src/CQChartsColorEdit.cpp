@@ -26,8 +26,6 @@ CQChartsColorLineEdit(QWidget *parent) :
 {
   setObjectName("colorLineEdit");
 
-  setToolTip("Color");
-
   //---
 
   menuEdit_ = dataEdit_ = new CQChartsColorEdit;
@@ -109,11 +107,18 @@ colorToWidgets()
   else
     edit_->setText("");
 
+  updateTip();
+
+  connectSlots(true);
+}
+
+void
+CQChartsColorLineEdit::
+updateTip()
+{
   auto tip = QString("%1 (%2)").arg(toolTip()).arg(color().colorStr());
 
   edit_->setToolTip(tip);
-
-  connectSlots(true);
 }
 
 void

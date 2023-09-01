@@ -427,6 +427,8 @@ getNamedValue(const QString &name) const
 
   else if (lname == "bad_value") return this->badValue();
 
+  else if (lname == "decreasing") return this->decreasing();
+
   else if (lname == "monotonic" ) return this->isMonotonic();
   else if (lname == "increasing") return this->isIncreasing();
 
@@ -614,6 +616,15 @@ badValue() const
   initCache();
 
   return badValue_;
+}
+
+QVariant
+CQChartsModelColumnDetails::
+decreasing() const
+{
+  initCache();
+
+  return decreasing_;
 }
 
 QVariant
@@ -1453,6 +1464,8 @@ calcCache()
 
         badValue_ = columnType->badValue(details->nameValues()); // type custom bad value
 
+        decreasing_ = columnType->decreasing(details->nameValues()); // type custom decreasing
+
         visitMin_ = ! min_.isValid();
         visitMax_ = ! max_.isValid();
         visitSum_ = ! sum_.isValid();
@@ -1790,6 +1803,8 @@ calcCache()
 
     QVariant badValue() const { return badValue_; }
 
+    QVariant decreasing() const { return decreasing_; }
+
     bool isMonotonic () const { return monotonicSet_ && monotonic_; }
     bool isIncreasing() const { return increasing_; }
 
@@ -1800,6 +1815,7 @@ calcCache()
     QVariant                    max_;
     QVariant                    sum_;
     QVariant                    badValue_;
+    QVariant                    decreasing_;
     bool                        visitMin_     { true };
     bool                        visitMax_     { true };
     bool                        visitSum_     { true };
@@ -1837,6 +1853,7 @@ calcCache()
   maxValue_   = detailVisitor.maxValue();
   sumValue_   = detailVisitor.sumValue();
   badValue_   = detailVisitor.badValue();
+  decreasing_ = detailVisitor.decreasing();
   numRows_    = detailVisitor.numRows();
   monotonic_  = detailVisitor.isMonotonic();
   increasing_ = detailVisitor.isIncreasing();

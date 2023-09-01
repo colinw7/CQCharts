@@ -132,6 +132,12 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   // TODO: hull
 
+  // pareto
+  Q_PROPERTY(bool           pareto            READ isPareto          WRITE setPareto)
+  Q_PROPERTY(CQChartsLength paretoWidth       READ paretoWidth       WRITE setParetoWidth)
+  Q_PROPERTY(CQChartsColor  paretoLineColor   READ paretoLineColor   WRITE setParetoLineColor)
+  Q_PROPERTY(CQChartsColor  paretoOriginColor READ paretoOriginColor WRITE setParetoOriginColor)
+
   Q_ENUMS(PlotType)
   Q_ENUMS(DiagonalType)
   Q_ENUMS(OffDiagonalType)
@@ -278,11 +284,11 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
-  ScatterPlot*      scatterPlot     () { return scatterPlot_; }
-  DistributionPlot* distributionPlot() { return distributionPlot_; }
-  ParallelPlot*     parallelPlot    () { return parallelPlot_; }
-  BoxPlot*          boxPlot         () { return boxPlot_; }
-  PiePlot*          piePlot         () { return piePlot_; }
+  ScatterPlot*      scatterPlot     () const { return scatterPlot_; }
+  DistributionPlot* distributionPlot() const { return distributionPlot_; }
+  ParallelPlot*     parallelPlot    () const { return parallelPlot_; }
+  BoxPlot*          boxPlot         () const { return boxPlot_; }
+  PiePlot*          piePlot         () const { return piePlot_; }
 
   //---
 
@@ -299,6 +305,19 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   //! get/set density
   bool isDensity() const { return density_; }
   void setDensity(bool b);
+
+  //! get/set pareto
+  bool isPareto() const { return pareto_; }
+  void setPareto(bool b);
+
+  const Length &paretoWidth() const { return paretoWidth_; }
+  void setParetoWidth(const Length &l);
+
+  const Color &paretoLineColor() const { return paretoLineColor_; }
+  void setParetoLineColor(const Color &v);
+
+  const Color &paretoOriginColor() const { return paretoOriginColor_; }
+  void setParetoOriginColor(const Color &v);
 
   //---
 
@@ -474,6 +493,11 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   bool bestFit_ { false };
   bool density_ { false };
 
+  bool   pareto_            { false };
+  Length paretoWidth_       { Length::pixel(5) };
+  Color  paretoLineColor_   { Color::makePalette() };
+  Color  paretoOriginColor_ { Color::makeInterfaceValue(0.5) };
+
   CQChartsPlotObj* menuObj_ { nullptr }; //!< menu plot object
 
   ColumnVisible columnVisible_;
@@ -557,6 +581,7 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   void drawBoxPlot     (PaintDevice *device) const;
   void drawDistribution(PaintDevice *device) const;
   void drawDensity     (PaintDevice *device) const;
+  void drawPareto      (PaintDevice *device) const;
   void drawPie         (PaintDevice *device) const;
 
   void initGroupedValues();
@@ -692,6 +717,7 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
   void bestFitSlot(int);
   void densitySlot(int);
+  void paretoSlot(int);
 
   void expandSlot();
   void deselectSlot();
@@ -710,6 +736,7 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
   QCheckBox* bestFitCheck_ { nullptr };
   QCheckBox* densityCheck_ { nullptr };
+  QCheckBox* paretoCheck_  { nullptr };
 
   CQChartsSummaryPlotGroupStats*    stats_   { nullptr };
   CQChartsSummaryPlotColumnChooser* chooser_ { nullptr };

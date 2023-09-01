@@ -19,6 +19,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsFitData.h>
 #include <CQChartsRotatedText.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQChartsScatterPlot.h>
 #include <CQChartsDistributionPlot.h>
@@ -494,6 +495,42 @@ setDensity(bool b)
   } );
 }
 
+void
+CQChartsSummaryPlot::
+setPareto(bool b)
+{
+  CQChartsUtil::testAndSet(pareto_, b, [&]() {
+    drawObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
+void
+CQChartsSummaryPlot::
+setParetoWidth(const Length &l)
+{
+  CQChartsUtil::testAndSet(paretoWidth_, l, [&]() {
+    drawObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
+void
+CQChartsSummaryPlot::
+setParetoLineColor(const Color &c)
+{
+  CQChartsUtil::testAndSet(paretoLineColor_, c, [&]() {
+    drawObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
+void
+CQChartsSummaryPlot::
+setParetoOriginColor(const Color &c)
+{
+  CQChartsUtil::testAndSet(paretoOriginColor_, c, [&]() {
+    drawObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
 //---
 
 void
@@ -685,8 +722,12 @@ addProperties()
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
   // overlays
-  addProp("overlays", "bestFit", "bestFit", "Show best fit on scatter");
-  addProp("overlays", "density", "density", "Show density on distribution");
+  addProp("overlays", "bestFit"          , "bestFit"          , "Show best fit on scatter");
+  addProp("overlays", "density"          , "density"          , "Show density on distribution");
+  addProp("overlays", "pareto"           , "pareto"           , "Show pareto front on scatter");
+  addProp("overlays", "paretoWidth"      , "paretoWidth"      , "Show pareto front on scatter");
+  addProp("overlays", "paretoLineColor"  , "paretoLineColor"  , "Pareto front line color");
+  addProp("overlays", "paretoOriginColor", "paretoOriginColor", "Pareto front origin point color");
 }
 
 //---
@@ -2246,6 +2287,9 @@ drawScatter(PaintDevice *device) const
   if (summaryPlot_->isBestFit())
     drawBestFit(device);
 
+  if (summaryPlot_->isPareto())
+    drawPareto(device);
+
   //---
 
   if (rangeBox_.isSet()) {
@@ -2813,6 +2857,128 @@ drawDensity(PaintDevice *device) const
   density.draw(summaryPlot_, device, bbox, drawData);
 
   device->restore();
+}
+
+void
+CQChartsSummaryCellObj::
+drawPareto(PaintDevice *device) const
+{
+  CQPerfTrace trace("CQChartsSummaryCellObj::drawPareto");
+
+  //---
+
+  auto bbox = this->rect();
+
+  //---
+
+  auto column1 = colColumn();
+  auto column2 = rowColumn();
+
+  auto *details1 = summaryPlot_->columnDetails(column1);
+  auto *details2 = summaryPlot_->columnDetails(column2);
+  if (! details1 || ! details2) return;
+
+  bool invX = details1->decreasing().toBool();
+  bool invY = details2->decreasing().toBool();
+
+  //---
+
+  auto drawPareto = [&](const Polygon &polygon, const ColorInd &ic) {
+    // calc origin
+    auto pbbox = BBox(parentToPlot(bbox.getLL()), parentToPlot(bbox.getUR()));
+
+    auto origin = Point(invX ? pbbox.getXMax() : pbbox.getXMin(),
+                        invY ? pbbox.getYMax() : pbbox.getYMin());
+
+    //---
+
+    // calc pareto
+    std::vector<Point> points;
+    for (int i = 0; i < polygon.size(); ++i)
+      points.push_back(polygon.point(i));
+
+    auto front = CQChartsGeom::calcParetoFront(points, origin);
+
+    Polygon frontPoly;
+
+    for (const auto &p : front) {
+      auto p1 = plotToParent(Point(p));
+
+      frontPoly.addPoint(p1);
+    }
+
+    //---
+
+    device->save();
+
+    PenBrush penBrush;
+
+    //---
+
+    // draw pareto front
+    auto lineColor = summaryPlot_->interpColor(summaryPlot_->paretoLineColor(), ic);
+
+    summaryPlot_->setPenBrush(penBrush,
+      PenData(true, lineColor, Alpha(), summaryPlot_->paretoWidth()),
+      BrushData(false));
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    auto path = CQChartsDrawUtil::polygonToPath(frontPoly, /*closed*/false);
+
+    device->setClipRect(bbox);
+
+    device->strokePath(path, device->pen());
+
+    //---
+
+    // draw origin symbols
+    auto originColor = summaryPlot_->interpColor(summaryPlot_->paretoOriginColor(), ic);
+
+    summaryPlot_->setPenBrush(penBrush,
+      PenData(true, originColor, Alpha(), summaryPlot_->paretoWidth()),
+      BrushData(true, originColor));
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    auto o1 = plotToParent(origin);
+
+    auto ss = 4;
+
+    auto symbolSize = Length::pixel(ss);
+
+    auto pxs = summaryPlot_->pixelToWindowWidth (ss);
+    auto pys = summaryPlot_->pixelToWindowHeight(ss);
+
+    auto o2 = Point(o1.x + (invX ? -pxs : pxs), o1.y + (invY ? -pys : pys));
+
+    CQChartsDrawUtil::drawSymbol(device, penBrush, CQChartsSymbol::box(), o2,
+                                 symbolSize, /*scale*/true);
+
+    //---
+
+    device->restore();
+  };
+
+  //---
+
+  if (! summaryPlot_->groupColumn().isValid()) {
+    int nr = summaryPlot_->visibleColumns().count();
+
+    drawPareto(poly_, ColorInd(row(), nr));
+  }
+  else {
+    const_cast<CQChartsSummaryCellObj *>(this)->initGroupedValues();
+
+    int ig = 0;
+    int ng = int(groupValues_.groupIndData.size());
+
+    for (const auto &pg : groupValues_.groupIndData) {
+      const auto &indData = pg.second;
+
+      drawPareto(indData.poly, ColorInd(ig++, ng));
+    }
+  }
 }
 
 void
@@ -3403,12 +3569,21 @@ addOptionsWidgets()
 
   bestFitCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Best Fit", "bestFitCheck");
   densityCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Density" , "densityCheck");
+  paretoCheck_  = CQUtil::makeLabelWidget<QCheckBox>("Pareto"  , "paretoCheck");
 
   bestFitCheck_->setToolTip("Show Best Fit");
   densityCheck_->setToolTip("Show Density");
+  paretoCheck_ ->setToolTip("Show Pareto Front");
 
-  addFrameColWidget(optionsFrame_, bestFitCheck_);
-  addFrameColWidget(optionsFrame_, densityCheck_);
+  auto *boolFrame  = CQUtil::makeWidget<QFrame>("boolFrame");
+  auto *boolLayout = CQUtil::makeLayout<QHBoxLayout>(boolFrame, 2, 2);
+
+  boolLayout->addWidget(bestFitCheck_);
+  boolLayout->addWidget(densityCheck_);
+  boolLayout->addWidget(paretoCheck_);
+  boolLayout->addStretch(1);
+
+  addFrameColWidget(optionsFrame_, boolFrame, 2);
 }
 
 void
@@ -3450,6 +3625,8 @@ connectSlots(bool b)
     bestFitCheck_, SIGNAL(stateChanged(int)), this, SLOT(bestFitSlot(int)));
   CQUtil::optConnectDisconnect(b,
     densityCheck_, SIGNAL(stateChanged(int)), this, SLOT(densitySlot(int)));
+  CQUtil::optConnectDisconnect(b,
+    paretoCheck_ , SIGNAL(stateChanged(int)), this, SLOT(paretoSlot(int)));
 
   CQUtil::optConnectDisconnect(b,
     expandButton_, SIGNAL(clicked()), this, SLOT(expandSlot()));
@@ -3498,6 +3675,7 @@ updateWidgets()
 
   bestFitCheck_->setChecked(summaryPlot_->isBestFit());
   densityCheck_->setChecked(summaryPlot_->isDensity());
+  paretoCheck_ ->setChecked(summaryPlot_->isPareto());
 
   stats_  ->updateWidgets();
   chooser_->updateWidgets();
@@ -3570,6 +3748,13 @@ CQChartsSummaryPlotCustomControls::
 densitySlot(int state)
 {
   summaryPlot_->setDensity(state);
+}
+
+void
+CQChartsSummaryPlotCustomControls::
+paretoSlot(int state)
+{
+  summaryPlot_->setPareto(state);
 }
 
 void

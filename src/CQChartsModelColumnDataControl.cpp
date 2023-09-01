@@ -15,6 +15,7 @@
 #include <CQPropertyViewTree.h>
 #include <CQDataModel.h>
 #include <CQTabSplit.h>
+#include <CQGroupBox.h>
 
 #include <QComboBox>
 #include <QPushButton>
@@ -132,8 +133,15 @@ init()
   paramFrame_  = CQUtil::makeWidget<QFrame>("paramFrame");
   paramLayout_ = CQUtil::makeLayout<QVBoxLayout>(paramFrame_);
 
-  paramSubFrame_  = CQUtil::makeWidget<QFrame>("paramSubFrame");
+  paramGenericSubFrame_  = CQUtil::makeWidget<CQGroupBox>("paramSubFrame1");
+  paramGenericSubLayout_ = CQUtil::makeLayout<QGridLayout>(paramGenericSubFrame_, 0, 2);
+
+  paramGenericSubFrame_->setTitle("General");
+
+  paramSubFrame_  = CQUtil::makeWidget<CQGroupBox>("paramSubFrame2");
   paramSubLayout_ = CQUtil::makeLayout<QGridLayout>(paramSubFrame_, 0, 2);
+
+  paramSubFrame_->setTitle("Type Specific");
 
   paramFrame_->setAutoFillBackground(true);
 
@@ -219,6 +227,7 @@ init()
 
   //------
 
+  paramLayout_->addWidget(paramGenericSubFrame_);
   paramLayout_->addWidget(paramSubFrame_);
   paramLayout_->addStretch(1);
 
@@ -572,37 +581,53 @@ setColumnData(int icolumn)
     //---
 
     // update column parameters (add if needed)
-    int paramInd = 0;
+    int paramInd = 0, row1 = 0, row2 = 0;
 
-    for (const auto &param : typeData->params()) {
+    for (auto *param : typeData->params()) {
+      bool isGeneric = param->isGeneric();
+
       // add missing widgets for parameter index
       while (paramInd >= int(paramEdits_.size())) {
         ParamEdit paramEdit;
 
-        paramEdit.row   = paramInd;
         paramEdit.label = CQUtil::makeLabelWidget<QLabel>("", "label");
         paramEdit.edit  = new CQChartsParamEdit;
 
-        paramSubLayout_->addWidget(paramEdit.label, paramEdit.row, 0);
-        paramSubLayout_->addWidget(paramEdit.edit , paramEdit.row, 1);
+        if (isGeneric) {
+          paramEdit.row = ++row1;
+
+          paramGenericSubLayout_->addWidget(paramEdit.label, paramEdit.row, 0);
+          paramGenericSubLayout_->addWidget(paramEdit.edit , paramEdit.row, 1);
+        }
+        else {
+          paramEdit.row = ++row2;
+
+          paramSubLayout_->addWidget(paramEdit.label, paramEdit.row, 0);
+          paramSubLayout_->addWidget(paramEdit.edit , paramEdit.row, 1);
+        }
 
         paramEdits_.push_back(std::move(paramEdit));
       }
 
-      paramSubLayout_->setRowStretch(paramInd, 0);
+      paramGenericSubLayout_->setRowStretch(row1, 0);
+      paramSubLayout_       ->setRowStretch(row2, 0);
 
       //---
 
       // update widget to parameter name and type
       auto &paramEdit = paramEdits_[size_t(paramInd)];
 
-    //paramEdit.label->setText(param->name());
-      paramEdit.label->setText(param->tip());
-      paramEdit.label->setProperty("paramName", param->name());
+      auto name = param->name();
+      auto tip  = param->tip();
+      auto desc = param->desc();
+
+    //paramEdit.label->setText(name);
+      paramEdit.label->setText(tip);
+      paramEdit.label->setProperty("paramName", name);
 
       QVariant var;
 
-      columnTypeData.nameValues.nameValue(param->name(), var);
+      columnTypeData.nameValues.nameValue(name, var);
 
       if      (param->type() == CQBaseModelType::BOOLEAN) {
         bool ok;
@@ -629,9 +654,17 @@ setColumnData(int icolumn)
         paramEdit.edit->setString(var.toString());
       }
 
-      paramEdit.label->setObjectName(param->name() + "_label");
-      paramEdit.edit ->setObjectName(param->name() + "_edit" );
-      paramEdit.edit ->setToolTip(QString("%1 (%2)").arg(param->tip()).arg(param->name()));
+      paramEdit.label->setObjectName(name + "_label");
+      paramEdit.edit ->setObjectName(name + "_edit" );
+
+      QString tip1;
+
+      if (desc != "")
+        tip1 = tip + " (" + desc + ")";
+      else
+        tip1 = tip + " (" + name + ")";
+
+      paramEdit.edit->updateTip(tip);
 
       //---
 

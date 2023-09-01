@@ -861,42 +861,43 @@ CQChartsColumnType::
 CQChartsColumnType(Type type) :
  type_(type)
 {
-  addParam("key", Type::BOOLEAN, CQModelUtil::roleCast(CQBaseModelRole::Key), "Is Key", false)->
+  addGenericParam("key", Type::BOOLEAN,
+    CQModelUtil::roleCast(CQBaseModelRole::Key), "Is Key", false)->
     setDesc("Is Column a key for grouping");
 
   // preferred width
-  addParam("preferred_width", Type::INTEGER, "Preferred Width", "")->
+  addGenericParam("preferred_width", Type::INTEGER, "Preferred Width", "")->
     setDesc("Preferred column width");
 
   // null value
-  addParam("null_value", Type::STRING, "Null Value", "")->
+  addGenericParam("null_value", Type::STRING, "Null Value", "")->
     setDesc("Null value string").setNullValue(true);
 
   // extra values
-  addParam("extra_values", Type::STRING, "Extra Values", "")->
+  addGenericParam("extra_values", Type::STRING, "Extra Values", "")->
     setDesc("Extra values string");
 
   // draw color for table view
-  addParam("draw_color", Type::COLOR, "Table Draw Color", "")->
+  addGenericParam("draw_color", Type::COLOR, "Table Draw Color", "")->
     setDesc("Base color for table value coloring");
 
   // draw type for table view
-  addParam("draw_type", Type::ENUM, "Table Draw Type", "")->
+  addGenericParam("draw_type", Type::ENUM, "Table Draw Type", "")->
     setDesc("Table value draw type (heatmap or barchart)").
     addValue("heatmap").addValue("barchart");
 
   // draw stops for table view
-  addParam("draw_stops", Type::STRING, "Table Draw Stops", "")->
+  addGenericParam("draw_stops", Type::STRING, "Table Draw Stops", "")->
     setDesc("Table value draw stop values");
 
   // name to value map
-  addParam("named_values", Type::STRING, "Named Values", "")->
+  addGenericParam("named_values", Type::STRING, "Named Values", "")->
     setDesc("Named values");
   // name to color map
-  addParam("named_colors", Type::STRING, "Named Colors", "")->
+  addGenericParam("named_colors", Type::STRING, "Named Colors", "")->
     setDesc("Named colors");
   // name to image map
-  addParam("named_images", Type::STRING, "Named Images", "")->
+  addGenericParam("named_images", Type::STRING, "Named Images", "")->
     setDesc("Named images");
 }
 
@@ -912,6 +913,28 @@ CQChartsColumnType::
 name() const
 {
   return CQBaseModel::typeName(type_);
+}
+
+CQChartsColumnTypeParam *
+CQChartsColumnType::
+addGenericParam(const QString &name, Type type, int role, const QString &tip, const QVariant &def)
+{
+  auto *param = addParam(name, type, role, tip, def);
+
+  param->setGeneric(true);
+
+  return param;
+}
+
+CQChartsColumnTypeParam *
+CQChartsColumnType::
+addGenericParam(const QString &name, Type type, const QString &tip, const QVariant &def)
+{
+  auto *param = addParam(name, type, tip, def);
+
+  param->setGeneric(true);
+
+  return param;
 }
 
 CQChartsColumnTypeParam *
@@ -1341,6 +1364,9 @@ CQChartsColumnRealType() :
   addParam("sum", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::Sum), "Value Sum", 1.0)->
     setDesc("Override value sum for column");
 
+  addParam("decreasing", Type::BOOLEAN, "Decreasing")->
+    setDesc("Values are ordered decreasing");
+
   addParam("bad_value", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::BadValue),
            "Bad Value", CMathUtil::getNaN())->
     setDesc("Override bad value for column");
@@ -1457,6 +1483,18 @@ sumValue(const NameValues &nameValues) const
     return QVariant();
 
   return CQChartsVariant::fromReal(r);
+}
+
+QVariant
+CQChartsColumnRealType::
+decreasing(const NameValues &nameValues) const
+{
+  bool b;
+
+  if (CQChartsColumnUtil::nameValueBool(nameValues, "decreasing", b))
+    return CQChartsVariant::fromBool(b);
+
+  return QVariant();
 }
 
 QVariant

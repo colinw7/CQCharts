@@ -176,6 +176,19 @@ getColor() const
 
 void
 CQChartsParamEdit::
+updateTip(const QString &tip)
+{
+  setToolTip(tip);
+
+  if (color_) {
+    color_->setToolTip(tip);
+
+    color_->updateTip();
+  }
+}
+
+void
+CQChartsParamEdit::
 reset()
 {
   delete edit_;
