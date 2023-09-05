@@ -3,6 +3,9 @@
 
 #include <CQPropertyView.h>
 
+#include <set>
+#include <map>
+
 CQUTIL_DEF_META_TYPE_ID(CQChartsGeom::BBox   , CQChartsGeomBBox   , toString, fromString)
 CQUTIL_DEF_META_TYPE_ID(CQChartsGeom::Point  , CQChartsGeomPoint  , toString, fromString)
 CQUTIL_DEF_META_TYPE_ID(CQChartsGeom::Point3D, CQChartsGeomPoint3D, toString, fromString)

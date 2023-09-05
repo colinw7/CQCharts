@@ -545,9 +545,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(GridCell, gridCell)
 
   // pareto
-  Q_PROPERTY(bool pareto        READ isPareto        WRITE setPareto       )
-  Q_PROPERTY(bool paretoInvertX READ isParetoInvertX WRITE setParetoInvertX)
-  Q_PROPERTY(bool paretoInvertY READ isParetoInvertY WRITE setParetoInvertY)
+  Q_PROPERTY(bool          pareto            READ isPareto          WRITE setPareto           )
+  Q_PROPERTY(CQChartsColor paretoOriginColor READ paretoOriginColor WRITE setParetoOriginColor)
 
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Pareto, pareto)
 
@@ -721,11 +720,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   bool isPareto() const { return paretoData_.visible; }
   void setPareto(bool b);
 
-  bool isParetoInvertX() const { return paretoData_.invertX; }
-  void setParetoInvertX(bool b);
-
-  bool isParetoInvertY() const { return paretoData_.invertY; }
-  void setParetoInvertY(bool b);
+  const Color &paretoOriginColor() const { return paretoData_.originColor; }
+  void setParetoOriginColor(const Color &v);
 
   //---
 
@@ -1026,9 +1022,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   };
 
   struct ParetoData {
-    bool visible { false };
-    bool invertX { false };
-    bool invertY { false };
+    bool  visible     { false };
+    Color originColor { Color::makePalette() };
   };
 
  private:
@@ -1141,6 +1136,7 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
   void bestFitSlot();
   void convexHullSlot();
   void statsLinesSlot();
+  void paretoSlot();
 
   void plotTypeSlot();
 
@@ -1161,6 +1157,7 @@ class CQChartsScatterPlotCustomControls : public CQChartsPointPlotCustomControls
   CQChartsBoolParameterEdit* bestFitCheck_ { nullptr };
   CQChartsBoolParameterEdit* hullCheck_    { nullptr };
   CQChartsBoolParameterEdit* statsCheck_   { nullptr };
+  CQChartsBoolParameterEdit* paretoCheck_  { nullptr };
 
   CQChartsEnumParameterEdit* plotTypeCombo_    { nullptr };
   CQGroupBox*                symbolLabelGroup_ { nullptr };

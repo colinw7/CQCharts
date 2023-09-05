@@ -207,7 +207,7 @@ class CQChartsColumnType {
   // get value sum
   virtual QVariant sumValue(const NameValues &) const { return QVariant(); }
 
-  // get bad value
+  // get decreasing
   virtual QVariant decreasing(const NameValues &) const { return QVariant(); }
 
   // get bad value

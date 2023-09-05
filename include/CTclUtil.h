@@ -179,7 +179,10 @@ inline std::string errorInfo(Tcl_Interp *interp, int rc) {
   Tcl_DictObjGet(nullptr, options, key1, &errorMsg);
   Tcl_DecrRefCount(key1);
 
-  auto msg = stringFromObj(errorMsg);
+  std::string msg;
+
+  if (errorMsg)
+    msg = stringFromObj(errorMsg);
 
   Tcl_Obj *stackTrace;
   Tcl_IncrRefCount(key2);
@@ -334,6 +337,8 @@ class CTcl {
 
     evalData.rc = CTclUtil::eval(interp(), cmd.c_str());
 
+    lastError_ = evalData.rc;
+
     if (evalData.rc != TCL_OK) {
       evalData.errMsg = errorInfo(evalData.rc);
 
@@ -477,6 +482,10 @@ class CTcl {
     return CTclUtil::errorInfo(interp(), rc);
   }
 
+  std::string errorInfo() const {
+    return CTclUtil::errorInfo(interp(), lastError_);
+  }
+
  private:
   Tcl_Command createObjCommandI(const std::string &name, ObjCmdProc proc, ObjCmdData data) {
     return Tcl_CreateObjCommand(interp(), const_cast<char *>(name.c_str()),
@@ -498,6 +507,7 @@ class CTcl {
   Tcl_Interp* interp_ { nullptr };
   Traces      traces_;
   StringList  commandNames_;
+  int         lastError_ { 0 };
 };
 
 #endif

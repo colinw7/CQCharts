@@ -81,6 +81,9 @@ addParameters()
   addBoolParameter("pointLabels", "Point Labels", "pointLabels").
     setPropPath("labels.visible").setTip("Show Label at Point");
 
+  addBoolParameter("pareto", "Pareto Front", "pareto").
+    setPropPath("overlays.pareto.visible").setTip("Show pareto front");
+
   addMiscParameters();
 
   endParameterGroup();
@@ -587,24 +590,17 @@ CQChartsScatterPlot::
 setPareto(bool b)
 {
   CQChartsUtil::testAndSet(paretoData_.visible, b, [&]() {
+    if (rootPlot()) rootPlot()->updateRootChild(this);
+
     drawObjs();
   });
 }
 
 void
 CQChartsScatterPlot::
-setParetoInvertX(bool b)
+setParetoOriginColor(const Color &c)
 {
-  CQChartsUtil::testAndSet(paretoData_.invertX, b, [&]() {
-    drawObjs();
-  });
-}
-
-void
-CQChartsScatterPlot::
-setParetoInvertY(bool b)
-{
-  CQChartsUtil::testAndSet(paretoData_.invertY, b, [&]() {
+  CQChartsUtil::testAndSet(paretoData_.originColor, c, [&]() {
     drawObjs();
   });
 }
@@ -707,11 +703,12 @@ addProperties()
 
   //---
 
-  addProp("pareto", "pareto"       , "visible", "Show pareto");
-  addProp("pareto", "paretoInvertX", "invertX", "Invert pareto X direction");
-  addProp("pareto", "paretoInvertY", "invertY", "Invert pareto Y direction");
+  auto paretoPropPath = QString("overlays/pareto");
 
-  addLineProperties("pareto/stroke", "paretoStroke", "Pareto");
+  addProp(paretoPropPath, "pareto"           , "visible"    , "Show pareto");
+  addProp(paretoPropPath, "paretoOriginColor", "originColor", "Pareto origin symbol color");
+
+  addLineProperties(paretoPropPath + "/stroke", "paretoStroke", "Pareto");
 
   //---
 
@@ -2751,7 +2748,7 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
       const auto &viewBBox = this->viewBBox();
 
       hexMap->setRange(viewBBox.getXMin(), viewBBox.getYMin(),
-                      viewBBox.getXMax(), viewBBox.getYMax());
+                       viewBBox.getXMax(), viewBBox.getYMax());
 
       hexMap->setNum(gridData_.nx());
 
@@ -3757,21 +3754,21 @@ drawPareto(PaintDevice *device) const
 {
   const auto &dataRange = this->dataRange();
 
-  auto origin = Point((isParetoInvertX() ? dataRange.xmax() : dataRange.xmin()),
-                      (isParetoInvertY() ? dataRange.ymax() : dataRange.ymin()));
+  auto *xDetails = (xColumn().isValid() ? columnDetails(xColumn()) : nullptr);
+  auto *yDetails = (yColumn().isValid() ? columnDetails(yColumn()) : nullptr);
 
-  int ig = 0;
-  int ng = int(groupInds_.size());
+  bool invX = (xDetails ? xDetails->decreasing().toBool() : false);
+  bool invY = (yDetails ? yDetails->decreasing().toBool() : false);
 
-  for (const auto &groupInd : groupInds_) {
-    auto pnv = groupNameValues_.find(groupInd);
-    assert(pnv != groupNameValues_.end());
+  auto origin = Point((invX ? dataRange.xmax() : dataRange.xmin()),
+                      (invY ? dataRange.ymax() : dataRange.ymin()));
 
-    //---
+  //---
 
+  auto updateBrush = [&](int i, int n) {
     PenBrush penBrush;
 
-    ColorInd ic(ig, ng);
+    ColorInd ic(i, n);
 
     auto pc = interpParetoStrokeColor(ic);
     auto fc = interpParetoFillColor(ic);
@@ -3779,6 +3776,43 @@ drawPareto(PaintDevice *device) const
     setPenBrush(penBrush, paretoPenData(pc), paretoBrushData(fc));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
+  };
+
+  auto drawParetoPoints = [&](const Points &points) {
+    if (points.empty()) return;
+
+    auto front = CQChartsGeom::calcParetoFront(points, origin);
+
+    Polygon poly;
+
+    for (const auto &p : front)
+      poly.addPoint(p);
+
+    device->drawPolyline(poly);
+  };
+
+  //---
+
+  int ig = 0;
+  int ng = int(groupInds_.size());
+
+  int is = 0;
+  int ns = 1;
+
+  if (ng == 1) {
+    const auto &nameValues = (*groupNameValues_.begin()).second;
+
+    const auto &values = (*nameValues.begin()).second.values;
+
+    if (values.size() > 1)
+      ns = values.size();
+  }
+
+  //---
+
+  for (const auto &groupInd : groupInds_) {
+    auto pnv = groupNameValues_.find(groupInd);
+    assert(pnv != groupNameValues_.end());
 
     //---
 
@@ -3791,21 +3825,52 @@ drawPareto(PaintDevice *device) const
 
       for (const auto &v : values.values)
         points.push_back(v.p);
+
+      if (values.values.size() > 1) {
+        updateBrush(is, ns);
+
+        drawParetoPoints(points);
+
+        points.clear();
+
+        ++is;
+      }
     }
 
-    auto front = CQChartsGeom::calcParetoFront(points, origin);
+    //---
 
-    Polygon poly;
+    updateBrush(ig, ng);
 
-    for (const auto &p : front)
-      poly.addPoint(p);
-
-    device->drawPolyline(poly);
+    drawParetoPoints(points);
 
     //---
 
     ++ig;
   }
+
+  //---
+
+  PenBrush penBrush;
+
+  ColorInd ic;
+
+  auto originColor = interpColor(paretoOriginColor(), ic);
+
+  setPenBrush(penBrush,
+    PenData(true, originColor, Alpha(), paretoStrokeWidth()),
+    BrushData(true, originColor));
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  auto ss = 4.0;
+
+  auto symbolSize = Length::pixel(ss);
+
+  double sx, sy;
+  pixelSymbolSize(symbolSize, sx, sy, /*scale*/false);
+
+  drawSymbol(device, origin, CQChartsSymbol::box(), sx, sy,
+             penBrush, /*scaled*/false);
 }
 
 //------
@@ -4714,7 +4779,6 @@ draw(PaintDevice *device) const
   auto symbol = this->calcSymbol();
 
   double sx, sy;
-
   calcSymbolPixelSize(sx, sy, /*square*/true, /*enforceMinSize*/false);
 
   //---
@@ -4821,7 +4885,6 @@ drawDataLabel(PaintDevice *device) const
   auto ps = scatterPlot()->windowToPixel(point());
 
   double sx, sy;
-
   calcSymbolPixelSize(sx, sy, /*square*/true, /*enforceMinSize*/false);
 
   BBox ptbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
@@ -5556,10 +5619,12 @@ addOptionsWidgets()
   bestFitCheck_ = createBoolEdit("bestFit"   , /*choice*/false);
   hullCheck_    = createBoolEdit("convexHull", /*choice*/false);
   statsCheck_   = createBoolEdit("statsLines", /*choice*/false);
+  paretoCheck_  = createBoolEdit("pareto"    , /*choice*/false);
 
   addFrameColWidget (optionsFrame_, bestFitCheck_);
   addFrameColWidget (optionsFrame_, hullCheck_);
   addFrameColWidget (optionsFrame_, statsCheck_);
+  addFrameColWidget (optionsFrame_, paretoCheck_);
   addFrameColStretch(optionsFrame_);
 
 #if 0
@@ -5646,6 +5711,8 @@ connectSlots(bool b)
     hullCheck_, SIGNAL(stateChanged(int)), this, SLOT(convexHullSlot()));
   CQUtil::optConnectDisconnect(b,
     statsCheck_, SIGNAL(stateChanged(int)), this, SLOT(statsLinesSlot()));
+  CQUtil::optConnectDisconnect(b,
+    paretoCheck_, SIGNAL(stateChanged(int)), this, SLOT(paretoSlot()));
 
   CQUtil::optConnectDisconnect(b,
     plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
@@ -5704,6 +5771,7 @@ updateWidgets()
   if (bestFitCheck_) bestFitCheck_->setChecked(scatterPlot_->isBestFit());
   if (hullCheck_   ) hullCheck_   ->setChecked(scatterPlot_->isHull());
   if (statsCheck_  ) statsCheck_  ->setChecked(scatterPlot_->isStatsLines());
+  if (paretoCheck_ ) paretoCheck_ ->setChecked(scatterPlot_->isPareto());
 
   //---
 
@@ -5769,6 +5837,13 @@ CQChartsScatterPlotCustomControls::
 statsLinesSlot()
 {
   scatterPlot_->setStatsLines(statsCheck_->isChecked());
+}
+
+void
+CQChartsScatterPlotCustomControls::
+paretoSlot()
+{
+  scatterPlot_->setPareto(paretoCheck_->isChecked());
 }
 
 void

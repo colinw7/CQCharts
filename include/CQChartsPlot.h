@@ -1206,8 +1206,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   // expand/collapse control data
-  const Plot *rootPlot() const { return connectData_.root; }
+  Plot *rootPlot() const { return connectData_.root; }
   void setRootPlot(Plot *root) { connectData_.root = root; }
+
+  virtual void updateRootChild(Plot *) { }
 
   virtual void notifyCollapse() { }
 
@@ -4299,10 +4301,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   struct OverviewData {
     bool   displayed   { false };
     int    size        { 256 };
-    QColor fillColor   { Qt::red };
-    double fillAlpha   { 0.5 };
+    QColor fillColor   { "#80d080" };
+    double fillAlpha   { 0.3 };
     QColor strokeColor { Qt::black };
-    double strokeAlpha { 0.5 };
+    double strokeAlpha { 0.7 };
     BBox   plotRect;
     QImage image;
   };

@@ -451,6 +451,17 @@ setUpperDiagonalType(const OffDiagonalType &t)
 
 void
 CQChartsSummaryPlot::
+setOrientation(const Qt::Orientation &o)
+{
+  CQChartsUtil::testAndSet(orientation_, o, [&]() {
+    drawObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
+//---
+
+void
+CQChartsSummaryPlot::
 setSelectMode(const SelectMode &m)
 {
   CQChartsUtil::testAndSet(selectMode_, m, [&]() {
@@ -482,6 +493,8 @@ CQChartsSummaryPlot::
 setBestFit(bool b)
 {
   CQChartsUtil::testAndSet(bestFit_, b, [&]() {
+    scatterPlot()->setBestFit(b);
+
     drawObjs(); Q_EMIT customDataChanged();
   } );
 }
@@ -491,6 +504,8 @@ CQChartsSummaryPlot::
 setDensity(bool b)
 {
   CQChartsUtil::testAndSet(density_, b, [&]() {
+    distributionPlot()->setDensity(b);
+
     drawObjs(); Q_EMIT customDataChanged();
   } );
 }
@@ -500,6 +515,8 @@ CQChartsSummaryPlot::
 setPareto(bool b)
 {
   CQChartsUtil::testAndSet(pareto_, b, [&]() {
+    scatterPlot()->setPareto(b);
+
     drawObjs(); Q_EMIT customDataChanged();
   } );
 }
@@ -509,6 +526,8 @@ CQChartsSummaryPlot::
 setParetoWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(paretoWidth_, l, [&]() {
+    scatterPlot()->setParetoStrokeWidth(l);
+
     drawObjs(); Q_EMIT customDataChanged();
   } );
 }
@@ -518,6 +537,8 @@ CQChartsSummaryPlot::
 setParetoLineColor(const Color &c)
 {
   CQChartsUtil::testAndSet(paretoLineColor_, c, [&]() {
+    scatterPlot()->setParetoStrokeColor(c);
+
     drawObjs(); Q_EMIT customDataChanged();
   } );
 }
@@ -527,6 +548,8 @@ CQChartsSummaryPlot::
 setParetoOriginColor(const Color &c)
 {
   CQChartsUtil::testAndSet(paretoOriginColor_, c, [&]() {
+    scatterPlot()->setParetoOriginColor(c);
+
     drawObjs(); Q_EMIT customDataChanged();
   } );
 }
@@ -679,6 +702,9 @@ addProperties()
   addProp("cell", "lowerDiagonalType", "lowerDiagonal", "Lower Diagonal cell type");
   addProp("cell", "upperDiagonalType", "upperDiagonal", "Upper Diagonal cell type");
   addProp("cell", "border"           , "border"       , "Border Size");
+
+  // options
+  addProp("options", "orientation", "orientation", "Plot orientation");
 
   // scatter plot
   addSymbolProperties("scatter/symbol", "scatter", "Scatter Symbol");
@@ -895,6 +921,23 @@ posStr(const Point &w) const
   auto p = obj->parentToPlot(w);
 
   return xStr(p.x) + " " + yStr(p.y);
+}
+
+//---
+
+void
+CQChartsSummaryPlot::
+updateRootChild(Plot *plot)
+{
+  auto *scatter = dynamic_cast<ScatterPlot *>(plot);
+
+  if (scatter) {
+    if (scatter->isPareto() != isPareto())
+      setPareto(scatter->isPareto());
+
+    if (scatter->isBestFit() != isBestFit())
+      setBestFit(scatter->isBestFit());
+  }
 }
 
 //---
@@ -1126,6 +1169,66 @@ isSelectedRow(int r) const
   if (pr == selectedRows_.end()) return false;
 
   return (int((*pr).second.size()) == nc_);
+}
+
+//---
+
+void
+CQChartsSummaryPlot::
+selectCellPoint(CellObj *obj, int ind) const
+{
+  auto *modelData = charts()->currentModelData();
+
+  QItemSelection sel;
+
+  auto ind1 = modelIndex(ind, obj->rowColumn(), QModelIndex());
+  auto ind2 = modelIndex(ind, obj->colColumn(), QModelIndex());
+
+  sel.select(ind1, ind1);
+  sel.select(ind2, ind2);
+
+  modelData->select(sel);
+}
+
+void
+CQChartsSummaryPlot::
+selectCellRect(CellObj *obj, const MinMax &minMax) const
+{
+  auto *modelData = charts()->currentModelData();
+
+  auto column = obj->rowColumn();
+
+  auto *details = columnDetails(column);
+  if (! details) return;
+
+  int n = details->numRows();
+
+  std::set<int> rows;
+
+  for (uint i = 0; i < uint(n); ++i) {
+    double x = 0.0;
+
+    if (details->isNumeric()) {
+      bool ok;
+      x = CQChartsVariant::toReal(details->value(i), ok);
+      if (! ok) continue;
+    }
+    else
+      x = details->uniqueId(details->value(i));
+
+    if (minMax.insideHalfOpen(x))
+      rows.insert(i);
+  }
+
+  QItemSelection sel;
+
+  for (const int &row : rows) {
+    auto ind1 = modelIndex(row, column, QModelIndex());
+
+    sel.select(ind1, ind1);
+  }
+
+  modelData->select(sel);
 }
 
 //---
@@ -2640,18 +2743,26 @@ drawDistribution(PaintDevice *device) const
 
   //---
 
+  bool invert = (summaryPlot_->orientation() == Qt::Horizontal);
+
   auto drawRect = [&](const BBox &bbox) {
-    auto pw = device->windowToSignedPixelWidth(bbox.getWidth());
+    auto pw = (invert ?
+      device->windowToPixelHeight(bbox.getHeight()) :
+      device->windowToPixelWidth (bbox.getWidth ()));
 
     if (pw <= 2) {
-      auto xm = bbox.getXMid();
+      auto mid = (invert ? bbox.getYMid() : bbox.getXMid());
 
       device->setPen(device->brush().color());
 
-      device->drawLine(Point(xm, bbox.getYMin()), Point(xm, bbox.getYMax()));
+      if (invert)
+        device->drawLine(Point(bbox.getXMin(), mid), Point(bbox.getXMax(), mid));
+      else
+        device->drawLine(Point(mid, bbox.getYMin()), Point(mid, bbox.getYMax()));
     }
-    else
+    else {
       device->drawRect(bbox);
+    }
   };
 
   if (details->isNumeric()) {
@@ -2689,13 +2800,24 @@ drawDistribution(PaintDevice *device) const
 
       int n = pb.second;
 
-      double x1 = CMathUtil::map(rmin1, bmin_, bmax_, pxmin_, pxmax_);
-      double x2 = CMathUtil::map(rmax1, bmin_, bmax_, pxmin_, pxmax_);
+      double x1, y1, x2, y2;
 
-      double y1 = CMathUtil::map(0, 0, maxCount_, pymin_, pymax_);
-      double y2 = CMathUtil::map(n, 0, maxCount_, pymin_, pymax_);
+      if (invert) {
+        x1 = CMathUtil::map(0, 0, maxCount_, pxmin_, pxmax_);
+        x2 = CMathUtil::map(n, 0, maxCount_, pxmin_, pxmax_);
 
-      BBox bbox(x1, y1, x2, y2);
+        y1 = CMathUtil::map(rmin1, bmin_, bmax_, pymin_, pymax_);
+        y2 = CMathUtil::map(rmax1, bmin_, bmax_, pymin_, pymax_);
+      }
+      else {
+        x1 = CMathUtil::map(rmin1, bmin_, bmax_, pxmin_, pxmax_);
+        x2 = CMathUtil::map(rmax1, bmin_, bmax_, pxmin_, pxmax_);
+
+        y1 = CMathUtil::map(0, 0, maxCount_, pymin_, pymax_);
+        y2 = CMathUtil::map(n, 0, maxCount_, pymin_, pymax_);
+      }
+
+      auto bbox = BBox(x1, y1, x2, y2);
 
       //---
 
@@ -2721,7 +2843,7 @@ drawDistribution(PaintDevice *device) const
       RectData rectData;
 
       rectData.ind   = ig;
-      rectData.bbox  = BBox(rmin1, 0, rmax1, n);
+      rectData.bbox  = (invert ? BBox(0, rmin1, n, rmax1) : BBox(rmin1, 0, rmax1, n));
       rectData.pbbox = bbox;
 
       rectDatas_.push_back(rectData);
@@ -2743,9 +2865,10 @@ drawDistribution(PaintDevice *device) const
 
     int nc = int(valueCounts.size());
 
-    double dx = (nc > 0 ? (pxmax_ - pxmin_)/nc : 0.0);
+    double dn = (invert ?
+     (nc > 0 ? (pymax_ - pymin_)/nc : 0.0) : (nc > 0 ? (pxmax_ - pxmin_)/nc : 0.0));
 
-    double x = pxmin_;
+    double pos = (invert ? pymin_ : pxmin_);
 
     for (const auto &vc : valueCounts) {
       PenBrush penBrush1;
@@ -2766,23 +2889,27 @@ drawDistribution(PaintDevice *device) const
 
       auto r = CMathUtil::map(vc.second, 0, maxCount_, pymin_, pymax_);
 
-      BBox bbox(x, pymin_, x + dx, r);
+      auto bbox = (invert ? BBox(pxmin_, pos, r, pos + dn) : BBox(pos, pymin_, pos + dn, r));
 
       CQChartsDrawUtil::setPenBrush(device, penBrush1);
 
       drawRect(bbox);
 
-      x += dx;
+      pos += dn;
     }
   }
 
   //---
 
   if (rangeBox_.isSet()) {
-    double xmin = CMathUtil::map(rangeBox_.getXMin(), bmin_, bmax_, 0.0, 1.0);
-    double xmax = CMathUtil::map(rangeBox_.getXMax(), bmin_, bmax_, 0.0, 1.0);
+    double rmin = (invert ?
+      CMathUtil::map(rangeBox_.getYMin(), bmin_, bmax_, 0.0, 1.0) :
+      CMathUtil::map(rangeBox_.getXMin(), bmin_, bmax_, 0.0, 1.0));
+    double rmax = (invert ?
+      CMathUtil::map(rangeBox_.getYMax(), bmin_, bmax_, 0.0, 1.0) :
+      CMathUtil::map(rangeBox_.getXMax(), bmin_, bmax_, 0.0, 1.0));
 
-    auto brect = BBox(xmin, 0.0, xmax, 1.0);
+    auto brect = (invert ? BBox(0.0, rmin, 1.0, rmax) : BBox(rmin, 0.0, rmax, 1.0));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -2874,12 +3001,11 @@ drawPareto(PaintDevice *device) const
   auto column1 = colColumn();
   auto column2 = rowColumn();
 
-  auto *details1 = summaryPlot_->columnDetails(column1);
-  auto *details2 = summaryPlot_->columnDetails(column2);
-  if (! details1 || ! details2) return;
+  auto *xDetails = summaryPlot_->columnDetails(column1);
+  auto *yDetails = summaryPlot_->columnDetails(column2);
 
-  bool invX = details1->decreasing().toBool();
-  bool invY = details2->decreasing().toBool();
+  bool invX = (xDetails ? xDetails->decreasing().toBool() : false);
+  bool invY = (yDetails ? yDetails->decreasing().toBool() : false);
 
   //---
 
@@ -2943,7 +3069,7 @@ drawPareto(PaintDevice *device) const
 
     auto o1 = plotToParent(origin);
 
-    auto ss = 4;
+    auto ss = 4.0;
 
     auto symbolSize = Length::pixel(ss);
 
@@ -3089,8 +3215,18 @@ parentToPlot(const Point &p) const
   auto wy = CMathUtil::map(p.y, r.getYMin(), r.getYMax(), 0.0, 1.0);
 
   if      (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION) {
-    auto bx = CMathUtil::map(wx, bx_, 1.0 - bx_, bmin_, bmax_);
-    auto by = CMathUtil::map(wy, by_, 1.0 - by_, 0, maxCount_);
+    bool invert = (summaryPlot_->orientation() == Qt::Horizontal);
+
+    double bx, by;
+
+    if (invert) {
+      bx = CMathUtil::map(wy, bx_, 1.0 - by_, 0, maxCount_);
+      by = CMathUtil::map(wx, by_, 1.0 - bx_, bmin_, bmax_);
+    }
+    else {
+      bx = CMathUtil::map(wx, bx_, 1.0 - bx_, bmin_, bmax_);
+      by = CMathUtil::map(wy, by_, 1.0 - by_, 0, maxCount_);
+    }
 
     return Point(bx, by);
   }
@@ -3235,18 +3371,32 @@ handleSelectRelease(const Point &p)
 
   auto cellType = getCellType();
 
-  if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION) {
+  if      (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION) {
     if (selectRectData_) {
+      bool invert = (summaryPlot_->orientation() == Qt::Horizontal);
+
+      auto minMax = (invert ?
+        MinMax(selectRectData_->bbox.getYMin(), selectRectData_->bbox.getYMax()) :
+        MinMax(selectRectData_->bbox.getXMin(), selectRectData_->bbox.getXMax()));
+
       auto column = rowColumn();
 
       auto *plot = const_cast<CQChartsSummaryPlot *>(summaryPlot_);
 
-      plot->setColumnRange(column, selectRectData_->bbox.getXMin(),
-                                   selectRectData_->bbox.getXMax());
+      plot->setColumnRange(column, minMax.min(), minMax.max());
 
       plot->updateSelectedRows();
 
       plot->drawObjs();
+
+      //---
+
+      summaryPlot_->selectCellRect(this, minMax);
+    }
+  }
+  else if (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
+    if (selectPointData_) {
+      summaryPlot_->selectCellPoint(this, selectPointData_->ind);
     }
   }
 

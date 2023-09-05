@@ -212,15 +212,19 @@ groupColumnSlot()
 {
   connectSlots(false);
 
+  disconnect(groupPlot_, SIGNAL(groupCustomDataChanged()), this, SLOT(updateWidgets()));
+
   groupPlot_->setGroupColumn(groupColumnCombo_->getColumn());
 
   groupPlot_->initGroupBucketer();
 
   bucketRange_->setRangeMinMax(groupPlot_->minBucketValue(), groupPlot_->maxBucketValue());
 
-  updateWidgets();
+  connect(groupPlot_, SIGNAL(groupCustomDataChanged()), this, SLOT(updateWidgets()));
 
   connectSlots(true);
+
+  updateWidgets();
 }
 
 void

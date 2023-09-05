@@ -104,6 +104,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Q_PROPERTY(OffDiagonalType upperDiagonalType READ upperDiagonalType WRITE setUpperDiagonalType)
   Q_PROPERTY(OffDiagonalType lowerDiagonalType READ lowerDiagonalType WRITE setLowerDiagonalType)
 
+  // options
+  Q_PROPERTY(Qt::Orientation orientation READ orientation WRITE setOrientation)
+
   // select mode
   Q_PROPERTY(SelectMode selectMode READ selectMode WRITE setSelectMode)
 
@@ -279,6 +282,11 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
+  const Qt::Orientation &orientation() const { return orientation_; }
+  void setOrientation(const Qt::Orientation &orient);
+
+  //---
+
   const SelectMode &selectMode() const { return selectMode_; }
   void setSelectMode(const SelectMode &v);
 
@@ -334,6 +342,10 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
+
+  //---
+
+  void updateRootChild(Plot *plot) override;
 
   //---
 
@@ -415,6 +427,11 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
+  void selectCellPoint(CellObj *obj, int ind) const;
+  void selectCellRect (CellObj *obj, const MinMax &minMax) const;
+
+  //---
+
   void expandCell(CellObj *cellObj);
   void collapseCell();
 
@@ -482,6 +499,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   OffDiagonalType upperDiagonalType_ { OffDiagonalType::SCATTER };     //!< upper diagonal type
   OffDiagonalType lowerDiagonalType_ { OffDiagonalType::CORRELATION }; //!< lower diagonal type
 
+  Qt::Orientation orientation_ { Qt::Vertical };
+
   SelectMode selectMode_ { SelectMode::CELL };
 
   ScatterPlot*      scatterPlot_      { nullptr };
@@ -523,6 +542,7 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   using SummaryPlot = CQChartsSummaryPlot;
   using Length      = CQChartsLength;
   using Constraints = CQChartsPlot::Constraints;
+  using MinMax      = CQChartsGeom::RMinMax;
 
  public:
   CQChartsSummaryCellObj(const SummaryPlot *plot, const BBox &bbox, int row, int col);
