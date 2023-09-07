@@ -61,6 +61,7 @@ CQCHARTS_NAMED_SHAPE_DATA(BoxPlot     , boxPlot)
 CQCHARTS_NAMED_TEXT_DATA (BoxPlot     , boxPlot)
 CQCHARTS_NAMED_TEXT_DATA (Correlation , correlation)
 CQCHARTS_NAMED_SHAPE_DATA(Pie         , pie)
+CQCHARTS_NAMED_SHAPE_DATA(Region      , region)
 
 /*!
  * \brief Summary Plot
@@ -74,7 +75,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
  public CQChartsObjPieShapeData         <CQChartsSummaryPlot>,
  public CQChartsObjCorrelationTextData  <CQChartsSummaryPlot>,
  public CQChartsObjXLabelTextData       <CQChartsSummaryPlot>,
- public CQChartsObjYLabelTextData       <CQChartsSummaryPlot> {
+ public CQChartsObjYLabelTextData       <CQChartsSummaryPlot>,
+ public CQChartsObjRegionShapeData      <CQChartsSummaryPlot> {
   Q_OBJECT
 
   // columns
@@ -126,6 +128,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   // correlation
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Correlation, correlation)
+
+  // region
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Region, region)
 
   // best fit
   Q_PROPERTY(bool bestFit READ isBestFit WRITE setBestFit)
@@ -415,15 +420,22 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   CellObj *cellObjAtPoint(const Point &p) const;
 
+  bool hasColumnRange(const Column &c) const;
   MinMax columnRange(const Column &c) const;
   void setColumnRange(const Column &c, double min, double max);
+  void resetColumnRange(const Column &c);
 
-  void updateSelectedRows();
+  bool calcColumnRange(const Column &c, double &min, double &max) const;
+
+  void updateColumnRanges(bool notify=true);
+
+  void updateSelectedRows() const;
 
   void clearColumnRanges();
   void selectColumnRanges();
 
-  bool isSelectedRow(int r) const;
+  bool isRangeSelectedRow(int r) const;
+  bool isModelSelectedRow(int r) const;
 
   //---
 
@@ -526,7 +538,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   ColumnRange columnRange_;
 
   mutable int                nc_ { 0 };
-  mutable SelectedRowColumns selectedRows_;
+  mutable SelectedRowColumns rangeSelectedRows_;
+  mutable SelectedRowColumns modelSelectedRows_;
 };
 
 //---
@@ -628,11 +641,13 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   //---
 
   struct PointData {
-    int            ind { -1 }; // model row
+    int            ind           { -1 }; // model row
     Point          p;
     CQChartsSymbol symbol;
     Length         symbolSize;
-    bool           inside { false };
+    bool           inside        { false };
+    bool           rangeSelected { false };
+    bool           modelSelected { false };
   };
 
   using PointDatas = std::vector<PointData>;
@@ -694,6 +709,7 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
 
 class CQChartsSummaryPlotGroupStats;
 class CQChartsSummaryPlotColumnChooser;
+class CQChartsSummaryPlotRangeList;
 
 class QCheckBox;
 class QPushButton;
@@ -721,6 +737,8 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
   void addColumnWidgets() override;
 
   virtual void addGroupStatsWidgets();
+
+  virtual void addRangeList();
 
   void addOptionsWidgets() override;
 
@@ -758,8 +776,9 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
   QCheckBox* densityCheck_ { nullptr };
   QCheckBox* paretoCheck_  { nullptr };
 
-  CQChartsSummaryPlotGroupStats*    stats_   { nullptr };
-  CQChartsSummaryPlotColumnChooser* chooser_ { nullptr };
+  CQChartsSummaryPlotGroupStats*    stats_     { nullptr };
+  CQChartsSummaryPlotColumnChooser* chooser_   { nullptr };
+  CQChartsSummaryPlotRangeList*     rangeList_ { nullptr };
 
   QPushButton *expandButton_   { nullptr };
   QPushButton *deselectButton_ { nullptr };
@@ -788,6 +807,50 @@ class CQChartsSummaryPlotGroupStats : public QFrame {
  private:
   CQChartsSummaryPlot* summaryPlot_ { nullptr };
   CQTableWidget*       valueList_   { nullptr };
+};
+
+//---
+
+class CQChartsGeomMinMaxEdit;
+class CQIconButton;
+
+/*!
+ * \brief Summary Plot Range List
+ * \ingroup Charts
+ */
+class CQChartsSummaryPlotRangeList : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsSummaryPlotRangeList(CQChartsSummaryPlot *summaryPlot=nullptr);
+
+  CQChartsSummaryPlot *summaryPlot() const { return summaryPlot_; }
+  void setPlot(CQChartsSummaryPlot *summaryPlot) { summaryPlot_ = summaryPlot; }
+
+  void updateWidgets();
+
+  bool eventFilter(QObject *o , QEvent *e) override;
+
+  QSize sizeHint() const override;
+
+ private Q_SLOTS:
+  void rangeChanged();
+  void clearRange();
+
+ private:
+  struct WidgetData {
+    QLabel*                 label  { nullptr };
+    QFrame*                 frame  { nullptr };
+    CQChartsGeomMinMaxEdit* edit   { nullptr };
+    QLabel*                 noedit { nullptr };
+    CQIconButton*           clear  { nullptr };
+  };
+
+  using Widgets = std::vector<WidgetData>;
+
+  CQChartsSummaryPlot* summaryPlot_ { nullptr };
+  QGridLayout*         layout_      { nullptr };
+  Widgets              widgets_;
 };
 
 //---

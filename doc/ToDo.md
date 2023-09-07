@@ -4,6 +4,9 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + annotation update from plot objects added callback without infinite loop
+ + summary range edit. show on axes
+
  + summary distribution orientation
 
  + dendrogram swatch column and color column for color map

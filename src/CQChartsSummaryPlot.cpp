@@ -26,14 +26,17 @@
 #include <CQChartsParallelPlot.h>
 #include <CQChartsBoxPlot.h>
 #include <CQChartsPiePlot.h>
+#include <CQChartsGeomMinMaxEdit.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQTableWidget.h>
 #include <CQPerfMonitor.h>
+#include <CQIconButton.h>
 #include <CMathCorrelation.h>
 
 #include <QMenu>
 #include <QCheckBox>
+#include <QLabel>
 #include <QVBoxLayout>
 
 CQChartsSummaryPlotType::
@@ -155,7 +158,8 @@ CQChartsSummaryPlot(View *view, const ModelP &model) :
  CQChartsObjPieShapeData         <CQChartsSummaryPlot>(this),
  CQChartsObjCorrelationTextData  <CQChartsSummaryPlot>(this),
  CQChartsObjXLabelTextData       <CQChartsSummaryPlot>(this),
- CQChartsObjYLabelTextData       <CQChartsSummaryPlot>(this)
+ CQChartsObjYLabelTextData       <CQChartsSummaryPlot>(this),
+ CQChartsObjRegionShapeData      <CQChartsSummaryPlot>(this)
 {
 }
 
@@ -241,6 +245,9 @@ init()
 
   setCorrelationTextFont(CQChartsFont().decFontSize(8));
 
+  setRegionStrokeAlpha(Alpha(0.5));
+  setRegionFillAlpha  (Alpha(0.2));
+
   //---
 
   // left, top, right, bottom
@@ -260,6 +267,11 @@ init()
   yAxis()->setTickInside(true);
   yAxis()->setAxesTickLabelTextFont(CQChartsFont().decFontSize(8));
   yAxis()->setAxesTickLabelTextAngle(Angle::degrees(0));
+
+  //---
+
+  setMinDataScaleX(1.0);
+  setMinDataScaleY(1.0);
 }
 
 void
@@ -733,13 +745,11 @@ addProperties()
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
   // pie plot
-  addProp("pie/fill", "pieFilled", "visible", "Box fill visible");
+  addProp("pie/fill", "pieFilled", "visible", "Pie fill visible");
+  addFillProperties("pie/fill", "pieFill", "Pie");
 
-  addFillProperties("pie/fill", "pieFill", "Box");
-
-  addProp("pie/stroke", "pieStroked", "visible", "Box stroke visible");
-
-  addLineProperties("pie/stroke", "pieStroke", "Box");
+  addProp("pie/stroke", "pieStroked", "visible", "Pie stroke visible");
+  addLineProperties("pie/stroke", "pieStroke", "Pie");
 
   // correlation plot
   addTextProperties("correlation/text", "correlationText", "Correlation",
@@ -754,6 +764,13 @@ addProperties()
   addProp("overlays", "paretoWidth"      , "paretoWidth"      , "Show pareto front on scatter");
   addProp("overlays", "paretoLineColor"  , "paretoLineColor"  , "Pareto front line color");
   addProp("overlays", "paretoOriginColor", "paretoOriginColor", "Pareto front origin point color");
+
+  // region
+  addProp("region/fill", "regionFilled", "visible", "Box fill visible");
+  addFillProperties("region/fill", "regionFill", "Box");
+
+  addProp("region/stroke", "regionStroked", "visible", "Box stroke visible");
+  addLineProperties("region/stroke", "regionStroke", "Box");
 }
 
 //---
@@ -1011,9 +1028,7 @@ rectSelect(const BBox &r, SelMod)
   else
     return false;
 
-  updateSelectedRows();
-
-  drawObjs();
+  updateColumnRanges();
 
   return true;
 }
@@ -1045,6 +1060,15 @@ cellObjAtPoint(const Point &p) const
   return dynamic_cast<CellObj *>(! objs.empty() ? *objs.begin() : nullptr);
 }
 
+bool
+CQChartsSummaryPlot::
+hasColumnRange(const Column &c) const
+{
+  auto pc = columnRange_.find(c);
+
+  return (pc != columnRange_.end());
+}
+
 CQChartsSummaryPlot::MinMax
 CQChartsSummaryPlot::
 columnRange(const Column &c) const
@@ -1058,7 +1082,20 @@ void
 CQChartsSummaryPlot::
 setColumnRange(const Column &c, double min, double max)
 {
+  double cmin, cmax;
+  if (calcColumnRange(c, cmin, cmax)) {
+    min = std::max(min, cmin);
+    max = std::min(max, cmax);
+  }
+
   columnRange_[c] = MinMax(min, max);
+}
+
+void
+CQChartsSummaryPlot::
+resetColumnRange(const Column &c)
+{
+  columnRange_.erase(c);
 }
 
 void
@@ -1067,16 +1104,62 @@ clearColumnRanges()
 {
   columnRange_.clear();
 
-  updateSelectedRows();
+  updateColumnRanges();
+}
 
-  drawObjs();
+bool
+CQChartsSummaryPlot::
+calcColumnRange(const Column &c, double &min, double &max) const
+{
+  min = 0.0;
+  max = 1.0;
+
+  auto *details = columnDetails(c);
+  if (! details) return false;
+
+  if (details->isNumeric()) {
+    bool ok;
+    min = CQChartsVariant::toReal(details->minValue(), ok);
+    max = CQChartsVariant::toReal(details->maxValue(), ok);
+  }
+  else {
+    min = 0.0;
+    max = details->numUnique();
+  }
+
+  double bmin = min, bmax = max;
+
+  if (diagonalType() == DiagonalType::DISTRIBUTION) {
+    if (details->isNumeric()) {
+      CQChartsSummaryPlot::BucketCount bucketCount;
+      int                              maxCount = 0;
+
+      calcBucketCounts(c, bucketCount, maxCount, bmin, bmax);
+
+      min = bmin; max = bmax;
+    }
+  }
+
+  return true;
 }
 
 void
 CQChartsSummaryPlot::
-updateSelectedRows()
+updateColumnRanges(bool notify)
 {
-  selectedRows_.clear();
+  updateSelectedRows();
+
+  drawObjs();
+
+  if (notify)
+    Q_EMIT customDataChanged();
+}
+
+void
+CQChartsSummaryPlot::
+updateSelectedRows() const
+{
+  rangeSelectedRows_.clear();
 
   int nc = visibleColumns().count();
 
@@ -1103,10 +1186,30 @@ updateSelectedRows()
           x = details->uniqueId(details->value(i));
 
         if (range.insideHalfOpen(x))
-          selectedRows_[i].insert(ic);
+          rangeSelectedRows_[i].insert(ic);
       }
       else
-        selectedRows_[i].insert(ic);
+        rangeSelectedRows_[i].insert(ic);
+    }
+  }
+
+  //---
+
+  modelSelectedRows_.clear();
+
+  auto *modelData = charts()->currentModelData();
+
+  if (modelData) {
+    const auto &sel = modelData->selection();
+
+    auto indices = sel.indexes();
+
+    for (int i = 0; i < indices.size(); ++i) {
+      const auto &ind = indices[i];
+
+      auto ind1 = normalizeIndex(ind);
+
+      modelSelectedRows_[ind1.row()].insert(ind1.column());
     }
   }
 }
@@ -1157,18 +1260,32 @@ selectColumnRanges()
   }
 
   modelData->select(sel);
+
+  updateSelectedRows();
+
+  const_cast<CQChartsSummaryPlot *>(this)->drawObjs();
 }
 
 bool
 CQChartsSummaryPlot::
-isSelectedRow(int r) const
+isRangeSelectedRow(int r) const
 {
   if (columnRange_.empty()) return false;
 
-  auto pr = selectedRows_.find(r);
-  if (pr == selectedRows_.end()) return false;
+  auto pr = rangeSelectedRows_.find(r);
+  if (pr == rangeSelectedRows_.end()) return false;
 
   return (int((*pr).second.size()) == nc_);
+}
+
+bool
+CQChartsSummaryPlot::
+isModelSelectedRow(int r) const
+{
+  auto pr = modelSelectedRows_.find(r);
+  if (pr == modelSelectedRows_.end()) return false;
+
+  return true;
 }
 
 //---
@@ -1188,6 +1305,10 @@ selectCellPoint(CellObj *obj, int ind) const
   sel.select(ind2, ind2);
 
   modelData->select(sel);
+
+  updateSelectedRows();
+
+  const_cast<CQChartsSummaryPlot *>(this)->drawObjs();
 }
 
 void
@@ -1229,6 +1350,10 @@ selectCellRect(CellObj *obj, const MinMax &minMax) const
   }
 
   modelData->select(sel);
+
+  updateSelectedRows();
+
+  const_cast<CQChartsSummaryPlot *>(this)->drawObjs();
 }
 
 //---
@@ -2030,20 +2155,8 @@ drawXAxis(PaintDevice *device) const
 
   auto column = colColumn();
 
-  auto *details = summaryPlot_->columnDetails(column);
-  if (! details) return;
-
   double xmin, xmax;
-
-  if (details->isNumeric()) {
-    bool ok;
-    xmin = CQChartsVariant::toReal(details->minValue(), ok);
-    xmax = CQChartsVariant::toReal(details->maxValue(), ok);
-  }
-  else {
-    xmin = 0.0;
-    xmax = details->numUnique();
-  }
+  summaryPlot_->calcColumnRange(column, xmin, xmax);
 
   //---
 
@@ -2278,8 +2391,8 @@ drawScatter(PaintDevice *device) const
 
     //---
 
-    //bool selected = (rangeBox_.isSet() && rangeBox_.insideHalfOpen(p));
-    bool selected = summaryPlot_->isSelectedRow(i);
+    bool rangeSelected = summaryPlot_->isRangeSelectedRow(i);
+    bool modelSelected = summaryPlot_->isModelSelectedRow(i);
 
     //---
 
@@ -2356,29 +2469,12 @@ drawScatter(PaintDevice *device) const
     pointData.symbol     = symbol1;
     pointData.symbolSize = symbolSize1;
 
-    pointDatas_.push_back(pointData);
+    pointData.rangeSelected = rangeSelected;
+    pointData.modelSelected = modelSelected;
 
     //---
 
-    // highlight selected
-    if (selected) {
-      auto penBrush2 = penBrush1;
-
-      summaryPlot_->updatePenBrushState(ColorInd(), penBrush2, /*selected*/true, /*inside*/false);
-
-      CQChartsDrawUtil::setPenBrush(device, penBrush2);
-
-      double psx, psy;
-      summaryPlot_->pixelSymbolSize(symbolSize1, psx, psy, /*scale*/true);
-
-      auto pss = 0.75*std::min(psx, psy);
-
-      auto pps = summaryPlot_->windowToPixel(ps);
-
-      auto pbbox = BBox(pps.x - pss, pps.y - pss, pps.x + pss, pps.y + pss);
-
-      CQChartsDrawUtil::drawSelectedOutline(device, summaryPlot_->pixelToWindow(pbbox));
-    }
+    pointDatas_.push_back(pointData);
 
     //---
 
@@ -2396,9 +2492,19 @@ drawScatter(PaintDevice *device) const
   //---
 
   if (rangeBox_.isSet()) {
+    PenBrush penBrush;
+
+    ColorInd colorInd;
+
+    auto bc = summaryPlot_->interpRegionStrokeColor(colorInd);
+    auto fc = summaryPlot_->interpRegionFillColor  (colorInd);
+
+    summaryPlot_->setPenBrush(penBrush,
+      summaryPlot_->regionPenData(bc), summaryPlot_->regionBrushData(fc));
+
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    device->setBrush(QBrush(Qt::NoBrush));
+    //---
 
     auto rbbox = BBox(plotToParent(rangeBox_.getLL()), plotToParent(rangeBox_.getUR()));
 
@@ -2695,14 +2801,24 @@ drawBoxPlot(PaintDevice *device) const
   //---
 
   if (rangeBox_.isSet()) {
+    PenBrush penBrush;
+
+    ColorInd colorInd;
+
+    auto bc = summaryPlot_->interpRegionStrokeColor(colorInd);
+    auto fc = summaryPlot_->interpRegionFillColor  (colorInd);
+
+    summaryPlot_->setPenBrush(penBrush,
+      summaryPlot_->regionPenData(bc), summaryPlot_->regionBrushData(fc));
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    //---
+
     double ymin = CMathUtil::map(rangeBox_.getXMin(), bmin_, bmax_, 0.0, 1.0);
     double ymax = CMathUtil::map(rangeBox_.getXMax(), bmin_, bmax_, 0.0, 1.0);
 
     auto brect = BBox(0.0, ymin, 1.0, ymax);
-
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-    device->setBrush(QBrush(Qt::NoBrush));
 
     auto rbbox = BBox(plotToParent(brect.getLL()), plotToParent(brect.getUR()));
 
@@ -3176,11 +3292,38 @@ drawOverlay(PaintDevice *device) const
 
   if      (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
     for (const auto &pointData : pointDatas_) {
-      if (pointData.inside) {
-        auto ps = plotToParent(pointData.p);
+      auto ps = plotToParent(pointData.p);
 
+      //---
+
+      if (pointData.inside)
         CQChartsDrawUtil::drawSymbol(device, penBrush, pointData.symbol, ps,
                                      pointData.symbolSize, /*scale*/true);
+
+      //---
+
+      // highlight selected
+      if (pointData.rangeSelected || pointData.modelSelected) {
+        auto penBrush1 = penBrush;
+
+        summaryPlot_->updatePenBrushState(ColorInd(), penBrush1, /*selected*/true, /*inside*/false);
+
+        CQChartsDrawUtil::setPenBrush(device, penBrush1);
+
+        double psx, psy;
+        summaryPlot_->pixelSymbolSize(pointData.symbolSize, psx, psy, /*scale*/true);
+
+        auto pss = 0.75*std::min(psx, psy);
+
+        auto pps = summaryPlot_->windowToPixel(ps);
+
+        auto pbbox = BBox(pps.x - pss, pps.y - pss, pps.x + pss, pps.y + pss);
+
+        if (pointData.rangeSelected)
+          CQChartsDrawUtil::drawSelectedOutline(device, summaryPlot_->pixelToWindow(pbbox));
+
+        if (pointData.modelSelected)
+          device->drawEllipse(summaryPlot_->pixelToWindow(pbbox));
       }
     }
   }
@@ -3385,9 +3528,7 @@ handleSelectRelease(const Point &p)
 
       plot->setColumnRange(column, minMax.min(), minMax.max());
 
-      plot->updateSelectedRows();
-
-      plot->drawObjs();
+      plot->updateColumnRanges();
 
       //---
 
@@ -3601,6 +3742,200 @@ sizeHint() const
 
 //------
 
+CQChartsSummaryPlotRangeList::
+CQChartsSummaryPlotRangeList(CQChartsSummaryPlot *summaryPlot) :
+ summaryPlot_(summaryPlot)
+{
+  setObjectName("rangeList");
+
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+
+  auto *scrollArea = CQUtil::makeWidget<QScrollArea>("scroll");
+
+  layout->addWidget(scrollArea);
+
+  auto *listFrame = CQUtil::makeWidget<QFrame>("listFrame");
+
+  scrollArea->setWidget(listFrame);
+  scrollArea->setWidgetResizable(true);
+
+  layout_ = CQUtil::makeLayout<QGridLayout>(listFrame, 0, 0);
+}
+
+void
+CQChartsSummaryPlotRangeList::
+updateWidgets()
+{
+  int nc = (summaryPlot_ ? summaryPlot_->columns().count() : 0);
+
+  if (int(widgets_.size()) != nc) {
+    QLayoutItem *child;
+
+    while ((child = layout_->takeAt(0)) != nullptr) {
+      delete child->widget();
+      delete child;
+    }
+
+    widgets_.resize(nc);
+
+    for (int i = 0; i < nc; ++i) {
+      auto &widget = widgets_[i];
+
+      widget.label = CQUtil::makeLabelWidget<QLabel>("", QString("label%1").arg(i));
+
+      layout_->addWidget(widget.label, i, 0);
+
+      widget.frame = CQUtil::makeWidget<QFrame>(QString("editFrame%1").arg(i));
+
+      auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(widget.frame);
+
+      layout_->addWidget(widget.frame, i, 1);
+
+      widget.edit   = new CQChartsGeomMinMaxEdit; widget.edit->setObjectName("edit");
+      widget.noedit = CQUtil::makeLabelWidget<QLabel>("No Range", "noedit");
+
+      widget.edit->setProperty("column", i);
+
+      widget.noedit->setProperty("column", i);
+      widget.noedit->installEventFilter(this);
+
+      connect(widget.edit, SIGNAL(valueChanged()), this, SLOT(rangeChanged()));
+
+      editLayout->addWidget(widget.edit);
+      editLayout->addWidget(widget.noedit);
+
+      widget.clear = CQUtil::makeWidget<CQIconButton>("clear");
+      widget.clear->setIcon("CLEAR_BUTTON");
+
+      widget.clear->setProperty("column", i);
+
+      connect(widget.clear, SIGNAL(clicked()), this, SLOT(clearRange()));
+
+      editLayout->addWidget(widget.clear);
+    }
+
+    layout_->setColumnStretch(1, 1);
+    layout_->setRowStretch(nc, 1);
+  }
+
+  for (int i = 0; i < nc; ++i) {
+    auto &widget = widgets_[i];
+
+    const auto &column = summaryPlot_->columns().getColumn(i);
+
+    bool ok;
+    auto name = summaryPlot_->modelHHeaderString(column, ok);
+    if (name == "") name == QString::number(i);
+
+    widget.label->setText(name);
+
+    bool hasRange = summaryPlot_->hasColumnRange(column);
+
+    if (hasRange)
+      widget.edit->setValue(summaryPlot_->columnRange(column));
+
+    widget.edit  ->setVisible(hasRange);
+    widget.noedit->setVisible(! hasRange);
+
+    widget.clear->setEnabled(hasRange);
+  }
+}
+
+void
+CQChartsSummaryPlotRangeList::
+rangeChanged()
+{
+  if (! summaryPlot_) return;
+
+  auto *rangeEdit = qobject_cast<CQChartsGeomMinMaxEdit *>(sender());
+  if (! rangeEdit) return;
+
+  bool ok;
+  int i = rangeEdit->property("column").toInt(&ok);
+  if (! ok) return;
+
+  int nc = summaryPlot_->columns().count();
+  if (i < 0 || i >= nc) return;
+
+  const auto &column = summaryPlot_->columns().getColumn(i);
+
+  auto range = rangeEdit->getValue();
+
+  summaryPlot_->setColumnRange(column, range.min(), range.max());
+
+  summaryPlot_->updateColumnRanges(/*update*/false);
+}
+
+void
+CQChartsSummaryPlotRangeList::
+clearRange()
+{
+  if (! summaryPlot_) return;
+
+  auto *button = qobject_cast<CQIconButton *>(sender());
+  if (! button) return;
+
+  bool ok;
+  int i = button->property("column").toInt(&ok);
+  if (! ok) return;
+
+  int nc = summaryPlot_->columns().count();
+  if (i < 0 || i >= nc) return;
+
+  const auto &column = summaryPlot_->columns().getColumn(i);
+
+  summaryPlot_->resetColumnRange(column);
+
+  summaryPlot_->updateColumnRanges();
+}
+
+bool
+CQChartsSummaryPlotRangeList::
+eventFilter(QObject *o , QEvent *e)
+{
+  if (e->type() == QEvent::MouseButtonDblClick) {
+    auto *label = qobject_cast<QLabel *>(o);
+
+    if (label) {
+      bool ok;
+      int i = label->property("column").toInt(&ok);
+
+      int nc = summaryPlot_->columns().count();
+      if (ok && i >= 0 && i < nc) {
+        const auto &column = summaryPlot_->columns().getColumn(i);
+
+        double cmin, cmax;
+        if (summaryPlot_->calcColumnRange(column, cmin, cmax)) {
+          summaryPlot_->setColumnRange(column, cmin, cmax);
+
+          updateWidgets();
+        }
+
+        e->accept();
+
+        return true;
+      }
+    }
+  }
+
+  return QFrame::eventFilter(o, e);
+}
+
+QSize
+CQChartsSummaryPlotRangeList::
+sizeHint() const
+{
+  QFontMetrics fm(font());
+
+  int nc = (summaryPlot_ ? summaryPlot_->columns().count() : 0);
+
+  int nr = std::min(nc + 1, 6);
+
+  return QSize(fm.horizontalAdvance("X")*40, (fm.height() + 6)*nr + 8);
+}
+
+//------
+
 CQChartsSummaryPlotColumnChooser::
 CQChartsSummaryPlotColumnChooser(CQChartsSummaryPlot *plot) :
  CQChartsPlotColumnChooser(plot)
@@ -3661,6 +3996,8 @@ addWidgets()
 
   addGroupStatsWidgets();
 
+  addRangeList();
+
   addOptionsWidgets();
 
   addOverview();
@@ -3696,6 +4033,18 @@ addGroupStatsWidgets()
   stats_ = new CQChartsSummaryPlotGroupStats;
 
   addFrameWidget(groupFrame, stats_);
+}
+
+void
+CQChartsSummaryPlotCustomControls::
+addRangeList()
+{
+  // group frame
+  auto rangeFrame = createGroupFrame("Column Ranges", "rangeFrame");
+
+  rangeList_ = new CQChartsSummaryPlotRangeList;
+
+  addFrameWidget(rangeFrame, rangeList_);
 }
 
 void
@@ -3799,8 +4148,9 @@ setPlot(CQChartsPlot *plot)
 
   summaryPlot_ = dynamic_cast<CQChartsSummaryPlot *>(plot);
 
-  stats_  ->setPlot(summaryPlot_);
-  chooser_->setPlot(summaryPlot_);
+  stats_    ->setPlot(summaryPlot_);
+  chooser_  ->setPlot(summaryPlot_);
+  rangeList_->setPlot(summaryPlot_);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
@@ -3827,8 +4177,9 @@ updateWidgets()
   densityCheck_->setChecked(summaryPlot_->isDensity());
   paretoCheck_ ->setChecked(summaryPlot_->isPareto());
 
-  stats_  ->updateWidgets();
-  chooser_->updateWidgets();
+  stats_    ->updateWidgets();
+  chooser_  ->updateWidgets();
+  rangeList_->updateWidgets();
 
   //---
 

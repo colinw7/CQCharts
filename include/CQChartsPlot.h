@@ -245,6 +245,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(double dataOffsetX READ dataOffsetX  WRITE setDataOffsetX  )
   Q_PROPERTY(double dataOffsetY READ dataOffsetY  WRITE setDataOffsetY  )
 
+  Q_PROPERTY(double minDataScaleX READ minDataScaleX WRITE setMinDataScaleX)
+  Q_PROPERTY(double minDataScaleY READ minDataScaleY WRITE setMinDataScaleY)
+  Q_PROPERTY(double maxDataScaleY READ maxDataScaleX WRITE setMaxDataScaleX)
+  Q_PROPERTY(double maxDataScaleY READ maxDataScaleY WRITE setMaxDataScaleY)
+
   // range
   Q_PROPERTY(CQChartsOptReal xmin READ xmin WRITE setXMin)
   Q_PROPERTY(CQChartsOptReal ymin READ ymin WRITE setYMin)
@@ -802,6 +807,18 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual double dataOffsetY() const;
   virtual void setDataOffsetY(double y);
+
+  double minDataScaleX() const { return minDataScaleX_; }
+  void setMinDataScaleX(double r) { minDataScaleX_ = r; }
+
+  double minDataScaleY() const { return minDataScaleY_; }
+  void setMinDataScaleY(double r) { minDataScaleY_ = r; }
+
+  double maxDataScaleX() const { return maxDataScaleX_; }
+  void setMaxDataScaleX(double r) { maxDataScaleX_ = r; }
+
+  double maxDataScaleY() const { return maxDataScaleY_; }
+  void setMaxDataScaleY(double r) { maxDataScaleY_ = r; }
 
   //---
 
@@ -3960,6 +3977,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   bool     allowZoomY_ { true };
   bool     allowPanX_  { true };
   bool     allowPanY_  { true };
+
+  double minDataScaleX_ { -1.0 };
+  double minDataScaleY_ { -1.0 };
+  double maxDataScaleX_ { -1.0 };
+  double maxDataScaleY_ { -1.0 };
 
   // override range
   OptReal xmin_; //!< xmin override

@@ -1439,3 +1439,6 @@
  + add more styling to summary plot
 # 7/10/2023
  + add sankey node value column
+# 9/7/2023
+ + add ranges edit to summary plot
+ + support min/max zoom scale

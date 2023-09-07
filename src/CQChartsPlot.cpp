@@ -2396,6 +2396,12 @@ setDataScaleX(double x)
 
   zoomData_.dataScale.x = x;
 
+  if (minDataScaleX_ > 0.0)
+    zoomData_.dataScale.x = std::max(zoomData_.dataScale.x, minDataScaleX_);
+
+  if (maxDataScaleX_ > 0.0)
+    zoomData_.dataScale.x = std::min(zoomData_.dataScale.x, maxDataScaleX_);
+
   if (isScaleSymbolSize()) // TODO: only if symbols ?
     invalidateObjTree();
 
@@ -2429,6 +2435,12 @@ setDataScaleY(double y)
   assert(! isComposite());
 
   zoomData_.dataScale.y = y;
+
+  if (minDataScaleY_ > 0.0)
+    zoomData_.dataScale.y = std::max(zoomData_.dataScale.y, minDataScaleY_);
+
+  if (maxDataScaleY_ > 0.0)
+    zoomData_.dataScale.y = std::min(zoomData_.dataScale.y, maxDataScaleY_);
 
   if (isScaleSymbolSize()) // TODO: only if symbols ?
     invalidateObjTree();
@@ -4508,8 +4520,8 @@ addBaseProperties()
   addPropI("zoom", "allowZoomY", "y"     , "Allow zoom y");
   addPropI("zoom", "zoomScroll", "scroll", "Add scrollbars on zoom");
 
-  addPropI("pan" , "allowPanX" , "x", "Allo pan x");
-  addPropI("pan" , "allowPanY" , "y", "Allo pan y");
+  addPropI("pan" , "allowPanX" , "x", "Allow pan x");
+  addPropI("pan" , "allowPanY" , "y", "Allow pan y");
 
   // overview
   addProp("overview", "overviewDisplayed"  , "displayed"  , "Overview displayed");
@@ -11955,6 +11967,13 @@ wheelZoom(const Point &pp, int delta)
   auto pp2 = pixelToWindow(pp); // mapping may have changed
 
   pan(pp1.x - pp2.x, pp1.y - pp2.y);
+
+  if (delta < 0) {
+    if (minDataScaleX_ > 0.0 && zoomData_.dataScale.x == minDataScaleX_ &&
+        minDataScaleY_ > 0.0 && zoomData_.dataScale.x == minDataScaleY_) {
+      autoFit();
+    }
+  }
 }
 
 //---

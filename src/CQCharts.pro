@@ -393,6 +393,7 @@ CQChartsUnitsEdit.cpp \
 \
 CQChartsGeomBBoxEdit.cpp \
 CQChartsGeomPointEdit.cpp \
+CQChartsGeomMinMaxEdit.cpp \
 \
 CQChartsEnumEdit.cpp \
 CQChartsLineEdit.cpp \
@@ -861,6 +862,7 @@ HEADERS += \
 \
 ../include/CQChartsGeomBBoxEdit.h \
 ../include/CQChartsGeomPointEdit.h \
+../include/CQChartsGeomMinMaxEdit.h \
 \
 ../include/CQChartsEnumEdit.h \
 ../include/CQChartsLineEdit.h \
