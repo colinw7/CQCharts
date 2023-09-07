@@ -6,6 +6,7 @@
 #include <CQChartsAnalyzeModelData.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQChartsTitle.h>
 #include <CQChartsVariant.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsHtml.h>
@@ -203,17 +204,29 @@ init()
 
   assert(scatterPlot_ && distributionPlot_ && parallelPlot_ && boxPlot_ && piePlot_);
 
+  scatterPlot_->title()->setVisible(false);
+
   scatterPlot_->setXColumn(Column::makeRow());
   scatterPlot_->setYColumn(Column::makeRow());
 
+  scatterPlot_->setParetoOriginColor(paretoOriginColor());
+
   distributionPlot_->setValueColumns(Columns(Column::makeRow()));
+
+  distributionPlot_->title()->setVisible(false);
 
   parallelPlot_->setYColumns(Columns(Column::makeRow()));
 
+  parallelPlot_->title()->setVisible(false);
+
   boxPlot_->setValueColumns(Columns(Column::makeRow()));
+
+  boxPlot_->title()->setVisible(false);
 
   piePlot_->setValueColumns(Columns(Column::makeRow()));
   piePlot_->setBucketed(true);
+
+  piePlot_->title()->setVisible(false);
 
   //---
 
@@ -1292,17 +1305,22 @@ isModelSelectedRow(int r) const
 
 void
 CQChartsSummaryPlot::
-selectCellPoint(CellObj *obj, int ind) const
+selectCellPoint(CellObj *obj, int ind, bool add) const
 {
   auto *modelData = charts()->currentModelData();
 
   QItemSelection sel;
 
-  auto ind1 = modelIndex(ind, obj->rowColumn(), QModelIndex());
-  auto ind2 = modelIndex(ind, obj->colColumn(), QModelIndex());
+  if (add)
+    sel = modelData->selection();
 
-  sel.select(ind1, ind1);
-  sel.select(ind2, ind2);
+  if (ind >= 0) {
+    auto ind1 = modelIndex(ind, obj->rowColumn(), QModelIndex());
+    auto ind2 = modelIndex(ind, obj->colColumn(), QModelIndex());
+
+    sel.select(ind1, ind1);
+    sel.select(ind2, ind2);
+  }
 
   modelData->select(sel);
 
@@ -1311,9 +1329,10 @@ selectCellPoint(CellObj *obj, int ind) const
   const_cast<CQChartsSummaryPlot *>(this)->drawObjs();
 }
 
+#if 0
 void
 CQChartsSummaryPlot::
-selectCellRect(CellObj *obj, const MinMax &minMax) const
+selectCellRect(CellObj *obj, const MinMax &minMax, bool add) const
 {
   auto *modelData = charts()->currentModelData();
 
@@ -1343,6 +1362,9 @@ selectCellRect(CellObj *obj, const MinMax &minMax) const
 
   QItemSelection sel;
 
+  if (add)
+    sel = modelData->selection();
+
   for (const int &row : rows) {
     auto ind1 = modelIndex(row, column, QModelIndex());
 
@@ -1355,6 +1377,7 @@ selectCellRect(CellObj *obj, const MinMax &minMax) const
 
   const_cast<CQChartsSummaryPlot *>(this)->drawObjs();
 }
+#endif
 
 //---
 
@@ -1741,6 +1764,8 @@ handleSelectPress(const Point &p, SelMod selMod)
   if (selectMode() == SelectMode::CELL)
     return CQChartsPlot::handleSelectPress(p, selMod);
 
+  selectAdd_ = (selMod == SelMod::ADD);
+
   PlotObjs plotObjs;
 
   plotObjsAtPoint(p, plotObjs, Constraints::SELECTABLE);
@@ -1810,7 +1835,7 @@ handleSelectRelease(const Point &p)
   }
 
   if (cellObj)
-    cellObj->handleSelectRelease(p);
+    cellObj->handleSelectRelease(p, selectAdd_);
 
   return true;
 }
@@ -3018,6 +3043,20 @@ drawDistribution(PaintDevice *device) const
   //---
 
   if (rangeBox_.isSet()) {
+    PenBrush penBrush;
+
+    ColorInd colorInd;
+
+    auto bc = summaryPlot_->interpRegionStrokeColor(colorInd);
+    auto fc = summaryPlot_->interpRegionFillColor  (colorInd);
+
+    summaryPlot_->setPenBrush(penBrush,
+      summaryPlot_->regionPenData(bc), summaryPlot_->regionBrushData(fc));
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    //---
+
     double rmin = (invert ?
       CMathUtil::map(rangeBox_.getYMin(), bmin_, bmax_, 0.0, 1.0) :
       CMathUtil::map(rangeBox_.getXMin(), bmin_, bmax_, 0.0, 1.0));
@@ -3026,10 +3065,6 @@ drawDistribution(PaintDevice *device) const
       CMathUtil::map(rangeBox_.getXMax(), bmin_, bmax_, 0.0, 1.0));
 
     auto brect = (invert ? BBox(0.0, rmin, 1.0, rmax) : BBox(rmin, 0.0, rmax, 1.0));
-
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-    device->setBrush(QBrush(Qt::NoBrush));
 
     auto rbbox = BBox(plotToParent(brect.getLL()), plotToParent(brect.getUR()));
 
@@ -3508,7 +3543,7 @@ handleSelectMove(const Point &p, Constraints, bool)
 
 bool
 CQChartsSummaryCellObj::
-handleSelectRelease(const Point &p)
+handleSelectRelease(const Point &p, bool add)
 {
   updateSelectData(p);
 
@@ -3532,12 +3567,21 @@ handleSelectRelease(const Point &p)
 
       //---
 
-      summaryPlot_->selectCellRect(this, minMax);
+//    summaryPlot_->selectCellRect(this, minMax, add);
     }
+#if 0
+    else {
+      if (! add)
+        summaryPlot_->selectCellPoint(this, -1, false);
+    }
+#endif
   }
   else if (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
-    if (selectPointData_) {
-      summaryPlot_->selectCellPoint(this, selectPointData_->ind);
+    if (selectPointData_)
+      summaryPlot_->selectCellPoint(this, selectPointData_->ind, add);
+    else {
+      if (! add)
+        summaryPlot_->selectCellPoint(this, -1, false);
     }
   }
 

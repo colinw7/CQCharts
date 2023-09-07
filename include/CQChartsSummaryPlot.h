@@ -439,8 +439,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
-  void selectCellPoint(CellObj *obj, int ind) const;
-  void selectCellRect (CellObj *obj, const MinMax &minMax) const;
+  void selectCellPoint(CellObj *obj, int ind, bool add) const;
+//void selectCellRect (CellObj *obj, const MinMax &minMax, bool add) const;
 
   //---
 
@@ -540,6 +540,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   mutable int                nc_ { 0 };
   mutable SelectedRowColumns rangeSelectedRows_;
   mutable SelectedRowColumns modelSelectedRows_;
+
+  bool selectAdd_ { false };
 };
 
 //---
@@ -597,7 +599,7 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
 
   virtual bool handleSelectPress  (const Point &p, SelMod selMod);
   virtual bool handleSelectMove   (const Point &p, Constraints constraints, bool first=false);
-  virtual bool handleSelectRelease(const Point &p);
+  virtual bool handleSelectRelease(const Point &p, bool add);
 
   //---
 
