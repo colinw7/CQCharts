@@ -2278,8 +2278,18 @@ drawXGrid(PaintDevice *device) const
   auto *xaxis = summaryPlot_->xAxis();
   if (! xaxis->isDrawGrid()) return;
 
+  //---
+
+  bool showGrid = false;
+
   auto cellType = getCellType();
-  if (cellType == CQChartsSummaryPlot::CellType::CORRELATION)
+
+  if      (cellType == CQChartsSummaryPlot::CellType::SCATTER)
+    showGrid = true;
+  else if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION)
+    showGrid = (summaryPlot_->orientation() == Qt::Vertical);
+
+  if (! showGrid)
     return;
 
   //---
@@ -2364,25 +2374,37 @@ drawYGrid(PaintDevice *device) const
   auto *yaxis = summaryPlot_->yAxis();
   if (! yaxis->isDrawGrid()) return;
 
+  //---
+
+  bool showGrid = false;
+
   auto cellType = getCellType();
-  if (cellType == CQChartsSummaryPlot::CellType::CORRELATION)
+
+  if      (cellType == CQChartsSummaryPlot::CellType::SCATTER)
+    showGrid = true;
+  else if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION)
+    showGrid = (summaryPlot_->orientation() == Qt::Horizontal);
+
+  if (! showGrid)
     return;
 
   //---
 
-  initYAxis();
+  if (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
+    initYAxis();
 
-  auto clip = summaryPlot_->isDataClip();
-  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false, /*notify*/false);
+    auto clip = summaryPlot_->isDataClip();
+    const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false, /*notify*/false);
 
-  device->save();
-  device->setClipRect(rect());
+    device->save();
+    device->setClipRect(rect());
 
-  yaxis->drawGrid(summaryPlot_, device);
+    yaxis->drawGrid(summaryPlot_, device);
 
-  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(clip, /*notify*/false);
+    const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(clip, /*notify*/false);
 
-  device->restore();
+    device->restore();
+  }
 }
 
 void
