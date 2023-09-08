@@ -35,6 +35,9 @@ class CQChartsSummaryPlotType : public CQChartsPlotType {
   bool allowXLog() const override { return false; }
   bool allowYLog() const override { return false; }
 
+  bool allowInvertX() const override { return false; }
+  bool allowInvertY() const override { return false; }
+
   bool canProbe() const override { return false; }
 
   QString description() const override;
@@ -375,6 +378,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   void drawXAxis(PaintDevice *device) const override;
   void drawYAxis(PaintDevice *device) const override;
 
+  void drawXGrid(PaintDevice *device) const override;
+  void drawYGrid(PaintDevice *device) const override;
+
   bool hasOverlay() const override;
   void execDrawOverlay(PaintDevice *device) const override;
 
@@ -565,6 +571,10 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   int row() const { return row_; }
   int col() const { return col_; }
 
+  int maxCount() const { return maxCount_; }
+
+  //---
+
   Column rowColumn() const;
   Column colColumn() const;
 
@@ -608,7 +618,12 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
 
  protected:
   void drawXAxis(PaintDevice *device) const;
+  void drawXGrid(PaintDevice *device) const;
+  void initXAxis() const;
+
   void drawYAxis(PaintDevice *device) const;
+  void drawYGrid(PaintDevice *device) const;
+  void initYAxis() const;
 
   void drawScatter     (PaintDevice *device) const;
   void drawBestFit     (PaintDevice *device) const;
@@ -813,6 +828,8 @@ class CQChartsSummaryPlotGroupStats : public QFrame {
 
 //---
 
+class CQChartsSummaryPlotRangeLabel;
+class CQChartsSummaryPlotRangeNoEdit;
 class CQChartsGeomMinMaxEdit;
 class CQIconButton;
 
@@ -831,8 +848,6 @@ class CQChartsSummaryPlotRangeList : public QFrame {
 
   void updateWidgets();
 
-  bool eventFilter(QObject *o , QEvent *e) override;
-
   QSize sizeHint() const override;
 
  private Q_SLOTS:
@@ -841,11 +856,11 @@ class CQChartsSummaryPlotRangeList : public QFrame {
 
  private:
   struct WidgetData {
-    QLabel*                 label  { nullptr };
-    QFrame*                 frame  { nullptr };
-    CQChartsGeomMinMaxEdit* edit   { nullptr };
-    QLabel*                 noedit { nullptr };
-    CQIconButton*           clear  { nullptr };
+    CQChartsSummaryPlotRangeLabel*  label  { nullptr };
+    QFrame*                         frame  { nullptr };
+    CQChartsGeomMinMaxEdit*         edit   { nullptr };
+    CQChartsSummaryPlotRangeNoEdit* noedit { nullptr };
+    CQIconButton*                   clear  { nullptr };
   };
 
   using Widgets = std::vector<WidgetData>;
@@ -853,6 +868,30 @@ class CQChartsSummaryPlotRangeList : public QFrame {
   CQChartsSummaryPlot* summaryPlot_ { nullptr };
   QGridLayout*         layout_      { nullptr };
   Widgets              widgets_;
+};
+
+#include <QLabel>
+
+class CQChartsSummaryPlotRangeLabel : public QLabel {
+  Q_OBJECT
+
+ public:
+  CQChartsSummaryPlotRangeLabel(CQChartsSummaryPlotRangeList *list, const QString &label);
+
+ private:
+  CQChartsSummaryPlotRangeList* list_ { nullptr };
+};
+
+class CQChartsSummaryPlotRangeNoEdit : public QLabel {
+  Q_OBJECT
+
+ public:
+  CQChartsSummaryPlotRangeNoEdit(CQChartsSummaryPlotRangeList *list);
+
+  void mouseDoubleClickEvent(QMouseEvent *) override;
+
+ private:
+  CQChartsSummaryPlotRangeList* list_ { nullptr };
 };
 
 //---

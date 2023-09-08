@@ -37,7 +37,6 @@
 
 #include <QMenu>
 #include <QCheckBox>
-#include <QLabel>
 #include <QVBoxLayout>
 
 CQChartsSummaryPlotType::
@@ -188,6 +187,14 @@ init()
 
   addTitle();
 
+  setPlotFilled(false);
+  setDataFilled(false);
+  setFitFilled (false);
+
+  setPlotClip(false);
+  setDataClip(false);
+  setFitClip (false);
+
   setXLabelTextAlign(Qt::AlignHCenter | Qt::AlignTop);
   setYLabelTextAlign(Qt::AlignRight | Qt::AlignVCenter);
 
@@ -267,6 +274,8 @@ init()
   setOuterMargin(PlotMargin(Length::plot(0.1), Length::plot(0.1),
                             Length::plot(0.1), Length::plot(0.1)));
 
+  setPixelMarginSize(32);
+
   //---
 
   addAxes();
@@ -275,11 +284,15 @@ init()
   xAxis()->setTickInside(true);
   xAxis()->setAxesTickLabelTextFont(CQChartsFont().decFontSize(8));
   xAxis()->setAxesTickLabelTextAngle(Angle::degrees(90));
+  xAxis()->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
+  xAxis()->setSide(CQChartsAxis::AxisSide(CQChartsAxis::AxisSide::Type::TOP_RIGHT));
 
   yAxis()->setVisible(false);
   yAxis()->setTickInside(true);
   yAxis()->setAxesTickLabelTextFont(CQChartsFont().decFontSize(8));
   yAxis()->setAxesTickLabelTextAngle(Angle::degrees(0));
+  yAxis()->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
+  yAxis()->setSide(CQChartsAxis::AxisSide(CQChartsAxis::AxisSide::Type::TOP_RIGHT));
 
   //---
 
@@ -1142,15 +1155,13 @@ calcColumnRange(const Column &c, double &min, double &max) const
 
   double bmin = min, bmax = max;
 
-  if (diagonalType() == DiagonalType::DISTRIBUTION) {
-    if (details->isNumeric()) {
-      CQChartsSummaryPlot::BucketCount bucketCount;
-      int                              maxCount = 0;
+  if (diagonalType() == DiagonalType::DISTRIBUTION && details->isNumeric()) {
+    BucketCount bucketCount;
+    int         maxCount = 0;
 
-      calcBucketCounts(c, bucketCount, maxCount, bmin, bmax);
+    calcBucketCounts(c, bucketCount, maxCount, bmin, bmax);
 
-      min = bmin; max = bmax;
-    }
+    min = bmin; max = bmax;
   }
 
   return true;
@@ -1470,6 +1481,8 @@ execDrawBackground(PaintDevice *device) const
     //---
 
     if (isXLabels()) {
+      auto xstr = str;
+
       setPainterFont(device, xLabelTextFont());
 
       auto textOptions = xLabelTextOptions(device);
@@ -1481,8 +1494,8 @@ execDrawBackground(PaintDevice *device) const
 
       //---
 
-    //auto tsize = CQChartsDrawUtil::calcTextSize(str, device->font(), textOptions);
-      auto tsize = CQChartsRotatedText::calcBBox(0.0, 0.0, str, device->font(), textOptions).size();
+      auto tsize = CQChartsRotatedText::calcBBox(0.0, 0.0, xstr, device->font(),
+                                                 textOptions).size();
 
       //---
 
@@ -1497,17 +1510,39 @@ execDrawBackground(PaintDevice *device) const
 
       auto thh = pixelToWindowHeight(tsize.height());
 
-      auto tbbox = BBox(bbox.getXMin(), -thh, bbox.getXMax(), 0.0);
+      BBox tbbox;
+
+      if (xAxis()->side().type() == CQChartsAxisSide::Type::TOP_RIGHT)
+        tbbox = BBox(bbox.getXMin(), -thh, bbox.getXMax(), 0.0);
+      else
+        tbbox = BBox(bbox.getXMin(), nc_, bbox.getXMax(), nc_ + thh);
 
       //---
 
-      if (tbbox.isValid())
-        CQChartsDrawUtil::drawTextInBox(device, tbbox, str, textOptions);
+      CQChartsDrawUtil::drawTextInBox(device, tbbox, xstr, textOptions);
     }
 
     //---
 
     if (isYLabels()) {
+      auto ystr = str;
+
+      if (diagonalType() == DiagonalType::DISTRIBUTION) {
+        auto *details = columnDetails(column);
+
+        if (details->isNumeric()) {
+          BucketCount bucketCount;
+          int         maxCount = 0;
+          double      bmin = 0.0, bmax = 0.0;
+
+          calcBucketCounts(column, bucketCount, maxCount, bmin, bmax);
+
+          ystr += QString(" (%1)").arg(maxCount);
+        }
+      }
+
+      //---
+
       setPainterFont(device, yLabelTextFont());
 
       auto textOptions = yLabelTextOptions(device);
@@ -1519,8 +1554,8 @@ execDrawBackground(PaintDevice *device) const
 
       //---
 
-    //auto tsize = CQChartsDrawUtil::calcTextSize(str, device->font(), textOptions);
-      auto tsize = CQChartsRotatedText::calcBBox(0.0, 0.0, str, device->font(), textOptions).size();
+      auto tsize = CQChartsRotatedText::calcBBox(0.0, 0.0, ystr, device->font(),
+                                                 textOptions).size();
 
       //---
 
@@ -1533,14 +1568,18 @@ execDrawBackground(PaintDevice *device) const
 
       //---
 
-      auto thw = pixelToWindowWidth(tsize.height());
+      auto thw = pixelToWindowWidth(tsize.width());
 
-      auto tbbox = BBox(-thw, bbox.getYMin(), 0.0, bbox.getYMax());
+      BBox tbbox;
+
+      if (yAxis()->side().type() == CQChartsAxisSide::Type::TOP_RIGHT)
+        tbbox = BBox(-thw, bbox.getYMin(), 0.0, bbox.getYMax());
+      else
+        tbbox = BBox(nc_, bbox.getYMin(), nc_ + thw, bbox.getYMax());
 
       //---
 
-      if (tbbox.isValid())
-        CQChartsDrawUtil::drawTextInBox(device, tbbox, str, textOptions);
+      CQChartsDrawUtil::drawTextInBox(device, tbbox, ystr, textOptions);
     }
   }
 }
@@ -1565,6 +1604,20 @@ drawXAxis(PaintDevice *) const
 void
 CQChartsSummaryPlot::
 drawYAxis(PaintDevice *) const
+{
+  // drawn by cell
+}
+
+void
+CQChartsSummaryPlot::
+drawXGrid(PaintDevice *) const
+{
+  // drawn by cell
+}
+
+void
+CQChartsSummaryPlot::
+drawYGrid(PaintDevice *) const
 {
   // drawn by cell
 }
@@ -2089,11 +2142,36 @@ draw(PaintDevice *device) const
 
   nc_ = summaryPlot_->visibleColumns().count();
 
-  if (row_ == nc_ - 1)
-    drawXAxis(device);
+  //---
 
-  if (col_ == nc_ - 1)
-    drawYAxis(device);
+  drawXGrid(device);
+  drawYGrid(device);
+
+  //---
+
+  bool drawXAxis = false;
+
+  auto *xaxis = summaryPlot_->xAxis();
+  if (xaxis->side().type() == CQChartsAxisSide::Type::TOP_RIGHT)
+    drawXAxis = (row_ == nc_ - 1);
+  else
+    drawXAxis = (row_ == 0);
+
+  if (drawXAxis)
+    this->drawXAxis(device);
+
+  //---
+
+  bool drawYAxis = false;
+
+  auto *yaxis = summaryPlot_->yAxis();
+  if (yaxis->side().type() == CQChartsAxisSide::Type::TOP_RIGHT)
+    drawYAxis = (col_ == nc_ - 1);
+  else
+    drawYAxis = (col_ == 0);
+
+  if (drawYAxis)
+    this->drawYAxis(device);
 
   //---
 
@@ -2167,38 +2245,24 @@ initCoords() const
   }
 }
 
+//---
+
 void
 CQChartsSummaryCellObj::
 drawXAxis(PaintDevice *device) const
 {
   auto *xaxis = summaryPlot_->xAxis();
-
-  if (! xaxis->isVisible())
-    return;
+  if (! xaxis->isVisible()) return;
 
   //---
 
-  auto column = colColumn();
-
-  double xmin, xmax;
-  summaryPlot_->calcColumnRange(column, xmin, xmax);
-
-  //---
+  initXAxis();
 
   auto clip = summaryPlot_->isDataClip();
   const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false, /*notify*/false);
 
   device->save();
   summaryPlot_->setClipRect(device);
-
-  xaxis->setUpdatesEnabled(false);
-
-  xaxis->setPosition(CQChartsAxis::OptReal(row_ + 1));
-  xaxis->setRange(pxmin_, pxmax_);
-  xaxis->setValueRange(xmin, xmax);
-  xaxis->setSide(CQChartsAxis::AxisSide(CQChartsAxis::AxisSide::Type::TOP_RIGHT));
-
-  xaxis->setUpdatesEnabled(true);
 
   xaxis->draw(summaryPlot_, device);
 
@@ -2209,31 +2273,76 @@ drawXAxis(PaintDevice *device) const
 
 void
 CQChartsSummaryCellObj::
+drawXGrid(PaintDevice *device) const
+{
+  auto *xaxis = summaryPlot_->xAxis();
+  if (! xaxis->isDrawGrid()) return;
+
+  auto cellType = getCellType();
+  if (cellType == CQChartsSummaryPlot::CellType::CORRELATION)
+    return;
+
+  //---
+
+  initXAxis();
+
+  auto clip = summaryPlot_->isDataClip();
+  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false, /*notify*/false);
+
+  device->save();
+  device->setClipRect(rect());
+
+  xaxis->drawGrid(summaryPlot_, device);
+
+  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(clip, /*notify*/false);
+
+  device->restore();
+}
+
+void
+CQChartsSummaryCellObj::
+initXAxis() const
+{
+  auto column = colColumn();
+
+  double xmin, xmax;
+  summaryPlot_->calcColumnRange(column, xmin, xmax);
+
+  auto *details = summaryPlot_->columnDetails(column);
+
+  //---
+
+  auto *xaxis = summaryPlot_->xAxis();
+
+  xaxis->setUpdatesEnabled(false);
+
+  if (xaxis->side().type() == CQChartsAxisSide::Type::TOP_RIGHT)
+    xaxis->setPosition(CQChartsAxis::OptReal(row_ + 1));
+  else
+    xaxis->setPosition(CQChartsAxis::OptReal(row_));
+
+  xaxis->setRange(pxmin_, pxmax_);
+
+  if (! details || details->type() == CQBaseModelType::INTEGER || ! details->isNumeric())
+    xaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER), false);
+  else
+    xaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL), false);
+
+  xaxis->setValueRange(xmin, xmax);
+
+  xaxis->setUpdatesEnabled(true);
+}
+
+void
+CQChartsSummaryCellObj::
 drawYAxis(PaintDevice *device) const
 {
   auto *yaxis = summaryPlot_->yAxis();
-
-  if (! yaxis->isVisible())
-    return;
-
-  auto column = rowColumn();
-
-  auto *details = summaryPlot_->columnDetails(column);
-  if (! details) return;
-
-  double ymin, ymax;
-
-  if (details->isNumeric()) {
-    bool ok;
-    ymin = CQChartsVariant::toReal(details->minValue(), ok);
-    ymax = CQChartsVariant::toReal(details->maxValue(), ok);
-  }
-  else {
-    ymin = 0.0;
-    ymax = details->numUnique();
-  }
+  if (! yaxis->isVisible()) return;
 
   //---
+
+  initYAxis();
 
   auto clip = summaryPlot_->isDataClip();
   const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false, /*notify*/false);
@@ -2241,21 +2350,76 @@ drawYAxis(PaintDevice *device) const
   device->save();
   summaryPlot_->setClipRect(device);
 
-  yaxis->setUpdatesEnabled(false);
-
-  yaxis->setPosition(CQChartsAxis::OptReal(col_ + 1));
-  yaxis->setRange(pymin_, pymax_);
-  yaxis->setValueRange(ymin, ymax);
-  yaxis->setSide(CQChartsAxis::AxisSide(CQChartsAxis::AxisSide::Type::TOP_RIGHT));
-
-  yaxis->setUpdatesEnabled(true);
-
   yaxis->draw(summaryPlot_, device);
 
   const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(clip, /*notify*/false);
 
   device->restore();
 }
+
+void
+CQChartsSummaryCellObj::
+drawYGrid(PaintDevice *device) const
+{
+  auto *yaxis = summaryPlot_->yAxis();
+  if (! yaxis->isDrawGrid()) return;
+
+  auto cellType = getCellType();
+  if (cellType == CQChartsSummaryPlot::CellType::CORRELATION)
+    return;
+
+  //---
+
+  initYAxis();
+
+  auto clip = summaryPlot_->isDataClip();
+  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false, /*notify*/false);
+
+  device->save();
+  device->setClipRect(rect());
+
+  yaxis->drawGrid(summaryPlot_, device);
+
+  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(clip, /*notify*/false);
+
+  device->restore();
+}
+
+void
+CQChartsSummaryCellObj::
+initYAxis() const
+{
+  auto column = rowColumn();
+
+  double ymin, ymax;
+  summaryPlot_->calcColumnRange(column, ymin, ymax);
+
+  auto *details = summaryPlot_->columnDetails(column);
+
+  //---
+
+  auto *yaxis = summaryPlot_->yAxis();
+
+  yaxis->setUpdatesEnabled(false);
+
+  if (yaxis->side().type() == CQChartsAxisSide::Type::TOP_RIGHT)
+    yaxis->setPosition(CQChartsAxis::OptReal(col_ + 1));
+  else
+    yaxis->setPosition(CQChartsAxis::OptReal(col_));
+
+  yaxis->setRange(pymin_, pymax_);
+
+  if (! details || details->type() == CQBaseModelType::INTEGER || ! details->isNumeric())
+    yaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER), false);
+  else
+    yaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL), false);
+
+  yaxis->setValueRange(ymin, ymax);
+
+  yaxis->setUpdatesEnabled(true);
+}
+
+//---
 
 CQChartsSummaryPlot::CellType
 CQChartsSummaryCellObj::
@@ -3825,7 +3989,8 @@ updateWidgets()
     for (int i = 0; i < nc; ++i) {
       auto &widget = widgets_[i];
 
-      widget.label = CQUtil::makeLabelWidget<QLabel>("", QString("label%1").arg(i));
+      widget.label = new CQChartsSummaryPlotRangeLabel(this, "");
+      widget.label->setObjectName(QString("label%1").arg(i));
 
       layout_->addWidget(widget.label, i, 0);
 
@@ -3836,12 +4001,11 @@ updateWidgets()
       layout_->addWidget(widget.frame, i, 1);
 
       widget.edit   = new CQChartsGeomMinMaxEdit; widget.edit->setObjectName("edit");
-      widget.noedit = CQUtil::makeLabelWidget<QLabel>("No Range", "noedit");
+      widget.noedit = new CQChartsSummaryPlotRangeNoEdit(this);
 
       widget.edit->setProperty("column", i);
 
       widget.noedit->setProperty("column", i);
-      widget.noedit->installEventFilter(this);
 
       connect(widget.edit, SIGNAL(valueChanged()), this, SLOT(rangeChanged()));
 
@@ -3850,6 +4014,7 @@ updateWidgets()
 
       widget.clear = CQUtil::makeWidget<CQIconButton>("clear");
       widget.clear->setIcon("CLEAR_BUTTON");
+      widget.clear->setToolTip("Clear Range");
 
       widget.clear->setProperty("column", i);
 
@@ -3875,8 +4040,12 @@ updateWidgets()
 
     bool hasRange = summaryPlot_->hasColumnRange(column);
 
-    if (hasRange)
+    if (hasRange) {
       widget.edit->setValue(summaryPlot_->columnRange(column));
+
+//    widget.edit->setToolTip(QString("%1 (%2 - %3)").
+//      arg(name).arg(widget.edit->getValue().min()).arg(widget.edit->getValue().max()));
+    }
 
     widget.edit  ->setVisible(hasRange);
     widget.noedit->setVisible(! hasRange);
@@ -3933,38 +4102,6 @@ clearRange()
   summaryPlot_->updateColumnRanges();
 }
 
-bool
-CQChartsSummaryPlotRangeList::
-eventFilter(QObject *o , QEvent *e)
-{
-  if (e->type() == QEvent::MouseButtonDblClick) {
-    auto *label = qobject_cast<QLabel *>(o);
-
-    if (label) {
-      bool ok;
-      int i = label->property("column").toInt(&ok);
-
-      int nc = summaryPlot_->columns().count();
-      if (ok && i >= 0 && i < nc) {
-        const auto &column = summaryPlot_->columns().getColumn(i);
-
-        double cmin, cmax;
-        if (summaryPlot_->calcColumnRange(column, cmin, cmax)) {
-          summaryPlot_->setColumnRange(column, cmin, cmax);
-
-          updateWidgets();
-        }
-
-        e->accept();
-
-        return true;
-      }
-    }
-  }
-
-  return QFrame::eventFilter(o, e);
-}
-
 QSize
 CQChartsSummaryPlotRangeList::
 sizeHint() const
@@ -3976,6 +4113,59 @@ sizeHint() const
   int nr = std::min(nc + 1, 6);
 
   return QSize(fm.horizontalAdvance("X")*40, (fm.height() + 6)*nr + 8);
+}
+
+//---
+
+CQChartsSummaryPlotRangeLabel::
+CQChartsSummaryPlotRangeLabel(CQChartsSummaryPlotRangeList *list, const QString &label) :
+ list_(list)
+{
+  setObjectName("label");
+
+  setText(label);
+
+  auto font = this->font();
+  font.setBold(true);
+  setFont(font);
+};
+
+CQChartsSummaryPlotRangeNoEdit::
+CQChartsSummaryPlotRangeNoEdit(CQChartsSummaryPlotRangeList *list) :
+ list_(list)
+{
+  setObjectName("noedit");
+  setText("No Range");
+
+  setToolTip("No Range - double click to enter range");
+
+  auto font = this->font();
+  font.setItalic(true);
+  setFont(font);
+}
+
+void
+CQChartsSummaryPlotRangeNoEdit::
+mouseDoubleClickEvent(QMouseEvent *)
+{
+  bool ok;
+  int i = property("column").toInt(&ok);
+  if (! ok) return;
+
+  auto *summaryPlot = list_->summaryPlot();
+
+  int nc = summaryPlot->columns().count();
+  if (i < 0 || i >= nc) return;
+
+  const auto &column = summaryPlot->columns().getColumn(i);
+
+  double cmin, cmax;
+  if (! summaryPlot->calcColumnRange(column, cmin, cmax))
+    return;
+
+  summaryPlot->setColumnRange(column, cmin, cmax);
+
+  summaryPlot->updateColumnRanges();
 }
 
 //------

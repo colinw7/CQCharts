@@ -6625,14 +6625,18 @@ showMenu(const Point &p)
 
   //------
 
-  if (hasPlots) {
+  if (plotType && plotType->allowInvertX()) {
     auto *invertXAction = addCheckAction(popupMenu, "Invert X", false, SLOT(invertXSlot(bool)));
+
+    if (basePlot)
+      invertXAction->setChecked(basePlot->isInvertX());
+  }
+
+  if (plotType && plotType->allowInvertY()) {
     auto *invertYAction = addCheckAction(popupMenu, "Invert Y", false, SLOT(invertYSlot(bool)));
 
-    if (basePlot) {
-      invertXAction->setChecked(basePlot->isInvertX());
+    if (basePlot)
       invertYAction->setChecked(basePlot->isInvertY());
-    }
   }
 
   //------

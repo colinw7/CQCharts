@@ -83,6 +83,8 @@ class CQChartsPlotType : public QObject {
   Q_PROPERTY(bool     allowXLog          READ allowXLog         )
   Q_PROPERTY(bool     allowYLog          READ allowYLog         )
   Q_PROPERTY(bool     allowPolar         READ allowPolar        )
+  Q_PROPERTY(bool     allowInvertX       READ allowInvertX      )
+  Q_PROPERTY(bool     allowInvertY       READ allowInvertY      )
   Q_PROPERTY(bool     canEqualScale      READ canEqualScale     )
   Q_PROPERTY(bool     isGroupType        READ isGroupType       )
   Q_PROPERTY(bool     isHierarchical     READ isHierarchical    )
@@ -154,6 +156,9 @@ class CQChartsPlotType : public QObject {
   virtual bool allowYLog() const { return true; }
 
   virtual bool allowPolar() const { return false; }
+
+  virtual bool allowInvertX() const { return true; }
+  virtual bool allowInvertY() const { return true; }
 
   virtual bool canEqualScale() const { return false; }
 
