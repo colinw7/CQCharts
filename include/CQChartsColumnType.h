@@ -169,6 +169,7 @@ class CQChartsColumnType {
   void setHidden(bool hidden) { hidden_ = hidden; }
 
   virtual QString formatName() const { return "format"; }
+  virtual QString oformatName() const { return "oformat"; }
 
   ColumnTypeParam *addGenericParam(const QString &name, Type type, int role, const QString &tip,
                                    const QVariant &def=QVariant());
@@ -209,6 +210,9 @@ class CQChartsColumnType {
 
   // get decreasing
   virtual QVariant decreasing(const NameValues &) const { return QVariant(); }
+
+  // get output format
+  virtual QString getOFormat(const NameValues &) const { return QString(); }
 
   // get bad value
   virtual QVariant badValue(const NameValues &) const { return QVariant(); }
@@ -357,7 +361,7 @@ class CQChartsColumnRealType : public CQChartsColumnType {
   bool rsum(const NameValues &nameValues, double &r) const;
 
   QString getIFormat(const NameValues &nameValues) const;
-  QString getOFormat(const NameValues &nameValues) const;
+  QString getOFormat(const NameValues &nameValues) const override;
 };
 
 //---
@@ -404,7 +408,7 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
   bool isum(const NameValues &nameValues, long &i) const;
 
   QString getIFormat(const NameValues &nameValues) const;
-  QString getOFormat(const NameValues &nameValues) const;
+  QString getOFormat(const NameValues &nameValues) const override;
 };
 
 //---
@@ -443,7 +447,7 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
                     bool &converted) const override;
 
   QString getIFormat(const NameValues &nameValues) const;
-  QString getOFormat(const NameValues &nameValues) const;
+  QString getOFormat(const NameValues &nameValues) const override;
 
   QVariant indexVar(const QVariant &var, const QString &ind) const override;
 

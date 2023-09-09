@@ -429,6 +429,8 @@ getNamedValue(const QString &name) const
 
   else if (lname == "decreasing") return this->decreasing();
 
+  else if (lname == "oformat") return this->oformat();
+
   else if (lname == "monotonic" ) return this->isMonotonic();
   else if (lname == "increasing") return this->isIncreasing();
 
@@ -625,6 +627,15 @@ decreasing() const
   initCache();
 
   return decreasing_;
+}
+
+QVariant
+CQChartsModelColumnDetails::
+oformat() const
+{
+  initCache();
+
+  return oformat_;
 }
 
 QVariant
@@ -1240,6 +1251,8 @@ isOutlier(const QVariant &value) const
   return false;
 }
 
+//---
+
 double
 CQChartsModelColumnDetails::
 map(const QVariant &var) const
@@ -1465,6 +1478,8 @@ calcCache()
         badValue_ = columnType->badValue(details->nameValues()); // type custom bad value
 
         decreasing_ = columnType->decreasing(details->nameValues()); // type custom decreasing
+
+        oformat_ = columnType->getOFormat(details->nameValues()); // type custom output format
 
         visitMin_ = ! min_.isValid();
         visitMax_ = ! max_.isValid();
@@ -1805,6 +1820,8 @@ calcCache()
 
     QVariant decreasing() const { return decreasing_; }
 
+    QVariant oformat() const { return oformat_; }
+
     bool isMonotonic () const { return monotonicSet_ && monotonic_; }
     bool isIncreasing() const { return increasing_; }
 
@@ -1816,6 +1833,7 @@ calcCache()
     QVariant                    sum_;
     QVariant                    badValue_;
     QVariant                    decreasing_;
+    QVariant                    oformat_;
     bool                        visitMin_     { true };
     bool                        visitMax_     { true };
     bool                        visitSum_     { true };
@@ -1854,6 +1872,7 @@ calcCache()
   sumValue_   = detailVisitor.sumValue();
   badValue_   = detailVisitor.badValue();
   decreasing_ = detailVisitor.decreasing();
+  oformat_    = detailVisitor.oformat();
   numRows_    = detailVisitor.numRows();
   monotonic_  = detailVisitor.isMonotonic();
   increasing_ = detailVisitor.isIncreasing();

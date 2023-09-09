@@ -90,6 +90,31 @@ bool fromString(const QString &str, std::vector<CQChartsColumn> &columns) {
 
 //------
 
+QString rangeFormat(double min, double max)
+{
+  auto d = std::abs(max - min);
+
+  if (d == 0.0) d = min;
+  if (d == 0.0) return "%.1f";
+ 
+  auto l = int(std::round(d >= 0.0 ? std::log10(d) : -std::log10(-d)));
+
+  if (l < 0) {
+    switch (l) {
+      case -1:          return "%.2f";
+      case -2:          return "%.3f";
+      case -3: default: return "%.4f";
+    }
+  }
+  else {
+    switch (l) {
+      case 0: case 1 : return "%.2f";
+      case 2:          return "%.1f";
+      case 3: default: return "%.0f";
+    }
+  }
+}
+
 QString formatVar(const QVariant &var, const QString &fmt) {
   class VarPrintF : public CPrintF {
    public:

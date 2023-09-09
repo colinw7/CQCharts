@@ -399,8 +399,6 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   using BucketCount = std::map<int, int>;
 
-  void calcBucketCounts(int ic, BucketCount &bucketCount, int &maxCount,
-                        double &rmin, double &rmax) const;
   void calcBucketCounts(const Column &column, BucketCount &bucketCount, int &maxCount,
                         double &rmin, double &rmax) const;
 
@@ -605,6 +603,8 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   Point plotToParent(const Point &w) const;
   Point parentToPlot(const Point &p) const;
 
+  void getDataRange(double &xmin, double &ymin, double &xmax, double &ymax) const;
+
   //---
 
   virtual bool handleSelectPress  (const Point &p, SelMod selMod);
@@ -619,11 +619,11 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
  protected:
   void drawXAxis(PaintDevice *device) const;
   void drawXGrid(PaintDevice *device) const;
-  void initXAxis() const;
+  void initXAxis(bool buckets) const;
 
   void drawYAxis(PaintDevice *device) const;
   void drawYGrid(PaintDevice *device) const;
-  void initYAxis() const;
+  void initYAxis(bool buckets) const;
 
   void drawScatter     (PaintDevice *device) const;
   void drawBestFit     (PaintDevice *device) const;

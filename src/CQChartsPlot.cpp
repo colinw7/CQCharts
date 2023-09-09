@@ -10323,7 +10323,7 @@ CQChartsPlot::
 selectedPlotObjs(PlotObjs &plotObjs) const
 {
   for (auto &plotObj : plotObjects()) {
-    if (plotObj->isSelected())
+    if (plotObj && plotObj->isSelected())
       plotObjs.push_back(plotObj);
   }
 }

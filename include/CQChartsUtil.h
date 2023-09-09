@@ -140,6 +140,8 @@ inline CQChartsSelMod stringToSelMod(const QString &str) {
 
 namespace CQChartsUtil {
 
+QString rangeFormat(double min, double max);
+
 QString formatVar    (const QVariant &var, const QString &fmt);
 QString formatReal   (double r, const QString &fmt="%g" );
 QString formatInteger(long   i, const QString &fmt="%ld");

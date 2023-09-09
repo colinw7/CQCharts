@@ -314,6 +314,7 @@ formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
     return false;
 
   columnTypeData.nameValues.setNameValue(typeData->formatName(), formatStr);
+  columnTypeData.nameValues.setNameValue(typeData->oformatName(), formatStr);
 #endif
 
   return formatColumnTypeValue(charts, model, column, typeData, columnTypeData, value, str);

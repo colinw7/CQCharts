@@ -1725,16 +1725,6 @@ setColumnVisible(int ic, bool visible)
 
 void
 CQChartsSummaryPlot::
-calcBucketCounts(int ic, BucketCount &bucketCount, int &maxCount,
-                 double &rmin, double &rmax) const
-{
-  auto column = visibleColumns().getColumn(ic);
-
-  calcBucketCounts(column, bucketCount, maxCount, rmin, rmax);
-}
-
-void
-CQChartsSummaryPlot::
 calcBucketCounts(const Column &column, BucketCount &bucketCount, int &maxCount,
                  double &rmin, double &rmax) const
 {
@@ -2020,7 +2010,10 @@ calcTipId() const
       tableTip.addTableRow(name, QString("[%1,%2)").arg(selectRectData_->bbox.getXMin()).
                                                     arg(selectRectData_->bbox.getXMax()));
 
-      tableTip.addTableRow("Count", selectRectData_->bbox.getYMax());
+      if (summaryPlot_->orientation() == Qt::Vertical)
+        tableTip.addTableRow("Count", selectRectData_->bbox.getYMax());
+      else
+        tableTip.addTableRow("Count", selectRectData_->bbox.getXMax());
 
       return tableTip.str();
     }
@@ -2256,7 +2249,7 @@ drawXAxis(PaintDevice *device) const
 
   //---
 
-  initXAxis();
+  initXAxis(/*buckets*/false);
 
   auto clip = summaryPlot_->isDataClip();
   const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false, /*notify*/false);
@@ -2281,20 +2274,23 @@ drawXGrid(PaintDevice *device) const
   //---
 
   bool showGrid = false;
+  bool buckets  = false;
 
   auto cellType = getCellType();
 
   if      (cellType == CQChartsSummaryPlot::CellType::SCATTER)
     showGrid = true;
-  else if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION)
-    showGrid = (summaryPlot_->orientation() == Qt::Vertical);
+  else if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION) {
+    buckets  = (summaryPlot_->orientation() == Qt::Horizontal);
+    showGrid = true;
+  }
 
   if (! showGrid)
     return;
 
   //---
 
-  initXAxis();
+  initXAxis(buckets);
 
   auto clip = summaryPlot_->isDataClip();
   const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false, /*notify*/false);
@@ -2311,7 +2307,7 @@ drawXGrid(PaintDevice *device) const
 
 void
 CQChartsSummaryCellObj::
-initXAxis() const
+initXAxis(bool buckets) const
 {
   auto column = colColumn();
 
@@ -2319,6 +2315,23 @@ initXAxis() const
   summaryPlot_->calcColumnRange(column, xmin, xmax);
 
   auto *details = summaryPlot_->columnDetails(column);
+
+  auto type = CQBaseModelType::INTEGER;
+
+  if (buckets) {
+    CQChartsSummaryPlot::BucketCount bucketCount;
+    int                              maxCount = 0;
+    double                           bmin = 0.0, bmax = 0.0;
+
+    summaryPlot_->calcBucketCounts(column, bucketCount, maxCount, bmin, bmax);
+
+    xmin = 0;
+    xmax = maxCount;
+  }
+  else {
+    if (details)
+      type = details->type();
+  }
 
   //---
 
@@ -2332,11 +2345,22 @@ initXAxis() const
     xaxis->setPosition(CQChartsAxis::OptReal(row_));
 
   xaxis->setRange(pxmin_, pxmax_);
+  xaxis->setColumn(column);
 
-  if (! details || details->type() == CQBaseModelType::INTEGER || ! details->isNumeric())
-    xaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER), false);
-  else
+  if (type == CQBaseModelType::REAL) {
     xaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL), false);
+
+    auto oformat = details->oformat().toString();
+
+    if (oformat != "") {
+      if (oformat == "%%")
+        oformat = CQChartsUtil::rangeFormat(xmin, xmax);
+
+      xaxis->setFormat(oformat);
+    }
+  }
+  else
+    xaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER), false);
 
   xaxis->setValueRange(xmin, xmax);
 
@@ -2352,7 +2376,7 @@ drawYAxis(PaintDevice *device) const
 
   //---
 
-  initYAxis();
+  initYAxis(/*buckets*/false);
 
   auto clip = summaryPlot_->isDataClip();
   const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false, /*notify*/false);
@@ -2377,39 +2401,40 @@ drawYGrid(PaintDevice *device) const
   //---
 
   bool showGrid = false;
+  bool buckets  = false;
 
   auto cellType = getCellType();
 
   if      (cellType == CQChartsSummaryPlot::CellType::SCATTER)
     showGrid = true;
-  else if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION)
-    showGrid = (summaryPlot_->orientation() == Qt::Horizontal);
+  else if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION) {
+    buckets  = (summaryPlot_->orientation() == Qt::Vertical);
+    showGrid = true;
+  }
 
   if (! showGrid)
     return;
 
   //---
 
-  if (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
-    initYAxis();
+  initYAxis(buckets);
 
-    auto clip = summaryPlot_->isDataClip();
-    const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false, /*notify*/false);
+  auto clip = summaryPlot_->isDataClip();
+  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false, /*notify*/false);
 
-    device->save();
-    device->setClipRect(rect());
+  device->save();
+  device->setClipRect(rect());
 
-    yaxis->drawGrid(summaryPlot_, device);
+  yaxis->drawGrid(summaryPlot_, device);
 
-    const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(clip, /*notify*/false);
+  const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(clip, /*notify*/false);
 
-    device->restore();
-  }
+  device->restore();
 }
 
 void
 CQChartsSummaryCellObj::
-initYAxis() const
+initYAxis(bool buckets) const
 {
   auto column = rowColumn();
 
@@ -2417,6 +2442,23 @@ initYAxis() const
   summaryPlot_->calcColumnRange(column, ymin, ymax);
 
   auto *details = summaryPlot_->columnDetails(column);
+
+  auto type = CQBaseModelType::INTEGER;
+
+  if (buckets) {
+    CQChartsSummaryPlot::BucketCount bucketCount;
+    int                              maxCount = 0;
+    double                           bmin = 0.0, bmax = 0.0;
+
+    summaryPlot_->calcBucketCounts(column, bucketCount, maxCount, bmin, bmax);
+
+    ymin = 0;
+    ymax = maxCount;
+  }
+  else {
+    if (details)
+      type = details->type();
+  }
 
   //---
 
@@ -2430,11 +2472,22 @@ initYAxis() const
     yaxis->setPosition(CQChartsAxis::OptReal(col_));
 
   yaxis->setRange(pymin_, pymax_);
+  yaxis->setColumn(column);
 
-  if (! details || details->type() == CQBaseModelType::INTEGER || ! details->isNumeric())
-    yaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER), false);
-  else
+  if (type == CQBaseModelType::REAL) {
     yaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL), false);
+
+    auto oformat = details->oformat().toString();
+
+    if (oformat != "") {
+      if (oformat == "%%")
+        oformat = CQChartsUtil::rangeFormat(ymin, ymax);
+
+      yaxis->setFormat(oformat);
+    }
+  }
+  else
+    yaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER), false);
 
   yaxis->setValueRange(ymin, ymax);
 
@@ -2507,6 +2560,12 @@ drawScatter(PaintDevice *device) const
   auto *details2 = summaryPlot_->columnDetails(rowColumn);
   if (! details1 || ! details2) return;
 
+  int nx = details1->numRows();
+  int ny = details2->numRows();
+  if (nx != ny) return;
+
+  //---
+
   auto *groupDetails = (summaryPlot_->groupColumn().isValid() ?
     summaryPlot_->columnDetails(summaryPlot_->groupColumn()) : nullptr);
 
@@ -2521,47 +2580,8 @@ drawScatter(PaintDevice *device) const
 
   //---
 
-  if (details1->isNumeric()) {
-    bool ok;
-    xmin_ = CQChartsVariant::toReal(details1->minValue(), ok);
-    xmax_ = CQChartsVariant::toReal(details1->maxValue(), ok);
-  }
-  else {
-    xmin_ = 0.0;
-    xmax_ = details1->numUnique();
-  }
-
-  if (details2->isNumeric()) {
-    bool ok;
-    ymin_ = CQChartsVariant::toReal(details2->minValue(), ok);
-    ymax_ = CQChartsVariant::toReal(details2->maxValue(), ok);
-  }
-  else {
-    ymin_ = 0.0;
-    ymax_ = details2->numUnique();
-  }
-
-  int nx = details1->numRows();
-  int ny = details2->numRows();
-  if (nx != ny) return;
-
-  //---
-
-  double bmin1 = xmin_, bmax1 = xmax_;
-  double bmin2 = ymin_, bmax2 = ymax_;
-
-  if (summaryPlot_->diagonalType() == CQChartsSummaryPlot::DiagonalType::DISTRIBUTION) {
-    if (details1->isNumeric()) {
-      CQChartsSummaryPlot::BucketCount bucketCount1, bucketCount2;
-      int                              maxCount1 = 0, maxCount2 = 0;
-
-      summaryPlot_->calcBucketCounts(col_, bucketCount1, maxCount1, bmin1, bmax1);
-      summaryPlot_->calcBucketCounts(row_, bucketCount2, maxCount2, bmin2, bmax2);
-
-      xmin_ = bmin1; xmax_ = bmax1;
-      ymin_ = bmin2; ymax_ = bmax2;
-    }
-  }
+  summaryPlot_->calcColumnRange(colColumn, xmin_, xmax_);
+  summaryPlot_->calcColumnRange(rowColumn, ymin_, ymax_);
 
   //---
 
@@ -2947,7 +2967,12 @@ drawBoxPlot(PaintDevice *device) const
       double r = CQChartsVariant::toReal(details->value(i), ok);
       if (! ok) continue;
 
-      double r1 = CMathUtil::map(r, min, max, pymin_, pymax_);
+      double r1;
+
+      if (summaryPlot_->orientation() == Qt::Vertical)
+        r1 = CMathUtil::map(r, min, max, pymin_, pymax_);
+      else
+        r1 = CMathUtil::map(r, min, max, pxmin_, pxmax_);
 
       whisker.addValue(r1);
     }
@@ -2958,7 +2983,7 @@ drawBoxPlot(PaintDevice *device) const
     CQChartsBoxWhiskerUtil::PointData pointData;
 
     drawData.width       = Length::plot(0.1);
-    drawData.orientation = Qt::Vertical;
+    drawData.orientation = summaryPlot_->orientation();
     drawData.median      = true;
 
     CQChartsBoxWhiskerUtil::drawWhisker(device, whisker, bbox, drawData, pointData);
@@ -2980,17 +3005,34 @@ drawBoxPlot(PaintDevice *device) const
 
       auto textOptions = summaryPlot_->boxPlotTextOptions(device);
 
-      textOptions.angle     = CQChartsAngle();
+      if (drawData.orientation == Qt::Vertical)
+        textOptions.angle = CQChartsAngle();
+      else
+        textOptions.angle = CQChartsAngle::degrees(90);
+
       textOptions.formatted = false;
       textOptions.scaled    = false;
       textOptions.html      = false;
 
-      textOptions.align = Qt::AlignRight | Qt::AlignVCenter;
-      CQChartsDrawUtil::drawTextAtPoint(device, pointData.min, QString::number(min ), textOptions);
+      bool centered = (drawData.orientation != Qt::Vertical);
 
-      textOptions.align = Qt::AlignLeft | Qt::AlignVCenter;
-      CQChartsDrawUtil::drawTextAtPoint(device, pointData.med, QString::number(mean), textOptions);
-      CQChartsDrawUtil::drawTextAtPoint(device, pointData.max, QString::number(max ), textOptions);
+      if (drawData.orientation == Qt::Vertical)
+        textOptions.align = Qt::AlignRight | Qt::AlignVCenter;
+      else
+        textOptions.align = Qt::AlignHCenter | Qt::AlignTop;
+
+      CQChartsDrawUtil::drawTextAtPoint(device, pointData.min, QString::number(min ),
+                                        textOptions, centered);
+      CQChartsDrawUtil::drawTextAtPoint(device, pointData.max, QString::number(max ),
+                                        textOptions, centered);
+
+      if (drawData.orientation == Qt::Vertical)
+        textOptions.align = Qt::AlignLeft | Qt::AlignVCenter;
+      else
+        textOptions.align = Qt::AlignHCenter | Qt::AlignBottom;
+
+      CQChartsDrawUtil::drawTextAtPoint(device, pointData.med, QString::number(mean),
+                                        textOptions, centered);
     }
 
     //---
@@ -3095,7 +3137,7 @@ drawDistribution(PaintDevice *device) const
   if (details->isNumeric()) {
     CQChartsSummaryPlot::BucketCount bucketCount;
 
-    summaryPlot_->calcBucketCounts(row_, bucketCount, maxCount_, bmin_, bmax_);
+    summaryPlot_->calcBucketCounts(column, bucketCount, maxCount_, bmin_, bmax_);
 
     int ig = 0;
     int ng = int(bucketCount.size());
@@ -3477,7 +3519,7 @@ drawPie(PaintDevice *device) const
     CQChartsSummaryPlot::BucketCount bucketCount;
     int                              maxCount = 0;
 
-    summaryPlot_->calcBucketCounts(row_, bucketCount, maxCount, bmin_, bmax_);
+    summaryPlot_->calcBucketCounts(column, bucketCount, maxCount, bmin_, bmax_);
 
     CQChartsRValues values;
 
@@ -3561,8 +3603,11 @@ CQChartsGeom::Point
 CQChartsSummaryCellObj::
 plotToParent(const Point &w) const
 {
-  auto px = CMathUtil::map(w.x, xmin_, xmax_, pxmin_, pxmax_);
-  auto py = CMathUtil::map(w.y, ymin_, ymax_, pymin_, pymax_);
+  double xmin, xmax, ymin, ymax;
+  getDataRange(xmin, ymin, xmax, ymax);
+
+  auto px = CMathUtil::map(w.x, xmin, xmax, pxmin_, pxmax_);
+  auto py = CMathUtil::map(w.y, ymin, ymax, pymin_, pymax_);
 
   return Point(px, py);
 }
@@ -3571,39 +3616,46 @@ CQChartsGeom::Point
 CQChartsSummaryCellObj::
 parentToPlot(const Point &p) const
 {
+  double xmin, xmax, ymin, ymax;
+  getDataRange(xmin, ymin, xmax, ymax);
+
+  auto wx = CMathUtil::map(p.x, pxmin_, pxmax_, xmin, xmax);
+  auto wy = CMathUtil::map(p.y, pymin_, pymax_, ymin, ymax);
+
+  return Point(wx, wy);
+}
+
+void
+CQChartsSummaryCellObj::
+getDataRange(double &xmin, double &ymin, double &xmax, double &ymax) const
+{
   auto cellType = getCellType();
 
-  auto r = this->rect();
-
-  auto wx = CMathUtil::map(p.x, r.getXMin(), r.getXMax(), 0.0, 1.0);
-  auto wy = CMathUtil::map(p.y, r.getYMin(), r.getYMax(), 0.0, 1.0);
+  bool invert = (summaryPlot_->orientation() == Qt::Horizontal);
 
   if      (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION) {
-    bool invert = (summaryPlot_->orientation() == Qt::Horizontal);
-
-    double bx, by;
-
-    if (invert) {
-      bx = CMathUtil::map(wy, bx_, 1.0 - by_, 0, maxCount_);
-      by = CMathUtil::map(wx, by_, 1.0 - bx_, bmin_, bmax_);
+    if (! invert) {
+      xmin = bmin_; xmax = bmax_;
+      ymin = 0    ; ymax = maxCount_;
     }
     else {
-      bx = CMathUtil::map(wx, bx_, 1.0 - bx_, bmin_, bmax_);
-      by = CMathUtil::map(wy, by_, 1.0 - by_, 0, maxCount_);
+      xmin = 0    ; xmax = maxCount_;
+      ymin = bmin_; ymax = bmax_;
     }
-
-    return Point(bx, by);
   }
   else if (cellType == CQChartsSummaryPlot::CellType::BOXPLOT) {
-    auto py = CMathUtil::map(wy, by_, 1.0 - by_, bmin_, bmax_);
-
-    return Point(wx, py);
+    if (! invert) {
+      xmin = 0.0  ; xmax = 1.0;
+      ymin = bmin_; ymax = bmax_;
+    }
+    else {
+      xmin = bmin_; xmax = bmax_;
+      ymin = 0.0  ; ymax = 1.0;
+    }
   }
   else {
-    auto px = CMathUtil::map(wx, bx_, 1.0 - bx_, xmin_, xmax_);
-    auto py = CMathUtil::map(wy, by_, 1.0 - by_, ymin_, ymax_);
-
-    return Point(px, py);
+    xmin = xmin_; xmax = xmax_;
+    ymin = ymin_; ymax = ymax_;
   }
 }
 

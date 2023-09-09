@@ -247,7 +247,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   Q_PROPERTY(double minDataScaleX READ minDataScaleX WRITE setMinDataScaleX)
   Q_PROPERTY(double minDataScaleY READ minDataScaleY WRITE setMinDataScaleY)
-  Q_PROPERTY(double maxDataScaleY READ maxDataScaleX WRITE setMaxDataScaleX)
+  Q_PROPERTY(double maxDataScaleX READ maxDataScaleX WRITE setMaxDataScaleX)
   Q_PROPERTY(double maxDataScaleY READ maxDataScaleY WRITE setMaxDataScaleY)
 
   // range
