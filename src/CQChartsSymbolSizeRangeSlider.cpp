@@ -10,9 +10,7 @@ CQChartsSymbolSizeRangeSlider(QWidget *parent) :
 {
   auto font = this->font();
 
-  font.setPointSizeF(font.pointSizeF()*0.9);
-
-  setTextFont(font);
+  setTextFontScale(0.9);
 }
 
 void

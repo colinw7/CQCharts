@@ -92,11 +92,12 @@ bool fromString(const QString &str, std::vector<CQChartsColumn> &columns) {
 
 QString rangeFormat(double min, double max)
 {
+#if 0
   auto d = std::abs(max - min);
 
   if (d == 0.0) d = min;
   if (d == 0.0) return "%.1f";
- 
+
   auto l = int(std::round(d >= 0.0 ? std::log10(d) : -std::log10(-d)));
 
   if (l < 0) {
@@ -113,6 +114,37 @@ QString rangeFormat(double min, double max)
       case 3: default: return "%.0f";
     }
   }
+#else
+  auto amin = std::abs(min);
+  auto amax = std::abs(max);
+
+  auto idp = [](double r) {
+    auto i = std::round(r);
+    return (i > 0 ? int(std::log10(i)) + 1 : 1);
+  };
+
+  auto id = std::min(idp(amin), idp(amax));
+
+  double r1 = (amin - int(amin));
+  double r2 = (amax - int(amax));
+
+  auto ndp = [](double r) {
+    int n = 0;
+
+    while (n < 6 && r > 1E-6 && r + 1E-6 < 1.0) {
+      ++n;
+
+      r *= 10;
+      r = r - int(r);
+    }
+
+    return n;
+  };
+
+  auto rd = std::max(ndp(r1), ndp(r2));
+
+  return "%" + QString::number(id) + "." + QString::number(rd) + "f";
+#endif
 }
 
 QString formatVar(const QVariant &var, const QString &fmt) {

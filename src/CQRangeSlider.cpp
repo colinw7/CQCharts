@@ -10,14 +10,21 @@ CQRangeSlider(QWidget *parent) :
 {
   setObjectName("rangeSlider");
 
-  textFont_ = font();
-
-  //---
-
   setContextMenuPolicy(Qt::DefaultContextMenu);
 }
 
 //---
+
+QFont
+CQRangeSlider::
+textFont() const
+{
+  auto f = font();
+
+  f.setPointSizeF(f.pointSizeF()*textFontScale());
+
+  return f;
+}
 
 void
 CQRangeSlider::

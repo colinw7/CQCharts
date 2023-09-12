@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + summary plot format (just set column, %% support auto/needed ?)
+
  + annotation update from plot objects added callback without infinite loop
  + summary range edit. show on axes
 

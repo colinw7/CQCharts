@@ -749,7 +749,7 @@ class CQChartsColumnColorType : public CQChartsColumnType {
 
   bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                   const NameValues &nameValues, bool &mapped,
-                  double &map_min, double &map_max, PaletteName &palette) const;
+                  double &mapMin, double &mapMax, PaletteName &palette) const;
 };
 
 //---
@@ -833,7 +833,7 @@ class CQChartsColumnSymbolTypeType : public CQChartsColumnType {
 
   bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                   const NameValues &nameValues, bool &mapped,
-                  long &map_min, long &map_max, long &data_min, long &data_max) const;
+                  long &mapMin, long &mapMax, long &dataMin, long &dataMax) const;
 };
 
 //---
@@ -873,7 +873,7 @@ class CQChartsColumnSymbolSizeType : public CQChartsColumnType {
 
   bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                   const NameValues &nameValues, bool &mapped,
-                  double &map_min, double &map_max, double &data_min, double &data_max) const;
+                  double &mapMin, double &mapMax, double &dataMin, double &dataMax) const;
 };
 
 //---
@@ -913,7 +913,7 @@ class CQChartsColumnFontSizeType : public CQChartsColumnType {
 
   bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                   const NameValues &nameValues, bool &mapped,
-                  double &map_min, double &map_max, double &data_min, double &data_max) const;
+                  double &mapMin, double &mapMax, double &dataMin, double &dataMax) const;
 };
 
 //---

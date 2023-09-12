@@ -137,11 +137,11 @@ class CQChartsDisplayRange {
   Point getWindowCenter() const { return Point(window_.xmid(), window_.ymid()); }
 
   // get/set equal scale flag
-  bool getEqualScale() const { return equal_scale_; }
-  void setEqualScale(bool flag) { equal_scale_ = flag; recalc(); }
+  bool getEqualScale() const { return equalScale_; }
+  void setEqualScale(bool flag) { equalScale_ = flag; recalc(); }
 
-  bool getScaleMin() const { return scale_min_; }
-  void setScaleMin(bool flag) { scale_min_ = flag; recalc(); }
+  bool getScaleMin() const { return scaleMin_; }
+  void setScaleMin(bool flag) { scaleMin_ = flag; recalc(); }
 
   HAlign getHAlign() const { return halign_; }
   void setHAlign(HAlign halign) { halign_ = halign; recalc(); }
@@ -263,7 +263,7 @@ class CQChartsDisplayRange {
 
     Matrix matrix1, matrix2, matrix3;
 
-    if (equal_scale_) {
+    if (getEqualScale()) {
       matrix1.setTranslation(pixel_.xmin + pdx_, pixel_.ymin + pdy_);
       matrix2.setScale      (factor_x1_, factor_y1_);
       matrix3.setTranslation(-window1_.xmin, -window1_.ymax);
@@ -285,7 +285,7 @@ class CQChartsDisplayRange {
   }
 
   void windowToPixel(double window_x, double window_y, double *pixel_x, double *pixel_y) const {
-    if (equal_scale_) {
+    if (getEqualScale()) {
       *pixel_x = (window_x - window1_.xmin)*factor_x1_ + pixel_.xmin + pdx_;
       *pixel_y = (window_y - window1_.ymin)*factor_y1_ + pixel_.ymax + pdy_;
     }
@@ -314,7 +314,7 @@ class CQChartsDisplayRange {
   }
 
   void pixelToWindow(double pixel_x, double pixel_y, double *window_x, double *window_y) const {
-    if (equal_scale_) {
+    if (getEqualScale()) {
       if (factor_x1_ != 0.0)
         *window_x = (pixel_x - pixel_.xmin - pdx_)/factor_x1_ + window1_.xmin;
       else
@@ -420,8 +420,8 @@ class CQChartsDisplayRange {
 
   double dp_ { 1.0 };
 
-  bool equal_scale_ { false };
-  bool scale_min_   { true };
+  bool equalScale_ { false };
+  bool scaleMin_   { true };
 
   HAlign halign_ { HAlign::CENTER };
   VAlign valign_ { VAlign::CENTER };

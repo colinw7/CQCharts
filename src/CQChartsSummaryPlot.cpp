@@ -2347,18 +2347,8 @@ initXAxis(bool buckets) const
   xaxis->setRange(pxmin_, pxmax_);
   xaxis->setColumn(column);
 
-  if (type == CQBaseModelType::REAL) {
+  if (type == CQBaseModelType::REAL)
     xaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL), false);
-
-    auto oformat = details->oformat().toString();
-
-    if (oformat != "") {
-      if (oformat == "%%")
-        oformat = CQChartsUtil::rangeFormat(xmin, xmax);
-
-      xaxis->setFormat(oformat);
-    }
-  }
   else
     xaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER), false);
 
@@ -2474,18 +2464,8 @@ initYAxis(bool buckets) const
   yaxis->setRange(pymin_, pymax_);
   yaxis->setColumn(column);
 
-  if (type == CQBaseModelType::REAL) {
+  if (type == CQBaseModelType::REAL)
     yaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL), false);
-
-    auto oformat = details->oformat().toString();
-
-    if (oformat != "") {
-      if (oformat == "%%")
-        oformat = CQChartsUtil::rangeFormat(ymin, ymax);
-
-      yaxis->setFormat(oformat);
-    }
-  }
   else
     yaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER), false);
 
@@ -4108,7 +4088,7 @@ updateWidgets()
 
     bool ok;
     auto name = summaryPlot_->modelHHeaderString(column, ok);
-    if (name == "") name == QString::number(i);
+    if (name == "") name = QString::number(i);
 
     widget.label->setText(name);
 

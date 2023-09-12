@@ -20,6 +20,7 @@
 #include <CQModelUtil.h>
 #include <CQColors.h>
 #include <CQColorsPalette.h>
+#include <CInterval.h>
 
 //------
 
@@ -1414,8 +1415,8 @@ userData(CQCharts *, const QAbstractItemModel *, const Column &, const QVariant 
 // data variant to output variant (string) for display
 QVariant
 CQChartsColumnRealType::
-dataName(CQCharts *, const QAbstractItemModel *, const Column &, const QVariant &var,
-         const ModelTypeData &typeData, bool &converted) const
+dataName(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
+         const QVariant &var, const ModelTypeData &typeData, bool &converted) const
 {
   if (! var.isValid())
     return var;
@@ -1438,10 +1439,33 @@ dataName(CQCharts *, const QAbstractItemModel *, const Column &, const QVariant 
   //---
 
   // get scale factor to support units suffix in format
-  double scale;
-
+  double scale = 1.0;
   if (CQChartsColumnUtil::nameValueReal(typeData.nameValues, "format_scale", scale))
     r *= scale;
+
+  //---
+
+  if (fmt == "%%") {
+    auto *columnDetails = this->columnDetails(charts, model, column);
+
+    if (columnDetails) {
+      double min = 0.0;
+      double max = 1.0;
+
+      min = CQChartsColumnUtil::varReal(columnDetails->minValue(), min);
+      max = CQChartsColumnUtil::varReal(columnDetails->maxValue(), max);
+
+      CInterval interval(min, max, 10);
+
+      auto min1 = interval.calcStart    ();
+      auto max1 = interval.calcEnd      ();
+      auto d1   = interval.calcIncrement();
+
+      fmt = CQChartsUtil::rangeFormat(min1 - d1, max1 + d1);
+    }
+    else
+      fmt = "%g";
+  }
 
   //---
 
@@ -1662,6 +1686,12 @@ dataName(CQCharts *, const QAbstractItemModel *, const Column &, const QVariant 
 
   if (! fmt.length())
     return CQChartsUtil::formatInteger(l);
+
+  //---
+
+  if (fmt == "%%") {
+    fmt = "%d";
+  }
 
   //---
 
@@ -2693,9 +2723,7 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const Column &column
       }
       else {
         auto *columnDetails = this->columnDetails(charts, model, column);
-
-        if (! columnDetails)
-          return var;
+        if (! columnDetails) return var;
 
         // use value index/count of original values
         int n = columnDetails->numValues();
@@ -2762,15 +2790,15 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &colu
            const NameValues &nameValues, ColorColumnData &colorColumnData) const
 {
   auto mapped  = colorColumnData.isMapped();
-  auto map_min = colorColumnData.mapMin();
-  auto map_max = colorColumnData.mapMax();
+  auto mapMin  = colorColumnData.mapMin();
+  auto mapMax  = colorColumnData.mapMax();
   auto palette = colorColumnData.palette();
 
-  if (! getMapData(charts, model, column, nameValues, mapped, map_min, map_max, palette))
+  if (! getMapData(charts, model, column, nameValues, mapped, mapMin, mapMax, palette))
     return false;
 
   colorColumnData.setMapped  (mapped);
-  colorColumnData.setMapRange(map_min, map_max);
+  colorColumnData.setMapRange(mapMin, mapMax);
   colorColumnData.setPalette (palette);
 
   return true;
@@ -2780,7 +2808,7 @@ bool
 CQChartsColumnColorType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
            const NameValues &nameValues, bool &mapped,
-           double &map_min, double &map_max, PaletteName &paletteName) const
+           double &mapMin, double &mapMax, PaletteName &paletteName) const
 {
   if (! CQChartsColumnUtil::nameValueBool(nameValues, "mapped", mapped))
     mapped = false;
@@ -2792,24 +2820,24 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &colu
   else
     paletteName = PaletteName();
 
-  map_min = 0.0;
-  map_max = 1.0;
+  mapMin = 0.0;
+  mapMax = 1.0;
 
-  if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", map_min)) {
+  if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", mapMin)) {
     if (mapped) {
       auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
-        map_min = CQChartsColumnUtil::varReal(columnDetails->minValue(), map_min);
+        mapMin = CQChartsColumnUtil::varReal(columnDetails->minValue(), mapMin);
     }
   }
 
-  if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", map_max)) {
+  if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", mapMax)) {
     if (mapped) {
       auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
-        map_max = CQChartsColumnUtil::varReal(columnDetails->maxValue(), map_max);
+        mapMax = CQChartsColumnUtil::varReal(columnDetails->maxValue(), mapMax);
     }
   }
 
@@ -2968,12 +2996,12 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const Column &column
 
   converted = true;
 
-  bool mapped   = false;
-  long min      = 0, max = 1;
-  long size_min = CQChartsSymbolType::minFillValue();
-  long size_max = CQChartsSymbolType::maxFillValue();
+  bool mapped  = false;
+  long min     = 0, max = 1;
+  long sizeMin = CQChartsSymbolType::minFillValue();
+  long sizeMax = CQChartsSymbolType::maxFillValue();
 
-  getMapData(charts, model, column, typeData.nameValues, mapped, min, max, size_min, size_max);
+  getMapData(charts, model, column, typeData.nameValues, mapped, min, max, sizeMin, sizeMax);
 
   if (mapped) {
     bool ok;
@@ -2982,7 +3010,7 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const Column &column
     if (! ok) return QVariant();
 
     long i1 = long(CMathUtil::map(double(i), double(min), double(max),
-                                  double(size_min), double(size_max)));
+                                  double(sizeMin), double(sizeMax)));
 
     auto symbolTypeInd = static_cast<CQChartsSymbolType::Type>(i1);
 
@@ -3028,19 +3056,18 @@ CQChartsColumnSymbolTypeType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
            const NameValues &nameValues, SymbolTypeData &symbolTypeData) const
 {
-  auto mapped   = symbolTypeData.isMapped();
-  auto map_min  = symbolTypeData.mapMin();
-  auto map_max  = symbolTypeData.mapMax();
-  auto data_min = symbolTypeData.dataMin();
-  auto data_max = symbolTypeData.dataMax();
+  auto mapped  = symbolTypeData.isMapped();
+  auto mapMin  = symbolTypeData.mapMin();
+  auto mapMax  = symbolTypeData.mapMax();
+  auto dataMin = symbolTypeData.dataMin();
+  auto dataMax = symbolTypeData.dataMax();
 
-  if (! getMapData(charts, model, column, nameValues,
-                   mapped, map_min, map_max, data_min, data_max))
+  if (! getMapData(charts, model, column, nameValues, mapped, mapMin, mapMax, dataMin, dataMax))
     return false;
 
   symbolTypeData.setMapped   (mapped);
-  symbolTypeData.setMapRange (map_min, map_max);
-  symbolTypeData.setDataRange(data_min, data_max);
+  symbolTypeData.setMapRange (mapMin, mapMax);
+  symbolTypeData.setDataRange(dataMin, dataMax);
 
   return true;
 }
@@ -3048,37 +3075,37 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &colu
 bool
 CQChartsColumnSymbolTypeType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
-           const NameValues &nameValues, bool &mapped, long &map_min, long &map_max,
-           long &data_min, long &data_max) const
+           const NameValues &nameValues, bool &mapped, long &mapMin, long &mapMax,
+           long &dataMin, long &dataMax) const
 {
-  mapped   = false;
-  map_min  = 0;
-  map_max  = 1;
-  data_min = 0;
-  data_max = 1;
+  mapped  = false;
+  mapMin  = 0;
+  mapMax  = 1;
+  dataMin = 0;
+  dataMax = 1;
 
   (void) CQChartsColumnUtil::nameValueBool(nameValues, "mapped", mapped);
 
-  if (! CQChartsColumnUtil::nameValueInteger(nameValues, "min", map_min)) {
+  if (! CQChartsColumnUtil::nameValueInteger(nameValues, "min", mapMin)) {
     if (mapped) {
       auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
-        map_min = CQChartsColumnUtil::varInteger(columnDetails->minValue(), map_min);
+        mapMin = CQChartsColumnUtil::varInteger(columnDetails->minValue(), mapMin);
     }
   }
 
-  if (! CQChartsColumnUtil::nameValueInteger(nameValues, "max", map_max)) {
+  if (! CQChartsColumnUtil::nameValueInteger(nameValues, "max", mapMax)) {
     if (mapped) {
       auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
-        map_max = CQChartsColumnUtil::varInteger(columnDetails->maxValue(), map_max);
+        mapMax = CQChartsColumnUtil::varInteger(columnDetails->maxValue(), mapMax);
     }
   }
 
-  (void) CQChartsColumnUtil::nameValueInteger(nameValues, "size_min", data_min);
-  (void) CQChartsColumnUtil::nameValueInteger(nameValues, "size_max", data_max);
+  (void) CQChartsColumnUtil::nameValueInteger(nameValues, "size_min", dataMin);
+  (void) CQChartsColumnUtil::nameValueInteger(nameValues, "size_max", dataMax);
 
   return true;
 }
@@ -3128,15 +3155,15 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const Column &column
 
   converted = true;
 
-  bool   mapped   = false;
-  double min      = 0.0, max = 1.0;
-  double size_min = CQChartsSymbolSize::minValue();
-  double size_max = CQChartsSymbolSize::maxValue();
+  bool   mapped  = false;
+  double min     = 0.0, max = 1.0;
+  double sizeMin = CQChartsSymbolSize::minValue();
+  double sizeMax = CQChartsSymbolSize::maxValue();
 
-  getMapData(charts, model, column, typeData.nameValues, mapped, min, max, size_min, size_max);
+  getMapData(charts, model, column, typeData.nameValues, mapped, min, max, sizeMin, sizeMax);
 
   if (mapped) {
-    double r1 = CMathUtil::map(r, min, max, size_min, size_max);
+    double r1 = CMathUtil::map(r, min, max, sizeMin, sizeMax);
 
     return CQChartsVariant::fromReal(r1);
   }
@@ -3181,19 +3208,18 @@ CQChartsColumnSymbolSizeType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
            const NameValues &nameValues, SymbolSizeData &symbolSizeData) const
 {
-  auto mapped   = symbolSizeData.isMapped();
-  auto map_min  = symbolSizeData.mapMin();
-  auto map_max  = symbolSizeData.mapMax();
-  auto data_min = symbolSizeData.dataMin();
-  auto data_max = symbolSizeData.dataMax();
+  auto mapped  = symbolSizeData.isMapped();
+  auto mapMin  = symbolSizeData.mapMin();
+  auto mapMax  = symbolSizeData.mapMax();
+  auto dataMin = symbolSizeData.dataMin();
+  auto dataMax = symbolSizeData.dataMax();
 
-  if (! getMapData(charts, model, column, nameValues,
-                   mapped, map_min, map_max, data_min, data_max))
+  if (! getMapData(charts, model, column, nameValues, mapped, mapMin, mapMax, dataMin, dataMax))
     return false;
 
   symbolSizeData.setMapped   (mapped);
-  symbolSizeData.setMapRange (map_min, map_max);
-  symbolSizeData.setDataRange(data_min, data_max);
+  symbolSizeData.setMapRange (mapMin, mapMax);
+  symbolSizeData.setDataRange(dataMin, dataMax);
 
   return true;
 }
@@ -3201,37 +3227,37 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &colu
 bool
 CQChartsColumnSymbolSizeType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
-           const NameValues &nameValues, bool &mapped, double &map_min, double &map_max,
-           double &data_min, double &data_max) const
+           const NameValues &nameValues, bool &mapped, double &mapMin, double &mapMax,
+           double &dataMin, double &dataMax) const
 {
-  mapped   = false;
-  map_min  = 0.0;
-  map_max  = 1.0;
-  data_min = 0.0;
-  data_max = 1.0;
+  mapped  = false;
+  mapMin  = 0.0;
+  mapMax  = 1.0;
+  dataMin = 0.0;
+  dataMax = 1.0;
 
   (void) CQChartsColumnUtil::nameValueBool(nameValues, "mapped", mapped);
 
-  if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", map_min)) {
+  if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", mapMin)) {
     if (mapped) {
       auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
-        map_min = CQChartsColumnUtil::varReal(columnDetails->minValue(), map_min);
+        mapMin = CQChartsColumnUtil::varReal(columnDetails->minValue(), mapMin);
     }
   }
 
-  if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", map_max)) {
+  if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", mapMax)) {
     if (mapped) {
       auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
-        map_max = CQChartsColumnUtil::varReal(columnDetails->maxValue(), map_max);
+        mapMax = CQChartsColumnUtil::varReal(columnDetails->maxValue(), mapMax);
     }
   }
 
-  (void) CQChartsColumnUtil::nameValueReal(nameValues, "size_min", data_min);
-  (void) CQChartsColumnUtil::nameValueReal(nameValues, "size_max", data_max);
+  (void) CQChartsColumnUtil::nameValueReal(nameValues, "size_min", dataMin);
+  (void) CQChartsColumnUtil::nameValueReal(nameValues, "size_max", dataMax);
 
   return true;
 }
@@ -3281,15 +3307,15 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const Column &column
 
   converted = true;
 
-  bool   mapped   = false;
-  double min      = 0.0, max = 1.0;
-  double size_min = CQChartsFontSize::minValue();
-  double size_max = CQChartsFontSize::maxValue();
+  bool   mapped  = false;
+  double min     = 0.0, max = 1.0;
+  double sizeMin = CQChartsFontSize::minValue();
+  double sizeMax = CQChartsFontSize::maxValue();
 
-  getMapData(charts, model, column, typeData.nameValues, mapped, min, max, size_min, size_max);
+  getMapData(charts, model, column, typeData.nameValues, mapped, min, max, sizeMin, sizeMax);
 
   if (mapped) {
-    double r1 = CMathUtil::map(r, min, max, size_min, size_max);
+    double r1 = CMathUtil::map(r, min, max, sizeMin, sizeMax);
 
     return CQChartsVariant::fromReal(r1);
   }
@@ -3334,19 +3360,18 @@ CQChartsColumnFontSizeType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
            const NameValues &nameValues, FontSizeData &fontSizeData) const
 {
-  auto mapped   = fontSizeData.isMapped();
-  auto map_min  = fontSizeData.mapMin();
-  auto map_max  = fontSizeData.mapMax();
-  auto data_min = fontSizeData.dataMin();
-  auto data_max = fontSizeData.dataMax();
+  auto mapped  = fontSizeData.isMapped();
+  auto mapMin  = fontSizeData.mapMin();
+  auto mapMax  = fontSizeData.mapMax();
+  auto dataMin = fontSizeData.dataMin();
+  auto dataMax = fontSizeData.dataMax();
 
-  if (! getMapData(charts, model, column, nameValues,
-                   mapped, map_min, map_max, data_min, data_max))
+  if (! getMapData(charts, model, column, nameValues, mapped, mapMin, mapMax, dataMin, dataMax))
     return false;
 
   fontSizeData.setMapped   (mapped);
-  fontSizeData.setMapRange (map_min, map_max);
-  fontSizeData.setDataRange(data_min, data_max);
+  fontSizeData.setMapRange (mapMin, mapMax);
+  fontSizeData.setDataRange(dataMin, dataMax);
 
   return true;
 }
@@ -3354,37 +3379,37 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &colu
 bool
 CQChartsColumnFontSizeType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
-           const NameValues &nameValues, bool &mapped, double &map_min, double &map_max,
-           double &data_min, double &data_max) const
+           const NameValues &nameValues, bool &mapped, double &mapMin, double &mapMax,
+           double &dataMin, double &dataMax) const
 {
-  mapped   = false;
-  map_min  = 0.0;
-  map_max  = 1.0;
-  data_min = 0.0;
-  data_max = 1.0;
+  mapped  = false;
+  mapMin  = 0.0;
+  mapMax  = 1.0;
+  dataMin = 0.0;
+  dataMax = 1.0;
 
   (void) CQChartsColumnUtil::nameValueBool(nameValues, "mapped", mapped);
 
-  if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", map_min)) {
+  if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", mapMin)) {
     if (mapped) {
       auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
-        map_min = CQChartsColumnUtil::varReal(columnDetails->minValue(), map_min);
+        mapMin = CQChartsColumnUtil::varReal(columnDetails->minValue(), mapMin);
     }
   }
 
-  if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", map_max)) {
+  if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", mapMax)) {
     if (mapped) {
       auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
-        map_max = CQChartsColumnUtil::varReal(columnDetails->maxValue(), map_max);
+        mapMax = CQChartsColumnUtil::varReal(columnDetails->maxValue(), mapMax);
     }
   }
 
-  (void) CQChartsColumnUtil::nameValueReal(nameValues, "size_min", data_min);
-  (void) CQChartsColumnUtil::nameValueReal(nameValues, "size_max", data_max);
+  (void) CQChartsColumnUtil::nameValueReal(nameValues, "size_min", dataMin);
+  (void) CQChartsColumnUtil::nameValueReal(nameValues, "size_max", dataMax);
 
   return true;
 }

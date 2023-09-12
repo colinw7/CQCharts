@@ -9,7 +9,7 @@ class CQRangeSlider : public QFrame {
 
   Q_PROPERTY(bool      showRangeLabels  READ showRangeLabels  WRITE setShowRangeLabels )
   Q_PROPERTY(bool      showSliderLabels READ showSliderLabels WRITE setShowSliderLabels)
-  Q_PROPERTY(QFont     textFont         READ textFont         WRITE setTextFont        )
+  Q_PROPERTY(double    textFontScale    READ textFontScale    WRITE setTextFontScale   )
   Q_PROPERTY(SliderPos sliderPos        READ sliderPos        WRITE setSliderPos       )
   Q_PROPERTY(int       xBorder          READ xBorder          WRITE setXBorder         )
 
@@ -36,8 +36,10 @@ class CQRangeSlider : public QFrame {
   bool showSliderLabels() const { return showSliderLabels_; }
   void setShowSliderLabels(bool b) { showSliderLabels_ = b; update(); }
 
-  const QFont &textFont() const { return textFont_; }
-  void setTextFont(const QFont &v) { textFont_ = v; }
+  double textFontScale() const { return textFontScale_; }
+  void setTextFontScale(double s) { textFontScale_ = s; }
+
+  QFont textFont() const;
 
   const SliderPos &sliderPos() const { return sliderPos_; }
   void setSliderPos(const SliderPos &v) { sliderPos_ = v; }
@@ -96,7 +98,7 @@ class CQRangeSlider : public QFrame {
   bool showRangeLabels_  { false };
   bool showSliderLabels_ { true };
 
-  QFont textFont_;
+  double textFontScale_ { 0.9 };
 
   SliderPos sliderPos_ { SliderPos::CENTER };
 

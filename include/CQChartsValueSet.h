@@ -665,12 +665,12 @@ class CQChartsValueSet : public QObject {
   void setMapped(bool b) { mapped_ = b; }
 
   // get/set map min value
-  double mapMin() const { return map_min_; }
-  void setMapMin(double r) { map_min_ = r; }
+  double mapMin() const { return mapMin_; }
+  void setMapMin(double r) { mapMin_ = r; }
 
   // get/set map max value
-  double mapMax() const { return map_max_; }
-  void setMapMax(double r) { map_max_ = r; }
+  double mapMax() const { return mapMax_; }
+  void setMapMax(double r) { mapMax_ = r; }
 
   //---
 
@@ -838,9 +838,9 @@ class CQChartsValueSet : public QObject {
 
   Column column_; //!< associated model column
 
-  bool   mapped_  { false }; //!< is mapped
-  double map_min_ { 0.0 };   //!< map min
-  double map_max_ { 1.0 };   //!< map max
+  bool   mapped_ { false }; //!< is mapped
+  double mapMin_ { 0.0 };   //!< map min
+  double mapMax_ { 1.0 };   //!< map max
 
   Values values_;                //!< input values
   bool   initialized_ { false }; //!< are real, integer, string values initialized

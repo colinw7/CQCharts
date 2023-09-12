@@ -430,15 +430,15 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
  protected:
   struct SymbolSizeData {
-    Column  column;              //!< symbol size column
-    bool    valid     { false }; //!< symbol size valid
-    bool    mapped    { false }; //!< symbol size values mapped
-    double  data_min  { 0.0 };   //!< model data min
-    double  data_max  { 1.0 };   //!< model data max
-    double  data_mean { 0.0 };   //!< model data mean
-    double  map_min   { 0.0 };   //!< mapped size min
-    double  map_max   { 1.0 };   //!< mapped size max
-    QString units     { "px" };  //!< mapped size units
+    Column  column;             //!< symbol size column
+    bool    valid    { false }; //!< symbol size valid
+    bool    mapped   { false }; //!< symbol size values mapped
+    double  dataMin  { 0.0 };   //!< model data min
+    double  dataMax  { 1.0 };   //!< model data max
+    double  dataMean { 0.0 };   //!< model data mean
+    double  mapMin   { 0.0 };   //!< mapped size min
+    double  mapMax   { 1.0 };   //!< mapped size max
+    QString units    { "px" };  //!< mapped size units
   };
 
   DataLabel* dataLabel_ { nullptr }; //!< data label style
