@@ -7856,8 +7856,10 @@ setInsideObject()
 
   // update object is inside (TODO: update all objs state ?)
   for (auto &obj : insideData_.objs) {
-    if (obj == insideObj && ! obj->isInside())
-      obj->setInside(true);
+    bool inside = (obj == insideObj);
+
+    if (inside != obj->isInside())
+      obj->setInside(inside);
   }
 }
 

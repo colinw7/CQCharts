@@ -4814,6 +4814,15 @@ draw(PaintDevice *device) const
 
       auto pbbox = BBox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
+      auto penBrush1 = penBrush;
+
+      if (penBrush1.brush.style() == Qt::NoBrush)
+        penBrush1.brush = QBrush(penBrush1.pen.color());
+
+      penBrush1.pen = QPen(Qt::NoPen);
+
+      CQChartsDrawUtil::setPenBrush(device, penBrush1);
+
       CQChartsDrawUtil::drawSelectedOutline(device, scatterPlot()->pixelToWindow(pbbox));
     }
   }

@@ -221,7 +221,8 @@ void drawSimpleText(PaintDevice *device, const Point &pos, const QString &text);
 
 //---
 
-void drawSelectedOutline(PaintDevice *device, const BBox &rect);
+void drawSelectedOutline(PaintDevice *device, const BBox &rect,
+                         double margin=0.2, double width=0.1);
 
 //---
 
@@ -281,6 +282,7 @@ void pieSlicePath(QPainterPath &path, const Point &c, double ri, double ro, cons
 void drawEllipse(PaintDevice *device, const BBox &bbox);
 void drawDoubleEllipse(PaintDevice *device, const BBox &bbox);
 void ellipsePath(QPainterPath &path, const BBox &bbox);
+void outlinePath(QPainterPath &path, const BBox &bbox1, const BBox &bbox2);
 
 //---
 

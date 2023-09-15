@@ -797,6 +797,10 @@ addProperties()
 
   addProp("region/stroke", "regionStroked", "visible", "Box stroke visible");
   addLineProperties("region/stroke", "regionStroke", "Box");
+
+  addProp("region", "regionSelectMargin", "selectMargin", "Region select margin");
+  addProp("region", "regionSelectWidth" , "selectWidth" , "Region select width");
+  addProp("region", "regionSelectFill"  , "selectFill"  , "Region select fill");
 }
 
 //---
@@ -1519,7 +1523,8 @@ execDrawBackground(PaintDevice *device) const
 
       //---
 
-      CQChartsDrawUtil::drawTextInBox(device, tbbox, xstr, textOptions);
+      if (tbbox.isValid())
+        CQChartsDrawUtil::drawTextInBox(device, tbbox, xstr, textOptions);
     }
 
     //---
@@ -1579,7 +1584,8 @@ execDrawBackground(PaintDevice *device) const
 
       //---
 
-      CQChartsDrawUtil::drawTextInBox(device, tbbox, ystr, textOptions);
+      if (tbbox.isValid())
+        CQChartsDrawUtil::drawTextInBox(device, tbbox, ystr, textOptions);
     }
   }
 }
@@ -3547,26 +3553,37 @@ drawOverlay(PaintDevice *device) const
 
       // highlight selected
       if (pointData.rangeSelected || pointData.modelSelected) {
-        auto penBrush1 = penBrush;
-
-        summaryPlot_->updatePenBrushState(ColorInd(), penBrush1, /*selected*/true, /*inside*/false);
-
-        CQChartsDrawUtil::setPenBrush(device, penBrush1);
-
         double psx, psy;
         summaryPlot_->pixelSymbolSize(pointData.symbolSize, psx, psy, /*scale*/true);
 
         auto pss = 0.75*std::min(psx, psy);
-
         auto pps = summaryPlot_->windowToPixel(ps);
 
         auto pbbox = BBox(pps.x - pss, pps.y - pss, pps.x + pss, pps.y + pss);
+        auto bbox  = summaryPlot_->pixelToWindow(pbbox);
 
-        if (pointData.rangeSelected)
-          CQChartsDrawUtil::drawSelectedOutline(device, summaryPlot_->pixelToWindow(pbbox));
+        if (pointData.rangeSelected) {
+          auto fillColor = summaryPlot_->interpColor(summaryPlot_->regionSelectFill(), ColorInd());
 
-        if (pointData.modelSelected)
-          device->drawEllipse(summaryPlot_->pixelToWindow(pbbox));
+          PenBrush penBrush1;
+
+          summaryPlot_->setPenBrush(penBrush1,
+            PenData(false), BrushData(true, fillColor));
+
+          CQChartsDrawUtil::setPenBrush(device, penBrush1);
+
+          drawPointSelection(device, bbox, SelectionType::RANGE);
+        }
+
+        if (pointData.modelSelected) {
+          auto penBrush1 = penBrush;
+          summaryPlot_->updatePenBrushState(ColorInd(), penBrush1,
+            /*selected*/true, /*inside*/false);
+
+          CQChartsDrawUtil::setPenBrush(device, penBrush1);
+
+          drawPointSelection(device, bbox, SelectionType::MODEL);
+        }
       }
     }
   }
@@ -3576,6 +3593,20 @@ drawOverlay(PaintDevice *device) const
         device->drawRect(rectData.pbbox);
       }
     }
+  }
+}
+
+void
+CQChartsSummaryCellObj::
+drawPointSelection(PaintDevice *device, const BBox &bbox, SelectionType type) const
+{
+  if      (type == SelectionType::RANGE) {
+    CQChartsDrawUtil::drawSelectedOutline(device, bbox,
+                                          summaryPlot_->regionSelectMargin(),
+                                          summaryPlot_->regionSelectWidth());
+  }
+  else if (type == SelectionType::MODEL) {
+    device->drawEllipse(bbox);
   }
 }
 

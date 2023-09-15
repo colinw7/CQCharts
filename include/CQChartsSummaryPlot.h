@@ -135,6 +135,10 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   // region
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Region, region)
 
+  Q_PROPERTY(double        regionSelectMargin READ regionSelectMargin WRITE setRegionSelectMargin)
+  Q_PROPERTY(double        regionSelectWidth  READ regionSelectWidth  WRITE setRegionSelectWidth )
+  Q_PROPERTY(CQChartsColor regionSelectFill   READ regionSelectFill   WRITE setRegionSelectFill  )
+
   // best fit
   Q_PROPERTY(bool bestFit READ isBestFit WRITE setBestFit)
 
@@ -337,6 +341,17 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
+  double regionSelectMargin() const { return regionSelectMargin_; }
+  void setRegionSelectMargin(double r) { regionSelectMargin_ = r; }
+
+  double regionSelectWidth() const { return regionSelectWidth_; }
+  void setRegionSelectWidth(double r) { regionSelectWidth_ = r; }
+
+  const Color &regionSelectFill() const { return regionSelectFill_; }
+  void setRegionSelectFill(const Color &v) { regionSelectFill_ = v; }
+
+  //---
+
   Column getNamedColumn(const QString &name) const override;
   void setNamedColumn(const QString &name, const Column &c) override;
 
@@ -533,6 +548,10 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Color  paretoLineColor_   { Color::makePalette() };
   Color  paretoOriginColor_ { Color::makeInterfaceValue(0.5) };
 
+  double regionSelectMargin_ { 0.2 };
+  double regionSelectWidth_  { 0.1 };
+  Color  regionSelectFill_   { Color::makeInterfaceValue(0.0) };
+
   CQChartsPlotObj* menuObj_ { nullptr }; //!< menu plot object
 
   ColumnVisible columnVisible_;
@@ -558,6 +577,11 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
+  enum class SelectionType {
+    RANGE,
+    MODEL
+  };
+
   using SummaryPlot = CQChartsSummaryPlot;
   using Length      = CQChartsLength;
   using Constraints = CQChartsPlot::Constraints;
@@ -599,6 +623,8 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   CQChartsSummaryPlot::CellType getCellType() const;
+
+  void drawPointSelection(PaintDevice *device, const BBox &bbox, SelectionType type) const;
 
   Point plotToParent(const Point &w) const;
   Point parentToPlot(const Point &p) const;

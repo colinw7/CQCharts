@@ -1260,37 +1260,30 @@ drawSimpleText(PaintDevice *device, const Point &pos, const QString &text)
 //---
 
 void
-drawSelectedOutline(PaintDevice *device, const BBox &rect)
+drawSelectedOutline(PaintDevice *device, const BBox &rect, double margin, double width)
 {
-  auto ps = std::min(device->windowToPixelWidth (rect.getWidth ()),
-                     device->windowToPixelHeight(rect.getHeight()));
+  auto rw = rect.getWidth ();
+  auto rh = rect.getHeight();
 
-  auto pm = std::min(ps/3.0, 4.0);
-  auto pw = std::min(ps/2.0, 8.0);
+  auto mx = margin*rw;
+  auto my = margin*rh;
 
-  auto mx = device->pixelToWindowWidth (pm);
-  auto my = device->pixelToWindowHeight(pm);
+  auto wx = width*rw;
+  auto wy = width*rh;
 
-  auto wx = device->pixelToWindowWidth (pw);
-  auto wy = device->pixelToWindowHeight(pw);
+  auto dx1 = mx;
+  auto dy1 = my;
+  auto dx2 = mx + wx;
+  auto dy2 = my + wy;
 
-  auto dx = mx + wx;
-  auto dy = my + wy;
-
-  auto rect1 = rect.expanded(-dx, -dy, dx, dy);
+  auto rect1 = rect.expanded(-dx1, -dy1, dx1, dy1);
+  auto rect2 = rect.expanded(-dx2, -dy2, dx2, dy2);
 
   QPainterPath path;
 
-  ellipsePath(path, rect1);
+  outlinePath(path, rect1, rect2);
 
   device->save();
-
-  auto brush = device->brush();
-
-  auto pen = QPen(brush.color(), pw);
-
-  device->setPen(pen);
-  device->setBrush(Qt::NoBrush);
 
   device->drawPath(path);
 
@@ -1736,6 +1729,54 @@ ellipsePath(QPainterPath &path, const BBox &bbox)
   path.cubicTo(xc - dx, yc + yr, xc - xr, yc + dy, xc - xr, yc     );
   path.cubicTo(xc - xr, yc - dy, xc - dx, yc - yr, xc     , yc - yr);
   path.cubicTo(xc + dx, yc - yr, xc + xr, yc - dy, xc + xr, yc     );
+
+  path.closeSubpath();
+}
+
+void
+outlinePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox)
+{
+  path = QPainterPath();
+
+  //---
+
+  double f = 4.0*(std::sqrt(2.0) - 1.0)/3.0;
+
+  double ixc = ibbox.getXMid();
+  double iyc = ibbox.getYMid();
+
+  double iw = ibbox.getWidth ();
+  double ih = ibbox.getHeight();
+
+  double ixr = iw/2.0;
+  double iyr = ih/2.0;
+
+  double idx = ixr*f;
+  double idy = iyr*f;
+
+  path.moveTo (                                 ixc + ixr, iyc      );
+  path.cubicTo(ixc + ixr, iyc + idy, ixc + idx, iyc + iyr, ixc      , iyc + iyr);
+  path.cubicTo(ixc - idx, iyc + iyr, ixc - ixr, iyc + idy, ixc - ixr, iyc      );
+  path.cubicTo(ixc - ixr, iyc - idy, ixc - idx, iyc - iyr, ixc      , iyc - iyr);
+  path.cubicTo(ixc + idx, iyc - iyr, ixc + ixr, iyc - idy, ixc + ixr, iyc      );
+
+  double oxc = obbox.getXMid();
+  double oyc = obbox.getYMid();
+
+  double ow = obbox.getWidth ();
+  double oh = obbox.getHeight();
+
+  double oxr = ow/2.0;
+  double oyr = oh/2.0;
+
+  double odx = oxr*f;
+  double ody = oyr*f;
+
+  path.lineTo (                                 oxc + oxr, oyc      );
+  path.cubicTo(oxc + oxr, oyc + ody, oxc + odx, oyc + oyr, oxc      , oyc + oyr);
+  path.cubicTo(oxc - odx, oyc + oyr, oxc - oxr, oyc + ody, oxc - oxr, oyc      );
+  path.cubicTo(oxc - oxr, oyc - ody, oxc - odx, oyc - oyr, oxc      , oyc - oyr);
+  path.cubicTo(oxc + odx, oyc - oyr, oxc + oxr, oyc - ody, oxc + oxr, oyc      );
 
   path.closeSubpath();
 }
