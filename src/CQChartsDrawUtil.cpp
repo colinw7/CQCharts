@@ -1733,6 +1733,35 @@ ellipsePath(QPainterPath &path, const BBox &bbox)
   path.closeSubpath();
 }
 
+//---
+
+void
+drawParetoGradient(PaintDevice *device, const Point &origin, const BBox &bbox,
+                   const QColor &c1, const QColor &c2)
+{
+  auto c = bbox.getCenter();
+
+  auto center = QPointF(origin.x < c.x ? 0.0 : 1.0, origin.y < c.y ? 1.0 : 0.0);
+  auto focus  = center;
+
+  double radius = 0.5;
+
+  QRadialGradient rg(center, radius, focus);
+
+  rg.setCoordinateMode(QGradient::ObjectBoundingMode);
+
+  rg.setColorAt(0, c1);
+  rg.setColorAt(1, c2);
+
+  auto brush = QBrush(rg);
+
+  device->setBrush(brush);
+
+  device->fillRect(bbox);
+}
+
+//---
+
 void
 outlinePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox)
 {

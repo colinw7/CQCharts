@@ -286,6 +286,11 @@ void outlinePath(QPainterPath &path, const BBox &bbox1, const BBox &bbox2);
 
 //---
 
+void drawParetoGradient(PaintDevice *device, const Point &origin,
+                        const BBox &bbox, const QColor &c1, const QColor &c2);
+
+//--
+
 void drawArc(PaintDevice *device, const BBox &bbox, const Angle &angle, const Angle &dangle);
 void arcPath(QPainterPath &path, const BBox &bbox, const Angle &angle, const Angle &dangle);
 

@@ -167,6 +167,14 @@ int cmp(const QVariant &var1, const QVariant &var2) {
     double r1 = var1.value<double>();
     double r2 = var2.value<double>();
 
+    bool isNaN1 = CMathUtil::isNaN(r1);
+    bool isNaN2 = CMathUtil::isNaN(r2);
+
+    if (isNaN1 || isNaN2) {
+      if (isNaN1 == isNaN2) return 0;
+      return (isNaN1 ? -1 : 1);
+    }
+
     if (r1 < r2) return -1;
     if (r1 > r2) return  1;
 

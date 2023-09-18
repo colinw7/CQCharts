@@ -151,12 +151,16 @@ class Point :
     return lhs.equal(rhs, 1E-6);
   }
 
-  friend bool operator<(const Point &lhs, const Point &rhs) {
-    return (lhs.x < rhs.x || (lhs.x == rhs.x && lhs.y < rhs.y));
-  }
+  friend bool operator< (const Point &lhs, const Point &rhs) { return lhs.cmp(rhs) <  0; }
+  friend bool operator> (const Point &lhs, const Point &rhs) { return lhs.cmp(rhs) >  0; }
+  friend bool operator<=(const Point &lhs, const Point &rhs) { return lhs.cmp(rhs) <= 0; }
+  friend bool operator>=(const Point &lhs, const Point &rhs) { return lhs.cmp(rhs) >= 0; }
 
-  friend bool operator>=(const Point &lhs, const Point &rhs) {
-    return ! operator<(lhs, rhs);
+  //--
+
+  int cmp(const Point &rhs) const {
+    if (! equal(rhs)) return (x < rhs.x ? -1 : 1);
+    return (y < rhs.y ? -1 : 1);
   }
 
   //------

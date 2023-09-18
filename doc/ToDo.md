@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + summary plot optimization direction (gradient)
+ + summary plot pareto sort by x, skip optimization symbol
  + summary plot format (just set column, %% support auto/needed ?)
 
  + annotation update from plot objects added callback without infinite loop

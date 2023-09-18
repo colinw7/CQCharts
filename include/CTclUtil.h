@@ -189,6 +189,9 @@ inline std::string errorInfo(Tcl_Interp *interp, int rc) {
   Tcl_DictObjGet(nullptr, options, key2, &stackTrace);
   Tcl_DecrRefCount(key2);
 
+  if (! stackTrace)
+    return "";
+
   auto trace = stringFromObj(stackTrace);
 
   Tcl_DecrRefCount(options);

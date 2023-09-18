@@ -1041,8 +1041,11 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     //---
 
     if (hasValue() && geometryPlot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::COLOR) {
-      double dv = (value() - geometryPlot_->minValue())/
-                  (geometryPlot_->maxValue() - geometryPlot_->minValue());
+      double dv = 0.0;
+
+      if (geometryPlot_->maxValue() > geometryPlot_->minValue())
+        dv = (value() - geometryPlot_->minValue())/
+             (geometryPlot_->maxValue() - geometryPlot_->minValue());
 
 #if 0
       if (color().isValid())

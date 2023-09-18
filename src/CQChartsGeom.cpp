@@ -359,6 +359,9 @@ calcParetoFront(const Points &points, const Point &origin)
   for (const auto &p : pointSet)
     front.push_back(p);
 
+  std::sort(front.begin(), front.end(),
+            [](const Point &lhs, const Point &rhs) { return lhs.cmp(rhs) > 0; });
+
   return front;
 }
 

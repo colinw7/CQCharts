@@ -174,7 +174,8 @@ class CQChartsScatterPointObj : public CQChartsPlotPointObj {
 
   void draw(PaintDevice *device) const override;
 
-  void drawPoint(PaintDevice *device) const;
+  void drawSelectedOutline(PaintDevice *device, const PenBrush &penBrush,
+                           double sx, double sy) const;
 
   bool isMinSymbolSize() const;
 
@@ -545,14 +546,16 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(GridCell, gridCell)
 
   // pareto
-  Q_PROPERTY(bool          pareto            READ isPareto          WRITE setPareto           )
-  Q_PROPERTY(CQChartsColor paretoOriginColor READ paretoOriginColor WRITE setParetoOriginColor)
+  Q_PROPERTY(bool             pareto            READ isPareto          WRITE setPareto           )
+  Q_PROPERTY(ParetoOriginType paretoOriginType  READ paretoOriginType  WRITE setParetoOriginType )
+  Q_PROPERTY(CQChartsColor    paretoOriginColor READ paretoOriginColor WRITE setParetoOriginColor)
 
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Pareto, pareto)
 
   //---
 
   Q_ENUMS(PlotType)
+  Q_ENUMS(ParetoOriginType)
 
   Q_ENUMS(XSide)
   Q_ENUMS(YSide)
@@ -563,6 +566,13 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     SYMBOLS,
     GRID_CELLS,
     HEX_CELLS
+  };
+
+  enum class ParetoOriginType {
+    NONE,
+    SYMBOL,
+    GRADIENT,
+    ARROW
   };
 
   //--
@@ -720,8 +730,11 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   bool isPareto() const { return paretoData_.visible; }
   void setPareto(bool b);
 
+  const ParetoOriginType &paretoOriginType() const { return paretoData_.originType; }
+  void setParetoOriginType(const ParetoOriginType &t);
+
   const Color &paretoOriginColor() const { return paretoData_.originColor; }
-  void setParetoOriginColor(const Color &v);
+  void setParetoOriginColor(const Color &c);
 
   //---
 
@@ -1022,8 +1035,9 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   };
 
   struct ParetoData {
-    bool  visible     { false };
-    Color originColor { Color::makePalette() };
+    bool             visible     { false };
+    ParetoOriginType originType  { ParetoOriginType::NONE };
+    Color            originColor { Color::makePalette() };
   };
 
  private:

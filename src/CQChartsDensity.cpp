@@ -281,7 +281,7 @@ init()
   /* This is the optimal bandwidth if the point distribution is Gaussian.
      (Applied Smoothing Techniques for Data Analysis
      by Adrian W, Bowman & Adelchi Azzalini (1997)) */
-  defaultBandwidth_ = pow(4.0/(3.0*nx_), 1.0/5.0)*sigma_;
+  defaultBandwidth_ = (nx_ > 0 ? std::pow(4.0/(3.0*nx_), 1.0/5.0)*sigma_ : 0.0);
 
   ymin_ = 0.0;
   ymax_ = 0.0;

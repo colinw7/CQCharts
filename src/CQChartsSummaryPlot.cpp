@@ -552,7 +552,7 @@ void
 CQChartsSummaryPlot::
 setPareto(bool b)
 {
-  CQChartsUtil::testAndSet(pareto_, b, [&]() {
+  CQChartsUtil::testAndSet(paretoData_.visible, b, [&]() {
     scatterPlot()->setPareto(b);
 
     drawObjs(); Q_EMIT customDataChanged();
@@ -563,7 +563,7 @@ void
 CQChartsSummaryPlot::
 setParetoWidth(const Length &l)
 {
-  CQChartsUtil::testAndSet(paretoWidth_, l, [&]() {
+  CQChartsUtil::testAndSet(paretoData_.lineWidth, l, [&]() {
     scatterPlot()->setParetoStrokeWidth(l);
 
     drawObjs(); Q_EMIT customDataChanged();
@@ -574,8 +574,19 @@ void
 CQChartsSummaryPlot::
 setParetoLineColor(const Color &c)
 {
-  CQChartsUtil::testAndSet(paretoLineColor_, c, [&]() {
+  CQChartsUtil::testAndSet(paretoData_.lineColor, c, [&]() {
     scatterPlot()->setParetoStrokeColor(c);
+
+    drawObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
+void
+CQChartsSummaryPlot::
+setParetoOriginType(const ParetoOriginType &t)
+{
+  CQChartsUtil::testAndSet(paretoData_.originType, t, [&]() {
+    scatterPlot()->setParetoOriginType(static_cast<CQChartsScatterPlot::ParetoOriginType>(t));
 
     drawObjs(); Q_EMIT customDataChanged();
   } );
@@ -585,7 +596,7 @@ void
 CQChartsSummaryPlot::
 setParetoOriginColor(const Color &c)
 {
-  CQChartsUtil::testAndSet(paretoOriginColor_, c, [&]() {
+  CQChartsUtil::testAndSet(paretoData_.originColor, c, [&]() {
     scatterPlot()->setParetoOriginColor(c);
 
     drawObjs(); Q_EMIT customDataChanged();
@@ -786,10 +797,12 @@ addProperties()
   // overlays
   addProp("overlays", "bestFit"          , "bestFit"          , "Show best fit on scatter");
   addProp("overlays", "density"          , "density"          , "Show density on distribution");
-  addProp("overlays", "pareto"           , "pareto"           , "Show pareto front on scatter");
-  addProp("overlays", "paretoWidth"      , "paretoWidth"      , "Show pareto front on scatter");
-  addProp("overlays", "paretoLineColor"  , "paretoLineColor"  , "Pareto front line color");
-  addProp("overlays", "paretoOriginColor", "paretoOriginColor", "Pareto front origin point color");
+
+  addProp("overlays/pareto", "pareto"           , "visible"    , "Show pareto front on scatter");
+  addProp("overlays/pareto", "paretoWidth"      , "lineWidth"  , "Pareto front line width");
+  addProp("overlays/pareto", "paretoLineColor"  , "lineColor"  , "Pareto front line color");
+  addProp("overlays/pareto", "paretoOriginType" , "originType" , "Pareto front origin type");
+  addProp("overlays/pareto", "paretoOriginColor", "originColor", "Pareto front origin color");
 
   // region
   addProp("region/fill", "regionFilled", "visible", "Box fill visible");
@@ -3402,11 +3415,48 @@ drawPareto(PaintDevice *device) const
 
     device->save();
 
-    PenBrush penBrush;
+    //---
+
+    auto originColor = summaryPlot_->interpColor(summaryPlot_->paretoOriginColor(), ColorInd());
+
+    // draw origin symbol
+    if     (summaryPlot_->paretoOriginType() == CQChartsSummaryPlot::ParetoOriginType::SYMBOL) {
+      PenBrush penBrush;
+
+      summaryPlot_->setPenBrush(penBrush,
+        PenData(true, originColor, Alpha(), summaryPlot_->paretoWidth()),
+        BrushData(true, originColor));
+
+      CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+      auto ss = 4.0;
+
+      auto symbolSize = Length::pixel(ss);
+
+      auto pxs = summaryPlot_->pixelToWindowWidth (ss);
+      auto pys = summaryPlot_->pixelToWindowHeight(ss);
+
+      auto o1 = plotToParent(origin);
+      auto o2 = Point(o1.x + (invX ? -pxs : pxs), o1.y + (invY ? -pys : pys));
+
+      CQChartsDrawUtil::drawSymbol(device, penBrush, CQChartsSymbol::box(), o2,
+                                   symbolSize, /*scale*/true);
+    }
+    // draw origin gradient
+    else if (summaryPlot_->paretoOriginType() == CQChartsSummaryPlot::ParetoOriginType::GRADIENT) {
+  //  auto bgColor = interpColor(Color::makeInterfaceValue(0.0), ic);
+      auto bgColor = QColor(0, 0, 0, 0);
+
+      auto o1 = plotToParent(origin);
+
+      CQChartsDrawUtil::drawParetoGradient(device, o1, bbox, originColor, bgColor);
+    }
 
     //---
 
     // draw pareto front
+    PenBrush penBrush;
+
     auto lineColor = summaryPlot_->interpColor(summaryPlot_->paretoLineColor(), ic);
 
     summaryPlot_->setPenBrush(penBrush,
@@ -3420,31 +3470,6 @@ drawPareto(PaintDevice *device) const
     device->setClipRect(bbox);
 
     device->strokePath(path, device->pen());
-
-    //---
-
-    // draw origin symbols
-    auto originColor = summaryPlot_->interpColor(summaryPlot_->paretoOriginColor(), ic);
-
-    summaryPlot_->setPenBrush(penBrush,
-      PenData(true, originColor, Alpha(), summaryPlot_->paretoWidth()),
-      BrushData(true, originColor));
-
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-    auto o1 = plotToParent(origin);
-
-    auto ss = 4.0;
-
-    auto symbolSize = Length::pixel(ss);
-
-    auto pxs = summaryPlot_->pixelToWindowWidth (ss);
-    auto pys = summaryPlot_->pixelToWindowHeight(ss);
-
-    auto o2 = Point(o1.x + (invX ? -pxs : pxs), o1.y + (invY ? -pys : pys));
-
-    CQChartsDrawUtil::drawSymbol(device, penBrush, CQChartsSymbol::box(), o2,
-                                 symbolSize, /*scale*/true);
 
     //---
 

@@ -148,15 +148,17 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   // TODO: hull
 
   // pareto
-  Q_PROPERTY(bool           pareto            READ isPareto          WRITE setPareto)
-  Q_PROPERTY(CQChartsLength paretoWidth       READ paretoWidth       WRITE setParetoWidth)
-  Q_PROPERTY(CQChartsColor  paretoLineColor   READ paretoLineColor   WRITE setParetoLineColor)
-  Q_PROPERTY(CQChartsColor  paretoOriginColor READ paretoOriginColor WRITE setParetoOriginColor)
+  Q_PROPERTY(bool             pareto            READ isPareto          WRITE setPareto)
+  Q_PROPERTY(CQChartsLength   paretoWidth       READ paretoWidth       WRITE setParetoWidth)
+  Q_PROPERTY(CQChartsColor    paretoLineColor   READ paretoLineColor   WRITE setParetoLineColor)
+  Q_PROPERTY(ParetoOriginType paretoOriginType  READ paretoOriginType  WRITE setParetoOriginType )
+  Q_PROPERTY(CQChartsColor    paretoOriginColor READ paretoOriginColor WRITE setParetoOriginColor)
 
   Q_ENUMS(PlotType)
   Q_ENUMS(DiagonalType)
   Q_ENUMS(OffDiagonalType)
   Q_ENUMS(SelectMode)
+  Q_ENUMS(ParetoOriginType)
 
  public:
   enum class PlotType {
@@ -198,6 +200,13 @@ class CQChartsSummaryPlot : public CQChartsPlot,
     NONE,
     CELL,
     DATA
+  };
+
+  enum class ParetoOriginType {
+    NONE,
+    SYMBOL,
+    GRADIENT,
+    ARROW
   };
 
   using CellObj          = CQChartsSummaryCellObj;
@@ -327,16 +336,19 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   void setDensity(bool b);
 
   //! get/set pareto
-  bool isPareto() const { return pareto_; }
+  bool isPareto() const { return paretoData_.visible; }
   void setPareto(bool b);
 
-  const Length &paretoWidth() const { return paretoWidth_; }
+  const Length &paretoWidth() const { return paretoData_.lineWidth; }
   void setParetoWidth(const Length &l);
 
-  const Color &paretoLineColor() const { return paretoLineColor_; }
+  const Color &paretoLineColor() const { return paretoData_.lineColor; }
   void setParetoLineColor(const Color &v);
 
-  const Color &paretoOriginColor() const { return paretoOriginColor_; }
+  const ParetoOriginType &paretoOriginType() const { return paretoData_.originType; }
+  void setParetoOriginType(const ParetoOriginType &t);
+
+  const Color &paretoOriginColor() const { return paretoData_.originColor; }
   void setParetoOriginColor(const Color &v);
 
   //---
@@ -543,10 +555,15 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   bool bestFit_ { false };
   bool density_ { false };
 
-  bool   pareto_            { false };
-  Length paretoWidth_       { Length::pixel(5) };
-  Color  paretoLineColor_   { Color::makePalette() };
-  Color  paretoOriginColor_ { Color::makeInterfaceValue(0.5) };
+  struct ParetoData {
+    bool             visible     { false };
+    Length           lineWidth   { Length::pixel(5) };
+    Color            lineColor   { Color::makePalette() };
+    Color            originColor { Color::makeInterfaceValue(0.5) };
+    ParetoOriginType originType  { ParetoOriginType::NONE };
+  };
+
+  ParetoData paretoData_;
 
   double regionSelectMargin_ { 0.2 };
   double regionSelectWidth_  { 0.1 };

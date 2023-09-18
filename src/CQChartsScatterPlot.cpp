@@ -598,6 +598,15 @@ setPareto(bool b)
 
 void
 CQChartsScatterPlot::
+setParetoOriginType(const ParetoOriginType &t)
+{
+  CQChartsUtil::testAndSet(paretoData_.originType, t, [&]() {
+    drawObjs();
+  });
+}
+
+void
+CQChartsScatterPlot::
 setParetoOriginColor(const Color &c)
 {
   CQChartsUtil::testAndSet(paretoData_.originColor, c, [&]() {
@@ -706,7 +715,8 @@ addProperties()
   auto paretoPropPath = QString("overlays/pareto");
 
   addProp(paretoPropPath, "pareto"           , "visible"    , "Show pareto");
-  addProp(paretoPropPath, "paretoOriginColor", "originColor", "Pareto origin symbol color");
+  addProp(paretoPropPath, "paretoOriginType" , "originType" , "Pareto origin type");
+  addProp(paretoPropPath, "paretoOriginColor", "originColor", "Pareto origin color");
 
   addLineProperties(paretoPropPath + "/stroke", "paretoStroke", "Pareto");
 
@@ -3765,6 +3775,38 @@ drawPareto(PaintDevice *device) const
 
   //---
 
+  auto originColor = interpColor(paretoOriginColor(), ColorInd());
+
+  // draw origin symbol
+  if     (paretoOriginType() == ParetoOriginType::SYMBOL) {
+    PenBrush penBrush;
+
+    setPenBrush(penBrush,
+      PenData(true, originColor, Alpha(), paretoStrokeWidth()),
+      BrushData(true, originColor));
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    auto ss = 4.0;
+
+    auto symbolSize = Length::pixel(ss);
+
+    double sx, sy;
+    pixelSymbolSize(symbolSize, sx, sy, /*scale*/false);
+
+    drawSymbol(device, origin, CQChartsSymbol::box(), sx, sy,
+               penBrush, /*scaled*/false);
+  }
+  // draw origin gradient
+  else if (paretoOriginType() == ParetoOriginType::GRADIENT) {
+//  auto bgColor = interpColor(Color::makeInterfaceValue(0.0), ColorInd());
+    auto bgColor = QColor(0, 0, 0, 0);
+
+    CQChartsDrawUtil::drawParetoGradient(device, origin, dataRange.bbox(), originColor, bgColor);
+  }
+
+  //---
+
   auto updateBrush = [&](int i, int n) {
     PenBrush penBrush;
 
@@ -3847,30 +3889,6 @@ drawPareto(PaintDevice *device) const
 
     ++ig;
   }
-
-  //---
-
-  PenBrush penBrush;
-
-  ColorInd ic;
-
-  auto originColor = interpColor(paretoOriginColor(), ic);
-
-  setPenBrush(penBrush,
-    PenData(true, originColor, Alpha(), paretoStrokeWidth()),
-    BrushData(true, originColor));
-
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-  auto ss = 4.0;
-
-  auto symbolSize = Length::pixel(ss);
-
-  double sx, sy;
-  pixelSymbolSize(symbolSize, sx, sy, /*scale*/false);
-
-  drawSymbol(device, origin, CQChartsSymbol::box(), sx, sy,
-             penBrush, /*scaled*/false);
 }
 
 //------
@@ -4810,20 +4828,7 @@ draw(PaintDevice *device) const
 
   if (scatterPlot()->drawLayerType() == CQChartsLayer::Type::SELECTION) {
     if (isSelected() && scatterPlot()->isOutlineSelected()) {
-      auto ps = scatterPlot()->windowToPixel(point());
-
-      auto pbbox = BBox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
-
-      auto penBrush1 = penBrush;
-
-      if (penBrush1.brush.style() == Qt::NoBrush)
-        penBrush1.brush = QBrush(penBrush1.pen.color());
-
-      penBrush1.pen = QPen(Qt::NoPen);
-
-      CQChartsDrawUtil::setPenBrush(device, penBrush1);
-
-      CQChartsDrawUtil::drawSelectedOutline(device, scatterPlot()->pixelToWindow(pbbox));
+      drawSelectedOutline(device, penBrush, sx, sy);
     }
   }
 
@@ -4834,6 +4839,27 @@ draw(PaintDevice *device) const
   // draw text labels
   if (scatterPlot()->isPointLabels() && name().length())
     drawDataLabel(device);
+}
+
+void
+CQChartsScatterPointObj::
+drawSelectedOutline(PaintDevice *device, const PenBrush &penBrush, double sx, double sy) const
+{
+  auto ps = scatterPlot()->windowToPixel(point());
+
+  auto pbbox = BBox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
+  auto bbox  = scatterPlot()->pixelToWindow(pbbox);
+
+  auto penBrush1 = penBrush;
+
+  if (penBrush1.brush.style() == Qt::NoBrush)
+    penBrush1.brush = QBrush(penBrush1.pen.color());
+
+  penBrush1.pen = QPen(Qt::NoPen);
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush1);
+
+  CQChartsDrawUtil::drawSelectedOutline(device, bbox);
 }
 
 bool

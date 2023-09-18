@@ -441,14 +441,20 @@ double
 CQChartsValueSet::
 rmin(double def) const
 {
-  if      (type() == Type::INTEGER)
-    return double(ivals_.min(int(def)));
+  if      (type() == Type::INTEGER) {
+    if (ivals_.empty()) return def;
+    return double(ivals_.min());
+  }
   else if (type() == Type::REAL)
     return rvals_.min(def);
-  else if (type() == Type::STRING)
-    return svals_.imin(int(def));
-  else if (type() == Type::COLOR)
-    return cvals_.imin(int(def));
+  else if (type() == Type::STRING) {
+    if (svals_.empty()) return def;
+    return svals_.imin();
+  }
+  else if (type() == Type::COLOR) {
+    if (cvals_.empty()) return def;
+    return cvals_.imin();
+  }
   else if (type() == Type::TIME)
     return tvals_.min(def);
   else
@@ -459,14 +465,20 @@ double
 CQChartsValueSet::
 rmax(double def) const
 {
-  if      (type() == Type::INTEGER)
-    return double(ivals_.max(int(def)));
+  if      (type() == Type::INTEGER) {
+    if (ivals_.empty()) return def;
+    return double(ivals_.max());
+  }
   else if (type() == Type::REAL)
     return rvals_.max(def);
-  else if (type() == Type::STRING)
-    return svals_.imax(int(def));
-  else if (type() == Type::COLOR)
-    return cvals_.imax(int(def));
+  else if (type() == Type::STRING) {
+    if (svals_.empty()) return def;
+    return svals_.imax();
+  }
+  else if (type() == Type::COLOR) {
+    if (ivals_.empty()) return def;
+    return cvals_.imax();
+  }
   else if (type() == Type::TIME)
     return tvals_.max(def);
   else

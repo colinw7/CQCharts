@@ -74,6 +74,7 @@ class CQChartsRValues {
 
   bool canMap() const { return ! valset_.empty(); }
 
+  bool empty() const { return values_.empty(); }
   uint size() const { return uint(values_.size()); }
 
   const OptValues &values() const { return values_; }
@@ -238,6 +239,7 @@ class CQChartsIValues {
 
   bool canMap() const { return ! valset_.empty(); }
 
+  bool empty() const { return values_.empty(); }
   uint size() const { return uint(values_.size()); }
 
   // get nth value (non-unique)
@@ -389,6 +391,7 @@ class CQChartsSValues {
 
   bool canMap() const { return ! valset_.empty(); }
 
+  bool empty() const { return values_.empty(); }
   uint size() const { return uint(values_.size()); }
 
   // get nth value (non-unique)
@@ -529,6 +532,7 @@ class CQChartsCValues {
 
   bool canMap() const { return ! valset_.empty(); }
 
+  bool empty() const { return values_.empty(); }
   uint size() const { return uint(values_.size()); }
 
   // get nth value (non-unique)
