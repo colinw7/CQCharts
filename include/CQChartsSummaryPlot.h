@@ -151,7 +151,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Q_PROPERTY(bool             pareto            READ isPareto          WRITE setPareto)
   Q_PROPERTY(CQChartsLength   paretoWidth       READ paretoWidth       WRITE setParetoWidth)
   Q_PROPERTY(CQChartsColor    paretoLineColor   READ paretoLineColor   WRITE setParetoLineColor)
-  Q_PROPERTY(ParetoOriginType paretoOriginType  READ paretoOriginType  WRITE setParetoOriginType )
+  Q_PROPERTY(ParetoOriginType paretoOriginType  READ paretoOriginType  WRITE setParetoOriginType)
   Q_PROPERTY(CQChartsColor    paretoOriginColor READ paretoOriginColor WRITE setParetoOriginColor)
 
   Q_ENUMS(PlotType)
@@ -674,6 +674,7 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   void drawBoxPlot     (PaintDevice *device) const;
   void drawDistribution(PaintDevice *device) const;
   void drawDensity     (PaintDevice *device) const;
+  void drawParetoDir   (PaintDevice *device) const;
   void drawPareto      (PaintDevice *device) const;
   void drawPie         (PaintDevice *device) const;
 

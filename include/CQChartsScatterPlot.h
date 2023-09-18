@@ -942,7 +942,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   void drawStatsLines(PaintDevice *device) const;
 
-  void drawPareto(PaintDevice *device) const;
+  void drawParetoDir(PaintDevice *device) const;
+  void drawPareto   (PaintDevice *device) const;
 
   //---
 

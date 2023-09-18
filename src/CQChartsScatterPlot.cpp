@@ -3266,6 +3266,9 @@ execDrawBackground(PaintDevice *device) const
 {
   CQChartsPlot::execDrawBackground(device);
 
+  if (isPareto() && isSymbols())
+    drawParetoDir(device);
+
   // draw stats lines on background
   if (isStatsLines())
     drawStatsLines(device);
@@ -3296,7 +3299,7 @@ execDrawBackground(PaintDevice *device) const
 
   //---
 
-  if (isPareto())
+  if (isPareto() && isSymbols())
     drawPareto(device);
 }
 
@@ -3760,7 +3763,7 @@ drawStatsLines(PaintDevice *device) const
 
 void
 CQChartsScatterPlot::
-drawPareto(PaintDevice *device) const
+drawParetoDir(PaintDevice *device) const
 {
   const auto &dataRange = this->dataRange();
 
@@ -3804,6 +3807,22 @@ drawPareto(PaintDevice *device) const
 
     CQChartsDrawUtil::drawParetoGradient(device, origin, dataRange.bbox(), originColor, bgColor);
   }
+}
+
+void
+CQChartsScatterPlot::
+drawPareto(PaintDevice *device) const
+{
+  const auto &dataRange = this->dataRange();
+
+  auto *xDetails = (xColumn().isValid() ? columnDetails(xColumn()) : nullptr);
+  auto *yDetails = (yColumn().isValid() ? columnDetails(yColumn()) : nullptr);
+
+  bool invX = (xDetails ? xDetails->decreasing().toBool() : false);
+  bool invY = (yDetails ? yDetails->decreasing().toBool() : false);
+
+  auto origin = Point((invX ? dataRange.xmax() : dataRange.xmin()),
+                      (invY ? dataRange.ymax() : dataRange.ymin()));
 
   //---
 
