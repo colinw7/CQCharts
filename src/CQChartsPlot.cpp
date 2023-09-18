@@ -10215,6 +10215,9 @@ void
 CQChartsPlot::
 restoreSelection()
 {
+  if (selectedObjNames_.empty())
+    return;
+
   PlotObjs objs;
 
   for (auto &plotObj : plotObjects()) {

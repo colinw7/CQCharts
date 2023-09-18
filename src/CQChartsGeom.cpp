@@ -253,31 +253,32 @@ Points
 calcParetoFront(const Points &points, const Point &origin)
 {
   using Points    = std::vector<Point>;
-  using PosPoints = std::map<double, Points>;
+  using ValueSet  = std::set<double>;
+  using PosPoints = std::map<double, ValueSet>;
 
-  PosPoints xvals, yvals;
+  PosPoints x_yvals, y_xvals;
 
   for (auto &p : points) {
-    xvals[p.x].push_back(p);
-    yvals[p.y].push_back(p);
+    x_yvals[p.x].insert(p.y); // per x, y values
+    y_xvals[p.y].insert(p.x); // per y, x values
   }
 
-  using IndPoints = std::vector<Points>;
+  using IndPoints = std::vector<ValueSet>;
   using IndPos    = std::map<double, uint>;
 
-  IndPoints xinds, yinds;
+  IndPoints xind_yvals, yind_xvals;
   IndPos    xpos, ypos;
 
-  for (const auto &px : xvals) {
-    xpos[px.first] = xinds.size();
+  for (const auto &px : x_yvals) {
+    xpos[px.first] = xind_yvals.size(); // x index
 
-    xinds.push_back(px.second);
+    xind_yvals.push_back(px.second);
   }
 
-  for (const auto &py : yvals) {
-    ypos[py.first] = yinds.size();
+  for (const auto &py : y_xvals) {
+    ypos[py.first] = yind_xvals.size(); // y index
 
-    yinds.push_back(py.second);
+    yind_xvals.push_back(py.second);
   }
 
   auto xmin = xpos.begin ()->first;
@@ -288,8 +289,8 @@ calcParetoFront(const Points &points, const Point &origin)
   bool invX = (origin.x > (xmax + xmin)/2.0);
   bool invY = (origin.y > (ymax + ymin)/2.0);
 
-  auto nx = xinds.size();
-  auto ny = yinds.size();
+  auto nx = xind_yvals.size();
+  auto ny = yind_xvals.size();
 
   //---
 
@@ -298,57 +299,53 @@ calcParetoFront(const Points &points, const Point &origin)
   PointSet pointSet;
 
   for (auto &p : points) {
+    // walk toward origin in x direction and see if there is a better y value
     auto px = xpos.find(p.x); assert(px != xpos.end());
+
+    int xind = (*px).second;
+
+    bool xadd = true;
+
+    while (xadd && xind >= 0 && xind <= int(nx - 1)) {
+      // check y values at x index
+      for (const auto &y : xind_yvals[xind]) {
+        if (y < p.y) {
+          xadd = false;
+          break;
+        }
+      }
+
+      // next x index
+      xind = (invX ? xind + 1 : xind - 1);
+    }
+
+    //---
+
+    // walk toward origin in y direction and see if there is a better x value
     auto py = ypos.find(p.y); assert(py != ypos.end());
 
-    bool add = false;
+    int yind = (*py).second;
 
-    auto xind = (*px).second;
-    auto yind = (*py).second;
+    bool yadd = true;
 
-    if ((! invX && xind == 0) || (invX && xind == nx - 1) ||
-        (! invY && yind == 0) || (invY && yind == ny - 1)) {
-      add = true;
-    }
-    else {
-      auto d = std::hypot(p.x - origin.x, p.y - origin.y);
+    int yind1 = (invY ? yind + 1 : yind - 1);
 
-      bool xadd = true;
-
-      int xind1 = int(invX ? xind + 1 : xind - 1);
-
-      while (xadd && xind1 >= 0 && xind1 <= int(nx - 1)) {
-        for (const auto &p1 : xinds[xind1]) {
-          auto d1 = std::hypot(p1.x - origin.x, p1.y - origin.y);
-          if (d1 < d) {
-            xadd = false;
-            break;
-          }
+    while (yadd && yind1 >= 0 && yind1 <= int(ny - 1)) {
+      // check x values at y index
+      for (const auto &x : yind_xvals[yind1]) {
+        if (x < p.x) {
+          yadd = false;
+          break;
         }
-
-        xind1 = (invX ? xind1 + 1 : xind1 - 1);
       }
 
-      bool yadd = true;
-
-      int yind1 = (invY ? yind + 1 : yind - 1);
-
-      while (yadd && yind1 >= 0 && yind1 <= int(ny - 1)) {
-        for (const auto &p1 : yinds[yind1]) {
-          auto d1 = std::hypot(p1.x - origin.x, p1.y - origin.y);
-          if (d1 < d) {
-            yadd = false;
-            break;
-          }
-        }
-
-        yind1 = (invY ? yind1 + 1 : yind1 - 1);
-      }
-
-      add = (xadd || yadd);
+      // next y index
+      yind1 = (invY ? yind1 + 1 : yind1 - 1);
     }
 
-    if (add)
+    //---
+
+    if (xadd && yadd)
       pointSet.insert(p);
   }
 

@@ -158,9 +158,12 @@ class Point :
 
   //--
 
-  int cmp(const Point &rhs) const {
-    if (! equal(rhs)) return (x < rhs.x ? -1 : 1);
-    return (y < rhs.y ? -1 : 1);
+  int cmp(const Point &rhs, double tol=1E-6) const {
+    double dx = std::abs(x - rhs.x);
+    double dy = std::abs(y - rhs.y);
+    if (dx > tol) return (x < rhs.x ? -1 : 1);
+    if (dy > tol) return (y < rhs.y ? -1 : 1);
+    return 0;
   }
 
   //------
@@ -1405,6 +1408,7 @@ class Polygon :
   }
 
   //---
+
   const QPolygonF &qpoly() const { return qpoly_; }
 
   bool empty() const { return qpoly_.empty(); }

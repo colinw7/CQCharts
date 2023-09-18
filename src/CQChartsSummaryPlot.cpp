@@ -3483,6 +3483,9 @@ drawPareto(PaintDevice *device) const
       frontPoly.addPoint(p1);
     }
 
+    if (frontPoly.empty())
+      return;
+
     //---
 
     device->save();
