@@ -352,6 +352,8 @@ class CQChartsPlotCustomKey : public QFrame {
 class CQChartsPlotColumnChooser : public QFrame {
   Q_OBJECT
 
+  Q_PROPERTY(bool showColumnNumber READ isShowColumnNumber WRITE setShowColumnNumber)
+
  public:
   using Plot  = CQChartsPlot;
   using PlotP = QPointer<Plot>;
@@ -361,6 +363,9 @@ class CQChartsPlotColumnChooser : public QFrame {
 
   Plot *plot() const;
   void setPlot(Plot *plot);
+
+  bool isShowColumnNumber() const { return showColumnNumber_; }
+  void setShowColumnNumber(bool b) { showColumnNumber_ = b; }
 
   void updateWidgets();
 
@@ -375,8 +380,9 @@ class CQChartsPlotColumnChooser : public QFrame {
   void columnClickSlot(int row, int column, bool b);
 
  private:
-  PlotP          plot_;                   //!< plot
-  CQTableWidget* columnList_ { nullptr }; //!< column list
+  PlotP          plot_;                         //!< plot
+  bool           showColumnNumber_ { true };    //!< show column number
+  CQTableWidget* columnList_       { nullptr }; //!< column list
 };
 
 #endif

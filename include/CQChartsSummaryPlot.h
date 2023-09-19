@@ -139,6 +139,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Q_PROPERTY(double        regionSelectWidth  READ regionSelectWidth  WRITE setRegionSelectWidth )
   Q_PROPERTY(CQChartsColor regionSelectFill   READ regionSelectFill   WRITE setRegionSelectFill  )
 
+  Q_PROPERTY(RegionPointType regionPointType READ regionPointType WRITE setRegionPointType)
+
   // best fit
   Q_PROPERTY(bool bestFit READ isBestFit WRITE setBestFit)
 
@@ -158,6 +160,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Q_ENUMS(DiagonalType)
   Q_ENUMS(OffDiagonalType)
   Q_ENUMS(SelectMode)
+  Q_ENUMS(RegionPointType)
   Q_ENUMS(ParetoOriginType)
 
  public:
@@ -202,12 +205,28 @@ class CQChartsSummaryPlot : public CQChartsPlot,
     DATA
   };
 
+  enum class RegionPointType {
+    DIM_OUTSIDE,
+    OUTLINE_INSIDE
+  };
+
   enum class ParetoOriginType {
     NONE,
     SYMBOL,
     GRADIENT,
     ARROW
   };
+
+  using MinMax = CQChartsGeom::RMinMax;
+
+  struct RangeData {
+    RangeData() { }
+    RangeData(const MinMax &r) : range(r) { }
+
+    MinMax range;
+  };
+
+  using RangeDataP = std::shared_ptr<RangeData>;
 
   using CellObj          = CQChartsSummaryCellObj;
   using ScatterPlot      = CQChartsScatterPlot;
@@ -223,7 +242,6 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   using Color            = CQChartsColor;
   using Alpha            = CQChartsAlpha;
   using ColorInd         = CQChartsUtil::ColorInd;
-  using MinMax           = CQChartsGeom::RMinMax;
 
  public:
   CQChartsSummaryPlot(View *view, const ModelP &model);
@@ -362,6 +380,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   const Color &regionSelectFill() const { return regionSelectFill_; }
   void setRegionSelectFill(const Color &v) { regionSelectFill_ = v; }
 
+  const RegionPointType &regionPointType() const { return regionPointType_; }
+  void setRegionPointType(const RegionPointType &t) { regionPointType_ = t; }
+
   //---
 
   Column getNamedColumn(const QString &name) const override;
@@ -451,8 +472,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   CellObj *cellObjAtPoint(const Point &p) const;
 
+  bool anyColumnRange() const;
   bool hasColumnRange(const Column &c) const;
-  MinMax columnRange(const Column &c) const;
+  RangeDataP columnRange(const Column &c) const;
   void setColumnRange(const Column &c, double min, double max);
   void resetColumnRange(const Column &c);
 
@@ -569,13 +591,20 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   double regionSelectWidth_  { 0.1 };
   Color  regionSelectFill_   { Color::makeInterfaceValue(0.0) };
 
+  RegionPointType regionPointType_ { RegionPointType::DIM_OUTSIDE };
+
   CQChartsPlotObj* menuObj_ { nullptr }; //!< menu plot object
 
   ColumnVisible columnVisible_;
 
-  using ColumnRange = std::map<Column, MinMax>;
+  //---
+
+
+  using ColumnRange = std::map<Column, RangeDataP>;
 
   ColumnRange columnRange_;
+
+  //---
 
   mutable int                nc_ { 0 };
   mutable SelectedRowColumns rangeSelectedRows_;
@@ -633,6 +662,10 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
 
   void initCoords() const;
 
+  void updateRangeBox() const;
+
+  //---
+
   void draw(PaintDevice *device) const override;
 
   void drawOverlay(PaintDevice *device) const;
@@ -673,10 +706,13 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   void drawCorrelation (PaintDevice *device) const;
   void drawBoxPlot     (PaintDevice *device) const;
   void drawDistribution(PaintDevice *device) const;
-  void drawDensity     (PaintDevice *device) const;
-  void drawParetoDir   (PaintDevice *device) const;
-  void drawPareto      (PaintDevice *device) const;
-  void drawPie         (PaintDevice *device) const;
+
+  void drawRangeBox(PaintDevice *device) const;
+
+  void drawDensity  (PaintDevice *device) const;
+  void drawParetoDir(PaintDevice *device) const;
+  void drawPareto   (PaintDevice *device) const;
+  void drawPie      (PaintDevice *device) const;
 
   void initGroupedValues();
 
@@ -728,6 +764,8 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   mutable PointData* selectPointData_ { nullptr };
   mutable RectData*  selectRectData_  { nullptr };
 
+  mutable bool rangeInside_ = false;
+
   //---
 
   const SummaryPlot* summaryPlot_ { nullptr }; //!< parent plot
@@ -737,6 +775,7 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
 
   mutable Polygon poly_;
   mutable BBox    rangeBox_;
+  mutable bool    rangeBoxInside_ { false };
 
   // global
   mutable int nc_ { 0 };

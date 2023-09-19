@@ -1572,7 +1572,13 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  struct HeaderNameData {
+    bool tip    { false };
+    bool number { false };
+  };
+
   QString modelHHeaderTip(const Column &column, bool &ok) const;
+  QString modelHHeaderName(const Column &column, const HeaderNameData &data, bool &ok) const;
 
   //---
 

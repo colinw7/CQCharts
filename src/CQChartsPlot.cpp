@@ -18768,19 +18768,34 @@ QString
 CQChartsPlot::
 modelHHeaderTip(const Column &column, bool &ok) const
 {
+  HeaderNameData data;
+
+  data.tip    = true;
+  data.number = true;
+
+  return modelHHeaderName(column, data, ok);
+}
+
+QString
+CQChartsPlot::
+modelHHeaderName(const Column &column, const HeaderNameData &data, bool &ok) const
+{
   QString str;
 
   const auto &model = this->currentModel();
   if (! model.data()) return str;
 
-  str = modelHHeaderString(model.data(), column, CQModelUtil::roleCast(CQBaseModelRole::Tip), ok);
+  if (data.tip)
+    str = modelHHeaderString(model.data(), column, CQModelUtil::roleCast(CQBaseModelRole::Tip), ok);
+  else
+    ok = true;
 
   if (! ok || ! str.length())
     str = CQChartsModelUtil::modelHHeaderString(model.data(), mapColumn(column), ok);
 
   auto column1 = mapColumn(column);
 
-  if (column1.hasColumn())
+  if (column1.hasColumn() && data.number)
     str += QString(" (#%1)").arg(column1.column());
 
   return str;

@@ -39,6 +39,38 @@ setBrush(QBrush &brush, const BrushData &data)
   CQChartsUtil::setBrush(brush, data.isVisible(), data.color(), data.alpha(), data.pattern());
 }
 
+void
+updateBrushColor(QBrush &brush, const QColor &c)
+{
+  auto c2 = c;
+
+  c2.setAlphaF(brush.color().alphaF());
+
+  brush.setColor(c2);
+}
+
+void
+setBrushGray(QBrush &brush, double alpha)
+{
+  auto c  = brush.color();
+  auto gc = CQChartsUtil::grayColor(c);
+
+  if (alpha > 0.0 && alpha < 1.0)
+    gc.setAlphaF(alpha);
+
+  brush.setColor(gc);
+}
+
+void
+setBrushAlpha(QBrush &brush, double a)
+{
+  auto c = brush.color();
+
+  c.setAlphaF(a);
+
+  brush.setColor(c);
+}
+
 //---
 
 void

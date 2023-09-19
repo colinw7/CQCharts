@@ -1357,12 +1357,16 @@ updateWidgets()
     columnList_->setHorizontalHeaderItem(c, new QTableWidgetItem(name));
   };
 
+  auto itemFont = this->font();
+  itemFont.setBold(true);
+
   createHeaderItem(0, "Visible");
   createHeaderItem(1, "Name");
 
   auto createStringTableItem = [&](const QString &str) {
     auto *item = new QTableWidgetItem(str);
 
+    item->setFont(itemFont);
     item->setToolTip(str);
     item->setFlags(item->flags() & ~Qt::ItemIsEditable);
 
@@ -1378,11 +1382,13 @@ updateWidgets()
     return item;
   };
 
+  CQChartsPlot::HeaderNameData headerData;
+
   for (int ic = 0; ic < nc; ++ic) {
     auto column = getColumns().getColumn(ic);
 
     bool ok;
-    auto name = plot_->modelHHeaderTip(column, ok);
+    auto name = plot_->modelHHeaderName(column, headerData, ok);
 
     auto *visibleItem = createBoolTableItem(isColumnVisible(ic));
     auto *nameItem    = createStringTableItem(name);

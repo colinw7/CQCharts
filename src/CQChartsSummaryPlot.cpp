@@ -1105,6 +1105,13 @@ cellObjAtPoint(const Point &p) const
 
 bool
 CQChartsSummaryPlot::
+anyColumnRange() const
+{
+  return ! columnRange_.empty();
+}
+
+bool
+CQChartsSummaryPlot::
 hasColumnRange(const Column &c) const
 {
   auto pc = columnRange_.find(c);
@@ -1112,13 +1119,13 @@ hasColumnRange(const Column &c) const
   return (pc != columnRange_.end());
 }
 
-CQChartsSummaryPlot::MinMax
+CQChartsSummaryPlot::RangeDataP
 CQChartsSummaryPlot::
 columnRange(const Column &c) const
 {
   auto pc = columnRange_.find(c);
 
-  return (pc != columnRange_.end() ? (*pc).second : MinMax());
+  return (pc != columnRange_.end() ? (*pc).second : RangeDataP());
 }
 
 void
@@ -1131,7 +1138,9 @@ setColumnRange(const Column &c, double min, double max)
     max = std::min(max, cmax);
   }
 
-  columnRange_[c] = MinMax(min, max);
+  MinMax minMax(min, max);
+
+  columnRange_[c] = std::make_shared<RangeData>(minMax);
 }
 
 void
@@ -1215,7 +1224,7 @@ updateSelectedRows() const
     auto range = columnRange(column);
 
     for (uint i = 0; i < uint(n); ++i) {
-      if (range.isSet()) {
+      if (range && range->range.isSet()) {
         double x = 0.0;
 
         if (details->isNumeric()) {
@@ -1226,7 +1235,7 @@ updateSelectedRows() const
         else
           x = details->uniqueId(details->value(i));
 
-        if (range.insideHalfOpen(x))
+        if (range->range.insideHalfOpen(x))
           rangeSelectedRows_[i].insert(ic);
       }
       else
@@ -1269,7 +1278,7 @@ selectColumnRanges()
     auto column = visibleColumns().getColumn(ic);
 
     auto range = columnRange(column);
-    if (! range.isSet()) continue;
+    if (! range && ! range->range.isSet()) continue;
 
     auto *details = columnDetails(column);
     if (! details) continue;
@@ -1289,7 +1298,7 @@ selectColumnRanges()
       else
         x = details->uniqueId(details->value(i));
 
-      if (range.insideHalfOpen(x))
+      if (range->range.insideHalfOpen(x))
         rows.insert(i);
     }
 
@@ -2214,6 +2223,14 @@ initCoords() const
   pymin_ = bbox.getYMin() + bx_;
   pxmax_ = bbox.getXMax() - by_;
   pymax_ = bbox.getYMax() - by_;
+}
+
+void
+CQChartsSummaryCellObj::
+updateRangeBox() const
+{
+  double xmin, xmax, ymin, ymax;
+  getDataRange(xmin, ymin, xmax, ymax);
 
   //---
 
@@ -2227,31 +2244,37 @@ initCoords() const
     auto range1 = summaryPlot_->columnRange(column1);
     auto range2 = summaryPlot_->columnRange(column2);
 
-    if (range1.isSet() || range2.isSet()) {
-      rangeBox_ = BBox(xmin_, ymin_, xmax_, ymax_);
+    if ((range1 && range1->range.isSet()) || (range2 && range2->range.isSet())) {
+      rangeBox_ = BBox(xmin, ymin, xmax, ymax);
 
-      if (range1.isSet()) {
-        rangeBox_.setXMin(range1.min());
-        rangeBox_.setXMax(range1.max());
+      if (range1 && range1->range.isSet()) {
+        rangeBox_.setXMin(range1->range.min());
+        rangeBox_.setXMax(range1->range.max());
       }
 
-      if (range2.isSet()) {
-        rangeBox_.setYMin(range2.min());
-        rangeBox_.setYMax(range2.max());
+      if (range2 && range2->range.isSet()) {
+        rangeBox_.setYMin(range2->range.min());
+        rangeBox_.setYMax(range2->range.max());
       }
     }
   }
   else {
+    bool invert = (summaryPlot_->orientation() == Qt::Horizontal);
+
     auto column1 = rowColumn();
 
     auto range1 = summaryPlot_->columnRange(column1);
 
-    if (range1.isSet()) {
-      rangeBox_ = BBox(xmin_, ymin_, xmax_, ymax_);
+    if (range1 && range1->range.isSet()) {
+      rangeBox_ = BBox(xmin, ymin, xmax, ymax);
 
-      if (range1.isSet()) {
-        rangeBox_.setXMin(range1.min());
-        rangeBox_.setXMax(range1.max());
+      if (! invert) {
+        rangeBox_.setXMin(range1->range.min());
+        rangeBox_.setXMax(range1->range.max());
+      }
+      else {
+        rangeBox_.setYMin(range1->range.min());
+        rangeBox_.setYMax(range1->range.max());
       }
     }
   }
@@ -2594,6 +2617,11 @@ drawScatter(PaintDevice *device) const
 
   //---
 
+  updateRangeBox();
+
+  bool anyRange = summaryPlot_->anyColumnRange();
+  bool hasRange = (rangeBox_.isSet());
+
   PenBrush penBrush;
 
   ColorInd colorInd(row_, nc_);
@@ -2693,6 +2721,11 @@ drawScatter(PaintDevice *device) const
 
     CQChartsDrawUtil::setPenBrush(device, penBrush1);
 
+    if (summaryPlot_->regionPointType() == CQChartsSummaryPlot::RegionPointType::DIM_OUTSIDE) {
+      if (anyRange && (! hasRange || ! rangeSelected))
+        CQChartsDrawUtil::setBrushGray(penBrush1.brush, 0.3);
+    }
+
     CQChartsDrawUtil::drawSymbol(device, penBrush1, symbol1, ps, symbolSize1, /*scale*/true);
 
     //---
@@ -2726,25 +2759,7 @@ drawScatter(PaintDevice *device) const
 
   //---
 
-  if (rangeBox_.isSet()) {
-    PenBrush penBrush;
-
-    ColorInd colorInd;
-
-    auto bc = summaryPlot_->interpRegionStrokeColor(colorInd);
-    auto fc = summaryPlot_->interpRegionFillColor  (colorInd);
-
-    summaryPlot_->setPenBrush(penBrush,
-      summaryPlot_->regionPenData(bc), summaryPlot_->regionBrushData(fc));
-
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-    //---
-
-    auto rbbox = BBox(plotToParent(rangeBox_.getLL()), plotToParent(rangeBox_.getUR()));
-
-    device->drawRect(rbbox);
-  }
+  drawRangeBox(device);
 }
 
 void
@@ -3057,30 +3072,7 @@ drawBoxPlot(PaintDevice *device) const
 
   //---
 
-  if (rangeBox_.isSet()) {
-    PenBrush penBrush;
-
-    ColorInd colorInd;
-
-    auto bc = summaryPlot_->interpRegionStrokeColor(colorInd);
-    auto fc = summaryPlot_->interpRegionFillColor  (colorInd);
-
-    summaryPlot_->setPenBrush(penBrush,
-      summaryPlot_->regionPenData(bc), summaryPlot_->regionBrushData(fc));
-
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-    //---
-
-    double ymin = CMathUtil::map(rangeBox_.getXMin(), bmin_, bmax_, 0.0, 1.0);
-    double ymax = CMathUtil::map(rangeBox_.getXMax(), bmin_, bmax_, 0.0, 1.0);
-
-    auto brect = BBox(0.0, ymin, 1.0, ymax);
-
-    auto rbbox = BBox(plotToParent(brect.getLL()), plotToParent(brect.getUR()));
-
-    device->drawRect(rbbox);
-  }
+  drawRangeBox(device);
 }
 
 void
@@ -3194,6 +3186,8 @@ drawDistribution(PaintDevice *device) const
 
       //---
 
+      updateRangeBox();
+
       PenBrush penBrush2 = penBrush1;
 
       if (rangeBox_.isSet()) {
@@ -3274,34 +3268,81 @@ drawDistribution(PaintDevice *device) const
 
   //---
 
-  if (rangeBox_.isSet()) {
-    PenBrush penBrush;
+  drawRangeBox(device);
 
-    ColorInd colorInd;
+  //---
 
-    auto bc = summaryPlot_->interpRegionStrokeColor(colorInd);
-    auto fc = summaryPlot_->interpRegionFillColor  (colorInd);
+  if (rangeBox_.isValid()) {
+    summaryPlot_->setPainterFont(device, summaryPlot_->xAxis()->axesTickLabelTextFont());
 
-    summaryPlot_->setPenBrush(penBrush,
-      summaryPlot_->regionPenData(bc), summaryPlot_->regionBrushData(fc));
+    auto textOptions = summaryPlot_->boxPlotTextOptions(device);
 
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
+    textOptions.formatted = false;
+    textOptions.scaled    = false;
+    textOptions.html      = false;
 
-    //---
+    Point   p1, p2;
+    QString str1, str2;
 
-    double rmin = (invert ?
-      CMathUtil::map(rangeBox_.getYMin(), bmin_, bmax_, 0.0, 1.0) :
-      CMathUtil::map(rangeBox_.getXMin(), bmin_, bmax_, 0.0, 1.0));
-    double rmax = (invert ?
-      CMathUtil::map(rangeBox_.getYMax(), bmin_, bmax_, 0.0, 1.0) :
-      CMathUtil::map(rangeBox_.getXMax(), bmin_, bmax_, 0.0, 1.0));
+    if (summaryPlot_->orientation() == Qt::Vertical) {
+      textOptions.angle = CQChartsAngle::degrees(90);
+      textOptions.align = Qt::AlignHCenter | Qt::AlignTop;
 
-    auto brect = (invert ? BBox(0.0, rmin, 1.0, rmax) : BBox(rmin, 0.0, rmax, 1.0));
+      str1 = QString::number(rangeBox_.getXMin());
+      str2 = QString::number(rangeBox_.getXMax());
 
-    auto rbbox = BBox(plotToParent(brect.getLL()), plotToParent(brect.getUR()));
+      p1 = plotToParent(rangeBox_.getUL());
+      p2 = plotToParent(rangeBox_.getUR());
+    }
+    else {
+      textOptions.angle = CQChartsAngle::degrees(0);
+      textOptions.align = Qt::AlignRight | Qt::AlignVCenter;
 
-    device->drawRect(rbbox);
+      str1 = QString::number(rangeBox_.getYMin());
+      str2 = QString::number(rangeBox_.getYMax());
+
+      p1 = plotToParent(rangeBox_.getLR());
+      p2 = plotToParent(rangeBox_.getUR());
+    }
+
+    bool centered = (summaryPlot_->orientation() == Qt::Vertical);
+
+    CQChartsDrawUtil::drawTextAtPoint(device, p1, str1, textOptions, centered);
+    CQChartsDrawUtil::drawTextAtPoint(device, p2, str2, textOptions, centered);
   }
+}
+
+void
+CQChartsSummaryCellObj::
+drawRangeBox(PaintDevice *device) const
+{
+  updateRangeBox();
+
+  if (! rangeBox_.isValid())
+    return;
+
+  //---
+
+  PenBrush penBrush;
+
+  ColorInd colorInd;
+
+  auto bc = summaryPlot_->interpRegionStrokeColor(colorInd);
+  auto fc = summaryPlot_->interpRegionFillColor  (colorInd);
+
+  summaryPlot_->setPenBrush(penBrush,
+    summaryPlot_->regionPenData(bc), summaryPlot_->regionBrushData(fc));
+
+  if (rangeInside_)
+    penBrush.pen.setColor(Qt::red);
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  //---
+
+  auto rbbox = BBox(plotToParent(rangeBox_.getLL()), plotToParent(rangeBox_.getUR()));
+
+  device->drawRect(rbbox);
 }
 
 void
@@ -3604,6 +3645,9 @@ drawOverlay(PaintDevice *device) const
 
   auto cellType = getCellType();
 
+  if (rangeInside_)
+    drawRangeBox(device);
+
   if      (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
     for (const auto &pointData : pointDatas_) {
       auto ps = plotToParent(pointData.p);
@@ -3666,9 +3710,11 @@ CQChartsSummaryCellObj::
 drawPointSelection(PaintDevice *device, const BBox &bbox, SelectionType type) const
 {
   if      (type == SelectionType::RANGE) {
-    CQChartsDrawUtil::drawSelectedOutline(device, bbox,
-                                          summaryPlot_->regionSelectMargin(),
-                                          summaryPlot_->regionSelectWidth());
+    if (summaryPlot_->regionPointType() == CQChartsSummaryPlot::RegionPointType::OUTLINE_INSIDE) {
+      CQChartsDrawUtil::drawSelectedOutline(device, bbox,
+                                            summaryPlot_->regionSelectMargin(),
+                                            summaryPlot_->regionSelectWidth());
+    }
   }
   else if (type == SelectionType::MODEL) {
     device->drawEllipse(bbox);
@@ -3852,6 +3898,19 @@ handleSelectMove(const Point &p, Constraints, bool)
     const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay();
   }
 
+  //---
+
+  updateRangeBox();
+
+  if (rangeBox_.isValid()) {
+    auto pc = parentToPlot(p);
+
+    if (rangeBox_.inside(pc)) {
+      rangeInside_ = true;
+      const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay();
+    }
+  }
+
   return true;
 }
 
@@ -3911,6 +3970,8 @@ resetInside()
 
   for (auto &rectData : rectDatas_)
     rectData.inside = false;
+
+  rangeInside_ = false;
 }
 
 void
@@ -4191,7 +4252,7 @@ updateWidgets()
     bool hasRange = summaryPlot_->hasColumnRange(column);
 
     if (hasRange) {
-      widget.edit->setValue(summaryPlot_->columnRange(column));
+      widget.edit->setValue(summaryPlot_->columnRange(column)->range);
 
 //    widget.edit->setToolTip(QString("%1 (%2 - %3)").
 //      arg(name).arg(widget.edit->getValue().min()).arg(widget.edit->getValue().max()));
