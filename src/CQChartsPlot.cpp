@@ -8818,6 +8818,65 @@ selectObjsAtPoint(const Point &w, Objs &objs)
 
 bool
 CQChartsPlot::
+selectMouseModifyPress(const Point &pos, SelMod selMod)
+{
+  if (! isReady()) return false;
+
+  auto p = pos;
+  auto w = pixelToWindow(p);
+
+  return handleModifyPress(w, selMod);
+}
+
+bool
+CQChartsPlot::
+selectMouseModifyMove(const Point &pos)
+{
+  if (! isReady()) return false;
+
+  auto p = pos;
+  auto w = pixelToWindow(p);
+
+  return handleModifyMove(w);
+}
+
+bool
+CQChartsPlot::
+selectMouseModifyRelease(const Point &pos)
+{
+  if (! isReady()) return false;
+
+  auto p = pos;
+  auto w = pixelToWindow(p);
+
+  return handleModifyRelease(w);
+}
+
+bool
+CQChartsPlot::
+handleModifyPress(const Point &, SelMod)
+{
+  return true;
+}
+
+bool
+CQChartsPlot::
+handleModifyMove(const Point &)
+{
+  return true;
+}
+
+bool
+CQChartsPlot::
+handleModifyRelease(const Point &)
+{
+  return true;
+}
+
+//------
+
+bool
+CQChartsPlot::
 editMousePress(const Point &pos, bool inside)
 {
   if (! isReady()) return false;

@@ -21,13 +21,18 @@ toString() const
 {
   QStringList strs;
 
-  strs << left  ().toString();
-  strs << top   ().toString();
-  strs << right ().toString();
-  strs << bottom().toString();
+  if (left() != top() || left() != right() || left() != bottom()) {
+    strs << QString::number(left  ().value());
+    strs << QString::number(top   ().value());
+    strs << QString::number(right ().value());
+    strs << QString::number(bottom().value());
+  }
+  else {
+    strs << QString::number(left().value());
+  }
 
-  if (strs[0] == strs[1] && strs[0] == strs[2] && strs[0] == strs[3])
-    return strs[0];
+  if (units() != Units::PERCENT)
+    strs << CQChartsUnits::unitsString(units());
 
   return CQTcl::mergeList(strs);
 }
@@ -41,20 +46,31 @@ fromString(const QString &str)
   if (! CQTcl::splitList(str, strs))
     return false;
 
-  if      (strs.length() == 1) {
+  auto units = Units::PERCENT;
+
+  auto nstrs = strs.length();
+
+  if (nstrs == 2 || nstrs == 5) {
+    if (! CQChartsUnits::decodeUnits(strs[nstrs - 1], units, units))
+      return false;
+
+    --nstrs;
+  }
+
+  if      (nstrs == 1) {
     CQChartsLength length;
 
-    if (! length.setValue(strs[0], Units::PERCENT)) return false;
+    if (! length.setValue(strs[0], units)) return false;
 
     set(length);
   }
-  else if (strs.length() == 4) {
+  else if (nstrs == 4) {
     CQChartsLength left, top, right, bottom;
 
-    if (! left  .setValue(strs[0], Units::PERCENT)) return false;
-    if (! top   .setValue(strs[1], Units::PERCENT)) return false;
-    if (! right .setValue(strs[2], Units::PERCENT)) return false;
-    if (! bottom.setValue(strs[3], Units::PERCENT)) return false;
+    if (! left  .setValue(strs[0], units)) return false;
+    if (! top   .setValue(strs[1], units)) return false;
+    if (! right .setValue(strs[2], units)) return false;
+    if (! bottom.setValue(strs[3], units)) return false;
 
     set(left, top, right, bottom);
   }

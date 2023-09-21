@@ -2931,10 +2931,6 @@ mousePressEvent(QMouseEvent *me)
       selectMousePress();
 
       updateTip(me->globalPos());
-#if 0
-      if (tipData_.floatTip->isVisible() && tipData_.floatTip->isLocked())
-        tipData_.floatTip->showTip(me->globalPos());
-#endif
     }
     else if (mode() == Mode::ZOOM_IN || mode() == Mode::ZOOM_OUT) {
       zoomMousePress();
@@ -2957,6 +2953,11 @@ mousePressEvent(QMouseEvent *me)
     }
   }
   else if (mouseButton() == Qt::MiddleButton) {
+    if (mode() == Mode::SELECT) {
+      selectMouseModifyPress();
+
+      updateTip(me->globalPos());
+    }
   }
   else if (mouseButton() == Qt::RightButton) {
     mouseData_.pressed    = false;
@@ -3069,6 +3070,13 @@ mouseMoveEvent(QMouseEvent *me)
   else if (mouseButton() == Qt::MiddleButton) {
     if (! mousePressed())
       return;
+
+    if      (mode() == Mode::SELECT) {
+      selectMouseModifyMove();
+
+      searchData_.pos = mouseMovePoint();
+    }
+
   }
   else if (mouseButton() == Qt::RightButton) {
     if (! mousePressed())
@@ -3123,6 +3131,9 @@ mouseReleaseEvent(QMouseEvent *me)
     }
   }
   else if (mouseButton() == Qt::MiddleButton) {
+    if (mode() == Mode::SELECT) {
+      selectMouseModifyRelease();
+    }
   }
   else if (mouseButton() == Qt::RightButton) {
   }
@@ -3942,15 +3953,6 @@ selectPointPress()
   //---
 
   // select plot objects
-  struct SelData {
-    Point  pos;
-    SelMod selMod;
-
-    SelData(const Point &pos, SelMod selMod) :
-     pos(pos), selMod(selMod) {
-    }
-  };
-
   SelData selData(mousePressPoint(), mouseSelMod());
 
   if (processMouseDataPlots([&](Plot *plot, const SelData &data) {
@@ -4087,15 +4089,6 @@ selectMouseDoubleClick()
   //---
 
   // select plot objects
-  struct SelData {
-    Point  pos;
-    SelMod selMod;
-
-    SelData(const Point &pos, SelMod selMod) :
-     pos(pos), selMod(selMod) {
-    }
-  };
-
   SelData selData(mousePressPoint(), mouseSelMod());
 
   if (processMouseDataPlots([&](Plot *plot, const SelData &data) {
@@ -4116,6 +4109,63 @@ selectMouseDoubleClick()
   if (key() && key()->contains(w))
     key()->selectDoubleClick(w, SelMod::REPLACE);
 }
+
+//---
+
+void
+CQChartsView::
+selectMouseModifyPress()
+{
+  SelData selData(mousePressPoint(), mouseSelMod());
+
+  if (processMouseDataPlots([&](Plot *plot, const SelData &data) {
+    if (plot->selectMouseModifyPress(data.pos, data.selMod)) {
+      auto *selPlot = plot->selectionPlot();
+      if (selPlot->isVisible())
+        setCurrentPlot(selPlot);
+      return true;
+    }
+    return false;
+  }, selData)) {
+    return;
+  }
+}
+
+void
+CQChartsView::
+selectMouseModifyMove()
+{
+  if (processMouseDataPlots([&](Plot *plot, const Point &pos) {
+    if (plot->selectMouseModifyMove(pos)) {
+      auto *selPlot = plot->selectionPlot();
+      if (selPlot->isVisible())
+        setCurrentPlot(selPlot);
+      return true;
+    }
+    return false;
+  }, searchData_.pos)) {
+    return;
+  }
+}
+
+void
+CQChartsView::
+selectMouseModifyRelease()
+{
+  if (processMouseDataPlots([&](Plot *plot, const Point &pos) {
+    if (plot->selectMouseModifyRelease(pos)) {
+      auto *selPlot = plot->selectionPlot();
+      if (selPlot->isVisible())
+        setCurrentPlot(selPlot);
+      return true;
+    }
+    return false;
+  }, searchData_.pos)) {
+    return;
+  }
+}
+
+//---
 
 bool
 CQChartsView::

@@ -1487,10 +1487,25 @@ class CQChartsView : public QFrame,
 
   void addProperties();
 
+  //---
+
+  struct SelData {
+    Point  pos;
+    SelMod selMod;
+
+    SelData(const Point &pos, SelMod selMod) :
+     pos(pos), selMod(selMod) {
+    }
+  };
+
   void selectMousePress();
   void selectMouseMotion();
   void selectMouseMove();
   void selectMouseRelease();
+
+  void selectMouseModifyPress();
+  void selectMouseModifyMove();
+  void selectMouseModifyRelease();
 
   void selectMouseDoubleClick();
 
@@ -1517,6 +1532,8 @@ class CQChartsView : public QFrame,
 
   void queryMousePress();
   void queryMouseMotion();
+
+  //---
 
   void resetConnections(bool notify);
   void resetConnections(const Plots &plots, bool notify);

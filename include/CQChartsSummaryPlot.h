@@ -58,6 +58,7 @@ class CQChartsSummaryCellObj;
 
 //---
 
+CQCHARTS_NAMED_SHAPE_DATA(PlotCell    , plotCell)
 CQCHARTS_NAMED_POINT_DATA(Scatter     , scatter)
 CQCHARTS_NAMED_SHAPE_DATA(Distribution, distribution)
 CQCHARTS_NAMED_SHAPE_DATA(BoxPlot     , boxPlot)
@@ -71,6 +72,7 @@ CQCHARTS_NAMED_SHAPE_DATA(Region      , region)
  * \ingroup Charts
  */
 class CQChartsSummaryPlot : public CQChartsPlot,
+ public CQChartsObjPlotCellShapeData    <CQChartsSummaryPlot>,
  public CQChartsObjScatterPointData     <CQChartsSummaryPlot>,
  public CQChartsObjDistributionShapeData<CQChartsSummaryPlot>,
  public CQChartsObjBoxPlotShapeData     <CQChartsSummaryPlot>,
@@ -93,7 +95,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Q_PROPERTY(PlotType plotType READ plotType WRITE setPlotType)
 
   // border
-  Q_PROPERTY(CQChartsLength border READ border WRITE setBorder)
+  Q_PROPERTY(CQChartsMargin border READ border WRITE setBorder)
 
   // x/y labels
   Q_PROPERTY(bool xLabels READ isXLabels WRITE setXLabels)
@@ -103,6 +105,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Q_PROPERTY(bool yLabels READ isYLabels WRITE setYLabels)
 
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(YLabel, yLabel)
+
+  // cell shape
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(PlotCell, plotCell)
 
   // cell types
   Q_PROPERTY(DiagonalType    diagonalType      READ diagonalType      WRITE setDiagonalType     )
@@ -214,7 +219,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
     NONE,
     SYMBOL,
     GRADIENT,
-    ARROW
+    CORNER
   };
 
   using MinMax = CQChartsGeom::RMinMax;
@@ -237,6 +242,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   using PenBrush         = CQChartsPenBrush;
   using PenData          = CQChartsPenData;
   using Symbol           = CQChartsSymbol;
+  using Margin           = CQChartsMargin;
   using Length           = CQChartsLength;
   using Angle            = CQChartsAngle;
   using Color            = CQChartsColor;
@@ -283,8 +289,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   //---
 
   //! get/set border
-  const Length &border() const { return border_; }
-  void setBorder(const Length &l);
+  const Margin &border() const { return border_; }
+  void setBorder(const Margin &l);
 
   //---
 
@@ -468,6 +474,12 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
+  bool handleModifyPress  (const Point &p, SelMod selMod) override;
+  bool handleModifyMove   (const Point &p) override;
+  bool handleModifyRelease(const Point &p) override;
+
+  //---
+
   CellObj *selectedCellObj() const;
 
   CellObj *cellObjAtPoint(const Point &p) const;
@@ -489,6 +501,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   bool isRangeSelectedRow(int r) const;
   bool isModelSelectedRow(int r) const;
+
+  int numRangeSelectedRows() const;
 
   //---
 
@@ -549,7 +563,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   Columns visibleColumns_; //!< visible columns
 
-  Length border_ { Length::plot(0.05) }; //!< border
+  Margin border_ { Length::plot(0.05) }; //!< border
 
   bool xLabels_ { true }; //!< x labels
   bool yLabels_ { true }; //!< y labels
@@ -582,7 +596,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
     Length           lineWidth   { Length::pixel(5) };
     Color            lineColor   { Color::makePalette() };
     Color            originColor { Color::makeInterfaceValue(0.5) };
-    ParetoOriginType originType  { ParetoOriginType::NONE };
+    ParetoOriginType originType  { ParetoOriginType::CORNER };
   };
 
   ParetoData paretoData_;
@@ -611,6 +625,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   mutable SelectedRowColumns modelSelectedRows_;
 
   bool selectAdd_ { false };
+
+  CQChartsSummaryCellObj *modifyCellObj_ { nullptr };
 };
 
 //---
@@ -673,6 +689,7 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   CQChartsSummaryPlot::CellType getCellType() const;
+  CQChartsSummaryPlot::CellType getCellType(int row, int col) const;
 
   void drawPointSelection(PaintDevice *device, const BBox &bbox, SelectionType type) const;
 
@@ -686,6 +703,10 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   virtual bool handleSelectPress  (const Point &p, SelMod selMod);
   virtual bool handleSelectMove   (const Point &p, Constraints constraints, bool first=false);
   virtual bool handleSelectRelease(const Point &p, bool add);
+
+  virtual bool handleModifyPress  (const Point &p, SelMod selMod);
+  virtual bool handleModifyMove   (const Point &p);
+  virtual bool handleModifyRelease(const Point &p);
 
   //---
 
@@ -707,7 +728,7 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   void drawBoxPlot     (PaintDevice *device) const;
   void drawDistribution(PaintDevice *device) const;
 
-  void drawRangeBox(PaintDevice *device) const;
+  void drawRangeBox(PaintDevice *device, bool overlay=false) const;
 
   void drawDensity  (PaintDevice *device) const;
   void drawParetoDir(PaintDevice *device) const;
@@ -764,7 +785,12 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   mutable PointData* selectPointData_ { nullptr };
   mutable RectData*  selectRectData_  { nullptr };
 
-  mutable bool rangeInside_ = false;
+  mutable BBox          rangeBox_;
+  mutable bool          rangeInside_ = false;
+  mutable Qt::Alignment rangeBoxSide_ { };
+
+  mutable BBox          modifyBox_;
+  mutable Qt::Alignment modifySide_ { };
 
   //---
 
@@ -774,15 +800,15 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   GroupValues        groupValues_;
 
   mutable Polygon poly_;
-  mutable BBox    rangeBox_;
-  mutable bool    rangeBoxInside_ { false };
 
   // global
   mutable int nc_ { 0 };
 
   // border
-  mutable double bx_ { 0.0 };
-  mutable double by_ { 0.0 };
+  mutable double bx1_ { 0.0 };
+  mutable double by1_ { 0.0 };
+  mutable double bx2_ { 0.0 };
+  mutable double by2_ { 0.0 };
 
   // child plot position in parent plot coords
   mutable double pxmin_ { 0.0 };
@@ -801,6 +827,8 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   mutable double bmin_     { 0.0 };
   mutable double bmax_     { 1.0 };
   mutable int    maxCount_ { 1 };
+
+  Point modifyPress_;
 };
 
 //---
@@ -844,6 +872,8 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
   virtual void addExpandControls();
 
+  virtual void addRangeControls();
+
   void connectSlots(bool b) override;
 
  protected Q_SLOTS:
@@ -866,6 +896,7 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
   FrameData optionsFrame_;
   FrameData buttonsFrame_;
+  FrameData rangesFrame_;
 
   CQChartsEnumParameterEdit* plotTypeCombo_          { nullptr };
   CQChartsEnumParameterEdit* diagonalTypeCombo_      { nullptr };

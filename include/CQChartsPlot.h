@@ -2394,6 +2394,13 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  // handle mouse press/move/release
+  virtual bool selectMouseModifyPress  (const Point &p, SelMod selMod);
+  virtual bool selectMouseModifyMove   (const Point &p);
+  virtual bool selectMouseModifyRelease(const Point &p);
+
+  //---
+
   // select interface
   virtual bool handleSelectPress  (const Point &p, SelMod selMod);
   virtual bool handleSelectMove   (const Point &p, Constraints constraints=Constraints::EDITABLE,
@@ -2402,7 +2409,13 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual bool handleSelectDoubleClick(const Point &p, SelMod selMod);
 
-  //-
+  //--
+
+  virtual bool handleModifyPress  (const Point &p, SelMod selMod);
+  virtual bool handleModifyMove   (const Point &p);
+  virtual bool handleModifyRelease(const Point &p);
+ 
+  //--
 
   bool tabbedSelectPress(const Point &w, SelMod selMod);
 

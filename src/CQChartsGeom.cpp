@@ -309,7 +309,7 @@ calcParetoFront(const Points &points, const Point &origin)
     while (xadd && xind >= 0 && xind <= int(nx - 1)) {
       // check y values at x index
       for (const auto &y : xind_yvals[xind]) {
-        if (y < p.y) {
+        if ((! invY && y < p.y) || (invY && y > p.y)) {
           xadd = false;
           break;
         }
@@ -328,19 +328,17 @@ calcParetoFront(const Points &points, const Point &origin)
 
     bool yadd = true;
 
-    int yind1 = (invY ? yind + 1 : yind - 1);
-
-    while (yadd && yind1 >= 0 && yind1 <= int(ny - 1)) {
+    while (yadd && yind >= 0 && yind <= int(ny - 1)) {
       // check x values at y index
-      for (const auto &x : yind_xvals[yind1]) {
-        if (x < p.x) {
+      for (const auto &x : yind_xvals[yind]) {
+        if ((! invX && x < p.x) || (invX && x > p.x)) {
           yadd = false;
           break;
         }
       }
 
       // next y index
-      yind1 = (invY ? yind1 + 1 : yind1 - 1);
+      yind = (invY ? yind + 1 : yind - 1);
     }
 
     //---

@@ -58,6 +58,10 @@ class CQChartsMargin :
 
   //---
 
+  void set(const Length &l) {
+    set(l, l, l, l);
+  }
+
   void set(const Length &l, const Length &t, const Length &r, const Length &b) {
     left_   = l;
     top_    = t;
@@ -65,19 +69,21 @@ class CQChartsMargin :
     bottom_ = b;
   }
 
-  void set(const Length &l) {
-    left_   = l;
-    top_    = l;
-    right_  = l;
-    bottom_ = l;
-  }
-
   bool setValue(const QString &str) { return fromString(str); }
 
   //---
 
-  bool isValid() const { return left ().isValid() && top   ().isValid() &&
-                                right().isValid() && bottom().isValid(); }
+  bool isValid() const {
+    if (! left().isValid() || ! top().isValid() || ! right().isValid() || ! bottom().isValid())
+      return false;
+
+    if (left().units() != top   ().units() ||
+        left().units() != right ().units() ||
+        left().units() != bottom().units())
+      return false;
+
+    return true;
+  }
 
   //---
 
@@ -92,6 +98,8 @@ class CQChartsMargin :
 
   const Length &bottom() const { return bottom_; }
   void setBottom(const Length &v) { bottom_ = v; }
+
+  const Units &units() const { return left_.units(); }
 
   //---
 
