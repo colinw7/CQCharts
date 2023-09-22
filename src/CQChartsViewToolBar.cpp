@@ -388,9 +388,13 @@ updateState()
   else if (view()->regionMode() == CQChartsView::RegionMode::RECT)
     regionRectButton_->setChecked(true);
 
+  //---
+
+  auto *plot = view()->currentPlot();
+
   bool allowRectSelect = true;
 
-  if (view()->currentPlot() && ! view()->currentPlot()->type()->canRectSelect())
+  if (plot && ! plot->type()->canRectSelect())
     allowRectSelect = false;
 
   selectRectButton_->setEnabled(allowRectSelect);

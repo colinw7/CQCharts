@@ -1440,12 +1440,28 @@ dataName(CQCharts *charts, const QAbstractItemModel *model, const Column &column
 
   // get scale factor to support units suffix in format
   double scale = 1.0;
-  if (CQChartsColumnUtil::nameValueReal(typeData.nameValues, "format_scale", scale))
+  bool scaleSet = CQChartsColumnUtil::nameValueReal(typeData.nameValues, "format_scale", scale);
+  if (scale == 0.0)
+    scaleSet = false;
+
+  //---
+
+  if (fmt == "%P") {
+    int ndp = (scaleSet ? int(std::log10(std::abs(scale))) : 3);
+
+    auto sv = CMathUtil::scaledNumberString(r, -ndp); // no pad
+
+    return QString::fromStdString(sv);
+  }
+
+  //---
+
+  if (scaleSet)
     r *= scale;
 
   //---
 
-  if (fmt == "%%") {
+  if (fmt == "%R") {
     auto *columnDetails = this->columnDetails(charts, model, column);
 
     if (columnDetails) {
@@ -1689,7 +1705,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const Column &, const QVariant 
 
   //---
 
-  if (fmt == "%%") {
+  if (fmt == "%R") {
     fmt = "%d";
   }
 

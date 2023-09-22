@@ -7279,8 +7279,11 @@ initPlotObjs()
 
   //---
 
-  if (changed)
+  if (changed) {
+    plotObjsAdded_ = true;
+
     Q_EMIT plotObjsAdded();
+  }
 }
 
 bool
@@ -13195,6 +13198,12 @@ drawPlotParts(QPainter *painter) const
 
   auto *th = const_cast<Plot *>(this);
 
+  if (plotObjsAdded_) {
+    plotObjsAdded_ = false;
+
+    Q_EMIT th->newPlotObjsDrawn();
+  }
+
   Q_EMIT th->plotDrawn();
 }
 
@@ -13394,6 +13403,12 @@ drawThread()
 
   // mark thread done
   updateData_.drawThread->end();
+
+  if (plotObjsAdded_) {
+    plotObjsAdded_ = false;
+
+    Q_EMIT newPlotObjsDrawn();
+  }
 
   Q_EMIT plotDrawn();
 }

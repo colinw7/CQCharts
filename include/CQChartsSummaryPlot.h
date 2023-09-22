@@ -440,6 +440,11 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
+  bool isRangeEdit() const { return rangeEdit_; }
+  void setRangeEdit(bool b) { rangeEdit_ = b; }
+
+  //---
+
   CQChartsGeom::BBox fitBBox() const override;
 
   //---
@@ -451,7 +456,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
-  using BucketCount = std::map<int, int>;
+  using Rows        = std::set<int>;
+  using BucketCount = std::map<int, Rows>;
 
   void calcBucketCounts(const Column &column, BucketCount &bucketCount, int &maxCount,
                         double &rmin, double &rmax) const;
@@ -514,6 +520,11 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   void expandCell(CellObj *cellObj);
   void collapseCell();
 
+  //---
+
+  bool subPlotToPlot(int r, int c, const Point &p, Point &pp) const;
+  bool plotToSubPlot(int r, int c, const Point &p, Point &pp) const;
+
  protected:
   void updatePlots();
 
@@ -525,6 +536,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   //---
 
   virtual CellObj *createCellObj(const BBox &bbox, int row, int col) const;
+
+  //---
 
  public Q_SLOTS:
   void setXLabels(bool b);
@@ -596,7 +609,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
     Length           lineWidth   { Length::pixel(5) };
     Color            lineColor   { Color::makePalette() };
     Color            originColor { Color::makeInterfaceValue(0.5) };
-    ParetoOriginType originType  { ParetoOriginType::CORNER };
+    ParetoOriginType originType  { ParetoOriginType::NONE };
   };
 
   ParetoData paretoData_;
@@ -617,6 +630,10 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   using ColumnRange = std::map<Column, RangeDataP>;
 
   ColumnRange columnRange_;
+
+  //---
+
+  bool rangeEdit_ { false };
 
   //---
 
@@ -707,6 +724,8 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   virtual bool handleModifyPress  (const Point &p, SelMod selMod);
   virtual bool handleModifyMove   (const Point &p);
   virtual bool handleModifyRelease(const Point &p);
+
+  void updateRangeInside(const Point &p);
 
   //---
 
@@ -877,6 +896,8 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
   void connectSlots(bool b) override;
 
  protected Q_SLOTS:
+  void rangeEditSlot(int);
+
   void plotTypeSlot();
 
   void diagonalTypeSlot();
@@ -896,7 +917,9 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
   FrameData optionsFrame_;
   FrameData buttonsFrame_;
-  FrameData rangesFrame_;
+
+  QCheckBox* rangeEditCheck_ { nullptr };
+  FrameData  rangesFrame_;
 
   CQChartsEnumParameterEdit* plotTypeCombo_          { nullptr };
   CQChartsEnumParameterEdit* diagonalTypeCombo_      { nullptr };

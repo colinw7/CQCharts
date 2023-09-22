@@ -54,6 +54,7 @@ class CQChartsCmdsSlot : public QObject {
 
   // plot
   void plotObjsAdded      ();
+  void newPlotObjsDrawn   ();
   void selectPress        (const CQChartsGeom::Point &);
   void animateStateChanged(bool);
   void currentModelChanged();

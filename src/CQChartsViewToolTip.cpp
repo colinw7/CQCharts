@@ -154,8 +154,11 @@ updateTip()
   if (! view_->calcGlobalTip(tipPos_, tip))
     return false;
 
-  CQFloatTip::setText("<font></font>" + tip);
+  CQFloatTip::setText("<font></font>" + tip, /*resize*/false);
 
+  if (CQFloatTip::resizeFit() && ! CQFloatTip::isOnScreen())
+    CQFloatTip::place();
+ 
   return true;
 }
 

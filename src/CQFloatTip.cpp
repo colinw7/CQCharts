@@ -161,7 +161,7 @@ setWidget(QWidget *w)
 
 void
 CQFloatTip::
-setText(const QString &text)
+setText(const QString &text, bool resize)
 {
   text_ = text;
 
@@ -174,7 +174,7 @@ setText(const QString &text)
 
   updateWidgetPalette();
 
-  if (isVisible())
+  if (isVisible() & resize)
     resizeFit();
 }
 
@@ -262,6 +262,25 @@ void
 CQFloatTip::
 showQuery(const QPoint &)
 {
+}
+
+bool
+CQFloatTip::
+isOnScreen() const
+{
+  int pw = widget_->width ();
+  int ph = widget_->height();
+
+  int w = this->width ();
+  int h = this->height();
+
+  int x = this->x();
+  int y = this->y();
+
+  if (x < 0 || x + w >= pw || y < 0 || y + h >= ph)
+    return false;
+
+  return true;
 }
 
 void
@@ -715,7 +734,7 @@ fontSlot()
   place();
 }
 
-void
+bool
 CQFloatTip::
 resizeFit()
 {
@@ -740,7 +759,12 @@ resizeFit()
   int w = std::min(s1.width () + dx, s2.width ());
   int h = std::min(s1.height() + dy, s2.height());
 
-  resize(QSize(w, h));
+  if (w != width() || h != height()) {
+    resize(QSize(w, h));
+    return true;
+  }
+
+  return false;
 }
 
 void

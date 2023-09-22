@@ -43,7 +43,7 @@ class CQFloatTip : public QFrame {
   void setWidget(QWidget *w);
 
   const QString &text() const { return text_; }
-  void setText(const QString &s);
+  void setText(const QString &s, bool resize=true);
 
   bool isEnabled() const { return enabled_; }
   void setEnabled(bool b);
@@ -104,7 +104,9 @@ class CQFloatTip : public QFrame {
 
   void setWidgetPalette(QWidget *w);
 
-  void resizeFit();
+  bool isOnScreen() const;
+
+  bool resizeFit();
 
  private slots:
   void hideSlot();

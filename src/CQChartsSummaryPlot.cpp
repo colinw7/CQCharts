@@ -21,6 +21,7 @@
 #include <CQChartsFitData.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsAnnotation.h>
 
 #include <CQChartsScatterPlot.h>
 #include <CQChartsDistributionPlot.h>
@@ -294,6 +295,7 @@ init()
   xAxis()->setAxesTickLabelTextAngle(Angle::degrees(90));
   xAxis()->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
   xAxis()->setSide(CQChartsAxis::AxisSide(CQChartsAxis::AxisSide::Type::TOP_RIGHT));
+  xAxis()->setMajorTickLen(4);
 
   yAxis()->setVisible(false);
   yAxis()->setTickInside(true);
@@ -301,6 +303,7 @@ init()
   yAxis()->setAxesTickLabelTextAngle(Angle::degrees(0));
   yAxis()->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
   yAxis()->setSide(CQChartsAxis::AxisSide(CQChartsAxis::AxisSide::Type::TOP_RIGHT));
+  yAxis()->setMajorTickLen(4);
 
   //---
 
@@ -1520,6 +1523,27 @@ execDrawBackground(PaintDevice *device) const
 
   nc_ = visibleColumns().count();
 
+  //---
+
+  if (selectMode() == SelectMode::DATA) {
+    ColorInd colorInd;
+
+    auto bc = interpPlotCellStrokeColor(colorInd);
+    auto fc = interpPlotCellFillColor  (colorInd);
+
+    PenBrush penBrush;
+
+    setPenBrush(penBrush, plotCellPenData(bc), plotCellBrushData(fc));
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    BBox bbox(0, 0, nc_, nc_);
+
+    device->drawRect(bbox);
+  }
+
+  //---
+
   for (int ic = 0; ic < nc_; ++ic) {
     auto column = visibleColumns().getColumn(ic);
 
@@ -1799,7 +1823,7 @@ calcBucketCounts(const Column &column, BucketCount &bucketCount, int &maxCount,
 
     int bucket = details->bucket(value);
 
-    ++bucketCount[bucket];
+    bucketCount[bucket].insert(i);
   }
 
   maxCount = 0;
@@ -1808,7 +1832,9 @@ calcBucketCounts(const Column &column, BucketCount &bucketCount, int &maxCount,
   rmax = max;
 
   for (const auto &pb : bucketCount) {
-    maxCount = std::max(maxCount, pb.second);
+    auto n = pb.second.size();
+
+    maxCount = std::max(maxCount, int(n));
 
     QVariant vmin, vmax;
 
@@ -1872,8 +1898,12 @@ handleSelectPress(const Point &p, SelMod selMod)
     if (cellObj) break;
   }
 
-  if (cellObj)
-    cellObj->handleSelectPress(p, selMod);
+  if (cellObj) {
+    if (isRangeEdit())
+      cellObj->handleModifyPress(p, selMod);
+    else
+      cellObj->handleSelectPress(p, selMod);
+   }
 
   return true;
 }
@@ -1905,8 +1935,35 @@ handleSelectMove(const Point &p, Constraints constraints, bool first)
     if (cellObj) break;
   }
 
+  //---
+
+  // get annotations at point
+  Annotations annotations;
+
+  annotationsAtPoint(p, annotations, Constraints::SELECTABLE);
+
+  //---
+
+  Objs objs;
+
   if (cellObj)
-    cellObj->handleSelectMove(p, constraints, first);
+    objs.push_back(cellObj);
+
+  for (const auto &annotation : annotations)
+    objs.push_back(annotation);
+
+  setInsideObjects(p, objs);
+
+  //---
+
+  if (cellObj) {
+    cellObj->updateRangeInside(p);
+
+    if (isRangeEdit())
+      cellObj->handleModifyMove(p);
+    else
+      cellObj->handleSelectMove(p, constraints, first);
+  }
 
   return true;
 }
@@ -1929,8 +1986,12 @@ handleSelectRelease(const Point &p)
     if (cellObj) break;
   }
 
-  if (cellObj)
-    cellObj->handleSelectRelease(p, selectAdd_);
+  if (cellObj) {
+    if (isRangeEdit())
+      cellObj->handleModifyRelease(p);
+    else
+      cellObj->handleSelectRelease(p, selectAdd_);
+  }
 
   return true;
 }
@@ -1995,6 +2056,56 @@ handleModifyRelease(const Point &p)
 {
   if (modifyCellObj_)
     modifyCellObj_->handleModifyRelease(p);
+
+  return true;
+}
+
+//---
+
+bool
+CQChartsSummaryPlot::
+subPlotToPlot(int r, int c, const Point &p, Point &pp) const
+{
+  CellObj *cellObj = nullptr;
+
+  for (const auto &plotObj : plotObjects()) {
+    auto *cellObj1 = dynamic_cast<CQChartsSummaryCellObj *>(plotObj);
+    if (! cellObj1) continue;
+
+    if (cellObj1->row() == r && cellObj1->col() == c) {
+      cellObj = cellObj1;
+      break;
+    }
+  }
+
+  if (! cellObj)
+    return false;
+
+  pp = cellObj->plotToParent(p);
+
+  return true;
+}
+
+bool
+CQChartsSummaryPlot::
+plotToSubPlot(int r, int c, const Point &p, Point &pp) const
+{
+  CellObj *cellObj = nullptr;
+
+  for (const auto &plotObj : plotObjects()) {
+    auto *cellObj1 = dynamic_cast<CQChartsSummaryCellObj *>(plotObj);
+    if (! cellObj1) continue;
+
+    if (cellObj1->row() == r && cellObj1->col() == c) {
+      cellObj = cellObj1;
+      break;
+    }
+  }
+
+  if (! cellObj)
+    return false;
+
+  pp = cellObj->parentToPlot(p);
 
   return true;
 }
@@ -2207,6 +2318,13 @@ CQChartsSummaryCellObj::
 draw(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsSummaryCellObj::draw");
+
+  //---
+
+  if (summaryPlot_->selectMode() == CQChartsSummaryPlot::SelectMode::DATA) {
+    if (summaryPlot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER)
+      return;
+  }
 
   //---
 
@@ -2655,13 +2773,20 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   ColorInd colorInd;
 
   auto bc = summaryPlot_->interpPlotCellStrokeColor(colorInd);
-  auto fc = summaryPlot_->interpPlotCellFillColor  (colorInd);
 
-  summaryPlot_->setPenBrush(penBrush,
-    summaryPlot_->plotCellPenData(bc), summaryPlot_->plotCellBrushData(fc));
+  if (summaryPlot_->selectMode() != CQChartsSummaryPlot::SelectMode::DATA) {
+    auto fc = summaryPlot_->interpPlotCellFillColor  (colorInd);
 
-  if (updateState)
-    summaryPlot_->updateObjPenBrushState(this, penBrush, drawType());
+    summaryPlot_->setPenBrush(penBrush,
+      summaryPlot_->plotCellPenData(bc), summaryPlot_->plotCellBrushData(fc));
+
+    if (updateState)
+      summaryPlot_->updateObjPenBrushState(this, penBrush, drawType());
+  }
+  else {
+    summaryPlot_->setPenBrush(penBrush,
+      summaryPlot_->plotCellPenData(bc), BrushData(false));
+  }
 }
 
 void
@@ -2721,11 +2846,15 @@ drawScatter(PaintDevice *device) const
 
   bool anyRange = summaryPlot_->anyColumnRange();
 
-  PenBrush penBrush;
+  //---
 
-  ColorInd colorInd(row_, nc_);
+  ColorInd colorInd1(row_, nc_);
+  ColorInd colorInd2(col_, nc_);
 
-  summaryPlot_->setScatterSymbolPenBrush(penBrush, colorInd);
+  PenBrush penBrush1, penBrush2;
+
+  summaryPlot_->setScatterSymbolPenBrush(penBrush1, colorInd1);
+  summaryPlot_->setScatterSymbolPenBrush(penBrush2, colorInd2);
 
   poly_ = Polygon();
 
@@ -2759,28 +2888,33 @@ drawScatter(PaintDevice *device) const
     //---
 
     // set pen/brush
-    PenBrush       penBrush1;
-    CQChartsSymbol symbol1;
-    ColorInd       colorInd1;
+    PenBrush       groupPenBrush1, groupPenBrush2;
+    ColorInd       groupColorInd1, groupColorInd2;
+    CQChartsSymbol groupSymbol;
 
     if (groupDetails) {
       auto var = groupDetails->value(i);
 
       int ig = groupDetails->uniqueId(var);
 
-      colorInd1 = ColorInd(ig, ng);
+      groupColorInd1 = ColorInd(ig, ng);
 
-      summaryPlot_->setScatterSymbolPenBrush(penBrush1, colorInd1);
+      summaryPlot_->setScatterSymbolPenBrush(groupPenBrush1, groupColorInd1);
+
+      groupColorInd2 = groupColorInd1;
+      groupPenBrush2 = groupPenBrush1;
 
       // get index symbol
       auto *symbolSet = summaryPlot_->defaultSymbolSet();
 
-      symbol1 = symbolSet->interpI(ig).symbol;
+      groupSymbol = symbolSet->interpI(ig).symbol;
     }
     else {
-      colorInd1 = colorInd;
-      penBrush1 = penBrush;
-      symbol1   = symbol;
+      groupColorInd1 = colorInd1;
+      groupColorInd2 = colorInd2;
+      groupPenBrush1 = penBrush1;
+      groupPenBrush2 = penBrush2;
+      groupSymbol    = symbol;
     }
 
     auto symbolSize1 = symbolSize;
@@ -2792,9 +2926,11 @@ drawScatter(PaintDevice *device) const
       auto color = CQChartsVariant::toColor(colorDetails->value(i), ok);
 
       if (ok) {
-        auto c = summaryPlot_->interpColor(color, colorInd1);
+        auto c1 = summaryPlot_->interpColor(color, groupColorInd1);
+        auto c2 = summaryPlot_->interpColor(color, groupColorInd2);
 
-        penBrush1.brush.setColor(c);
+        groupPenBrush1.brush.setColor(c1);
+        groupPenBrush2.brush.setColor(c2);
       }
     }
 
@@ -2803,7 +2939,7 @@ drawScatter(PaintDevice *device) const
       auto symbol = CQChartsVariant::toSymbol(symbolTypeDetails->value(i), ok);
 
       if (ok)
-        symbol1 = symbol;
+        groupSymbol = symbol;
     }
 
     if (symbolSizeDetails) {
@@ -2816,16 +2952,24 @@ drawScatter(PaintDevice *device) const
 
     //---
 
-    auto ps = plotToParent(p);
+    auto blendColor = CQChartsUtil::blendColors(groupPenBrush1.brush.color(),
+                                                groupPenBrush2.brush.color(), 0.5);
 
-    CQChartsDrawUtil::setPenBrush(device, penBrush1);
+    groupPenBrush1.brush.setColor(blendColor);
+
+    CQChartsDrawUtil::setPenBrush(device, groupPenBrush1);
+
+    //---
 
     if (summaryPlot_->regionPointType() == CQChartsSummaryPlot::RegionPointType::DIM_OUTSIDE) {
       if (anyRange && ! rangeSelected)
-        CQChartsDrawUtil::setBrushGray(penBrush1.brush, 0.3);
+        CQChartsDrawUtil::setBrushGray(groupPenBrush1.brush, 0.3);
     }
 
-    CQChartsDrawUtil::drawSymbol(device, penBrush1, symbol1, ps, symbolSize1, /*scale*/true);
+    auto ps = plotToParent(p);
+
+    CQChartsDrawUtil::drawSymbol(device, groupPenBrush1, groupSymbol,
+                                 ps, symbolSize1, /*scale*/true);
 
     //---
 
@@ -2833,7 +2977,7 @@ drawScatter(PaintDevice *device) const
 
     pointData.ind        = i;
     pointData.p          = p;
-    pointData.symbol     = symbol1;
+    pointData.symbol     = groupSymbol;
     pointData.symbolSize = symbolSize1;
 
     pointData.rangeSelected = rangeSelected;
@@ -3262,7 +3406,7 @@ drawDistribution(PaintDevice *device) const
       double rmin1 = CQChartsVariant::toReal(vmin, ok);
       double rmax1 = CQChartsVariant::toReal(vmax, ok);
 
-      int n = pb.second;
+      auto n = pb.second.size();
 
       double x1, y1, x2, y2;
 
@@ -3287,18 +3431,46 @@ drawDistribution(PaintDevice *device) const
 
       updateRangeBox();
 
+      bool anyRange = summaryPlot_->anyColumnRange();
+
+      //---
+
       PenBrush penBrush2 = penBrush1;
+
+      bool rangeSelected = false;
 
       if (rangeBox_.isSet()) {
         MinMax r1(rangeBox_.getXMin(), rangeBox_.getXMax());
         MinMax r2(rmin1, rmax1);
 
         if (r1.overlapsHalfOpen(r2))
-          summaryPlot_->updatePenBrushState(ColorInd(), penBrush2,
-                                            /*selected*/true, /*inside*/false);
+          rangeSelected = true;
       }
 
       //---
+
+      if (summaryPlot_->regionPointType() == CQChartsSummaryPlot::RegionPointType::DIM_OUTSIDE) {
+        bool bucketSelected = false;
+
+        if (anyRange) {
+          for (const auto &r : pb.second) { // bucket rows
+            if (summaryPlot_->isRangeSelectedRow(r)) {
+              bucketSelected = true;
+              break;
+            }
+          }
+        }
+        else
+          bucketSelected = true;
+
+        if (! bucketSelected)
+          CQChartsDrawUtil::setBrushGray(penBrush2.brush, 0.3);
+      }
+      else {
+        if (rangeSelected)
+          summaryPlot_->updatePenBrushState(ColorInd(), penBrush2,
+                                            /*selected*/true, /*inside*/false);
+      }
 
       CQChartsDrawUtil::setPenBrush(device, penBrush2);
 
@@ -3621,7 +3793,6 @@ drawParetoDir(PaintDevice *device) const
   }
   // draw origin gradient
   else if (summaryPlot_->paretoOriginType() == CQChartsSummaryPlot::ParetoOriginType::GRADIENT) {
-//  auto bgColor = interpColor(Color::makeInterfaceValue(0.0), ic);
     auto bgColor = QColor(0, 0, 0, 0);
 
     auto o1 = plotToParent(origin);
@@ -3795,8 +3966,11 @@ drawPie(PaintDevice *device) const
 
     CQChartsRValues values;
 
-    for (const auto &pb : bucketCount)
-      values.addValue(CQChartsRValues::OptReal(pb.second));
+    for (const auto &pb : bucketCount) {
+      auto n = pb.second.size();
+
+      values.addValue(CQChartsRValues::OptReal(n));
+    }
 
     auto bbox1 = BBox(pxmin_, pymin_, pxmax_, pymax_);
 
@@ -3836,12 +4010,6 @@ drawOverlay(PaintDevice *device) const
 
       //---
 
-      if (pointData.inside)
-        CQChartsDrawUtil::drawSymbol(device, penBrush, pointData.symbol, ps,
-                                     pointData.symbolSize, /*scale*/true);
-
-      //---
-
       // highlight selected
       if (pointData.rangeSelected || pointData.modelSelected) {
         double psx, psy;
@@ -3875,6 +4043,13 @@ drawOverlay(PaintDevice *device) const
 
           drawPointSelection(device, bbox, SelectionType::MODEL);
         }
+      }
+
+      //---
+
+      if (pointData.inside) {
+        CQChartsDrawUtil::drawSymbol(device, penBrush, pointData.symbol, ps,
+                                     pointData.symbolSize, /*scale*/true);
       }
     }
   }
@@ -4096,40 +4271,6 @@ handleSelectMove(const Point &p, Constraints, bool)
     const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay();
   }
 
-  //---
-
-  rangeInside_ = false;
-
-  updateRangeBox();
-
-  if (rangeBox_.isValid()) {
-    auto rbbox  = BBox(plotToParent(rangeBox_.getLL()), plotToParent(rangeBox_.getUR()));
-    auto prbbox = summaryPlot_->windowToPixel(rbbox);
-    prbbox.expand(-4, -4, 4, 4);
-    rbbox = summaryPlot_->pixelToWindow(prbbox);
-
-    if (rbbox.inside(p)) {
-      rangeInside_ = true;
-
-      auto p1 = plotToParent(rangeBox_.getLL());
-      auto p2 = plotToParent(rangeBox_.getUR());
-
-      double dx1 = summaryPlot_->windowToPixelWidth (std::abs(p1.x - p.x));
-      double dy1 = summaryPlot_->windowToPixelHeight(std::abs(p1.y - p.y));
-      double dx2 = summaryPlot_->windowToPixelWidth (std::abs(p2.x - p.x));
-      double dy2 = summaryPlot_->windowToPixelHeight(std::abs(p2.y - p.y));
-
-      rangeBoxSide_ = Qt::Alignment();
-
-      if (dx1 <= 4) rangeBoxSide_ |= Qt::AlignLeft;
-      if (dy1 <= 4) rangeBoxSide_ |= Qt::AlignBottom;
-      if (dx2 <= 4) rangeBoxSide_ |= Qt::AlignRight;
-      if (dy2 <= 4) rangeBoxSide_ |= Qt::AlignTop;
-
-      const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay();
-    }
-  }
-
   return true;
 }
 
@@ -4292,6 +4433,45 @@ handleModifyRelease(const Point &)
   modifyBox_ = BBox();
 
   return true;
+}
+
+//----
+
+void
+CQChartsSummaryCellObj::
+updateRangeInside(const Point &p)
+{
+  rangeInside_ = false;
+
+  updateRangeBox();
+
+  if (rangeBox_.isValid()) {
+    auto rbbox  = BBox(plotToParent(rangeBox_.getLL()), plotToParent(rangeBox_.getUR()));
+    auto prbbox = summaryPlot_->windowToPixel(rbbox);
+    prbbox.expand(-4, -4, 4, 4);
+    rbbox = summaryPlot_->pixelToWindow(prbbox);
+
+    if (rbbox.inside(p)) {
+      rangeInside_ = true;
+
+      auto p1 = plotToParent(rangeBox_.getLL());
+      auto p2 = plotToParent(rangeBox_.getUR());
+
+      double dx1 = summaryPlot_->windowToPixelWidth (std::abs(p1.x - p.x));
+      double dy1 = summaryPlot_->windowToPixelHeight(std::abs(p1.y - p.y));
+      double dx2 = summaryPlot_->windowToPixelWidth (std::abs(p2.x - p.x));
+      double dy2 = summaryPlot_->windowToPixelHeight(std::abs(p2.y - p.y));
+
+      rangeBoxSide_ = Qt::Alignment();
+
+      if (dx1 <= 4) rangeBoxSide_ |= Qt::AlignLeft;
+      if (dy1 <= 4) rangeBoxSide_ |= Qt::AlignBottom;
+      if (dx2 <= 4) rangeBoxSide_ |= Qt::AlignRight;
+      if (dy2 <= 4) rangeBoxSide_ |= Qt::AlignTop;
+
+      const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay();
+    }
+  }
 }
 
 //---
@@ -4462,9 +4642,11 @@ updateWidgets()
 
       auto c = summaryPlot_->interpPaletteColor(CQChartsUtil::ColorInd(ig, ng));
 
+      auto nb = bc.second.size();
+
       auto *colorItem = createColorTableItem(c);
       auto *valueItem = createStringTableItem(QString("[%1,%2)").arg(rmin).arg(rmax));
-      auto *countItem = createStringTableItem(QString::number(bc.second));
+      auto *countItem = createStringTableItem(QString::number(nb));
 
       valueList_->setItem(ig, 0, colorItem);
       valueList_->setItem(ig, 1, valueItem);
@@ -4840,6 +5022,10 @@ addRangeList()
   // group frame
   auto rangeFrame = createGroupFrame("Column Ranges", "rangeFrame");
 
+  rangeEditCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Range Edit", "rangeEdit");
+
+  addFrameWidget(rangeFrame, rangeEditCheck_);
+
   rangeList_ = new CQChartsSummaryPlotRangeList;
 
   addFrameWidget(rangeFrame, rangeList_);
@@ -4918,6 +5104,9 @@ void
 CQChartsSummaryPlotCustomControls::
 connectSlots(bool b)
 {
+  CQUtil::optConnectDisconnect(b,
+    rangeEditCheck_, SIGNAL(stateChanged(int)), this, SLOT(rangeEditSlot(int)));
+
   CQUtil::optConnectDisconnect(b,
     plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
   CQUtil::optConnectDisconnect(b,
@@ -5005,7 +5194,7 @@ updateWidgets()
     int n = summaryPlot_->numRangeSelectedRows();
 
     if (n > 0)
-      rangesFrame_.groupBox->setTitle(QString("Ranges (#%1)").arg(n));
+      rangesFrame_.groupBox->setTitle(QString("Ranges (#%1 Rows)").arg(n));
     else
       rangesFrame_.groupBox->setTitle("Ranges");
   }
@@ -5017,6 +5206,13 @@ updateWidgets()
   //---
 
   CQChartsPlotCustomControls::updateWidgets();
+}
+
+void
+CQChartsSummaryPlotCustomControls::
+rangeEditSlot(int state)
+{
+  summaryPlot_->setRangeEdit(state);
 }
 
 void

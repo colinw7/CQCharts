@@ -3555,6 +3555,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // plot objects added
   void plotObjsAdded();
 
+  // new plot objects added and drawn
+  void newPlotObjsDrawn();
+
   // plot drawn
   void plotDrawn();
 
@@ -4302,6 +4305,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // updates
   UpdatesData updatesData_;              //!< updates data
   bool        fromInvalidate_ { false }; //!< call from invalidate
+
+  mutable bool plotObjsAdded_ { false };
 
   //---
 

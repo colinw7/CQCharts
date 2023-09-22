@@ -3,7 +3,7 @@ set plot [create_charts_plot -type summary -model $model \
   -columns {{columns {1 2 3 4 5 6 7 8 9 10 11}}}]
 
 for {set i 1} {$i < 11} {incr i} {
-  set_charts_data -model $model -column $i -name column_type -value {real {oformat %%}}
+  set_charts_data -model $model -column $i -name column_type -value {real {oformat %P}}
 }
 
 set_charts_property -plot $plot -name options.selectMode -value DATA

@@ -29,6 +29,7 @@
 #include <CQChartsSVGUtil.h>
 #include <CQChartsFile.h>
 #include <CQChartsPointPlot.h>
+#include <CQChartsSummaryPlot.h>
 #include <CQChartsModelProcess.h>
 
 #include <CQChartsLoadModelDlg.h>
@@ -397,14 +398,12 @@ execCmd(CQChartsCmdArgs &argv)
     for (int i = 0; i < strs.length(); ++i) {
       // split into strings per column
       QStringList columnsStrs;
-
       if (! CQTcl::splitList(strs[i], columnsStrs))
         continue;
 
       for (int j = 0; j < columnsStrs.length(); ++j) {
         // split into strings per column
         QStringList columnStrs;
-
         if (! CQTcl::splitList(columnsStrs[j], columnStrs))
           continue;
 
@@ -672,14 +671,12 @@ execCmd(CQChartsCmdArgs &argv)
 
     // split into variable names
     QStringList varsStrs;
-
     if (! CQTcl::splitList(vars, varsStrs))
       varsStrs = QStringList();
 
     for (auto &varStr : varsStrs) {
       // split into name values
       QStringList nameValueStrs;
-
       if (! CQTcl::splitList(varStr, nameValueStrs))
         nameValueStrs = QStringList();
 
@@ -1265,7 +1262,6 @@ execCmd(CQChartsCmdArgs &argv)
 
   // split into values
   QStringList strs;
-
   (void) CQTcl::splitList(str, strs);
 
   CQChartsRValues rvals;
@@ -1522,7 +1518,6 @@ execCmd(CQChartsCmdArgs &argv)
 
     // split into columns
     QStringList strs;
-
     if (! CQTcl::splitList(columnsStr, strs))
       return errorMsg(QString("Invalid columns string '%1'").arg(columnsStr));
 
@@ -1531,7 +1526,6 @@ execCmd(CQChartsCmdArgs &argv)
 
       // split into name values
       QStringList strs1;
-
       if (! CQTcl::splitList(nameValue, strs1))
         return errorMsg(QString("Invalid column name/value string '%1'").arg(nameValue));
 
@@ -1557,7 +1551,6 @@ execCmd(CQChartsCmdArgs &argv)
 
     // split into parameter name/value
     QStringList strs1;
-
     if (! CQTcl::splitList(parameterStr, strs1))
       return errorMsg(QString("Invalid parameter name/value string '%1'").arg(parameterStr));
 
@@ -1595,7 +1588,6 @@ execCmd(CQChartsCmdArgs &argv)
   if (positionStr != "") {
     // split into position values (xmin, ymin, xmax, ymax)
     QStringList positionStrs;
-
     if (! CQTcl::splitList(positionStr, positionStrs))
       return errorMsg(QString("Invalid position string '%1'").arg(positionStr));
 
@@ -1697,14 +1689,12 @@ execCmd(CQChartsCmdArgs &argv)
   for (int i = 0; i < properties.length(); ++i) {
     // split into properites name values
     QStringList strs;
-
     if (! CQTcl::splitList(properties[i], strs))
       return errorMsg(QString("Invalid properties string '%1'").arg(properties[i]));
 
     for (int j = 0; j < strs.length(); ++j) {
       // split into name value
       QStringList strs1;
-
       if (! CQTcl::splitList(strs[j], strs1))
         return errorMsg(QString("Invalid property string '%1'").arg(strs[j]));
 
@@ -2828,7 +2818,6 @@ execCmd(CQChartsCmdArgs &argv)
     else if (nameStr == "palettes") {
       // split into palette names
       QStringList strs;
-
       CQTcl::splitList(valueStr, strs);
 
       for (int i = 0; i < strs.length(); ++i) {
@@ -2977,7 +2966,6 @@ execCmd(CQChartsCmdArgs &argv)
 
       // split into color names
       QStringList strs;
-
       CQTcl::splitList(valueStr, strs);
 
       if (! strs.length()) return errorMsg(QString("Invalid defined colors '%1'").arg(valueStr));
@@ -2990,7 +2978,6 @@ execCmd(CQChartsCmdArgs &argv)
 
         // split color name/value
         QStringList strs1;
-
         if (! CQTcl::splitList(strs[j], strs1))
           return errorMsg(QString("Invalid defined color string '%1'").arg(strs[j]));
 
@@ -3849,14 +3836,12 @@ execCmd(CQChartsCmdArgs &argv)
 
     // split column ops
     QStringList strs;
-
     if (! CQTcl::splitList(opStr, strs))
       return columnOps;
 
     for (const auto &str : strs) {
       // split op/column
       QStringList strs1;
-
       if (! CQTcl::splitList(str, strs1))
         continue;
 
@@ -4057,7 +4042,6 @@ execCmd(CQChartsCmdArgs &argv)
 
   // split into strings per model
   QStringList modelStrs;
-
   if (! CQTcl::splitList(modelsStr, modelStrs))
     return errorMsg("Bad model ids '" + modelsStr + "'");
 
@@ -5726,7 +5710,6 @@ execCmd(CQChartsCmdArgs &argv)
     auto valueTypeStr = argv.getParseStr("value_types");
 
     QStringList valueTypeStrs;
-
     if (! CQTcl::splitList(valueTypeStr, valueTypeStrs))
       return errorMsg(QString("Invalid value_type strings '%1'").arg(valueTypeStr));
 
@@ -5734,10 +5717,9 @@ execCmd(CQChartsCmdArgs &argv)
 
     for (const auto &valueTypeStr : valueTypeStrs) {
       // split into column/value_types
-      QStringList columnTypes;
-
       int numColumnTypes = 0;
 
+      QStringList columnTypes;
       if (CQTcl::splitList(valueTypeStr, columnTypes))
         numColumnTypes = columnTypes.size();
 
@@ -5759,7 +5741,6 @@ execCmd(CQChartsCmdArgs &argv)
         typeStr = columnTypes[0];
 
       QStringList types;
-
       if (! CQTcl::splitList(typeStr, types))
         return errorMsg(QString("Invalid types string '%1'").arg(typeStr));
 
@@ -6421,7 +6402,8 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
          "model" << "view" << "value" << "map" << "annotations" << "objects" <<
          "selected_objects" << "inds" << "plot_width" << "plot_height" << "pixel_width" <<
          "pixel_height" << "pixel_position" << "properties" << "set_hidden" << "errors" <<
-         "color_filter" << "symbol_type_filter" << "symbol_size_filter";
+         "color_filter" << "symbol_type_filter" << "symbol_size_filter" <<
+         "subplot_to_plot" << "plot_to_subplot";
         return names;
       }
       else {
@@ -6600,7 +6582,6 @@ execCmd(CQChartsCmdArgs &argv)
       auto data = argv.getParseStr("data");
 
       QStringList strs;
-
       if (! CQTcl::splitList(data, strs) || strs.length() < 1)
         return errorMsg(QString("Invalid data string '%1'").arg(data));
 
@@ -7421,6 +7402,52 @@ execCmd(CQChartsCmdArgs &argv)
 
       return cmdBase_->setCmdRc(p.qpoint());
     }
+    else if (name == "subplot_to_plot") {
+      auto data = argv.getParseStr("data");
+
+      QStringList strs;
+      if (! CQTcl::splitList(data, strs) || strs.length() != 4)
+        return errorMsg("Invalid data '" + argv.getParseStr("data") + "' specified");
+
+      bool ok1, ok2, ok3, ok4;
+      long   r = CQChartsUtil::toInt (strs[0], ok1);
+      long   c = CQChartsUtil::toInt (strs[1], ok2);
+      double x = CQChartsUtil::toReal(strs[2], ok3);
+      double y = CQChartsUtil::toReal(strs[3], ok4);
+      if (! ok1 || ! ok2 || ! ok3 || ! ok4) return false;
+
+      auto *summaryPlot = dynamic_cast<CQChartsSummaryPlot *>(plot);
+      if (! summaryPlot) return false;
+
+      CQChartsGeom::Point p(x, y), p1;
+      if (! summaryPlot->subPlotToPlot(r, c, p, p1))
+        return false;
+
+      return cmdBase_->setCmdRc(p1.qpoint());
+    }
+    else if (name == "plot_to_subplot") {
+      auto data = argv.getParseStr("data");
+
+      QStringList strs;
+      if (! CQTcl::splitList(data, strs) || strs.length() != 4)
+        return errorMsg("Invalid data '" + argv.getParseStr("data") + "' specified");
+
+      bool ok1, ok2, ok3, ok4;
+      long   r = CQChartsUtil::toInt (strs[0], ok1);
+      long   c = CQChartsUtil::toInt (strs[1], ok2);
+      double x = CQChartsUtil::toReal(strs[2], ok3);
+      double y = CQChartsUtil::toReal(strs[3], ok4);
+      if (! ok1 || ! ok2 || ! ok3 || ! ok4) return false;
+
+      auto *summaryPlot = dynamic_cast<CQChartsSummaryPlot *>(plot);
+      if (! summaryPlot) return false;
+
+      CQChartsGeom::Point p(x, y), p1;
+      if (! summaryPlot->plotToSubPlot(r, c, p, p1))
+        return false;
+
+      return cmdBase_->setCmdRc(p1.qpoint());
+    }
     else if (name == "properties") {
       QStringList names;
 
@@ -7894,7 +7921,6 @@ execCmd(CQChartsCmdArgs &argv)
       auto data = argv.getParseStr("data");
 
       QStringList strs;
-
       if (! CQTcl::splitList(data, strs) || strs.length() < 1)
         return errorMsg(QString("Invalid data string '%1'").arg(data));
 
@@ -7924,7 +7950,6 @@ execCmd(CQChartsCmdArgs &argv)
     else if (name == "size") {
       // split into size (rows, cols)
       QStringList strs;
-
       if (! CQTcl::splitList(value, strs) || strs.length() != 2)
         return errorMsg(QString("Invalid size string '%1'").arg(value));
 
@@ -8133,7 +8158,6 @@ execCmd(CQChartsCmdArgs &argv)
 
         // split into tick value/label
         QStringList strs;
-
         if (! CQTcl::splitList(value, strs) || strs.size() != 2)
           return errorMsg(QString("Invalid tick label '%1'").arg(value));
 
@@ -8155,7 +8179,6 @@ execCmd(CQChartsCmdArgs &argv)
     else if (name == "color_filter") {
       // split into color filters
       QStringList strs;
-
       if (CQTcl::splitList(value, strs))
         plot->setColorFilterNames(strs);
     }
@@ -8164,7 +8187,6 @@ execCmd(CQChartsCmdArgs &argv)
 
       // split into symbol type filters
       QStringList strs;
-
       if (pointPlot && CQTcl::splitList(value, strs))
         pointPlot->setSymbolTypeFilterNames(strs);
     }
@@ -8173,7 +8195,6 @@ execCmd(CQChartsCmdArgs &argv)
 
       // split into symbol size filters
       QStringList strs;
-
       if (pointPlot && CQTcl::splitList(value, strs))
         pointPlot->setSymbolSizeFilterNames(strs);
     }
@@ -8202,7 +8223,6 @@ execCmd(CQChartsCmdArgs &argv)
 
       // split into tick value/label
       QStringList strs;
-
       if (! CQTcl::splitList(value, strs) || strs.size() != 2)
         return errorMsg(QString("Invalid tick label '%1'").arg(value));
 
@@ -8232,7 +8252,6 @@ execCmd(CQChartsCmdArgs &argv)
     if      (name == "path_list") {
       // split into path strings
       QStringList strs;
-
       if (! CQTcl::splitList(value, strs))
         return errorMsg(QString("Invalid path list '%1'").arg(value));
 
@@ -9041,7 +9060,6 @@ execCmd(CQChartsCmdArgs &argv)
   if (argv.hasParseArg("angle")) {
     // split into arrow angles
     QStringList strs;
-
     if (! CQTcl::splitList(argv.getParseStr("angle"), strs))
       return errorMsg(QString("Invalid angle string '%1'").arg(argv.getParseStr("angle")));
 
@@ -9083,7 +9101,6 @@ execCmd(CQChartsCmdArgs &argv)
   if (argv.hasParseArg("back_angle")) {
     // split into arrow angles
     QStringList strs;
-
     if (! CQTcl::splitList(argv.getParseStr("back_angle"), strs))
       return errorMsg(QString("Invalid back_angle string '%1'").
                        arg(argv.getParseStr("back_angle")));
@@ -9124,7 +9141,6 @@ execCmd(CQChartsCmdArgs &argv)
   if (argv.hasParseArg("length")) {
     // split into arrow lengths
     QStringList strs;
-
     if (! CQTcl::splitList(argv.getParseStr("length"), strs))
       return errorMsg(QString("Invalid length string '%1'").arg(argv.getParseStr("length")));
 
@@ -9169,7 +9185,6 @@ execCmd(CQChartsCmdArgs &argv)
   if (argv.hasParseArg("line_ends")) {
     // split into line ends
     QStringList strs;
-
     if (! CQTcl::splitList(argv.getParseStr("line_ends"), strs))
       return errorMsg(QString("Invalid line_ends string '%1'").arg(argv.getParseStr("line_ends")));
 
@@ -10639,7 +10654,6 @@ execCmd(CQChartsCmdArgs &argv)
 
   // split into points
   QStringList pointStrs;
-
   if (! CQTcl::splitList(pointsStr, pointStrs))
     return errorMsg(QString("Invalid points '%1'").arg(pointsStr));
 
@@ -12550,6 +12564,9 @@ execCmd(CQChartsCmdArgs &argv)
     else if (fromName == "plotObjsAdded") {
       connectSlot(plot, SIGNAL(plotObjsAdded()), SLOT(plotObjsAdded()));
     }
+    else if (fromName == "newPlotObjsDrawn") {
+      connectSlot(plot, SIGNAL(newPlotObjsDrawn()), SLOT(newPlotObjsDrawn()));
+    }
     else if (fromName == "selectionChanged") {
       connectSlot(plot, SIGNAL(selectionChanged()), SLOT(selectionChanged()));
     }
@@ -12565,8 +12582,8 @@ execCmd(CQChartsCmdArgs &argv)
     }
     else if (fromName == "?") {
       static auto names = QStringList() <<
-        "objIdPressed" << "annotationIdPressed" << "plotObjsAdded" << "selectionChanged" <<
-        "selectPress" << "animateStateChanged" << "currentModelChanged";
+        "objIdPressed" << "annotationIdPressed" << "plotObjsAdded" << "newPlotObjsDrawn" <<
+        "selectionChanged" << "selectPress" << "animateStateChanged" << "currentModelChanged";
       return cmdBase_->setCmdRc(names);
     }
     else
@@ -13977,7 +13994,6 @@ setAnnotationProperties(CQChartsAnnotation *annotation, const QString &propertie
 
   // split into properties
   QStringList strs;
-
   if (! CQTcl::splitList(properties, strs))
     return errorMsg(QString("Invalid properties string '%1'").arg(properties));
 
@@ -13986,7 +14002,6 @@ setAnnotationProperties(CQChartsAnnotation *annotation, const QString &propertie
   for (int i = 0; i < strs.length(); ++i) {
     // split into name/value
     QStringList strs1;
-
     if (! CQTcl::splitList(strs[i], strs1))
       return errorMsg(QString("Invalid property string '%1'").arg(strs[i]));
 
@@ -14579,7 +14594,6 @@ stringToModelColumns(const ModelP &model, const QString &columnsStr, Columns &co
 {
   // split into strings per column
   QStringList columnStrs;
-
   if (! CQTcl::splitList(columnsStr, columnStrs)) {
     charts_->errorMsg("Bad columns '" + columnsStr + "'");
     return false;

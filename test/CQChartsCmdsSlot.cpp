@@ -142,6 +142,15 @@ plotObjsAdded()
 
 void
 CQChartsCmdsSlot::
+newPlotObjsDrawn()
+{
+  auto cmd = getTclCmd();
+
+  evalCmd(cmd);
+}
+
+void
+CQChartsCmdsSlot::
 selectionChanged()
 {
   auto cmd = getTclCmd();

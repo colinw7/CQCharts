@@ -45,3 +45,12 @@ Color Map
 
 Color Map Key
  + click should show/hide associated object
+
+Color by Column Type
+ + String
+   + Color Name, Index (map from unique value index), by name lookup
+ + Real
+   + Map to normalized palette (0-1) or scale (column range) and map
+ + Integer
+   + Index (from unique value index) or scale (column range) and map
+
