@@ -89,6 +89,7 @@ class CQChartsPlotType : public QObject {
   Q_PROPERTY(bool     isGroupType        READ isGroupType       )
   Q_PROPERTY(bool     isHierarchical     READ isHierarchical    )
   Q_PROPERTY(bool     canProbe           READ canProbe          )
+  Q_PROPERTY(bool     canPointSelect     READ canPointSelect    )
   Q_PROPERTY(bool     canRectSelect      READ canRectSelect     )
   Q_PROPERTY(bool     hasObjs            READ hasObjs           )
   Q_PROPERTY(bool     prioritySorted     READ isPrioritySort    )
@@ -170,7 +171,8 @@ class CQChartsPlotType : public QObject {
 
   virtual bool canProbe() const = 0;
 
-  virtual bool canRectSelect() const { return true; }
+  virtual bool canPointSelect() const { return true; }
+  virtual bool canRectSelect () const { return true; }
 
   //---
 

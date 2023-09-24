@@ -75,9 +75,9 @@ CQChartsSwitchLineDashEdit::
 CQChartsSwitchLineDashEdit(QWidget *parent) :
  CQSwitchLineEdit(parent)
 {
-  setObjectName("switchLengthEdit");
+  setObjectName("switchLineDashEdit");
 
-  setToolTip("Set Length");
+  setToolTip("Set Line Dash");
 
   //---
 

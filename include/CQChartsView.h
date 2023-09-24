@@ -686,7 +686,7 @@ class CQChartsView : public QFrame,
   void deselectAll(bool propagate=true);
 
   void startSelection();
-  void endSelection();
+  void endSelection(bool changed=true);
 
   //---
 
@@ -1633,6 +1633,7 @@ class CQChartsView : public QFrame,
   struct SelectData {
     SelectMode mode        { SelectMode::RECT }; //!< selection sub mode
     bool       inside      { true };             //!< select inside/touching
+    bool       changed     { false };            //!< is changed
     int        selectDepth { 0 };                //!< selecting depth
   };
 

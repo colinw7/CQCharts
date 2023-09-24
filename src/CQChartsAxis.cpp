@@ -34,8 +34,11 @@ CQChartsAxis(const View *view, Qt::Orientation direction, double start, double e
  CQChartsObjAxesMinorGridLineData<CQChartsAxis>(this),
  CQChartsObjAxesGridFillData     <CQChartsAxis>(this),
  view_(const_cast<View *>(view)), direction_(direction),
- start_(std::min(start, end)), end_(std::max(start, end)), calcStart_(start), calcEnd_(end)
+ calcStart_(start), calcEnd_(end)
 {
+  data_.start = std::min(start, end);
+  data_.end   = std::max(start, end);
+
   init();
 }
 
@@ -49,8 +52,11 @@ CQChartsAxis(const Plot *plot, Qt::Orientation direction, double start, double e
  CQChartsObjAxesMinorGridLineData<CQChartsAxis>(this),
  CQChartsObjAxesGridFillData     <CQChartsAxis>(this),
  plot_(const_cast<Plot *>(plot)), direction_(direction),
- start_(std::min(start, end)), end_(std::max(start, end)), calcStart_(start), calcEnd_(end)
+ calcStart_(start), calcEnd_(end)
 {
+  data_.start = std::min(start, end);
+  data_.end   = std::max(start, end);
+
   init();
 }
 
@@ -111,44 +117,7 @@ void
 CQChartsAxis::
 swap(CQChartsAxis *lhs, CQChartsAxis *rhs)
 {
-  std::swap(lhs->side_        , rhs->side_        );
-  std::swap(lhs->position_    , rhs->position_    );
-  std::swap(lhs->valueType_   , rhs->valueType_   );
-  std::swap(lhs->dataLabels_  , rhs->dataLabels_  );
-  std::swap(lhs->column_      , rhs->column_      );
-  std::swap(lhs->formatStr_   , rhs->formatStr_   );
-  std::swap(lhs->maxFitExtent_, rhs->maxFitExtent_);
-
-  std::swap(lhs->labelDisplayed_, rhs->labelDisplayed_);
-  std::swap(lhs->label_         , rhs->label_         );
-  std::swap(lhs->userLabel_     , rhs->userLabel_     );
-
-  std::swap(lhs->gridLinesDisplayed_, rhs->gridLinesDisplayed_);
-  std::swap(lhs->gridFillDisplayed_ , rhs->gridFillDisplayed_ );
-
-  std::swap(lhs->gridMid_  , rhs->gridMid_  );
-  std::swap(lhs->gridAbove_, rhs->gridAbove_);
-
-  std::swap(lhs->ticksDisplayed_, rhs->ticksDisplayed_);
-  std::swap(lhs->majorTickLen_  , rhs->majorTickLen_  );
-  std::swap(lhs->minorTickLen_  , rhs->minorTickLen_  );
-  std::swap(lhs->tickInside_    , rhs->tickInside_    );
-  std::swap(lhs->mirrorTicks_   , rhs->mirrorTicks_   );
-
-  std::swap(lhs->tickLabelAutoHide_ , rhs->tickLabelAutoHide_ );
-  std::swap(lhs->tickLabelPlacement_, rhs->tickLabelPlacement_);
-
-  std::swap(lhs->start_          , rhs->start_          );
-  std::swap(lhs->end_            , rhs->end_            );
-  std::swap(lhs->includeZero_    , rhs->includeZero_    );
-  std::swap(lhs->allowHtmlLabels_, rhs->allowHtmlLabels_);
-  std::swap(lhs->maxMajorTicks_  , rhs->maxMajorTicks_  );
-  std::swap(lhs->tickIncrement_  , rhs->tickIncrement_  );
-  std::swap(lhs->majorIncrement_ , rhs->majorIncrement_ );
-
-  std::swap(lhs->tickSpaces_      , rhs->tickSpaces_      );
-  std::swap(lhs->tickLabels_      , rhs->tickLabels_      );
-  std::swap(lhs->requireTickLabel_, rhs->requireTickLabel_);
+  std::swap(lhs->data_, rhs->data_);
 
   swapT<CQChartsObjAxesLineData         <CQChartsAxis>>(lhs, rhs);
   swapT<CQChartsObjAxesTickLabelTextData<CQChartsAxis>>(lhs, rhs);
@@ -468,8 +437,8 @@ void
 CQChartsAxis::
 setRange(double start, double end)
 {
-  start_ = std::min(start, end);
-  end_   = std::max(start, end);
+  data_.start = std::min(start, end);
+  data_.end   = std::max(start, end);
 
   calcAndRedraw();
 }
@@ -530,14 +499,14 @@ void
 CQChartsAxis::
 setMajorIncrement(const CQChartsOptInt &i)
 {
-  CQChartsUtil::testAndSet(majorIncrement_, i, [&]() { calcAndRedraw(); } );
+  CQChartsUtil::testAndSet(data_.majorIncrement, i, [&]() { calcAndRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setTickIncrement(const CQChartsOptInt &i)
 {
-  CQChartsUtil::testAndSet(tickIncrement_, i, [&]() { calcAndRedraw(); } );
+  CQChartsUtil::testAndSet(data_.tickIncrement, i, [&]() { calcAndRedraw(); } );
 }
 
 double
@@ -562,7 +531,7 @@ tickLabelsStr() const
 {
   QStringList strs;
 
-  for (const auto &p : tickLabels_) {
+  for (const auto &p : data_.tickLabels) {
     QStringList strs1;
 
     strs1 << QString::number(p.first);
@@ -612,29 +581,29 @@ void
 CQChartsAxis::
 clearTickLabels()
 {
-  tickLabels_.clear();
+  data_.tickLabels.clear();
 }
 
 void
 CQChartsAxis::
 setTickLabel(long i, const QString &label)
 {
-  CQChartsUtil::testAndSet(tickLabels_[i], label, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.tickLabels[i], label, [&]() { optRedraw(); } );
 }
 
 bool
 CQChartsAxis::
 hasTickLabel(long i) const
 {
-  return (tickLabels_.find(i) != tickLabels_.end());
+  return (data_.tickLabels.find(i) != data_.tickLabels.end());
 }
 
 const QString &
 CQChartsAxis::
 tickLabel(long i) const
 {
-  auto p = tickLabels_.find(i);
-  assert(p != tickLabels_.end());
+  auto p = data_.tickLabels.find(i);
+  assert(p != data_.tickLabels.end());
 
   return (*p).second;
 }
@@ -701,7 +670,7 @@ void
 CQChartsAxis::
 setSide(AxisSide side)
 {
-  CQChartsUtil::testAndSet(side_, side, [&]() {
+  CQChartsUtil::testAndSet(data_.side, side, [&]() {
     if (isUpdatesEnabled())
       updatePlotPosition();
   });
@@ -713,7 +682,7 @@ void
 CQChartsAxis::
 setPosition(const CQChartsOptReal &r)
 {
-  CQChartsUtil::testAndSet(position_, r, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.position, r, [&]() { optRedraw(); } );
 }
 
 //---
@@ -722,14 +691,14 @@ void
 CQChartsAxis::
 setColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(column_, c, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.column, c, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setDataLabels(bool b)
 {
-  CQChartsUtil::testAndSet(dataLabels_, b, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.dataLabels, b, [&]() { optRedraw(); } );
 }
 
 //---
@@ -738,8 +707,8 @@ QString
 CQChartsAxis::
 format() const
 {
-  if (formatStr_.length())
-    return formatStr_;
+  if (data_.formatStr.length())
+    return data_.formatStr;
 
 #if 0
   if (column().isValid()) {
@@ -759,7 +728,7 @@ bool
 CQChartsAxis::
 setFormat(const QString &formatStr)
 {
-  CQChartsUtil::testAndSet(formatStr_, formatStr, [&]() {
+  CQChartsUtil::testAndSet(data_.formatStr, formatStr, [&]() {
 #if 0
     if (column().isValid()) {
       auto *plot = const_cast<Plot *>(this->plot());
@@ -781,7 +750,7 @@ void
 CQChartsAxis::
 setMaxFitExtent(double r)
 {
-  CQChartsUtil::testAndSet(maxFitExtent_, r, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.maxFitExtent, r, [&]() { optRedraw(); } );
 }
 
 //---
@@ -790,15 +759,15 @@ void
 CQChartsAxis::
 setLabel(const CQChartsOptString &str)
 {
-  CQChartsUtil::testAndSet(label_, str, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.label, str, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setLabelStr(const QString &str)
 {
-  if (label_.stringOr() != str) {
-    label_.setString(str); optRedraw();
+  if (data_.label.stringOr() != str) {
+    data_.label.setString(str); optRedraw();
   }
 }
 
@@ -806,8 +775,8 @@ void
 CQChartsAxis::
 setDefLabel(const QString &str, bool notify)
 {
-  if (label_.defValue() != str) {
-    label_.setDefValue(str);
+  if (data_.label.defValue() != str) {
+    data_.label.setDefValue(str);
 
     if (notify)
       optRedraw();
@@ -818,7 +787,7 @@ void
 CQChartsAxis::
 setUserLabel(const QString &str)
 {
-  CQChartsUtil::testAndSet(userLabel_, str, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.userLabel, str, [&]() { optRedraw(); } );
 }
 
 void
@@ -841,14 +810,14 @@ void
 CQChartsAxis::
 setGridLinesDisplayed(const GridLinesDisplayed &d)
 {
-  CQChartsUtil::testAndSet(gridLinesDisplayed_, d, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.gridLinesDisplayed, d, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setGridFillDisplayed(const GridFillDisplayed &d)
 {
-  CQChartsUtil::testAndSet(gridFillDisplayed_, d, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.gridFillDisplayed, d, [&]() { optRedraw(); } );
 }
 
 //---
@@ -857,14 +826,14 @@ void
 CQChartsAxis::
 setGridMid(bool b)
 {
-  CQChartsUtil::testAndSet(gridMid_, b, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.gridMid, b, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setGridAbove(bool b)
 {
-  CQChartsUtil::testAndSet(gridAbove_, b, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.gridAbove, b, [&]() { optRedraw(); } );
 }
 
 //---
@@ -873,7 +842,7 @@ void
 CQChartsAxis::
 setTicksDisplayed(const TicksDisplayed &d)
 {
-  CQChartsUtil::testAndSet(ticksDisplayed_, d, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.ticksDisplayed, d, [&]() { optRedraw(); } );
 }
 
 //---
@@ -882,28 +851,28 @@ void
 CQChartsAxis::
 setMajorTickLen(int i)
 {
-  CQChartsUtil::testAndSet(majorTickLen_, i, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.majorTickLen, i, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setMinorTickLen(int i)
 {
-  CQChartsUtil::testAndSet(minorTickLen_, i, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.minorTickLen, i, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setTickInside(bool b)
 {
-  CQChartsUtil::testAndSet(tickInside_, b, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.tickInside, b, [&]() { optRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setMirrorTicks(bool b)
 {
-  CQChartsUtil::testAndSet(mirrorTicks_, b, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.mirrorTicks, b, [&]() { optRedraw(); } );
 }
 
 //---
@@ -912,7 +881,7 @@ void
 CQChartsAxis::
 setTickLabelAutoHide(bool b)
 {
-  CQChartsUtil::testAndSet(tickLabelAutoHide_, b, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.tickLabelAutoHide, b, [&]() { optRedraw(); } );
 }
 
 //---
@@ -921,9 +890,9 @@ void
 CQChartsAxis::
 setTickSpaces(double *tickSpaces, uint numTickSpaces)
 {
-  tickSpaces_.resize(numTickSpaces);
+  data_.tickSpaces.resize(numTickSpaces);
 
-  memcpy(&tickSpaces_[0], tickSpaces, numTickSpaces*sizeof(double));
+  memcpy(&data_.tickSpaces[0], tickSpaces, numTickSpaces*sizeof(double));
 }
 
 //---
@@ -932,7 +901,7 @@ void
 CQChartsAxis::
 setTickLabelPlacement(const CQChartsAxisTickLabelPlacement &p)
 {
-  CQChartsUtil::testAndSet(tickLabelPlacement_, p, [&]() {
+  CQChartsUtil::testAndSet(data_.tickLabelPlacement, p, [&]() {
     Q_EMIT tickPlacementChanged();
 
     optRedraw();
@@ -945,7 +914,7 @@ void
 CQChartsAxis::
 setIncludeZero(bool b)
 {
-  CQChartsUtil::testAndSet(includeZero_, b, [&]() {
+  CQChartsUtil::testAndSet(data_.includeZero, b, [&]() {
     updatePlotRange();
 
     Q_EMIT includeZeroChanged();
@@ -965,7 +934,7 @@ void
 CQChartsAxis::
 setAllowHtmlLabels(bool b)
 {
-  CQChartsUtil::testAndSet(allowHtmlLabels_, b, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(data_.allowHtmlLabels, b, [&]() { optRedraw(); } );
 }
 
 //---
@@ -974,7 +943,7 @@ void
 CQChartsAxis::
 setValueType(const CQChartsAxisValueType &v, bool notify)
 {
-  CQChartsUtil::testAndSet(valueType_, v, [&]() {
+  CQChartsUtil::testAndSet(data_.valueType, v, [&]() {
     needsCalc_ = true;
 
     if (notify) updatePlotRangeAndObjs();
@@ -1089,13 +1058,13 @@ valueStr(const Plot *plot, double pos) const
     valuePos = CQChartsVariant::fromInt(ipos);
   }
 
-  if (formatStr_.length()) {
+  if (data_.formatStr.length()) {
     QString str;
 
     const auto &plotModel = plot->currentModel();
 
     if (CQChartsModelUtil::formatColumnTypeValue(plot->charts(), plotModel.data(),
-                                                 column(), formatStr_, valuePos, str))
+                                                 column(), data_.formatStr, valuePos, str))
       return str;
   }
 
@@ -1489,11 +1458,11 @@ drawAt(double pos, const Plot *plot, PaintDevice *device) const
 
   auto position = CQChartsOptReal(pos);
 
-  std::swap(th->position_, position);
+  std::swap(th->data_.position, position);
 
   draw(plot, device);
 
-  std::swap(th->position_, position);
+  std::swap(th->data_.position, position);
 }
 
 void
@@ -1635,8 +1604,8 @@ drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool
         drawTickLabel(plot, device, apos1, pos, pos, isTickInside());
     }
   }
-  else if (isRequireTickLabel() && tickLabels_.size()) {
-    for (const auto &p : tickLabels_) {
+  else if (isRequireTickLabel() && data_.tickLabels.size()) {
+    for (const auto &p : data_.tickLabels) {
       double pos = double(p.first);
 
       if (pos < amin || pos > amax)

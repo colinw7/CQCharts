@@ -850,7 +850,7 @@ selectionSlot(QItemSelectionModel *sm)
   startSelection();
 
   // deselect all plot objects
-  deselectAllPlotObjs();
+  (void) deselectAllPlotObjs1();
 
   // select objects with matching indices
   // get selected (normalized) indices from selection model
@@ -886,7 +886,7 @@ selectObjsFromModel()
   startSelection();
 
   // deselect all plot objects
-  deselectAllPlotObjs();
+  bool changed = deselectAllPlotObjs1();
 
   auto *modelData = currentModelData();
   if (! modelData) return;
@@ -916,14 +916,17 @@ selectObjsFromModel()
       if (plotObj->isAllSelectIndices(selectIndices)) {
         plotObj->setNotificationsEnabled(false);
 
-        plotObj->setSelected(true);
+        if (! plotObj->isSelected()) {
+          plotObj->setSelected(true);
+          changed = true;
+        }
 
         plotObj->setNotificationsEnabled(true);
       }
     }
   }
 
-  endSelection();
+  endSelection(changed);
 }
 
 void
@@ -4951,7 +4954,6 @@ propertyItemSelected(QObject *obj, const QString &)
 
         if (obj == plotObj) {
           plotObj->setSelected(true);
-
           changed = true;
         }
       }
@@ -8194,6 +8196,20 @@ addErrorsToWidget(QTextBrowser *text)
 
 bool
 CQChartsPlot::
+canPointSelect() const
+{
+  return type()->canPointSelect();
+}
+
+bool
+CQChartsPlot::
+canRectSelect() const
+{
+  return type()->canRectSelect();
+}
+
+bool
+CQChartsPlot::
 selectMousePress(const Point &p, SelMod selMod)
 {
   if (! isReady()) return false;
@@ -9458,24 +9474,37 @@ deselectAllPlotObjs()
 {
   startSelection();
 
-  //---
+  (void) deselectAllPlotObjs1();
+
+  endSelection();
+}
+
+bool
+CQChartsPlot::
+deselectAllPlotObjs1()
+{
+  bool changed = false;
 
   if (isOverlay()) {
     processOverlayPlots([&](Plot *plot) {
-      for (auto &plotObj : plot->plotObjects())
-        if (plotObj->isSelected())
+      for (auto &plotObj : plot->plotObjects()) {
+        if (plotObj->isSelected()) {
           plotObj->setSelected(false);
+          changed = true;
+        }
+      }
     });
   }
   else {
-    for (auto &plotObj : plotObjects())
-      if (plotObj->isSelected())
+    for (auto &plotObj : plotObjects()) {
+      if (plotObj->isSelected()) {
         plotObj->setSelected(false);
+        changed = true;
+      }
+    }
   }
 
-  //---
-
-  endSelection();
+  return changed;
 }
 
 // deselect all plot objects, and other plot objects (title, key, axes, annotations, ...)
@@ -10302,7 +10331,7 @@ selectObjs(const PlotObjs &objs, bool exportSel)
 
   //---
 
-  deselectAllPlotObjs();
+  (void) deselectAllPlotObjs1();
 
   for (const auto &obj : objs) {
     if (! isSelectable())
@@ -10344,11 +10373,12 @@ startSelection()
 
 void
 CQChartsPlot::
-endSelection()
+endSelection(bool changed)
 {
-  view()->endSelection();
+  view()->endSelection(changed);
 
-  Q_EMIT selectionChanged();
+  if (changed)
+    Q_EMIT selectionChanged();
 }
 
 void
@@ -10389,7 +10419,9 @@ void
 CQChartsPlot::
 selectedPlotObjs(PlotObjs &plotObjs) const
 {
-  for (auto &plotObj : plotObjects()) {
+  auto objs = plotObjects();
+
+  for (auto &plotObj : objs) {
     if (plotObj && plotObj->isSelected())
       plotObjs.push_back(plotObj);
   }
@@ -10596,6 +10628,15 @@ setColorMapped(bool b)
 
 void
 CQChartsPlot::
+setColorIntMapped(bool b)
+{
+  if (b != colorColumnData_.isIntMapped()) {
+    colorColumnData_.setIntMapped(b); updateObjs(); Q_EMIT colorDetailsChanged();
+  }
+}
+
+void
+CQChartsPlot::
 setColorMapMin(double r)
 {
   if (r != colorColumnData_.mapMin()) {
@@ -10655,6 +10696,19 @@ setColorMapColumn(const Column &c)
   if (c != colorColumnData_.colorColumn()) {
     colorColumnData_.setColorColumn(c); updateObjs(); Q_EMIT colorDetailsChanged();
   }
+}
+
+bool
+CQChartsPlot::
+calcColorIntMapped(const Column &colorColumn, bool defVal) const
+{
+  auto colorColumn1 = (colorColumn     .isValid() ? colorColumn      : this->colorColumn());
+  auto colorColumn2 = (colorMapColumn().isValid() ? colorMapColumn() : this->colorColumn());
+
+  if (colorColumn1 == colorColumn2)
+    return isColorIntMapped();
+
+  return defVal;
 }
 
 bool
@@ -10799,7 +10853,7 @@ columnValueColor(const QVariant &var, Color &color, const Column &colorColumn) c
 
   //---
 
-  if (CQChartsVariant::isInt(var) && calcColorMapped(colorColumn1)) {
+  if (CQChartsVariant::isInt(var) && calcColorIntMapped(colorColumn1)) {
     if (! getDetails()) return false;
 
     if (numUnique <= maxMappedValues()) {

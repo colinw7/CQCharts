@@ -126,7 +126,8 @@ calcBBox(PaintDevice *device) const
   double tw = device->pixelToWindowWidth (psize.width ());
   double th = device->pixelToWindowHeight(psize.height());
 
-  const_cast<CQChartsDrawText *>(this)->bbox_ = BBox(p_.x, p_.y - th/2.0, p_.x + tw, p_.y + th/2.0);
+  const_cast<CQChartsDrawText *>(this)->bbox_ =
+    BBox(p_.x, p_.y - th/2.0, p_.x + tw, p_.y + th/2.0);
 
   return bbox_;
 }

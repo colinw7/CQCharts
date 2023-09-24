@@ -983,7 +983,7 @@ calcTextAtPointRect(PaintDevice *device, const Point &point, const QString &text
 
     if      (options.align & Qt::AlignTop    ) dy1 =  ta + pdy;
     else if (options.align & Qt::AlignBottom ) dy1 = -td - pdy;
-    else if (options.align & Qt::AlignVCenter) dy1 = (ta - td)/2.0;
+    else if (options.align & Qt::AlignVCenter) dy1 = -ta/2.0 + td;
 
     auto tp = point;
 
@@ -1111,7 +1111,7 @@ drawTextAtPoint(PaintDevice *device, const Point &point, const QString &text,
 
     if      (options.align & Qt::AlignTop    ) dy1 =  ta + pdy;
     else if (options.align & Qt::AlignBottom ) dy1 = -td - pdy;
-    else if (options.align & Qt::AlignVCenter) dy1 = (ta - td)/2.0;
+    else if (options.align & Qt::AlignVCenter) dy1 = -ta/2.0 + td;
 
     auto tp = point;
 
@@ -1164,7 +1164,7 @@ drawAlignedText(PaintDevice *device, const Point &p, const QString &text,
 
   if      (align & Qt::AlignTop    ) dy1 =  ta + pdy;
   else if (align & Qt::AlignBottom ) dy1 = -td - pdy;
-  else if (align & Qt::AlignVCenter) dy1 = (ta - td)/2;
+  else if (align & Qt::AlignVCenter) dy1 = -ta/2.0 + td;
 
   auto pp = device->windowToPixel(p);
   auto pt = device->pixelToWindow(Point(pp.x + dx1, pp.y + dy1));
@@ -1192,7 +1192,7 @@ calcAlignedTextRect(PaintDevice *device, const QFont &font, const Point &p,
 
   if      (align & Qt::AlignTop    ) dy1 =  ta + pdy;
   else if (align & Qt::AlignBottom ) dy1 = -td - pdy;
-  else if (align & Qt::AlignVCenter) dy1 = (ta - td)/2;
+  else if (align & Qt::AlignVCenter) dy1 = -ta/2.0 + td;
 
   auto pp = device->windowToPixel(p);
   auto pt = device->pixelToWindow(Point(pp.x + dx1, pp.y + dy1));

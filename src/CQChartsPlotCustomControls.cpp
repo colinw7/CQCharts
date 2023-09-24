@@ -1120,7 +1120,7 @@ CQChartsPlotCustomKey(Plot *plot) :
   layout->addWidget(table_);
 }
 
-CQChartsPlotColumnChooser::Plot *
+CQChartsPlotCustomKey::Plot *
 CQChartsPlotCustomKey::
 plot() const
 {
@@ -1350,7 +1350,7 @@ updateWidgets()
 
   columnList_->clear();
 
-  columnList_->setColumnCount(2);
+  columnList_->setColumnCount(isShowColumnColor() ? 3 : 2);
   columnList_->setRowCount(nc);
 
   auto createHeaderItem = [&](int c, const QString &name) {
@@ -1360,8 +1360,27 @@ updateWidgets()
   auto itemFont = this->font();
   itemFont.setBold(true);
 
-  createHeaderItem(0, "Visible");
-  createHeaderItem(1, "Name");
+  //---
+
+  int ic1 = 0;
+
+  createHeaderItem(ic1++, "Visible");
+
+  if (isShowColumnColor())
+    createHeaderItem(ic1++, "Color");
+
+  createHeaderItem(ic1++, "Name");
+
+  //---
+
+  auto createBoolTableItem = [&](bool b) {
+    auto *item = new CQTableWidgetBoolItem(columnList_, b);
+
+    item->setToolTip(CQChartsUtil::boolToString(b));
+    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+    return item;
+  };
 
   auto createStringTableItem = [&](const QString &str) {
     auto *item = new QTableWidgetItem(str);
@@ -1373,28 +1392,46 @@ updateWidgets()
     return item;
   };
 
-  auto createBoolTableItem = [&](bool b) {
-    auto *item = new CQTableWidgetBoolItem(columnList_, b);
+  auto createColorTableItem = [&](const QColor &c) {
+    auto *item = new CQTableWidgetColorItem(columnList_, c);
 
-    item->setToolTip(CQChartsUtil::boolToString(b));
+    item->setToolTip(c.name());
     item->setFlags(item->flags() & ~Qt::ItemIsEditable);
 
     return item;
   };
+
+  //---
 
   CQChartsPlot::HeaderNameData headerData;
 
   for (int ic = 0; ic < nc; ++ic) {
     auto column = getColumns().getColumn(ic);
 
+    int ic1 = 0;
+
+    //---
+
+    auto *visibleItem = createBoolTableItem(isColumnVisible(ic));
+
+    columnList_->setItem(ic, ic1++, visibleItem);
+
+    //---
+
+    if (isShowColumnColor()) {
+      auto *colorItem = createColorTableItem(columnColor(ic));
+
+      columnList_->setItem(ic, ic1++, colorItem);
+    }
+
+    //---
+
     bool ok;
     auto name = plot_->modelHHeaderName(column, headerData, ok);
 
-    auto *visibleItem = createBoolTableItem(isColumnVisible(ic));
-    auto *nameItem    = createStringTableItem(name);
+    auto *nameItem = createStringTableItem(name);
 
-    columnList_->setItem(ic, 0, visibleItem);
-    columnList_->setItem(ic, 1, nameItem);
+    columnList_->setItem(ic, ic1++, nameItem);
   }
 
   setMinimumHeight(sizeHint().height());

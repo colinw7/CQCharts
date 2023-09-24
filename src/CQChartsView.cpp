@@ -1361,21 +1361,29 @@ void
 CQChartsView::
 startSelection()
 {
+  if (selectData_.selectDepth == 0)
+    selectData_.changed = false;
+
   ++selectData_.selectDepth;
 }
 
 void
 CQChartsView::
-endSelection()
+endSelection(bool changed)
 {
   --selectData_.selectDepth;
 
+  if (changed)
+    selectData_.changed = true;
+
   if (selectData_.selectDepth == 0) {
-    Q_EMIT selectionChanged();
+    if (selectData_.changed) {
+      Q_EMIT selectionChanged();
 
-    updateSelText();
+      updateSelText();
 
-    update();
+      update();
+    }
   }
 }
 
@@ -4169,30 +4177,36 @@ selectMouseModifyRelease()
 
 bool
 CQChartsView::
-isRectSelectMode() const
+isPointSelectMode() const
 {
-  if (selectMode() != SelectMode::RECT)
-    return false;
-
   auto *currentPlot = this->currentPlot(/*remap*/false);
 
-  if (currentPlot && ! currentPlot->type()->canRectSelect())
-    return false;
+  if (selectMode() == SelectMode::POINT) {
+    if (! currentPlot || currentPlot->canPointSelect())
+      return true;
+  }
 
-  return true;
+  if (selectMode() == SelectMode::RECT) {
+    if (currentPlot && ! currentPlot->canRectSelect() && currentPlot->canPointSelect())
+      return true;
+  }
+
+  return false;
 }
 
 bool
 CQChartsView::
-isPointSelectMode() const
+isRectSelectMode() const
 {
-  if (selectMode() == SelectMode::POINT)
-    return true;
+  auto *currentPlot = this->currentPlot(/*remap*/false);
 
   if (selectMode() == SelectMode::RECT) {
-    auto *currentPlot = this->currentPlot(/*remap*/false);
+    if (! currentPlot || currentPlot->canRectSelect())
+      return true;
+  }
 
-    if (currentPlot && ! currentPlot->type()->canRectSelect())
+  if (selectMode() == SelectMode::POINT) {
+    if (currentPlot && ! currentPlot->canPointSelect() && currentPlot->canRectSelect())
       return true;
   }
 

@@ -353,6 +353,7 @@ class CQChartsPlotColumnChooser : public QFrame {
   Q_OBJECT
 
   Q_PROPERTY(bool showColumnNumber READ isShowColumnNumber WRITE setShowColumnNumber)
+  Q_PROPERTY(bool showColumnColor  READ isShowColumnColor  WRITE setShowColumnColor )
 
  public:
   using Plot  = CQChartsPlot;
@@ -362,10 +363,13 @@ class CQChartsPlotColumnChooser : public QFrame {
   CQChartsPlotColumnChooser(Plot *plot=nullptr);
 
   Plot *plot() const;
-  void setPlot(Plot *plot);
+  virtual void setPlot(Plot *plot);
 
   bool isShowColumnNumber() const { return showColumnNumber_; }
   void setShowColumnNumber(bool b) { showColumnNumber_ = b; }
+
+  bool isShowColumnColor() const { return showColumnColor_; }
+  void setShowColumnColor(bool b) { showColumnColor_ = b; }
 
   void updateWidgets();
 
@@ -373,6 +377,8 @@ class CQChartsPlotColumnChooser : public QFrame {
 
   virtual bool isColumnVisible(int ic) const = 0;
   virtual void setColumnVisible(int ic, bool visible) = 0;
+
+  virtual QColor columnColor(int) const { return QColor(); }
 
   QSize sizeHint() const override;
 
@@ -382,6 +388,7 @@ class CQChartsPlotColumnChooser : public QFrame {
  private:
   PlotP          plot_;                         //!< plot
   bool           showColumnNumber_ { true };    //!< show column number
+  bool           showColumnColor_  { false };   //!< show column color
   CQTableWidget* columnList_       { nullptr }; //!< column list
 };
 

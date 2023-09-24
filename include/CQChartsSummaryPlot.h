@@ -137,12 +137,17 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   // correlation
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Correlation, correlation)
 
+  Q_PROPERTY(double correlationMargin READ correlationMargin WRITE setCorrelationMargin)
+
   // region
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Region, region)
 
   Q_PROPERTY(double        regionSelectMargin READ regionSelectMargin WRITE setRegionSelectMargin)
   Q_PROPERTY(double        regionSelectWidth  READ regionSelectWidth  WRITE setRegionSelectWidth )
   Q_PROPERTY(CQChartsColor regionSelectFill   READ regionSelectFill   WRITE setRegionSelectFill  )
+
+  Q_PROPERTY(CQChartsColor regionEditStroke READ regionEditStroke WRITE setRegionEditStroke)
+  Q_PROPERTY(double        regionEditWidth  READ regionEditWidth  WRITE setRegionEditWidth )
 
   Q_PROPERTY(RegionPointType regionPointType READ regionPointType WRITE setRegionPointType)
 
@@ -222,17 +227,6 @@ class CQChartsSummaryPlot : public CQChartsPlot,
     CORNER
   };
 
-  using MinMax = CQChartsGeom::RMinMax;
-
-  struct RangeData {
-    RangeData() { }
-    RangeData(const MinMax &r) : range(r) { }
-
-    MinMax range;
-  };
-
-  using RangeDataP = std::shared_ptr<RangeData>;
-
   using CellObj          = CQChartsSummaryCellObj;
   using ScatterPlot      = CQChartsScatterPlot;
   using DistributionPlot = CQChartsDistributionPlot;
@@ -248,6 +242,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   using Color            = CQChartsColor;
   using Alpha            = CQChartsAlpha;
   using ColorInd         = CQChartsUtil::ColorInd;
+  using MinMax           = CQChartsGeom::RMinMax;
 
  public:
   CQChartsSummaryPlot(View *view, const ModelP &model);
@@ -333,7 +328,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   //---
 
   const SelectMode &selectMode() const { return selectMode_; }
-  void setSelectMode(const SelectMode &v);
+  void setSelectMode(const SelectMode &m);
 
   //---
 
@@ -346,6 +341,12 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   //---
 
   Length calcScatterSymbolSize() const;
+
+  //---
+
+  void setDrawCell(int row, int col) const { drawRow_ = row; drawCol_ = col; }
+
+  void percentRefSize(const BBox &pbbox, double &refWidth, double &refHeight) const override;
 
   //---
 
@@ -367,13 +368,18 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   void setParetoWidth(const Length &l);
 
   const Color &paretoLineColor() const { return paretoData_.lineColor; }
-  void setParetoLineColor(const Color &v);
+  void setParetoLineColor(const Color &c);
 
   const ParetoOriginType &paretoOriginType() const { return paretoData_.originType; }
   void setParetoOriginType(const ParetoOriginType &t);
 
   const Color &paretoOriginColor() const { return paretoData_.originColor; }
-  void setParetoOriginColor(const Color &v);
+  void setParetoOriginColor(const Color &c);
+
+  //---
+
+  double correlationMargin() const { return correlationMargin_; }
+  void setCorrelationMargin(double r) { correlationMargin_ = r; }
 
   //---
 
@@ -384,10 +390,18 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   void setRegionSelectWidth(double r) { regionSelectWidth_ = r; }
 
   const Color &regionSelectFill() const { return regionSelectFill_; }
-  void setRegionSelectFill(const Color &v) { regionSelectFill_ = v; }
+  void setRegionSelectFill(const Color &c) { regionSelectFill_ = c; }
 
   const RegionPointType &regionPointType() const { return regionPointType_; }
   void setRegionPointType(const RegionPointType &t) { regionPointType_ = t; }
+
+  //---
+
+  const Color &regionEditStroke() const { return regionEditStroke_; }
+  void setRegionEditStroke(const Color &c) { regionEditStroke_ = c; }
+
+  double regionEditWidth() const { return regionEditWidth_; }
+  void setRegionEditWidth(double w) { regionEditWidth_ = w; }
 
   //---
 
@@ -470,6 +484,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
+  bool canRectSelect() const override
+;
   //! plot select interface
   bool handleSelectPress  (const Point &p, SelMod selMod) override;
   bool handleSelectMove   (const Point &p, Constraints constraints, bool first=false) override;
@@ -492,7 +508,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   bool anyColumnRange() const;
   bool hasColumnRange(const Column &c) const;
-  RangeDataP columnRange(const Column &c) const;
+  MinMax columnRange(const Column &c) const;
   void setColumnRange(const Column &c, double min, double max);
   void resetColumnRange(const Column &c);
 
@@ -524,6 +540,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   bool subPlotToPlot(int r, int c, const Point &p, Point &pp) const;
   bool plotToSubPlot(int r, int c, const Point &p, Point &pp) const;
+
+  CellObj *getCellObj(int r, int c) const;
 
  protected:
   void updatePlots();
@@ -614,9 +632,14 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   ParetoData paretoData_;
 
+  double correlationMargin_ { 4 };
+
   double regionSelectMargin_ { 0.2 };
   double regionSelectWidth_  { 0.1 };
   Color  regionSelectFill_   { Color::makeInterfaceValue(0.0) };
+
+  Color  regionEditStroke_ { Color::makeInterfaceValue(1.0) };
+  double regionEditWidth_  { 4 };
 
   RegionPointType regionPointType_ { RegionPointType::DIM_OUTSIDE };
 
@@ -627,7 +650,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   //---
 
 
-  using ColumnRange = std::map<Column, RangeDataP>;
+  using ColumnRange = std::map<Column, MinMax>;
 
   ColumnRange columnRange_;
 
@@ -640,6 +663,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   mutable int                nc_ { 0 };
   mutable SelectedRowColumns rangeSelectedRows_;
   mutable SelectedRowColumns modelSelectedRows_;
+
+  mutable int drawRow_ { -1 };
+  mutable int drawCol_ { -1 };
 
   bool selectAdd_ { false };
 
@@ -732,6 +758,11 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   void resetInside();
   void updateSelectData(const Point &p);
 
+  //---
+
+  Color pointColor() const;
+  Color barColor() const;
+
  protected:
   void drawXAxis(PaintDevice *device) const;
   void drawXGrid(PaintDevice *device) const;
@@ -780,6 +811,7 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   struct PointData {
     int            ind           { -1 }; // model row
     Point          p;
+    CQChartsColor  color;
     CQChartsSymbol symbol;
     Length         symbolSize;
     bool           inside        { false };
@@ -1043,10 +1075,17 @@ class CQChartsSummaryPlotColumnChooser : public CQChartsPlotColumnChooser {
  public:
   CQChartsSummaryPlotColumnChooser(CQChartsSummaryPlot *plot=nullptr);
 
+  void setPlot(Plot *plot) override;
+
   const CQChartsColumns &getColumns() const override;
 
   bool isColumnVisible(int ic) const override;
   void setColumnVisible(int ic, bool visible) override;
+
+  QColor columnColor(int ic) const override;
+
+ private:
+  CQChartsSummaryPlot* summaryPlot_ { nullptr };
 };
 
 #endif

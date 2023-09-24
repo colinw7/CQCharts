@@ -244,24 +244,24 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   //! get/set side (horizontal: top/bottom, vertical bottom/top)
-  AxisSide side() const { return side_; }
+  AxisSide side() const { return data_.side; }
   void setSide(AxisSide side);
 
   //---
 
   //! get/set position (x for vertical, y for horzontal)
-  const OptReal &position() const { return position_; }
+  const OptReal &position() const { return data_.position; }
   void setPosition(const OptReal &r);
 
   //---
 
   //! get/set start position
-  double start() const { return start_; }
-  void setStart(double start) { setRange(start, end_); }
+  double start() const { return data_.start; }
+  void setStart(double start) { setRange(start, end()); }
 
   //! get/set end position
-  double end() const { return end_; }
-  void setEnd(double end) { setRange(start_, end); }
+  double end() const { return data_.end; }
+  void setEnd(double end) { setRange(start(), end); }
 
   //! get/set start and end position
   void setRange(double start, double end);
@@ -292,7 +292,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   //! get/set include zero
-  bool isIncludeZero() const { return includeZero_; }
+  bool isIncludeZero() const { return data_.includeZero; }
   void setIncludeZero(bool b);
 
   //---
@@ -302,27 +302,27 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   void setAnnotation(bool b);
 
   //! get/set allow html labels
-  bool isAllowHtmlLabels() const { return allowHtmlLabels_; }
+  bool isAllowHtmlLabels() const { return data_.allowHtmlLabels; }
   void setAllowHtmlLabels(bool b);
 
   //---
 
   //! get/set value type
-  const AxisValueType &valueType() const { return valueType_; }
+  const AxisValueType &valueType() const { return data_.valueType; }
   void setValueType(const AxisValueType &v, bool notify=true);
 
-  bool isIntegral() const { return (valueType_.type() == AxisValueType::Type::INTEGER); }
-  bool isDate    () const { return (valueType_.type() == AxisValueType::Type::DATE); }
-  bool isLog     () const { return (valueType_.type() == AxisValueType::Type::LOG); }
+  bool isIntegral() const { return (valueType().type() == AxisValueType::Type::INTEGER); }
+  bool isDate    () const { return (valueType().type() == AxisValueType::Type::DATE); }
+  bool isLog     () const { return (valueType().type() == AxisValueType::Type::LOG); }
 
   //---
 
   //! get/set associated column
-  const Column &column() const { return column_; }
+  const Column &column() const { return data_.column; }
   void setColumn(const Column &c);
 
   //! get/set if labels are from column
-  bool isDataLabels() const { return dataLabels_; }
+  bool isDataLabels() const { return data_.dataLabels; }
   void setDataLabels(bool b);
 
   //! get/set value format
@@ -330,25 +330,25 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   bool setFormat(const QString &s);
 
   //! get/set maximum fit extent (outside axis line length)
-  double maxFitExtent() const { return maxFitExtent_; }
+  double maxFitExtent() const { return data_.maxFitExtent; }
   void setMaxFitExtent(double r);
 
   //---
 
   //! get/set label
-  const OptString &label() const { return label_; }
+  const OptString &label() const { return data_.label; }
   void setLabel(const OptString &str);
 
   //! get/set label string
-  QString labelStr() const { return label_.stringOr(); }
+  QString labelStr() const { return label().stringOr(); }
   void setLabelStr(const QString &s);
 
   //! set default label
-  const QString &defLabel() const { return label_.defValue(); }
+  const QString &defLabel() const { return label().defValue(); }
   void setDefLabel(const QString &str, bool notify=true);
 
   //! get/set user label
-  const QString &userLabel() const { return userLabel_; }
+  const QString &userLabel() const { return data_.userLabel; }
   void setUserLabel(const QString &str);
 
   //! get/set scale label font
@@ -362,83 +362,83 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   //! get/set grid lines displayed
-  const GridLinesDisplayed &gridLinesDisplayed() const { return gridLinesDisplayed_; }
+  const GridLinesDisplayed &gridLinesDisplayed() const { return data_.gridLinesDisplayed; }
   void setGridLinesDisplayed(const GridLinesDisplayed &d);
 
   //! get/set major grid lines displayed
   bool isMajorGridLinesDisplayed() const {
-    return gridLinesDisplayed_ == GridLinesDisplayed::MAJOR ||
-           gridLinesDisplayed_ == GridLinesDisplayed::MAJOR_AND_MINOR; }
+    return gridLinesDisplayed() == GridLinesDisplayed::MAJOR ||
+           gridLinesDisplayed() == GridLinesDisplayed::MAJOR_AND_MINOR; }
   bool isMinorGridLinesDisplayed() const {
-    return gridLinesDisplayed_ == GridLinesDisplayed::MAJOR_AND_MINOR; }
+    return gridLinesDisplayed() == GridLinesDisplayed::MAJOR_AND_MINOR; }
 
   //! get/set grid fill displayed
-  const GridFillDisplayed &gridFillDisplayed() const { return gridFillDisplayed_; }
+  const GridFillDisplayed &gridFillDisplayed() const { return data_.gridFillDisplayed; }
   void setGridFillDisplayed(const GridFillDisplayed &d);
 
-  bool isMajorGridFilled() const { return gridFillDisplayed_ == GridFillDisplayed::MAJOR; }
+  bool isMajorGridFilled() const { return gridFillDisplayed() == GridFillDisplayed::MAJOR; }
 
   //---
 
   //! get/set grid mid line
-  bool isGridMid() const { return gridMid_; }
+  bool isGridMid() const { return data_.gridMid; }
   void setGridMid(bool b);
 
   //! get/set grid above
-  bool isGridAbove() const { return gridAbove_; }
+  bool isGridAbove() const { return data_.gridAbove; }
   void setGridAbove(bool b);
 
   //---
 
   //! get/set ticks displayed
-  const TicksDisplayed &ticksDisplayed() const { return ticksDisplayed_; }
+  const TicksDisplayed &ticksDisplayed() const { return data_.ticksDisplayed; }
   void setTicksDisplayed(const TicksDisplayed &d);
 
   //! get/set major ticks displayed
   bool isMajorTicksDisplayed() const {
-    return ticksDisplayed_ == TicksDisplayed::MAJOR ||
-           ticksDisplayed_ == TicksDisplayed::MAJOR_AND_MINOR; }
+    return ticksDisplayed() == TicksDisplayed::MAJOR ||
+           ticksDisplayed() == TicksDisplayed::MAJOR_AND_MINOR; }
   bool isMinorTicksDisplayed() const {
-    return ticksDisplayed_ == TicksDisplayed::MAJOR_AND_MINOR; }
+    return ticksDisplayed() == TicksDisplayed::MAJOR_AND_MINOR; }
 
   //---
 
   //! get/set major tick (pixel) length
-  int majorTickLen() const { return majorTickLen_; }
+  int majorTickLen() const { return data_.majorTickLen; }
   void setMajorTickLen(int i);
 
   //! get/set minor tick (pixel) length
-  int minorTickLen() const { return minorTickLen_; }
+  int minorTickLen() const { return data_.minorTickLen; }
   void setMinorTickLen(int i);
 
   //! get/set tick on inside
-  bool isTickInside() const { return tickInside_; }
+  bool isTickInside() const { return data_.tickInside; }
   void setTickInside(bool b);
 
   //! get/set mirror ticks
-  bool isMirrorTicks() const { return mirrorTicks_; }
+  bool isMirrorTicks() const { return data_.mirrorTicks; }
   void setMirrorTicks(bool b);
 
   //---
 
   //! get/set ticks auto hide
-  bool isTickLabelAutoHide() const { return tickLabelAutoHide_; }
+  bool isTickLabelAutoHide() const { return data_.tickLabelAutoHide; }
   void setTickLabelAutoHide(bool b);
 
   //! get/set ticks label placement
-  const AxisTickLabelPlacement &tickLabelPlacement() const { return tickLabelPlacement_; }
+  const AxisTickLabelPlacement &tickLabelPlacement() const { return data_.tickLabelPlacement; }
   void setTickLabelPlacement(const AxisTickLabelPlacement &p);
 
   //---
 
-  uint maxMajorTicks() const { return maxMajorTicks_; }
+  uint maxMajorTicks() const { return data_.maxMajorTicks; }
 
   double minorIncrement() const;
 
   //---
 
   //! get/set user specified tick increment
-  const OptInt &tickIncrement() const { return tickIncrement_; }
+  const OptInt &tickIncrement() const { return data_.tickIncrement; }
   void setTickIncrement(const OptInt &tickIncrement);
 
   void setTickIncrement(int i) { setTickIncrement(OptInt(i)); }
@@ -446,7 +446,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   //! get/set user specified major increment
-  const OptInt &majorIncrement() const { return majorIncrement_; }
+  const OptInt &majorIncrement() const { return data_.majorIncrement; }
   void setMajorIncrement(const OptInt &i);
 
   void setMajorIncrement(int i) { setMajorIncrement(OptInt(i)); }
@@ -471,10 +471,10 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   // used ?
-  const double *tickSpaces() const { return &tickSpaces_[0]; }
-  uint          numTickSpaces() const { return uint(tickSpaces_.size()); }
+  const double *tickSpaces() const { return &data_.tickSpaces[0]; }
+  uint          numTickSpaces() const { return uint(data_.tickSpaces.size()); }
 
-  double tickSpace(int i) const { return CUtil::safeIndex(tickSpaces_, i); }
+  double tickSpace(int i) const { return CUtil::safeIndex(data_.tickSpaces, i); }
   void setTickSpaces(double *tickSpaces, uint numTickSpaces);
 
   //---
@@ -490,8 +490,8 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   const QString &tickLabel(long i) const;
 
-  bool isRequireTickLabel() const { return requireTickLabel_; }
-  void setRequireTickLabel(bool b) { requireTickLabel_ = b; }
+  bool isRequireTickLabel() const { return data_.requireTickLabel; }
+  void setRequireTickLabel(bool b) { data_.requireTickLabel = b; }
 
   //--
 
@@ -687,49 +687,70 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   PlotP           plot_;                         //!< parent plot
   Qt::Orientation direction_ { Qt::Horizontal }; //!< direction
 
+  //---
+
+  struct Data {
+    // general
+    AxisSide      side;                     //!< axis plot placement side
+    OptReal       position;                 //!< axis custom position
+    AxisValueType valueType;                //!< value type
+    bool          dataLabels     { false }; //!< use data for labels
+    Column        column;                   //!< associated column
+    QString       formatStr;                //!< value format string
+    double        maxFitExtent   { 10 };    //!< max extent percent for fit
+
+    // label
+    bool      labelDisplayed   { true };  //!< show label
+    OptString label;                      //!< label
+    QString   userLabel;                  //!< user label
+
+    // grid (lines and gap fill)
+    GridLinesDisplayed gridLinesDisplayed { GridLinesDisplayed::NONE }; //!< grid lines displayed
+    GridFillDisplayed  gridFillDisplayed  { GridFillDisplayed::NONE  }; //!< grid fill displayed
+
+    bool gridMid   { false }; //!< show grid at mid point
+    bool gridAbove { false }; //!< is grid above plot
+
+    // ticks
+    TicksDisplayed ticksDisplayed { TicksDisplayed::MAJOR_AND_MINOR }; //!< ticks displayed
+
+    int  majorTickLen { 8 };     //!< major tick length
+    int  minorTickLen { 4 };     //!< minor tick length
+    bool tickInside   { false }; //!< tick inside plot
+    bool mirrorTicks  { false }; //!< mirror ticks
+
+    bool                   tickLabelAutoHide   { true }; //!< tick auto hide
+    AxisTickLabelPlacement tickLabelPlacement;           //!< tick placement
+
+    // placement state
+    double start           { 0.0 };   //!< axis start
+    double end             { 1.0 };   //!< axis end
+    bool   includeZero     { false }; //!< include zero in range
+    uint   maxMajorTicks   { 1000 };  //!< max major ticks
+    OptInt tickIncrement;             //!< user specified tick increment
+    OptInt majorIncrement;            //!< user specified major increment
+
+    // customization (for annotations)
+    bool allowHtmlLabels { false }; //!< allow html labels
+
+    // tick customization
+    TickSpaces  tickSpaces;                 //!< tick spaces (?)
+    ITickLabels tickLabels;                 //!< tick labels
+    bool        requireTickLabel { false }; //!< use tick label values even if empty
+  };
+
+  Data data_; //! state data
+
+  //---
+
   // general
-  bool          updatesEnabled_ { true };  //!< axis updates enabled
-  AxisSide      side_;                     //!< axis plot placement side
-  OptReal       position_;                 //!< axis custom position
-  AxisValueType valueType_;                //!< value type
-  bool          dataLabels_     { false }; //!< use data for labels
-  Column        column_;                   //!< associated column
-  QString       formatStr_;                //!< value format string
-  double        maxFitExtent_   { 10 };    //!< max extent percent for fit
+  bool updatesEnabled_ { true }; //!< axis updates enabled
 
   // label
-  bool      labelDisplayed_   { true };  //!< show label
-  OptString label_;                      //!< label
-  QString   userLabel_;                  //!< user label
-  bool      scaleLabelFont_   { false }; //!< scale label font fo fit length
-  Length    scaleLabelExtent_;           //!< extent to extend length for scale label
+  bool   scaleLabelFont_   { false }; //!< scale label font fo fit length
+  Length scaleLabelExtent_;           //!< extent to extend length for scale label
 
-  // grid (lines and gap fill)
-  GridLinesDisplayed gridLinesDisplayed_ { GridLinesDisplayed::NONE }; //!< grid lines displayed
-  GridFillDisplayed  gridFillDisplayed_  { GridFillDisplayed::NONE  }; //!< grid fill displayed
-
-  bool gridMid_   { false }; //!< show grid at mid point
-  bool gridAbove_ { false }; //!< is grid above plot
-
-  // ticks
-  TicksDisplayed ticksDisplayed_ { TicksDisplayed::MAJOR_AND_MINOR }; //!< ticks displayed
-
-  int  majorTickLen_ { 8 };     //!< major tick length
-  int  minorTickLen_ { 4 };     //!< minor tick length
-  bool tickInside_   { false }; //!< tick inside plot
-  bool mirrorTicks_  { false }; //!< mirror ticks
-
-  bool                   tickLabelAutoHide_   { true }; //!< tick auto hide
-  AxisTickLabelPlacement tickLabelPlacement_;           //!< tick placement
-
-  // placement state
-  double start_           { 0.0 };   //!< axis start
-  double end_             { 1.0 };   //!< axis end
-  bool   includeZero_     { false }; //!< include zero in range
-  uint   maxMajorTicks_   { 1000 };  //!< max major ticks
-  OptInt tickIncrement_;             //!< user specified tick increment
-  OptInt majorIncrement_;            //!< user specified major increment
-  bool   needsCalc_       { true };  //!< needs tick calc
+  bool needsCalc_ { true }; //!< needs tick calc
 
   OptReal valueStart_; //!< custom value start
   OptReal valueEnd_;   //!< custom value end
@@ -738,8 +759,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   OptReal gridEnd_;   //!< custom grid end
 
   // customization (for annotations)
-  bool annotation_      { false }; //!< is annotation
-  bool allowHtmlLabels_ { false }; //!< allow html labels
+  bool annotation_ { false }; //!< is annotation
 
   // internal calculation data
   CInterval interval_;            //!< interval data
@@ -749,11 +769,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   double    calcStart_     { 0 }; //!< calculated axis start
   double    calcEnd_       { 1 }; //!< calculated axis end
 
-  // tick customization
-  TickSpaces  tickSpaces_;                 //!< tick spaces (?)
-  ITickLabels tickLabels_;                 //!< tick labels
-  bool        requireTickLabel_ { false }; //!< use tick label values even if empty
-  RTickLabels customTickLabels_;           //!< custom tick labels
+  RTickLabels customTickLabels_; //!< custom tick labels
 
   // edit state
   EditHandlesP editHandles_; //!< edit handles

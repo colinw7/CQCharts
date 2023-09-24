@@ -10,3 +10,5 @@ set_charts_property -plot $plot -name options.selectMode -value DATA
 
 set_charts_property -plot $plot -name xaxis.visible -value 1
 set_charts_property -plot $plot -name yaxis.visible -value 1
+
+set_charts_property -plot $plot -name coloring.defaultPalette -value set1

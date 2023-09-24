@@ -9,6 +9,7 @@ TODO:
  + edit mode for region, restrict range
  + draw symbol annotation inside stroke fix ?
  + separate editable/tippable
+
  + summary plot optimization direction (gradient)
  + summary plot pareto sort by x, skip optimization symbol
  + summary plot format (just set column, %% support auto/needed ?)

@@ -214,15 +214,16 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(CQChartsColumns controlColumns   READ controlColumns   WRITE setControlColumns  )
 
   // color map (for color column)
-  Q_PROPERTY(ColorType           colorType       READ colorType       WRITE setColorType      )
-  Q_PROPERTY(bool                colorMapped     READ isColorMapped   WRITE setColorMapped    )
-  Q_PROPERTY(double              colorMapMin     READ colorMapMin     WRITE setColorMapMin    )
-  Q_PROPERTY(double              colorMapMax     READ colorMapMax     WRITE setColorMapMax    )
-  Q_PROPERTY(CQChartsPaletteName colorMapPalette READ colorMapPalette WRITE setColorMapPalette)
-  Q_PROPERTY(CQChartsColorStops  colorXStops     READ colorXStops     WRITE setColorXStops    )
-  Q_PROPERTY(CQChartsColorStops  colorYStops     READ colorYStops     WRITE setColorYStops    )
-  Q_PROPERTY(CQChartsColorMap    colorMap        READ colorMap        WRITE setColorMap       )
-  Q_PROPERTY(CQChartsColumn      colorMapColumn  READ colorMapColumn  WRITE setColorMapColumn )
+  Q_PROPERTY(ColorType           colorType       READ colorType        WRITE setColorType      )
+  Q_PROPERTY(bool                colorMapped     READ isColorMapped    WRITE setColorMapped    )
+  Q_PROPERTY(bool                colorIntMapped  READ isColorIntMapped WRITE setColorIntMapped )
+  Q_PROPERTY(double              colorMapMin     READ colorMapMin      WRITE setColorMapMin    )
+  Q_PROPERTY(double              colorMapMax     READ colorMapMax      WRITE setColorMapMax    )
+  Q_PROPERTY(CQChartsPaletteName colorMapPalette READ colorMapPalette  WRITE setColorMapPalette)
+  Q_PROPERTY(CQChartsColorStops  colorXStops     READ colorXStops      WRITE setColorXStops    )
+  Q_PROPERTY(CQChartsColorStops  colorYStops     READ colorYStops      WRITE setColorYStops    )
+  Q_PROPERTY(CQChartsColorMap    colorMap        READ colorMap         WRITE setColorMap       )
+  Q_PROPERTY(CQChartsColumn      colorMapColumn  READ colorMapColumn   WRITE setColorMapColumn )
 
   // alpha map (for alpha column)
   Q_PROPERTY(bool   alphaMapped READ isAlphaMapped WRITE setAlphaMapped)
@@ -1756,10 +1757,12 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   double lengthPixelWidth (const Length &len) const;
   double lengthPixelHeight(const Length &len) const;
 
-  void percentRefSize(double &refWidth, double &refHeight) const;
-  void percentRefSize(const BBox &pbbox, double &refWidth, double &refHeight) const;
-  void percentPixelRefSize(double &refWidth, double &refHeight) const;
-  void percentPixelRefSize(const BBox &pbbox, double &refWidth, double &refHeight) const;
+  //---
+
+  virtual void percentRefSize(double &refWidth, double &refHeight) const;
+  virtual void percentRefSize(const BBox &pbbox, double &refWidth, double &refHeight) const;
+  virtual void percentPixelRefSize(double &refWidth, double &refHeight) const;
+  virtual void percentPixelRefSize(const BBox &pbbox, double &refWidth, double &refHeight) const;
 
   //---
 
@@ -2286,6 +2289,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   bool isColorMapped() const { return colorColumnData_.isMapped(); }
   void setColorMapped(bool b);
 
+  bool isColorIntMapped() const { return colorColumnData_.isIntMapped(); }
+  void setColorIntMapped(bool b);
+
   double colorMapMin() const { return colorColumnData_.mapMin(); }
   void setColorMapMin(double r);
 
@@ -2309,6 +2315,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   const Column &colorMapColumn() const { return colorColumnData_.colorColumn(); }
   void setColorMapColumn(const Column &name);
 
+  bool calcColorIntMapped(const Column &colorColumn, bool defVal=true) const;
   bool calcColorMapped(const Column &colorColumn, bool defVal=true) const;
 
  protected:
@@ -2382,6 +2389,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual QString columnValueToString(const Column &column, const QVariant &var) const;
 
   bool formatColumnValue(const Column &column, const QVariant &var, QString &str) const;
+
+  //---
+
+  virtual bool canPointSelect() const;
+  virtual bool canRectSelect() const;
 
   //---
 
@@ -2548,7 +2560,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   void startSelection();
-  void endSelection();
+  void endSelection(bool changed=true);
 
   //---
 
@@ -2579,6 +2591,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void registerSlot(const QString &name, const QStringList &argTypes);
 
   QStringList getSlotNames() const;
+
+ private:
+  bool deselectAllPlotObjs1();
 
  public Q_SLOTS:
   // color map key
