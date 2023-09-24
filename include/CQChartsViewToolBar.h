@@ -47,6 +47,9 @@ class CQChartsViewToolBar : public QFrame {
   void appOptionsSlot();
   void viewSettingsSlot(bool b);
 
+  void fontLargerSlot();
+  void fontSmallerSlot();
+
   void viewTableSlot(bool b);
 
   void manageModelsSlot();
@@ -83,6 +86,8 @@ class CQChartsViewToolBar : public QFrame {
   QComboBox*      selectKeyCombo_        { nullptr }; //!< select key combo
   QToolButton*    appOptionssButton_     { nullptr }; //!< show app options button
   QToolButton*    viewSettingsButton_    { nullptr }; //!< show/hide view settings button
+  QToolButton*    fontLargerButton_      { nullptr }; //!< font larger button
+  QToolButton*    fontSmallerButton_     { nullptr }; //!< font smaller button
   QToolButton*    viewTableButton_       { nullptr }; //!< show/hide view table button
   QToolButton*    manageModelsDlgButton_ { nullptr }; //!< load model dlg button
   QToolButton*    createPlotDlgButton_   { nullptr }; //!< create plot dlg button

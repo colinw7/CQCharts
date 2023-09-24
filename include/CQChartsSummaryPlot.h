@@ -106,6 +106,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(YLabel, yLabel)
 
+  Q_PROPERTY(bool showBucketCount READ isShowBucketCount WRITE setShowBucketCount)
+
   // cell shape
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(PlotCell, plotCell)
 
@@ -126,6 +128,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   // distribution
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Distribution, distribution)
 
+  Q_PROPERTY(bool showDistributionRange
+             READ isShowDistributionRange WRITE setShowDistributionRange)
+
   // boxplot
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(BoxPlot, boxPlot)
 
@@ -143,11 +148,13 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Region, region)
 
   Q_PROPERTY(double        regionSelectMargin READ regionSelectMargin WRITE setRegionSelectMargin)
-  Q_PROPERTY(double        regionSelectWidth  READ regionSelectWidth  WRITE setRegionSelectWidth )
-  Q_PROPERTY(CQChartsColor regionSelectFill   READ regionSelectFill   WRITE setRegionSelectFill  )
+  Q_PROPERTY(double        regionSelectWidth  READ regionSelectWidth  WRITE setRegionSelectWidth)
+  Q_PROPERTY(CQChartsColor regionSelectFill   READ regionSelectFill   WRITE setRegionSelectFill)
 
   Q_PROPERTY(CQChartsColor regionEditStroke READ regionEditStroke WRITE setRegionEditStroke)
-  Q_PROPERTY(double        regionEditWidth  READ regionEditWidth  WRITE setRegionEditWidth )
+  Q_PROPERTY(CQChartsColor regionEditFill   READ regionEditFill   WRITE setRegionEditFill)
+  Q_PROPERTY(double        regionEditWidth  READ regionEditWidth  WRITE setRegionEditWidth)
+  Q_PROPERTY(double        regionEditAlpha  READ regionEditAlpha  WRITE setRegionEditAlpha)
 
   Q_PROPERTY(RegionPointType regionPointType READ regionPointType WRITE setRegionPointType)
 
@@ -310,6 +317,16 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
+  //! get/set show bucket count
+  bool isShowBucketCount() const { return showBucketCount_; }
+  void setShowBucketCount(bool b);
+
+  //! get/set show range on distribution plot
+  bool isShowDistributionRange() const { return showDistributionRange_; }
+  void setShowDistributionRange(bool b);
+
+  //---
+
   //! get/set matrix cell types
   const DiagonalType &diagonalType() const { return diagonalType_; }
   void setDiagonalType(const DiagonalType &t);
@@ -400,8 +417,14 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   const Color &regionEditStroke() const { return regionEditStroke_; }
   void setRegionEditStroke(const Color &c) { regionEditStroke_ = c; }
 
+  const Color &regionEditFill() const { return regionEditFill_; }
+  void setRegionEditFill(const Color &c) { regionEditFill_ = c; }
+
   double regionEditWidth() const { return regionEditWidth_; }
   void setRegionEditWidth(double w) { regionEditWidth_ = w; }
+
+  double regionEditAlpha() const { return regionEditAlpha_; }
+  void setRegionEditAlpha(double a) { regionEditAlpha_ = a; }
 
   //---
 
@@ -599,6 +622,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   bool xLabels_ { true }; //!< x labels
   bool yLabels_ { true }; //!< y labels
 
+  bool showBucketCount_       { true };
+  bool showDistributionRange_ { true };
+
   PlotType plotType_ { PlotType::MATRIX }; //!< unexpanded plot type
 
   bool expanded_  { false };
@@ -639,7 +665,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Color  regionSelectFill_   { Color::makeInterfaceValue(0.0) };
 
   Color  regionEditStroke_ { Color::makeInterfaceValue(1.0) };
+  Color  regionEditFill_   { Color::makeInterfaceValue(0.0) };
   double regionEditWidth_  { 4 };
+  double regionEditAlpha_  { 0.2 };
 
   RegionPointType regionPointType_ { RegionPointType::DIM_OUTSIDE };
 
@@ -660,14 +688,19 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
-  mutable int                nc_ { 0 };
+  mutable int nc_ { 0 };
+
+  mutable BBox xLabelBBox_;
+  mutable BBox yLabelBBox_;
+
   mutable SelectedRowColumns rangeSelectedRows_;
   mutable SelectedRowColumns modelSelectedRows_;
 
   mutable int drawRow_ { -1 };
   mutable int drawCol_ { -1 };
 
-  bool selectAdd_ { false };
+  bool selectPressed_ { false };
+  bool selectAdd_     { false };
 
   CQChartsSummaryCellObj *modifyCellObj_ { nullptr };
 };
@@ -735,6 +768,10 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   CQChartsSummaryPlot::CellType getCellType(int row, int col) const;
 
   void drawPointSelection(PaintDevice *device, const BBox &bbox, SelectionType type) const;
+
+  //---
+
+  BBox fitBBox() const;
 
   Point plotToParent(const Point &w) const;
   Point parentToPlot(const Point &p) const;
@@ -846,9 +883,14 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   //---
 
   const SummaryPlot* summaryPlot_ { nullptr }; //!< parent plot
-  int                row_         { -1 };      //!< row
-  int                col_         { -1 };      //!< column
-  GroupValues        groupValues_;
+
+  int row_ { -1 }; //!< row
+  int col_ { -1 }; //!< column
+
+  GroupValues groupValues_;
+
+  mutable BBox xAxisBBox_;
+  mutable BBox yAxisBBox_;
 
   mutable Polygon poly_;
 

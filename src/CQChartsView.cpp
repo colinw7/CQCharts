@@ -106,6 +106,7 @@ description()
 
 //---
 
+// default for view size hint
 QSize CQChartsView::defSizeHint_ = QSize(1280, 1024);
 
 CQChartsView::

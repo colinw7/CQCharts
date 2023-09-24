@@ -719,9 +719,9 @@ draw(PaintDevice *device) const
     labels.push_back(label);
 
   if (gridPlot_->isShowValue()) {
-    auto sv = CMathUtil::scaledNumberString(values_.sum(), 0);
+    auto sv = CQChartsUtil::scaledNumberString(values_.sum(), 0);
 
-    labels.push_back(QString::fromStdString(sv));
+    labels.push_back(sv);
   }
 
   auto textOptions = gridPlot_->textOptions();

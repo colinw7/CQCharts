@@ -458,6 +458,8 @@ updatePlots()
       else
         distributionPlot()->setBarFillColor(Color::makePalette());
 
+      distributionPlot()->key()->setVisible(false);
+
       currentPlot = distributionPlot();
     }
     else if (diagonalType() == CQChartsSummaryPlot::DiagonalType::BOXPLOT) {
@@ -504,6 +506,22 @@ updatePlots()
 
 void
 CQChartsSummaryPlot::
+setShowBucketCount(bool b)
+{
+  CQChartsUtil::testAndSet(showBucketCount_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsSummaryPlot::
+setShowDistributionRange(bool b)
+{
+  CQChartsUtil::testAndSet(showDistributionRange_, b, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsSummaryPlot::
 setDiagonalType(const DiagonalType &t)
 {
   CQChartsUtil::testAndSet(diagonalType_, t, [&]() {
@@ -536,7 +554,9 @@ CQChartsSummaryPlot::
 setOrientation(const Qt::Orientation &o)
 {
   CQChartsUtil::testAndSet(orientation_, o, [&]() {
-    // TODO: distribution orientation
+    distributionPlot_->setOrientation(o);
+    boxPlot_         ->setOrientation(o);
+
     drawObjs(); Q_EMIT customDataChanged();
   } );
 }
@@ -796,6 +816,8 @@ addProperties()
   addTextProperties("yaxis/text", "yLabelText", "Y label",
                     CQChartsTextOptions::ValueType::ALL);
 
+  addPropI("options", "showBucketCount", "showBucketCount", "Show bucket count on y axis");
+
   // plot cell
   addProp("cell/fill", "plotCellFilled", "visible", "Cell fill visible");
 
@@ -825,6 +847,9 @@ addProperties()
   addProp("distribution/stroke", "distributionStroked", "visible", "Distribution stroke visible");
 
   addLineProperties("distribution/stroke", "distributionStroke", "Distribution");
+
+  addPropI("options", "showDistributionRange", "showDistributionRange",
+           "Show range on distribution plot");
 
   // box plot
   addProp("box/fill", "boxPlotFilled", "visible", "Box fill visible");
@@ -877,6 +902,7 @@ addProperties()
   addProp("region", "regionSelectFill"  , "selectFill"  , "Region select fill");
 
   addProp("region", "regionEditStroke", "editStroke", "Region edit stroke");
+  addProp("region", "regionEditFill"  , "editFill"  , "Region edit fill");
   addProp("region", "regionEditWidth" , "editWidth" , "Region edit width");
 }
 
@@ -1574,6 +1600,9 @@ execDrawBackground(PaintDevice *device) const
 
   //---
 
+  xLabelBBox_ = BBox();
+  yLabelBBox_ = BBox();
+
   nc_ = visibleColumns().count();
 
   //---
@@ -1612,7 +1641,7 @@ execDrawBackground(PaintDevice *device) const
       auto textOptions = xLabelTextOptions(device);
 
       textOptions.clipLength = lengthPixelWidth(Length::plot(1.0));
-      textOptions.clipped    = false;
+      textOptions.clipped    = true;
 
       textOptions = adjustTextOptions(textOptions);
 
@@ -1645,6 +1674,10 @@ execDrawBackground(PaintDevice *device) const
 
       if (tbbox.isValid())
         CQChartsDrawUtil::drawTextInBox(device, tbbox, xstr, textOptions);
+
+      //---
+
+      xLabelBBox_ += tbbox;
     }
 
     //---
@@ -1652,7 +1685,7 @@ execDrawBackground(PaintDevice *device) const
     if (isYLabels()) {
       auto ystr = str;
 
-      if (diagonalType() == DiagonalType::DISTRIBUTION) {
+      if (diagonalType() == DiagonalType::DISTRIBUTION && isShowBucketCount()) {
         auto *details = columnDetails(column);
 
         if (details->isNumeric()) {
@@ -1672,8 +1705,8 @@ execDrawBackground(PaintDevice *device) const
 
       auto textOptions = yLabelTextOptions(device);
 
-      textOptions.clipLength = lengthPixelWidth(Length::plot(1.0));
-      textOptions.clipped    = false;
+      textOptions.clipLength = lengthPixelHeight(Length::plot(1.0));
+      textOptions.clipped    = true;
 
       textOptions = adjustTextOptions(textOptions);
 
@@ -1706,6 +1739,10 @@ execDrawBackground(PaintDevice *device) const
 
       if (tbbox.isValid())
         CQChartsDrawUtil::drawTextInBox(device, tbbox, ystr, textOptions);
+
+      //---
+
+      yLabelBBox_ += tbbox;
     }
   }
 }
@@ -1773,6 +1810,21 @@ CQChartsGeom::BBox
 CQChartsSummaryPlot::
 fitBBox() const
 {
+  nc_ = visibleColumns().count();
+
+#if 1
+  auto bbox = BBox(0, 0, nc_, nc_);
+
+  if (xLabelBBox_.isValid()) bbox += xLabelBBox_;
+  if (yLabelBBox_.isValid()) bbox += yLabelBBox_;
+
+  for (const auto &plotObj : plotObjects()) {
+    auto *cellObj = dynamic_cast<CQChartsSummaryCellObj *>(plotObj);
+    if (! cellObj) continue;
+
+    bbox += cellObj->fitBBox();
+  }
+#else
   auto xfont = view()->viewFont(xLabelTextFont());
   auto yfont = view()->viewFont(yLabelTextFont());
 
@@ -1783,8 +1835,6 @@ fitBBox() const
 
   double maxWidth  = 0.0;
   double maxHeight = 0.0;
-
-  nc_ = visibleColumns().count();
 
   for (int ic = 0; ic < nc_; ++ic) {
     auto column = visibleColumns().getColumn(ic);
@@ -1807,9 +1857,10 @@ fitBBox() const
 
   //---
 
-  auto bbox = CQChartsPlot::fitBBox();
+  bbox = CQChartsPlot::fitBBox();
 
   bbox += Point(-maxWidth, -maxHeight);
+#endif
 
   return bbox;
 }
@@ -1945,7 +1996,15 @@ handleSelectPress(const Point &p, SelMod selMod)
   if (selectMode() == SelectMode::CELL)
     return CQChartsPlot::handleSelectPress(p, selMod);
 
-  selectAdd_ = (selMod == SelMod::ADD);
+  //---
+
+  if (selMod == CQChartsSelMod::REMOVE)
+    return CQChartsPlot::handleSelectPress(p, CQChartsSelMod::REPLACE);
+
+  //---
+
+  selectPressed_ = true;
+  selectAdd_     = (selMod == SelMod::ADD);
 
   PlotObjs plotObjs;
 
@@ -2017,7 +2076,8 @@ handleSelectMove(const Point &p, Constraints constraints, bool first)
   //---
 
   if (cellObj && isRangeEdit()) {
-    cellObj->updateRangeInside(p);
+    if (! selectPressed_)
+      cellObj->updateRangeInside(p);
 
     if (isRangeEdit())
       cellObj->handleModifyMove(p);
@@ -2034,6 +2094,10 @@ handleSelectRelease(const Point &p)
 {
   if (selectMode() == SelectMode::CELL)
     return CQChartsPlot::handleSelectRelease(p);
+
+  //---
+
+  selectPressed_ = false;
 
   PlotObjs plotObjs;
 
@@ -2370,6 +2434,9 @@ draw(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsSummaryCellObj::draw");
 
+  xAxisBBox_ = BBox();
+  yAxisBBox_ = BBox();
+
   //---
 
   if (summaryPlot_->selectMode() == CQChartsSummaryPlot::SelectMode::DATA) {
@@ -2569,6 +2636,8 @@ drawXAxis(PaintDevice *device) const
 
   const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(clip, /*notify*/false);
 
+  xAxisBBox_ += xaxis->bbox();
+
   device->restore();
 }
 
@@ -2685,6 +2754,8 @@ drawYAxis(PaintDevice *device) const
   yaxis->draw(summaryPlot_, device);
 
   const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(clip, /*notify*/false);
+
+  yAxisBBox_ += yaxis->bbox();
 
   device->restore();
 }
@@ -2830,10 +2901,9 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   ColorInd colorInd;
 
   auto bc = summaryPlot_->interpPlotCellStrokeColor(colorInd);
+  auto fc = summaryPlot_->interpPlotCellFillColor(colorInd);
 
   if (summaryPlot_->selectMode() != CQChartsSummaryPlot::SelectMode::DATA) {
-    auto fc = summaryPlot_->interpPlotCellFillColor(colorInd);
-
     summaryPlot_->setPenBrush(penBrush,
       summaryPlot_->plotCellPenData(bc), summaryPlot_->plotCellBrushData(fc));
 
@@ -2841,8 +2911,16 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
       summaryPlot_->updateObjPenBrushState(this, penBrush, drawType());
   }
   else {
-    summaryPlot_->setPenBrush(penBrush,
-      summaryPlot_->plotCellPenData(bc), BrushData(false));
+    if (! isSelected())
+      summaryPlot_->setPenBrush(penBrush,
+        summaryPlot_->plotCellPenData(bc), BrushData(false));
+    else {
+      summaryPlot_->setPenBrush(penBrush,
+        summaryPlot_->plotCellPenData(bc), summaryPlot_->plotCellBrushData(fc));
+
+      if (updateState)
+        summaryPlot_->updateObjPenBrushState(this, penBrush, drawType());
+    }
   }
 }
 
@@ -3343,18 +3421,19 @@ drawBoxPlot(PaintDevice *device) const
       else
         textOptions.align = Qt::AlignHCenter | Qt::AlignTop;
 
-      CQChartsDrawUtil::drawTextAtPoint(device, pointData.min, QString::number(min ),
-                                        textOptions, centered);
-      CQChartsDrawUtil::drawTextAtPoint(device, pointData.max, QString::number(max ),
-                                        textOptions, centered);
+      auto minStr  = CQChartsUtil::scaledNumberString(min);
+      auto maxStr  = CQChartsUtil::scaledNumberString(max);
+      auto meanStr = CQChartsUtil::scaledNumberString(mean);
+
+      CQChartsDrawUtil::drawTextAtPoint(device, pointData.min, minStr, textOptions, centered);
+      CQChartsDrawUtil::drawTextAtPoint(device, pointData.max, maxStr, textOptions, centered);
 
       if (drawData.orientation == Qt::Vertical)
         textOptions.align = Qt::AlignLeft | Qt::AlignVCenter;
       else
         textOptions.align = Qt::AlignHCenter | Qt::AlignBottom;
 
-      CQChartsDrawUtil::drawTextAtPoint(device, pointData.med, QString::number(mean),
-                                        textOptions, centered);
+      CQChartsDrawUtil::drawTextAtPoint(device, pointData.med, meanStr, textOptions, centered);
     }
 
     //---
@@ -3607,7 +3686,17 @@ drawDistribution(PaintDevice *device) const
 
   //---
 
-  if (rangeBox_.isValid()) {
+  if (rangeBox_.isValid() && summaryPlot_->isShowDistributionRange()) {
+    PenBrush tpenBrush;
+
+    auto tc = summaryPlot_->xAxis()->interpAxesLabelTextColor(ColorInd());
+
+    CQChartsUtil::setPen(tpenBrush.pen, true, tc);
+
+    device->setPen(tpenBrush.pen);
+
+    //---
+
     summaryPlot_->setPainterFont(device, summaryPlot_->xAxis()->axesTickLabelTextFont());
 
     auto textOptions = summaryPlot_->boxPlotTextOptions(device);
@@ -3620,12 +3709,12 @@ drawDistribution(PaintDevice *device) const
     QString str1, str2;
 
     if (summaryPlot_->orientation() == Qt::Vertical) {
-      str1 = QString::number(rangeBox_.getXMin());
-      str2 = QString::number(rangeBox_.getXMax());
+      str1 = CQChartsUtil::scaledNumberString(rangeBox_.getXMin());
+      str2 = CQChartsUtil::scaledNumberString(rangeBox_.getXMax());
     }
     else {
-      str1 = QString::number(rangeBox_.getYMin());
-      str2 = QString::number(rangeBox_.getYMax());
+      str1 = CQChartsUtil::scaledNumberString(rangeBox_.getYMin());
+      str2 = CQChartsUtil::scaledNumberString(rangeBox_.getYMax());
     }
 
     if (summaryPlot_->orientation() == Qt::Vertical) {
@@ -4139,8 +4228,12 @@ drawOverlay(PaintDevice *device) const
   if (modifyBox_.isSet()) {
     PenBrush penBrush;
 
+    auto sc = summaryPlot_->interpColor(summaryPlot_->regionEditStroke(), ColorInd());
+    auto fc = summaryPlot_->interpColor(summaryPlot_->regionEditFill  (), ColorInd());
+    auto fa = summaryPlot_->regionEditAlpha();
+
     summaryPlot_->setPenBrush(penBrush,
-      PenData(true, Qt::black), BrushData(true, Qt::red, Alpha(0.1)));
+      PenData(true, sc), BrushData(true, fc, Alpha(fa)));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -4166,6 +4259,22 @@ drawPointSelection(PaintDevice *device, const BBox &bbox, SelectionType type) co
     device->drawEllipse(bbox);
   }
 }
+
+//---
+
+CQChartsGeom::BBox
+CQChartsSummaryCellObj::
+fitBBox() const
+{
+  auto bbox = BBox(row_, col_, row_ + 1, col_ + 1);
+
+  if (xAxisBBox_.isValid()) bbox += xAxisBBox_;
+  if (yAxisBBox_.isValid()) bbox += yAxisBBox_;
+
+  return bbox;
+}
+
+//---
 
 CQChartsGeom::Point
 CQChartsSummaryCellObj::
@@ -4417,6 +4526,9 @@ handleModifyMove(const Point &p)
   auto modifyMove = parentToPlot(p);
 
   if (modifyBox_.isSet()) {
+    double xmin, xmax, ymin, ymax;
+    getDataRange(xmin, ymin, xmax, ymax);
+
     double dx = modifyMove.x - modifyPress_.x;
     double dy = modifyMove.y - modifyPress_.y;
 
@@ -4432,13 +4544,36 @@ handleModifyMove(const Point &p)
     }
 
     if (rangeBoxSide_) {
-      if      (rangeBoxSide_ & Qt::AlignLeft  ) modifyBox_.setXMin(modifyBox_.getXMin() + dx);
-      else if (rangeBoxSide_ & Qt::AlignRight ) modifyBox_.setXMax(modifyBox_.getXMax() + dx);
-      if      (rangeBoxSide_ & Qt::AlignBottom) modifyBox_.setYMin(modifyBox_.getYMin() + dy);
-      else if (rangeBoxSide_ & Qt::AlignTop   ) modifyBox_.setYMax(modifyBox_.getYMax() + dy);
+      if      (rangeBoxSide_ & Qt::AlignLeft) {
+        modifyBox_.setXMin(modifyBox_.getXMin() + dx);
+        if (modifyBox_.getXMin() < xmin) modifyBox_.setXMin(xmin);
+      }
+      else if (rangeBoxSide_ & Qt::AlignRight) {
+        modifyBox_.setXMax(modifyBox_.getXMax() + dx);
+        if (modifyBox_.getXMax() > xmax) modifyBox_.setXMax(xmax);
+      }
+      if      (rangeBoxSide_ & Qt::AlignBottom) {
+        modifyBox_.setYMin(modifyBox_.getYMin() + dy);
+        if (modifyBox_.getYMin() < ymin) modifyBox_.setYMin(ymin);
+      }
+      else if (rangeBoxSide_ & Qt::AlignTop) {
+        modifyBox_.setYMax(modifyBox_.getYMax() + dy);
+        if (modifyBox_.getYMax() > ymax) modifyBox_.setYMax(ymax);
+      }
     }
-    else
+    else {
       modifyBox_ = modifyBox_.translated(dx, dy);
+
+      dx = 0.0;
+      dy = 0.0;
+
+      if      (modifyBox_.getXMin() < xmin) dx = xmin - modifyBox_.getXMin();
+      else if (modifyBox_.getXMax() > xmax) dx = xmax - modifyBox_.getXMax();
+      if      (modifyBox_.getYMin() < ymin) dy = ymin - modifyBox_.getYMin();
+      else if (modifyBox_.getYMax() > ymax) dy = ymax - modifyBox_.getYMax();
+
+      modifyBox_ = modifyBox_.translated(dx, dy);
+    }
 
     const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay();
   }

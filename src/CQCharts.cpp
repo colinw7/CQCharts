@@ -325,6 +325,11 @@
 #include <svg/clear_button_light_svg.h>
 #include <svg/clear_button_dark_svg.h>
 
+#include <svg/font_larger_light_svg.h>
+#include <svg/font_larger_dark_svg.h>
+#include <svg/font_smaller_light_svg.h>
+#include <svg/font_smaller_dark_svg.h>
+
 #define addChartsWidgetFactoryT(N) \
 CQWidgetFactoryMgrInst->addWidgetFactoryT<CQCharts##N>("CQCharts:" #N);
 

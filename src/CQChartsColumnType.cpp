@@ -1449,9 +1449,7 @@ dataName(CQCharts *charts, const QAbstractItemModel *model, const Column &column
   if (fmt == "%P") {
     int ndp = (scaleSet ? int(std::log10(std::abs(scale))) : 3);
 
-    auto sv = CMathUtil::scaledNumberString(r, -ndp); // no pad
-
-    return QString::fromStdString(sv);
+    return CQChartsUtil::scaledNumberString(r, -ndp); // no pad
   }
 
   //---

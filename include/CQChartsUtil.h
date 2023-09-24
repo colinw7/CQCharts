@@ -709,4 +709,12 @@ bool adjustRectsToOriginal(const std::vector<BBox> &oldRects, std::vector<BBox> 
 
 //------
 
+namespace CQChartsUtil {
+
+QString scaledNumberString(double r, int ndp=-3);
+
+}
+
+//------
+
 #endif

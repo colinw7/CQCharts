@@ -305,6 +305,20 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   layout->addWidget(CQChartsWidgetUtil::createHSpacer(1));
 
+  //-----
+
+  fontLargerButton_  =
+    createIconButton("font_larger", "FONT_LARGER", "Set base font size larger",
+                     SLOT(fontLargerSlot()));
+  fontSmallerButton_ =
+    createIconButton("font_smalker", "FONT_SMALLER", "Set base font size smaller",
+                     SLOT(fontSmallerSlot()));
+
+  layout->addWidget(fontLargerButton_);
+  layout->addWidget(fontSmallerButton_);
+
+  layout->addWidget(CQChartsWidgetUtil::createHSpacer(1));
+
   //---
 
   bool showTable = (window_ && window_->isDataTable());
@@ -580,6 +594,24 @@ viewSettingsSlot(bool b)
 {
   if (window())
     window()->setViewSettings(b);
+}
+
+void
+CQChartsViewToolBar::
+fontLargerSlot()
+{
+  view()->setFontFactor(1.1*view()->fontFactor());
+
+  view()->update();
+}
+
+void
+CQChartsViewToolBar::
+fontSmallerSlot()
+{
+  view()->setFontFactor(view()->fontFactor()/1.1);
+
+  view()->update();
 }
 
 void

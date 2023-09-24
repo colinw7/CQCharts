@@ -6,13 +6,8 @@ Abstract Painter/Javascript
 TODO:
  + better control over color mapping to allow mapping per type (integer/real/string)
 
- + edit mode for region, restrict range
  + draw symbol annotation inside stroke fix ?
  + separate editable/tippable
-
- + summary plot optimization direction (gradient)
- + summary plot pareto sort by x, skip optimization symbol
- + summary plot format (just set column, %% support auto/needed ?)
 
  + annotation update from plot objects added callback without infinite loop
  + summary range edit. show on axes
