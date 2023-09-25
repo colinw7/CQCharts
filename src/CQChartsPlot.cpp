@@ -8837,65 +8837,6 @@ selectObjsAtPoint(const Point &w, Objs &objs)
 
 bool
 CQChartsPlot::
-selectMouseModifyPress(const Point &pos, SelMod selMod)
-{
-  if (! isReady()) return false;
-
-  auto p = pos;
-  auto w = pixelToWindow(p);
-
-  return handleModifyPress(w, selMod);
-}
-
-bool
-CQChartsPlot::
-selectMouseModifyMove(const Point &pos)
-{
-  if (! isReady()) return false;
-
-  auto p = pos;
-  auto w = pixelToWindow(p);
-
-  return handleModifyMove(w);
-}
-
-bool
-CQChartsPlot::
-selectMouseModifyRelease(const Point &pos)
-{
-  if (! isReady()) return false;
-
-  auto p = pos;
-  auto w = pixelToWindow(p);
-
-  return handleModifyRelease(w);
-}
-
-bool
-CQChartsPlot::
-handleModifyPress(const Point &, SelMod)
-{
-  return true;
-}
-
-bool
-CQChartsPlot::
-handleModifyMove(const Point &)
-{
-  return true;
-}
-
-bool
-CQChartsPlot::
-handleModifyRelease(const Point &)
-{
-  return true;
-}
-
-//------
-
-bool
-CQChartsPlot::
 editMousePress(const Point &pos, bool inside)
 {
   if (! isReady()) return false;
@@ -12763,13 +12704,13 @@ plotObjsAtPoint(const Point &p, PlotObjs &plotObjs, const Constraints &constrain
   //---
 
   // filter to constraints
-  int iconstraints = static_cast<int>(constraints);
+  auto iconstraints = static_cast<uint>(constraints);
 
   for (const auto &plotObj : plotObjs1) {
-    if ((iconstraints & static_cast<int>(Constraints::SELECTABLE)) && ! plotObj->isSelectable())
+    if ((iconstraints & static_cast<uint>(Constraints::SELECTABLE)) && ! plotObj->isSelectable())
       continue;
 
-    if ((iconstraints & static_cast<int>(Constraints::EDITABLE)) && ! plotObj->isEditable())
+    if ((iconstraints & static_cast<uint>(Constraints::EDITABLE)) && ! plotObj->isEditable())
       continue;
 
     if (clipRect_.isSet() && ! plotObj->rectIntersect(clipRect_, /*inside*/false))
@@ -12805,7 +12746,7 @@ void
 CQChartsPlot::
 annotationsAtPoint(const Point &p, Annotations &annotations, const Constraints &constraints) const
 {
-  int iconstraints = static_cast<int>(constraints);
+  auto iconstraints = static_cast<uint>(constraints);
 
   for (const auto &annotation : this->annotations()) {
     if (! annotation->isVisible())
@@ -12814,10 +12755,10 @@ annotationsAtPoint(const Point &p, Annotations &annotations, const Constraints &
     if (! annotation->contains(p))
       continue;
 
-    if ((iconstraints & static_cast<int>(Constraints::SELECTABLE)) && ! annotation->isSelectable())
+    if ((iconstraints & static_cast<uint>(Constraints::SELECTABLE)) && ! annotation->isSelectable())
       continue;
 
-    if ((iconstraints & static_cast<int>(Constraints::EDITABLE)) && ! annotation->isEditable())
+    if ((iconstraints & static_cast<uint>(Constraints::EDITABLE)) && ! annotation->isEditable())
       continue;
 
     if (clipRect_.isSet() && ! annotation->intersects(clipRect_, /*inside*/false))
@@ -12899,16 +12840,16 @@ plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside,
   //---
 
   // filter to constraints
-  int iconstraints = static_cast<int>(constraints);
+  auto iconstraints = static_cast<uint>(constraints);
 
   for (const auto &plotObj : plotObjs1) {
-    if ((iconstraints & static_cast<int>(Constraints::SELECTABLE)) && ! plotObj->isSelectable())
+    if ((iconstraints & static_cast<uint>(Constraints::SELECTABLE)) && ! plotObj->isSelectable())
       continue;
 
-    if ((iconstraints & static_cast<int>(Constraints::EDITABLE)) && ! plotObj->isEditable())
+    if ((iconstraints & static_cast<uint>(Constraints::EDITABLE)) && ! plotObj->isEditable())
       continue;
 
-    if ((iconstraints & static_cast<int>(Constraints::CLICKABLE)) && ! plotObj->isClickable())
+    if ((iconstraints & static_cast<uint>(Constraints::CLICKABLE)) && ! plotObj->isClickable())
       continue;
 
     if (clipRect_.isSet() && ! plotObj->rectIntersect(clipRect_, /*inside*/false))
@@ -12945,7 +12886,7 @@ CQChartsPlot::
 annotationsIntersectRect1(const BBox &r, Annotations &annotations, bool inside,
                           const Constraints &constraints) const
 {
-  int iconstraints = static_cast<int>(constraints);
+  auto iconstraints = static_cast<uint>(constraints);
 
   for (const auto &annotation : this->annotations()) {
     if (! annotation->isVisible())
@@ -12954,13 +12895,13 @@ annotationsIntersectRect1(const BBox &r, Annotations &annotations, bool inside,
     if (! annotation->intersects(r, inside))
       continue;
 
-    if ((iconstraints & static_cast<int>(Constraints::SELECTABLE)) && ! annotation->isSelectable())
+    if ((iconstraints & static_cast<uint>(Constraints::SELECTABLE)) && ! annotation->isSelectable())
       continue;
 
-    if ((iconstraints & static_cast<int>(Constraints::EDITABLE)) && ! annotation->isEditable())
+    if ((iconstraints & static_cast<uint>(Constraints::EDITABLE)) && ! annotation->isEditable())
       continue;
 
-    if ((iconstraints & static_cast<int>(Constraints::CLICKABLE)) && ! annotation->isClickable())
+    if ((iconstraints & static_cast<uint>(Constraints::CLICKABLE)) && ! annotation->isClickable())
       continue;
 
     if (clipRect_.isSet() && ! annotation->intersects(clipRect_, /*inside*/false))
@@ -18914,7 +18855,8 @@ modelHHeaderName(const Column &column, const HeaderNameData &data, bool &ok) con
   if (! model.data()) return str;
 
   if (data.tip)
-    str = modelHHeaderString(model.data(), column, CQModelUtil::roleCast(CQBaseModelRole::Tip), ok);
+    str = modelHHeaderString(model.data(), column,
+            CQModelUtil::roleCast(CQBaseModelRole::Tip), ok);
   else
     ok = true;
 

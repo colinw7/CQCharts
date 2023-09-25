@@ -229,11 +229,19 @@ init()
 
   scatterPlot_->setParetoOriginColor(paretoOriginColor());
 
+  scatterPlot_->setColorMapped(false);
+  scatterPlot_->setSymbolTypeMapped(false);
+  scatterPlot_->setSymbolSizeMapped(false);
+
+  scatterPlot_->key()->setVisible(false);
+
   //--
 
   distributionPlot_->setValueColumns(Columns(Column::makeRow()));
 
   distributionPlot_->title()->setVisible(false);
+
+  distributionPlot_->key()->setVisible(false);
 
   //--
 
@@ -435,8 +443,6 @@ updatePlots()
     scatterPlot()->xAxis()->setGridLinesDisplayed(xAxis()->gridLinesDisplayed());
     scatterPlot()->yAxis()->setGridLinesDisplayed(yAxis()->gridLinesDisplayed());
 
-    scatterPlot()->key()->setVisible(false);
-
     currentPlot = scatterPlot();
   }
   else {
@@ -457,8 +463,6 @@ updatePlots()
         distributionPlot()->setBarFillColor(cellObj->barColor());
       else
         distributionPlot()->setBarFillColor(Color::makePalette());
-
-      distributionPlot()->key()->setVisible(false);
 
       currentPlot = distributionPlot();
     }
@@ -719,9 +723,23 @@ setGroupColumn(const Column &c)
 
 void
 CQChartsSummaryPlot::
+setColorColumn(const Column &c)
+{
+  if (c != colorColumn()) {
+    CQChartsPlot::setColorColumn(c);
+    scatterPlot_->setColorColumn(c);
+
+    drawObjs(); Q_EMIT customDataChanged();
+  }
+}
+
+void
+CQChartsSummaryPlot::
 setSymbolTypeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(symbolTypeColumn_, c, [&]() {
+    scatterPlot_->setSymbolTypeColumn(c);
+
     drawObjs(); Q_EMIT customDataChanged();
   } );
 }
@@ -731,6 +749,8 @@ CQChartsSummaryPlot::
 setSymbolSizeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(symbolSizeColumn_, c, [&]() {
+    scatterPlot_->setSymbolSizeColumn(c);
+
     drawObjs(); Q_EMIT customDataChanged();
   } );
 }
@@ -1228,9 +1248,7 @@ setColumnRange(const Column &c, double min, double max)
     max = std::min(max, cmax);
   }
 
-  MinMax minMax(min, max);
-
-  columnRange_[c] = minMax;
+  columnRange_[c] = MinMax(min, max);
 }
 
 void
@@ -1335,7 +1353,7 @@ updateSelectedRows() const
 
   //---
 
-  modelSelectedRows_.clear();
+  clearModelSelectedRows();
 
   auto *modelData = charts()->currentModelData();
 
@@ -1349,7 +1367,7 @@ updateSelectedRows() const
 
       auto ind1 = normalizeIndex(ind);
 
-      modelSelectedRows_[ind1.row()].insert(ind1.column());
+      addModelSelectedRow(ind1.row(), ind1.column());
     }
   }
 }
@@ -1432,6 +1450,22 @@ numRangeSelectedRows() const
   }
 
   return n;
+}
+
+//---
+
+void
+CQChartsSummaryPlot::
+clearModelSelectedRows() const
+{
+  modelSelectedRows_.clear();
+}
+
+void
+CQChartsSummaryPlot::
+addModelSelectedRow(int row, int col) const
+{
+  modelSelectedRows_[row].insert(col);
 }
 
 bool
@@ -1857,7 +1891,7 @@ fitBBox() const
 
   //---
 
-  bbox = CQChartsPlot::fitBBox();
+  auto bbox = CQChartsPlot::fitBBox();
 
   bbox += Point(-maxWidth, -maxHeight);
 #endif
@@ -1894,6 +1928,10 @@ setColumnVisible(int ic, bool visible)
     parallelPlot()->setYColumnVisible(ic, visible);
 
   updateRangeAndObjs();
+
+  updateVisibleColumns();
+
+  updateSelectedRows();
 
   Q_EMIT customDataChanged();
 }
@@ -1983,9 +2021,6 @@ bool
 CQChartsSummaryPlot::
 canRectSelect() const
 {
-  if (isRangeEdit())
-    return false;
-
   return CQChartsPlot::canRectSelect();
 }
 
@@ -2017,12 +2052,8 @@ handleSelectPress(const Point &p, SelMod selMod)
     if (cellObj) break;
   }
 
-  if (cellObj) {
-    if (isRangeEdit())
-      cellObj->handleModifyPress(p, selMod);
-    else
-      cellObj->handleSelectPress(p, selMod);
-   }
+  if (cellObj)
+    cellObj->handleSelectPress(p, selMod);
 
   return true;
 }
@@ -2075,14 +2106,13 @@ handleSelectMove(const Point &p, Constraints constraints, bool first)
 
   //---
 
-  if (cellObj && isRangeEdit()) {
+  auto iconstraints = static_cast<uint>(constraints);
+
+  if (cellObj && iconstraints & static_cast<uint>(Constraints::EDITABLE)) {
     if (! selectPressed_)
       cellObj->updateRangeInside(p);
 
-    if (isRangeEdit())
-      cellObj->handleModifyMove(p);
-    else
-      cellObj->handleSelectMove(p, constraints, first);
+    cellObj->handleSelectMove(p, constraints, first);
   }
 
   return true;
@@ -2110,12 +2140,8 @@ handleSelectRelease(const Point &p)
     if (cellObj) break;
   }
 
-  if (cellObj) {
-    if (isRangeEdit())
-      cellObj->handleModifyRelease(p);
-    else
-      cellObj->handleSelectRelease(p, selectAdd_);
-  }
+  if (cellObj)
+    cellObj->handleSelectRelease(p, selectAdd_);
 
   return true;
 }
@@ -2145,7 +2171,7 @@ handleSelectDoubleClick(const Point &p, SelMod /*selMod*/)
 
 bool
 CQChartsSummaryPlot::
-handleModifyPress(const Point &p, SelMod selMod)
+handleEditPress(const Point &, const Point &p, bool)
 {
   PlotObjs plotObjs;
 
@@ -2159,27 +2185,27 @@ handleModifyPress(const Point &p, SelMod selMod)
   }
 
   if (modifyCellObj_)
-    modifyCellObj_->handleModifyPress(p, selMod);
+    modifyCellObj_->handleEditPress(p);
 
   return true;
 }
 
 bool
 CQChartsSummaryPlot::
-handleModifyMove(const Point &p)
+handleEditMove(const Point &, const Point &p, bool)
 {
   if (modifyCellObj_)
-    modifyCellObj_->handleModifyMove(p);
+    modifyCellObj_->handleEditMove(p);
 
   return true;
 }
 
 bool
 CQChartsSummaryPlot::
-handleModifyRelease(const Point &p)
+handleEditRelease(const Point &, const Point &p)
 {
   if (modifyCellObj_)
-    modifyCellObj_->handleModifyRelease(p);
+    modifyCellObj_->handleEditRelease(p);
 
   return true;
 }
@@ -2434,15 +2460,15 @@ draw(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsSummaryCellObj::draw");
 
-  xAxisBBox_ = BBox();
-  yAxisBBox_ = BBox();
-
   //---
 
   if (summaryPlot_->selectMode() == CQChartsSummaryPlot::SelectMode::DATA) {
     if (summaryPlot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER)
       return;
   }
+
+  xAxisBBox_ = BBox();
+  yAxisBBox_ = BBox();
 
   //---
 
@@ -2577,7 +2603,7 @@ updateRangeBox() const
     auto range1 = summaryPlot_->columnRange(column1);
     auto range2 = summaryPlot_->columnRange(column2);
 
-    if ((range1.isSet()) || (range2.isSet())) {
+    if (range1.isSet() || range2.isSet()) {
       rangeBox_ = BBox(xmin, ymin, xmax, ymax);
 
       if (range1.isSet()) {
@@ -3492,6 +3518,8 @@ drawDistribution(PaintDevice *device) const
 
   bool invert = (summaryPlot_->orientation() == Qt::Horizontal);
 
+  //---
+
   auto drawRect = [&](const BBox &bbox) {
     auto pw = (invert ?
       device->windowToPixelHeight(bbox.getHeight()) :
@@ -4266,7 +4294,7 @@ CQChartsGeom::BBox
 CQChartsSummaryCellObj::
 fitBBox() const
 {
-  auto bbox = BBox(row_, col_, row_ + 1, col_ + 1);
+  auto bbox = rect();
 
   if (xAxisBBox_.isValid()) bbox += xAxisBBox_;
   if (yAxisBBox_.isValid()) bbox += yAxisBBox_;
@@ -4507,7 +4535,7 @@ handleSelectRelease(const Point &p, bool add)
 
 bool
 CQChartsSummaryCellObj::
-handleModifyPress(const Point &p, SelMod)
+handleEditPress(const Point &p)
 {
   modifyPress_ = parentToPlot(p);
 
@@ -4521,7 +4549,7 @@ handleModifyPress(const Point &p, SelMod)
 
 bool
 CQChartsSummaryCellObj::
-handleModifyMove(const Point &p)
+handleEditMove(const Point &p)
 {
   auto modifyMove = parentToPlot(p);
 
@@ -4585,7 +4613,7 @@ handleModifyMove(const Point &p)
 
 bool
 CQChartsSummaryCellObj::
-handleModifyRelease(const Point &)
+handleEditRelease(const Point &)
 {
   if (modifyBox_.isSet()) {
     double xmin, xmax, ymin, ymax;
@@ -5271,10 +5299,6 @@ addRangeList()
   // group frame
   auto rangeFrame = createGroupFrame("Column Ranges", "rangeFrame");
 
-  rangeEditCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Range Edit", "rangeEdit");
-
-  addFrameWidget(rangeFrame, rangeEditCheck_);
-
   rangeList_ = new CQChartsSummaryPlotRangeList;
 
   addFrameWidget(rangeFrame, rangeList_);
@@ -5353,9 +5377,6 @@ void
 CQChartsSummaryPlotCustomControls::
 connectSlots(bool b)
 {
-  CQUtil::optConnectDisconnect(b,
-    rangeEditCheck_, SIGNAL(stateChanged(int)), this, SLOT(rangeEditSlot(int)));
-
   CQUtil::optConnectDisconnect(b,
     plotTypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(plotTypeSlot()));
   CQUtil::optConnectDisconnect(b,
@@ -5455,13 +5476,6 @@ updateWidgets()
   //---
 
   CQChartsPlotCustomControls::updateWidgets();
-}
-
-void
-CQChartsSummaryPlotCustomControls::
-rangeEditSlot(int state)
-{
-  summaryPlot_->setRangeEdit(state);
 }
 
 void

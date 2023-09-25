@@ -276,6 +276,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   const Column &groupColumn() const { return groupColumn_; }
   void setGroupColumn(const Column &c);
 
+  void setColorColumn(const Column &c) override;
+
   // symbol type and size columns
   const Column &symbolTypeColumn() const { return symbolTypeColumn_; }
   void setSymbolTypeColumn(const Column &c);
@@ -477,11 +479,6 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
-  bool isRangeEdit() const { return rangeEdit_; }
-  void setRangeEdit(bool b) { rangeEdit_ = b; }
-
-  //---
-
   CQChartsGeom::BBox fitBBox() const override;
 
   //---
@@ -519,9 +516,10 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
-  bool handleModifyPress  (const Point &p, SelMod selMod) override;
-  bool handleModifyMove   (const Point &p) override;
-  bool handleModifyRelease(const Point &p) override;
+  // plot edit interface
+  bool handleEditPress  (const Point &p, const Point &w, bool inside=false) override;
+  bool handleEditMove   (const Point &p, const Point &w, bool first=false) override;
+  bool handleEditRelease(const Point &p, const Point &w) override;
 
   //---
 
@@ -545,9 +543,11 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   void selectColumnRanges();
 
   bool isRangeSelectedRow(int r) const;
-  bool isModelSelectedRow(int r) const;
-
   int numRangeSelectedRows() const;
+
+  void clearModelSelectedRows() const;
+  void addModelSelectedRow(int row, int col) const;
+  bool isModelSelectedRow(int r) const;
 
   //---
 
@@ -677,14 +677,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
-
   using ColumnRange = std::map<Column, MinMax>;
 
   ColumnRange columnRange_;
-
-  //---
-
-  bool rangeEdit_ { false };
 
   //---
 
@@ -784,9 +779,9 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   virtual bool handleSelectMove   (const Point &p, Constraints constraints, bool first=false);
   virtual bool handleSelectRelease(const Point &p, bool add);
 
-  virtual bool handleModifyPress  (const Point &p, SelMod selMod);
-  virtual bool handleModifyMove   (const Point &p);
-  virtual bool handleModifyRelease(const Point &p);
+  virtual bool handleEditPress  (const Point &p);
+  virtual bool handleEditMove   (const Point &p);
+  virtual bool handleEditRelease(const Point &p);
 
   void updateRangeInside(const Point &p);
 
@@ -970,8 +965,6 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
   void connectSlots(bool b) override;
 
  protected Q_SLOTS:
-  void rangeEditSlot(int);
-
   void plotTypeSlot();
 
   void diagonalTypeSlot();
@@ -991,9 +984,7 @@ class CQChartsSummaryPlotCustomControls : public CQChartsPlotCustomControls {
 
   FrameData optionsFrame_;
   FrameData buttonsFrame_;
-
-  QCheckBox* rangeEditCheck_ { nullptr };
-  FrameData  rangesFrame_;
+  FrameData rangesFrame_;
 
   CQChartsEnumParameterEdit* plotTypeCombo_          { nullptr };
   CQChartsEnumParameterEdit* diagonalTypeCombo_      { nullptr };

@@ -1503,10 +1503,6 @@ class CQChartsView : public QFrame,
   void selectMouseMove();
   void selectMouseRelease();
 
-  void selectMouseModifyPress();
-  void selectMouseModifyMove();
-  void selectMouseModifyRelease();
-
   void selectMouseDoubleClick();
 
   void selectPointPress();
