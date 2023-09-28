@@ -51,13 +51,13 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Table Plot").
-    h3("Summary").
-     p("Draws data in table.").
-    h3("Limitations").
-     p("None.").
-    h3("Example").
-     p(IMG("images/table.png"));
+    h2("Table Plot").
+     h3("Summary").
+      p("Draws data in table.").
+     h3("Limitations").
+      p("None.").
+     h3("Example").
+      p(IMG("images/table.png"));
 }
 
 void

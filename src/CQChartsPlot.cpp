@@ -3198,14 +3198,14 @@ setEqualScale(bool b)
   assert(! isComposite());
 
   CQChartsUtil::testAndSet(equalScale_, b, [&]() {
-     updateRange();
+    updateRange();
 
-     if (isAllowZoomX() && isAllowZoomY() && isEqualScale()) {
-       auto scale = std::min(dataScaleX(), dataScaleY());
+    if (isAllowZoomX() && isAllowZoomY() && isEqualScale()) {
+      auto scale = std::min(dataScaleX(), dataScaleY());
 
-       setDataScaleX(scale);
-       setDataScaleY(scale);
-     }
+      setDataScaleX(scale);
+      setDataScaleY(scale);
+    }
   });
 }
 
@@ -16389,7 +16389,16 @@ setFitBBox(const BBox &bbox)
   auto bbox1 = fitMargin().adjustPlotRange(this, bbox, /*inside*/true);
 
   // calc margin so plot box fits in specified box
-  auto pbbox = displayRangeBBox();
+  BBox pbbox;
+
+  if (! isEqualScale())
+    pbbox = displayRangeBBox();
+  else {
+    pbbox = unequalDataRange_.bbox();
+
+    if (! pbbox.isSet())
+      pbbox = displayRangeBBox();
+  }
 
   double left   = 100.0*(pbbox.getXMin() - bbox1.getXMin())/bbox1.getWidth ();
   double bottom = 100.0*(pbbox.getYMin() - bbox1.getYMin())/bbox1.getHeight();

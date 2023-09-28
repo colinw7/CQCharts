@@ -64,13 +64,13 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Grid Plot").
-    h3("Summary").
-     p("Draws set of values in a grid.").
-    h3("Limitations").
-     p("None.").
-    h3("Example").
-     p(IMG("images/grid.png"));
+    h2("Grid Plot").
+     h3("Summary").
+      p("Draws set of values in a grid.").
+     h3("Limitations").
+      p("None.").
+     h3("Example").
+      p(IMG("images/grid.png"));
 }
 
 void
@@ -467,7 +467,7 @@ createObjs(PlotObjs &objs) const
 
         bool ok1;
         label = gridPlot_->modelString(labelModelInd, ok1);
-     }
+      }
 
       //---
 

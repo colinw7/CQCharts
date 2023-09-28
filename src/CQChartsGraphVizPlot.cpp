@@ -46,13 +46,13 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Graphviz Plot").
-    h3("Summary").
-     p("Draw connected objects as a connected graph.").
-    h3("Limitations").
-     p("The plot does not support axes, key or logarithmic scales.").
-    h3("Example").
-     p(IMG("images/graphviz.png"));
+    h2("Graphviz Plot").
+     h3("Summary").
+      p("Draw connected objects as a connected graph.").
+     h3("Limitations").
+      p("The plot does not support axes, key or logarithmic scales.").
+     h3("Example").
+      p(IMG("images/graphviz.png"));
 }
 
 CQChartsPlot *

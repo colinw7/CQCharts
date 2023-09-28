@@ -64,44 +64,44 @@ CQChartsView::
 description()
 {
   return CQChartsHtml().
-   h2("View").
-   h3("Overview").
-   p("A view is a container for one or more plots").
-   p("Plots can be placed side by side, in a grid, or overlaid with shared x and/or y"
-     "coordinates.").
-   p("The view has it's own coordinate system. By default this is (0, 0) to (100, 100) "
-     "but can be changed as needed.").
-   p("The view can have a title width is shown on in the window manager title.").
-   h3("Theme").
-   p("The view controls the theme used to draw its child plots (dark or light).").
-   p("The default palette, and text style, used by the child plots can be defined.").
-   p("The default background color can be defined.").
-   h3("Tip").
-   p("The placement of the tooltip can be defined.").
-   h3("Probe").
-   p("The probe line can be configured.").
-   h3("Overview").
-   p("The plot overview can be configured.").
-   h3("Sizing").
-   p("The resize behavior can be configured.").
-   h3("Select and Inside").
-   p("When selecting with mouse the user can select the nearest object to a point or "
-     "objects inside or touching a rectangle.").
-   p("When a plot object is selected or highlighted (when mouse is inside) the objects "
-     "is redraw with a distinct style (fill and/or stroke). The view controls the configuration "
-     "of this style using a select and inside properties.").
-   p("When the selection or highlight mode is 'outline' just the outline of the object "
-     "is draw using the stroke style. When the selection or highlight mode is 'fill' the "
-     "object is drawn with the stroke and fill style. The stoke and/or fill can be disabled "
-     "if both are disable for 'fill' mode, or stroke is disabled for 'outline' mode then "
-     "the default selected/inside color and alpha are used.").
-   p("The plot fade on mouse over can be enabled.").
-   h3("Key").
-   p("A key of the child plots can be added and configured (placed and styled).").
-   h3("Annotations").
-   p("The view can have it's own annotations.").
-   h3("Objects Table").
-   p("The objects shown in the objects table can be configured.");
+    h2("View").
+    h3("Overview").
+    p("A view is a container for one or more plots").
+    p("Plots can be placed side by side, in a grid, or overlaid with shared x and/or y"
+      "coordinates.").
+    p("The view has it's own coordinate system. By default this is (0, 0) to (100, 100) "
+      "but can be changed as needed.").
+    p("The view can have a title width is shown on in the window manager title.").
+    h3("Theme").
+    p("The view controls the theme used to draw its child plots (dark or light).").
+    p("The default palette, and text style, used by the child plots can be defined.").
+    p("The default background color can be defined.").
+    h3("Tip").
+    p("The placement of the tooltip can be defined.").
+    h3("Probe").
+    p("The probe line can be configured.").
+    h3("Overview").
+    p("The plot overview can be configured.").
+    h3("Sizing").
+    p("The resize behavior can be configured.").
+    h3("Select and Inside").
+    p("When selecting with mouse the user can select the nearest object to a point or "
+      "objects inside or touching a rectangle.").
+    p("When a plot object is selected or highlighted (when mouse is inside) the objects "
+      "is redraw with a distinct style (fill and/or stroke). The view controls the configuration "
+      "of this style using a select and inside properties.").
+    p("When the selection or highlight mode is 'outline' just the outline of the object "
+      "is draw using the stroke style. When the selection or highlight mode is 'fill' the "
+      "object is drawn with the stroke and fill style. The stoke and/or fill can be disabled "
+      "if both are disable for 'fill' mode, or stroke is disabled for 'outline' mode then "
+      "the default selected/inside color and alpha are used.").
+    p("The plot fade on mouse over can be enabled.").
+    h3("Key").
+    p("A key of the child plots can be added and configured (placed and styled).").
+    h3("Annotations").
+    p("The view can have it's own annotations.").
+    h3("Objects Table").
+    p("The objects shown in the objects table can be configured.");
 }
 
 //---
@@ -407,6 +407,7 @@ addProperties()
 
   // data
   addProp("state", "mode"          , "", "View mouse mode" , true);
+  addProp("state", "zoomMode"      , "", "View zoom mode"  , true);
   addProp("state", "id"            , "", "View id"         , true);
   addProp("state", "currentPlotInd", "", "Current plot ind", true);
   addProp("state", "viewSizeHint"  , "", "View size hint"  , true);
@@ -1395,6 +1396,15 @@ CQChartsView::
 setRegionMode(const RegionMode &regionMode)
 {
   CQChartsUtil::testAndSet(regionData_.mode, regionMode, [&]() { Q_EMIT regionModeChanged(); } );
+}
+
+//---
+
+void
+CQChartsView::
+setZoomMode(const ZoomMode &zoomMode)
+{
+  CQChartsUtil::testAndSet(zoomData_.mode, zoomMode, [&]() { Q_EMIT zoomModeChanged(); } );
 }
 
 //---
@@ -3238,6 +3248,31 @@ keyPressEvent(QKeyEvent *ke)
     if (tipData_.floatTip->isVisible())
       tipData_.floatTip->showQuery(gpos);
   }
+  else if (ke->key() == Qt::Key_Left || ke->key() == Qt::Key_Right ||
+           ke->key() == Qt::Key_Up   || ke->key() == Qt::Key_Down) {
+    if (zoomMode() == ZoomMode::VIEW) {
+      if      (ke->key() == Qt::Key_Right)
+        pan(1, 0);
+      else if (ke->key() == Qt::Key_Left)
+        pan(-1, 0);
+      else if (ke->key() == Qt::Key_Up)
+        pan(0, 1);
+      else if (ke->key() == Qt::Key_Down)
+        pan(0, -1);
+
+      return;
+    }
+  }
+  else if (ke->key() == Qt::Key_Plus || ke->key() == Qt::Key_Minus) {
+    if (zoomMode() == ZoomMode::VIEW) {
+      if (ke->key() == Qt::Key_Plus)
+        zoomIn(1.5);
+      else
+        zoomOut(1.5);
+
+      return;
+    }
+  }
 
   //---
 
@@ -3269,26 +3304,31 @@ wheelEvent(QWheelEvent *e)
 
   Point pp(e->position());
 
-  auto w = pixelToWindow(pp);
-
-  Plots plots;
-  Plot* plot;
-
-  plotsAt(w, plots, plot);
-  if (! plot) return;
-
-  // scroll vertical
   auto delta = CQWidgetUtil::wheelDelta(e);
 
-  if      (e->modifiers() & Qt::ShiftModifier) {
-    plot->wheelVScroll(delta);
-  }
-  // scroll horizontal
-  else if (e->modifiers() & Qt::ControlModifier) {
-    plot->wheelHScroll(delta);
+  if (zoomMode() == ZoomMode::VIEW) {
+    wheelZoom(pp, delta);
   }
   else {
-    plot->wheelZoom(pp, delta);
+    auto w = pixelToWindow(pp);
+
+    Plots plots;
+    Plot* plot;
+
+    plotsAt(w, plots, plot);
+    if (! plot) return;
+
+    // scroll vertical
+    if      (e->modifiers() & Qt::ShiftModifier) {
+      plot->wheelVScroll(delta);
+    }
+    // scroll horizontal
+    else if (e->modifiers() & Qt::ControlModifier) {
+      plot->wheelHScroll(delta);
+    }
+    else {
+      plot->wheelZoom(pp, delta);
+    }
   }
 
   doUpdate();
@@ -5018,13 +5058,15 @@ drawBackground(PaintDevice *device) const
 
   device->setBrush(penBrush.brush);
 
-  //device->fillRect(prect_);
+  device->painter()->fillRect(prect_.qrecti(), penBrush.brush);
 
+#if 0
   double vr = CQChartsView::viewportRange();
 
   BBox bbox(0, 0, vr, vr);
 
   device->fillRect(bbox);
+#endif
 }
 
 void
@@ -7195,6 +7237,16 @@ void
 CQChartsView::
 fitSlot()
 {
+  if (zoomMode() == ZoomMode::VIEW) {
+    double vr = viewportRange();
+
+    displayRange_->setWindowRange(0, 0, vr, vr);
+
+    updatePlots();
+
+    return;
+  }
+
   auto *currentPlot = this->currentPlot(/*remap*/true);
   auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
@@ -7222,6 +7274,51 @@ zoomFullSlot()
 
   if (basePlot)
     basePlot->zoomFull();
+}
+
+void
+CQChartsView::
+wheelZoom(const Point &pp, int delta)
+{
+  auto pp1 = pixelToWindow(pp);
+
+  if      (delta > 0)
+    zoomIn();
+  else if (delta < 0)
+    zoomOut();
+
+  auto pp2 = pixelToWindow(pp); // mapping may have changed
+
+  displayRange_->scroll(pp1.x - pp2.x, pp1.y - pp2.y);
+}
+
+void
+CQChartsView::
+zoomIn(double f)
+{
+  displayRange_->zoomIn(f);
+
+  updatePlots();
+}
+
+void
+CQChartsView::
+zoomOut(double f)
+{
+  displayRange_->zoomOut(f);
+
+  updatePlots();
+}
+
+void
+CQChartsView::
+pan(int dx, int dy)
+{
+  double d = viewportRange()/10.0;
+
+  displayRange_->scroll(dx*d, dy*d);
+
+  updatePlots();
 }
 
 //------
@@ -8515,8 +8612,10 @@ updateScroll()
 
     displayRange_->setWindowRange(dx, 0, dx + vr, vr);
   }
-  else
-    displayRange_->setWindowRange(0, 0, vr, vr);
+  else {
+    if (zoomMode() != ZoomMode::VIEW)
+      displayRange_->setWindowRange(0, 0, vr, vr);
+  }
 
   updatePlots();
 

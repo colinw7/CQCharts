@@ -65,7 +65,7 @@ addParameters()
   //---
 
   addStringParameter("separator", "Separator", "separator", "/").setBasic().
-   setTip("Separator for name pair in link column");
+    setTip("Separator for name pair in link column");
 
   //---
 
@@ -1734,7 +1734,7 @@ addConnectionColumnWidgets()
 
   // value columns
   auto columnNames = QStringList() <<
-   "group" << "node" << "connections" << "link" << "path" << "from" << "to" << "value" << "name";
+    "group" << "node" << "connections" << "link" << "path" << "from" << "to" << "value" << "name";
 
   if (hasDepthColumn_)
     columnNames << "depth";

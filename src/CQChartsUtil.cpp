@@ -2174,7 +2174,7 @@ bool adjustRectsToOriginal(const std::vector<BBox> &oldRects, std::vector<BBox> 
 namespace CQChartsUtil {
 
 QString scaledNumberString(double r, int ndp) {
-  auto sv = CMathUtil::scaledNumberString(r, -ndp); // no pad
+  auto sv = CMathUtil::scaledNumberString(r, ndp); // no pad
 
   return QString::fromStdString(sv);
 }

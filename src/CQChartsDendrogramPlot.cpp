@@ -149,12 +149,12 @@ CQChartsDendrogramPlotType::
 addExtraHierParameters()
 {
   addColumnParameter("link", "Link", "linkColumn").
-   setStringColumn ().setRequired().setPropPath("columns.link").setTip("Link column");
+    setStringColumn ().setRequired().setPropPath("columns.link").setTip("Link column");
   addColumnParameter("size", "Size", "sizeColumn").
-   setNumericColumn().setPropPath("columns.size").setTip("Size column");
+    setNumericColumn().setPropPath("columns.size").setTip("Size column");
 
   addColumnParameter("swatchColor", "Swatch Color", "swatchColorColumn").
-   setNumericColumn().setPropPath("columns.swatchColor").setTip("Swatch color column");
+    setNumericColumn().setPropPath("columns.swatchColor").setTip("Swatch color column");
 }
 
 QString
@@ -164,13 +164,13 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Dendrogram Plot").
-    h3("Summary").
-     p("Draw hierarchical data using collapsible tree.").
-    h3("Limitations").
-     p("None.").
-    h3("Example").
-     p(IMG("images/dendrogram.png"));
+    h2("Dendrogram Plot").
+     h3("Summary").
+      p("Draw hierarchical data using collapsible tree.").
+     h3("Limitations").
+      p("None.").
+     h3("Example").
+      p(IMG("images/dendrogram.png"));
 }
 
 CQChartsPlot *
@@ -4303,7 +4303,6 @@ displayRect() const
   auto ss = calcScaledShapePixelSize();
 
   // aspect w/h (> 1.0 wider, < 1.0 taller)
-   // get specified shape size
   auto calcAspect = [&]() {
     if (isRoot()) return dendrogramPlot_->rootAspect();
     if (isHier()) return dendrogramPlot_->hierAspect();

@@ -52,17 +52,17 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Flame Plot").
-    h3("Summary").
-     p("Draws Flame from ind, path, start, end time data.").
-    h3("Columns").
-     p("The time is specified with the " + B("Start") + " and " + B("End") + " columns.").
-     p("The optional name can be specified in the " + B("Name") + " column.").
-     p("The optional value can be specified in the " + B("Value") + " column.").
-    h3("Limitations").
-     p("None.").
-    h3("Example").
-     p(IMG("images/flame.png"));
+    h2("Flame Plot").
+     h3("Summary").
+      p("Draws Flame from ind, path, start, end time data.").
+     h3("Columns").
+      p("The time is specified with the " + B("Start") + " and " + B("End") + " columns.").
+      p("The optional name can be specified in the " + B("Name") + " column.").
+      p("The optional value can be specified in the " + B("Value") + " column.").
+     h3("Limitations").
+      p("None.").
+     h3("Example").
+      p(IMG("images/flame.png"));
 }
 
 CQChartsPlot *

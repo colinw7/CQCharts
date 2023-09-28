@@ -83,7 +83,7 @@ class CQChartsScriptPaintDevice : public CQChartsHtmlPaintDevice {
     QString id1;
 
     for (int i = 0; i < len; ++i) {
-      QChar c = id[i];
+      auto c = id[i];
 
       if (c.isLetterOrNumber())
         id1 += c;

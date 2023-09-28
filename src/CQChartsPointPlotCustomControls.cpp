@@ -295,7 +295,7 @@ updateSymbolTypeMapKeyVisible()
     auto hasSymbolTypeColumn = pointPlot_->symbolTypeColumn().isValid();
 
     bool hasSymbolTypeMapKey =
-     (hasSymbolTypeColumn && ! pointPlot_->symbolTypeMapKey()->isNative());
+      (hasSymbolTypeColumn && ! pointPlot_->symbolTypeMapKey()->isNative());
 
     symbolTypeMapKey_->setVisible(hasSymbolTypeMapKey && symbolTypeControlGroup_->isKeyVisible());
 

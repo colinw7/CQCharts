@@ -108,7 +108,7 @@ class CQChartsPlotParameterAttributes {
   }
 
   QString summary() const {
-    QString str = (isOptional() ? "optional" : "required");
+    auto str = QString(isOptional() ? "optional" : "required");
 
     str += (isMonotonic  () ? "|monotonic"       : "");
     str += (hasTypeDetail() ? "|" + typeDetail() : "");
@@ -296,7 +296,7 @@ class CQChartsPlotParameter : public QObject {
 
   //! get map property names
   bool mapPropNames(QString &mappedName, QString &mapMinName, QString &mapMaxName) const {
-    QString columnPropName = this->propName();
+    auto columnPropName = this->propName();
 
     int pos = columnPropName.indexOf("Column");
     if (pos < 0) return false;

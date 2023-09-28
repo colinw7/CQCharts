@@ -34,8 +34,8 @@ addParameters()
 
   // required object geometry
   addColumnParameter("geometry", "Geometry", "geometryColumn").
-   setRequired().setPropPath("columns.geometry").
-   setTip("Polygon List, Polygon, Rect or Path geometry");
+    setRequired().setPropPath("columns.geometry").
+    setTip("Polygon List, Polygon, Rect or Path geometry");
 
   // optional name, value, style
   addColumnParameter("name" , "Name" , "nameColumn" ).setPropPath("columns.name").setBasic();
@@ -59,21 +59,21 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Geometry Plot").
-    h3("Summary").
-     p("Draws polygon list, polygon, rect or path shapes.").
-    h3("Columns").
-     p("The shape geometry is specified in the " + B("Geometry") + " column.").
-     p("The optional shape name can be specified in the " + B("Name") + " column.").
-     p("The optional shape value can be specified in the " + B("Value") + " column "
-       "and can be used to color the shape by enabling the " + B("colorByValue") + " option." +
-       BR() + "This value can be normalized using the " + B("minValue") + " and " +
-       B("maxValue") + " values.").
-     p("The optional style (fill, stroke) can be specified in the " + B("Style") + " column.").
-    h3("Limitations").
-     p("None.").
-    h3("Example").
-     p(IMG("images/geometryplot.png"));
+    h2("Geometry Plot").
+     h3("Summary").
+      p("Draws polygon list, polygon, rect or path shapes.").
+     h3("Columns").
+      p("The shape geometry is specified in the " + B("Geometry") + " column.").
+      p("The optional shape name can be specified in the " + B("Name") + " column.").
+      p("The optional shape value can be specified in the " + B("Value") + " column "
+        "and can be used to color the shape by enabling the " + B("colorByValue") + " option." +
+        BR() + "This value can be normalized using the " + B("minValue") + " and " +
+        B("maxValue") + " values.").
+      p("The optional style (fill, stroke) can be specified in the " + B("Style") + " column.").
+     h3("Limitations").
+      p("None.").
+     h3("Example").
+      p(IMG("images/geometryplot.png"));
 }
 
 bool

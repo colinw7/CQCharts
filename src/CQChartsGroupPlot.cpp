@@ -23,10 +23,10 @@ addParameters()
 
   if (isGroupRequired())
     addColumnParameter("group", "Group", "groupColumn").setRequired().
-     setGroupable().setBasic().setPropPath("dataGrouping.group").setTip("Group column");
+      setGroupable().setBasic().setPropPath("dataGrouping.group").setTip("Group column");
   else
     addColumnParameter("group", "Group", "groupColumn").
-     setGroupable().setBasic().setPropPath("dataGrouping.group").setTip("Group column");
+      setGroupable().setBasic().setPropPath("dataGrouping.group").setTip("Group column");
 
   if (allowRowGrouping())
     addBoolParameter("rowGrouping", "Row Grouping", "rowGrouping").
@@ -41,10 +41,10 @@ addParameters()
       setTip("Use row number for group");
 
   addBoolParameter("exactValue", "Exact Value", "exactBucketValue", true).
-   setTip("Use exact value for grouping");
+    setTip("Use exact value for grouping");
 
   addBoolParameter("autoRange", "Auto Range", "autoBucketRange", true).
-   setTip("Automatically determine value range");
+    setTip("Automatically determine value range");
 
   addRealParameter("start", "Start", "startBucketValue", 0.0).
     setRequired().setTip("Start value for manual range");
@@ -813,7 +813,7 @@ groupIndName(int ind, bool hier) const
 
   if (groupBucket_->dataType() == Bucket::DataType::COLUMN ||
       groupBucket_->dataType() == Bucket::DataType::COLUMN_ROOT) {
-     return groupBucket_->bucketIndName(ind, hier);
+    return groupBucket_->bucketIndName(ind, hier);
   }
   else {
     return groupBucket_->indName(ind);

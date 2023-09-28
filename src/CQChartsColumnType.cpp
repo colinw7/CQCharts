@@ -141,36 +141,36 @@ description()
     return CQChartsHtml::Str::a(CQChartsHtml::Str(ref), CQChartsHtml::Str(str)); };
 
   return CQChartsHtml().
-   h2("Column Types").
-    p("The following column types are supported:").
-    ul({LI(A("charts://column_type/string"          , "string"          )),
-        LI(A("charts://column_type/boolean"         , "boolean"         )),
-        LI(A("charts://column_type/real"            , "real"            )),
-        LI(A("charts://column_type/integer"         , "integer"         )),
-        LI(A("charts://column_type/time"            , "time"            )),
-        LI(A("charts://column_type/rect"            , "rectangle"       )),
-        LI(A("charts://column_type/polygon"         , "polygon"         )),
-        LI(A("charts://column_type/polygon list"    , "polygon list"    )),
-        LI(A("charts://column_type/connections list", "connections list")),
-        LI(A("charts://column_type/name pair"       , "name pair"       )),
-        LI(A("charts://column_type/path"            , "path"            )),
-        LI(A("charts://column_type/style"           , "style"           )),
-        LI(A("charts://column_type/color"           , "color"           )),
-        LI(A("charts://column_type/image"           , "image"           )),
-        LI(A("charts://column_type/symbol type"     , "symbol type"     )),
-        LI(A("charts://column_type/symbol size"     , "symbol size"     )),
-        LI(A("charts://column_type/font size"       , "font size"       )) }).
-    p("Values can be converted in the model (edit role) or in the plot (display role).").
-    p("For example time values are usually stored as date strings in the input data so "
-      "to store the actual UNIX time value in the edit role of the model they need to "
-      "be converted using the column 'iformat' name value. To display the time in the "
-      "plot (e.g. on axis tick labels) this converted time needs to be converted back "
-      "to a string using the 'oformat' name value.").
-    p("Color values can either be stored as color names in the input data or can "
-      "be mapped into a palette from numeric values or discrete strings. Usually "
-      "mapping takes place on data that can be used for other parts of the plot "
-      "so it is better to convert the value in the plot rather than the model so "
-      "the original data can still be accessed.");
+    h2("Column Types").
+     p("The following column types are supported:").
+     ul({LI(A("charts://column_type/string"          , "string"          )),
+         LI(A("charts://column_type/boolean"         , "boolean"         )),
+         LI(A("charts://column_type/real"            , "real"            )),
+         LI(A("charts://column_type/integer"         , "integer"         )),
+         LI(A("charts://column_type/time"            , "time"            )),
+         LI(A("charts://column_type/rect"            , "rectangle"       )),
+         LI(A("charts://column_type/polygon"         , "polygon"         )),
+         LI(A("charts://column_type/polygon list"    , "polygon list"    )),
+         LI(A("charts://column_type/connections list", "connections list")),
+         LI(A("charts://column_type/name pair"       , "name pair"       )),
+         LI(A("charts://column_type/path"            , "path"            )),
+         LI(A("charts://column_type/style"           , "style"           )),
+         LI(A("charts://column_type/color"           , "color"           )),
+         LI(A("charts://column_type/image"           , "image"           )),
+         LI(A("charts://column_type/symbol type"     , "symbol type"     )),
+         LI(A("charts://column_type/symbol size"     , "symbol size"     )),
+         LI(A("charts://column_type/font size"       , "font size"       )) }).
+     p("Values can be converted in the model (edit role) or in the plot (display role).").
+     p("For example time values are usually stored as date strings in the input data so "
+       "to store the actual UNIX time value in the edit role of the model they need to "
+       "be converted using the column 'iformat' name value. To display the time in the "
+       "plot (e.g. on axis tick labels) this converted time needs to be converted back "
+       "to a string using the 'oformat' name value.").
+     p("Color values can either be stored as color names in the input data or can "
+       "be mapped into a palette from numeric values or discrete strings. Usually "
+       "mapping takes place on data that can be used for other parts of the plot "
+       "so it is better to convert the value in the plot rather than the model so "
+       "the original data can still be accessed.");
 }
 
 //------
@@ -1273,8 +1273,8 @@ CQChartsColumnStringType::
 desc() const
 {
   return CQChartsHtml().
-   h2("String").
-    p("Specifies that the column values are strings.");
+    h2("String").
+     p("Specifies that the column values are strings.");
 }
 
 QVariant
@@ -1315,8 +1315,8 @@ CQChartsColumnBooleanType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Boolean").
-    p("Specifies that the column values are booleans.");
+    h2("Boolean").
+     p("Specifies that the column values are booleans.");
 }
 
 QVariant
@@ -1378,8 +1378,8 @@ CQChartsColumnRealType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Real").
-    p("Specifies that the column values are real (double precision) numbers.");
+    h2("Real").
+     p("Specifies that the column values are real (double precision) numbers.");
 }
 
 QVariant
@@ -1633,8 +1633,8 @@ CQChartsColumnIntegerType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Real").
-    p("Specifies that the column values are integer numbers.");
+    h2("Real").
+     p("Specifies that the column values are integer numbers.");
 }
 
 QVariant
@@ -1828,8 +1828,8 @@ CQChartsColumnTimeType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Time").
-    p("Specifies that the column values are time values.");
+    h2("Time").
+     p("Specifies that the column values are time values.");
 }
 
 QVariant
@@ -1957,8 +1957,8 @@ CQChartsColumnPointType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Pointangle").
-    p("Specifies that the column values are point values.");
+    h2("Pointangle").
+     p("Specifies that the column values are point values.");
 }
 
 QVariant
@@ -2030,8 +2030,8 @@ CQChartsColumnRectType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Rectangle").
-    p("Specifies that the column values are rectangle values.");
+    h2("Rectangle").
+     p("Specifies that the column values are rectangle values.");
 }
 
 QVariant
@@ -2105,8 +2105,8 @@ CQChartsColumnLengthType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Length").
-    p("Specifies that the column values are length values.");
+    h2("Length").
+     p("Specifies that the column values are length values.");
 }
 
 QVariant
@@ -2155,8 +2155,8 @@ CQChartsColumnPolygonType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Polygon").
-    p("Specifies that the column values are polygon values.");
+    h2("Polygon").
+     p("Specifies that the column values are polygon values.");
 }
 
 QVariant
@@ -2254,8 +2254,8 @@ CQChartsColumnPolygonListType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Polygon List").
-    p("Specifies that the column values are lists of polygon values.");
+    h2("Polygon List").
+     p("Specifies that the column values are lists of polygon values.");
 }
 
 QVariant
@@ -2322,8 +2322,8 @@ CQChartsColumnConnectionListType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Connection List").
-    p("Specifies that the column values are connection lists.");
+    h2("Connection List").
+     p("Specifies that the column values are connection lists.");
 }
 
 QVariant
@@ -2390,8 +2390,8 @@ CQChartsColumnNamePairType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Name Pair").
-    p("Specifies that the column values are name value pairs.");
+    h2("Name Pair").
+     p("Specifies that the column values are name value pairs.");
 }
 
 QVariant
@@ -2464,8 +2464,8 @@ CQChartsColumnNameValuesType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Name Pair").
-    p("Specifies that the column values are name value pairs.");
+    h2("Name Pair").
+     p("Specifies that the column values are name value pairs.");
 }
 
 QVariant
@@ -2563,8 +2563,8 @@ CQChartsColumnPathType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Path").
-    p("Specifies that the column values are path definitions.");
+    h2("Path").
+     p("Specifies that the column values are path definitions.");
 }
 
 QVariant
@@ -2617,8 +2617,8 @@ CQChartsColumnStyleType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Style").
-    p("Specifies that the column values are style definitions.");
+    h2("Style").
+     p("Specifies that the column values are style definitions.");
 }
 
 QVariant
@@ -2684,8 +2684,8 @@ CQChartsColumnColorType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Color").
-    p("Specifies that the column values are color names.");
+    h2("Color").
+     p("Specifies that the column values are color names.");
 }
 
 QVariant
@@ -2871,8 +2871,8 @@ CQChartsColumnFontType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Font").
-    p("Specifies that the column values are font names.");
+    h2("Font").
+     p("Specifies that the column values are font names.");
 }
 
 QVariant
@@ -2932,8 +2932,8 @@ CQChartsColumnImageType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Image").
-    p("Specifies that the column values are image names.");
+    h2("Image").
+     p("Specifies that the column values are image names.");
 }
 
 QVariant
@@ -2996,8 +2996,8 @@ CQChartsColumnSymbolTypeType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Symbol Type").
-    p("Specifies that the column values are symbol types.");
+    h2("Symbol Type").
+     p("Specifies that the column values are symbol types.");
 }
 
 QVariant
@@ -3150,8 +3150,8 @@ CQChartsColumnSymbolSizeType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Symbol Size").
-    p("Specifies that the column values are symbol sizes.");
+    h2("Symbol Size").
+     p("Specifies that the column values are symbol sizes.");
 }
 
 QVariant
@@ -3302,8 +3302,8 @@ CQChartsColumnFontSizeType::
 desc() const
 {
   return CQChartsHtml().
-   h2("Font Size").
-    p("Specifies that the column values are font sizes.");
+    h2("Font Size").
+     p("Specifies that the column values are font sizes.");
 }
 
 QVariant

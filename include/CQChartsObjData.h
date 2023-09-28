@@ -118,7 +118,7 @@ class CQChartsObjLineData {
   }
 
   void setLineDataPen(QPen &pen, const ColorInd &ind) const {
-    QColor lc = interpLinesColor(ind);
+    auto lc = interpLinesColor(ind);
 
     PenBrush penBrush;
     lineDataObj_->setPen(penBrush, lineDataPenData(lc));
@@ -256,7 +256,7 @@ class CQChartsObj##UNAME##LineData { \
   } \
 \
   void set##UNAME##LineDataPen(QPen &pen, const ColorInd &ind) const { \
-    QColor lc = interp##UNAME##LinesColor(ind); \
+    auto lc = interp##UNAME##LinesColor(ind); \
 \
     PenBrush penBrush; \
     LNAME##LineDataObj_->setPen(penBrush, LNAME##LineDataPenData(lc)); \
@@ -1701,7 +1701,7 @@ class CQChartsObj##UNAME##ShapeData { \
   } \
 \
   void set##UNAME##Pen(QPen &pen, const ColorInd &ind) const { \
-    QColor lc = interp##UNAME##StrokeColor(ind); \
+    auto lc = interp##UNAME##StrokeColor(ind); \
 \
     PenBrush penBrush; \
     LNAME##ShapeDataObj_->setPen(penBrush, LNAME##PenData(lc)); \

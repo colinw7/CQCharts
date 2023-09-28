@@ -125,6 +125,9 @@ class CQChartsView : public QFrame,
   // region mode
   Q_PROPERTY(RegionMode regionMode READ regionMode WRITE setRegionMode)
 
+  // zoom mode
+  Q_PROPERTY(ZoomMode zoomMode READ zoomMode WRITE setZoomMode)
+
   // theme
   Q_PROPERTY(CQChartsThemeName theme READ themeName WRITE setThemeName)
   Q_PROPERTY(bool              dark  READ isDark    WRITE setDark     )
@@ -218,6 +221,7 @@ class CQChartsView : public QFrame,
   Q_ENUMS(SelectMode)
   Q_ENUMS(HighlightDataMode)
   Q_ENUMS(RegionMode)
+  Q_ENUMS(ZoomMode)
   Q_ENUMS(ThemeType)
   Q_ENUMS(PosTextType)
   Q_ENUMS(ProbePos)
@@ -254,6 +258,12 @@ class CQChartsView : public QFrame,
   enum class RegionMode {
     POINT,
     RECT
+  };
+
+  //! zoom mode
+  enum class ZoomMode {
+    PLOT,
+    VIEW
   };
 
   //! units of position displayed in position text
@@ -418,6 +428,12 @@ class CQChartsView : public QFrame,
   //! get/set region mode
   const RegionMode &regionMode() const { return regionData_.mode; }
   void setRegionMode(const RegionMode &m);
+
+  //---
+
+  //! get/set zoom mode
+  const ZoomMode &zoomMode() const { return zoomData_.mode; }
+  void setZoomMode(const ZoomMode &m);
 
   //---
 
@@ -1243,8 +1259,11 @@ class CQChartsView : public QFrame,
   // emitted when selection mode changed
   void selectModeChanged();
 
-  // emitted when selection mode changed
+  // emitted when region mode changed
   void regionModeChanged();
+
+  // emitted when zoom mode changed
+  void zoomModeChanged();
 
   // emitted when interface or theme palettes changed
   void interfacePaletteChanged();
@@ -1404,6 +1423,13 @@ class CQChartsView : public QFrame,
 
   void zoomDataSlot();
   void zoomFullSlot();
+
+  void wheelZoom(const Point &pp, int delta);
+
+  void zoomIn(double f=1.5);
+  void zoomOut(double f=1.5);
+
+  void pan(int dx, int dy);
 
   //---
 
@@ -1645,6 +1671,11 @@ class CQChartsView : public QFrame,
     Size       size { 1, 1 };             //!< point region size
   };
 
+  //! structure containing the zoom mode
+  struct ZoomData {
+    ZoomMode mode { ZoomMode::PLOT }; //!< zoom mode
+  };
+
   //! structure containing the ruler data
   struct RulerData {
     bool  set   { false };
@@ -1784,6 +1815,7 @@ class CQChartsView : public QFrame,
   Alpha overlayFadeAlpha_ { 0.5 };   //!< overlay fade alpha
 
   RegionData regionData_;                //!< region sub mode
+  ZoomData   zoomData_;                  //!< zoom mode
   RulerData  rulerData_;                 //!< ruler sub mode
   QString    defaultPalette_;            //!< default palette
   ScrollData scrollData_;                //!< scroll data

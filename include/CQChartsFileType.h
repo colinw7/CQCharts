@@ -22,7 +22,7 @@ inline QStringList fileTypeNames() {
 }
 
 inline CQChartsFileType stringToFileType(const QString &str) {
-  QString lstr = str.toLower();
+  auto lstr = str.toLower();
 
   if      (lstr == "csv" ) return CQChartsFileType::CSV;
   else if (lstr == "tsv" ) return CQChartsFileType::TSV;

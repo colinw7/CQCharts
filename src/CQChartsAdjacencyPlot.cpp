@@ -43,32 +43,32 @@ description() const
   auto IMG  = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Adjacency Plot").
-    h3("Summary").
-     p("Draws connectivity information between two different sets of data as a "
-       "matrix where the color of the cells represents the group (color) and "
-       "connectivity (alpha).").
-    h3("Columns").
-     p("Connection information can be supplied using:").
-     ul({ LI("A list of connections in the " + B("Connections") + " column with the "
-             "associated node numbers in the " + B("Node") + " column."),
-          LI("A link using " + B("Link") + " column and a value using the " +
-             B("Value") + " column.") }).
-     p("The connections column is in the form {{" + PARM("id") + " " + PARM("value") + "} ...}.").
-     p("The link column is in the form " + PARM("id1") + "/" + PARM("id2")).
-     p("The column id is taken from the " + B("Id") + " column and an optional "
-       "name for the id can be supplied in the " + B("Name") + " column.").
-     p("The group is specified using the " + B("Group") + " column.").
-    h3("Options").
-     p("The nodes can be sorted by group, name or value using the " + B("sortType") + " option").
-     p("The margin around the plot can be specified using the " + B("margin") + " option").
-    h3("Styling").
-     p("The styling (fill, stroke) of the connection cells, empty (no connection) cell "
-       "and background can be set").
-    h3("Limitations").
-     p("The plot does not support axes, key or logarithmic scales.").
-    h3("Example").
-     p(IMG("images/adjacency.png"));
+    h2("Adjacency Plot").
+     h3("Summary").
+      p("Draws connectivity information between two different sets of data as a "
+        "matrix where the color of the cells represents the group (color) and "
+        "connectivity (alpha).").
+     h3("Columns").
+      p("Connection information can be supplied using:").
+      ul({ LI("A list of connections in the " + B("Connections") + " column with the "
+              "associated node numbers in the " + B("Node") + " column."),
+           LI("A link using " + B("Link") + " column and a value using the " +
+              B("Value") + " column.") }).
+      p("The connections column is in the form {{" + PARM("id") + " " + PARM("value") + "} ...}.").
+      p("The link column is in the form " + PARM("id1") + "/" + PARM("id2")).
+      p("The column id is taken from the " + B("Id") + " column and an optional "
+        "name for the id can be supplied in the " + B("Name") + " column.").
+      p("The group is specified using the " + B("Group") + " column.").
+     h3("Options").
+      p("The nodes can be sorted by group, name or value using the " + B("sortType") + " option").
+      p("The margin around the plot can be specified using the " + B("margin") + " option").
+     h3("Styling").
+      p("The styling (fill, stroke) of the connection cells, empty (no connection) cell "
+        "and background can be set").
+     h3("Limitations").
+      p("The plot does not support axes, key or logarithmic scales.").
+     h3("Example").
+      p(IMG("images/adjacency.png"));
 }
 
 bool

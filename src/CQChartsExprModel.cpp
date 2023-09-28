@@ -1293,7 +1293,7 @@ flags(const QModelIndex &index) const
   if (! index.isValid() || index.column() < nc)
     return sourceModel()->flags(mapToSource(index));
 
-  Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+  auto flags = Qt::ItemFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
   if (editable_)
     flags |= Qt::ItemIsEditable;

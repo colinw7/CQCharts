@@ -56,7 +56,7 @@ addParameters()
     setRequired().setPropPath("columns.columns").setTip("Columns");
 
   addColumnParameter("group", "Group", "groupColumn").
-   setGroupable().setBasic().setPropPath("columns.group").setTip("Group column");
+    setGroupable().setBasic().setPropPath("columns.group").setTip("Group column");
 
   addColumnParameter("symbolType", "Symbol Type", "symbolTypeColumn").
     setPropPath("columns.symbolType").setTip("Custom Symbol Type").setMapped().
@@ -101,27 +101,27 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Table Plot").
-    h3("Summary").
-     p("Draws summary plots of multiple column datas in a grid.").
-     p("Each off diagonal plot is a 2d plot of associated columns for grid "
-       "column (x) and grid row (y).").
-     p("Each diagonal plot is a 1d plot of column grid column/row.").
-    h3("Customization").
-     p("The plot types for the diagonal, upper off diagonal and lower off diagonal "
-       " can be customized from a selection of 1d and 2d plot types.").
-     p("The appearance of each plot type can be configured.").
-    h3("Functionality").
-     p("Selecting a plot and pushing in displays the associated data in the a "
-       "single plot of the specified type").
-     p("Selecting a range in a plot will define a data range for the associated column(s) "
-       "and select associated data in that range.").
-     p("The filtered values for each columns can be cross selected back to the model.").
-    h3("Limitations").
-     p("The summary plots have limted functionality compared to the associated "
-       "expanded plot of the associated type.").
-    h3("Example").
-     p(IMG("images/summary_plot.png"));
+    h2("Table Plot").
+     h3("Summary").
+      p("Draws summary plots of multiple column datas in a grid.").
+      p("Each off diagonal plot is a 2d plot of associated columns for grid "
+        "column (x) and grid row (y).").
+      p("Each diagonal plot is a 1d plot of column grid column/row.").
+     h3("Customization").
+      p("The plot types for the diagonal, upper off diagonal and lower off diagonal "
+        " can be customized from a selection of 1d and 2d plot types.").
+      p("The appearance of each plot type can be configured.").
+     h3("Functionality").
+      p("Selecting a plot and pushing in displays the associated data in the a "
+        "single plot of the specified type").
+      p("Selecting a range in a plot will define a data range for the associated column(s) "
+        "and select associated data in that range.").
+      p("The filtered values for each columns can be cross selected back to the model.").
+     h3("Limitations").
+      p("The summary plots have limted functionality compared to the associated "
+        "expanded plot of the associated type.").
+     h3("Example").
+      p(IMG("images/summary_plot.png"));
 }
 
 void
@@ -440,6 +440,7 @@ updatePlots()
     scatterPlot()->setSymbol(scatterSymbol());
     scatterPlot()->setSymbolSize(calcScatterSymbolSize());
 
+    // TODO: more axis settings ?
     scatterPlot()->xAxis()->setGridLinesDisplayed(xAxis()->gridLinesDisplayed());
     scatterPlot()->yAxis()->setGridLinesDisplayed(yAxis()->gridLinesDisplayed());
 
@@ -463,6 +464,10 @@ updatePlots()
         distributionPlot()->setBarFillColor(cellObj->barColor());
       else
         distributionPlot()->setBarFillColor(Color::makePalette());
+
+      // TODO: more axis settings ?
+      distributionPlot()->xAxis()->setGridLinesDisplayed(xAxis()->gridLinesDisplayed());
+      distributionPlot()->yAxis()->setGridLinesDisplayed(yAxis()->gridLinesDisplayed());
 
       currentPlot = distributionPlot();
     }
@@ -3671,7 +3676,7 @@ drawDistribution(PaintDevice *device) const
     int nc = int(valueCounts.size());
 
     double dn = (invert ?
-     (nc > 0 ? (pymax_ - pymin_)/nc : 0.0) : (nc > 0 ? (pxmax_ - pxmin_)/nc : 0.0));
+      (nc > 0 ? (pymax_ - pymin_)/nc : 0.0) : (nc > 0 ? (pxmax_ - pxmin_)/nc : 0.0));
 
     double pos = (invert ? pymin_ : pxmin_);
 

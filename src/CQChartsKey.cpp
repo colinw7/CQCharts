@@ -201,7 +201,7 @@ setDefHeaderStr(const QString &s, bool update)
 {
   CQChartsUtil::testAndSet(defHeaderStr_, s, [&]() {
     if (update)
-     updateLayout();
+      updateLayout();
   } );
 }
 

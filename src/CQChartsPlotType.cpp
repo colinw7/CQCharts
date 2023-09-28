@@ -110,31 +110,31 @@ addParameters()
   startParameterGroup("Common");
 
   addColumnParameter("id", "Id", "idColumn").
-   setStringColumn().setTip("Row Unique Id Column");
+    setStringColumn().setTip("Row Unique Id Column");
 
   addColumnsParameter("tips", "Tips", "tipColumns").
-   setStringColumn().setBasic().setTip("Row Tip Columns");
+    setStringColumn().setBasic().setTip("Row Tip Columns");
 
   addColumnsParameter("notips", "No Tips", "noTipColumns").
-   setStringColumn().setBasic().setTip("Row No Tip Columns");
+    setStringColumn().setBasic().setTip("Row No Tip Columns");
 
   addColumnParameter("visible", "Visible", "visibleColumn").
-   setBoolColumn().setTip("Row Visible Column");
+    setBoolColumn().setTip("Row Visible Column");
 
   addColumnParameter("color", "Color", "colorColumn").
-   setTip("Row Color Column").setMapped();
+    setTip("Row Color Column").setMapped();
 
   addColumnParameter("colorLabel", "Color Label", "colorLabelColumn").
-   setTip("Row Color Label Column").setMapped();
+    setTip("Row Color Label Column").setMapped();
 
   addColumnParameter("alpha", "Alpha", "alphaColumn").
-   setTip("Row Alpha Column").setMapped();
+    setTip("Row Alpha Column").setMapped();
 
   addColumnParameter("font", "Font", "fontColumn").
-   setTip("Row Font Column");
+    setTip("Row Font Column");
 
   addColumnParameter("image", "Image", "imageColumn").
-   setTip("Row Image Column").setMapped();
+    setTip("Row Image Column").setMapped();
 
   addColumnsParameter("controls", "Controls", "controlColumns").
     setStringColumn().setBasic().setTip("Control Columns");

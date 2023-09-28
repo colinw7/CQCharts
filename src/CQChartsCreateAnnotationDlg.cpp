@@ -1600,7 +1600,7 @@ createAxisAnnotation()
   auto id    = idEdit_ ->text();
   auto tipId = tipEdit_->text();
 
-  Qt::Orientation orient = Qt::Horizontal;
+  auto orient = Qt::Horizontal;
 
   if (axisWidgets_.orientationEdit->currentIndex() == 1)
     orient = Qt::Vertical;

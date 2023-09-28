@@ -44,13 +44,13 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Graph Plot").
-    h3("Summary").
-     p("Draw connected objects as a connected flow graph.").
-    h3("Limitations").
-     p("None.").
-    h3("Example").
-     p(IMG("images/graph.png"));
+    h2("Graph Plot").
+     h3("Summary").
+      p("Draw connected objects as a connected flow graph.").
+     h3("Limitations").
+      p("None.").
+     h3("Example").
+      p(IMG("images/graph.png"));
 }
 
 bool

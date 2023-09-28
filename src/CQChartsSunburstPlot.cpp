@@ -37,13 +37,13 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Sunburst Plot").
-    h3("Summary").
-     p("Draw hierarchical data as segments of concentric circles.").
-    h3("Limitations").
-     p("None.").
-    h3("Example").
-     p(IMG("images/sunburst.png"));
+    h2("Sunburst Plot").
+     h3("Summary").
+      p("Draw hierarchical data as segments of concentric circles.").
+     h3("Limitations").
+      p("None.").
+     h3("Example").
+      p(IMG("images/sunburst.png"));
 }
 
 CQChartsPlot *
@@ -1685,7 +1685,7 @@ drawNode(PaintDevice *device, Node *node, const PenBrush &penBrush,
 
     device->setPen(tPenBrush.pen);
 
-    Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
+    auto align = Qt::Alignment(Qt::AlignHCenter | Qt::AlignVCenter);
 
     Point pt(xc + tx, yc + ty);
 

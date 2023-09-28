@@ -604,7 +604,7 @@ Qt::Alignment
 CQChartsDataLabel::
 textAlignment(const Position &position)
 {
-  Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
+  auto align = Qt::Alignment(Qt::AlignHCenter | Qt::AlignVCenter);
 
   if      (position == Position::TOP_INSIDE    ) align = Qt::AlignTop     | Qt::AlignHCenter;
   else if (position == Position::TOP_OUTSIDE   ) align = Qt::AlignBottom  | Qt::AlignHCenter;

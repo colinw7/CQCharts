@@ -204,8 +204,8 @@ updateWidgetsFromModel()
       setEditColumns(vColumnsEdit_, pivotModel->vColumns());
       setEditColumns(dColumnsEdit_, pivotModel->valueColumns());
 
-     //const auto &valueTypes = pivotModel->valueTypes();
-     //valueTypesEdit_->setText(valueTypes);
+      //const auto &valueTypes = pivotModel->valueTypes();
+      //valueTypesEdit_->setText(valueTypes);
 
       includeTotals_->setChecked(pivotModel->isIncludeTotals());
 

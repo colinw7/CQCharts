@@ -577,6 +577,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   Q_PROPERTY(bool percent   READ isPercent   WRITE setPercent  )
   Q_PROPERTY(bool skipEmpty READ isSkipEmpty WRITE setSkipEmpty)
+  Q_PROPERTY(bool showEmpty READ isShowEmpty WRITE setShowEmpty)
   Q_PROPERTY(bool sorted    READ isSorted    WRITE setSorted   )
 
   // density
@@ -787,6 +788,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   bool isPercent  () const { return percent_  ; }
   bool isSkipEmpty() const { return skipEmpty_; }
+  bool isShowEmpty() const { return showEmpty_; }
   bool isSorted   () const { return sorted_   ; }
 
   //---
@@ -1084,6 +1086,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   // set skip empty
   void setSkipEmpty(bool b);
 
+  // set show empty
+  void setShowEmpty(bool b);
+
   // set sorted
   void setSorted(bool b);
 
@@ -1152,38 +1157,42 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     GroupBucketRange groupBucketRange; //!< bucketer per group
   };
 
-  Column      nameColumn_;                          //!< name column
-  Column      dataColumn_;                          //!< data column
-  PlotType    plotType_       { PlotType::NORMAL }; //!< plot type
-  ValueType   valueType_      { ValueType::COUNT }; //!< show value count
-  ShapeType   shapeType_      { ShapeType::RECT };  //!< bar object shape type
-  OptReal     minValue_;                            //!< min value
-  bool        percent_        { false };            //!< percent values
-  bool        skipEmpty_      { false };            /*!< skip empty buckets
-                                                        (non contiguous range) */
-  bool        sorted_         { false };            //!< sort by count
-  DensityData densityData_;                         //!< density data
-  ScatterData scatterData_;                         //!< scatter data
-  bool        statsLines_     { false };            //!< stats lines data
-  DotLineData dotLineData_;                         //!< dot line data
-  bool        rug_            { false };            //!< show rug
-  bool        includeOutlier_ { true };             //!< include outlier values
+  Column nameColumn_; //!< name column
+  Column dataColumn_; //!< data column
+
+  PlotType    plotType_  { PlotType::NORMAL }; //!< plot type
+  ValueType   valueType_ { ValueType::COUNT }; //!< show value count
+  ShapeType   shapeType_ { ShapeType::RECT };  //!< bar object shape type
+
+  OptReal     minValue_;                 //!< min value
+  bool        percent_        { false }; //!< percent values
+  bool        skipEmpty_      { false }; //!< skip empty buckets (non contiguous range)
+  bool        showEmpty_      { false }; //!< show empty buckets
+  bool        sorted_         { false }; //!< sort by count
+  DensityData densityData_;              //!< density data
+  ScatterData scatterData_;              //!< scatter data
+  bool        statsLines_     { false }; //!< stats lines data
+  DotLineData dotLineData_;              //!< dot line data
+  bool        rug_            { false }; //!< show rug
+  bool        includeOutlier_ { true };  //!< include outlier values
 
   double minBarSize_ { 3.0 };  //!< min bar size (pixels)
 
   // bucketer data
-  CQChartsOptReal underflowBucket_;          //!< underflow bucket threshold
-  CQChartsOptReal overflowBucket_;           //!< overflow bucket threshold
-  CQBucketer      bucketer_;                 //!< shared bucketer
-  bool            bucketed_       { true };  //!< is bucketed
-  uint            numUnique_      { 0 };     //!< num unique values
-  CQChartsReals   bucketStops_;              //!< explicit bucket stops
-  bool            exactValue_     { false }; //!< force bucket of exact values
+  CQChartsOptReal underflowBucket_; //!< underflow bucket threshold
+  CQChartsOptReal overflowBucket_;  //!< overflow bucket threshold
 
-  FilterStack        filterStack_;          //!< filter stack
-  GroupData          groupData_;            //!< grouped value sets
-  double             barWidth_    { 1.0 };  //!< bar width
-  mutable std::mutex mutex_;                //!< mutex
+  CQBucketer    bucketer_;              //!< shared bucketer
+  bool          bucketed_    { true };  //!< is bucketed
+  uint          numUnique_   { 0 };     //!< num unique values
+  CQChartsReals bucketStops_;           //!< explicit bucket stops
+  bool          exactValue_  { false }; //!< force bucket of exact values
+
+  FilterStack filterStack_;        //!< filter stack
+  GroupData   groupData_;          //!< grouped value sets
+  double      barWidth_   { 1.0 }; //!< bar width
+
+  mutable std::mutex mutex_; //!< mutex
 };
 
 //---

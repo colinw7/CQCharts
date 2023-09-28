@@ -31,9 +31,9 @@ addParameters()
   startParameterGroup("Word Cloud");
 
   addColumnParameter("value", "Value", "valueColumn").
-   setRequired().setPropPath("columns.value").setTip("Value column");
+    setRequired().setPropPath("columns.value").setTip("Value column");
   addColumnParameter("count", "Count", "countColumn").
-   setPropPath("columns.count").setTip("Count column");
+    setPropPath("columns.count").setTip("Count column");
 
   endParameterGroup();
 
@@ -50,18 +50,18 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Word Cloud Plot").
-    h3("Summary").
-     p("Draws words in column by frequency.").
-    h3("Columns").
-    p("The " + B("Value") + " column specifies the value (word) column.").
-    p("The optional " + B("Count") + " column specifies the number of instances "
-      "of the word. If not specified the number of occurences of each word in "
-      "the value column is used.").
-    h3("Limitations").
-     p("None.").
-    h3("Example").
-     p(IMG("images/wordCloud.png"));
+    h2("Word Cloud Plot").
+     h3("Summary").
+      p("Draws words in column by frequency.").
+     h3("Columns").
+     p("The " + B("Value") + " column specifies the value (word) column.").
+     p("The optional " + B("Count") + " column specifies the number of instances "
+       "of the word. If not specified the number of occurences of each word in "
+       "the value column is used.").
+     h3("Limitations").
+      p("None.").
+     h3("Example").
+      p(IMG("images/wordCloud.png"));
 }
 
 void

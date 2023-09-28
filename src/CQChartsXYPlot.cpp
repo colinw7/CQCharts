@@ -108,50 +108,50 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("XY Plot Type</h2>").
-    h3("Summary").
-     p("Draws points at x and y coordinate pairs and optionally connects them with a "
-       "continuous line. The connecting lines can be straight or rounded.").
-     p("Ideally the x coordinates should be monotonic but this is not required.").
-    h3("Columns").
-     p("The x and y values come from the values in the " + B("X") + " and " + B("Y") + " columns. "
-       "Multiple " + B("Y") + " columns can be specified to create a stack of lines.").
-     p("An optional " + B("SymbolType") + " column can be specified to supply the type of the "
-       "symbol drawn at the point. An optional " + B("SymbolSize") + " column can be specified "
-       "to supply the size of the symbol drawn at the point. An optional " + B("Color") + " "
-       "column can be specified to supply the fill color of the symbol drawn at the point.").
-     p("An optional point label can be specified using the " + B("Label") + " column. The "
-       "font size of the label can be specified using the " + B("FontSize") + " column.").
-     p("Optional " + B("VectorX") + " and " + B("VectorY") + " columns can be specified to draw "
-       "a vector at the point.").
-    h3("Options").
-     p("The " + B("Lines") + " option determines whether the points are connected with a line. "
-       "The default line style can be separately customized.").
-     p("The " + B("Points") + " option determines whether the points are drawn. The default point "
-       "symbol can be separately customized.").
-     p("Enabling the " + B("Bivariate") + " option fills the area between adjacent sets of x, y "
-       "coordinates (two or more y column values should be specified). The bivariate line "
-       "style can be separately customized.").
-     p("Enabling the " + B("Stacked") + " option stacks the y values on top of each other "
-       "so the next set of y values adds onto the previous set of y values.").
-     p("Enabling the " + B("Cumulative") + " option treats the y values as an increment "
-       "from the previous y value (in each set).").
-     p("Enabling the " + B("FillUnder") + " option fills the area under the plot. The "
-       "fill under style (fill/stroke) can be separately customized.").
-     p("Enabling the " + B("Impulse") + " option draws a line from zero to the "
-       "points y value. The impulse line style can be separately customized.").
-     p("Enabling the " + B("Best Fit") + " option draws a best fit line between the points.").
-     p("The " + B("Vectors") + " option detemines whether the vector specified by the "
-       "" + B("VectorX") + " and " + B("VectorY") + " columns are drawn.").
-    h3("Customization").
-     p("The area under the curve can be filled.").
-     p("Impulse lines (from point to y minimum) curve can be added.").
-     p("Bivariate lines (between pairs of y values) curve can be added.").
-     p("The points can have an overlaid best fit line, statistic lines.").
-    h3("Limitations").
-     p("None").
-    h3("Example").
-     p(IMG("images/xychart.png"));
+    h2("XY Plot Type</h2>").
+     h3("Summary").
+      p("Draws points at x and y coordinate pairs and optionally connects them with a "
+        "continuous line. The connecting lines can be straight or rounded.").
+      p("Ideally the x coordinates should be monotonic but this is not required.").
+     h3("Columns").
+      p("The x and y values come from the values in the " + B("X") + " and " + B("Y") + " columns. "
+        "Multiple " + B("Y") + " columns can be specified to create a stack of lines.").
+      p("An optional " + B("SymbolType") + " column can be specified to supply the type of the "
+        "symbol drawn at the point. An optional " + B("SymbolSize") + " column can be specified "
+        "to supply the size of the symbol drawn at the point. An optional " + B("Color") + " "
+        "column can be specified to supply the fill color of the symbol drawn at the point.").
+      p("An optional point label can be specified using the " + B("Label") + " column. The "
+        "font size of the label can be specified using the " + B("FontSize") + " column.").
+      p("Optional " + B("VectorX") + " and " + B("VectorY") + " columns can be specified to draw "
+        "a vector at the point.").
+     h3("Options").
+      p("The " + B("Lines") + " option determines whether the points are connected with a line. "
+        "The default line style can be separately customized.").
+      p("The " + B("Points") + " option determines whether the points are drawn. The default point "
+        "symbol can be separately customized.").
+      p("Enabling the " + B("Bivariate") + " option fills the area between adjacent sets of x, y "
+        "coordinates (two or more y column values should be specified). The bivariate line "
+        "style can be separately customized.").
+      p("Enabling the " + B("Stacked") + " option stacks the y values on top of each other "
+        "so the next set of y values adds onto the previous set of y values.").
+      p("Enabling the " + B("Cumulative") + " option treats the y values as an increment "
+        "from the previous y value (in each set).").
+      p("Enabling the " + B("FillUnder") + " option fills the area under the plot. The "
+        "fill under style (fill/stroke) can be separately customized.").
+      p("Enabling the " + B("Impulse") + " option draws a line from zero to the "
+        "points y value. The impulse line style can be separately customized.").
+      p("Enabling the " + B("Best Fit") + " option draws a best fit line between the points.").
+      p("The " + B("Vectors") + " option detemines whether the vector specified by the "
+        "" + B("VectorX") + " and " + B("VectorY") + " columns are drawn.").
+     h3("Customization").
+      p("The area under the curve can be filled.").
+      p("Impulse lines (from point to y minimum) curve can be added.").
+      p("Bivariate lines (between pairs of y values) curve can be added.").
+      p("The points can have an overlaid best fit line, statistic lines.").
+     h3("Limitations").
+      p("None").
+     h3("Example").
+      p(IMG("images/xychart.png"));
 }
 
 void

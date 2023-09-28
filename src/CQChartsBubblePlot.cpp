@@ -26,10 +26,10 @@ addParameters()
   startParameterGroup("Bubble");
 
   addColumnParameter("name", "Name", "nameColumn").
-   setStringColumn().setPropPath("columns.name").setTip("Name Column");
+    setStringColumn().setPropPath("columns.name").setTip("Name Column");
 
   addColumnParameter("value", "Value", "valueColumn").
-   setNumericColumn().setRequired().setPropPath("columns.value").setTip("Value Column");
+    setNumericColumn().setRequired().setPropPath("columns.value").setTip("Value Column");
 
   endParameterGroup();
 
@@ -45,23 +45,23 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Bubble Plot").
-    h3("Summary").
-     p("Draws circles represent a set of data values and packs then into the "
-       "smallest enclosing circle.").
-    h3("Columns").
-     p("The values are taken from the value column. The value name can be specified "
-       "in the name column.").
-    h3("Options").
-     p("The value can be displayed at the center of the bubble along with the name.").
-     p("Bubbles can be sorted by value or displayed in model order.").
-    h3("Customization").
-     p("The bubble style (fill and stroke) and text style can be specified.").
-    h3("Limitations").
-     p("A user defined range cannot be specified, no axes or key are displayed, "
-       "logarithmic values are not supported and probing is not allowed.").
-    h3("Example").
-     p(IMG("images/bubbleplot.png"));
+    h2("Bubble Plot").
+     h3("Summary").
+      p("Draws circles represent a set of data values and packs then into the "
+        "smallest enclosing circle.").
+     h3("Columns").
+      p("The values are taken from the value column. The value name can be specified "
+        "in the name column.").
+     h3("Options").
+      p("The value can be displayed at the center of the bubble along with the name.").
+      p("Bubbles can be sorted by value or displayed in model order.").
+     h3("Customization").
+      p("The bubble style (fill and stroke) and text style can be specified.").
+     h3("Limitations").
+      p("A user defined range cannot be specified, no axes or key are displayed, "
+        "logarithmic values are not supported and probing is not allowed.").
+     h3("Example").
+      p(IMG("images/bubbleplot.png"));
 }
 
 CQChartsPlot *
@@ -567,7 +567,7 @@ transformNodes(HierNode *hier) const
     transformNodes(hierNode);
   }
 
-   //---
+  //---
 
   for (auto &node : hier->getNodes()) {
     node->setX((node->x() - offset().x)*scale());

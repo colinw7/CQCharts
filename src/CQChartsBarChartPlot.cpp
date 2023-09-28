@@ -55,13 +55,13 @@ addParameters()
     setPropPath("options.plotType").setTip("Plot type");
 
   addEnumParameter("valueType", "Value Type", "valueType").
-   addNameValue("VALUE", static_cast<int>(BarChartPlot::ValueType::VALUE)).
-   addNameValue("RANGE", static_cast<int>(BarChartPlot::ValueType::RANGE)).
-   addNameValue("MIN"  , static_cast<int>(BarChartPlot::ValueType::MIN  )).
-   addNameValue("MAX"  , static_cast<int>(BarChartPlot::ValueType::MAX  )).
-   addNameValue("MEAN" , static_cast<int>(BarChartPlot::ValueType::MEAN )).
-   addNameValue("SUM"  , static_cast<int>(BarChartPlot::ValueType::SUM  )).
-   setPropPath("options.valueType").setTip("Bar value type");
+    addNameValue("VALUE", static_cast<int>(BarChartPlot::ValueType::VALUE)).
+    addNameValue("RANGE", static_cast<int>(BarChartPlot::ValueType::RANGE)).
+    addNameValue("MIN"  , static_cast<int>(BarChartPlot::ValueType::MIN  )).
+    addNameValue("MAX"  , static_cast<int>(BarChartPlot::ValueType::MAX  )).
+    addNameValue("MEAN" , static_cast<int>(BarChartPlot::ValueType::MEAN )).
+    addNameValue("SUM"  , static_cast<int>(BarChartPlot::ValueType::SUM  )).
+    setPropPath("options.valueType").setTip("Bar value type");
 
   addEnumParameter("shapeType", "Shape Type", "shapeType").
     addNameValue("RECT"    , static_cast<int>(BarChartPlot::ShapeType::RECT    )).
@@ -100,42 +100,42 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Bar Chart Plot").
-    h3("Summary").
-     p("Draws bars with heights from a set of values.").
-    h3("Columns").
-     p("The bar heights are taken from the values in the " + B("Values") + " column.").
-     p("An optional name can be supplied in the " + B("Name") + " column to specify the label "
-       "to use on the axis below the bar.").
-     p("An optional label can be drawn with the bar to show extra values using "
-       "the " + B("Label") + " column.").
-     p("The color of the bar can be customized using the " + B("Color") + " column.").
-     p("A custom id can specified using the " + B("Id") + " column.").
-    h3("Grouping").
-     p("Bars can be grouped using standard grouping controls so that related values "
-       "can be placed next to each other.").
-     p("Enabling the " + B("Row Grouping") + " option groups bars by column header name "
-       "instead of the normal " + B("Group") + " columns.").
-    h3("Options").
-     p("The bars can drawn vertically (default) or horizontally using the " + B("Orientation") +
-       " option.").
-     p("Selecting the " + B("Stacked") + " Plot Type places grouped bars on top of each other "
-      "instead of the " + B("Normal") + " side by side placement.").
-     p("Selecting the " + B("Range") + " Value Type draws a bar for the range (min/max) of "
-       "the grouped values, selecting the " + B("Min") + " Value Type draws a bar to the "
-       "minimum of the grouped values and selecting the " + B("Max") + " Value Type draws a "
-       "bar to the maximum of the grouped values.").
-     p("Enabling the " + B("Percent") + " option rescales the values to a percentage of the "
-       "maximum and minimum of the values.").
-     p("Enabling the " + B("Skip Empty") + " option skips bars with zero values.").
-     p("Enabling the " + B("Dot Lines") + " option draws the bars as a single line with a "
-       "circle symbol at the end.").
-     p("Enabling the " + B("Color by Set") + " option colors bars in the same group the same "
-      "color instead using different colors for each bar in the group.").
-    h3("Limitations").
-     p("The plot does not support logarithmic x scales").
-    h3("Example").
-     p(IMG("images/barchart.png"));
+    h2("Bar Chart Plot").
+     h3("Summary").
+      p("Draws bars with heights from a set of values.").
+     h3("Columns").
+      p("The bar heights are taken from the values in the " + B("Values") + " column.").
+      p("An optional name can be supplied in the " + B("Name") + " column to specify the label "
+        "to use on the axis below the bar.").
+      p("An optional label can be drawn with the bar to show extra values using "
+        "the " + B("Label") + " column.").
+      p("The color of the bar can be customized using the " + B("Color") + " column.").
+      p("A custom id can specified using the " + B("Id") + " column.").
+     h3("Grouping").
+      p("Bars can be grouped using standard grouping controls so that related values "
+        "can be placed next to each other.").
+      p("Enabling the " + B("Row Grouping") + " option groups bars by column header name "
+        "instead of the normal " + B("Group") + " columns.").
+     h3("Options").
+      p("The bars can drawn vertically (default) or horizontally using the " + B("Orientation") +
+        " option.").
+      p("Selecting the " + B("Stacked") + " Plot Type places grouped bars on top of each other "
+       "instead of the " + B("Normal") + " side by side placement.").
+      p("Selecting the " + B("Range") + " Value Type draws a bar for the range (min/max) of "
+        "the grouped values, selecting the " + B("Min") + " Value Type draws a bar to the "
+        "minimum of the grouped values and selecting the " + B("Max") + " Value Type draws a "
+        "bar to the maximum of the grouped values.").
+      p("Enabling the " + B("Percent") + " option rescales the values to a percentage of the "
+        "maximum and minimum of the values.").
+      p("Enabling the " + B("Skip Empty") + " option skips bars with zero values.").
+      p("Enabling the " + B("Dot Lines") + " option draws the bars as a single line with a "
+        "circle symbol at the end.").
+      p("Enabling the " + B("Color by Set") + " option colors bars in the same group the same "
+       "color instead using different colors for each bar in the group.").
+     h3("Limitations").
+      p("The plot does not support logarithmic x scales").
+     h3("Example").
+      p(IMG("images/barchart.png"));
 }
 
 CQChartsPlot *

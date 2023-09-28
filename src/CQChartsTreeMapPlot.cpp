@@ -41,26 +41,26 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Tree Map Plot").
-    h3("Summary").
-     p("Draw hierarchical data values using sized boxes.").
-     p("Each level of the tree map can have an optional title (if large enough) "
-       "and can be separately colored.").
-     p("The user can push into, or pop out of, a level of hierarchy by selecting the node "
-       "and using the Push and Pop operations on the context menu.").
-    h3("Columns").
-     p("The hierarchical data comes from the " + B("Name") + " columns and " +
-       B("Value") + " column.").
-     p("If the name columns is a hierarchical path then the separator can be specified width "
-       "the " + B("Separator") + " option (default '/').").
-    h3("Options").
-     p("The " + B("valueLabel") + " option determines if box label includes the value").
-    h3("Limitations").
-     p("This plot does not support a user specified range, axes, logarithm scales, "
-       "or probing.").
-     p("The plot does not support an X/Y axis or Key.").
-    h3("Example").
-     p(IMG("images/treemap.png"));
+    h2("Tree Map Plot").
+     h3("Summary").
+      p("Draw hierarchical data values using sized boxes.").
+      p("Each level of the tree map can have an optional title (if large enough) "
+        "and can be separately colored.").
+      p("The user can push into, or pop out of, a level of hierarchy by selecting the node "
+        "and using the Push and Pop operations on the context menu.").
+     h3("Columns").
+      p("The hierarchical data comes from the " + B("Name") + " columns and " +
+        B("Value") + " column.").
+      p("If the name columns is a hierarchical path then the separator can be specified width "
+        "the " + B("Separator") + " option (default '/').").
+     h3("Options").
+      p("The " + B("valueLabel") + " option determines if box label includes the value").
+     h3("Limitations").
+      p("This plot does not support a user specified range, axes, logarithm scales, "
+        "or probing.").
+      p("The plot does not support an X/Y axis or Key.").
+     h3("Example").
+      p(IMG("images/treemap.png"));
 }
 
 CQChartsPlot *
@@ -3361,11 +3361,11 @@ connectSlots(bool b)
     followViewCheck_, SIGNAL(stateChanged(int)), this, SLOT(followViewSlot()));
 
   CQUtil::optConnectDisconnect(b,
-   push_  , SIGNAL(clicked()), treeMapPlot_, SLOT(pushSlot()));
+    push_  , SIGNAL(clicked()), treeMapPlot_, SLOT(pushSlot()));
   CQUtil::optConnectDisconnect(b,
-   pop_   , SIGNAL(clicked()), treeMapPlot_, SLOT(popSlot()));
+    pop_   , SIGNAL(clicked()), treeMapPlot_, SLOT(popSlot()));
   CQUtil::optConnectDisconnect(b,
-   popTop_, SIGNAL(clicked()), treeMapPlot_, SLOT(popTopSlot()));
+    popTop_, SIGNAL(clicked()), treeMapPlot_, SLOT(popTopSlot()));
 
   CQUtil::optConnectDisconnect(b,
     expand_  , SIGNAL(clicked()), treeMapPlot_, SLOT(expandSlot()));

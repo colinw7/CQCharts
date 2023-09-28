@@ -4,6 +4,11 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + view zoom (mouse tool)
+
+ + distribution add missing (zero value) bar positions on axis
+ + distribution map from plot to bar coords
+
  + better control over color mapping to allow mapping per type (integer/real/string)
 
  + draw symbol annotation inside stroke fix ?
@@ -11,8 +16,6 @@ TODO:
 
  + annotation update from plot objects added callback without infinite loop
  + summary range edit. show on axes
-
- + summary distribution orientation
 
  + dendrogram swatch column and color column for color map
  + dendrogram overlap clean

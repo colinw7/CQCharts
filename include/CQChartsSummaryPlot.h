@@ -40,6 +40,8 @@ class CQChartsSummaryPlotType : public CQChartsPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool canEqualScale() const override { return true; }
+
   QString description() const override;
 
   //---
@@ -276,6 +278,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   const Column &groupColumn() const { return groupColumn_; }
   void setGroupColumn(const Column &c);
 
+  //! set color column
   void setColorColumn(const Column &c) override;
 
   // symbol type and size columns
@@ -542,8 +545,12 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   void clearColumnRanges();
   void selectColumnRanges();
 
+  //---
+
   bool isRangeSelectedRow(int r) const;
   int numRangeSelectedRows() const;
+
+  //---
 
   void clearModelSelectedRows() const;
   void addModelSelectedRow(int row, int col) const;

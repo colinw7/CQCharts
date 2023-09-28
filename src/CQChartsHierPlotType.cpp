@@ -26,20 +26,20 @@ addHierParameters(const QString &title)
   startParameterGroup(title);
 
   addColumnsParameter("name", "Name", "nameColumns").
-   setRequired().setStringColumn().setPropPath("columns.name").
-   setTip("Hierarchical path columns for data");
+    setRequired().setStringColumn().setPropPath("columns.name").
+    setTip("Hierarchical path columns for data");
 
   addColumnParameter("value", "Value", "valueColumn").setBasic().
-   setNumericColumn().setPropPath("columns.value").setTip("Data value column");
+    setNumericColumn().setPropPath("columns.value").setTip("Data value column");
 
   addColumnParameter("group", "Group", "groupColumn").setBasic().
-   setStringColumn().setPropPath("columns.group").setTip("Group column");
+    setStringColumn().setPropPath("columns.group").setTip("Group column");
 
   addColumnParameter("attributes", "Attributes", "attributesColumn").
     setStringColumn().setPropPath("columns.attributes").setTip("Node/Edge attributes");
 
   addStringParameter("separator", "Separator", "separator", "/").setBasic().
-   setTip("Separator for hierarchical path in name column");
+    setTip("Separator for hierarchical path in name column");
 
   addExtraHierParameters();
 

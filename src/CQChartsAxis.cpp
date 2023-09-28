@@ -2160,7 +2160,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
     //bool visible = true;
 
     if (isPixelBottom) {
-      Qt::Alignment align = Qt::AlignHCenter;
+      auto align = Qt::Alignment(Qt::AlignHCenter);
 
 /*
       if (! invertY)
@@ -2271,7 +2271,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
 #endif
     }
     else {
-      Qt::Alignment align = Qt::AlignHCenter;
+      auto align = Qt::Alignment(Qt::AlignHCenter);
 
 /*
       bool invertY = (plot ? plot->isInvertY() : false);
@@ -2416,7 +2416,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
     //bool visible = true;
 
     if (isPixelLeft) {
-      Qt::Alignment align = Qt::AlignVCenter;
+      auto align = Qt::Alignment(Qt::AlignVCenter);
 
 /*
       if (! invertX)
@@ -2527,7 +2527,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
 #endif
     }
     else {
-      Qt::Alignment align = Qt::AlignVCenter;
+      auto align = Qt::Alignment(Qt::AlignVCenter);
 
 /*
       if (! isPixelLeft)

@@ -117,40 +117,40 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Box Plot").
-    h3("Summary").
-     p("Draws box and whiskers for the min, max, median and outlier values of the set "
-         "of y values for rows with identical x values.").
-    h3("Columns").
-     p("Values can be supplied using:").
-     ul({ LI("Raw Values with X and Y values in " + B("value") + " and " + B("set") + " columns."),
-         LI("Calculated Values in the " + B("x") + ", " + B("min") + ", " +
-             B("lowerMedian") + ", " + B("median") + ", " + B("upperMedian") + ", " +
-             B("max") + " and " + B("outliers") + " columns.") }).
-     p("The x value name can be supplied using this " + B("name") + " column.").
-    h3("Options").
-     p("The outliers values can be shown or hidden.").
-     p("Multiple boxes (for each unique x value) can be connected by their y value.").
-     p("The box can be drawn vertically or horizontally.").
-     p("The y values can be normalized to the range 0-1 so whiskers with different y ranges "
-       "can be compared.").
-    h3("Draw Styles").
-     p("The box can be notched to show the confidence interval around the median.").
-     p("The box can be drawn with a violin shape using the distribution curve.").
-     p("The box can be drawn as an error bar.").
-    h3("Data Points").
-     p("The individual points can be displayed (if supplied) using jitter or stacked points.").
-     p("Jitter points are placed randomly in the distribution range. Stacked points are "
-       "stacked outwards from the center line on alternate sides.").
-     p("The " + B("color") + " column can be used to customize the point color by the "
-       "associated data value.").
-    h3("Customization").
-     p("The box, outlier and data points can be styled (fill and stroke)").
-    h3("Limitations").
-     p("The plot does not support logarithmic x values.").
-    h3("Example").
-     p(IMG("images/boxplot.png"));
-}
+    h2("Box Plot").
+     h3("Summary").
+      p("Draws box and whiskers for the min, max, median and outlier values of the set "
+          "of y values for rows with identical x values.").
+     h3("Columns").
+      p("Values can be supplied using:").
+      ul({ LI("Raw Values with X and Y values in " + B("value") + " and " + B("set") + " columns."),
+          LI("Calculated Values in the " + B("x") + ", " + B("min") + ", " +
+              B("lowerMedian") + ", " + B("median") + ", " + B("upperMedian") + ", " +
+              B("max") + " and " + B("outliers") + " columns.") }).
+      p("The x value name can be supplied using this " + B("name") + " column.").
+     h3("Options").
+      p("The outliers values can be shown or hidden.").
+      p("Multiple boxes (for each unique x value) can be connected by their y value.").
+      p("The box can be drawn vertically or horizontally.").
+      p("The y values can be normalized to the range 0-1 so whiskers with different y ranges "
+        "can be compared.").
+     h3("Draw Styles").
+      p("The box can be notched to show the confidence interval around the median.").
+      p("The box can be drawn with a violin shape using the distribution curve.").
+      p("The box can be drawn as an error bar.").
+     h3("Data Points").
+      p("The individual points can be displayed (if supplied) using jitter or stacked points.").
+      p("Jitter points are placed randomly in the distribution range. Stacked points are "
+        "stacked outwards from the center line on alternate sides.").
+      p("The " + B("color") + " column can be used to customize the point color by the "
+        "associated data value.").
+     h3("Customization").
+      p("The box, outlier and data points can be styled (fill and stroke)").
+     h3("Limitations").
+      p("The plot does not support logarithmic x values.").
+     h3("Example").
+      p(IMG("images/boxplot.png"));
+ }
 
 void
 CQChartsBoxPlotType::

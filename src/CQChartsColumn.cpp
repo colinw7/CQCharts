@@ -518,7 +518,7 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
           return false;
       }
 
-      CQBaseModelType type = CQBaseModelType::STRING;
+      auto type = CQBaseModelType::STRING;
 
       if (strs.length() >= 2)
         type = CQBaseModel::nameType(strs[1]);

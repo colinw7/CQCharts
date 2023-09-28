@@ -33,7 +33,7 @@ addParameters()
   addColumnParameter("name", "Name", "nameColumn").
     setStringColumn().setBasic().setPropPath("columns.name").setTip("Name column");
   addColumnsParameter("values", "Value", "valueColumns").
-   setNumericColumn().setRequired().setPropPath("columns.values").setTip("Value columns");
+    setNumericColumn().setRequired().setPropPath("columns.values").setTip("Value columns");
 
   endParameterGroup();
 
@@ -50,16 +50,16 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Radar Plot").
-    h3("Summary").
-     p("Draws polygon for each row with a point for each value column.").
-    h3("Columns").
-    p("The " + B("Name") + " column specifies the name for the value set.").
-    p("The column headers specify the name of the indiviidual values.").
-    h3("Limitations").
-     p("None.").
-    h3("Example").
-     p(IMG("images/radar.png"));
+    h2("Radar Plot").
+     h3("Summary").
+      p("Draws polygon for each row with a point for each value column.").
+     h3("Columns").
+     p("The " + B("Name") + " column specifies the name for the value set.").
+     p("The column headers specify the name of the indiviidual values.").
+     h3("Limitations").
+      p("None.").
+     h3("Example").
+      p(IMG("images/radar.png"));
 }
 
 void

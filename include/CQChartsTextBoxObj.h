@@ -68,7 +68,7 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
 #if 0
   void setTextFontSize(double s) {
-    QFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f); textBoxObjInvalidate(); }
+    auto f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f); textBoxObjInvalidate(); }
 #endif
 
   //---

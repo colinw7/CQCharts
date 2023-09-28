@@ -155,5 +155,5 @@ void
 CQChartsRegionButton::
 hideEvent(QHideEvent *)
 {
-   Q_EMIT hidden();
+  Q_EMIT hidden();
 }

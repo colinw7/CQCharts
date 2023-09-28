@@ -105,37 +105,37 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Scatter Plot").
-    h3("Summary").
-     p("Draws scatter plot of x, y points with support for grouping and customization of "
-       "point symbol type, symbol size and symbol color.").
-     p("The points can have individual labels in which case the label font size can "
-       "also be customized.").
-     p("Scatter plots are usually used for non-monotonic/non-sequential data. If the x values "
-       "are monotonic/sequential then consider using an xy plot instead.").
-    h3("Grouping").
-     p("The points can be grouped by specifying a " + B("Name") + " column, all values "
-       "with the same name are placed in that group and will be default colored by the "
-       "group index.").
-    h3("Columns").
-     p("The points are specified by the " + B("X") + " and " + B("Y") + " columns.").
-     p("An optional " + B("SymbolType") + " column can be specified to supply the type of the "
-       "symbol drawn at the point. An optional " + B("SymbolSize") + " column can be specified "
-       "to supply the size of the symbol drawn at the point. An optional " + B("Color") + " "
-       "column can be specified to supply the fill color of the symbol drawn at the point.").
-     p("An optional point label can be specified using the " + B("Label") + " column or the " +
-       B("Name") + " column. The font size of the label can be specified using the " +
-       B("FontSize") + " column.").
-    h3("Customization").
-     p("When there a lot of points in the data an NxM grid can be created as an alternative "
-       "display where the grid cell is colored by the number of points in each cell.").
-     p("The points can have an overlaid best fit line, convex hull, statistic lines "
-       " and/or a density map.").
-     p("The x and y axes can have rug lines, density plot and/or whisker plot.").
-    h3("Limitations").
-     p("None.").
-    h3("Example").
-     p(IMG("images/scatterplot.png"));
+    h2("Scatter Plot").
+     h3("Summary").
+      p("Draws scatter plot of x, y points with support for grouping and customization of "
+        "point symbol type, symbol size and symbol color.").
+      p("The points can have individual labels in which case the label font size can "
+        "also be customized.").
+      p("Scatter plots are usually used for non-monotonic/non-sequential data. If the x values "
+        "are monotonic/sequential then consider using an xy plot instead.").
+     h3("Grouping").
+      p("The points can be grouped by specifying a " + B("Name") + " column, all values "
+        "with the same name are placed in that group and will be default colored by the "
+        "group index.").
+     h3("Columns").
+      p("The points are specified by the " + B("X") + " and " + B("Y") + " columns.").
+      p("An optional " + B("SymbolType") + " column can be specified to supply the type of the "
+        "symbol drawn at the point. An optional " + B("SymbolSize") + " column can be specified "
+        "to supply the size of the symbol drawn at the point. An optional " + B("Color") + " "
+        "column can be specified to supply the fill color of the symbol drawn at the point.").
+      p("An optional point label can be specified using the " + B("Label") + " column or the " +
+        B("Name") + " column. The font size of the label can be specified using the " +
+        B("FontSize") + " column.").
+     h3("Customization").
+      p("When there a lot of points in the data an NxM grid can be created as an alternative "
+        "display where the grid cell is colored by the number of points in each cell.").
+      p("The points can have an overlaid best fit line, convex hull, statistic lines "
+        " and/or a density map.").
+      p("The x and y axes can have rug lines, density plot and/or whisker plot.").
+     h3("Limitations").
+      p("None.").
+     h3("Example").
+      p(IMG("images/scatterplot.png"));
 }
 
 CQChartsPlot *
@@ -411,7 +411,7 @@ setNoType(bool b)
   }
   else {
     CQChartsUtil::testAndSet(plotType_,
-     (b ? PlotType::NONE : PlotType::SYMBOLS), [&]() { updateRangeAndObjs(); } );
+      (b ? PlotType::NONE : PlotType::SYMBOLS), [&]() { updateRangeAndObjs(); } );
   }
 }
 
@@ -431,7 +431,7 @@ setSymbols(bool b)
   }
   else {
     CQChartsUtil::testAndSet(plotType_,
-     (b ? PlotType::SYMBOLS : PlotType::NONE), [&]() { updateRangeAndObjs(); } );
+      (b ? PlotType::SYMBOLS : PlotType::NONE), [&]() { updateRangeAndObjs(); } );
   }
 }
 
@@ -451,7 +451,7 @@ setGridCells(bool b)
   }
   else {
     CQChartsUtil::testAndSet(plotType_,
-     (b ? PlotType::GRID_CELLS : PlotType::NONE), [&]() { updateRangeAndObjs(); } );
+      (b ? PlotType::GRID_CELLS : PlotType::NONE), [&]() { updateRangeAndObjs(); } );
   }
 }
 
@@ -471,7 +471,7 @@ setHexCells(bool b)
   }
   else {
     CQChartsUtil::testAndSet(plotType_,
-     (b ? PlotType::HEX_CELLS : PlotType::NONE), [&]() { updateRangeAndObjs(); } );
+      (b ? PlotType::HEX_CELLS : PlotType::NONE), [&]() { updateRangeAndObjs(); } );
   }
 }
 
@@ -5834,7 +5834,7 @@ updateWidgets()
 
   //---
 
-   const auto &model = scatterPlot_->currentModel();
+  const auto &model = scatterPlot_->currentModel();
 
   if (labelColumnCombo_) {
     bool hasLabelColumn = scatterPlot_->labelColumn().isValid();

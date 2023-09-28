@@ -48,17 +48,17 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Gantt Plot").
-    h3("Summary").
-     p("Draws Gantt from start, end time data.").
-    h3("Columns").
-     p("The task time is specified with the " + B("Start") + " and " + B("End") + " columns.").
-     p("The optional task name can be specified in the " + B("Name") + " column.").
-     p("The optional task value can be specified in the " + B("Value") + " column.").
-    h3("Limitations").
-     p("None.").
-    h3("Example").
-     p(IMG("images/gantt.png"));
+    h2("Gantt Plot").
+     h3("Summary").
+      p("Draws Gantt from start, end time data.").
+     h3("Columns").
+      p("The task time is specified with the " + B("Start") + " and " + B("End") + " columns.").
+      p("The optional task name can be specified in the " + B("Name") + " column.").
+      p("The optional task value can be specified in the " + B("Value") + " column.").
+     h3("Limitations").
+      p("None.").
+     h3("Example").
+      p(IMG("images/gantt.png"));
 }
 
 CQChartsPlot *

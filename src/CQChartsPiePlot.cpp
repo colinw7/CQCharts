@@ -83,28 +83,28 @@ description() const
   auto IMG = [](const QString &str) { return CQChartsHtml::Str::img(str); };
 
   return CQChartsHtml().
-   h2("Pie Plot").
-    h3("Summary").
-     p("Draw circle segments with diameter from a set of values.").
-     p("The segments can be restricted to an inner radius and a label "
-       "can be displayed at the center of the circle.").
-    h3("Columns").
-     p("The values come from the " + B("Values") + " column.").
-     p("Optional labels come from the " + B("Labels") + " column.").
-     p("A custom pie slice radius can be specified in the " + B("Radius") + " column.").
-    h3("Options").
-     p("All pie slices can start at a specified inner radius by enabling the " +
-       B("Donut") + " option.").
-     p("The label can include the value using the " + B("Count") + " option.").
-     p("Grouped data can be displayed as separate circular regions or as separated "
-       "pie charts using the " + B("Separated") + " option.").
-     p("The pie can be displayed alternatively as a treemap or waffle plot.").
-    h3("Limitations").
-     p("This plot does not support a user specified range, axes, logarithmic scales, "
-       "or probing.").
-     p("The plot does not support X/Y axes.").
-    h3("Example").
-     p(IMG("images/piechart.png"));
+    h2("Pie Plot").
+     h3("Summary").
+      p("Draw circle segments with diameter from a set of values.").
+      p("The segments can be restricted to an inner radius and a label "
+        "can be displayed at the center of the circle.").
+     h3("Columns").
+      p("The values come from the " + B("Values") + " column.").
+      p("Optional labels come from the " + B("Labels") + " column.").
+      p("A custom pie slice radius can be specified in the " + B("Radius") + " column.").
+     h3("Options").
+      p("All pie slices can start at a specified inner radius by enabling the " +
+        B("Donut") + " option.").
+      p("The label can include the value using the " + B("Count") + " option.").
+      p("Grouped data can be displayed as separate circular regions or as separated "
+        "pie charts using the " + B("Separated") + " option.").
+      p("The pie can be displayed alternatively as a treemap or waffle plot.").
+     h3("Limitations").
+      p("This plot does not support a user specified range, axes, logarithmic scales, "
+        "or probing.").
+      p("The plot does not support X/Y axes.").
+     h3("Example").
+      p(IMG("images/piechart.png"));
 }
 
 // TODO: analyzeModel
@@ -396,7 +396,7 @@ CQChartsPiePlot::
 setDumbbellPie(bool b)
 {
   CQChartsUtil::testAndSet(dumbbellPie_, b, [&]() {
-   updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
@@ -2786,7 +2786,7 @@ drawSegmentLabel(PaintDevice *device) const
         angle.flipX();
 
       // draw label
-      Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
+      auto align = Qt::Alignment(Qt::AlignHCenter | Qt::AlignVCenter);
 
       drawLabels(pt, angle, align);
 
@@ -3187,7 +3187,7 @@ inside(const Point &p) const
   auto a2 = endAngle  ();
 
   if (Angle::isCircle(a1, a2))
-   return true;
+    return true;
 
   //---
 

@@ -59,13 +59,13 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Wheel Plot").
-    h3("Summary").
-     p("Draws data in wheel.").
-    h3("Limitations").
-     p("None.").
-    h3("Example").
-     p(IMG("images/wheel.png"));
+    h2("Wheel Plot").
+     h3("Summary").
+      p("Draws data in wheel.").
+     h3("Limitations").
+      p("None.").
+     h3("Example").
+      p(IMG("images/wheel.png"));
 }
 
 void
@@ -936,8 +936,8 @@ execDrawForeground(PaintDevice *device) const
 
   // draw month grid
   static const char *monthNames[] = {
-   "January", "February", "March"    , "April"  , "May"     , "June"    ,
-   "July"   , "August"  , "September", "October", "November", "December"
+    "January", "February", "March"    , "April"  , "May"     , "June"    ,
+    "July"   , "August"  , "September", "October", "November", "December"
   };
 
   double da = 360.0/12;

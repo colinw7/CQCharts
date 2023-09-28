@@ -26,11 +26,11 @@ CQChartsEmptyPlotType::
 description() const
 {
   return CQChartsHtml().
-   h2("Empty Plot").
-    h3("Summary").
-     p("Empty plot which can used to display custom data using annotations.").
-    h3("Limitations").
-     p("None.");
+    h2("Empty Plot").
+     h3("Summary").
+      p("Empty plot which can used to display custom data using annotations.").
+     h3("Limitations").
+      p("None.");
 }
 
 CQChartsPlot *

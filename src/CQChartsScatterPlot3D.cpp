@@ -84,30 +84,30 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Scatter Plot").
-    h3("Summary").
-     p("Draws scatter plot of x, y, z points with support for grouping and customization of "
-       "point symbol type, symbol size and symbol color.").
-     p("The points can have individual labels in which case the label font size can "
-       "also be customized.").
-    h3("Grouping").
-     p("The points can be grouped by specifying a " + B("Name") + " column, all values "
-       "with the same name are placed in that group and will be default colored by the "
-       "group index.").
-    h3("Columns").
-     p("The points are specified by the " + B("X") + ", " + B("Y") + " and " + B("Z") +
-       " columns.").
-     p("An optional " + B("SymbolType") + " column can be specified to supply the type of the "
-       "symbol drawn at the point. An optional " + B("SymbolSize") + " column can be specified "
-       "to supply the size of the symbol drawn at the point. An optional " + B("Color") + " "
-       "column can be specified to supply the fill color of the symbol drawn at the point.").
-     p("An optional point label can be specified using the " + B("Label") + " column or the " +
-       B("Name") + " column. The font size of the label can be specified using the " +
-       B("FontSize") + " column.").
-    h3("Limitations").
-     p("None.").
-    h3("Example").
-     p(IMG("images/scatterplot3d.png"));
+    h2("Scatter Plot").
+     h3("Summary").
+      p("Draws scatter plot of x, y, z points with support for grouping and customization of "
+        "point symbol type, symbol size and symbol color.").
+      p("The points can have individual labels in which case the label font size can "
+        "also be customized.").
+     h3("Grouping").
+      p("The points can be grouped by specifying a " + B("Name") + " column, all values "
+        "with the same name are placed in that group and will be default colored by the "
+        "group index.").
+     h3("Columns").
+      p("The points are specified by the " + B("X") + ", " + B("Y") + " and " + B("Z") +
+        " columns.").
+      p("An optional " + B("SymbolType") + " column can be specified to supply the type of the "
+        "symbol drawn at the point. An optional " + B("SymbolSize") + " column can be specified "
+        "to supply the size of the symbol drawn at the point. An optional " + B("Color") + " "
+        "column can be specified to supply the fill color of the symbol drawn at the point.").
+      p("An optional point label can be specified using the " + B("Label") + " column or the " +
+        B("Name") + " column. The font size of the label can be specified using the " +
+        B("FontSize") + " column.").
+     h3("Limitations").
+      p("None.").
+     h3("Example").
+      p(IMG("images/scatterplot3d.png"));
 }
 
 CQChartsPlot *

@@ -431,7 +431,7 @@ CQChartsPlotSymbolList symbols({
      { 0.5     ,  0.0     ,  0.866025,  0.5     , PlotSymbol::Connect::STROKE},
      { 0.866025,  0.5     ,  0.25    ,  0.433013, PlotSymbol::Connect::STROKE},
      { 0.25    ,  0.433013,  0.0     ,  1.0     , PlotSymbol::Connect::FILL  }} },
-   { CQChartsSymbolType::Type::PENTAGON,
+  { CQChartsSymbolType::Type::PENTAGON,
     {{  0.00    , -0.875   ,  0.828125, -0.28125 , PlotSymbol::Connect::LINE  },
      {  0.828125, -0.28125 ,  0.50    ,  0.71875 , PlotSymbol::Connect::LINE  },
      {  0.50    ,  0.71875 , -0.50    ,  0.71875 , PlotSymbol::Connect::LINE  },

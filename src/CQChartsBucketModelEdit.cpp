@@ -225,7 +225,7 @@ typeSlot(int ind)
 
   auto typeName = typeCombo_->itemText(ind);
 
-  CQBucketModel::BucketType type = CQBucketModel::BucketType::STRING;
+  auto type = CQBucketModel::BucketType::STRING;
 
   if      (typeName == "STRING"       ) type = CQBucketModel::BucketType::STRING;
   else if (typeName == "INTEGER_RANGE") type = CQBucketModel::BucketType::INTEGER_RANGE;

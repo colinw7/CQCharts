@@ -41,25 +41,25 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Image Plot").
-    h3("Summary").
-     p("Draw 2d grid of 'pixels' from values in 2d table.").
-     p("The pixels can be drawn as cells or scaled circles (balloon).").
-     p("The cells are colored using the scaled value.").
-    h3("Columns").
-     p("All row column values of the model are used for the pixels of the image.").
-     p("The vertical and horizontal headers are used for the row and column labels respectively.").
-    h3("Options").
-     p("To scale the colors and circle sizes for the cell the user can supply a maximum and/or "
-       "minimum value for the values in the value column. If not specifed the computed minimum "
-       "and maximum will be used").
-     p("X and/or Y labels can be added to the outside of the grid.").
-     p("Labels can be added to each grid cell and the labels can be scaled "
-       "to represent the size of the associated value.").
-    h3("Limitations").
-     p("Does not support axes.").
-    h3("Example").
-     p(IMG("images/imageplot.png"));
+    h2("Image Plot").
+     h3("Summary").
+      p("Draw 2d grid of 'pixels' from values in 2d table.").
+      p("The pixels can be drawn as cells or scaled circles (balloon).").
+      p("The cells are colored using the scaled value.").
+     h3("Columns").
+      p("All row column values of the model are used for the pixels of the image.").
+      p("The vertical and horizontal headers are used for the row and column labels respectively.").
+     h3("Options").
+      p("To scale the colors and circle sizes for the cell the user can supply a maximum and/or "
+        "minimum value for the values in the value column. If not specifed the computed minimum "
+        "and maximum will be used").
+      p("X and/or Y labels can be added to the outside of the grid.").
+      p("Labels can be added to each grid cell and the labels can be scaled "
+        "to represent the size of the associated value.").
+     h3("Limitations").
+      p("Does not support axes.").
+     h3("Example").
+      p(IMG("images/imageplot.png"));
 }
 
 CQChartsPlot *

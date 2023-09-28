@@ -457,7 +457,7 @@ paramApplySlot()
         value = paramEdit.edit->getColor();
       else
         assert(false);
-     }
+    }
     else {
       if (paramEdit.edit->type() == CQBaseModelType::STRING)
         value = paramEdit.edit->getString();

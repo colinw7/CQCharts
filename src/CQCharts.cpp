@@ -360,154 +360,154 @@ description()
   auto IMG = [](const QString &) { return QString(); };
 
   return CQChartsHtml().
-   h2("Introduction").
-    p("CQCharts is a Qt based charting library to support the display of an interactive "
-      "chart from a data model (QAbstractItemModel) with support for cross selection using "
-      "the data model's selection model (QItemSelectionModel).").
-    p("Charts are live in that changes to the data model automatically update "
-      "the chart. This allows the programmer to build interactive charts where "
-      "the user can select items from the model using a table or tree view and/or "
-      "the displayed chart data.").
-    p("The library comes with a test program which supports scripting of charts using the "
-      "'tcl' programming language. A number of example plot scripts are available in the "
-      "data directory.").
-   h3("Chart Types").
-    p("Chart types supported:").
-    ul({
-     LI("Adjacency : tabular connectivity table (needs special column value syntax "
-        "for connections) " + IMG("images/adjacency.png")),
-     LI("BarChart : 1d bar chart for column values " + IMG("images/barchart.png")),
-     LI("Box : Box plot of aggregated values from value and group columns " +
-        IMG("images/boxplot.png") + IMG("images/boxplot_connected.png")),
-     LI("Bubble : Bubble plot where circle is size of column value" +
-        IMG("images/bubbleplot.png")),
-     LI("Chord : Circlular connectivity chart (needs special column value syntax for "
-        "connections) " + IMG("images/chord_plot.png")),
-     LI("Contour : Contour plot" +
-        IMG("images/contour.png")),
-     LI("Correlation : Correlation plot" +
-        IMG("images/correlation.png")),
-     LI("Delaunay : Delaunay/Voronoi geometric connectivity chart" +
-        IMG("images/delaunay.png")),
-     LI("Dendrogram : Dendrogram plot" +
-        IMG("images/dendrogram.png")),
-     LI("Distribution : Distribution count of range based column values" +
-        IMG("images/distribution.png")),
-     LI("ForceDirected : Force directed connectivity chart" +
-        IMG("images/forcedirected.png")),
-     LI("Geometry : General polygon geometry colored by value" +
-        IMG("images/geometryplot.png")),
-     LI("Graph : Graph plot of connected values" +
-        IMG("images/graph.png")),
-     LI("HierBubble : Hierarchical bubble plot where circle is size of column value" +
-        IMG("images/hierbubble.png")),
-     LI("Image : Image/regular grid plot (x, y, color)" +
-        IMG("images/imageplot.png")),
-     LI("Parallel : Parallel lines plot using multiple connected value sets" +
-        IMG("images/parallelplot.png")),
-     LI("Pie : Pie chart" +
-        IMG("images/piechart.png")),
-     LI("Pivot : Pivot chart" +
-        IMG("images/pivot.png")),
-     LI("Radar : Radar (polygon pie chart)" +
-        IMG("images/radar.png")),
-     LI("Sankey : Sankey plot of connected values" +
-        IMG("images/sankey.png")),
-     LI("Scatter : Scatter plot of disparate x/y column values" +
-        IMG("images/scatterplot.png")),
-     LI("Scatter 3D : Scatter plot of disparate x/y/z column values" +
-        IMG("images/scatter3d.png")),
-     LI("Sunburst : Hierarchical pie chart plot" +
-        IMG("images/sunburst.png")),
-     LI("Table : Table in a plot" +
-        IMG("images/table.png")),
-     LI("TreeMap : Hierarchical tree map" +
-        IMG("images/treemap.png")),
-     LI("Wheel : Wheel plot" +
-        IMG("images/wheel.png")),
-     LI("Word Cloud : Word Cloud plot" +
-        IMG("images/wordcloud.png")),
-     LI("XY : x/y monotonic value plot" +
-        IMG("images/xychart.png") + IMG("images/goal_scorers.png")) }).
-   h3("Adjacency").
-    p("Uses table cell coloring to show number of connections between two items.").
-    p("Items names are displayed in the row and column headers and the number of connections "
-      "is used to color the cell (row/column intersection).").
-    p("Cell colors are derived from the blend of the colors for each item's group "
-      "and the color intensity is calculated from the relative value.").
-    p("The following values can be customized:").
+    h2("Introduction").
+     p("CQCharts is a Qt based charting library to support the display of an interactive "
+       "chart from a data model (QAbstractItemModel) with support for cross selection using "
+       "the data model's selection model (QItemSelectionModel).").
+     p("Charts are live in that changes to the data model automatically update "
+       "the chart. This allows the programmer to build interactive charts where "
+       "the user can select items from the model using a table or tree view and/or "
+       "the displayed chart data.").
+     p("The library comes with a test program which supports scripting of charts using the "
+       "'tcl' programming language. A number of example plot scripts are available in the "
+       "data directory.").
+    h3("Chart Types").
+     p("Chart types supported:").
      ul({
-      LI("table background color"),
-      LI("empty cell color"),
-      LI("margin"),
-      LI("cell border color, alpha and corner size"),
-      LI("header text color and font")}).
-    p("Input data model can contain either node data (name, id, group) and a list of "
-      "connections (id, count) [old format] or a '/' separated connection data "
-      "(from name/to name, value, count).").
-   h3("BarChart").
-    p("1d bar chart for column value or values.").
-    p("Bars can be grouped using a group/category column.").
-    p("Custom bar colors and data labels can be provided in additional columns.").
-    p("Bars can be stacked next to each other or on top of each other and can be "
-      "drawn vertically (default) or horizontally.").
-   h3("Box").
-    p("Box plot of aggregated values from value and group columns.").
-    p("Input data is a set of y values for an associated common x value.").
-    p("Data can also be additional grouped by an extra column.").
-    p("Values can be displayed as a candlestick bar or connected into a single "
-      "solid bar of the value range.").
-   h3("Bubble").
-    p("Bubble plot where circle is size of column value.").
-    p("Circles are packed in minimum enclosing circle.").
-   h3("Chord").
-    p("Circlular connectivity chart.").
-    p("Input data model can contain either node data (name, id, group) and a list of "
-      "connections (id, count) (old format) or '/' separated connection data "
-      "(from name/to name, value, count).").
-   h3("Delaunay").
-    p("Delaunay/Voronoi geometric connectivity chart").
-   h3("Distribution").
-    p("Distribution count of range based values").
-   h3("ForceDirected").
-    p("Force directed connectivity chart").
-   h3("Geometry").
-    p("General polygon geometry colored by value").
-   h3("Graph").
-    p("Graph plot of connected values").
-   h3("HierBubble").
-    p("Hierarchical bubble plot where circle is size of column value.").
-    p("Hierarchical circles are packed in minimum enclosing circle.").
-   h3("Image").
-    p("Image plot (x, y, color)").
-   h3("Parallel").
-    p("Parallel lines plots multiple overlaid value sets").
-   h3("Pie").
-    p("Pie chart").
-   h3("Radar").
-    p("Radar (polygon pie chart)").
-   h3("Sankey").
-    p("Sankey plot of connected values").
-   h3("Scatter").
-    p("Scatter plot of disparate values").
-   h3("Sunburst").
-    p("Hierarchical pie chart plot").
-   h3("TreeMap").
-    p("Hierarchical tree map").
-   h3("XY").
-    p("Plot of x,y values. x values should be monotonic.").
-    p("Multiple y columns can be supplied to produce multi line plot.").
-    p("Binariate plot using two y columns.").
-    p("Display of connecing lines and individual points can be customized.").
-  h2("Parameter and Properties").
-   p("Each plot type has a set of parameters which allow the major plot controls "
-     "to be configured.").
-   p("The plot also support properties for fine tuning the plot display.").
-   p("The parameter and properties use Qt variants (QVariant)  and are displayed in a "
-     "property view tree which can be displayed at the side of the plot.").
-  h2(" Data Model").
-   p("The data model can be viewed in a table or tree view in the plot and can be "
-     "sorted and filtered to update the plot.");
+      LI("Adjacency : tabular connectivity table (needs special column value syntax "
+         "for connections) " + IMG("images/adjacency.png")),
+      LI("BarChart : 1d bar chart for column values " + IMG("images/barchart.png")),
+      LI("Box : Box plot of aggregated values from value and group columns " +
+         IMG("images/boxplot.png") + IMG("images/boxplot_connected.png")),
+      LI("Bubble : Bubble plot where circle is size of column value" +
+         IMG("images/bubbleplot.png")),
+      LI("Chord : Circlular connectivity chart (needs special column value syntax for "
+         "connections) " + IMG("images/chord_plot.png")),
+      LI("Contour : Contour plot" +
+         IMG("images/contour.png")),
+      LI("Correlation : Correlation plot" +
+         IMG("images/correlation.png")),
+      LI("Delaunay : Delaunay/Voronoi geometric connectivity chart" +
+         IMG("images/delaunay.png")),
+      LI("Dendrogram : Dendrogram plot" +
+         IMG("images/dendrogram.png")),
+      LI("Distribution : Distribution count of range based column values" +
+         IMG("images/distribution.png")),
+      LI("ForceDirected : Force directed connectivity chart" +
+         IMG("images/forcedirected.png")),
+      LI("Geometry : General polygon geometry colored by value" +
+         IMG("images/geometryplot.png")),
+      LI("Graph : Graph plot of connected values" +
+         IMG("images/graph.png")),
+      LI("HierBubble : Hierarchical bubble plot where circle is size of column value" +
+         IMG("images/hierbubble.png")),
+      LI("Image : Image/regular grid plot (x, y, color)" +
+         IMG("images/imageplot.png")),
+      LI("Parallel : Parallel lines plot using multiple connected value sets" +
+         IMG("images/parallelplot.png")),
+      LI("Pie : Pie chart" +
+         IMG("images/piechart.png")),
+      LI("Pivot : Pivot chart" +
+         IMG("images/pivot.png")),
+      LI("Radar : Radar (polygon pie chart)" +
+         IMG("images/radar.png")),
+      LI("Sankey : Sankey plot of connected values" +
+         IMG("images/sankey.png")),
+      LI("Scatter : Scatter plot of disparate x/y column values" +
+         IMG("images/scatterplot.png")),
+      LI("Scatter 3D : Scatter plot of disparate x/y/z column values" +
+         IMG("images/scatter3d.png")),
+      LI("Sunburst : Hierarchical pie chart plot" +
+         IMG("images/sunburst.png")),
+      LI("Table : Table in a plot" +
+         IMG("images/table.png")),
+      LI("TreeMap : Hierarchical tree map" +
+         IMG("images/treemap.png")),
+      LI("Wheel : Wheel plot" +
+         IMG("images/wheel.png")),
+      LI("Word Cloud : Word Cloud plot" +
+         IMG("images/wordcloud.png")),
+      LI("XY : x/y monotonic value plot" +
+         IMG("images/xychart.png") + IMG("images/goal_scorers.png")) }).
+    h3("Adjacency").
+     p("Uses table cell coloring to show number of connections between two items.").
+     p("Items names are displayed in the row and column headers and the number of connections "
+       "is used to color the cell (row/column intersection).").
+     p("Cell colors are derived from the blend of the colors for each item's group "
+       "and the color intensity is calculated from the relative value.").
+     p("The following values can be customized:").
+      ul({
+       LI("table background color"),
+       LI("empty cell color"),
+       LI("margin"),
+       LI("cell border color, alpha and corner size"),
+       LI("header text color and font")}).
+     p("Input data model can contain either node data (name, id, group) and a list of "
+       "connections (id, count) [old format] or a '/' separated connection data "
+       "(from name/to name, value, count).").
+    h3("BarChart").
+     p("1d bar chart for column value or values.").
+     p("Bars can be grouped using a group/category column.").
+     p("Custom bar colors and data labels can be provided in additional columns.").
+     p("Bars can be stacked next to each other or on top of each other and can be "
+       "drawn vertically (default) or horizontally.").
+    h3("Box").
+     p("Box plot of aggregated values from value and group columns.").
+     p("Input data is a set of y values for an associated common x value.").
+     p("Data can also be additional grouped by an extra column.").
+     p("Values can be displayed as a candlestick bar or connected into a single "
+       "solid bar of the value range.").
+    h3("Bubble").
+     p("Bubble plot where circle is size of column value.").
+     p("Circles are packed in minimum enclosing circle.").
+    h3("Chord").
+     p("Circlular connectivity chart.").
+     p("Input data model can contain either node data (name, id, group) and a list of "
+       "connections (id, count) (old format) or '/' separated connection data "
+       "(from name/to name, value, count).").
+    h3("Delaunay").
+     p("Delaunay/Voronoi geometric connectivity chart").
+    h3("Distribution").
+     p("Distribution count of range based values").
+    h3("ForceDirected").
+     p("Force directed connectivity chart").
+    h3("Geometry").
+     p("General polygon geometry colored by value").
+    h3("Graph").
+     p("Graph plot of connected values").
+    h3("HierBubble").
+     p("Hierarchical bubble plot where circle is size of column value.").
+     p("Hierarchical circles are packed in minimum enclosing circle.").
+    h3("Image").
+     p("Image plot (x, y, color)").
+    h3("Parallel").
+     p("Parallel lines plots multiple overlaid value sets").
+    h3("Pie").
+     p("Pie chart").
+    h3("Radar").
+     p("Radar (polygon pie chart)").
+    h3("Sankey").
+     p("Sankey plot of connected values").
+    h3("Scatter").
+     p("Scatter plot of disparate values").
+    h3("Sunburst").
+     p("Hierarchical pie chart plot").
+    h3("TreeMap").
+     p("Hierarchical tree map").
+    h3("XY").
+     p("Plot of x,y values. x values should be monotonic.").
+     p("Multiple y columns can be supplied to produce multi line plot.").
+     p("Binariate plot using two y columns.").
+     p("Display of connecing lines and individual points can be customized.").
+    h2("Parameter and Properties").
+     p("Each plot type has a set of parameters which allow the major plot controls "
+       "to be configured.").
+     p("The plot also support properties for fine tuning the plot display.").
+     p("The parameter and properties use Qt variants (QVariant)  and are displayed in a "
+       "property view tree which can be displayed at the side of the plot.").
+    h2(" Data Model").
+     p("The data model can be viewed in a table or tree view in the plot and can be "
+       "sorted and filtered to update the plot.");
 }
 
 //---

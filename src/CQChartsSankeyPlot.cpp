@@ -46,37 +46,37 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Sankey Plot").
-    h3("Summary").
-     p("Draw connected objects as a connected flow graph.").
-    h3("Columns").
-     p("Connections between two nodes (edge) are described using " + B("Node/Connections") +
-       " columns, a " + B("Link") + " column, a " + B("Path") + " column or " + B("From/To") +
-       " columns").
-     p("The connection size can be specified using the " + B("Value") + " column.").
-     p("The depth (x postion) can be specified using the " + B("Depth") + " column.").
-     p("Extra attributes (color, label) for the source node, destination node or edge "
-       "can be specified using the " + B("Attributes") + " column.").
-     p("The depth (x postion) can be specified using the " + B("Depth") + " column.").
-     p("The source node group can be specified using the " + B("Group") + " column.").
-     p("The source node name can be specified using the " + B("Name") + " column.").
-    h3("Options").
-     p("The separator character for hierarchical names (Link or Path columns) can be "
-       "specified using the " + B("separator") + " option.").
-     p("The " + B("symmetric") + " option can be used to specify that the connection is "
-       "symmetric (value of connection for from/to is the same as to/from)").
-     p("The " + B("sorted") + " option can be used to sort the connections by value").
-     p("The " + B("maxDepth") + " option can be used to filter out connections greater than "
-       "the specified depth.").
-     p("The " + B("minValue") + " option can be used filter out connections less than the "
-       "specified value.").
-    h3("Limitations").
-     p("As each model row is an edge it is hard to specify data on just a node.").
-     p("The From/To columns do allow the To column to be empty to define attributes "
-       "on just the from node but this is not ideal as it makes the raw data hard to "
-       "manipulate").
-    h3("Example").
-     p(IMG("images/sankey.png"));
+    h2("Sankey Plot").
+     h3("Summary").
+      p("Draw connected objects as a connected flow graph.").
+     h3("Columns").
+      p("Connections between two nodes (edge) are described using " + B("Node/Connections") +
+        " columns, a " + B("Link") + " column, a " + B("Path") + " column or " + B("From/To") +
+        " columns").
+      p("The connection size can be specified using the " + B("Value") + " column.").
+      p("The depth (x postion) can be specified using the " + B("Depth") + " column.").
+      p("Extra attributes (color, label) for the source node, destination node or edge "
+        "can be specified using the " + B("Attributes") + " column.").
+      p("The depth (x postion) can be specified using the " + B("Depth") + " column.").
+      p("The source node group can be specified using the " + B("Group") + " column.").
+      p("The source node name can be specified using the " + B("Name") + " column.").
+     h3("Options").
+      p("The separator character for hierarchical names (Link or Path columns) can be "
+        "specified using the " + B("separator") + " option.").
+      p("The " + B("symmetric") + " option can be used to specify that the connection is "
+        "symmetric (value of connection for from/to is the same as to/from)").
+      p("The " + B("sorted") + " option can be used to sort the connections by value").
+      p("The " + B("maxDepth") + " option can be used to filter out connections greater than "
+        "the specified depth.").
+      p("The " + B("minValue") + " option can be used filter out connections less than the "
+        "specified value.").
+     h3("Limitations").
+      p("As each model row is an edge it is hard to specify data on just a node.").
+      p("The From/To columns do allow the To column to be empty to define attributes "
+        "on just the from node but this is not ideal as it makes the raw data hard to "
+        "manipulate").
+     h3("Example").
+      p(IMG("images/sankey.png"));
 }
 
 bool
@@ -5123,7 +5123,7 @@ drawFgImage(PaintDevice *device, const BBox &rect) const
 
     double xm = sankeyPlot_->getCalcDataRange().xmid();
 
-    Qt::Alignment align = sankeyPlot_->nodeTextLabelAlign();
+    auto align = sankeyPlot_->nodeTextLabelAlign();
 
     if      (sankeyPlot_->nodeTextLabelPosition() == TextPosition::INTERNAL) {
       if (rect.getXMid() < xm - iw/2.0)
@@ -5160,7 +5160,7 @@ drawFgImage(PaintDevice *device, const BBox &rect) const
 
     double ym = sankeyPlot_->getCalcDataRange().ymid();
 
-    Qt::Alignment align = sankeyPlot_->nodeTextLabelAlign();
+    auto align = sankeyPlot_->nodeTextLabelAlign();
 
     if      (sankeyPlot_->nodeTextLabelPosition() == TextPosition::INTERNAL) {
       if (rect.getYMid() < ym - ih/2.0)
@@ -5234,7 +5234,7 @@ drawFgText(PaintDevice *device, const BBox &rect) const
     // align left/right depending on left/right of mid x
     double xm = sankeyPlot_->getCalcDataRange().xmid();
 
-    Qt::Alignment align = sankeyPlot_->nodeTextLabelAlign();
+    auto align = sankeyPlot_->nodeTextLabelAlign();
 
     if      (sankeyPlot_->nodeTextLabelPosition() == TextPosition::INTERNAL) {
       if (rect.getXMid() < xm - tw)
@@ -5267,7 +5267,7 @@ drawFgText(PaintDevice *device, const BBox &rect) const
     // align bottom/top depending on top/bottom of mid y
     double ym = sankeyPlot_->getCalcDataRange().ymid();
 
-    Qt::Alignment align = sankeyPlot_->nodeTextLabelAlign();
+    auto align = sankeyPlot_->nodeTextLabelAlign();
 
     if      (sankeyPlot_->nodeTextLabelPosition() == TextPosition::INTERNAL) {
       if (rect.getYMid() < ym - tw)
@@ -5367,7 +5367,7 @@ drawValueLabel(PaintDevice *device, const BBox &rect) const
   if (sankeyPlot_->isHorizontal()) {
     double xm = sankeyPlot_->getCalcDataRange().xmid();
 
-    Qt::Alignment align = sankeyPlot_->nodeTextValueAlign();
+    auto align = sankeyPlot_->nodeTextValueAlign();
 
     if      (sankeyPlot_->nodeTextValuePosition() == TextPosition::INTERNAL) {
       if (rect.getXMid() < xm - tw)
@@ -5394,7 +5394,7 @@ drawValueLabel(PaintDevice *device, const BBox &rect) const
   else {
     double ym = sankeyPlot_->getCalcDataRange().ymid();
 
-    Qt::Alignment align = sankeyPlot_->nodeTextValueAlign();
+    auto align = sankeyPlot_->nodeTextValueAlign();
 
     if      (sankeyPlot_->nodeTextValuePosition() == TextPosition::INTERNAL) {
       if (rect.getYMid() < ym - tw)

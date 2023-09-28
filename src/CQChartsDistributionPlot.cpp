@@ -128,43 +128,43 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Distribution Plot").
-    h3("Summary").
-     p("Draws bars with heights for the counts of set of values.").
-    h3("Columns").
-     p("The values to be counted are taken from the " + B("Values") + " columns and "
-       "grouped depending on the column value type. By default integer values are "
-       "grouped by matching value, real values are automatically bucketed into ranges "
-       "and strings are grouped by matching value.").
-     p("The automatic bucketing of real values can overridden by turning it off using "
-       "the " + B("autoBucket") + " parameter and specifying the " + B("startBucketValue") +
-       " and " + B("deltaBucketValue") + " parameters.").
-     p("The color of the bar can be overridden using the " + B("Color") + " column.").
-    h3("Plot Types").
-     p("Normally the plot is draw with a bar per data bucket per group. This can be customized "
-       "to stack the grouped values on top of each other or overlaid instead of side by side "
-       "or to place the bars side by side by bucket instead of by group.").
-     p("The data can also be displayed as a scattered points each representing a fixed size "
-       "bucket of points").
-     p("The data can also be displayed as a density plot per bucket as long as the values "
-       "are numeric").
-    h3("Value Type").
-     p("Normally the number of values in each bucket is displayed as the height of the bar. "
-       "This can be customized to display statistical data for the min, max, mean, range or "
-       "sum of values in the bucket. In this case the " + B("Data") + " column can be used "
-       "to provide the values to calculate the associated statistical value.").
-    h3("Options").
-     p("Enabling the " + B("Horizontal") + " option draws the bars horizontally "
-       "or vertically.").
-    h3("Grouping").
-     p("Standard grouping can be applied to the values to split the values to be "
-       "grouped into individual value sets before final grouping. This second level "
-       "of grouping creates multiple sets of grouped values which can be displayed "
-       "sequentially or overlaid with common buckets.").
-    h3("Limitations").
-     p("None.").
-    h3("Example").
-     p(IMG("images/distribution.png"));
+    h2("Distribution Plot").
+     h3("Summary").
+      p("Draws bars with heights for the counts of set of values.").
+     h3("Columns").
+      p("The values to be counted are taken from the " + B("Values") + " columns and "
+        "grouped depending on the column value type. By default integer values are "
+        "grouped by matching value, real values are automatically bucketed into ranges "
+        "and strings are grouped by matching value.").
+      p("The automatic bucketing of real values can overridden by turning it off using "
+        "the " + B("autoBucket") + " parameter and specifying the " + B("startBucketValue") +
+        " and " + B("deltaBucketValue") + " parameters.").
+      p("The color of the bar can be overridden using the " + B("Color") + " column.").
+     h3("Plot Types").
+      p("Normally the plot is draw with a bar per data bucket per group. This can be customized "
+        "to stack the grouped values on top of each other or overlaid instead of side by side "
+        "or to place the bars side by side by bucket instead of by group.").
+      p("The data can also be displayed as a scattered points each representing a fixed size "
+        "bucket of points").
+      p("The data can also be displayed as a density plot per bucket as long as the values "
+        "are numeric").
+     h3("Value Type").
+      p("Normally the number of values in each bucket is displayed as the height of the bar. "
+        "This can be customized to display statistical data for the min, max, mean, range or "
+        "sum of values in the bucket. In this case the " + B("Data") + " column can be used "
+        "to provide the values to calculate the associated statistical value.").
+     h3("Options").
+      p("Enabling the " + B("Horizontal") + " option draws the bars horizontally "
+        "or vertically.").
+     h3("Grouping").
+      p("Standard grouping can be applied to the values to split the values to be "
+        "grouped into individual value sets before final grouping. This second level "
+        "of grouping creates multiple sets of grouped values which can be displayed "
+        "sequentially or overlaid with common buckets.").
+     h3("Limitations").
+      p("None.").
+     h3("Example").
+      p(IMG("images/distribution.png"));
 }
 
 CQChartsPlot *
@@ -633,11 +633,11 @@ addProperties()
   addProp("options", "valueType", "valueType", "Bar value type");
   addProp("options", "shapeType", "shapeType", "Bar shape type");
 
-  addProp("options", "percent"      , "", "Show value as percentage");
-  addProp("options", "skipEmpty"    , "", "Skip empty buckets");
-  addProp("options", "sorted"       , "", "Sort by count");
-  addProp("options", "minBarSize"   , "", "Minimum bar size in pixels", true)->
-   setMinValue(0.0);
+  addProp ("options", "percent"      , "", "Show value as percentage");
+  addProp ("options", "skipEmpty"    , "", "Skip empty buckets");
+  addPropI("options", "showEmpty"    , "", "Show empty buckets on axis");
+  addProp ("options", "sorted"       , "", "Sort by count");
+  addPropI("options", "minBarSize"   , "", "Minimum bar size in pixels")->setMinValue(0.0);
 
   addProp("filter", "minValue", "minValue", "Min value");
 
@@ -649,11 +649,11 @@ addProperties()
   addProp("density", "densityBars"    , "bars"    , "Draw density bars");
 
   // scatter
-  addProp("scatter", "scatter"      , "visible", "Draw scatter points");
-  addProp("scatter", "scatterFactor", "factor" , "Scatter factor (0-1)")->
+  addProp ("scatter", "scatter"      , "visible", "Draw scatter points");
+  addProp ("scatter", "scatterFactor", "factor" , "Scatter factor (0-1)")->
     setMinValue(0.0).setMaxValue(1.0);
-  addProp("scatter", "scatterMargin", "margin" , "Scatter bar margin", true)->
-   setMinValue(0.0).setMaxValue(1.0);
+  addPropI("scatter", "scatterMargin", "margin" , "Scatter bar margin")->
+    setMinValue(0.0).setMaxValue(1.0);
 
   // stats
   addProp("statsData", "statsLines", "visible", "Statistic lines visible");
@@ -736,6 +736,13 @@ CQChartsDistributionPlot::
 setSkipEmpty(bool b)
 {
   CQChartsUtil::testAndSet(skipEmpty_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDistributionPlot::
+setShowEmpty(bool b)
+{
+  CQChartsUtil::testAndSet(showEmpty_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -1035,7 +1042,8 @@ calcRange() const
 
     th->bucketer_.setType(type);
 
-    if (bucketer.type() == CQBucketer::Type::REAL_AUTO) {
+    if (bucketer.type() == CQBucketer::Type::REAL_AUTO ||
+        bucketer.type() == CQBucketer::Type::REAL_RANGE) {
       // init preferred real start and delta values
       CInterval interval;
 
@@ -1305,6 +1313,35 @@ bucketGroupValues() const
       VariantInd varInd(value, ind, dvalue);
 
       values->bucketValues[bucket].inds.push_back(std::move(varInd));
+    }
+  }
+
+  //---
+
+  if (isShowEmpty()) {
+    // add empty bucket values for missing bucket indices
+    for (auto &groupValues : groupData_.groupValues) {
+      auto *values = groupValues.second;
+
+      bool first = true;
+      int  bval1 = 0, bval2 = 0;
+
+      for (auto &bucketValues : values->bucketValues) {
+        const auto &bucket = bucketValues.first;
+
+        bval1 = bval2;
+        bval2 = bucket.value();
+
+        if (! first) {
+          for (int i = bval1 + 1; i < bval2; ++i) {
+            Bucket bucket1(i);
+
+            values->bucketValues[bucket1].inds.clear();
+          }
+        }
+        else
+          first = false;
+      }
     }
   }
 }
@@ -3175,7 +3212,7 @@ bucketValues(int groupInd, const Bucket &bucket, double &value1, double &value2)
         bucketer.rstopsBucketValues(bucket.value(), value1, value2);
     }
     else
-       bucketer.autoBucketValues(bucket.value(), value1, value2);
+      bucketer.autoBucketValues(bucket.value(), value1, value2);
 
     if (CMathUtil::isZero(value1)) value1 = 0.0;
     if (CMathUtil::isZero(value2)) value2 = 0.0;

@@ -53,18 +53,18 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Pivot Plot").
-    h3("Summary").
-     p("A pivot plot displays the values of a column grouped in one or two "
-       "dimensions using keys generated from the x and/or y columns.").
-     p("The values can be summed, averaged or counted to produce the "
-       "displayed value.").
-     p("The plot can be a barchart (side by side to stacked), a line chart "
-       "with optional fill under, or a grid plot").
-    h3("Limitations").
-     p("Logaritmic axes are not supported.").
-    h3("Example").
-     p(IMG("images/pivot_plot.png"));
+    h2("Pivot Plot").
+     h3("Summary").
+      p("A pivot plot displays the values of a column grouped in one or two "
+        "dimensions using keys generated from the x and/or y columns.").
+      p("The values can be summed, averaged or counted to produce the "
+        "displayed value.").
+      p("The plot can be a barchart (side by side to stacked), a line chart "
+        "with optional fill under, or a grid plot").
+     h3("Limitations").
+      p("Logaritmic axes are not supported.").
+     h3("Example").
+      p(IMG("images/pivot_plot.png"));
 }
 
 CQChartsPlot *

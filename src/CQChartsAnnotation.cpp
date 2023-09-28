@@ -7522,7 +7522,7 @@ drawDelaunay(PaintDevice *device)
 
     delaunay_->calc();
 
-   delaunayDirty_ = false;
+    delaunayDirty_ = false;
   }
 
   // draw delaunay triangles

@@ -40,24 +40,24 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-   h2("Hierarchical Bubble Plot").
-    h3("Summary").
-     p("Draws circles represent a set of data values and packs then into the "
-       "smallest enclosing circle.").
-     p("The user can push into, or pop out of, a level of hierarchy by selecting the node "
-       "and using the Push and Pop operations on the context menu.").
-    h3("Columns").
-     p("The hierarchical data comes from the " + B("Name") + " columns and " +
-       B("Value") + " column.").
-     p("If the name columns is a hierarchical path then the separator can be specified width "
-       "the " + B("Separator") + " option (default '/').").
-    h3("Options").
-     p("The " + B("valueLabel") + " option determines if bubble label includes the value").
-    h3("Limitations").
-     p("This plot does not support a user specified range, axes, logarithm scales, "
-       "or probing.").
-    h3("Example").
-     p(IMG("images/hierbubble.png"));
+    h2("Hierarchical Bubble Plot").
+     h3("Summary").
+      p("Draws circles represent a set of data values and packs then into the "
+        "smallest enclosing circle.").
+      p("The user can push into, or pop out of, a level of hierarchy by selecting the node "
+        "and using the Push and Pop operations on the context menu.").
+     h3("Columns").
+      p("The hierarchical data comes from the " + B("Name") + " columns and " +
+        B("Value") + " column.").
+      p("If the name columns is a hierarchical path then the separator can be specified width "
+        "the " + B("Separator") + " option (default '/').").
+     h3("Options").
+      p("The " + B("valueLabel") + " option determines if bubble label includes the value").
+     h3("Limitations").
+      p("This plot does not support a user specified range, axes, logarithm scales, "
+        "or probing.").
+     h3("Example").
+      p(IMG("images/hierbubble.png"));
 }
 
 CQChartsPlot *

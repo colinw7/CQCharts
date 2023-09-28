@@ -244,7 +244,7 @@ struct ColorCmp {
 //------
 
 inline bool stringToBool(const QString &str, bool *ok) {
-  QString lstr = str.toLower();
+  auto lstr = str.toLower();
 
   if (lstr == "0" || lstr == "false" || lstr == "no") {
     *ok = true;

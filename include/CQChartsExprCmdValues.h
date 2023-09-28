@@ -27,7 +27,7 @@ class CQChartsExprCmdValues {
   int numValues() const { return int(values_.size()); }
 
   QVariant popValue() {
-    QVariant value = values_.back();
+    auto value = values_.back();
 
     values_.pop_back();
 

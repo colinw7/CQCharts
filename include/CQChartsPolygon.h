@@ -124,7 +124,7 @@ class CQChartsPolygon :
 
     //---
 
-    QString ustr = CQChartsUnits::unitsString(units_);
+    auto ustr = CQChartsUnits::unitsString(units_);
 
     QString str;
 
