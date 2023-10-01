@@ -243,10 +243,12 @@ combinePaths(const QPainterPath &path1, const QPainterPath &path2)
 
 CQChartsPath::Points
 CQChartsPath::
-pathPoints(const QPainterPath &path)
+pathPoints(const QPainterPath &path, double tol)
 {
   class PathVisitor : public CQChartsDrawUtil::PathVisitor {
    public:
+    PathVisitor(double tol) : tol_(tol) { }
+
     void moveTo(const Point &p) override {
       assert(i == 0);
 
@@ -266,7 +268,7 @@ pathPoints(const QPainterPath &path)
 
       std::vector<CPoint2D> points;
 
-      CMathGeom2D::BezierToLines(bezier, points, 1E-3);
+      CMathGeom2D::BezierToLines(bezier, points, tol_);
 
       for (size_t i = 1; i < points.size(); ++i) {
         const auto &bp = points[i];
@@ -282,7 +284,7 @@ pathPoints(const QPainterPath &path)
 
       std::vector<CPoint2D> points;
 
-      CMathGeom2D::BezierToLines(bezier, points, 1E-3);
+      CMathGeom2D::BezierToLines(bezier, points, tol_);
 
       for (size_t i = 1; i < points.size(); ++i) {
         const auto &bp = points[i];
@@ -294,10 +296,11 @@ pathPoints(const QPainterPath &path)
     const Points &points() const { return points_; }
 
    private:
+    double tol_ { 1E-3 };
     Points points_;
   };
 
-  PathVisitor visitor;
+  PathVisitor visitor(tol);
 
   CQChartsDrawUtil::visitPath(path, visitor);
 

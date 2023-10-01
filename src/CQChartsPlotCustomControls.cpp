@@ -452,7 +452,8 @@ setPlot(Plot *plot)
 
   plot_ = plot;
 
-  overview_->setPlot(plot_);
+  if (overview_)
+    overview_->setPlot(plot_);
 
   if (plot_) {
     connect(plot_, SIGNAL(destroyed(QObject *)), this, SLOT(resetPlot()));
@@ -564,6 +565,9 @@ void
 CQChartsPlotCustomControls::
 overviewChanged()
 {
+  if (! overview_ || ! overviewCheck_)
+    return;
+
   if (plot() && plot_->isOverviewDisplayed() != overviewCheck_->isChecked())
     overviewCheck_->setChecked(plot_->isOverviewDisplayed());
 }

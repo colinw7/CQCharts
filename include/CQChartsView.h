@@ -76,6 +76,7 @@ class CQPropertyViewItem;
 class CQColorsPalette;
 
 class CQGLControl;
+class CQRealScroll;
 
 class QPainter;
 class QToolButton;
@@ -126,7 +127,8 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(RegionMode regionMode READ regionMode WRITE setRegionMode)
 
   // zoom mode
-  Q_PROPERTY(ZoomMode zoomMode READ zoomMode WRITE setZoomMode)
+  Q_PROPERTY(ZoomMode zoomMode   READ zoomMode     WRITE setZoomMode)
+  Q_PROPERTY(bool     zoomScroll READ isZoomScroll WRITE setZoomScroll)
 
   // theme
   Q_PROPERTY(CQChartsThemeName theme READ themeName WRITE setThemeName)
@@ -434,6 +436,14 @@ class CQChartsView : public QFrame,
   //! get/set zoom mode
   const ZoomMode &zoomMode() const { return zoomData_.mode; }
   void setZoomMode(const ZoomMode &m);
+
+  //! get/set add scroll bar in zoom mode
+  bool isZoomScroll() const { return zoomData_.scroll; }
+  void setZoomScroll(bool b);
+
+  void updateZoomScroll();
+
+  void placeZoomBars();
 
   //---
 
@@ -1041,7 +1051,7 @@ class CQChartsView : public QFrame,
 
   // handle region rubberband
   void startRegionBand(const Point &pos);
-  void updateRegionBand(Plot *plot, const Point &pressPoint, const Point &movePoint);
+  void updateRegionBand(const Plot *plot, const Point &pressPoint, const Point &movePoint);
   void updateRegionBand(const Point &pressPoint, const Point &movePoint);
   void endRegionBand();
 
@@ -1081,7 +1091,9 @@ class CQChartsView : public QFrame,
 
   // mouse data
   const Plots &mousePlots() const { return mouseData_.plots; }
+
   const Plot *mousePlot() const { return mouseData_.plot; }
+  Plot *mousePlot() { return mouseData_.plot; }
 
   Point mousePressPoint() const { return mouseData_.pressPoint; }
   Point mouseMovePoint () const { return mouseData_.movePoint; }
@@ -1426,10 +1438,15 @@ class CQChartsView : public QFrame,
 
   void wheelZoom(const Point &pp, int delta);
 
-  void zoomIn(double f=1.5);
-  void zoomOut(double f=1.5);
+  void zoomIn (double f=1.1);
+  void zoomOut(double f=1.1);
 
-  void pan(int dx, int dy);
+  void zoomTo  (const BBox &bbox);
+  void unzoomTo(const BBox &bbox);
+
+  void zoomFull();
+
+  void pan(double dx, double dy);
 
   //---
 
@@ -1500,9 +1517,18 @@ class CQChartsView : public QFrame,
 
   QStringList getSlotNames() const;
 
+  //---
+
+  void createSizeHBar();
+  void createSizeVBar();
+  void placeSizeBars();
+
  private Q_SLOTS:
-  void hbarScrollSlot(int pos);
-  void vbarScrollSlot(int pos);
+  void zoomHScrollSlot(double);
+  void zoomVScrollSlot(double);
+
+  void sizeHScrollSlot(int pos);
+  void sizeVScrollSlot(int pos);
 
   void currentPlotZoomPanChanged();
 
@@ -1535,6 +1561,10 @@ class CQChartsView : public QFrame,
 
   bool isRectSelectMode() const;
   bool isPointSelectMode() const;
+
+  void modifyMousePress  ();
+  void modifyMouseMove   ();
+  void modifyMouseRelease();
 
   void regionMousePress();
   void regionMouseMotion();
@@ -1673,7 +1703,10 @@ class CQChartsView : public QFrame,
 
   //! structure containing the zoom mode
   struct ZoomData {
-    ZoomMode mode { ZoomMode::PLOT }; //!< zoom mode
+    ZoomMode      mode   { ZoomMode::PLOT }; //!< zoom mode
+    bool          scroll { false };          //!< zoom scroll
+    CQRealScroll* hbar   { nullptr };
+    CQRealScroll* vbar   { nullptr };
   };
 
   //! structure containing the ruler data

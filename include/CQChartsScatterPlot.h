@@ -527,6 +527,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   Q_PROPERTY(PlotType plotType  READ plotType    WRITE setPlotType )
   Q_PROPERTY(bool     connected READ isConnected WRITE setConnected)
 
+  Q_PROPERTY(bool groupSymbol READ isGroupSymbol WRITE setGroupSymbol)
+
   // density map
   Q_PROPERTY(bool      densityMap         READ isDensityMap       WRITE setDensityMap        )
   Q_PROPERTY(int       densityMapGridSize READ densityMapGridSize WRITE setDensityMapGridSize)
@@ -666,10 +668,15 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  // connected
-
+  // get/set connected
   bool isConnected() const { return connected_; }
   void setConnected(bool b);
+
+  //---
+
+  // get/set use group for symbol
+  bool isGroupSymbol() const { return groupSymbol_; }
+  void setGroupSymbol(bool b);
 
   //---
 
@@ -1057,8 +1064,9 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   bool uniqueY_ { false }; //!< are y values uniquified (string to int)
 
   // options
-  PlotType plotType_  { PlotType::SYMBOLS }; //!< plot type
-  bool     connected_ { false };             //!< are points connected
+  PlotType plotType_    { PlotType::SYMBOLS }; //!< plot type
+  bool     connected_   { false };             //!< are points connected
+  bool     groupSymbol_ { false };             //!< is group symbol
 
   // axis density data
   AxisDensity* xAxisDensity_ { nullptr }; //!< x axis whisker density object

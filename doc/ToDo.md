@@ -6,6 +6,12 @@ Abstract Painter/Javascript
 TODO:
  + view zoom (mouse tool)
 
+ + cross select into scatter
+ + add mouse over and selection to status bar text
+ + include override for pixel 
+
+ + dendrogram plot add model columns to object indices for cross select
+
  + distribution add missing (zero value) bar positions on axis
  + distribution map from plot to bar coords
 

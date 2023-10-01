@@ -369,6 +369,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   void setDrawCell(int row, int col) const { drawRow_ = row; drawCol_ = col; }
 
   void percentRefSize(const BBox &pbbox, double &refWidth, double &refHeight) const override;
+  void percentPixelRefSize(const BBox &pbbox, double &refWidth, double &refHeight) const override;
 
   //---
 

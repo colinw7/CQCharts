@@ -4845,8 +4845,7 @@ void
 CQChartsSankeyNodeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : sankeyPlot_->modelColumns())
-    addColumnSelectIndex(inds, c);
+  addColumnsSelectIndex(inds, sankeyPlot_->modelColumns());
 }
 
 CQChartsSankeyNodeObj::PlotObjs
@@ -5659,8 +5658,7 @@ void
 CQChartsSankeyEdgeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : sankeyPlot()->modelColumns())
-    addColumnSelectIndex(inds, c);
+  addColumnsSelectIndex(inds, sankeyPlot_->modelColumns());
 }
 
 CQChartsSankeyEdgeObj::PlotObjs

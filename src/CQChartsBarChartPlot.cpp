@@ -2699,13 +2699,9 @@ getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, barChartPlot_->groupColumn());
 
-  Column  column;
-  Columns columns;
-
+  Column column; Columns columns;
   calcValueColumns(column, columns);
-
-  for (const auto &c : columns.columns())
-    addColumnSelectIndex(inds, c);
+  addColumnsSelectIndex(inds, columns);
 
   addColumnSelectIndex(inds, barChartPlot_->nameColumn());
   addColumnSelectIndex(inds, barChartPlot_->labelColumn());

@@ -167,6 +167,8 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   //---
 
+  void getObjSelectIndices(Indices &inds) const override;
+
   bool inside(const Point &p) const override;
 
   //---
@@ -261,6 +263,8 @@ class CQChartsDendrogramEdgeObj : public CQChartsPlotObj {
   QString calcTipId() const override;
 
   //---
+
+  void getObjSelectIndices(Indices &inds) const override;
 
   bool inside(const Point &p) const override;
 
@@ -725,6 +729,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
+  bool isEdgeRows() const { return isEdgeRows_; }
+
   void updateZoomScroll() override;
 
   void hscrollBy(double dx) override;
@@ -900,6 +906,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   };
 
   EdgeData edgeData_;
+
+  mutable bool isEdgeRows_ { false };
 
   // plot data
   Qt::Orientation orientation_ { Qt::Horizontal };      //!< draw direction

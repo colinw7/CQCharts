@@ -1864,10 +1864,8 @@ void
 CQChartsSunburstNodeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : sunburstPlot_->nameColumns())
-    addColumnSelectIndex(inds, c);
-
-  addColumnSelectIndex(inds, sunburstPlot_->valueColumn());
+  addColumnsSelectIndex(inds, sunburstPlot_->nameColumns());
+  addColumnSelectIndex (inds, sunburstPlot_->valueColumn());
 }
 
 void

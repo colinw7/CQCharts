@@ -432,13 +432,26 @@ updatePlots()
     scatterPlot()->setGroupColumn(groupColumn());
     scatterPlot()->setTipColumns(visibleColumns());
 
-    if (cellObj)
-      scatterPlot()->setSymbolFillColor(cellObj->pointColor());
-    else
+    if (groupColumn().isValid()) {
+      scatterPlot()->setSymbol(Symbol());
       scatterPlot()->setSymbolFillColor(Color::makePalette());
+      scatterPlot()->setGroupSymbol(true);
+    }
+    else {
+      if (cellObj)
+        scatterPlot()->setSymbolFillColor(cellObj->pointColor());
+      else
+        scatterPlot()->setSymbolFillColor(Color::makePalette());
 
-    scatterPlot()->setSymbol(scatterSymbol());
+      scatterPlot()->setSymbol(scatterSymbol());
+      scatterPlot()->setGroupSymbol(false);
+    }
+
+    scatterPlot()->setSymbolFillAlpha(scatterSymbolFillAlpha());
     scatterPlot()->setSymbolSize(calcScatterSymbolSize());
+
+    scatterPlot()->setSymbolStrokeColor(scatterSymbolStrokeColor());
+    scatterPlot()->setSymbolStrokeAlpha(scatterSymbolStrokeAlpha());
 
     // TODO: more axis settings ?
     scatterPlot()->xAxis()->setGridLinesDisplayed(xAxis()->gridLinesDisplayed());
@@ -595,12 +608,22 @@ calcScatterSymbolSize() const
   return symbolSize;
 }
 
+//---
+
 void
 CQChartsSummaryPlot::
 percentRefSize(const BBox &, double &refWidth, double &refHeight) const
 {
   refWidth  = 1.0;
   refHeight = 1.0;
+}
+
+void
+CQChartsSummaryPlot::
+percentPixelRefSize(const BBox &, double &refWidth, double &refHeight) const
+{
+  refWidth  = windowToPixelWidth (1.0);
+  refHeight = windowToPixelHeight(1.0);
 }
 
 //---
@@ -3118,8 +3141,11 @@ drawScatter(PaintDevice *device) const
 
     //---
 
+    auto blendAlpha = CMathUtil::avg(groupPenBrush1.brush.color().alphaF(),
+                                     groupPenBrush2.brush.color().alphaF());
     auto blendColor = CQChartsUtil::blendColors(groupPenBrush1.brush.color(),
                                                 groupPenBrush2.brush.color(), 0.5);
+    blendColor.setAlphaF(blendAlpha);
 
     groupPenBrush1.brush.setColor(blendColor);
 

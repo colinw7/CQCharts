@@ -328,6 +328,22 @@ getSelectIndices(Indices &inds) const
     addColumnSelectIndex(inds, plot()->colorColumn());
 }
 
+void
+CQChartsPlotObj::
+addColumnsSelectIndex(Indices &inds, const Columns &columns) const
+{
+  for (const auto &c : columns.columns())
+    addColumnSelectIndex(inds, c);
+}
+
+void
+CQChartsPlotObj::
+addColumnsSelectIndex(Indices &inds, const std::vector<Column> &columns) const
+{
+  for (const auto &c : columns)
+    addColumnSelectIndex(inds, c);
+}
+
 // add plot object's indices to array for specified (new) column
 void
 CQChartsPlotObj::

@@ -1910,10 +1910,8 @@ void
 CQChartsHierBubbleHierObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : hierBubblePlot_->nameColumns())
-    addColumnSelectIndex(inds, c);
-
-  addColumnSelectIndex(inds, hierBubblePlot_->valueColumn());
+  addColumnsSelectIndex(inds, hierBubblePlot_->nameColumns());
+  addColumnSelectIndex (inds, hierBubblePlot_->valueColumn());
 }
 
 void
@@ -2112,10 +2110,8 @@ void
 CQChartsHierBubbleNodeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : hierBubblePlot_->nameColumns())
-    addColumnSelectIndex(inds, c);
-
-  addColumnSelectIndex(inds, hierBubblePlot_->valueColumn());
+  addColumnsSelectIndex(inds, hierBubblePlot_->nameColumns());
+  addColumnSelectIndex (inds, hierBubblePlot_->valueColumn());
 }
 
 void

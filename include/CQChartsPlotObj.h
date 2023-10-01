@@ -66,6 +66,7 @@ class CQChartsPlotObj : public CQChartsObj,
   using PenBrush      = CQChartsPenBrush;
   using ResizeSide    = CQChartsResizeSide;
   using Column        = CQChartsColumn;
+  using Columns       = CQChartsColumns;
   using ModelIndex    = CQChartsModelIndex;
   using Color         = CQChartsColor;
   using Alpha         = CQChartsAlpha;
@@ -305,7 +306,9 @@ class CQChartsPlotObj : public CQChartsObj,
   void addSelectIndices(Plot *plot);
 
   // add plot object's indices to array for specified (new) column
-  virtual void addColumnSelectIndex(Indices &inds, const Column &column) const;
+  virtual void addColumnsSelectIndex(Indices &inds, const Columns &columns) const;
+  virtual void addColumnsSelectIndex(Indices &inds, const std::vector<Column> &columns) const;
+  virtual void addColumnSelectIndex (Indices &inds, const Column &column) const;
 
   // add model index to array
   void addSelectIndex(Indices &inds, const ModelIndex &ind) const;

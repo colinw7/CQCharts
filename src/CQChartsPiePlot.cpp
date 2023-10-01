@@ -2196,10 +2196,8 @@ void
 CQChartsPieObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, piePlot_->labelColumn());
-
-  for (const auto &c : piePlot_->valueColumns())
-    addColumnSelectIndex(inds, c);
+  addColumnSelectIndex (inds, piePlot_->labelColumn());
+  addColumnsSelectIndex(inds, piePlot_->valueColumns());
 }
 
 void

@@ -1321,26 +1321,20 @@ bucketGroupValues() const
   if (isShowEmpty()) {
     // add empty bucket values for missing bucket indices
     for (auto &groupValues : groupData_.groupValues) {
+      auto groupInd = groupValues.first;
+
+      int bucketMin, bucketMax;
+      if (! getGroupBucketRange(groupInd, bucketMin, bucketMax))
+        continue;
+
       auto *values = groupValues.second;
 
-      bool first = true;
-      int  bval1 = 0, bval2 = 0;
+      for (int ibucket = bucketMin; ibucket <= bucketMax; ++ibucket) {
+        Bucket bucket(ibucket);
 
-      for (auto &bucketValues : values->bucketValues) {
-        const auto &bucket = bucketValues.first;
-
-        bval1 = bval2;
-        bval2 = bucket.value();
-
-        if (! first) {
-          for (int i = bval1 + 1; i < bval2; ++i) {
-            Bucket bucket1(i);
-
-            values->bucketValues[bucket1].inds.clear();
-          }
-        }
-        else
-          first = false;
+        auto pb = values->bucketValues.find(bucket);
+        if (pb == values->bucketValues.end())
+          values->bucketValues[bucket].inds.clear();
       }
     }
   }
@@ -1820,6 +1814,21 @@ getGroupValues(int groupInd) const
   if (pg == groupData_.groupValues.end()) return nullptr;
 
   return (*pg).second;
+}
+
+bool
+CQChartsDistributionPlot::
+getGroupBucketRange(int groupInd, int &bucketMin, int &bucketMax) const
+{
+  auto pb = groupData_.groupBucketRange.find(groupInd);
+  if (pb == groupData_.groupBucketRange.end()) return false;
+
+  const auto &bucketRange = (*pb).second;
+
+  bucketMin = bucketRange.min(0);
+  bucketMax = bucketRange.max(0);
+
+  return true;
 }
 
 //------
@@ -2311,15 +2320,9 @@ createObjs(PlotObjs &objs) const
       valueAxis()->setTickLabel(ig, groupName);
     }
     else {
-      auto pb = groupData_.groupBucketRange.find(groupInd);
-
-      if (groupData_.groupBucketRange.empty())
+      int bucketMin, bucketMax;
+      if (! getGroupBucketRange(groupInd, bucketMin, bucketMax))
         continue;
-
-      const auto &bucketRange = (*pb).second;
-
-      int bucketMin = bucketRange.min(0);
-      int bucketMax = bucketRange.max(0);
 
       if (! isOverlayActive)
         offset = -bucketMin;
@@ -2591,7 +2594,7 @@ createObjs(PlotObjs &objs) const
       //---
 
       if (! isOverlayActive)
-        count += bucketRange.max(0) - bucketRange.min(0) + 1;
+        count += bucketMax - bucketMin + 1;
     }
 
     ++ig;
@@ -3274,13 +3277,41 @@ QString
 CQChartsDistributionPlot::
 posStr(const Point &w) const
 {
-  if (isDensity() || isScatter())
+  Point w1;
+
+  if (! mapPosition(w, w1))
     return CQChartsPlot::posStr(w);
+
+  auto str = xStr(w1.x) + " " + yStr(w1.y);
+
+#if 0
+  Point w2;
+
+  if (! unmapPosition(w1, w2))
+    str += " " + CQChartsPlot::posStr(w2);
+  else
+    str += " " + xStr(w2.x) + " " + yStr(w2.y);
+
+  if (w != w2)
+    std::cerr << "Position mismatch\n";
+#endif
+
+  return str;
+}
+
+bool
+CQChartsDistributionPlot::
+mapPosition(const Point &w, Point &w1) const
+{
+  w1 = w;
+
+  if (isDensity() || isScatter())
+    return false;
 
   //---
 
   if (isVertical()) {
-    auto xstr = xStr(int(w.x));
+    w1.x = int(w.x);
 
     for (const auto &plotObj : plotObjs_) {
       auto *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
@@ -3288,15 +3319,13 @@ posStr(const Point &w) const
       double value;
 
       if (barObj && barObj->bucketXValue(w.x, value)) {
-        xstr = QString::number(value);
+        w1.x = value;
         break;
       }
     }
-
-    return xstr + " " + yStr(w.y);
   }
   else {
-    auto ystr = yStr(int(w.y));
+    w1.y = int(w.y);
 
     for (const auto &plotObj : plotObjs_) {
       auto *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
@@ -3304,13 +3333,56 @@ posStr(const Point &w) const
       double value;
 
       if (barObj && barObj->bucketYValue(w.y, value)) {
-        ystr = QString::number(value);
+        w1.y = value;
         break;
       }
     }
-
-    return xStr(w.x) + " " + ystr;
   }
+
+  return true;
+}
+
+bool
+CQChartsDistributionPlot::
+unmapPosition(const Point &w, Point &w1) const
+{
+  w1 = w;
+
+  if (isDensity() || isScatter())
+    return false;
+
+  //---
+
+  if (isVertical()) {
+    w1.x = int(w.x);
+
+    for (const auto &plotObj : plotObjs_) {
+      auto *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+
+      double x;
+
+      if (barObj && barObj->bucketValueX(w.x, x)) {
+        w1.x = x;
+        break;
+      }
+    }
+  }
+  else {
+    w1.y = int(w.y);
+
+    for (const auto &plotObj : plotObjs_) {
+      auto *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+
+      double y;
+
+      if (barObj && barObj->bucketValueY(w.y, y)) {
+        w1.y = y;
+        break;
+      }
+    }
+  }
+
+  return true;
 }
 
 //------
@@ -3849,6 +3921,8 @@ bucketStr() const
   return bucketStr;
 }
 
+//---
+
 bool
 CQChartsDistributionBarObj::
 bucketXValue(double x, double &value) const
@@ -3888,6 +3962,52 @@ bucketYValue(double y, double &value) const
 
   return true;
 }
+
+bool
+CQChartsDistributionBarObj::
+bucketValueX(double value, double &x) const
+{
+  double value1, value2;
+
+  if (! distributionPlot_->isBucketed()) {
+    value1 = groupInd_ - 0.5;
+    value2 = groupInd_ + 0.5;
+  }
+  else {
+    distributionPlot_->bucketValues(groupInd_, bucket_, value1, value2);
+  }
+
+  if (value >= value1 && value < value2) { // half open
+    x = CMathUtil::map(x, value1, value2, rect().getXMin(), rect().getXMax());
+    return true;
+  }
+
+  return false;
+}
+
+bool
+CQChartsDistributionBarObj::
+bucketValueY(double value, double &y) const
+{
+  double value1, value2;
+
+  if (! distributionPlot_->isBucketed()) {
+    value1 = groupInd_ - 0.5;
+    value2 = groupInd_ + 0.5;
+  }
+  else {
+    distributionPlot_->bucketValues(groupInd_, bucket_, value1, value2);
+  }
+
+  if (value >= value1 && value < value2) { // half open
+    y = CMathUtil::map(y, value1, value2, rect().getYMin(), rect().getYMax());
+    return true;
+  }
+
+  return false;
+}
+
+//---
 
 int
 CQChartsDistributionBarObj::
@@ -5315,7 +5435,6 @@ addBucketGroup()
     auto *radio = CQUtil::makeWidget<CQIconRadio>(name);
 
     radio->setIcon(icon);
-
     radio->setToolTip(tip);
 
     bucketRadioGroup_->addButton(radio);

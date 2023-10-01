@@ -1436,10 +1436,8 @@ void
 CQChartsParallelLineObj::
 getObjSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, parallelPlot_->xColumn());
-
-  for (const auto &c : parallelPlot_->visibleYColumns())
-    addColumnSelectIndex(inds, c);
+  addColumnSelectIndex (inds, parallelPlot_->xColumn());
+  addColumnsSelectIndex(inds, parallelPlot_->visibleYColumns());
 }
 
 void

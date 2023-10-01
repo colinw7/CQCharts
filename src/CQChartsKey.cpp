@@ -2886,7 +2886,8 @@ draw(PaintDevice *device, const BBox &rect) const
 
     BBox rect1(x, y + dy, x + s.width(), y + s.height() + dy);
 
-    item->draw(device, rect1);
+    if (rect1.isValid())
+      item->draw(device, rect1);
 
     item->setBBox(rect1);
 

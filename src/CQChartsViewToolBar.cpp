@@ -176,6 +176,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
     layout->addWidget(labelWidget);
     layout->addWidget(combo);
 
+    combo->setFocusPolicy(Qt::NoFocus);
+
     return combo;
   };
 
@@ -212,7 +214,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   //--
 
   selectKeyCombo_ = makeCombo("Key", "selectKey", QStringList() << "Show" << "Select",
-                               selectControlsLayout, "Select Key",
+                               selectControlsLayout, "Operation performed on key item click",
                                SLOT(selectKeyComboSlot(int)));
 
   //--
@@ -466,10 +468,15 @@ void
 CQChartsViewToolBar::
 zoomFullSlot()
 {
-  auto *plot = view()->currentPlot(/*remap*/true);
-  if (! plot) return;
+  if (view()->zoomMode() == CQChartsView::ZoomMode::VIEW) {
+    view()->zoomFull();
+  }
+  else {
+    auto *plot = view()->currentPlot(/*remap*/true);
+    if (! plot) return;
 
-  plot->zoomFull();
+    plot->zoomFull();
+  }
 }
 
 //---
@@ -478,6 +485,15 @@ void
 CQChartsViewToolBar::
 panResetSlot()
 {
+  if (view()->zoomMode() == CQChartsView::ZoomMode::VIEW) {
+    view()->zoomFull();
+  }
+  else {
+    auto *plot = view()->currentPlot(/*remap*/true);
+    if (! plot) return;
+
+    plot->zoomFull();
+  }
 }
 
 //---

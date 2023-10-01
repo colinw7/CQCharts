@@ -231,6 +231,9 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   bool bucketXValue(double x, double &value) const;
   bool bucketYValue(double y, double &value) const;
 
+  bool bucketValueX(double value, double &x) const;
+  bool bucketValueY(double value, double &y) const;
+
   //---
 
   int count() const;
@@ -411,12 +414,13 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
  private:
   const DistributionPlot* distributionPlot_ { nullptr };
-  int                     groupInd_         { -1 };
-  Data                    data_;
-  double                  doffset_          { 0.0 };
-  ColorInd                is_;
-  Polygon                 poly_;
-  double                  bucketScale_      { 1.0 };
+
+  int      groupInd_    { -1 };
+  Data     data_;
+  double   doffset_     { 0.0 };
+  ColorInd is_;
+  Polygon  poly_;
+  double   bucketScale_ { 1.0 };
 };
 
 //---
@@ -470,12 +474,13 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
   using Points = std::vector<Point>;
 
   const DistributionPlot* distributionPlot_ { nullptr };
-  int                     groupInd_         { -1 };
-  Bucket                  bucket_;
-  int                     n_                { 0 };
-  ColorInd                is_;
-  ColorInd                iv_;
-  Points                  points_;
+
+  int      groupInd_ { -1 };
+  Bucket   bucket_;
+  int      n_        { 0 };
+  ColorInd is_;
+  ColorInd iv_;
+  Points   points_;
 };
 
 //---
@@ -896,6 +901,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   QString posStr(const Point &w) const override;
 
+  bool mapPosition  (const Point &w, Point &w1) const;
+  bool unmapPosition(const Point &w, Point &w1) const;
+
   //---
 
   bool addMenuItems(QMenu *menu, const Point &p) override;
@@ -1044,6 +1052,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   Values *getGroupIndValues(int groupInd, const ModelIndex &ind) const;
 
   const Values *getGroupValues(int groupInd) const;
+
+  bool getGroupBucketRange(int groupInd, int &bucketMin, int &bucketMax) const;
 
   //---
 

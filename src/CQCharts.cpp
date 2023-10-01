@@ -36,6 +36,7 @@
 #include <CQChartsSunburstPlot.h>
 #include <CQChartsTablePlot.h>
 #include <CQChartsTreeMapPlot.h>
+#include <CQChartsVennPlot.h>
 #include <CQChartsWheelPlot.h>
 #include <CQChartsWordCloudPlot.h>
 #include <CQChartsXYPlot.h>
@@ -682,6 +683,7 @@ init()
   plotTypeMgr()->addTypeT<CQChartsSunburstPlotType     >("sunburst"     );
   plotTypeMgr()->addTypeT<CQChartsTablePlotType        >("table"        );
   plotTypeMgr()->addTypeT<CQChartsTreeMapPlotType      >("treemap"      );
+  plotTypeMgr()->addTypeT<CQChartsVennPlotType         >("venn"         );
   plotTypeMgr()->addTypeT<CQChartsWheelPlotType        >("wheel"        );
   plotTypeMgr()->addTypeT<CQChartsWordCloudPlotType    >("wordCloud"    );
   plotTypeMgr()->addTypeT<CQChartsXYPlotType           >("xy"           );

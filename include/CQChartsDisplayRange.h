@@ -178,8 +178,7 @@ class CQChartsDisplayRange {
   }
 
   void scroll(double offset_x, double offset_y) {
-    scrollX(offset_x);
-    scrollY(offset_y);
+    window1_.incX(offset_x); window1_.incY(offset_y); recalc();
   }
 
   void scrollX(double offset_x) { window1_.incX(offset_x); recalc(); }

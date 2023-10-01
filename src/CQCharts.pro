@@ -106,6 +106,7 @@ CQChartsStripPlot.cpp \
 CQChartsTablePlot.cpp \
 CQChartsSunburstPlot.cpp \
 CQChartsTreeMapPlot.cpp \
+CQChartsVennPlot.cpp \
 CQChartsWheelPlot.cpp \
 CQChartsWordCloudPlot.cpp \
 CQChartsXYPlot.cpp \
@@ -428,6 +429,7 @@ CQDoubleRangeSlider.cpp \
 CQIntRangeSlider.cpp \
 CQTimeRangeSlider.cpp \
 CQRangeSlider.cpp \
+CQRealScroll.cpp \
 \
 CQBusyButton.cpp \
 \
@@ -538,6 +540,7 @@ HEADERS += \
 ../include/CQChartsSunburstPlot.h \
 ../include/CQChartsTablePlot.h \
 ../include/CQChartsTreeMapPlot.h \
+../include/CQChartsVennPlot.h \
 ../include/CQChartsWheelPlot.h \
 ../include/CQChartsWordCloudPlot.h \
 ../include/CQChartsXYPlot.h \
@@ -899,6 +902,7 @@ HEADERS += \
 ../include/CQIntRangeSlider.h \
 ../include/CQTimeRangeSlider.h \
 ../include/CQRangeSlider.h \
+../include/CQRealScroll.h \
 \
 ../include/CUnixFile.h \
 \

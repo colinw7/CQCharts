@@ -2515,10 +2515,8 @@ void
 CQChartsTreeMapNodeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : treeMapPlot_->nameColumns())
-    addColumnSelectIndex(inds, c);
-
-  addColumnSelectIndex(inds, treeMapPlot_->valueColumn());
+  addColumnsSelectIndex(inds, treeMapPlot_->nameColumns());
+  addColumnSelectIndex (inds, treeMapPlot_->valueColumn());
 }
 
 void

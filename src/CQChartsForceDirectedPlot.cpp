@@ -4638,8 +4638,7 @@ void
 CQChartsForceDirectedNodeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : forceDirectedPlot_->modelColumns())
-    addColumnSelectIndex(inds, c);
+  addColumnsSelectIndex(inds, forceDirectedPlot_->modelColumns());
 }
 
 CQChartsObj::ObjShapeType
@@ -4732,8 +4731,7 @@ void
 CQChartsForceDirectedEdgeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : forceDirectedPlot_->modelColumns())
-    addColumnSelectIndex(inds, c);
+  addColumnsSelectIndex(inds, forceDirectedPlot_->modelColumns());
 }
 
 //------

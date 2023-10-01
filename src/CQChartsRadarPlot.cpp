@@ -202,7 +202,7 @@ getNamedColumns(const QString &name) const
 {
   Columns c;
   if (name == "values") c = this->valueColumns();
-  else             c = CQChartsPlot::getNamedColumns(name);
+  else                  c = CQChartsPlot::getNamedColumns(name);
 
   return c;
 }
@@ -1052,10 +1052,8 @@ void
 CQChartsRadarObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &valueColumn : radarPlot_->valueColumns())
-    addColumnSelectIndex(inds, valueColumn);
-
-  addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
+  addColumnsSelectIndex(inds, radarPlot_->valueColumns());
+  addColumnSelectIndex (inds, CQChartsColumn(modelInd().column()));
 }
 
 void

@@ -162,7 +162,7 @@ class CQChartsPath :
 
   //---
 
-  static Points pathPoints(const QPainterPath &path);
+  static Points pathPoints(const QPainterPath &path, double tol=1E-3);
 
   //---
 

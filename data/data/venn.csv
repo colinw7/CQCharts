@@ -1,0 +1,8 @@
+# Name,Value
+Face,4
+Feet,2
+Body,4
+Face/Feet,1
+Face/Body,11
+Feet/Body,2
+Feet/Body/Face,2

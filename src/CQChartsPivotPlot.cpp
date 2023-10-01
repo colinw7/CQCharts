@@ -1316,11 +1316,8 @@ void
 CQChartsPivotBarObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : pivotPlot_->xColumns())
-    addColumnSelectIndex(inds, c);
-
-  for (const auto &c : pivotPlot_->yColumns())
-    addColumnSelectIndex(inds, c);
+  addColumnsSelectIndex(inds, pivotPlot_->xColumns());
+  addColumnsSelectIndex(inds, pivotPlot_->yColumns());
 }
 
 //---
@@ -1461,11 +1458,8 @@ void
 CQChartsPivotLineObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : pivotPlot_->xColumns())
-    addColumnSelectIndex(inds, c);
-
-  for (const auto &c : pivotPlot_->yColumns())
-    addColumnSelectIndex(inds, c);
+  addColumnsSelectIndex(inds, pivotPlot_->xColumns());
+  addColumnsSelectIndex(inds, pivotPlot_->yColumns());
 }
 
 void
@@ -1628,11 +1622,8 @@ void
 CQChartsPivotPointObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : pivotPlot_->xColumns())
-    addColumnSelectIndex(inds, c);
-
-  for (const auto &c : pivotPlot_->yColumns())
-    addColumnSelectIndex(inds, c);
+  addColumnsSelectIndex(inds, pivotPlot_->xColumns());
+  addColumnsSelectIndex(inds, pivotPlot_->yColumns());
 }
 
 void
@@ -1737,11 +1728,8 @@ void
 CQChartsPivotCellObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : pivotPlot_->xColumns())
-    addColumnSelectIndex(inds, c);
-
-  for (const auto &c : pivotPlot_->yColumns())
-    addColumnSelectIndex(inds, c);
+  addColumnsSelectIndex(inds, pivotPlot_->xColumns());
+  addColumnsSelectIndex(inds, pivotPlot_->yColumns());
 }
 
 void

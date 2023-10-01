@@ -394,6 +394,9 @@ QColor blendColors(const std::vector<QColor> &colors) {
   if (colors.empty())
     return QColor();
 
+  if (colors.size() == 1)
+    return colors[0];
+
   double f = 1.0/double(colors.size());
 
   double r = 0.0;

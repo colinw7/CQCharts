@@ -1862,8 +1862,9 @@ placeModel() const
 
   //---
 
+  isEdgeRows_ = false;
+
   Edges edges;
-  bool  isEdgeRows = false;
 
   if (isHierarchical() || linkColumn().isValid()) {
     HierRowVisitor visitor(this, edges);
@@ -1875,7 +1876,7 @@ placeModel() const
     th->sizeRange_  = visitor.sizeRange ();
 
     if (linkColumn().isValid())
-      isEdgeRows = true;
+      isEdgeRows_ = true;
   }
   else {
     FlatRowVisitor visitor(this, edges);
@@ -1973,7 +1974,7 @@ placeModel() const
 
   //---
 
-  processMetaData(isEdgeRows);
+  processMetaData(isEdgeRows_);
 
   //---
 
@@ -3720,6 +3721,18 @@ calcTipId() const
 
 //---
 
+void
+CQChartsDendrogramNodeObj::
+getObjSelectIndices(Indices &inds) const
+{
+  if (! dendrogramPlot_->isEdgeRows()) {
+    addColumnsSelectIndex(inds, dendrogramPlot_->nameColumns());
+    addColumnSelectIndex (inds, dendrogramPlot_->linkColumn ());
+    addColumnSelectIndex (inds, dendrogramPlot_->valueColumn());
+    addColumnSelectIndex (inds, dendrogramPlot_->sizeColumn ());
+  }
+}
+
 bool
 CQChartsDendrogramNodeObj::
 inside(const Point &p) const
@@ -4510,6 +4523,18 @@ calcTipId() const
 }
 
 //---
+
+void
+CQChartsDendrogramEdgeObj::
+getObjSelectIndices(Indices &inds) const
+{
+  if (dendrogramPlot_->isEdgeRows()) {
+    addColumnsSelectIndex(inds, dendrogramPlot_->nameColumns());
+    addColumnSelectIndex (inds, dendrogramPlot_->linkColumn ());
+    addColumnSelectIndex (inds, dendrogramPlot_->valueColumn());
+    addColumnSelectIndex (inds, dendrogramPlot_->sizeColumn ());
+  }
+}
 
 bool
 CQChartsDendrogramEdgeObj::

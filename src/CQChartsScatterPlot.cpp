@@ -21,6 +21,7 @@
 #include <CQChartsFontSizeRangeSlider.h>
 #include <CQChartsColumnControlGroup.h>
 #include <CQChartsMapKey.h>
+#include <CQChartsSymbolSet.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -482,6 +483,13 @@ CQChartsScatterPlot::
 setConnected(bool b)
 {
   CQChartsUtil::testAndSet(connected_, b, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsScatterPlot::
+setGroupSymbol(bool b)
+{
+  CQChartsUtil::testAndSet(groupSymbol_, b, [&]() { updateObjs(); } );
 }
 
 //------
@@ -1715,6 +1723,12 @@ addPointObjects(PlotObjs &objs) const
         if (symbolTypeColumn().isValid()) {
           if (! columnSymbolType(valuePoint.row, valuePoint.ind.parent(), symbol))
             symbol = Symbol();
+        }
+
+        if (! symbol.isValid() && isGroupSymbol() && ng > 1) {
+          auto *symbolSet = defaultSymbolSet();
+
+          symbol = symbolSet->interpI(ig).symbol;
         }
 
         if (symbol.isValid()) {

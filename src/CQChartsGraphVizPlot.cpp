@@ -2680,8 +2680,7 @@ void
 CQChartsGraphVizNodeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : graphVizPlot_->modelColumns())
-    addColumnSelectIndex(inds, c);
+  addColumnsSelectIndex(inds, graphVizPlot_->modelColumns());
 }
 
 CQChartsGraphVizNodeObj::PlotObjs
@@ -3026,8 +3025,7 @@ void
 CQChartsGraphVizEdgeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : graphVizPlot()->modelColumns())
-    addColumnSelectIndex(inds, c);
+  addColumnsSelectIndex(inds, graphVizPlot_->modelColumns());
 }
 
 CQChartsGraphVizEdgeObj::PlotObjs
