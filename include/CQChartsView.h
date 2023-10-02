@@ -433,10 +433,21 @@ class CQChartsView : public QFrame,
 
   //---
 
+ private:
+  void createSizeHBar();
+  void createSizeVBar();
+  void placeSizeBars();
+
+  void updateSizeBars();
+
+  //---
+
+ public:
   //! get/set zoom mode
   const ZoomMode &zoomMode() const { return zoomData_.mode; }
   void setZoomMode(const ZoomMode &m);
 
+ private:
   //! get/set add scroll bar in zoom mode
   bool isZoomScroll() const { return zoomData_.scroll; }
   void setZoomScroll(bool b);
@@ -447,6 +458,7 @@ class CQChartsView : public QFrame,
 
   //---
 
+ public:
   // selected/inside appearance
   const HighlightDataMode &selectedMode() const { return selectedHighlight_.mode; }
   void setSelectedMode(const HighlightDataMode &mode) { selectedHighlight_.mode = mode; }
@@ -883,6 +895,8 @@ class CQChartsView : public QFrame,
   void resizeEvent(QResizeEvent *) override;
 
   void doResize(int w, int h);
+
+  void updatePixelRange();
 
   //---
 
@@ -1519,10 +1533,6 @@ class CQChartsView : public QFrame,
 
   //---
 
-  void createSizeHBar();
-  void createSizeVBar();
-  void placeSizeBars();
-
  private Q_SLOTS:
   void zoomHScrollSlot(double);
   void zoomVScrollSlot(double);
@@ -1838,6 +1848,9 @@ class CQChartsView : public QFrame,
 
   Mode        mode_        { Mode::SELECT };            //!< mouse mode
   KeyBehavior keyBehavior_ { KeyBehavior::Type::SHOW }; //!< default key press behavior
+
+  int resizeWidth_  { 100 };
+  int resizeHeight_ { 100 };
 
   // select/highlight data
   SelectData    selectData_;        //!< select sub mode data

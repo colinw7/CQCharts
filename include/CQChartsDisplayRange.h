@@ -184,6 +184,8 @@ class CQChartsDisplayRange {
   void scrollX(double offset_x) { window1_.incX(offset_x); recalc(); }
   void scrollY(double offset_y) { window1_.incY(offset_y); recalc(); }
 
+  Range getCurrentWindow() const { return window1_; }
+
   void reset() { window1_ = window_; recalc(); }
 
   void recalc() {

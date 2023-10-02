@@ -1042,8 +1042,7 @@ calcRange() const
 
     th->bucketer_.setType(type);
 
-    if (bucketer.type() == CQBucketer::Type::REAL_AUTO ||
-        bucketer.type() == CQBucketer::Type::REAL_RANGE) {
+    if (bucketer.type() == CQBucketer::Type::REAL_AUTO) {
       // init preferred real start and delta values
       CInterval interval;
 

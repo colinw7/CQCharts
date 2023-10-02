@@ -1423,6 +1423,9 @@ void
 CQChartsView::
 updateZoomScroll()
 {
+  bool showHBar = false;
+  bool showVBar = false;
+
   if (zoomData_.scroll) {
     if (! zoomData_.hbar) {
       zoomData_.hbar = new CQRealScroll(Qt::Horizontal, this);
@@ -1442,12 +1445,21 @@ updateZoomScroll()
 
     auto vr = CQChartsView::viewportRange();
 
-    zoomData_.hbar->setRange(0, vr);
-    zoomData_.vbar->setRange(vr, 0);
+    auto window = displayRange_->getCurrentWindow();
+
+    showHBar = (window.dx() < vr);
+    showVBar = (window.dy() < vr);
+
+    //---
 
     double w, h;
     displayRange_->pixelWidthToWindowWidth  (width (), &w);
     displayRange_->pixelHeightToWindowHeight(height(), &h);
+
+    //---
+
+    zoomData_.hbar->setRange(0, vr);
+    zoomData_.vbar->setRange(vr, 0);
 
     zoomData_.hbar->setPageStep(w);
     zoomData_.vbar->setPageStep(-h);
@@ -1469,29 +1481,50 @@ updateZoomScroll()
     connect(zoomData_.vbar, SIGNAL(valueChanged(double)), this, SLOT(zoomVScrollSlot(double)));
   }
 
-  if (zoomData_.hbar)
-    zoomData_.hbar->setVisible(zoomData_.scroll);
-  if (zoomData_.vbar)
-    zoomData_.vbar->setVisible(zoomData_.scroll);
+  //---
+
+  bool changed = false;
+
+  if (zoomData_.hbar) {
+    if (zoomData_.hbar->isVisible() != showHBar) {
+      zoomData_.hbar->setVisible(showHBar);
+      changed = true;
+    }
+  }
+
+  if (zoomData_.vbar) {
+    if (zoomData_.vbar->isVisible() != showVBar) {
+      zoomData_.vbar->setVisible(showVBar);
+      changed = true;
+    }
+  }
 
   placeZoomBars();
+
+  if (changed)
+    updatePixelRange();
 }
 
 void
 CQChartsView::
 placeZoomBars()
 {
+  int hh1 = (sizeData_.hbar && sizeData_.hbar->isVisible() ?
+              sizeData_.hbar->sizeHint().height() : 0);
+  int vw1 = (sizeData_.vbar && sizeData_.hbar->isVisible() ?
+              sizeData_.vbar->sizeHint().width () : 0);
+
   int hh = (zoomData_.hbar ? zoomData_.hbar->height() : 0);
   int vw = (zoomData_.vbar ? zoomData_.vbar->width () : 0);
 
   if (zoomData_.hbar && zoomData_.hbar->isVisible()) {
-    zoomData_.hbar->resize(width() - vw, hh);
-    zoomData_.hbar->move(0, height() - hh);
+    zoomData_.hbar->resize(width() - vw - vw1, hh);
+    zoomData_.hbar->move(0, height() - hh - hh1);
   }
 
   if (zoomData_.vbar && zoomData_.vbar->isVisible()) {
-    zoomData_.vbar->resize(vw, height() - hh);
-    zoomData_.vbar->move(width() - vw, 0);
+    zoomData_.vbar->resize(vw, height() - hh - hh1);
+    zoomData_.vbar->move(width() - vw - vw1, 0);
   }
 }
 
@@ -4879,45 +4912,12 @@ resizeEvent(QResizeEvent *)
   sizeData_.ypos = 0;
 
   if (isAutoSize()) {
-    if (sizeData_.hbar) sizeData_.hbar->setVisible(false);
-    if (sizeData_.vbar) sizeData_.vbar->setVisible(false);
-
     invalidateObjects();
     invalidateOverlay();
 
     doResize(w, h);
   }
   else {
-    bool showHBar = (sizeData_.width  > w);
-    bool showVBar = (sizeData_.height > h);
-
-    if (showHBar)
-      createSizeHBar();
-
-    if (showVBar)
-      createSizeVBar();
-
-    if (sizeData_.hbar) sizeData_.hbar->setVisible(showHBar);
-    if (sizeData_.vbar) sizeData_.vbar->setVisible(showVBar);
-
-    if (showHBar) {
-      assert(sizeData_.hbar);
-
-      sizeData_.hbar->setRange(0, sizeData_.width - w);
-      sizeData_.hbar->setPageStep(w);
-      sizeData_.hbar->setSingleStep(1);
-    }
-
-    if (showVBar) {
-      assert(sizeData_.vbar);
-
-      sizeData_.vbar->setRange(0, sizeData_.height - h);
-      sizeData_.vbar->setPageStep(h);
-      sizeData_.vbar->setSingleStep(1);
-    }
-
-    placeSizeBars();
-
     invalidateObjects();
     invalidateOverlay();
 
@@ -4927,13 +4927,18 @@ resizeEvent(QResizeEvent *)
     doUpdate();
   }
 
-  placeZoomBars();
+  updateSizeBars();
+
+  updateZoomScroll();
 }
 
 void
 CQChartsView::
 doResize(int w, int h)
 {
+  resizeWidth_  = w;
+  resizeHeight_ = h;
+
   for (const auto &plot : plots()) {
     if (! plot->isVisible())
       continue;
@@ -4943,11 +4948,7 @@ doResize(int w, int h)
 
   //---
 
-  prect_  = BBox(0, 0, w, h);
-  aspect_ = prect().aspect();
-
-  displayRange_->setPixelRange(prect_.getXMin(), prect_.getYMin(),
-                               prect_.getXMax(), prect_.getYMax());
+  updatePixelRange();
 
   //---
 
@@ -4959,6 +4960,33 @@ doResize(int w, int h)
   }
 
   Q_EMIT viewResized();
+}
+
+void
+CQChartsView::
+updatePixelRange()
+{
+  int hh = 0, vw = 0, hh1 = 0, vw1 = 0;
+
+  if (sizeData_.hbar && sizeData_.hbar->isVisible()) hh = sizeData_.hbar->height();
+  if (sizeData_.vbar && sizeData_.hbar->isVisible()) vw = sizeData_.vbar->width ();
+
+  if (zoomData_.hbar && zoomData_.hbar->isVisible()) hh1 = zoomData_.hbar->height();
+  if (zoomData_.vbar && zoomData_.hbar->isVisible()) vw1 = zoomData_.vbar->width ();
+
+  prect_  = BBox(0, 0, resizeWidth_ - vw - vw1, resizeHeight_ - hh - hh1);
+  aspect_ = prect().aspect();
+
+  auto window = displayRange_->getCurrentWindow();
+
+  displayRange_->setPixelRange(prect_.getXMin(), prect_.getYMin(),
+                               prect_.getXMax(), prect_.getYMax());
+
+  auto vr = viewportRange();
+
+  displayRange_->setWindowRange(0, 0, vr, vr);
+
+  displayRange_->zoomTo(window.xmin, window.ymin, window.xmax, window.ymax);
 }
 
 //---
@@ -4991,6 +5019,67 @@ createSizeVBar()
 
 void
 CQChartsView::
+updateSizeBars()
+{
+  bool showHBar = false;
+  bool showVBar = false;
+
+  if (! isAutoSize()) {
+    int w = width ();
+    int h = height();
+
+    showHBar = (sizeData_.width  > w );
+    showVBar = (sizeData_.height > h);
+
+    if (showHBar)
+      createSizeHBar();
+
+    if (showVBar)
+      createSizeVBar();
+
+    if (showHBar) {
+      assert(sizeData_.hbar);
+
+      sizeData_.hbar->setRange(0, sizeData_.width - w);
+      sizeData_.hbar->setPageStep(w);
+      sizeData_.hbar->setSingleStep(1);
+    }
+
+    if (showVBar) {
+      assert(sizeData_.vbar);
+
+      sizeData_.vbar->setRange(0, sizeData_.height - h);
+      sizeData_.vbar->setPageStep(h);
+      sizeData_.vbar->setSingleStep(1);
+    }
+  }
+
+  //---
+
+  bool changed = false;
+
+  if (sizeData_.hbar) {
+    if (sizeData_.hbar->isVisible() != showHBar) {
+      sizeData_.hbar->setVisible(showHBar);
+      changed = true;
+    }
+  }
+
+  if (sizeData_.vbar) {
+    if (sizeData_.vbar->isVisible() != showHBar) {
+      sizeData_.vbar->setVisible(showVBar);
+      changed = true;
+    }
+  }
+
+  placeSizeBars();
+
+  if (changed)
+    updatePixelRange();
+}
+
+void
+CQChartsView::
 placeSizeBars()
 {
   int hh = (sizeData_.hbar ? sizeData_.hbar->sizeHint().height() : 0);
@@ -5005,6 +5094,8 @@ placeSizeBars()
     sizeData_.vbar->resize(vw, height() - hh);
     sizeData_.vbar->move(width() - vw, 0);
   }
+
+  placeZoomBars();
 }
 
 void
