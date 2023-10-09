@@ -22,7 +22,7 @@ addSymbolSet(CQChartsSymbolSet *symbolSet)
   assert(p == namedSymbolSets_.end());
 
   symbolSets_     .push_back(symbolSet);
-  namedSymbolSets_.insert(p, NamedSymbolSets::value_type(symbolSet->name(), symbolSet));
+  namedSymbolSets_.emplace_hint(p, symbolSet->name(), symbolSet);
 }
 
 int

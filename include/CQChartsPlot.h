@@ -382,7 +382,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(int  previewMaxRows READ previewMaxRows WRITE setPreviewMaxRows)
 
   Q_PROPERTY(bool queueUpdate       READ isQueueUpdate     WRITE setQueueUpdate      )
-  Q_PROPERTY(bool showBoxes         READ showBoxes         WRITE setShowBoxes        )
+  Q_PROPERTY(bool showBoxes         READ isShowBoxes       WRITE setShowBoxes        )
   Q_PROPERTY(bool showSelectedBoxes READ showSelectedBoxes WRITE setShowSelectedBoxes)
 
   // overview
@@ -1080,7 +1080,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  bool showBoxes() const { return showBoxes_; }
+  bool isShowBoxes() const { return showBoxes_; }
   void setShowBoxes(bool b);
 
   bool showSelectedBoxes() const { return showSelectedBoxes_; }

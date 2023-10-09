@@ -1795,8 +1795,8 @@ getGroupIndValues(int groupInd, const ModelIndex &ind) const
 
   valueSet->setColumn(ind.column());
 
-  auto pg = th->groupData_.groupValues.insert(th->groupData_.groupValues.end(),
-              GroupValues::value_type(groupInd, new Values(valueSet)));
+  auto pg = th->groupData_.groupValues.
+    emplace_hint(th->groupData_.groupValues.end(), groupInd, new Values(valueSet));
 
   values = (*pg).second;
 
@@ -3251,7 +3251,7 @@ groupBucketer(int groupInd)
 
     initBucketer(bucketer);
 
-    p = groupData_.groupBucketer.insert(p, GroupBucketer::value_type(groupInd, bucketer));
+    p = groupData_.groupBucketer.emplace_hint(p, groupInd, bucketer);
   }
 
   return (*p).second;
@@ -4486,7 +4486,7 @@ getBarColoredRects(ColorData &colorData) const
 
       int ind = int(colorData.colorSet.size());
 
-      p = colorData.colorSet.insert(p, IndColorSet::value_type(indColor, ind));
+      p = colorData.colorSet.emplace_hint(p, indColor, ind);
     }
 
     ++colorData.colorCount[(*p).second];

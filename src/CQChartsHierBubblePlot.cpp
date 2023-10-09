@@ -1221,8 +1221,7 @@ flatAddNode(const QString &groupName, const QStringList &nameStrs, double size,
     auto pg = th->groupHierBubbleData_.find(groupName1);
 
     if (pg == th->groupHierBubbleData_.end()) {
-      pg = th->groupHierBubbleData_.insert(pg,
-             GroupHierBubbleData::value_type(groupName1, HierBubbleData()));
+      pg = th->groupHierBubbleData_.emplace_hint(pg, groupName1, HierBubbleData());
 
       auto &hierBubbleData = (*pg).second;
 

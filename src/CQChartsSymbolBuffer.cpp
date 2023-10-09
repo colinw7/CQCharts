@@ -47,7 +47,7 @@ getImage(const Symbol &symbol, double size, const QPen &pen, const QBrush &brush
   auto ps = imageBufferMap_.find(symbol);
 
   if (ps == imageBufferMap_.end())
-    ps = imageBufferMap_.insert(ps, ImageBufferMap::value_type(symbol, ImageBufferList()));
+    ps = imageBufferMap_.emplace_hint(ps, symbol, ImageBufferList());
 
   for (const auto *imageBuffer : (*ps).second) {
     if (size == imageBuffer->size &&

@@ -869,8 +869,7 @@ groupHierNode(HierNode *parent, int groupInd) const
 
   auto *hierNode = th->addHierNode(parent, name1, ind);
 
-  auto p1 = th->groupHierNodes_.insert(th->groupHierNodes_.end(),
-              GroupHierNodes::value_type(groupInd, hierNode));
+  auto p1 = th->groupHierNodes_.emplace_hint(th->groupHierNodes_.end(), groupInd, hierNode);
 
   return (*p1).second;
 }

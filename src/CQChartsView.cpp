@@ -397,6 +397,11 @@ addProperties()
     return item;
   };
 
+  auto addPropI = [&](const QString &path, const QString &name, const QString &alias,
+                      const QString &desc) {
+    return addProp(path, name, alias, desc, /*hidden*/true);
+  };
+
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden=false) {
     auto *item = addProp(path, name, alias, desc, hidden);
@@ -404,23 +409,31 @@ addProperties()
     return item;
   };
 
+  auto addStylePropI = [&](const QString &path, const QString &name, const QString &alias,
+                           const QString &desc) {
+    return addStyleProp(path, name, alias, desc, /*hidden*/true);
+  };
+
   //---
 
   // data
-  addProp("state", "mode"          , "", "View mouse mode" , true);
-  addProp("state", "zoomMode"      , "", "View zoom mode"  , true);
-  addProp("state", "zoomScroll"    , "", "View zoom scroll", true);
-  addProp("state", "id"            , "", "View id"         , true);
-  addProp("state", "currentPlotInd", "", "Current plot ind", true);
-  addProp("state", "viewSizeHint"  , "", "View size hint"  , true);
-
-  addProp("options", "bufferLayers", "", "Buffer layer", true);
-  addProp("options", "showTable"   , "", "Show table of value", true);
-  addProp("options", "settingsTabs", "", "Settings tabs", true);
-  addProp("options", "showSettings", "", "Show settings panel", true);
+  addPropI("state", "mode"          , "", "View mouse mode" );
+  addPropI("state", "zoomMode"      , "", "View zoom mode"  );
+  addPropI("state", "zoomScroll"    , "", "View zoom scroll");
+  addPropI("state", "id"            , "", "View id"         );
+  addPropI("state", "currentPlotInd", "", "Current plot ind");
+  addPropI("state", "viewSizeHint"  , "", "View size hint"  );
 
   // options
-  addStyleProp("options", "antiAlias", "", "Draw aliased shapes", true);
+  addPropI("options", "bufferLayers", "", "Buffer layer");
+  addPropI("options", "showTable"   , "", "Show table of value");
+  addPropI("options", "settingsTabs", "", "Settings tabs");
+  addPropI("options", "showSettings", "", "Show settings panel");
+
+  addStylePropI("options", "antiAlias", "", "Draw aliased shapes");
+
+  // debug
+  addPropI("debug", "showBoxes", "", "Show object bounding boxes");
 
   // title
   addProp("title", "title", "string", "View title string");
@@ -439,10 +452,10 @@ addProperties()
   addStyleProp("text", "font"      , "font"  , "Global text font");
 
   // background fill
-  addStyleProp("background/fill", "backgroundFillData"   , "style"  , "Fill style"  , true);
-  addStyleProp("background/fill", "backgroundFillColor"  , "color"  , "Fill color"  );
-  addStyleProp("background/fill", "backgroundFillAlpha"  , "alpha"  , "Fill alpha"  , true);
-  addStyleProp("background/fill", "backgroundFillPattern", "pattern", "Fill pattern", true);
+  addStylePropI("background/fill", "backgroundFillData"   , "style"  , "Fill style"  );
+  addStyleProp ("background/fill", "backgroundFillColor"  , "color"  , "Fill color"  );
+  addStylePropI("background/fill", "backgroundFillAlpha"  , "alpha"  , "Fill alpha"  );
+  addStylePropI("background/fill", "backgroundFillPattern", "pattern", "Fill pattern");
 
   // handdrawn
   addStyleProp("handdrawn", "handDrawn"    , "enabled"  , "Enable handdraw painter");
@@ -503,7 +516,7 @@ addProperties()
                "Selected Alpha (if not stroked/filled)");
 
   // region mode
-  addProp("region", "regionMode", "mode", "Region mode", true);
+  addPropI("region", "regionMode", "mode", "Region mode");
 
   // inside highlight
   auto addInsideProp = [&](const QString &path, const QString &prop, const QString &name,
@@ -533,13 +546,13 @@ addProperties()
   addStyleProp("fade", "overlayFadeAlpha", "alpha"  , "Fade alpha");
 
   // status
-  addProp("status", "posTextType", "posTextType", "Position text type", true);
+  addPropI("status", "posTextType", "posTextType", "Position text type");
 
   // TODO: remove or make more general
-  addProp("scroll", "scrolled"      , "enabled" , "Scrolling enabled"     , true);
-  addProp("scroll", "scrollDelta"   , "delta"   , "Scroll delta"          , true);
-  addProp("scroll", "scrollNumPages", "numPages", "Scroll number of pages", true);
-  addProp("scroll", "scrollPage"    , "page"    , "Scroll current page"   , true);
+  addPropI("scroll", "scrolled"      , "enabled" , "Scrolling enabled"     );
+  addPropI("scroll", "scrollDelta"   , "delta"   , "Scroll delta"          );
+  addPropI("scroll", "scrollNumPages", "numPages", "Scroll number of pages");
+  addPropI("scroll", "scrollPage"    , "page"    , "Scroll current page"   );
 
   if (key())
     key()->addProperties(propertyModel(), "key");
@@ -673,6 +686,13 @@ setPreview(bool b)
   CQChartsUtil::testAndSet(preview_, b, [&]() { updatePlots(); } );
 }
 
+void
+CQChartsView::
+setShowBoxes(bool b)
+{
+  CQChartsUtil::testAndSet(showBoxes_, b, [&]() { updatePlots(); } );
+}
+
 //---
 
 void
@@ -735,7 +755,7 @@ fontEm() const
   auto qfont = this->font().font();
   QFontMetricsF fm(qfont);
 
-  return fm.height();
+  return fontFactor()*fm.height();
 }
 
 double
@@ -745,7 +765,7 @@ fontEx() const
   auto qfont = this->font().font();
   QFontMetricsF fm(qfont);
 
-  return fm.horizontalAdvance("x");
+  return fontFactor()*fm.horizontalAdvance("x");
 }
 
 //---
@@ -1312,10 +1332,16 @@ selectOneObj(CQChartsObj *obj, SelMod selMod)
 {
   startSelection();
 
-  if (selMod == SelMod::REPLACE)
-    deselectAll();
+  if      (selMod == SelMod::REPLACE || selMod == SelMod::ADD) {
+    if (selMod == SelMod::REPLACE)
+      deselectAll();
 
-  obj->setSelected(true);
+    obj->setSelected(true);
+  }
+  else if (selMod == SelMod::REMOVE)
+    obj->setSelected(false);
+  else if (selMod == SelMod::TOGGLE)
+    obj->setSelected(! obj->isSelected());
 
   endSelection();
 
@@ -1452,14 +1478,17 @@ updateZoomScroll()
 
     //---
 
+    double x, y;
+    displayRange_->pixelToWindow(0.0, 0.0, &x, &y);
+
     double w, h;
     displayRange_->pixelWidthToWindowWidth  (width (), &w);
     displayRange_->pixelHeightToWindowHeight(height(), &h);
 
     //---
 
-    zoomData_.hbar->setRange(0, vr);
-    zoomData_.vbar->setRange(vr, 0);
+    zoomData_.hbar->setRange(std::min(0.0, x), std::max(vr, w));
+    zoomData_.vbar->setRange(std::max(vr, h), std::min(0.0, y));
 
     zoomData_.hbar->setPageStep(w);
     zoomData_.vbar->setPageStep(-h);
@@ -1511,7 +1540,7 @@ placeZoomBars()
 {
   int hh1 = (sizeData_.hbar && sizeData_.hbar->isVisible() ?
               sizeData_.hbar->sizeHint().height() : 0);
-  int vw1 = (sizeData_.vbar && sizeData_.hbar->isVisible() ?
+  int vw1 = (sizeData_.vbar && sizeData_.vbar->isVisible() ?
               sizeData_.vbar->sizeHint().width () : 0);
 
   int hh = (zoomData_.hbar ? zoomData_.hbar->height() : 0);
@@ -3606,6 +3635,12 @@ editMouseMove()
   auto p = mouseMovePoint();
   auto w = pixelToWindow(p);
 
+  //---
+
+  updateMousePosText();
+
+  //---
+
   if      (mouseData_.dragObj == DragObj::KEY) {
     if (key()->editMove(w))
       mouseData_.dragged = true;
@@ -3646,6 +3681,10 @@ editMouseMotion()
 {
   auto p = mouseMovePoint();
   auto w = pixelToWindow(p);
+
+  //---
+
+  updateMousePosText();
 
   //---
 
@@ -4103,7 +4142,7 @@ selectPointPress()
   //---
 
   // select view annotation
-  annotationsAtPoint(w, pressAnnotations_);
+  annotationsAtPoint(w, pressAnnotations_, Constraints::SELECTABLE);
 
 #if 0
   for (const auto &annotation : pressAnnotations_) {
@@ -4119,7 +4158,7 @@ selectPointPress()
     if (! selAnnotation->selectPress(w, selData))
       continue;
 
-    selectOneObj(selAnnotation, SelMod::REPLACE);
+    selectOneObj(selAnnotation, mouseSelMod());
 
     doUpdate();
 
@@ -4261,7 +4300,7 @@ selectMouseDoubleClick()
   //---
 
   // select view annotation
-  annotationsAtPoint(w, pressAnnotations_);
+  annotationsAtPoint(w, pressAnnotations_, Constraints::SELECTABLE);
 
   for (const auto &annotation : pressAnnotations_) {
     annotation->selectDoubleClick(w, mouseSelMod());
@@ -4288,7 +4327,7 @@ selectMouseDoubleClick()
 
   // select view key
   if (key() && key()->contains(w))
-    key()->selectDoubleClick(w, SelMod::REPLACE);
+    key()->selectDoubleClick(w, mouseSelMod());
 }
 
 //---
@@ -4969,10 +5008,10 @@ updatePixelRange()
   int hh = 0, vw = 0, hh1 = 0, vw1 = 0;
 
   if (sizeData_.hbar && sizeData_.hbar->isVisible()) hh = sizeData_.hbar->height();
-  if (sizeData_.vbar && sizeData_.hbar->isVisible()) vw = sizeData_.vbar->width ();
+  if (sizeData_.vbar && sizeData_.vbar->isVisible()) vw = sizeData_.vbar->width ();
 
   if (zoomData_.hbar && zoomData_.hbar->isVisible()) hh1 = zoomData_.hbar->height();
-  if (zoomData_.vbar && zoomData_.hbar->isVisible()) vw1 = zoomData_.vbar->width ();
+  if (zoomData_.vbar && zoomData_.vbar->isVisible()) vw1 = zoomData_.vbar->width ();
 
   prect_  = BBox(0, 0, resizeWidth_ - vw - vw1, resizeHeight_ - hh - hh1);
   aspect_ = prect().aspect();
@@ -5066,7 +5105,7 @@ updateSizeBars()
   }
 
   if (sizeData_.vbar) {
-    if (sizeData_.vbar->isVisible() != showHBar) {
+    if (sizeData_.vbar->isVisible() != showVBar) {
       sizeData_.vbar->setVisible(showVBar);
       changed = true;
     }
@@ -5417,8 +5456,16 @@ drawPlots(QPainter *painter)
     getDrawPlots(drawPlots);
 
     for (const auto &plot : drawPlots) {
-      if (plot->isVisible())
-        plot->draw(painter);
+      if (! plot->isVisible())
+        continue;
+
+      plot->draw(painter);
+
+      if (isShowBoxes()) {
+        CQChartsViewPaintDevice device(this, painter);
+
+        drawColorBox(&device, plot->viewBBox());
+      }
     }
   }
 
@@ -5790,6 +5837,9 @@ drawAnnotations(PaintDevice *device, const CQChartsLayer::Type &layerType)
         if (device->isInteractive())
           annotation->drawEditHandles(device);
     }
+
+    if (isShowBoxes())
+      drawColorBox(device, annotation->bbox());
   }
 }
 
@@ -5818,6 +5868,16 @@ drawKey(PaintDevice *device, const CQChartsLayer::Type &layerType)
         key()->drawEditHandles(device);
     }
   }
+}
+
+void
+CQChartsView::
+drawColorBox(PaintDevice *device, const BBox &bbox)
+{
+  device->setPen(QColor(Qt::red));
+  device->setBrush(Qt::NoBrush);
+
+  device->drawRect(bbox);
 }
 
 bool
@@ -6467,6 +6527,8 @@ searchAt(const Point &w)
   if (mode() == Mode::EDIT)
     constraints = Plot::Constraints::EDITABLE;
 
+  auto iconstraints = static_cast<uint>(constraints);
+
   //---
 
   auto p = windowToPixel(w);
@@ -6484,10 +6546,17 @@ searchAt(const Point &w)
 
   //---
 
+  auto allowInside = [&](Annotation *annotation) {
+    if ((iconstraints & static_cast<uint>(Constraints::SELECTABLE)) && ! annotation->isSelectable())
+      return false;
+
+    return true;
+  };
+
   bool changed = false;
 
   for (auto &annotation : annotations()) {
-    bool inside = annotation->contains(w);
+    bool inside = (allowInside(annotation) && annotation->contains(w));
 
     if (inside != annotation->isInside()) {
       annotation->setInside(inside);
@@ -6507,11 +6576,16 @@ searchAt(const Point &w)
 
 void
 CQChartsView::
-annotationsAtPoint(const Point &w, Annotations &annotations) const
+annotationsAtPoint(const Point &w, Annotations &annotations, const Constraints &constraints) const
 {
   annotations.clear();
 
+  auto iconstraints = static_cast<uint>(constraints);
+
   for (const auto &annotation : this->annotations()) {
+    if ((iconstraints & static_cast<uint>(Constraints::SELECTABLE)) && ! annotation->isSelectable())
+      continue;
+
     if (! annotation->contains(w))
       continue;
 
@@ -7073,7 +7147,7 @@ showMenu(const Point &p)
         addCheckAction(popupMenu, "Show Boxes", false, SLOT(showBoxesSlot(bool)));
 
       if (basePlot)
-        showBoxesAction->setChecked(basePlot->showBoxes());
+        showBoxesAction->setChecked(basePlot->isShowBoxes());
 
       auto *showSelectedBoxesAction =
         addCheckAction(popupMenu, "Show Selected Boxes", false, SLOT(showSelectedBoxesSlot(bool)));
@@ -8584,6 +8658,12 @@ void
 CQChartsView::
 updatePlots()
 {
+  bgBuffer_     ->setValid(false);
+  fgBuffer_     ->setValid(false);
+  overlayBuffer_->setValid(false);
+
+  //---
+
   for (auto &plot : plots()) {
     if (! plot->isVisible())
       continue;
@@ -9019,7 +9099,7 @@ writeAll(std::ostream &os) const
 
         auto modelVarName = QString("model%1").arg(modelVars.size() + 1);
 
-        p = modelVars.insert(p, ModelVars::value_type(id, modelVarName));
+        p = modelVars.emplace_hint(p, id, modelVarName);
 
         modelData->write(os, modelVarName);
       }

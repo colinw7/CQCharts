@@ -43,7 +43,7 @@ struct CQChartsTextOptions {
   bool              scaled           { false };            //!< scaled
   double            scale            { -1.0 };             //!< fixed scale
   bool              html             { false };            //!< html
-  bool              alignHtml        { true };             //!< align html
+  bool              alignHtml        { false };            //!< align html (TODO)
   double            clipLength       { 0.0 };              //!< clip length (pixels)
   Qt::TextElideMode clipElide        { Qt::ElideRight };   //!< clip elide
   bool              clipped          { true };             //!< clipped

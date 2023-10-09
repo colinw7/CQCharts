@@ -927,8 +927,7 @@ loadFlat(HierNode *root) const
         auto pg = sunburstPlot->groupSunburstData_.find(groupName);
 
         if (pg == sunburstPlot->groupSunburstData_.end()) {
-          pg = sunburstPlot->groupSunburstData_.insert(pg,
-                 GroupSunburstData::value_type(groupName, SunburstData()));
+          pg = sunburstPlot->groupSunburstData_.emplace_hint(pg, groupName, SunburstData());
 
           auto &sunburstData = (*pg).second;
 

@@ -171,6 +171,8 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(bool        preview        READ isPreview      WRITE setPreview     )
   Q_PROPERTY(PosTextType posTextType    READ posTextType    WRITE setPosTextType )
 
+  Q_PROPERTY(bool showBoxes READ isShowBoxes WRITE setShowBoxes)
+
   // fixed size
   Q_PROPERTY(bool  autoSize  READ isAutoSize WRITE setAutoSize )
   Q_PROPERTY(QSize fixedSize READ fixedSize  WRITE setFixedSize)
@@ -281,6 +283,15 @@ class CQChartsView : public QFrame,
     VALUE
   };
 
+  enum class Constraints {
+    NONE       = 0,
+    SELECTABLE = (1<<0),
+    EDITABLE   = (1<<1),
+    CLICKABLE  = (1<<2)
+  };
+
+  //---
+
   enum class SettingsTab {
     NONE        = 0,
     CONTROLS    = (1<<0),
@@ -302,6 +313,8 @@ class CQChartsView : public QFrame,
   Q_DECLARE_FLAGS(SettingsTabs, SettingsTab)
 
   Q_FLAG(SettingsTabs)
+
+  //---
 
   using DrawType = CQChartsObjDrawType;
 
@@ -515,6 +528,9 @@ class CQChartsView : public QFrame,
 
   bool isPreview() const { return preview_; }
   void setPreview(bool b);
+
+  bool isShowBoxes() const { return showBoxes_; }
+  void setShowBoxes(bool b);
 
   //---
 
@@ -921,6 +937,8 @@ class CQChartsView : public QFrame,
   void drawAnnotations(PaintDevice *device, const Layer::Type &layerType);
 
   void drawKey(PaintDevice *device, const Layer::Type &layerType);
+
+  void drawColorBox(PaintDevice *device, const BBox &bbox);
 
   bool lockPainter(bool lock);
 
@@ -1606,7 +1624,8 @@ class CQChartsView : public QFrame,
 
   void searchAt(const Point &w);
 
-  void annotationsAtPoint(const Point &w, Annotations &annotations) const;
+  void annotationsAtPoint(const Point &w, Annotations &annotations,
+                          const Constraints &constraints) const;
 
   void windowToPixelI(double wx, double wy, double &px, double &py) const;
   void pixelToWindowI(double px, double py, double &wx, double &wy) const;
@@ -1869,6 +1888,7 @@ class CQChartsView : public QFrame,
 //bool       showTable_       { false }; //!< show table with plot
   bool       bufferLayers_    { true };  //!< buffer draw layers
   bool       preview_         { false }; //!< preview
+  bool       showBoxes_       { false }; //!< show boxes
 
   // fonts
   bool   scaleFont_  { true }; //!< auto scale font

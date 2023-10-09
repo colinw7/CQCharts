@@ -828,7 +828,7 @@ addValue(const OptReal &r)
   if (p == valset_.end()) {
     int id = int(valset_.size());
 
-    p = valset_.insert(p, ValueSet::value_type(*r, KeyCount(id, 1))); // id for value
+    p = valset_.emplace_hint(p, *r, KeyCount(id, 1)); // id for value
 
     setvals_[id] = *r; // value for id
   }
@@ -933,7 +933,7 @@ addValue(const OptInt &i)
   if (p == valset_.end()) {
     int id = int(valset_.size());
 
-    p = valset_.insert(p, ValueSet::value_type(*i, KeyCount(id, 1))); // id for value
+    p = valset_.emplace_hint(p, *i, KeyCount(id, 1)); // id for value
 
     setvals_[id] = *i; // value for id
   }
@@ -1070,7 +1070,7 @@ addValue(const OptString &s)
   if (p == valset_.end()) {
     int id = int(valset_.size());
 
-    p = valset_.insert(p, ValueSet::value_type(*s, KeyCount(id, 1))); // id for value
+    p = valset_.emplace_hint(p, *s, KeyCount(id, 1)); // id for value
 
     setvals_[id] = *s; // value for id
   }
@@ -1178,7 +1178,7 @@ addValue(const CQChartsColor &c)
   if (p == valset_.end()) {
     int id = int(valset_.size());
 
-    p = valset_.insert(p, ValueSet::value_type(c, KeyCount(id, 1))); // id for value
+    p = valset_.emplace_hint(p, c, KeyCount(id, 1)); // id for value
 
     setvals_[id] = c; // value for id
   }

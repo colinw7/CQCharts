@@ -1029,7 +1029,7 @@ addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &
 
       ++row;
 
-      pg = groupTab.insert(pg, GroupTab::value_type(-1, parameterGroupTab));
+      pg = groupTab.emplace_hint(pg, -1, parameterGroupTab);
     }
 
     auto *parameterGroupTab = (*pg).second;
@@ -1082,8 +1082,7 @@ addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &
 
           ++row1;
 
-          pg = groupTab.insert(pg,
-            GroupTab::value_type(parameterGroup->groupId(), parameterGroupTab1));
+          pg = groupTab.emplace_hint(pg, parameterGroup->groupId(), parameterGroupTab1);
         }
 
         parameterGroupTab1 = (*pg).second;

@@ -152,6 +152,6 @@ draw(PaintDevice *device, double delta)
     CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p1, symbolSize, /*scale*/false);
   }
 
-  if (plot()->showBoxes())
+  if (plot()->isShowBoxes())
     plot()->drawWindowColorBox(device, calcBBox(), Qt::red);
 }

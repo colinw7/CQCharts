@@ -506,7 +506,11 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Q_PROPERTY(DrawType drawType  READ drawType    WRITE setDrawType )
   Q_PROPERTY(bool     separated READ isSeparated WRITE setSeparated)
   Q_PROPERTY(bool     summary   READ isSummary   WRITE setSummary  )
-  Q_PROPERTY(bool     count     READ isCount     WRITE setCount    )
+
+  Q_PROPERTY(bool showLabel    READ isShowLabel    WRITE setShowLabel)
+  Q_PROPERTY(bool showValue    READ isShowValue    WRITE setShowValue)
+  Q_PROPERTY(bool valuePercent READ isValuePercent WRITE setValuePercent)
+
   // . donut
   Q_PROPERTY(bool donut      READ isDonut      WRITE setDonut     )
   Q_PROPERTY(bool donutTitle READ isDonutTitle WRITE setDonutTitle)
@@ -531,6 +535,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsAngle startAngle  READ startAngle  WRITE setStartAngle )
   Q_PROPERTY(CQChartsAngle angleExtent READ angleExtent WRITE setAngleExtent)
   Q_PROPERTY(CQChartsAngle gapAngle    READ gapAngle    WRITE setGapAngle   )
+  Q_PROPERTY(bool          clockwise   READ isClockwise WRITE setClockwise  )
 
   // . text placement
   Q_PROPERTY(bool adjustText READ isAdjustText WRITE setAdjustText)
@@ -655,9 +660,14 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   bool isDumbbellPie() const { return dumbbellPie_; }
   void setDumbbellPie(bool b);
 
-  bool isCount() const { return count_; }
-
   bool isDonutTitle() const { return donutTitle_; }
+
+  //---
+
+  bool isShowLabel() const { return showLabel_; }
+  bool isShowValue() const { return showValue_; }
+
+  bool isValuePercent() const { return valuePercent_; }
 
   //---
 
@@ -701,6 +711,9 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   const Angle &gapAngle() const { return gapAngle_; }
   void setGapAngle(const Angle &a);
+
+  bool isClockwise() const { return clockwise_; }
+  void setClockwise(bool);
 
   //---
 
@@ -818,12 +831,16 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
                                const ColorInd &ig) const;
 
  public Q_SLOTS:
-  void setDonut     (bool b);
-  void setTreeMap   (bool b);
-  void setWaffle    (bool b);
-  void setSummary   (bool b);
-  void setDumbbell  (bool b);
-  void setCount     (bool b);
+  void setDonut   (bool b);
+  void setTreeMap (bool b);
+  void setWaffle  (bool b);
+  void setSummary (bool b);
+  void setDumbbell(bool b);
+
+  void setShowLabel   (bool b);
+  void setShowValue   (bool b);
+  void setValuePercent(bool b);
+
   void setDonutTitle(bool b);
 
   void setTextLabels  (bool b);
@@ -889,14 +906,18 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Column  keyLabelColumn_; //!< key label column
 
   // draw
-  DrawType  drawType_    { DrawType::PIE };  //!< draw type
-  bool      donut_       { false };          //!< show donut
-  bool      summary_     { false };          //!< show summary
-  bool      dumbbell_    { false };          //!< show dumbbell
-  bool      dumbbellPie_ { true };           //!< show dumbbell pie
-  bool      bucketed_    { false };          //!< is bucketed
-  int       numBuckets_  { 20 };             //!< num buckets
-  bool      count_       { false };          //!< show value counts
+  DrawType drawType_    { DrawType::PIE }; //!< draw type
+  bool     donut_       { false };         //!< show donut
+  bool     summary_     { false };         //!< show summary
+  bool     dumbbell_    { false };         //!< show dumbbell
+  bool     dumbbellPie_ { true };          //!< show dumbbell pie
+  bool     bucketed_    { false };         //!< is bucketed
+  int      numBuckets_  { 20 };            //!< num buckets
+
+  bool showLabel_    { true };  //!< show label
+  bool showValue_    { false }; //!< show value
+  bool valuePercent_ { false }; //!< value is percent
+
   bool      donutTitle_  { false };          //!< show title in donut center
   ValueType valueType_   { ValueType::SUM }; //!< Value type (when multiple values per name)
   double    minValue_    { -1.0 };           //!< min value
@@ -907,6 +928,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Angle     startAngle_  { 90 };             //!< first pie start angle
   Angle     angleExtent_ { 360.0 };          //!< pie angle extent
   Angle     gapAngle_    { 0.0 };            //!< angle gap between segments
+  bool      clockwise_   { true };           //!< clockwise
   bool      adjustText_  { false };          //!< adjust text position
   bool      separated_   { true };           //!< are grouped pie objects drawn separately
   bool      rotatedText_ { false };          //!< is label rotated
@@ -969,7 +991,10 @@ class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
   void donutSlot    ();
   void summarySlot  ();
   void dumbbellSlot ();
-  void countSlot    ();
+
+  void showLabelSlot();
+  void showValueSlot();
+  void valuePercentSlot();
 
  protected:
   PiePlot* piePlot_ { nullptr };
@@ -982,7 +1007,10 @@ class CQChartsPiePlotCustomControls : public CQChartsGroupPlotCustomControls {
   CQChartsBoolParameterEdit* donutCheck_     { nullptr };
   CQChartsBoolParameterEdit* summaryCheck_   { nullptr };
   CQChartsBoolParameterEdit* dumbbellCheck_  { nullptr };
-  CQChartsBoolParameterEdit* countCheck_     { nullptr };
+
+  CQChartsBoolParameterEdit* showLabelCheck_    { nullptr };
+  CQChartsBoolParameterEdit* showValueCheck_    { nullptr };
+  CQChartsBoolParameterEdit* valuePercentCheck_ { nullptr };
 };
 
 #endif

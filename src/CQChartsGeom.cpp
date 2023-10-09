@@ -252,6 +252,9 @@ namespace CQChartsGeom {
 Points
 calcParetoFront(const Points &points, const Point &origin)
 {
+  if (points.empty())
+    return Points();
+
   using Points    = std::vector<Point>;
   using ValueSet  = std::set<double>;
   using PosPoints = std::map<double, ValueSet>;

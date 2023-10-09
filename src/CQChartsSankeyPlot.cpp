@@ -3597,7 +3597,7 @@ createNode(const QString &name) const
 
   auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
-  auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(), NameNodeMap::value_type(name, node));
+  auto p1 = th->nameNodeMap_.emplace_hint(th->nameNodeMap_.end(), name, node);
 
   assert(node == (*p1).second);
 

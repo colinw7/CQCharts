@@ -325,6 +325,7 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
   using Node        = CQChartsTreeMapNode;
   using HierObj     = CQChartsTreeMapHierObj;
   using NodeObj     = CQChartsTreeMapNodeObj;
+  using Length      = CQChartsLength;
   using Units       = CQChartsUnits::Type;
 
  public:
@@ -365,6 +366,8 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
   //---
 
   void draw(PaintDevice *device) const override;
+
+  void drawConnection(PaintDevice *device) const;
 
   void drawText(PaintDevice *device, const BBox &bbox, bool updateState) const;
 
@@ -510,6 +513,10 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   Q_PROPERTY(bool         textClipped READ isTextClipped WRITE setTextClipped)
   Q_PROPERTY(CQChartsArea minArea     READ minArea       WRITE setMinArea    )
 
+  Q_PROPERTY(bool   showConnections      READ isShowConnections      WRITE setShowConnections)
+  Q_PROPERTY(bool   showConnectionsValue READ isShowConnectionsValue WRITE setShowConnectionsValue)
+  Q_PROPERTY(QColor showConnectionsColor READ showConnectionsColor   WRITE setShowConnectionsColor)
+
   // grouping
   Q_PROPERTY(bool splitGroups  READ isSplitGroups  WRITE setSplitGroups )
   Q_PROPERTY(bool groupPalette READ isGroupPalette WRITE setGroupPalette)
@@ -632,6 +639,20 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   //! get/set min area
   const Area &minArea() const { return treeData_.minArea; }
   void setMinArea(const Area &a);
+
+  //---
+
+  //! get/set show connections
+  bool isShowConnections() const { return showConnections_.visible; }
+  void setShowConnections(bool b);
+
+  //! get/set show connections value
+  bool isShowConnectionsValue() const { return showConnections_.value; }
+  void setShowConnectionsValue(bool b);
+
+  //! get/set show connections color
+  const QColor &showConnectionsColor() const { return showConnections_.color; }
+  void setShowConnectionsColor(const QColor &c);
 
   //---
 
@@ -924,6 +945,14 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   GroupTreeMapData groupTreeMapData_; //!< grouped tree map data
   TreeMapData      treeMapData_;      //!< tree map data
+
+  struct ShowConnectionsData {
+    bool   visible { false };
+    bool   value   { false };
+    QColor color   { "#ffffff" };
+  };
+
+  ShowConnectionsData showConnections_;
 
   GroupNameSet groupNameSet_; //!< group name set
 

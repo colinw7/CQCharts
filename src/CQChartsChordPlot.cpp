@@ -848,7 +848,7 @@ findNameData(NameDataMap &nameDataMap, const QString &name,
   auto p = nameDataMap.find(name);
 
   if (p == nameDataMap.end()) {
-    p = nameDataMap.insert(p, NameDataMap::value_type(name, ChordData()));
+    p = nameDataMap.emplace_hint(p, name, ChordData());
 
     int ind = int(nameDataMap.size());
 

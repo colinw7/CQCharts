@@ -175,7 +175,7 @@ getBestFit(int ind, bool &created) const
   auto ph = th->groupFitData_.find(ind);
 
   if (ph == th->groupFitData_.end()) {
-    ph = th->groupFitData_.insert(ph, GroupFitData::value_type(ind, new BestFit));
+    ph = th->groupFitData_.emplace_hint(ph, ind, new BestFit);
 
     created = true;
   }
@@ -207,7 +207,7 @@ getHull(int ind, bool &created) const
   auto ph = th->groupHull_.find(ind);
 
   if (ph == th->groupHull_.end()) {
-    ph = th->groupHull_.insert(ph, GroupHull::value_type(ind, new Hull));
+    ph = th->groupHull_.emplace_hint(ph, ind, new Hull);
 
     created = true;
   }

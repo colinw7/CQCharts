@@ -62,10 +62,13 @@ addParameters()
   addBoolParameter("donutTitle", "Donut Title", "donutTitle").setTip("how title in donut center");
 
   addBoolParameter("summary", "Summary", "summary").setTip("Draw summary group");
-  addBoolParameter("count"  , "Count"  , "count"  ).setTip("Show count of groups");
+
+  addBoolParameter("showLabel"   , "Show Label"   , "showLabel"   ).setTip("Show pie label");
+  addBoolParameter("showValue"   , "Show Value"   , "showValue"   ).setTip("Show pie value");
+  addBoolParameter("valuePercent", "Value Percent", "valuePercent").setTip("Value is percent");
 
   addBoolParameter("dumbbell"   , "Dumbbell"    , "dumbbell"   ).setTip("Draw group dumbbell");
-  addBoolParameter("dumbbellPie", "Dumbbell Pie", "dumbbellPie").setTip("Draw group dumbbell");
+  addBoolParameter("dumbbellPie", "Dumbbell Pie", "dumbbellPie").setTip("Draw dumbbell pie");
 
   endParameterGroup();
 
@@ -403,6 +406,32 @@ setDumbbellPie(bool b)
 
 void
 CQChartsPiePlot::
+setShowLabel(bool b)
+{
+  CQChartsUtil::testAndSet(showLabel_, b, [&]() {
+    drawObjs(); Q_EMIT customDataChanged(); } );
+}
+
+void
+CQChartsPiePlot::
+setShowValue(bool b)
+{
+  CQChartsUtil::testAndSet(showValue_, b, [&]() {
+    drawObjs(); Q_EMIT customDataChanged(); } );
+}
+
+void
+CQChartsPiePlot::
+setValuePercent(bool b)
+{
+  CQChartsUtil::testAndSet(valuePercent_, b, [&]() {
+    drawObjs(); Q_EMIT customDataChanged(); } );
+}
+
+//---
+
+void
+CQChartsPiePlot::
 setBucketed(bool b)
 {
   CQChartsUtil::testAndSet(bucketed_, b, [&]() { updateRangeAndObjs(); } );
@@ -413,16 +442,6 @@ CQChartsPiePlot::
 setNumBuckets(int n)
 {
   CQChartsUtil::testAndSet(numBuckets_, n, [&]() { updateRangeAndObjs(); } );
-}
-
-//---
-
-void
-CQChartsPiePlot::
-setCount(bool b)
-{
-  CQChartsUtil::testAndSet(count_, b, [&]() {
-    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
 //---
@@ -514,6 +533,13 @@ CQChartsPiePlot::
 setGapAngle(const Angle &a)
 {
   CQChartsUtil::testAndSet(gapAngle_, a, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPiePlot::
+setClockwise(bool b)
+{
+  CQChartsUtil::testAndSet(clockwise_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -609,7 +635,10 @@ addProperties()
   addProp("options", "dumbbell"   , "", "Draw group dumbbell");
   addProp("options", "dumbbellPie", "", "Draw group dumbbell pie");
   addProp("options", "summary"    , "", "Draw summary group");
-  addProp("options", "count"      , "", "Show count of groups");
+
+  addProp("options", "showLabel"   , "", "Show pie label");
+  addProp("options", "showValue"   , "", "Show pie value");
+  addProp("options", "valuePercent", "", "Show value as percent");
 
   addProp("options", "valueType", "", "Value type (when multiple values per name)");
   addProp("options", "minValue" , "", "Custom min value");
@@ -622,6 +651,7 @@ addProperties()
   addProp("options", "startAngle" , "", "Start angle for first segment");
   addProp("options", "angleExtent", "", "Angle extent for pie segments");
   addProp("options", "gapAngle"   , "", "Gap angle");
+  addProp("options", "clockwise"  , "", "Clockwise");
 
   // buckets
   addProp("bucket", "bucketed"  , "enabled", "Is value bucketing enabled");
@@ -853,7 +883,7 @@ createObjs(PlotObjs &objs) const
     if (pg == th->groupDatas_.end()) {
       auto groupName = groupIndName(groupInd);
 
-      pg = th->groupDatas_.insert(pg, GroupDatas::value_type(groupInd, groupName));
+      pg = th->groupDatas_.emplace_hint(pg, groupInd, groupName);
     }
 
     const auto &groupData = (*pg).second;
@@ -1421,7 +1451,7 @@ addRowColumnDataTotal(const ModelIndex &ind) const
   if (pg == th->groupDatas_.end()) {
     auto groupName = groupIndName(groupInd);
 
-    pg = th->groupDatas_.insert(pg, GroupDatas::value_type(groupInd, GroupData(groupName)));
+    pg = th->groupDatas_.emplace_hint(pg, groupInd, GroupData(groupName));
   }
 
   auto &groupData = (*pg).second;
@@ -1446,7 +1476,7 @@ addRowColumnDataTotal(const ModelIndex &ind) const
   auto pv = groupData.nameValueData.find(label);
 
   if (pv == groupData.nameValueData.end())
-    pv = groupData.nameValueData.insert(pv, NameValueData::value_type(label, ValueData()));
+    pv = groupData.nameValueData.emplace_hint(pv, label, ValueData());
 
   auto &valueData = (*pv).second;
 
@@ -1667,7 +1697,7 @@ adjustObjAngles() const
         // set angle based on value
         double value = obj->value();
 
-        double angle  = da1*value;
+        double angle  = (isClockwise() ? 1.0 : -1.0)*da1*value;
         double angle2 = angle1 + angle;
 
         obj->setAngle1(Angle(angle1));
@@ -1855,7 +1885,8 @@ addMenuItems(QMenu *menu, const Point &)
   addCheckAction("TreeMap"    , isTreeMap   (), SLOT(setTreeMap   (bool)));
   addCheckAction("Waffle"     , isWaffle    (), SLOT(setWaffle    (bool)));
   addCheckAction("Summary"    , isSummary   (), SLOT(setSummary   (bool)));
-  addCheckAction("Count"      , isCount     (), SLOT(setCount     (bool)));
+  addCheckAction("Show Label" , isShowLabel (), SLOT(setShowLabel (bool)));
+  addCheckAction("Show Value" , isShowValue (), SLOT(setShowValue (bool)));
   addCheckAction("Donut Title", isDonutTitle(), SLOT(setDonutTitle(bool)));
 
   //---
@@ -2113,7 +2144,19 @@ valueStr() const
 {
   int valueColumn = modelInd().column();
 
-  return piePlot_->columnStr(Column(valueColumn), value());
+  QString str;
+
+  if (piePlot_->isValuePercent()) {
+    auto dataTotal = groupObj_->dataTotal();
+
+    auto percent = 100.0*value()/dataTotal;
+
+    str = QString::asprintf("%.2f%%", percent);
+  }
+  else
+    str = piePlot_->columnStr(Column(valueColumn), value());
+
+  return str;
 }
 
 CQChartsArcData
@@ -2758,7 +2801,7 @@ drawSegmentLabel(PaintDevice *device) const
                                                  piePlot_->textLabelCornerSize(),
                                                  piePlot_->textLabelBorderSides());
 
-      if (piePlot_->showBoxes()) {
+      if (piePlot_->isShowBoxes()) {
         BBox bbox;
 
         RotatedTextBoxObj::calcConnectedRadialTextBBox(const_cast<CQChartsPiePlot *>(piePlot_),
@@ -2788,7 +2831,7 @@ drawSegmentLabel(PaintDevice *device) const
 
       drawLabels(pt, angle, align);
 
-      if (piePlot_->showBoxes()) {
+      if (piePlot_->isShowBoxes()) {
         // calc text box
         auto textOptions1 = textOptions;
 
@@ -2877,10 +2920,10 @@ getDrawLabels(QStringList &labels) const
 
   calcTipData(groupName, labelName, label, valueStr);
 
-  if (label.trimmed().length())
+  if (label.trimmed().length() && piePlot_->isShowLabel())
     labels.push_back(label);
 
-  if (valueStr.length() && piePlot_->isCount())
+  if (valueStr.length() && piePlot_->isShowValue())
     labels.push_back(valueStr);
 }
 
@@ -3554,7 +3597,7 @@ drawDonutText(PaintDevice *device) const
     if (name().trimmed().length())
       labels.push_back(name());
 
-    if (piePlot_->isCount()) {
+    if (piePlot_->isShowValue()) {
       auto numValuesStr = QString::number(numValues());
 
       numValuesStr +=  QString(" (%1)").arg(piePlot_->valueTypeName());
@@ -3934,13 +3977,19 @@ addOptionsWidgets()
   donutCheck_     = createBoolEdit("donut"    , /*choice*/false);
   summaryCheck_   = createBoolEdit("summary"  , /*choice*/false);
   dumbbellCheck_  = createBoolEdit("dumbbell" , /*choice*/false);
-  countCheck_     = createBoolEdit("count"    , /*choice*/false);
 
   addFrameColWidget(optionsFrame_, separatedCheck_);
   addFrameColWidget(optionsFrame_, donutCheck_);
   addFrameColWidget(optionsFrame_, summaryCheck_);
-  addFrameColWidget(optionsFrame_, dumbbellCheck_);
-  addFrameColWidget(optionsFrame_, countCheck_);
+  addFrameColWidget(optionsFrame_, dumbbellCheck_, 1, true);
+
+  showLabelCheck_    = createBoolEdit("showLabel"   , /*choice*/false);
+  showValueCheck_    = createBoolEdit("showValue"   , /*choice*/false);
+  valuePercentCheck_ = createBoolEdit("valuePercent", /*choice*/false);
+
+  addFrameColWidget(optionsFrame_, showLabelCheck_);
+  addFrameColWidget(optionsFrame_, showValueCheck_);
+  addFrameColWidget(optionsFrame_, valuePercentCheck_);
 
   addFrameColWidget(optionsFrame_, CQChartsWidgetUtil::createHStretch());
 }
@@ -3961,7 +4010,11 @@ connectSlots(bool b)
   CQUtil::optConnectDisconnect(b,
     dumbbellCheck_, SIGNAL(stateChanged(int)), this, SLOT(dumbbellSlot()));
   CQUtil::optConnectDisconnect(b,
-    countCheck_, SIGNAL(stateChanged(int)), this, SLOT(countSlot()));
+    showLabelCheck_, SIGNAL(stateChanged(int)), this, SLOT(showLabelSlot()));
+  CQUtil::optConnectDisconnect(b,
+    showValueCheck_, SIGNAL(stateChanged(int)), this, SLOT(showValueSlot()));
+  CQUtil::optConnectDisconnect(b,
+    valuePercentCheck_, SIGNAL(stateChanged(int)), this, SLOT(valuePercentSlot()));
 
   CQChartsGroupPlotCustomControls::connectSlots(b);
 }
@@ -3993,10 +4046,13 @@ updateWidgets()
 
   if (separatedCheck_) separatedCheck_->setChecked(piePlot_->isSeparated());
 
-  if (donutCheck_   ) donutCheck_   ->setChecked(piePlot_->isDonut   ());
-  if (summaryCheck_ ) summaryCheck_ ->setChecked(piePlot_->isSummary ());
-  if (dumbbellCheck_) dumbbellCheck_->setChecked(piePlot_->isDumbbell());
-  if (countCheck_   ) countCheck_   ->setChecked(piePlot_->isCount   ());
+  if (donutCheck_    ) donutCheck_    ->setChecked(piePlot_->isDonut   ());
+  if (summaryCheck_  ) summaryCheck_  ->setChecked(piePlot_->isSummary ());
+  if (dumbbellCheck_ ) dumbbellCheck_ ->setChecked(piePlot_->isDumbbell());
+
+  if (showLabelCheck_   ) showLabelCheck_   ->setChecked(piePlot_->isShowLabel   ());
+  if (showValueCheck_   ) showValueCheck_   ->setChecked(piePlot_->isShowValue   ());
+  if (valuePercentCheck_) valuePercentCheck_->setChecked(piePlot_->isValuePercent());
 
   //---
 
@@ -4042,9 +4098,23 @@ dumbbellSlot()
 
 void
 CQChartsPiePlotCustomControls::
-countSlot()
+showLabelSlot()
 {
-  piePlot_->setCount(countCheck_->isChecked());
+  piePlot_->setShowLabel(showLabelCheck_->isChecked());
+}
+
+void
+CQChartsPiePlotCustomControls::
+showValueSlot()
+{
+  piePlot_->setShowValue(showValueCheck_->isChecked());
+}
+
+void
+CQChartsPiePlotCustomControls::
+valuePercentSlot()
+{
+  piePlot_->setValuePercent(valuePercentCheck_->isChecked());
 }
 
 CQChartsColor

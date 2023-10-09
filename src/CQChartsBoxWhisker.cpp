@@ -448,7 +448,7 @@ draw(PaintDevice *device, const PenBrush &penBrush, int ind, double delta)
       break;
   }
 
-  if (plot()->showBoxes())
+  if (plot()->isShowBoxes())
     plot()->drawWindowColorBox(device, rect, Qt::red);
 }
 
@@ -637,6 +637,6 @@ draw(PaintDevice *device, const PenBrush &penBrush, double delta)
       break;
   }
 
-  if (plot()->showBoxes())
+  if (plot()->isShowBoxes())
     plot()->drawWindowColorBox(device, rect, Qt::red);
 }

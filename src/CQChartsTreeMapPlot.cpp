@@ -363,6 +363,29 @@ setTextFontSize(double s)
 
 void
 CQChartsTreeMapPlot::
+setShowConnections(bool b)
+{
+  CQChartsUtil::testAndSet(showConnections_.visible, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setShowConnectionsValue(bool b)
+{
+  CQChartsUtil::testAndSet(showConnections_.value, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setShowConnectionsColor(const QColor &c)
+{
+  CQChartsUtil::testAndSet(showConnections_.color, c, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsTreeMapPlot::
 addProperties()
 {
   addHierProperties();
@@ -452,6 +475,12 @@ addProperties()
   addProp("node/text", "textClipped", "clipped"    , "Clip text to box");
 
   addTextProperties("node/text", "text", "", CQChartsTextOptions::ValueType::ALL);
+
+  //---
+
+  addProp("connections", "showConnections"      , "visible", "Show connections");
+  addProp("connections", "showConnectionsValue" , "value"  , "Show connections value");
+  addProp("connections", "showConnectionsColor" , "color"  , "Show connections color");
 
   //---
 
@@ -1330,8 +1359,7 @@ flatAddNode(const QString &groupName, const QStringList &nameStrs, double size,
     auto pg = th->groupTreeMapData_.find(groupName1);
 
     if (pg == th->groupTreeMapData_.end()) {
-      pg = th->groupTreeMapData_.insert(pg,
-             GroupTreeMapData::value_type(groupName1, TreeMapData()));
+      pg = th->groupTreeMapData_.emplace_hint(pg, groupName1, TreeMapData());
 
       auto &treeMapData = (*pg).second;
 
@@ -2581,6 +2609,70 @@ draw(PaintDevice *device) const
 
   if (treeMapPlot_->isTextVisible())
     drawText(device, pbbox, updateState);
+
+  //---
+
+  if (treeMapPlot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+    if (treeMapPlot_->isShowConnections())
+      drawConnection(device);
+  }
+}
+
+void
+CQChartsTreeMapNodeObj::
+drawConnection(PaintDevice *device) const
+{
+  struct HierData {
+    Point  p;
+    double value { 0.0 };
+
+    HierData() = default;
+
+    HierData(const Point &p, double value) :
+     p(p), value(value) {
+    }
+  };
+
+  std::vector<HierData> pointData;
+
+  pointData.emplace_back(rect().getUL(), hierSize());
+
+  HierObj *parent = this->parent();
+
+  while (parent) {
+    pointData.emplace_back(parent->rect().getUL(), parent->hierSize());
+
+    parent = parent->parent();
+  }
+
+  Polygon poly;
+
+  for (const auto &p : pointData)
+    poly.addPoint(p.p);
+
+  PenBrush penBrush;
+
+  treeMapPlot_->setPen(penBrush,
+    PenData(true, treeMapPlot_->showConnectionsColor(), Alpha(), Length::pixel(4)));
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  device->drawPolyline(poly);
+
+  //---
+
+  if (treeMapPlot_->isShowConnectionsValue()) {
+    for (const auto &p : pointData) {
+      auto str = QString::number(p.value);
+
+      auto textOptions = treeMapPlot_->textOptions(device);
+
+      textOptions.contrast = true;
+      textOptions.align    = Qt::AlignLeft | Qt::AlignTop;
+
+      CQChartsDrawUtil::drawTextAtPoint(device, p.p, str, textOptions);
+    }
+  }
 }
 
 void

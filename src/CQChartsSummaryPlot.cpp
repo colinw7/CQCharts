@@ -293,6 +293,7 @@ init()
 
   setCorrelationTextFont(CQChartsFont().decFontSize(8));
 
+  setRegionStrokeColor(Color::makePalette());
   setRegionStrokeAlpha(Alpha(0.5));
   setRegionFillAlpha  (Alpha(0.2));
 
@@ -2622,7 +2623,8 @@ updateRangeBox() const
   //---
 
   // calc cell range box (if set)
-  rangeBox_ = BBox();
+  rangeBox_     = BBox();
+  rangeDefined_ = false;
 
   if (row_ != col_) {
     auto column1 = colColumn();
@@ -2643,6 +2645,8 @@ updateRangeBox() const
         rangeBox_.setYMin(range2.min());
         rangeBox_.setYMax(range2.max());
       }
+
+      rangeDefined_ = (range1.isSet() && range2.isSet());
     }
   }
   else {
@@ -2663,6 +2667,8 @@ updateRangeBox() const
         rangeBox_.setYMin(range1.min());
         rangeBox_.setYMax(range1.max());
       }
+
+      rangeDefined_ = true;
     }
   }
 }
@@ -3827,6 +3833,11 @@ drawRangeBox(PaintDevice *device, bool overlay) const
     summaryPlot_->setPenBrush(penBrush,
       summaryPlot_->regionPenData(bc), summaryPlot_->regionBrushData(fc));
 
+    if (! rangeDefined_)
+      CQChartsDrawUtil::setPenGray(penBrush.pen, 0.3);
+    else
+      penBrush.pen.setWidthF(3);
+
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     //---
@@ -4534,6 +4545,13 @@ handleSelectRelease(const Point &p, bool add)
       auto column = rowColumn();
 
       auto *summaryPlot = const_cast<CQChartsSummaryPlot *>(summaryPlot_);
+
+      if (add && summaryPlot->hasColumnRange(column)) {
+        auto range = summaryPlot->columnRange(column);
+
+        minMax.add(range.min());
+        minMax.add(range.max());
+      }
 
       summaryPlot->setColumnRange(column, minMax.min(), minMax.max());
 

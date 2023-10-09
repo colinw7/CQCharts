@@ -1063,7 +1063,7 @@ drawTerm(PaintDevice *device)
     painter->endGroup();
   }
 
-  if (plot() && plot()->showBoxes())
+  if (plot() && plot()->isShowBoxes())
     plot()->drawWindowColorBox(device, annotationBBox());
 
   device->restore();
@@ -3736,6 +3736,8 @@ draw(PaintDevice *device)
   // recalculate position to bbox on draw as can change depending on pixel mapping
   if (! rectangle().isSet())
     positionToBBox();
+  else
+    rectToBBox();
 
   auto rect = annotationBBox();
 
@@ -4402,6 +4404,9 @@ init()
 {
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
+  auto bbox = BBox(path_.path().boundingRect());
+  setAnnotationBBox(bbox);
+
   setStroked(true);
   setFilled (true);
 
@@ -4418,6 +4423,9 @@ CQChartsPathAnnotation::
 setPath(const Path &path)
 {
   path_ = path;
+
+  auto bbox = BBox(path_.path().boundingRect());
+  setAnnotationBBox(bbox);
 
   emitDataChanged();
 }

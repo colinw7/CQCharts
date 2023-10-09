@@ -403,8 +403,7 @@ getModelColumnTypeData(const QAbstractItemModel *model, const Column &column,
             typeCacheData1.headerValid = true;
         }
 
-        pc1 = cacheData1.columnTypeCache.insert(pc1,
-          ColumnTypeCache::value_type(column, typeCacheData1));
+        pc1 = cacheData1.columnTypeCache.emplace_hint(pc1, column, typeCacheData1);
       }
 
       pc = cacheData.columnTypeCache.find(column);
@@ -848,7 +847,7 @@ getModelCacheData(const QAbstractItemModel *model, bool &ok) const
   if (pm == modelCacheData_.end()) {
     auto *th = const_cast<CQChartsColumnTypeMgr *>(this);
 
-    pm = th->modelCacheData_.insert(pm, ModelCacheData::value_type(modelInd, CacheData()));
+    pm = th->modelCacheData_.emplace_hint(pm, modelInd, CacheData());
   }
 
   const auto &cacheData = (*pm).second;

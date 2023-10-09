@@ -37,7 +37,7 @@ class CQChartsImageMgr {
       if (! image.load(filename))
         return QImage();
 
-      p = namedImages_.insert(p, NamedImages::value_type(filename, image));
+      p = namedImages_.emplace_hint(p, filename, image);
     }
 
     return (*p).second;
@@ -92,7 +92,7 @@ class CQChartsIconMgr {
       if (icon.isNull())
         return QIcon();
 
-      p = namedIcons_.insert(p, NamedIcons::value_type(filename, icon));
+      p = namedIcons_.emplace_hint(p, filename, icon);
     }
 
     return (*p).second;

@@ -85,7 +85,7 @@ columnDetails(const CQChartsColumn &c)
   if (p == columnDetails_.end()) {
     auto *details = new CQChartsModelColumnDetails(this, c);
 
-    p = columnDetails_.insert(p, ColumnDetailsMap::value_type(c, details));
+    p = columnDetails_.emplace_hint(p, c, details);
   }
 
   auto *details = (*p).second;
@@ -793,6 +793,7 @@ CQChartsModelColumnDetails::
 maxUnique() const
 {
   auto counts = uniqueCounts();
+  if (counts.empty()) return 0;
 
   auto var = *std::max_element(counts.begin(), counts.end());
 
@@ -1668,7 +1669,7 @@ calcCache()
 
     void addReal(double r) {
       // if no type defined min, update min value
-      if (visitMin_) {
+      if (visitMin_ && ! CMathUtil::isNaN(r)) {
         bool ok1;
 
         double rmin = CQChartsVariant::toReal(min_, ok1);
@@ -1679,7 +1680,7 @@ calcCache()
       }
 
       // if no type defined max, update max value
-      if (visitMax_) {
+      if (visitMax_ && ! CMathUtil::isNaN(r)) {
         bool ok1;
 
         double rmax = CQChartsVariant::toReal(max_, ok1);
@@ -1690,7 +1691,7 @@ calcCache()
       }
 
       // if no type defined sum, update value sum
-      if (visitSum_) {
+      if (visitSum_ && ! CMathUtil::isNaN(r)) {
         bool ok1;
 
         double rsum = CQChartsVariant::toReal(sum_, ok1);
@@ -1727,7 +1728,7 @@ calcCache()
       }
 
       lastValue1_ = lastValue2_;
-      lastValue2_ = CQChartsVariant::fromReal(r);
+      lastValue2_ = (! CMathUtil::isNaN(r) ? CQChartsVariant::fromReal(r) : QVariant());
     }
 
     void addString(const QString &s) {
@@ -2139,7 +2140,7 @@ addValue(const QVariant &value)
   if (p == valueInds_.end()) {
     int ind = int(valueInds_.size());
 
-    (void) valueInds_.insert(p, VariantInds::value_type(value, ind));
+    (void) valueInds_.emplace_hint(p, value, ind);
   }
 }
 

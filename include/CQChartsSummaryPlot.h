@@ -877,7 +877,8 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   mutable RectData*  selectRectData_  { nullptr };
 
   mutable BBox          rangeBox_;
-  mutable bool          rangeInside_ = false;
+  mutable bool          rangeDefined_ = false;
+  mutable bool          rangeInside_  = false;
   mutable Qt::Alignment rangeBoxSide_ { };
 
   mutable BBox          modifyBox_;

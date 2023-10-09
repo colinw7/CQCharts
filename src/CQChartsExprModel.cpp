@@ -1054,8 +1054,7 @@ calcExtraColumnValue(int row, int column, int ecolumn, bool &rc)
   else
     rc = false;
 
-  auto p = extraColumn.variantMap.insert(extraColumn.variantMap.end(),
-                                         VariantMap::value_type(row, var));
+  auto p = extraColumn.variantMap.emplace_hint(extraColumn.variantMap.end(), row, var);
 
   if (extraColumn.function == Function::ADD) {
     if (! extraColumn.values.empty())

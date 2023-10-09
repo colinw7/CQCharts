@@ -679,7 +679,7 @@ draw(PaintDevice *device)
 
   //---
 
-  if (plot_->showBoxes()) {
+  if (plot_->isShowBoxes()) {
     device->setClipRect(clipRect);
 
     plot_->drawWindowColorBox(device, this->bbox(), Qt::red);

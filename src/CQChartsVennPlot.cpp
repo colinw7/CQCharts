@@ -277,11 +277,20 @@ CQChartsGeom::Range
 CQChartsVennPlot::
 calcRange() const
 {
-  // base range always (-1, -1) - (1, 1)
+  PathDatas pathDatas;
+
+  if (! getPathDatas(pathDatas))
+    return Range(-1, -1, 1, 1);
+
+  //---
+
   Range dataRange;
 
-  dataRange.updateRange(-1.0, -1.0);
-  dataRange.updateRange( 1.0,  1.0);
+  for (const auto &pathData : pathDatas) {
+    auto rect = BBox(pathData.poly.boundingRect());
+
+    dataRange.updateRange(rect);
+  }
 
   return dataRange;
 }
@@ -301,6 +310,34 @@ createObjs(PlotObjs &objs) const
   th->clearErrors();
 
   //---
+
+  PathDatas pathDatas;
+
+  if (! getPathDatas(pathDatas))
+    return false;
+
+  //---
+
+  int ind = 0;
+
+  for (const auto &pathData : pathDatas) {
+    auto rect = BBox(pathData.poly.boundingRect());
+
+    auto *obj = th->createCircleObj(rect, pathData);
+
+    objs.push_back(obj);
+
+    ++ind;
+  }
+
+  return true;
+}
+
+bool
+CQChartsVennPlot::
+getPathDatas(PathDatas &pathDatas) const
+{
+  auto *th = const_cast<CQChartsVennPlot *>(this);
 
   // check columns
   bool columnsValid = true;
@@ -433,10 +470,6 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  using PathDatas = std::vector<CQChartsPathData>;
-
-  PathDatas pathDatas;
-
   ind = 0;
 
   auto pathPoly = [](const QPainterPath &path) {
@@ -541,16 +574,6 @@ createObjs(PlotObjs &objs) const
 
       pathDatas.push_back(pathData1);
     }
-  }
-
-  for (const auto &pathData : pathDatas) {
-    auto rect = BBox(pathData.poly.boundingRect());
-
-    auto *obj = th->createCircleObj(rect, pathData);
-
-    objs.push_back(obj);
-
-    ++ind;
   }
 
   //---

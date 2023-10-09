@@ -346,7 +346,7 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
 
   //---
 
-  if (plot()->showBoxes()) {
+  if (plot()->isShowBoxes()) {
     plot()->drawWindowColorBox(device, bbox);
   }
 

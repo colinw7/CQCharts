@@ -1627,7 +1627,7 @@ addPointObjects(PlotObjs &objs) const
     auto pg = th->groupPoints_.find(groupInd);
 
     if (pg == th->groupPoints_.end())
-      pg = th->groupPoints_.insert(pg, GroupPoints::value_type(groupInd, Points()));
+      pg = th->groupPoints_.emplace_hint(pg, groupInd, Points());
 
     auto &points = const_cast<Points &>((*pg).second);
 
@@ -2338,8 +2338,7 @@ getDensity(int groupInd, const QString &name) const
       namedDensity[pn.first] = density;
     }
 
-    pd = th->groupNamedDensity_.insert(pd,
-      GroupNamedDensity::value_type(groupInd, namedDensity));
+    pd = th->groupNamedDensity_.emplace_hint(pd, groupInd, namedDensity);
 
     //---
 
@@ -2735,14 +2734,14 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
     auto pi = groupNameGridData_.find(groupInd);
 
     if (pi == groupNameGridData_.end())
-      pi = groupNameGridData_.insert(pi, GroupNameGridData::value_type(groupInd, NameGridData()));
+      pi = groupNameGridData_.emplace_hint(pi, groupInd, NameGridData());
 
     auto &nameGridData = (*pi).second;
 
     auto pn = nameGridData.find(name);
 
     if (pn == nameGridData.end())
-      pn = nameGridData.insert(pn, NameGridData::value_type(name, gridData_));
+      pn = nameGridData.emplace_hint(pn, name, gridData_);
 
     auto &cellPointData = (*pn).second;
 
@@ -2760,7 +2759,7 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
     auto pi = groupNameHexData_.find(groupInd);
 
     if (pi == groupNameHexData_.end())
-      pi = groupNameHexData_.insert(pi, GroupNameHexData::value_type(groupInd, NameHexData()));
+      pi = groupNameHexData_.emplace_hint(pi, groupInd, NameHexData());
 
     auto &nameHexData = (*pi).second;
 
@@ -2776,7 +2775,7 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
 
       hexMap->setNum(gridData_.nx());
 
-      pn = nameHexData.insert(pn, NameHexData::value_type(name, hexMap));
+      pn = nameHexData.emplace_hint(pn, name, hexMap);
     }
 
     auto gp = adjustGroupPoint(groupInd, p);
@@ -2803,14 +2802,14 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
     auto pi = groupNameValues_.find(groupInd);
 
     if (pi == groupNameValues_.end())
-      pi = groupNameValues_.insert(pi, GroupNameValues::value_type(groupInd, NameValues()));
+      pi = groupNameValues_.emplace_hint(pi, groupInd, NameValues());
 
     auto &nameValues = (*pi).second;
 
     auto pn = nameValues.find(name);
 
     if (pn == nameValues.end())
-      pn = nameValues.insert(pn, NameValues::value_type(name, ValuesData()));
+      pn = nameValues.emplace_hint(pn, name, ValuesData());
 
     auto &valuesData = (*pn).second;
 
@@ -4290,16 +4289,14 @@ initWhiskerData() const
     auto xpw = th->groupXWhiskers_.find(groupInd);
 
     if (xpw == th->groupXWhiskers_.end())
-      xpw = th->groupXWhiskers_.insert(xpw,
-              GroupWhiskers::value_type(groupInd, new AxisBoxWhisker(th, Qt::Horizontal)));
+      xpw = th->groupXWhiskers_.emplace_hint(xpw, groupInd, new AxisBoxWhisker(th, Qt::Horizontal));
 
     auto *xWhiskerData = (*xpw).second;
 
     auto ypw = th->groupYWhiskers_.find(groupInd);
 
     if (ypw == th->groupYWhiskers_.end())
-      ypw = th->groupYWhiskers_.insert(ypw,
-              GroupWhiskers::value_type(groupInd, new AxisBoxWhisker(th, Qt::Vertical)));
+      ypw = th->groupYWhiskers_.emplace_hint(ypw, groupInd, new AxisBoxWhisker(th, Qt::Vertical));
 
     auto *yWhiskerData = (*ypw).second;
 
@@ -4350,16 +4347,14 @@ initWhiskerData() const
     auto xpw = th->groupXWhiskers_.find(groupInd);
 
     if (xpw == th->groupXWhiskers_.end())
-      xpw = th->groupXWhiskers_.insert(xpw,
-              GroupWhiskers::value_type(groupInd, new AxisBoxWhisker(th, Qt::Horizontal)));
+      xpw = th->groupXWhiskers_.emplace_hint(xpw, groupInd, new AxisBoxWhisker(th, Qt::Horizontal));
 
     auto *xWhiskerData = (*xpw).second;
 
     auto ypw = th->groupYWhiskers_.find(groupInd);
 
     if (ypw == th->groupYWhiskers_.end())
-      ypw = th->groupYWhiskers_.insert(ypw,
-              GroupWhiskers::value_type(groupInd, new AxisBoxWhisker(th, Qt::Vertical)));
+      ypw = th->groupYWhiskers_.emplace_hint(ypw, groupInd, new AxisBoxWhisker(th, Qt::Vertical));
 
     auto *yWhiskerData = (*ypw).second;
 

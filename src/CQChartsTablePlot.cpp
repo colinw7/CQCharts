@@ -1788,7 +1788,7 @@ getHeaderObjData(const Column &c) const
   auto pc = th->headerObjMap_.find(ic);
 
   if (pc == th->headerObjMap_.end())
-    pc = th->headerObjMap_.insert(pc, HeaderObjMap::value_type(ic, HeaderObjData(c)));
+    pc = th->headerObjMap_.emplace_hint(pc, ic, HeaderObjData(c));
 
   return (*pc).second;
 }
@@ -1802,7 +1802,7 @@ getRowObjData(int r) const
   auto pc = th->rowObjMap_.find(r);
 
   if (pc == th->rowObjMap_.end())
-    pc = th->rowObjMap_.insert(pc, RowObjMap::value_type(r, RowObjData(r)));
+    pc = th->rowObjMap_.emplace_hint(pc, r, RowObjData(r));
 
   return (*pc).second;
 }
@@ -1818,7 +1818,7 @@ getCellObjData(const ModelIndex &ind) const
   auto pc = th->cellObjMap_.find(modelInd);
 
   if (pc == th->cellObjMap_.end())
-    pc = th->cellObjMap_.insert(pc, CellObjMap::value_type(modelInd, CellObjData(ind)));
+    pc = th->cellObjMap_.emplace_hint(pc, modelInd, CellObjData(ind));
 
   return (*pc).second;
 }

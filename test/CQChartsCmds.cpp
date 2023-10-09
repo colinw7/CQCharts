@@ -1581,8 +1581,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  double vr = CQChartsView::viewportRange();
-
+  auto vr = CQChartsView::viewportRange();
   CQChartsGeom::BBox bbox(0, 0, vr, vr);
 
   if (positionStr != "") {
@@ -3344,8 +3343,7 @@ execCmd(CQChartsCmdArgs &argv)
 
     //---
 
-    double vr = CQChartsView::viewportRange();
-
+    auto vr = CQChartsView::viewportRange();
     CQChartsGeom::BBox bbox(0, 0, vr, vr);
 
     view->addPlot(plot, bbox);
@@ -8239,6 +8237,21 @@ execCmd(CQChartsCmdArgs &argv)
         return errorMsg("Invalid group annotation");
 
       annotationGroup->doLayout();
+    }
+    else if (name == "bbox") {
+      CQChartsGeom::BBox bbox;
+
+      if (! bbox.fromString(value))
+        return errorMsg("Invalid annotation bbox");
+
+      annotation->setEditBBox(bbox, CQChartsResizeSide::NONE);
+    }
+    else if (name == "flip") {
+      if (value == "x" || value == "xy")
+        annotation->flip(Qt::Horizontal);
+
+      if (value == "y" || value == "xy")
+        annotation->flip(Qt::Vertical);
     }
     else if (name == "?") {
       NameValueMap nameValues; nameValues["annotation"] = "";

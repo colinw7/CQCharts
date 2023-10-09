@@ -2403,7 +2403,7 @@ getConnections1(int id, const QString &str)
   data.node = id;
   data.name = str;
 
-  p = idConnections_.insert(p, IdConnectionsData::value_type(id, data));
+  p = idConnections_.emplace_hint(p, id, data);
 
   return (*p).second;
 }

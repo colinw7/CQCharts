@@ -1753,7 +1753,7 @@ drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool
 
   //---
 
-  if (plot && plot->showBoxes()) {
+  if (plot && plot->isShowBoxes()) {
     plot->drawWindowColorBox(device, bbox(), Qt::blue);
 
     plot->drawColorBox(device, pixelToWindow(plot, device, lbbox_), Qt::green);
@@ -2244,13 +2244,13 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         Point p;
 
         if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
-          p = Point(pt.x - tw/2                         , ty);
+          p = Point(pt.x - tw/2                                        , ty);
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
-          p = Point(pt.x - tw                           , ty);
+          p = Point(pt.x - tw                                          , ty);
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
-          p = Point(pt.x                                , ty);
+          p = Point(pt.x                                               , ty);
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
-          p = Point(pt.x - windowToPixelWidth(plot, device, 0.5), ty);
+          p = Point(pt.x - tw/2 - windowToPixelWidth(plot, device, 0.5), ty);
 
         textPlacer_.addDrawText(CQChartsAxisTextPlacer::DrawText(p, tbbox, text));
       }
@@ -2259,7 +2259,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
       }
 
 #if 0
-      if (plot && plot->showBoxes()) {
+      if (plot && plot->isShowBoxes()) {
         if (visible)
           plot->drawWindowColorBox(device, tbbox);
       }
@@ -2357,13 +2357,13 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
         Point p;
 
         if      (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
-          p = Point(pt.x - tw/2                         , ty);
+          p = Point(pt.x - tw/2                                  , ty);
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
-          p = Point(pt.x - tw                           , ty);
+          p = Point(pt.x - tw                                    , ty);
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
-          p = Point(pt.x                                , ty);
+          p = Point(pt.x                                         , ty);
         else if (tickLabelPlacement().type() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
-          p = Point(pt.x - windowToPixelWidth(plot, device, 0.5), ty);
+          p = Point(pt.x - tw/2 - windowToPixelWidth(plot, device, 0.5), ty);
 
         textPlacer_.addDrawText(CQChartsAxisTextPlacer::DrawText(p, tbbox, text));
       }
@@ -2372,7 +2372,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
       }
 
 #if 0
-      if (plot && plot->showBoxes()) {
+      if (plot && plot->isShowBoxes()) {
         if (visible)
           plot->drawWindowColorBox(device, tbbox);
       }
@@ -2515,7 +2515,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
       }
 
 #if 0
-      if (plot && plot->showBoxes()) {
+      if (plot && plot->isShowBoxes()) {
         if (visible)
           plot->drawWindowColorBox(device, tbbox);
       }
@@ -2626,7 +2626,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
       }
 
 #if 0
-      if (plot && plot->showBoxes()) {
+      if (plot && plot->isShowBoxes()) {
         if (visible)
           plot->drawWindowColorBox(device, tbbox);
       }
@@ -2679,7 +2679,7 @@ drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device) const
   textOptions.align = Qt::AlignHCenter | Qt::AlignVCenter;
   textOptions.html  = false;
 
-  textPlacer_.draw(device, textOptions, (plot && plot->showBoxes()));
+  textPlacer_.draw(device, textOptions, (plot && plot->isShowBoxes()));
 }
 
 void
@@ -2994,7 +2994,7 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
     }
   }
 
-  if (plot && plot->showBoxes()) {
+  if (plot && plot->isShowBoxes()) {
     plot->drawWindowColorBox(device, bbox);
   }
 

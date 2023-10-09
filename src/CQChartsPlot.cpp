@@ -5637,7 +5637,7 @@ setColumnValueVisible(const Column &column, const QVariant &value, bool visible)
   auto p = columnValueFilter_.find(column);
 
   if (p == columnValueFilter_.end())
-    p = columnValueFilter_.insert(p, ColumnValueFilter::value_type(column, VariantSet()));
+    p = columnValueFilter_.emplace_hint(p, column, VariantSet());
 
   if (visible)
     (*p).second.erase(value);
@@ -14903,7 +14903,7 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
     //---
 
     // show debug box
-    if (showBoxes() || (plotObj->isSelected() && showSelectedBoxes()))
+    if (isShowBoxes() || (plotObj->isSelected() && showSelectedBoxes()))
       plotObj->drawDebugRect(device);
   }
 
@@ -15227,7 +15227,7 @@ drawYAxis(PaintDevice *device) const
 
       double w = oplot->yAxisWidth(CQChartsAxisSide::Type::BOTTOM_LEFT);
 
-      if (showBoxes())
+      if (isShowBoxes())
         drawWindowColorBox(device,
           BBox(lpos - w, dataRange.getYMin(), lpos, dataRange.getYMax()), Qt::green);
 
@@ -15250,7 +15250,7 @@ drawYAxis(PaintDevice *device) const
 
       double w = oplot->yAxisWidth(CQChartsAxisSide::Type::TOP_RIGHT);
 
-      if (showBoxes())
+      if (isShowBoxes())
         drawWindowColorBox(device,
           BBox(rpos, dataRange.getYMin(), rpos + w, dataRange.getYMax()), Qt::green);
 
@@ -15840,7 +15840,7 @@ bool
 CQChartsPlot::
 hasBoxes() const
 {
-  if (! showBoxes())
+  if (! isShowBoxes())
     return false;
 
   //---
@@ -17195,7 +17195,7 @@ initLayer(const Layer::Type &type, const Buffer::Type &buffer, bool active)
   if (pb == buffers_.end()) {
     auto *layerBuffer = new Buffer(view(), buffer);
 
-    pb = buffers_.insert(pb, Buffers::value_type(buffer, layerBuffer));
+    pb = buffers_.emplace_hint(pb, buffer, layerBuffer);
   }
 
   //auto *layerBuffer = (*pb).second;
@@ -17207,7 +17207,7 @@ initLayer(const Layer::Type &type, const Buffer::Type &buffer, bool active)
   if (pl == layers_.end()) {
     auto *layer = new Layer(type, buffer);
 
-    pl = layers_.insert(pl, Layers::value_type(type, layer));
+    pl = layers_.emplace_hint(pl, type, layer);
   }
 
   auto *layer = (*pl).second;

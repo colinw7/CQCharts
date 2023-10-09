@@ -753,7 +753,7 @@ addPointObjects() const
     auto pg = th->groupPoints_.find(groupInd);
 
     if (pg == th->groupPoints_.end())
-      pg = th->groupPoints_.insert(pg, GroupPoints::value_type(groupInd, Points()));
+      pg = th->groupPoints_.emplace_hint(pg, groupInd, Points());
 
     auto &points = const_cast<Points &>((*pg).second);
 
@@ -1862,7 +1862,7 @@ getGroupData(int groupId)
   auto pg = groupObj_.find(groupId);
 
   if (pg == groupObj_.end())
-    pg = groupObj_.insert(pg, GroupObj::value_type(groupId, GroupData()));
+    pg = groupObj_.emplace_hint(pg, groupId, GroupData());
 
   return (*pg).second;
 }

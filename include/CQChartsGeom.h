@@ -1312,6 +1312,13 @@ class Range :
   void incX(double dx) { assert(set_); x1_ += dx; x2_ += dx; }
   void incY(double dy) { assert(set_); y1_ += dy; y2_ += dy; }
 
+  //---
+
+  void updateRange(const BBox &bbox) {
+    updateRange(bbox.getLL());
+    updateRange(bbox.getUR());
+  }
+
   void updateRange(const Point &p) {
     updateRange(p.x, p.y);
   }

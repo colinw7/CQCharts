@@ -114,6 +114,7 @@ void setBrush(QBrush &brush, const BrushData &data);
 
 void updateBrushColor(QBrush &brush, const QColor &c);
 
+void setPenGray  (QPen   &pen  , double alpha=1.0);
 void setBrushGray(QBrush &brush, double alpha=1.0);
 
 inline double brushAlpha(QBrush &brush) { return brush.color().alphaF(); }
@@ -375,6 +376,9 @@ Size calcHtmlTextSize(const QString &text, const QFont &font, int margin=0);
 void drawScaledHtmlText(PaintDevice *device, const BBox &tbbox, const QString &text,
                         const TextOptions &options, double adjustScale=1.0);
 
+void drawHtmlText(PaintDevice *device, const BBox &tbbox,
+                  const QString &text, const TextOptions &options,
+                  double pdx=0.0, double pdy=0.0);
 void drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
                   const QString &text, const TextOptions &options,
                   double pdx=0.0, double pdy=0.0);

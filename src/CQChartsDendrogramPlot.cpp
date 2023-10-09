@@ -3919,7 +3919,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  if (plot()->showBoxes()) {
+  if (plot()->isShowBoxes()) {
     auto bbox = textRect();
 
     drawDebugRect(device, bbox);

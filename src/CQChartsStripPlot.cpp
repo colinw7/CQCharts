@@ -313,7 +313,7 @@ calcRange() const
     auto pgyv = th->posYValues_.find(pos);
 
     if (pgyv == th->posYValues_.end())
-      pgyv = th->posYValues_.insert(pgyv, PosYValues::value_type(pos, YValues()));
+      pgyv = th->posYValues_.emplace_hint(pgyv, pos, YValues());
 
     auto &yvalues = (*pgyv).second;
 
@@ -323,7 +323,7 @@ calcRange() const
       auto pyv = yvalues.find(iy);
 
       if (pyv == yvalues.end())
-        pyv = yvalues.insert(pyv, YValues::value_type(iy, ValuesData()));
+        pyv = yvalues.emplace_hint(pyv, iy, ValuesData());
 
       auto &valuesData = (*pyv).second;
 
@@ -393,7 +393,7 @@ calcRowRange(const ModelVisitor::VisitData &data, Range &range) const
     if (pn == th->namePos_.end()) {
       int n = int(th->namePos_.size());
 
-      pn = th->namePos_.insert(pn, NamePos::value_type(name, n));
+      pn = th->namePos_.emplace_hint(pn, name, n);
     }
 
     position = OptInt((*pn).second);
@@ -408,7 +408,7 @@ calcRowRange(const ModelVisitor::VisitData &data, Range &range) const
   auto pgv = th->posValues_.find(pos);
 
   if (pgv == th->posValues_.end())
-    pgv = th->posValues_.insert(pgv, PosValues::value_type(pos, PosValuesData()));
+    pgv = th->posValues_.emplace_hint(pgv, pos, PosValuesData());
 
   auto &groupValuesData = (*pgv).second;
 

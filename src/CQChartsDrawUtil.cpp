@@ -4,6 +4,7 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsUtil.h>
 
+#include <CQHtmlTextPainter.h>
 #include <CMathUtil.h>
 
 #include <QTextDocument>
@@ -47,6 +48,18 @@ updateBrushColor(QBrush &brush, const QColor &c)
   c2.setAlphaF(brush.color().alphaF());
 
   brush.setColor(c2);
+}
+
+void
+setPenGray(QPen &pen, double alpha)
+{
+  auto c  = pen.color();
+  auto gc = CQChartsUtil::grayColor(c);
+
+  if (alpha > 0.0 && alpha < 1.0)
+    gc.setAlphaF(alpha);
+
+  pen.setColor(gc);
 }
 
 void
@@ -777,7 +790,7 @@ drawTextInBox(PaintDevice *device, const BBox &rect,
     if (options.scaled)
       CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text, options, adjustScale);
     else
-      CQChartsDrawPrivate::drawHtmlText(device, rect.getCenter(), rect, text, options);
+      CQChartsDrawPrivate::drawHtmlText(device, rect, text, options);
 
     return;
   }
@@ -2687,15 +2700,15 @@ namespace CQChartsDrawPrivate {
 CQChartsGeom::Size
 calcHtmlTextSize(const QString &text, const QFont &font, int margin)
 {
-  QTextDocument td;
+  CQHtmlTextPainter textPainter;
 
-  td.setDocumentMargin(margin);
-  td.setHtml(text);
-  td.setDefaultFont(font);
+  textPainter.setText(text);
+  textPainter.setMargin(margin);
+  textPainter.setFont(font);
 
-  auto *layout = td.documentLayout();
+  auto s = textPainter.textSize();
 
-  return Size(layout->documentSize());
+  return Size(s);
 }
 
 //------
@@ -2706,21 +2719,47 @@ drawScaledHtmlText(PaintDevice *device, const BBox &tbbox, const QString &text,
 {
   assert(tbbox.isValid());
 
-  // calc scale
+  // calc scale (if not specified)
   double s = options.scale;
 
   if (s <= 0.0) {
-    auto psize = calcHtmlTextSize(text, device->font(), options.margin);
-
-    double pw = psize.width ();
-    double ph = psize.height();
-
     auto ptbbox = device->windowToPixel(tbbox);
 
-    double xs = ptbbox.getWidth ()/pw;
-    double ys = ptbbox.getHeight()/ph;
+    double pw = ptbbox.getWidth ();
+    double ph = ptbbox.getHeight();
 
-    s = std::min(xs, ys);
+    int iter = 0;
+
+    auto currentFont = device->font();
+
+    double bestS = currentFont.pointSizeF();
+
+    while (iter < 20) {
+      auto psize = calcHtmlTextSize(text, currentFont, options.margin);
+
+      double pw1 = psize.width ();
+      double ph1 = psize.height();
+      if (pw1 <= 0.0 || ph1 <= 0.0) return;
+
+      if (pw1 < pw && ph1 < ph)
+        bestS = currentFont.pointSizeF();
+
+      auto xs = pw/pw1;
+      auto ys = ph/ph1;
+
+      auto s1 = std::min(xs, ys);
+
+      if (std::abs(s1 - 1.0) < 1E-5)
+        break;
+
+      auto ps = currentFont.pointSizeF();
+      currentFont.setPointSizeF(s1*ps);
+
+      ++iter;
+    }
+
+    currentFont.setPointSizeF(bestS);
+    s = currentFont.pointSizeF()/device->font().pointSizeF();
   }
 
   s *= adjustScale;
@@ -2739,7 +2778,14 @@ drawScaledHtmlText(PaintDevice *device, const BBox &tbbox, const QString &text,
 
   //---
 
-  drawHtmlText(device, tbbox.getCenter(), tbbox, text, options);
+  drawHtmlText(device, tbbox, text, options);
+}
+
+void
+drawHtmlText(PaintDevice *device, const BBox &tbbox,
+             const QString &text, const TextOptions &options, double pdx, double pdy)
+{
+  drawHtmlText(device, tbbox.getCenter(), tbbox, text, options, pdx, pdy);
 }
 
 void
@@ -2859,18 +2905,15 @@ drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
 
   //---
 
-  QAbstractTextDocumentLayout::PaintContext ctx;
-
   auto pc = device->pen().color();
 
-  ctx.palette.setColor(QPalette::Text, pc);
+  QAbstractTextDocumentLayout::PaintContext ctx;
 
   auto *layout = td.documentLayout();
 
   layout->setPaintDevice(painter->device());
 
   if (options.contrast) {
-  //auto ipc = CQChartsUtil::invColor(pc);
     auto ipc = CQChartsUtil::bwColor(pc);
 
     ctx.palette.setColor(QPalette::Text, ipc);
@@ -2886,14 +2929,11 @@ drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
         }
       }
     }
-
-    ctx.palette.setColor(QPalette::Text, pc);
-
-    layout->draw(painter, ctx);
   }
-  else {
-    layout->draw(painter, ctx);
-  }
+
+  ctx.palette.setColor(QPalette::Text, pc);
+
+  layout->draw(painter, ctx);
 
   if (device->isInteractive())
     painter->translate(-tx, -ty);

@@ -148,10 +148,12 @@ class CQChartsVennPlot : public CQChartsPlot,
     NAME_VALUE
   };
 
-  using Color    = CQChartsColor;
-  using Alpha    = CQChartsAlpha;
-  using Angle    = CQChartsAngle;
-  using ColorInd = CQChartsUtil::ColorInd;
+  using PathData  = CQChartsPathData;
+  using PathDatas = std::vector<PathData>;
+  using Color     = CQChartsColor;
+  using Alpha     = CQChartsAlpha;
+  using Angle     = CQChartsAngle;
+  using ColorInd  = CQChartsUtil::ColorInd;
 
  public:
   CQChartsVennPlot(View *view, const ModelP &model);
@@ -202,6 +204,8 @@ class CQChartsVennPlot : public CQChartsPlot,
   Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
+
+  bool getPathDatas(PathDatas &pathDatas) const;
 
   //---
 

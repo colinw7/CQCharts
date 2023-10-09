@@ -2546,7 +2546,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
         if (p == valueGroup_.end()) {
           int group = int(valueGroup_.size());
 
-          p = valueGroup_.insert(p, ValueGroup::value_type(groupVar, group));
+          p = valueGroup_.emplace_hint(p, groupVar, group);
 
           groupValue_[group] = groupVar;
         }

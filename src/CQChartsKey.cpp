@@ -2242,7 +2242,7 @@ draw(PaintDevice *device) const
     if (this->bbox().overlaps(bbox)) {
       item->draw(&device1, bbox);
 
-      if (plot()->showBoxes())
+      if (plot()->isShowBoxes())
         drawPlot->drawWindowColorBox(&device1, bbox);
     }
   }
@@ -2250,7 +2250,7 @@ draw(PaintDevice *device) const
   //---
 
   // draw box
-  if (plot()->showBoxes()) {
+  if (plot()->isShowBoxes()) {
     drawPlot->drawWindowColorBox(&device1, this->bbox());
 
     BBox headerBox(x, y - layoutData_.headerHeight, x + sw, y);

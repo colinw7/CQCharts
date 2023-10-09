@@ -3,11 +3,11 @@
 
 // selection modifier type
 enum class CQChartsSelMod {
-  NONE,
-  REPLACE,
-  ADD,
-  REMOVE,
-  TOGGLE
+  NONE   ,
+  REPLACE, // replace selection
+  ADD    , // add to selection
+  REMOVE , // remove from selection
+  TOGGLE   // toggle selection
 };
 
 // click modifier type

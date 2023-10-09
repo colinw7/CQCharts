@@ -2258,8 +2258,7 @@ createNode(const QString &name) const
 
   auto *th = const_cast<CQChartsGraphVizPlot *>(this);
 
-  auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(),
-              NameNodeMap::value_type(node->str(), node));
+  auto p1 = th->nameNodeMap_.emplace_hint(th->nameNodeMap_.end(), node->str(), node);
   assert(node == (*p1).second);
 
   th->indNodeMap_[node->id()] = node;

@@ -1464,8 +1464,7 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
       auto pg1 = th->groupWhiskers_.find(groupInd);
 
       if (pg1 == th->groupWhiskers_.end())
-        pg1 = th->groupWhiskers_.insert(pg1,
-          GroupSetWhiskerMap::value_type(groupInd, SetWhiskerMap()));
+        pg1 = th->groupWhiskers_.emplace_hint(pg1, groupInd, SetWhiskerMap());
 
       pg = groupWhiskers_.find(groupInd);
     }
@@ -1497,7 +1496,7 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
         if (ok && name.length())
           whisker->setName(name);
 
-        ps1 = setWhiskerMap1.insert(ps1, SetWhiskerMap::value_type(setId, whisker));
+        ps1 = setWhiskerMap1.emplace_hint(ps1, setId, whisker);
       }
 
       ps = setWhiskerMap.find(setId);

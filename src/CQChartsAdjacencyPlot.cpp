@@ -1088,7 +1088,7 @@ findNode(const QString &str) const
 
   auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
-  auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(), NameNodeMap::value_type(str, node));
+  auto p1 = th->nameNodeMap_.emplace_hint(th->nameNodeMap_.end(), str, node);
 
   return (*p1).second;
 }

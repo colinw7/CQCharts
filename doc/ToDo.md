@@ -4,6 +4,10 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + scroll selected
+
+ + view edit (plot and annotations)
+
  + view zoom (mouse tool)
 
  + cross select into scatter
