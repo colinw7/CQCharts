@@ -165,6 +165,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   Q_PROPERTY(RegionPointType regionPointType READ regionPointType WRITE setRegionPointType)
 
+  Q_PROPERTY(double outsideGray  READ outsideGray  WRITE setOutsideGray)
+  Q_PROPERTY(double outsideAlpha READ outsideAlpha WRITE setOutsideAlpha)
+
   // best fit
   Q_PROPERTY(bool bestFit READ isBestFit WRITE setBestFit)
 
@@ -255,6 +258,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   using PiePlot          = CQChartsPiePlot;
   using PenBrush         = CQChartsPenBrush;
   using PenData          = CQChartsPenData;
+  using BrushData        = CQChartsBrushData;
   using Symbol           = CQChartsSymbol;
   using Margin           = CQChartsMargin;
   using Length           = CQChartsLength;
@@ -449,6 +453,16 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
+  //! get/set outside gray
+  double outsideGray() const { return outsideGray_; }
+  void setOutsideGray(double r);
+
+  //! get/set outside alpha
+  double outsideAlpha() const { return outsideAlpha_; }
+  void setOutsideAlpha(double r);
+
+  //---
+
   const Color &regionEditStroke() const { return regionEditStroke_; }
   void setRegionEditStroke(const Color &c) { regionEditStroke_ = c; }
 
@@ -500,6 +514,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   bool hasBackground() const override;
 
   void execDrawBackground(PaintDevice *) const override;
+
+  bool hasBgAxes() const override;
 
   void redrawAxis(CQChartsAxis *axis, bool wait) override;
 
@@ -584,10 +600,12 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   //---
 
-  void clearModelSelectedRows() const;
-  void addModelSelectedRow(int row, int col) const;
+  void clearModelSelectedRows(bool update=true) const;
+  void addModelSelectedRow(int row, int col, bool update=true) const;
   uint numModelSelectedRows() const;
   bool isModelSelectedRow(int r) const;
+
+  void clearSelection() const;
 
   //---
 
@@ -678,7 +696,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Qt::Orientation orientation_ { Qt::Vertical };
   bool            innerBorder_ { false };
 
-  SelectMode selectMode_ { SelectMode::CELL };
+  SelectMode selectMode_ { SelectMode::DATA };
 
   Plot* currentPlot_ { nullptr };
 
@@ -725,6 +743,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   double regionEditAlpha_  { 0.2 };
 
   RegionPointType regionPointType_ { RegionPointType::DIM_OUTSIDE };
+
+  double outsideGray_  { 0.1 };
+  double outsideAlpha_ { 0.05 };
 
   CQChartsPlotObj* menuObj_ { nullptr }; //!< menu plot object
 
@@ -844,8 +865,9 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
 
   //---
 
-  void resetInside();
+  bool resetInside();
   void updateSelectData(const Point &p);
+  bool updateInside();
 
   //---
 
@@ -861,7 +883,9 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   void drawYGrid(PaintDevice *device) const;
   void initYAxis(bool buckets) const;
 
-  void drawScatter     (PaintDevice *device) const;
+  void drawScatter      (PaintDevice *device) const;
+  void drawScatterPoints(PaintDevice *device) const;
+
   void drawBestFit     (PaintDevice *device) const;
   void drawCorrelation (PaintDevice *device) const;
   void drawBoxPlot     (PaintDevice *device) const;
@@ -911,10 +935,13 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   using PointDatas = std::vector<PointData>;
 
   struct RectData {
-    int  ind { -1 }; // model row
-    BBox bbox;
-    BBox pbbox;
-    bool inside { false };
+    int     ind { -1 }; // model row
+    QString name;
+    BBox    bbox;
+    BBox    pbbox;
+    bool    inside { false };
+    bool    rangeSelected { false };
+    bool    modelSelected { false };
   };
 
   using RectDatas = std::vector<RectData>;
@@ -922,6 +949,7 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   mutable PointDatas pointDatas_;
   mutable RectDatas  rectDatas_;
 
+  mutable Point      selectPointPos_;
   mutable PointData* selectPointData_ { nullptr };
   mutable RectData*  selectRectData_  { nullptr };
 

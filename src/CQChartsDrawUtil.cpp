@@ -84,6 +84,16 @@ setBrushAlpha(QBrush &brush, double a)
   brush.setColor(c);
 }
 
+void
+setPenAlpha(QPen &pen, double a)
+{
+  auto c = pen.color();
+
+  c.setAlphaF(a);
+
+  pen.setColor(c);
+}
+
 //---
 
 void

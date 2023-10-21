@@ -120,6 +120,7 @@ void setBrushGray(QBrush &brush, double alpha=1.0);
 inline double brushAlpha(QBrush &brush) { return brush.color().alphaF(); }
 
 void setBrushAlpha(QBrush &brush, double a);
+void setPenAlpha(QPen &pen, double a);
 
 }
 

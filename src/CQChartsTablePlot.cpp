@@ -206,7 +206,7 @@ void
 CQChartsTablePlot::
 modelTypeChangedSlot(int modelInd)
 {
-  auto *modelData = charts()->currentModelData();
+  auto *modelData = currentModelData();
 
   if (modelData && modelData->isInd(modelInd))
     updateRangeAndObjs();
