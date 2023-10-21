@@ -4833,8 +4833,19 @@ updateSelText()
       objs = objs1;
   }
 
-  if      (num == 0)
-    setSelText("None");
+  if      (num == 0) {
+    auto *currentPlot = this->currentPlot(/*remap*/false);
+
+    QString msg;
+
+    if (currentPlot)
+      msg = currentPlot->getSelText();
+
+    if (msg == "")
+      msg = "None";
+
+    setSelText(msg);
+  }
   else if (num == 1)
     setSelText(objs[0]->id());
   else

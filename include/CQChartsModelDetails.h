@@ -28,6 +28,8 @@ class CQChartsModelDetails : public QObject {
   Q_PROPERTY(int numRows      READ numRows       )
   Q_PROPERTY(int hierarchical READ isHierarchical)
 
+  Q_PROPERTY(int numBuckets READ numBuckets WRITE setNumBuckets)
+
  public:
   using ModelData     = CQChartsModelData;
   using Column        = CQChartsColumn;
@@ -47,6 +49,10 @@ class CQChartsModelDetails : public QObject {
 
   //! get is hierarchical
   bool isHierarchical() const;
+
+  //! get/set number of preferred buckets
+  int numBuckets() const { return numBuckets_; }
+  void setNumBuckets(int n);
 
   //! get details for column
   ColumnDetails *columnDetails(const Column &column);
@@ -112,6 +118,8 @@ class CQChartsModelDetails : public QObject {
   using ColumnDetailsMap = std::map<Column, ColumnDetails *>;
 
   ModelData* data_ { nullptr }; //!< model data
+
+  int numBuckets_ { 20 };
 
   // cached data (simple and columns)
   Initialized      initialized_  { Initialized::NONE }; //!< is initialized
@@ -255,7 +263,7 @@ class CQChartsModelColumnDetails {
   //---
 
   //! get/set number of preferred buckets
-  int numBuckets() const { return numBuckets_; }
+  int numBuckets() const;
   void setNumBuckets(int n);
 
   //! bucket for value
@@ -462,7 +470,7 @@ class CQChartsModelColumnDetails {
   using BucketerP = std::unique_ptr<CQBucketer>;
 
   BucketerP bucketer_;          //!< bucketed values
-  int       numBuckets_ { 20 }; //!< number of buckets
+  int       numBuckets_ { -1 }; //!< number of buckets
 
   // cached parameter values
   int preferredWidth_  { -1 }; //!< preferred column width

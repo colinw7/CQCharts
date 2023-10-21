@@ -55,6 +55,18 @@ isHierarchical() const
   return hierarchical_;
 }
 
+void
+CQChartsModelDetails::
+setNumBuckets(int n)
+{
+  if (n != numBuckets_) {
+    numBuckets_ = n;
+
+    for (auto &cd : columnDetails_)
+      cd.second->initBucketer(/*force*/true);
+  }
+}
+
 const CQChartsModelColumnDetails *
 CQChartsModelDetails::
 columnDetails(const CQChartsColumn &c) const
@@ -1015,6 +1027,16 @@ uniqueValue(int i) const
 }
 
 //---
+
+int
+CQChartsModelColumnDetails::
+numBuckets() const
+{
+  if (numBuckets_ <= 0)
+    return details_->numBuckets();
+
+  return numBuckets_;
+}
 
 void
 CQChartsModelColumnDetails::

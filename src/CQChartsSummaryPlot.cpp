@@ -222,26 +222,27 @@ init()
 
   //--
 
-  scatterPlot_->title()->setVisible(false);
-
   scatterPlot_->setXColumn(Column::makeRow());
   scatterPlot_->setYColumn(Column::makeRow());
 
   scatterPlot_->setParetoOriginColor(paretoOriginColor());
+  scatterPlot_->setParetoStrokeWidth(paretoWidth());
 
   scatterPlot_->setColorMapped(false);
   scatterPlot_->setSymbolTypeMapped(false);
   scatterPlot_->setSymbolSizeMapped(false);
 
-  scatterPlot_->key()->setVisible(false);
+  scatterPlot_->title()->setVisible(false);
+  scatterPlot_->key  ()->setVisible(false);
 
   //--
 
   distributionPlot_->setValueColumns(Columns(Column::makeRow()));
 
-  distributionPlot_->title()->setVisible(false);
+//distributionPlot_->setParetoStrokeWidth(paretoWidth());
 
-  distributionPlot_->key()->setVisible(false);
+  distributionPlot_->title()->setVisible(false);
+  distributionPlot_->key  ()->setVisible(false);
 
   //--
 
@@ -295,6 +296,7 @@ init()
 
   setRegionStrokeColor(Color::makePalette());
   setRegionStrokeAlpha(Alpha(0.5));
+  setRegionStrokeWidth(Length::pixel(3));
   setRegionFillAlpha  (Alpha(0.2));
 
   //---
@@ -311,7 +313,7 @@ init()
 
   xAxis()->setVisible(false);
   xAxis()->setTickInside(true);
-  xAxis()->setAxesTickLabelTextFont(CQChartsFont().decFontSize(8));
+  xAxis()->setAxesTickLabelTextFont(CQChartsFont().decFontSize(4));
   xAxis()->setAxesTickLabelTextAngle(Angle::degrees(90));
   xAxis()->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
   xAxis()->setSide(CQChartsAxis::AxisSide(CQChartsAxis::AxisSide::Type::TOP_RIGHT));
@@ -319,7 +321,7 @@ init()
 
   yAxis()->setVisible(false);
   yAxis()->setTickInside(true);
-  yAxis()->setAxesTickLabelTextFont(CQChartsFont().decFontSize(8));
+  yAxis()->setAxesTickLabelTextFont(CQChartsFont().decFontSize(4));
   yAxis()->setAxesTickLabelTextAngle(Angle::degrees(0));
   yAxis()->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
   yAxis()->setSide(CQChartsAxis::AxisSide(CQChartsAxis::AxisSide::Type::TOP_RIGHT));
@@ -329,6 +331,10 @@ init()
 
   setMinDataScaleX(1.0);
   setMinDataScaleY(1.0);
+
+  //---
+
+  currentPlot_ = this;
 }
 
 void
@@ -407,7 +413,7 @@ void
 CQChartsSummaryPlot::
 updatePlots()
 {
-  Plot *currentPlot = this;
+  currentPlot_ = this;
 
   if (! isExpanded() && (plotType() == PlotType::PARALLEL)) {
     parallelPlot()->setYColumns(columns());
@@ -417,7 +423,7 @@ updatePlots()
         parallelPlot()->setYColumnVisible(cv.first, false);
     }
 
-    currentPlot = parallelPlot();
+    currentPlot_ = parallelPlot();
   }
   else
     parallelPlot()->setYColumns(Columns(Column::makeRow()));
@@ -449,16 +455,24 @@ updatePlots()
     }
 
     scatterPlot()->setSymbolFillAlpha(scatterSymbolFillAlpha());
-    scatterPlot()->setSymbolSize(calcScatterSymbolSize());
 
     scatterPlot()->setSymbolStrokeColor(scatterSymbolStrokeColor());
     scatterPlot()->setSymbolStrokeAlpha(scatterSymbolStrokeAlpha());
+
+    scatterPlot()->setSymbolSize(calcScatterSymbolSize());
+
+//  ColorInd ic;
+//  if (cellObj && ! groupColumn().isValid())
+//    ic = ColorInd(cellObj->row(), visibleColumns().count());
+//  scatterPlot()->setParettoColorInd(ic);
 
     // TODO: more axis settings ?
     scatterPlot()->xAxis()->setGridLinesDisplayed(xAxis()->gridLinesDisplayed());
     scatterPlot()->yAxis()->setGridLinesDisplayed(yAxis()->gridLinesDisplayed());
 
-    currentPlot = scatterPlot();
+    scatterPlot()->setDefaultPalette(defaultPalette());
+
+    currentPlot_ = scatterPlot();
   }
   else {
     scatterPlot()->setXColumn(Column::makeRow());
@@ -483,45 +497,53 @@ updatePlots()
       distributionPlot()->xAxis()->setGridLinesDisplayed(xAxis()->gridLinesDisplayed());
       distributionPlot()->yAxis()->setGridLinesDisplayed(yAxis()->gridLinesDisplayed());
 
-      currentPlot = distributionPlot();
+      distributionPlot()->setDefaultPalette(defaultPalette());
+
+      currentPlot_ = distributionPlot();
     }
     else if (diagonalType() == CQChartsSummaryPlot::DiagonalType::BOXPLOT) {
       boxPlot()->setValueColumns(Columns(column));
       boxPlot()->setTipColumns(visibleColumns());
 
-      currentPlot = boxPlot();
+      boxPlot()->setDefaultPalette(defaultPalette());
+
+      currentPlot_ = boxPlot();
     }
     else if (diagonalType() == CQChartsSummaryPlot::DiagonalType::PIE) {
       piePlot()->setValueColumns(Columns(column));
       piePlot()->setTipColumns(visibleColumns());
 
-      currentPlot = piePlot();
+      piePlot()->setDefaultPalette(defaultPalette());
+
+      currentPlot_ = piePlot();
     }
   }
   else {
     distributionPlot()->setValueColumns(Columns(Column::makeRow()));
   }
 
-  currentPlot->setVisible(true);
+  currentPlot_->setVisible(true);
 
-  view()->setCurrentPlot(currentPlot);
+  currentPlot_->zoomFull();
 
-  if (this != currentPlot)
+  view()->setCurrentPlot(currentPlot_);
+
+  if (this != currentPlot_)
     this->setVisible(false);
 
-  if (parallelPlot() != currentPlot)
+  if (parallelPlot() != currentPlot_)
     parallelPlot()->setVisible(false);
 
-  if (scatterPlot() != currentPlot)
+  if (scatterPlot() != currentPlot_)
     scatterPlot()->setVisible(false);
 
-  if (distributionPlot() != currentPlot)
+  if (distributionPlot() != currentPlot_)
     distributionPlot()->setVisible(false);
 
-  if (boxPlot() != currentPlot)
+  if (boxPlot() != currentPlot_)
     boxPlot()->setVisible(false);
 
-  if (piePlot() != currentPlot)
+  if (piePlot() != currentPlot_)
     piePlot()->setVisible(false);
 }
 
@@ -584,6 +606,15 @@ setOrientation(const Qt::Orientation &o)
   } );
 }
 
+void
+CQChartsSummaryPlot::
+setInnerBorder(bool b)
+{
+  CQChartsUtil::testAndSet(innerBorder_, b, [&]() {
+    drawObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
 //---
 
 void
@@ -604,7 +635,7 @@ calcScatterSymbolSize() const
   auto symbolSize = this->scatterSymbolSize();
 
   if (! symbolSize.isSet())
-    symbolSize = Length::percent(3.0);
+    symbolSize = Length::percent(2.5);
 
   return symbolSize;
 }
@@ -667,7 +698,8 @@ CQChartsSummaryPlot::
 setParetoWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(paretoData_.lineWidth, l, [&]() {
-    scatterPlot()->setParetoStrokeWidth(l);
+    scatterPlot     ()->setParetoStrokeWidth(l);
+//  distributionPlot()->setParettoStrokeWidth(l); // origin symbol width
 
     drawObjs(); Q_EMIT customDataChanged();
   } );
@@ -689,7 +721,10 @@ CQChartsSummaryPlot::
 setParetoOriginType(const ParetoOriginType &t)
 {
   CQChartsUtil::testAndSet(paretoData_.originType, t, [&]() {
-    scatterPlot()->setParetoOriginType(static_cast<CQChartsScatterPlot::ParetoOriginType>(t));
+    scatterPlot     ()->setParetoOriginType(
+      static_cast<CQChartsScatterPlot::ParetoOriginType>(t));
+//  distributionPlot()->setParetoOriginType(
+//    static_cast<CQChartsDistributionPlot::ParetoOriginType>(t));
 
     drawObjs(); Q_EMIT customDataChanged();
   } );
@@ -700,7 +735,73 @@ CQChartsSummaryPlot::
 setParetoOriginColor(const Color &c)
 {
   CQChartsUtil::testAndSet(paretoData_.originColor, c, [&]() {
-    scatterPlot()->setParetoOriginColor(c);
+    scatterPlot     ()->setParetoOriginColor(c);
+//  distributionPlot()->setParetoOriginColor(c);
+
+    drawObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
+#if 0
+void
+CQChartsSummaryPlot::
+setParetoOriginSize(const Length &s)
+{
+  CQChartsUtil::testAndSet(paretoData_.originSize, s, [&]() {
+    scatterPlot     ()->setParetoOriginSize(s);
+//  distributionPlot()->setParetoOriginSize(s);
+
+    drawObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
+void
+CQChartsSummaryPlot::
+setParetoOriginSymbol(const Symbol &s)
+{
+  CQChartsUtil::testAndSet(paretoData_.originSymbol, s, [&]() {
+    scatterPlot     ()->setParetoOriginSymbol(s);
+//  distributionPlot()->setParetoOriginSymbol(s);
+
+    drawObjs(); Q_EMIT customDataChanged();
+  } );
+}
+#endif
+
+//---
+
+int
+CQChartsSummaryPlot::
+numBuckets() const
+{
+  auto *modelData = currentModelData();
+  auto *details   = (modelData ? modelData->details() : nullptr);
+
+  return (details ? details->numBuckets() : numBuckets_);
+}
+
+void
+CQChartsSummaryPlot::
+setNumBuckets(int n)
+{
+  if (n != numBuckets_) {
+    numBuckets_ = n;
+
+    auto *modelData = currentModelData();
+    auto *details   = (modelData ? modelData->details() : nullptr);
+
+    if (details) details->setNumBuckets(n);
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsSummaryPlot::
+setDistributionMargin(const Length &l)
+{
+  CQChartsUtil::testAndSet(distributionMargin_, l, [&]() {
+    distributionPlot()->setMargin(l);
 
     drawObjs(); Q_EMIT customDataChanged();
   } );
@@ -712,7 +813,7 @@ void
 CQChartsSummaryPlot::
 modelTypeChangedSlot(int modelInd)
 {
-  auto *modelData = charts()->currentModelData();
+  auto *modelData = currentModelData();
 
   if (modelData && modelData->isInd(modelInd))
     updateRangeAndObjs();
@@ -778,7 +879,7 @@ CQChartsSummaryPlot::
 setSymbolSizeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(symbolSizeColumn_, c, [&]() {
-    scatterPlot_->setSymbolSizeColumn(c);
+    scatterPlot_     ->setSymbolSizeColumn(c);
 
     drawObjs(); Q_EMIT customDataChanged();
   } );
@@ -884,6 +985,7 @@ addProperties()
 
   // options
   addProp("options", "orientation", "orientation", "Plot orientation");
+  addProp("options", "innerBorder", "innerBorder", "Draw border inside");
 
   // scatter plot
   addSymbolProperties("scatter/symbol", "scatter", "Scatter Symbol");
@@ -899,6 +1001,10 @@ addProperties()
 
   addPropI("options", "showDistributionRange", "showDistributionRange",
            "Show range on distribution plot");
+
+  addProp("distribution", "numBuckets"        , "numBuckets"  , "Number of buckets");
+  addProp("distribution", "barSelectTarget"   , "selectTarget", "Target for selection of bar");
+  addProp("distribution", "distributionMargin", "margin"      , "Bar margin");
 
   // box plot
   addProp("box/fill", "boxPlotFilled", "visible", "Box fill visible");
@@ -1120,6 +1226,16 @@ posStr(const Point &w) const
   auto p = obj->parentToPlot(w);
 
   return xStr(p.x) + " " + yStr(p.y);
+}
+
+QString
+CQChartsSummaryPlot::
+getSelText() const
+{
+  auto n = numModelSelectedRows();
+  if (n == 0) return QString();
+
+  return QString::number(n);
 }
 
 //---
@@ -1384,7 +1500,7 @@ updateSelectedRows() const
 
   clearModelSelectedRows();
 
-  auto *modelData = charts()->currentModelData();
+  auto *modelData = currentModelData();
 
   if (modelData) {
     const auto &sel = modelData->selection();
@@ -1399,13 +1515,15 @@ updateSelectedRows() const
       addModelSelectedRow(ind1.row(), ind1.column());
     }
   }
+
+  view()->updateSelText();
 }
 
 void
 CQChartsSummaryPlot::
 selectColumnRanges()
 {
-  auto *modelData = charts()->currentModelData();
+  auto *modelData = currentModelData();
 
   QItemSelection sel;
 
@@ -1497,6 +1615,13 @@ addModelSelectedRow(int row, int col) const
   modelSelectedRows_[row].insert(col);
 }
 
+uint
+CQChartsSummaryPlot::
+numModelSelectedRows() const
+{
+  return modelSelectedRows_.size();
+}
+
 bool
 CQChartsSummaryPlot::
 isModelSelectedRow(int r) const
@@ -1513,7 +1638,7 @@ void
 CQChartsSummaryPlot::
 selectCellPoint(CellObj *obj, int ind, bool add) const
 {
-  auto *modelData = charts()->currentModelData();
+  auto *modelData = currentModelData();
 
   QItemSelection sel;
 
@@ -1540,7 +1665,7 @@ void
 CQChartsSummaryPlot::
 selectCellRect(CellObj *obj, const MinMax &minMax, bool add) const
 {
-  auto *modelData = charts()->currentModelData();
+  auto *modelData = currentModelData();
 
   auto column = obj->rowColumn();
 
@@ -1670,19 +1795,18 @@ execDrawBackground(PaintDevice *device) const
 
   //---
 
-  if (selectMode() == SelectMode::DATA) {
-    ColorInd colorInd;
+  ColorInd colorInd;
 
-    auto fc = interpPlotCellFillColor(colorInd);
+  auto bc = interpPlotStrokeColor(colorInd);
+  auto fc = interpPlotFillColor(colorInd);
 
-    PenBrush penBrush;
+  PenBrush penBrush;
 
-    setPenBrush(penBrush, PenData(false), plotCellBrushData(fc));
+  setPenBrush(penBrush, plotPenData(bc), plotBrushData(fc));
 
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    device->drawRect(BBox(0, 0, nc_, nc_));
-  }
+  device->drawRect(BBox(0, 0, nc_, nc_));
 
   //---
 
@@ -2137,7 +2261,7 @@ handleSelectMove(const Point &p, Constraints constraints, bool first)
 
   auto iconstraints = static_cast<uint>(constraints);
 
-  if (cellObj && iconstraints & static_cast<uint>(Constraints::EDITABLE)) {
+  if (cellObj && (iconstraints & static_cast<uint>(Constraints::SELECTABLE))) {
     if (! selectPressed_)
       cellObj->updateRangeInside(p);
 
@@ -2517,7 +2641,10 @@ draw(PaintDevice *device) const
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  device->drawRect(bbox);
+  if (summaryPlot_->isInnerBorder())
+    device->drawRect(innerRect());
+  else
+    device->drawRect(bbox);
 
   //---
 
@@ -2611,6 +2738,13 @@ initCoords() const
   pymin_ = bbox.getYMin() + by1_;
   pxmax_ = bbox.getXMax() - bx2_;
   pymax_ = bbox.getYMax() - by2_;
+}
+
+CQChartsGeom::BBox
+CQChartsSummaryCellObj::
+innerRect() const
+{
+  return BBox(pxmin_, pymin_, pxmax_, pymax_);
 }
 
 void
@@ -2733,7 +2867,7 @@ drawXGrid(PaintDevice *device) const
   const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false, /*notify*/false);
 
   device->save();
-  device->setClipRect(rect());
+  device->setClipRect(summaryPlot_->isInnerBorder() ? innerRect() : rect());
 
   xaxis->drawGrid(summaryPlot_, device);
 
@@ -2852,7 +2986,7 @@ drawYGrid(PaintDevice *device) const
   const_cast<CQChartsSummaryPlot *>(summaryPlot_)->setDataClip(false, /*notify*/false);
 
   device->save();
-  device->setClipRect(rect());
+  device->setClipRect(summaryPlot_->isInnerBorder() ? innerRect() : rect());
 
   yaxis->drawGrid(summaryPlot_, device);
 
@@ -2963,25 +3097,11 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto bc = summaryPlot_->interpPlotCellStrokeColor(colorInd);
   auto fc = summaryPlot_->interpPlotCellFillColor(colorInd);
 
-  if (summaryPlot_->selectMode() != CQChartsSummaryPlot::SelectMode::DATA) {
-    summaryPlot_->setPenBrush(penBrush,
-      summaryPlot_->plotCellPenData(bc), summaryPlot_->plotCellBrushData(fc));
+  summaryPlot_->setPenBrush(penBrush,
+    summaryPlot_->plotCellPenData(bc), summaryPlot_->plotCellBrushData(fc));
 
-    if (updateState)
-      summaryPlot_->updateObjPenBrushState(this, penBrush, drawType());
-  }
-  else {
-    if (! isSelected())
-      summaryPlot_->setPenBrush(penBrush,
-        summaryPlot_->plotCellPenData(bc), BrushData(false));
-    else {
-      summaryPlot_->setPenBrush(penBrush,
-        summaryPlot_->plotCellPenData(bc), summaryPlot_->plotCellBrushData(fc));
-
-      if (updateState)
-        summaryPlot_->updateObjPenBrushState(this, penBrush, drawType());
-    }
-  }
+  if (updateState)
+    summaryPlot_->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 void
@@ -3706,6 +3826,9 @@ drawDistribution(PaintDevice *device) const
     summaryPlot_->calcValueCounts(row_, valueCounts, maxCount_);
 
     int nc = int(valueCounts.size());
+
+    bmin_ = 0;
+    bmax_ = nc;
 
     double dn = (invert ?
       (nc > 0 ? (pymax_ - pymin_)/nc : 0.0) : (nc > 0 ? (pxmax_ - pxmin_)/nc : 0.0));

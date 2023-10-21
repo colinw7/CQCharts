@@ -479,7 +479,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //! \brief probe value data
   struct ProbeValue {
-    double  value;
+    double  value { 0.0 };
     QString label;
     QString valueStr;
 
@@ -2389,6 +2389,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual QString columnValueToString(const Column &column, const QVariant &var) const;
 
   bool formatColumnValue(const Column &column, const QVariant &var, QString &str) const;
+
+  virtual QString getSelText() const { return QString(); }
 
   //---
 

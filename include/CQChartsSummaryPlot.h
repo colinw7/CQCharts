@@ -119,7 +119,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Q_PROPERTY(OffDiagonalType lowerDiagonalType READ lowerDiagonalType WRITE setLowerDiagonalType)
 
   // options
-  Q_PROPERTY(Qt::Orientation orientation READ orientation WRITE setOrientation)
+  Q_PROPERTY(Qt::Orientation orientation READ orientation   WRITE setOrientation)
+  Q_PROPERTY(bool            innerBorder READ isInnerBorder WRITE setInnerBorder)
 
   // select mode
   Q_PROPERTY(SelectMode selectMode READ selectMode WRITE setSelectMode)
@@ -129,6 +130,10 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   // distribution
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Distribution, distribution)
+
+  Q_PROPERTY(int            numBuckets         READ numBuckets         WRITE setNumBuckets)
+  Q_PROPERTY(SelectTarget   barSelectTarget    READ barSelectTarget    WRITE setBarSelectTarget)
+  Q_PROPERTY(CQChartsLength distributionMargin READ distributionMargin WRITE setDistributionMargin)
 
   Q_PROPERTY(bool showDistributionRange
              READ isShowDistributionRange WRITE setShowDistributionRange)
@@ -179,6 +184,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Q_ENUMS(DiagonalType)
   Q_ENUMS(OffDiagonalType)
   Q_ENUMS(SelectMode)
+  Q_ENUMS(SelectTarget)
   Q_ENUMS(RegionPointType)
   Q_ENUMS(ParetoOriginType)
 
@@ -222,6 +228,11 @@ class CQChartsSummaryPlot : public CQChartsPlot,
     NONE,
     CELL,
     DATA
+  };
+
+  enum class SelectTarget {
+    MODEL,
+    REGION
   };
 
   enum class RegionPointType {
@@ -347,6 +358,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   const Qt::Orientation &orientation() const { return orientation_; }
   void setOrientation(const Qt::Orientation &orient);
 
+  bool isInnerBorder() const { return innerBorder_; }
+  void setInnerBorder(bool b);
+
   //---
 
   const SelectMode &selectMode() const { return selectMode_; }
@@ -398,6 +412,21 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   const Color &paretoOriginColor() const { return paretoData_.originColor; }
   void setParetoOriginColor(const Color &c);
+
+//const Length &paretoOriginLength() const { return paretoData_.originLength; }
+//void setParetoOriginColor(const Length &c);
+
+//const Symbol &paretoOriginSymbol() const { return paretoData_.originSymbol; }
+//void setParetoOriginSymbol(const Symbol &c);
+
+  int numBuckets() const;
+  void setNumBuckets(int);
+
+  const SelectTarget &barSelectTarget() const { return barSelectTarget_; }
+  void setBarSelectTarget(const SelectTarget &t) { barSelectTarget_ = t; }
+
+  const Length &distributionMargin() const { return distributionMargin_; }
+  void setDistributionMargin(const Length &l);
 
   //---
 
@@ -455,6 +484,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   //---
 
   QString posStr(const Point &w) const override;
+
+  QString getSelText() const override;
 
   //---
 
@@ -555,6 +586,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   void clearModelSelectedRows() const;
   void addModelSelectedRow(int row, int col) const;
+  uint numModelSelectedRows() const;
   bool isModelSelectedRow(int r) const;
 
   //---
@@ -644,8 +676,11 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   OffDiagonalType lowerDiagonalType_ { OffDiagonalType::CORRELATION }; //!< lower diagonal type
 
   Qt::Orientation orientation_ { Qt::Vertical };
+  bool            innerBorder_ { false };
 
   SelectMode selectMode_ { SelectMode::CELL };
+
+  Plot* currentPlot_ { nullptr };
 
   ScatterPlot*      scatterPlot_      { nullptr };
   DistributionPlot* distributionPlot_ { nullptr };
@@ -657,14 +692,26 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   bool density_ { false };
 
   struct ParetoData {
-    bool             visible     { false };
-    Length           lineWidth   { Length::pixel(5) };
-    Color            lineColor   { Color::makePalette() };
-    Color            originColor { Color::makeInterfaceValue(0.5) };
-    ParetoOriginType originType  { ParetoOriginType::NONE };
+    bool             visible      { false };
+    Length           lineWidth    { Length::pixel(5) };
+    Color            lineColor    { Color::makePalette() };
+    Color            originColor  { Color::makeInterfaceValue(0.5) };
+    ParetoOriginType originType   { ParetoOriginType::NONE };
+    Length           originSize   { Length::percent(2) };
+    Symbol           originSymbol { Symbol::plus() };
   };
 
   ParetoData paretoData_;
+
+  //---
+
+  int numBuckets_ { 15 };
+
+  SelectTarget barSelectTarget_ { SelectTarget::MODEL };
+
+  Length distributionMargin_ { Length::pixel(2) };
+
+  //---
 
   double correlationMargin_ { 4 };
 
@@ -756,6 +803,8 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   //---
 
   void initCoords() const;
+
+  BBox innerRect() const;
 
   void updateRangeBox() const;
 
@@ -877,8 +926,8 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   mutable RectData*  selectRectData_  { nullptr };
 
   mutable BBox          rangeBox_;
-  mutable bool          rangeDefined_ = false;
-  mutable bool          rangeInside_  = false;
+  mutable bool          rangeDefined_ { false };
+  mutable bool          rangeInside_  { false };
   mutable Qt::Alignment rangeBoxSide_ { };
 
   mutable BBox          modifyBox_;

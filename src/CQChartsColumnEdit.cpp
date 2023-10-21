@@ -682,8 +682,6 @@ widgetsToColumn()
   //---
 
   updateState();
-
-  Q_EMIT columnChanged();
 }
 
 void

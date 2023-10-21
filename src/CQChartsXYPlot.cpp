@@ -108,7 +108,7 @@ description() const
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
-    h2("XY Plot Type</h2>").
+    h2("XY Plot Type").
      h3("Summary").
       p("Draws points at x and y coordinate pairs and optionally connects them with a "
         "continuous line. The connecting lines can be straight or rounded.").
