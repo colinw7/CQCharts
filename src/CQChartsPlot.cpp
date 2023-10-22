@@ -9392,7 +9392,7 @@ selectOneObj(Obj *obj, SelMod selMod)
       deselectTypes1 = removeType(SelectTypes::MAP_KEY);
   }
 
-  view()->deselectAll(/*propagate*/ false);
+  view()->deselectAll(/*propagate*/false);
 
   deselectAll(deselectTypes1);
 

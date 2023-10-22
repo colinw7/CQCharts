@@ -795,6 +795,30 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   using Length      = CQChartsLength;
   using Constraints = CQChartsPlot::Constraints;
   using MinMax      = CQChartsGeom::RMinMax;
+  using Rows        = std::set<int>;
+
+  struct PointData {
+    int            ind           { -1 }; // model row
+    Point          p;
+    CQChartsColor  color;
+    CQChartsSymbol symbol;
+    Length         symbolSize;
+    bool           inside        { false };
+    bool           rangeSelected { false };
+    bool           modelSelected { false };
+  };
+
+  struct RectData {
+    int     ind { -1 }; // model row
+    QString name;
+    Rows    rows;
+    BBox    bbox;
+    BBox    pbbox;
+    bool    inside { false };
+    bool    rangeSelected { false };
+    bool    modelSelected { false };
+  };
+
 
  public:
   CQChartsSummaryCellObj(const SummaryPlot *plot, const BBox &bbox, int row, int col);
@@ -874,6 +898,10 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   Color pointColor() const;
   Color barColor() const;
 
+  QString objText() const;
+
+  int getCurrentSelectPointInd() const;
+
  protected:
   void drawXAxis(PaintDevice *device) const;
   void drawXGrid(PaintDevice *device) const;
@@ -921,37 +949,16 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
 
   //---
 
-  struct PointData {
-    int            ind           { -1 }; // model row
-    Point          p;
-    CQChartsColor  color;
-    CQChartsSymbol symbol;
-    Length         symbolSize;
-    bool           inside        { false };
-    bool           rangeSelected { false };
-    bool           modelSelected { false };
-  };
-
   using PointDatas = std::vector<PointData>;
-
-  struct RectData {
-    int     ind { -1 }; // model row
-    QString name;
-    BBox    bbox;
-    BBox    pbbox;
-    bool    inside { false };
-    bool    rangeSelected { false };
-    bool    modelSelected { false };
-  };
-
-  using RectDatas = std::vector<RectData>;
+  using RectDatas  = std::vector<RectData>;
 
   mutable PointDatas pointDatas_;
   mutable RectDatas  rectDatas_;
 
-  mutable Point      selectPointPos_;
-  mutable PointData* selectPointData_ { nullptr };
-  mutable RectData*  selectRectData_  { nullptr };
+  mutable Point            selectPointPos_;
+  mutable std::vector<int> selectPointDatas_;
+  mutable RectData*        selectRectData_  { nullptr };
+  mutable int              selectInd_ { 0 };
 
   mutable BBox          rangeBox_;
   mutable bool          rangeDefined_ { false };

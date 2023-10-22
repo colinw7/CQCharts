@@ -464,12 +464,16 @@ updatePlots()
 //  ColorInd ic;
 //  if (cellObj && ! groupColumn().isValid())
 //    ic = ColorInd(cellObj->row(), visibleColumns().count());
-//  scatterPlot()->setParettoColorInd(ic);
+//  scatterPlot()->setParetoColorInd(ic);
 
     // TODO: more axis settings ?
     scatterPlot()->xAxis()->setGridLinesDisplayed(xAxis()->gridLinesDisplayed());
     scatterPlot()->yAxis()->setGridLinesDisplayed(yAxis()->gridLinesDisplayed());
 
+//  scatterPlot()->xAxis()->setAutoFormat(isAutoFormatValues());
+//  scatterPlot()->yAxis()->setAutoFormat(isAutoFormatValues());
+
+    // TODO: more settings
     scatterPlot()->setDefaultPalette(defaultPalette());
 
     currentPlot_ = scatterPlot();
@@ -500,11 +504,15 @@ updatePlots()
 //    distributionPlot()->setTickLabelPlacement(
 //     CQChartsAxisTickLabelPlacement(CQChartsAxisTickLabelPlacement::Type::BETWEEN));
 
+//    distributionPlot()->valueAxis()->setAutoFormat(isAutoFormatValues());
+//    distributionPlot()->countAxis()->setAutoFormat(false);
+
       distributionPlot()->valueAxis()->setTickLabelPlacement(
        CQChartsAxisTickLabelPlacement(CQChartsAxisTickLabelPlacement::Type::BETWEEN));
       distributionPlot()->countAxis()->setTickLabelPlacement(
        CQChartsAxisTickLabelPlacement(CQChartsAxisTickLabelPlacement::Type::MIDDLE));
 
+      // TODO: more axis settings ?
       distributionPlot()->setDefaultPalette(defaultPalette());
 
       currentPlot_ = distributionPlot();
@@ -513,6 +521,7 @@ updatePlots()
       boxPlot()->setValueColumns(Columns(column));
       boxPlot()->setTipColumns(visibleColumns());
 
+      // TODO: more axis settings ?
       boxPlot()->setDefaultPalette(defaultPalette());
 
       currentPlot_ = boxPlot();
@@ -521,6 +530,7 @@ updatePlots()
       piePlot()->setValueColumns(Columns(column));
       piePlot()->setTipColumns(visibleColumns());
 
+      // TODO: more axis settings ?
       piePlot()->setDefaultPalette(defaultPalette());
 
       currentPlot_ = piePlot();
@@ -733,7 +743,7 @@ setParetoWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(paretoData_.lineWidth, l, [&]() {
     scatterPlot     ()->setParetoStrokeWidth(l);
-//  distributionPlot()->setParettoStrokeWidth(l); // origin symbol width
+//  distributionPlot()->setParetoStrokeWidth(l); // origin symbol width
 
     drawObjs(); Q_EMIT customDataChanged();
   } );
@@ -1514,6 +1524,7 @@ calcColumnRange(const Column &c, double &min, double &max) const
     max = details->numUnique();
   }
 
+  // adjust to bucket range (might be wider than data range)
   double bmin = min, bmax = max;
 
   if (diagonalType() == DiagonalType::DISTRIBUTION && details->isNumeric()) {
@@ -1720,8 +1731,6 @@ numModelSelectedRows() const
   return modelSelectedRows_.size();
 }
 
-//---
-
 #if 0
 void
 CQChartsSummaryPlot::
@@ -1737,7 +1746,7 @@ updateSelectionObjects(const std::set<QModelIndex> &selectIndices)
   }
 
   if (currentPlot_ != this)
-    currentPlot_->updateSelectionObjects(selectIndices)
+    currentPlot_->updateSelectionObjects(selectIndices);
 
   view()->updateSelText();
 
@@ -1755,7 +1764,7 @@ updateSelectionRows() const
   for (const auto &rowCols : modelSelectedRows_) {
     auto r = rowCols.first;
 
-    for (const auto &c : rowCols.second( {
+    for (const auto &c : rowCols.second) {
       auto ind1 = modelIndex(r, c, QModelIndex());
 
       sel.select(ind1, ind1);
@@ -1772,8 +1781,6 @@ clearSelection() const
 {
   selectCellPoint(nullptr, -1, /*add*/false);
 }
-
-//---
 
 void
 CQChartsSummaryPlot::
@@ -1796,9 +1803,13 @@ selectCellPoint(CellObj *obj, int ind, bool add) const
 
   modelData->select(sel);
 
-  updateSelectedRows();
+  //---
 
-  const_cast<CQChartsSummaryPlot *>(this)->drawObjs();
+  auto *th = const_cast<CQChartsSummaryPlot *>(this);
+
+  th->updateSelectedRows();
+
+  th->drawObjs();
 }
 
 #if 0
@@ -1943,10 +1954,10 @@ execDrawBackground(PaintDevice *device) const
     setPainterFont(device, this->font());
 
     if (isXLabels() || isYLabels()) {
-      double xm = pixelToWindowWidth (4.0);
-      double ym = pixelToWindowHeight(4.0);
+      auto xm = pixelToWindowWidth (4.0);
+      auto ym = pixelToWindowHeight(4.0);
 
-      for (int ic = 0; ic < nc; ++ic) {
+      for (int ic = 0; ic < nc_; ++ic) {
         auto column = visibleColumns().getColumn(ic);
 
         bool ok;
@@ -2391,6 +2402,14 @@ handleSelectPress(const Point &p, SelMod selMod)
   if (selMod == CQChartsSelMod::REMOVE)
     return CQChartsPlot::handleSelectPress(p, CQChartsSelMod::REPLACE);
 
+  if (selMod != CQChartsSelMod::ADD) {
+    bool changed { false };
+    deselectAll1(SelectTypes::ALL, changed);
+  }
+
+  if (insideObject() && ! dynamic_cast<CQChartsSummaryCellObj *>(insideObject()))
+    return handleSelectPress(p, selMod);
+
   //---
 
   selectPressed_ = true;
@@ -2409,6 +2428,8 @@ handleSelectPress(const Point &p, SelMod selMod)
 
   if (cellObj)
     cellObj->handleSelectPress(p, selMod);
+  else
+    clearSelection();
 
   return true;
 }
@@ -2438,7 +2459,7 @@ handleSelectMove(const Point &p, Constraints constraints, bool first)
   if (changed)
     invalidateOverlay();
 
-  //--
+  //---
 
   PlotObjs plotObjs;
 
@@ -2465,21 +2486,33 @@ handleSelectMove(const Point &p, Constraints constraints, bool first)
   if (cellObj)
     objs.push_back(cellObj);
 
-  for (const auto &annotation : annotations)
+  for (auto *annotation : annotations)
     objs.push_back(annotation);
 
   setInsideObjects(p, objs);
 
   //---
 
-  auto iconstraints = static_cast<uint>(constraints);
-
-  if (cellObj && (iconstraints & static_cast<uint>(Constraints::SELECTABLE))) {
-    if (! selectPressed_)
+  if (cellObj) {
+    if (! selectPressed_ && view()->mode() == View::Mode::EDIT)
       cellObj->updateRangeInside(p);
 
     cellObj->handleSelectMove(p, constraints, first);
   }
+
+  //---
+
+  QString objText;
+
+  if (cellObj) {
+    auto objText1 = cellObj->objText();
+
+    if (objText1 != "")
+      objText += objText1;
+  }
+
+  if (objText != "")
+    view()->setStatusText(objText);
 
   return true;
 }
@@ -2694,15 +2727,36 @@ calcTipId() const
   CQChartsTableTip tableTip;
 
   if (summaryPlot_->selectMode() == CQChartsSummaryPlot::SelectMode::DATA) {
-    if      (selectPointData_) {
+    if      (! selectPointDatas_.empty()) {
+      auto selectPointDataInd = getCurrentSelectPointInd();
+      if (selectPointDataInd < 0 || selectPointDataInd >= int(pointDatas_.size()))
+        return QString();
+
+      const auto &selectPointData = pointDatas_[selectPointDataInd];
+
       auto column1 = colColumn();
       auto column2 = rowColumn();
 
       auto name1 = summaryPlot_->columnHeaderName(column1, /*tip*/true, "X");
       auto name2 = summaryPlot_->columnHeaderName(column2, /*tip*/true, "Y");
 
-      tableTip.addTableRow(name1, selectPointData_->p.x);
-      tableTip.addTableRow(name2, selectPointData_->p.y);
+      auto *details1 = summaryPlot_->columnDetails(column1);
+
+      if (details1) {
+        if (details1->isNumeric())
+          tableTip.addTableRow(name1, selectPointData.p.x);
+        else
+          tableTip.addTableRow(name1, details1->value(selectPointData.ind));
+      }
+
+      auto *details2 = summaryPlot_->columnDetails(column2);
+
+      if (details2) {
+        if (details2->isNumeric())
+          tableTip.addTableRow(name2, selectPointData.p.x);
+        else
+          tableTip.addTableRow(name2, details2->value(selectPointData.ind));
+      }
 
       for (const auto &c : summaryPlot_->tipColumns().columns()) {
         auto *details = summaryPlot_->columnDetails(c);
@@ -2710,7 +2764,7 @@ calcTipId() const
 
         auto name = summaryPlot_->columnHeaderName(c, /*tip*/true);
 
-        tableTip.addTableRow(name, details->value(selectPointData_->ind));
+        tableTip.addTableRow(name, details->value(selectPointDataInd));
       }
 
       return tableTip.str();
@@ -3374,8 +3428,6 @@ drawScatterPoints(PaintDevice *device) const
   int ny = details2->numRows();
   if (nx != ny) return;
 
-  //---
-
   if (pointDatas_.empty())
     pointDatas_.resize(nx);
 
@@ -3481,6 +3533,7 @@ drawScatterPoints(PaintDevice *device) const
     //---
 
     if (colorDetails) {
+      // TODO: support mapping
       bool ok;
       auto color = CQChartsVariant::toColor(colorDetails->value(i), ok);
 
@@ -3494,6 +3547,7 @@ drawScatterPoints(PaintDevice *device) const
     }
 
     if (symbolTypeDetails) {
+      // TODO: support mapping
       bool ok;
       auto symbol = CQChartsVariant::toSymbol(symbolTypeDetails->value(i), ok);
 
@@ -3502,6 +3556,7 @@ drawScatterPoints(PaintDevice *device) const
     }
 
     if (symbolSizeDetails) {
+      // TODO: support mapping
       bool ok;
       auto size = CQChartsVariant::toLength(symbolSizeDetails->value(i), ok);
 
@@ -3552,7 +3607,7 @@ drawScatterPoints(PaintDevice *device) const
 
     //---
 
-    pointDatas_.push_back(pointData);
+    pointDatas_[i] = pointData;
 
     //---
 
@@ -4041,7 +4096,7 @@ drawDistribution(PaintDevice *device) const
       RectData rectData;
 
       rectData.ind   = ig;
-//    rectData.rows  = pb.second;
+      rectData.rows  = pb.second;
       rectData.bbox  = (invert ? BBox(0, rmin1, n, rmax1) : BBox(rmin1, 0, rmax1, n));
       rectData.pbbox = bbox;
 
@@ -4884,7 +4939,7 @@ handleSelectMove(const Point &p, Constraints, bool)
 
   updateInside();
 
-  if (selectPointData_ || selectRectData_)
+  if (! selectPointDatas_.empty() || selectRectData_)
     const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay();
 
   return true;
@@ -4933,8 +4988,11 @@ handleSelectRelease(const Point &p, bool add)
 #endif
   }
   else if (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
-    if (selectPointData_)
-      summaryPlot_->selectCellPoint(this, selectPointData_->ind, add);
+    if (! selectPointDatas_.empty()) {
+      auto selectPointDataInd = getCurrentSelectPointInd();
+
+      summaryPlot_->selectCellPoint(this, selectPointDataInd, add);
+    }
     else {
       if (! add)
         summaryPlot_->clearSelection();
@@ -5164,8 +5222,10 @@ updateSelectData(const Point &p)
 
   selectPointPos_ = p;
 
-  selectPointData_ = nullptr;
-  selectRectData_  = nullptr;
+  selectPointDatas_.clear();
+
+  selectRectData_ = nullptr;
+  selectInd_      = 0;
 
   auto cellType = getCellType();
 
@@ -5175,27 +5235,21 @@ updateSelectData(const Point &p)
     double sx, sy;
     summaryPlot_->plotSymbolSize(symbolSize, sx, sy, /*scale*/true);
 
-    double d = 0.0;
+    auto s = std::min(sx, sy);
 
     for (auto &pointData : pointDatas_) {
       auto p2 = plotToParent(pointData.p);
 
-      auto dx = std::abs(p.x - p2.x);
-      auto dy = std::abs(p.y - p2.y);
+      auto d = p.distanceTo(p2);
+      if (d > s) continue;
 
-      if (dx > sx || dy > sy)
-        continue;
-
-      auto d1 = std::hypot(dx, dy);
-
-      if (! selectPointData_ || d1 < d) {
-        selectPointData_ = &pointData;
-        d                = d1;
-      }
+      selectPointDatas_.push_back(pointData.ind);
     }
 
-    //if (selectPointData_)
-    //  std::cerr << "Point " << selectPointData_->ind << "\n";
+    //if (! selectPointDatas_.empty()) {
+    //  auto selectPointDataInd = *selectPointDatas_.begin();
+    //  std::cerr << "Point " << selectPointDataInd << "\n";
+    //}
   }
   else if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION) {
     for (auto &rectData : rectDatas_) {
@@ -5216,13 +5270,24 @@ updateInside()
 {
   bool changed = true;
 
-  if (selectPointData_) {
-    bool inside = (summaryPlot_->insideObject() == this);
+  if (! selectPointDatas_.empty()) {
+    int ind = 0;
 
-    if (inside != selectPointData_->inside) {
-      changed = true;
+    for (const auto &selectPointDataInd : selectPointDatas_) {
+      if (selectPointDataInd < 0 || selectPointDataInd >= int(pointDatas_.size()))
+        continue;
 
-      selectPointData_->inside = inside;
+      auto &selectPointData = pointDatas_[selectPointDataInd];
+
+      bool inside = (summaryPlot_->insideObject() == this && selectInd_ == ind);
+
+      if (inside != selectPointData.inside) {
+        changed = true;
+
+        selectPointData.inside = inside;
+      }
+
+      ++ind;
     }
   }
 
@@ -5238,6 +5303,118 @@ updateInside()
 
   return changed;
 }
+
+#if 0
+int
+CQChartsSummaryCellObj::
+numTipObjs() const
+{
+  if (summaryPlot_->selectMode() != CQChartsSummaryPlot::SelectMode::DATA)
+    return 1;
+
+  auto cellType = getCellType();
+
+  if      (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
+    return int(selectPointDatas_.size());
+  else if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION)
+    return (selectRectData_ ? 1 : 0);
+  else
+    return 0;
+}
+
+int
+CQChartsSummaryCellObj::
+tipObjNum() const
+{
+  if (summaryPlot_->selectMode() != CQChartsSummaryPlot::SelectMode::DATA)
+    return 0;
+
+  auto cellType = getCellType();
+
+  if (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
+    return selectInd_;
+  else
+    return 0;
+}
+
+bool
+CQChartsSummaryCellObj::
+nextInsideInd(bool force) const
+{
+  if (summaryPlot_->selectMode() != CQChartsSummaryPlot::SelectMode::DATA)
+    return false;
+
+  auto cellType = getCellType();
+
+  if (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
+    if (! force && selectInd_ >= int(selectPointDatas_.size()) - 1)
+      return false;
+
+    ++selectInd_;
+
+    if (selectInd >= int(selectPointDatas_.size()))
+      selectInd_ = 0;
+
+    if (const_cast<CQChartsSummaryCellObj *>(this)->updateInside() || force)
+      const_cast<CQChartsSummaryCellObj *>(this)->invalidateOverlay());
+
+    return true;
+  }
+  else
+    return false;
+}
+
+bool
+CQChartsSummaryCellObj::
+prevInsideInd(bool force) const
+{
+  if (summaryPlot_->selectMode() != CQChartsSummaryPlot::SelectMode::DATA)
+    return false;
+
+  auto cellType = getCellType();
+
+  if (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
+    if (! force && selectInd_ <= 0)
+      return false;
+
+    --selectInd_;
+
+    if (selectInd < 0)
+      selectInd_ = std::max(int(selectPointDatas_.size()) - 1, 0);
+
+    if (const_cast<CQChartsSummaryCellObj *>(this)->updateInside() || force)
+      const_cast<CQChartsSummaryCellObj *>(this)->invalidateOverlay());
+
+    return true;
+  }
+  else
+    return false;
+}
+
+bool
+CQChartsSummaryCellObj::
+resetInsideInd(bool force) const
+{
+  if (summaryPlot_->selectMode() != CQChartsSummaryPlot::SelectMode::DATA)
+    return false;
+
+  auto cellType = getCellType();
+
+  if (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
+    if (! force && selectInd_ == 0)
+      return false;
+
+    selectInd_ = 0;
+
+    if (const_cast<CQChartsSummaryCellObj *>(this)->updateInside() || force)
+      const_cast<CQChartsSummaryCellObj *>(this)->invalidateOverlay());
+
+    return true;
+  }
+  else
+    return false;
+}
+#endif
 
 CQChartsSummaryCellObj::Color
 CQChartsSummaryCellObj::
@@ -5263,6 +5440,52 @@ barColor() const
   auto c = summaryPlot_->interpDistributionFillColor(colorInd);
 
   return Color(c);
+}
+
+
+QString
+CQChartsSummaryCellObj::
+objText() const
+{
+  QString str;
+
+  auto *idDetails = (summaryPlot_->idColumn().isValid() ?
+    summaryPlot_->columnDetails(summaryPlot_->idColumn()) : nullptr);
+
+  auto addInd = [&](int ind) {
+    bool ok = false;
+    QString str1;
+    if (idDetails)
+      str1 = CQChartsVariant::toString(idDetails->value(ind), ok);
+    if (! ok)
+      str1 = QString::number(ind);
+    if (str != "") str += ", ";
+    str += str1;
+  };
+
+  if (! selectPointDatas_.empty()) {
+    auto selectPointDataInd = getCurrentSelectPointInd();
+
+    addInd(selectPointDataInd);
+  }
+
+  if (selectRectData_) {
+    for (const auto &r : selectRectData_->rows)
+      addInd(r);
+  }
+
+  return str;
+}
+
+int
+CQChartsSummaryCellObj::
+getCurrentSelectPointInd() const
+{
+  int selectInd = selectInd_;
+
+  if (selectInd < 0 || selectInd >= int(selectPointDatas_.size())) selectInd = 0;
+
+  return selectPointDatas_[selectInd];
 }
 
 //------

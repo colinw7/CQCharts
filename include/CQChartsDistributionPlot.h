@@ -231,8 +231,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   bool bucketXValue(double x, double &value) const;
   bool bucketYValue(double y, double &value) const;
 
-  bool bucketValueX(double value, double &x) const;
-  bool bucketValueY(double value, double &y) const;
+  bool bucketValueX(double value, double &x, Qt::Alignment align=Qt::AlignCenter) const;
+  bool bucketValueY(double value, double &y, Qt::Alignment align=Qt::AlignCenter) const;
 
   //---
 
@@ -601,7 +601,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Stats, stats)
 
-  Q_PROPERTY(bool includeOutlier READ isIncludeOutlier WRITE setIncludeOutlier)
+  Q_PROPERTY(bool              includeOutlier READ isIncludeOutlier WRITE setIncludeOutlier)
+  Q_PROPERTY(CQChartsValueList extraValues    READ extraValues      WRITE setExtraValues   )
 
   // min bar size
   Q_PROPERTY(double minBarSize READ minBarSize WRITE setMinBarSize)
@@ -832,22 +833,28 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
-  // stats lines
+  //! is stats lines displayed
   bool isStatsLines() const { return statsLines_; }
 
   //---
 
+  //! get/set dot line width
   const CQChartsLength &dotLineWidth() const { return dotLineData_.width; }
   void setDotLineWidth(const CQChartsLength &l);
 
   //---
 
+  //! is value axis rug visible
   bool isRug() const { return rug_; }
 
   //---
 
+  //! get/set include outlier
   bool isIncludeOutlier() const { return includeOutlier_; }
   void setIncludeOutlier(bool b);
+
+  const CQChartsValueList &extraValues() { return extraValues_; }
+  void setExtraValues(const CQChartsValueList &extraValues);
 
   //---
 
@@ -1185,6 +1192,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   DotLineData dotLineData_;              //!< dot line data
   bool        rug_            { false }; //!< show rug
   bool        includeOutlier_ { true };  //!< include outlier values
+
+  CQChartsValueList extraValues_;
 
   double minBarSize_ { 3.0 };  //!< min bar size (pixels)
 
