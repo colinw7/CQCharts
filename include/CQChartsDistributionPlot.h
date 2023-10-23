@@ -200,7 +200,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
                              const Bucket &bucket, const BarValue &barValue, bool isLine,
                              const ColorInd &ig, const ColorInd &iv);
 
- ~CQChartsDistributionBarObj();
+ ~CQChartsDistributionBarObj() override;
 
   int groupInd() const { return groupInd_; }
 

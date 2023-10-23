@@ -246,7 +246,6 @@ addProperties()
   addProp("options", "level2LabelType", "", "Level 2 label type");
   addProp("options", "level3LabelType", "", "Level 3 label type");
 
-
   // fill
   addProp("fill", "filled", "visible", "Fill visible");
 
@@ -770,7 +769,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   std::vector<QColor> fillColors;
 
   for (int ind : pathData_.inds) {
-    ColorInd colorInd(ind, vennPlot_->numNames());;
+    ColorInd colorInd(ind, vennPlot_->numNames());
 
     QColor fillColor;
 

@@ -109,6 +109,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(YLabel, yLabel)
 
   Q_PROPERTY(bool showBucketCount READ isShowBucketCount WRITE setShowBucketCount)
+  Q_PROPERTY(bool autoScaleLabels READ isAutoScaleLabels WRITE setAutoScaleLabels)
 
   // cell shape
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(PlotCell, plotCell)
@@ -344,6 +345,10 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   //! get/set show range on distribution plot
   bool isShowDistributionRange() const { return showDistributionRange_; }
   void setShowDistributionRange(bool b);
+
+  //! get/set auto scale axis labels to fit
+  bool isAutoScaleLabels() const { return autoScaleLabels_; }
+  void setAutoScaleLabels(bool b);
 
   //---
 
@@ -685,6 +690,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   PlotType plotType_ { PlotType::MATRIX }; //!< unexpanded plot type
 
+  bool autoScaleLabels_ { false };
+
   bool expanded_  { false };
   int  expandRow_ { 0 };
   int  expandCol_ { 0 };
@@ -809,16 +816,15 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   };
 
   struct RectData {
-    int     ind { -1 }; // model row
-    QString name;
-    Rows    rows;
-    BBox    bbox;
-    BBox    pbbox;
-    bool    inside { false };
-    bool    rangeSelected { false };
-    bool    modelSelected { false };
+    int      ind { -1 }; // model row
+    QVariant name;
+    Rows     rows;
+    BBox     bbox;
+    BBox     pbbox;
+    bool     inside { false };
+    bool     rangeSelected { false };
+    bool     modelSelected { false };
   };
-
 
  public:
   CQChartsSummaryCellObj(const SummaryPlot *plot, const BBox &bbox, int row, int col);

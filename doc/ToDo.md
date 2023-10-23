@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + cycle select annotation and scatter points on summary plot
+
  + scroll selected
 
  + view edit (plot and annotations)

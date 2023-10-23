@@ -473,7 +473,7 @@ updatePlots()
 //  scatterPlot()->xAxis()->setAutoFormat(isAutoFormatValues());
 //  scatterPlot()->yAxis()->setAutoFormat(isAutoFormatValues());
 
-    // TODO: more settings
+    // TODO: more settings ?
     scatterPlot()->setDefaultPalette(defaultPalette());
 
     currentPlot_ = scatterPlot();
@@ -512,7 +512,7 @@ updatePlots()
       distributionPlot()->countAxis()->setTickLabelPlacement(
        CQChartsAxisTickLabelPlacement(CQChartsAxisTickLabelPlacement::Type::MIDDLE));
 
-      // TODO: more axis settings ?
+      // TODO: more settings ?
       distributionPlot()->setDefaultPalette(defaultPalette());
 
       currentPlot_ = distributionPlot();
@@ -521,7 +521,7 @@ updatePlots()
       boxPlot()->setValueColumns(Columns(column));
       boxPlot()->setTipColumns(visibleColumns());
 
-      // TODO: more axis settings ?
+      // TODO: more settings ?
       boxPlot()->setDefaultPalette(defaultPalette());
 
       currentPlot_ = boxPlot();
@@ -530,7 +530,7 @@ updatePlots()
       piePlot()->setValueColumns(Columns(column));
       piePlot()->setTipColumns(visibleColumns());
 
-      // TODO: more axis settings ?
+      // TODO: more settings ?
       piePlot()->setDefaultPalette(defaultPalette());
 
       currentPlot_ = piePlot();
@@ -583,7 +583,6 @@ setShowDistributionRange(bool b)
 
 //---
 
-#if 0
 void
 CQChartsSummaryPlot::
 setAutoScaleLabels(bool b)
@@ -591,6 +590,7 @@ setAutoScaleLabels(bool b)
   CQChartsUtil::testAndSet(autoScaleLabels_, b, [&]() { drawObjs(); } );
 }
 
+#if 0
 void
 CQChartsSummaryPlot::
 setAutoFormatValues(bool b)
@@ -1036,9 +1036,9 @@ addProperties()
   addProp("options", "outsideGray" , "outsideGray" , "Outside gray factor");
   addProp("options", "outsideAlpha", "outsideAlpha", "Outside alpha");
 
-#if 0
   addProp("options", "autoScaleLabels", "autoScaleLabels",
           "Auto scale axis labels to fit");
+#if 0
   addProp("options", "autoFormatValues", "autoFormatValues",
           "Auto format axis values to add numeric prefix");
 #endif
@@ -1775,6 +1775,8 @@ updateSelectionRows() const
 }
 #endif
 
+//---
+
 void
 CQChartsSummaryPlot::
 clearSelection() const
@@ -1912,6 +1914,30 @@ notifyCollapse()
   setExpanded(false);
 }
 
+bool
+CQChartsSummaryPlot::
+plotToSubPlot(int r, int c, const Point &p, Point &pp) const
+{
+  CellObj *cellObj = getCellObj(r, c);
+  if (! cellObj) return false;
+
+  pp = cellObj->parentToPlot(p);
+
+  return true;
+}
+
+bool
+CQChartsSummaryPlot::
+subPlotToPlot(int r, int c, const Point &p, Point &pp) const
+{
+  CellObj *cellObj = getCellObj(r, c);
+  if (! cellObj) return false;
+
+  pp = cellObj->plotToParent(p);
+
+  return true;
+}
+
 //------
 
 void
@@ -1947,7 +1973,6 @@ execDrawBackground(PaintDevice *device) const
 
   //---
 
-#if 0
   double fontScale = 1.0;
 
   if (isAutoScaleLabels()) {
@@ -1961,7 +1986,7 @@ execDrawBackground(PaintDevice *device) const
         auto column = visibleColumns().getColumn(ic);
 
         bool ok;
-        auto str = modelHeaderString(column, ok);
+        auto str = modelHHeaderString(column, ok);
 
         if (isXLabels()) {
           auto textOptions = xLabelTextOptions();
@@ -1991,7 +2016,6 @@ execDrawBackground(PaintDevice *device) const
       }
     }
   }
-#endif
 
   //---
 
@@ -2022,9 +2046,9 @@ execDrawBackground(PaintDevice *device) const
     if (isXLabels()) {
       auto xstr = str;
 
-//    if (isAutoScaleLabels())
-//      device->setFont(CQChartsUtil::scaleFontSize(device->font(), fontScale), /*scale*/false);
-//    else
+      if (isAutoScaleLabels())
+        device->setFont(CQChartsUtil::scaleFontSize(device->font(), fontScale), /*scale*/false);
+      else
         setPainterFont(device, xLabelTextFont());
 
       auto textOptions = xLabelTextOptions(device);
@@ -2090,9 +2114,9 @@ execDrawBackground(PaintDevice *device) const
 
       //---
 
-//    if (isAutoScaleLabels())
-//      device->setFont(CQChartsUtil::scaleFontSize(device->font(), fontScale), /*scale*/false);
-//    else
+      if (isAutoScaleLabels())
+        device->setFont(CQChartsUtil::scaleFontSize(device->font(), fontScale), /*scale*/false);
+      else
         setPainterFont(device, yLabelTextFont());
 
       auto textOptions = yLabelTextOptions(device);
@@ -2611,30 +2635,6 @@ handleEditRelease(const Point &, const Point &p)
 
 //---
 
-bool
-CQChartsSummaryPlot::
-subPlotToPlot(int r, int c, const Point &p, Point &pp) const
-{
-  CellObj *cellObj = getCellObj(r, c);
-  if (! cellObj) return false;
-
-  pp = cellObj->plotToParent(p);
-
-  return true;
-}
-
-bool
-CQChartsSummaryPlot::
-plotToSubPlot(int r, int c, const Point &p, Point &pp) const
-{
-  CellObj *cellObj = getCellObj(r, c);
-  if (! cellObj) return false;
-
-  pp = cellObj->parentToPlot(p);
-
-  return true;
-}
-
 CQChartsSummaryPlot::CellObj *
 CQChartsSummaryPlot::
 getCellObj(int r, int c) const
@@ -2753,7 +2753,7 @@ calcTipId() const
 
       if (details2) {
         if (details2->isNumeric())
-          tableTip.addTableRow(name2, selectPointData.p.x);
+          tableTip.addTableRow(name2, selectPointData.p.y);
         else
           tableTip.addTableRow(name2, details2->value(selectPointData.ind));
       }
@@ -3533,7 +3533,7 @@ drawScatterPoints(PaintDevice *device) const
     //---
 
     if (colorDetails) {
-      // TODO: support mapping
+      // TODO: support mapping ?
       bool ok;
       auto color = CQChartsVariant::toColor(colorDetails->value(i), ok);
 
@@ -3547,7 +3547,7 @@ drawScatterPoints(PaintDevice *device) const
     }
 
     if (symbolTypeDetails) {
-      // TODO: support mapping
+      // TODO: support mapping ?
       bool ok;
       auto symbol = CQChartsVariant::toSymbol(symbolTypeDetails->value(i), ok);
 
@@ -3556,7 +3556,7 @@ drawScatterPoints(PaintDevice *device) const
     }
 
     if (symbolSizeDetails) {
-      // TODO: support mapping
+      // TODO: support mapping ?
       bool ok;
       auto size = CQChartsVariant::toLength(symbolSizeDetails->value(i), ok);
 
@@ -3988,6 +3988,23 @@ drawDistribution(PaintDevice *device) const
     }
   };
 
+  //---
+
+  updateRangeBox();
+
+  bool anyRange = summaryPlot_->anyColumnRange();
+
+  //---
+
+  double xgap = 0.0, ygap = 0.0;
+
+  if (summaryPlot_->orientation() == Qt::Horizontal)
+    xgap = summaryPlot_->lengthPlotWidth(summaryPlot_->distributionMargin());
+  else
+    ygap = summaryPlot_->lengthPlotHeight(summaryPlot_->distributionMargin());
+
+  //---
+
   if (details->isNumeric()) {
     CQChartsSummaryPlot::BucketCount bucketCount;
 
@@ -4044,14 +4061,6 @@ drawDistribution(PaintDevice *device) const
 
       //---
 
-      updateRangeBox();
-
-      bool anyRange = summaryPlot_->anyColumnRange();
-
-      //---
-
-      PenBrush penBrush2 = penBrush1;
-
       bool rangeSelected = false;
 
       if (rangeBox_.isSet()) {
@@ -4062,7 +4071,18 @@ drawDistribution(PaintDevice *device) const
           rangeSelected = true;
       }
 
+      size_t numModelSelected = 0;
+
+      for (const auto &r : pb.second) {
+        if (summaryPlot_->isRangeSelectedRow(r))
+          ++numModelSelected;
+      }
+
+      bool modelSelected = (numModelSelected == pb.second.size());
+
       //---
+
+      PenBrush penBrush2 = penBrush1;
 
       if (summaryPlot_->regionPointType() == CQChartsSummaryPlot::RegionPointType::DIM_OUTSIDE) {
         bool bucketSelected = false;
@@ -4078,14 +4098,13 @@ drawDistribution(PaintDevice *device) const
         else
           bucketSelected = true;
 
-        if (! bucketSelected)
-          CQChartsDrawUtil::setBrushGray(penBrush2.brush, 0.3);
+        if (! bucketSelected) {
+          CQChartsDrawUtil::setBrushGray(penBrush2.brush, summaryPlot_->outsideGray());
+          CQChartsDrawUtil::setPenAlpha (penBrush2.pen  , summaryPlot_->outsideAlpha());
+        }
       }
-      else {
-        if (rangeSelected)
-          summaryPlot_->updatePenBrushState(ColorInd(), penBrush2,
-                                            /*selected*/true, /*inside*/false);
-      }
+
+      //---
 
       CQChartsDrawUtil::setPenBrush(device, penBrush2);
 
@@ -4100,8 +4119,8 @@ drawDistribution(PaintDevice *device) const
       rectData.bbox  = (invert ? BBox(0, rmin1, n, rmax1) : BBox(rmin1, 0, rmax1, n));
       rectData.pbbox = bbox;
 
-//    rectData.rangeSelected = rangeSelected;
-//    rectData.modelSelected = modelSelected;
+      rectData.rangeSelected = rangeSelected;
+      rectData.modelSelected = modelSelected;
 
       rectDatas_.push_back(rectData);
 
@@ -4125,18 +4144,20 @@ drawDistribution(PaintDevice *device) const
     bmin_ = 0;
     bmax_ = nc;
 
+    // calc delta per bar
     double dn = (invert ?
       (nc > 0 ? (pymax_ - pymin_)/nc : 0.0) : (nc > 0 ? (pxmax_ - pxmin_)/nc : 0.0));
 
-    double pos = (invert ? pymin_ : pxmin_);
-
     for (const auto &vc : valueCounts) {
+      auto name = vc.first;
+      auto n    = vc.second;
+
+      int ic = details->uniqueId(name);
+
       PenBrush penBrush1;
 
       if (isGroup) {
-        int ig = details->uniqueId(vc.first);
-
-        ColorInd colorInd(ig, nc);
+        ColorInd colorInd(ic, nc);
 
         auto fc1 = summaryPlot_->interpDistributionFillColor(colorInd);
 
@@ -4147,15 +4168,97 @@ drawDistribution(PaintDevice *device) const
         penBrush1 = penBrush;
       }
 
-      auto r = CMathUtil::map(vc.second, 0, maxCount_, pymin_, pymax_);
+      //---
 
-      auto bbox = (invert ? BBox(pxmin_, pos, r, pos + dn) : BBox(pos, pymin_, pos + dn, r));
+      double h1 = (invert ? pxmin_ : pymin_);
+      double h2 = CMathUtil::map(n, 0, maxCount_, pymin_, pymax_);
+
+      double pos1 = (invert ? CMathUtil::map(ic, 0, nc, pymin_, pymax_) :
+                              CMathUtil::map(ic, 0, nc, pxmin_, pxmax_));
+      double pos2 = pos1 + dn;
+
+      auto bbox = (invert ? BBox(h1, pos1, h2, pos2) : BBox(pos1, h1, pos2, h2));
+
+      double xgap1 = std::min(xgap, bbox.getWidth ());
+      double ygap1 = std::min(ygap, bbox.getHeight());
+
+      bbox.expand(xgap1/2.0, ygap1/2.0, -xgap1/2.0, -ygap1/2.0);
+
+      //---
+
+      bool rangeSelected = false;
+
+      if (rangeBox_.isSet()) {
+        MinMax r1(rangeBox_.getXMin(), rangeBox_.getXMax());
+        MinMax r2(ic, ic + 1);
+
+        if (r1.overlapsHalfOpen(r2))
+          rangeSelected = true;
+      }
+
+      int numModelSelected = 0;
+
+      std::set<int> rows;
+
+      int nr = details->numRows();
+
+      for (uint i = 0; i < uint(nr); ++i) {
+        auto value = details->value(i);
+
+        if (value == name) {
+          rows.insert(i);
+
+          if (summaryPlot_->isModelSelectedRow(i))
+            ++numModelSelected;
+        }
+      }
+
+      bool modelSelected = (numModelSelected == n);
+
+      //---
+
+      PenBrush penBrush2 = penBrush1;
+
+      if (summaryPlot_->regionPointType() == CQChartsSummaryPlot::RegionPointType::DIM_OUTSIDE) {
+        bool bucketSelected = false;
+
+        if (anyRange) {
+          for (const auto &r : rows) { // bucket rows
+            if (summaryPlot_->isRangeSelectedRow(r)) {
+              bucketSelected = true;
+              break;
+            }
+          }
+        }
+        else
+          bucketSelected = true;
+
+        if (! bucketSelected) {
+          CQChartsDrawUtil::setBrushGray(penBrush2.brush, summaryPlot_->outsideGray());
+          CQChartsDrawUtil::setPenAlpha (penBrush2.pen  , summaryPlot_->outsideAlpha());
+        }
+      }
+
+      //---
 
       CQChartsDrawUtil::setPenBrush(device, penBrush1);
 
       drawRect(bbox);
 
-      pos += dn;
+      //---
+
+      RectData rectData;
+
+      rectData.ind   = ic;
+      rectData.name  = name;
+      rectData.rows  = rows;
+      rectData.bbox  = (invert ? BBox(0, ic, n, ic + 1) : BBox(ic, 0, ic + 1, n));
+      rectData.pbbox = bbox;
+
+      rectData.rangeSelected = rangeSelected;
+      rectData.modelSelected = modelSelected;
+
+      rectDatas_.push_back(rectData);
     }
   }
 
@@ -5268,7 +5371,7 @@ bool
 CQChartsSummaryCellObj::
 updateInside()
 {
-  bool changed = true;
+  bool changed = false;
 
   if (! selectPointDatas_.empty()) {
     int ind = 0;
@@ -5314,7 +5417,7 @@ numTipObjs() const
 
   auto cellType = getCellType();
 
-  if      (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
+  if      (cellType == CQChartsSummaryPlot::CellType::SCATTER)
     return int(selectPointDatas_.size());
   else if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION)
     return (selectRectData_ ? 1 : 0);
@@ -5331,7 +5434,7 @@ tipObjNum() const
 
   auto cellType = getCellType();
 
-  if (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
+  if (cellType == CQChartsSummaryPlot::CellType::SCATTER)
     return selectInd_;
   else
     return 0;
@@ -5352,11 +5455,11 @@ nextInsideInd(bool force) const
 
     ++selectInd_;
 
-    if (selectInd >= int(selectPointDatas_.size()))
+    if (selectInd_ >= int(selectPointDatas_.size()))
       selectInd_ = 0;
 
     if (const_cast<CQChartsSummaryCellObj *>(this)->updateInside() || force)
-      const_cast<CQChartsSummaryCellObj *>(this)->invalidateOverlay());
+      const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay());
 
     return true;
   }
@@ -5379,11 +5482,11 @@ prevInsideInd(bool force) const
 
     --selectInd_;
 
-    if (selectInd < 0)
+    if (selectInd_ < 0)
       selectInd_ = std::max(int(selectPointDatas_.size()) - 1, 0);
 
     if (const_cast<CQChartsSummaryCellObj *>(this)->updateInside() || force)
-      const_cast<CQChartsSummaryCellObj *>(this)->invalidateOverlay());
+      const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay());
 
     return true;
   }
@@ -5407,7 +5510,7 @@ resetInsideInd(bool force) const
     selectInd_ = 0;
 
     if (const_cast<CQChartsSummaryCellObj *>(this)->updateInside() || force)
-      const_cast<CQChartsSummaryCellObj *>(this)->invalidateOverlay());
+      const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay());
 
     return true;
   }
@@ -5441,7 +5544,6 @@ barColor() const
 
   return Color(c);
 }
-
 
 QString
 CQChartsSummaryCellObj::

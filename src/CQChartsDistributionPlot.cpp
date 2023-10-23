@@ -4109,7 +4109,7 @@ bucketValueX(double value, double &x, Qt::Alignment align) const
   bool inside = false;
 
   if      (align & Qt::AlignLeft)
-    inside = (value < value2);
+    inside = (value < value1);
   else if (align & Qt::AlignRight)
     inside = (value >= value2);
   else
@@ -4140,7 +4140,7 @@ bucketValueY(double value, double &y, Qt::Alignment align) const
   bool inside = false;
 
   if      (align & Qt::AlignLeft)
-    inside = (value < value2);
+    inside = (value < value1);
   else if (align & Qt::AlignRight)
     inside = (value >= value2);
   else

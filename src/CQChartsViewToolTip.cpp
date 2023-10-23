@@ -158,7 +158,7 @@ updateTip()
 
   if (CQFloatTip::resizeFit() && ! CQFloatTip::isOnScreen())
     CQFloatTip::place();
- 
+
   return true;
 }
 
