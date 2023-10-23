@@ -19,13 +19,14 @@ QString
 CQChartsUnits::
 unitsString(const Type &type)
 {
-  if      (type == Type::PIXEL  ) return "px";
-  else if (type == Type::PERCENT) return "%" ;
-  else if (type == Type::PLOT   ) return "P" ;
-  else if (type == Type::VIEW   ) return "V" ;
-  else if (type == Type::EM     ) return "em";
-  else if (type == Type::EX     ) return "ex";
-  else                            return ""  ;
+  if      (type == Type::PIXEL   ) return "px";
+  else if (type == Type::PERCENT ) return "%" ;
+  else if (type == Type::PLOT    ) return "P" ;
+  else if (type == Type::SUB_PLOT) return "sP";
+  else if (type == Type::VIEW    ) return "V" ;
+  else if (type == Type::EM      ) return "em";
+  else if (type == Type::EX      ) return "ex";
+  else                             return ""  ;
 }
 
 bool
@@ -44,6 +45,8 @@ decodeUnits(const QString &str, Type &type, const Type &defType)
     type = Type::VIEW;
   else if (parse.isString("P" ) || parse.isString("plot"))
     type = Type::PLOT;
+  else if (parse.isString("sP" ) || parse.isString("sub_plot"))
+    type = Type::SUB_PLOT;
   else if (parse.isString("em"))
     type = Type::EM;
   else if (parse.isString("ex"))

@@ -1140,6 +1140,10 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotationBase {
   void writeDetails(std::ostream &os, const QString &parentVarName=QString(),
                     const QString &varName=QString()) const override;
 
+  //---
+
+  CQChartsGeom::Polygon getPolygon() const;
+
  protected Q_SLOTS:
   void moveExtraHandle(const QVariant &data, double dx, double dy);
 

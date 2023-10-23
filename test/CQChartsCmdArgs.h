@@ -36,6 +36,7 @@ class CQChartsCmdBaseArgs : public CQTclCmd::CmdArgs {
  public:
   using Polygon = CQChartsGeom::Polygon;
   using Point   = CQChartsGeom::Point;
+  using Units   = CQChartsUnits;
 
   //---
 
@@ -108,7 +109,7 @@ class CQChartsCmdBaseArgs : public CQTclCmd::CmdArgs {
   Qt::Alignment getParseAlign(const QString &name, Qt::Alignment def=Qt::AlignCenter) const;
 
   // get parsed polygon value for option
-  Polygon getParsePoly(const QString &name, const Polygon &def=Polygon()) const;
+  Polygon getParsePoly(const QString &name, Units &units, const Polygon &def=Polygon()) const;
 
   //---
 
@@ -145,10 +146,10 @@ class CQChartsCmdBaseArgs : public CQTclCmd::CmdArgs {
   Polygon stringToPolygon(const QString &str) const;
 
   // parse polygon from string
-  bool parsePoly(const QString &str, Polygon &poly) const;
+  bool parsePoly(const QString &str, Polygon &poly, Units &units) const;
 
   // parse polygon at parse position
-  bool parsePoly(CQStrParse &parse, Polygon &poly) const;
+  bool parsePoly(CQStrParse &parse, Polygon &poly, Units &units) const;
 
   // parse point from string
   bool parsePoint(const QString &str, Point &pos) const;

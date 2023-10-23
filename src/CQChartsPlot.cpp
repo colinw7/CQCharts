@@ -19633,6 +19633,15 @@ expValue(double x, int base) const
 
 CQChartsGeom::Point
 CQChartsPlot::
+subPlotToPlot(const Point &p) const
+{
+  return p;
+}
+
+//------
+
+CQChartsGeom::Point
+CQChartsPlot::
 positionToPlot(const Position &pos) const
 {
   auto p  = pos.p();
@@ -19665,6 +19674,8 @@ positionToPlot(const Position &pos) const
 
     return Point(x, y);
   }
+  else
+    p1 = subPlotToPlot(p);
 
   return p1;
 }
@@ -19702,6 +19713,9 @@ positionToPixel(const Position &pos) const
     double y = p.getY()*view()->fontEx();
 
     return Point(x, y);
+  }
+  else {
+    assert(false);
   }
 
   return p1;
@@ -19749,6 +19763,9 @@ rectToPlot(const Rect &rect) const
 
     return BBox(x1, y1, x2, y2);
   }
+  else {
+    assert(false);
+  }
 
   return r1;
 }
@@ -19793,8 +19810,30 @@ rectToPixel(const Rect &rect) const
 
     return BBox(x1, y1, x2, y2);
   }
+  else {
+    assert(false);
+  }
 
   return r1;
+}
+
+CQChartsGeom::Polygon
+CQChartsPlot::
+polyToPlot(const CQChartsPolygon &poly) const
+{
+  auto units = poly.units();
+
+  const auto &gpoly = poly.polygon();
+
+  if (units == Units::PLOT)
+    return gpoly;
+
+  auto gpoly1 = gpoly;
+
+  for (int i = 0; i < gpoly.size(); ++i)
+    gpoly1.setPoint(i, positionToPlot(Position(gpoly.point(i), units)));
+
+  return gpoly1;
 }
 
 //------
@@ -19835,6 +19874,9 @@ lengthPlotWidth(const Length &len) const
     return pixelToWindowWidth(len.value()*view()->fontEm());
   else if (len.units() == Units::EX)
     return pixelToWindowWidth(len.value()*view()->fontEx());
+  else {
+    assert(false);
+  }
 
   return len.value();
 }
@@ -19861,6 +19903,9 @@ lengthPlotHeight(const Length &len) const
     return pixelToWindowHeight(len.value()*view()->fontEm());
   else if (len.units() == Units::EX)
     return pixelToWindowHeight(len.value()*view()->fontEx());
+  else {
+    assert(false);
+  }
 
   return len.value();
 }
@@ -19887,6 +19932,9 @@ lengthPlotSignedWidth(const Length &len) const
     return pixelToSignedWindowWidth(len.value()*view()->fontEm());
   else if (len.units() == Units::EX)
     return pixelToSignedWindowWidth(len.value()*view()->fontEx());
+  else {
+    assert(false);
+  }
 
   return len.value();
 }
@@ -19913,6 +19961,9 @@ lengthPlotSignedHeight(const Length &len) const
     return pixelToSignedWindowHeight(len.value()*view()->fontEm());
   else if (len.units() == Units::EX)
     return pixelToSignedWindowHeight(len.value()*view()->fontEx());
+  else {
+    assert(false);
+  }
 
   return len.value();
 }
@@ -19946,6 +19997,9 @@ lengthPixelWidth(const Length &len) const
     return len.value()*view()->fontEm();
   else if (len.units() == Units::EX)
     return len.value()*view()->fontEx();
+  else {
+    assert(false);
+  }
 
   return len.value();
 }
@@ -19972,6 +20026,9 @@ lengthPixelHeight(const Length &len) const
     return len.value()*view()->fontEm();
   else if (len.units() == Units::EX)
     return len.value()*view()->fontEx();
+  else {
+    assert(false);
+  }
 
   return len.value();
 }

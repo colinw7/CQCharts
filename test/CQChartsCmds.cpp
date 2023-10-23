@@ -10810,7 +10810,12 @@ execCmd(CQChartsCmdArgs &argv)
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
-  auto points = argv.getParsePoly("points");
+  CQChartsUnits pointsUnits;
+  auto points = argv.getParsePoly("points", pointsUnits);
+
+  CQChartsPolygon poly(points);
+  if (pointsUnits != CQChartsUnits::none())
+    poly.setUnits(pointsUnits.type());
 
   fill.setVisible(argv.getParseBool   ("filled"      , fill.isVisible()));
   fill.setColor  (argv.getParseColor  ("fill_color"  , fill.color    ()));
@@ -10833,9 +10838,9 @@ execCmd(CQChartsCmdArgs &argv)
   CQChartsPolygonAnnotation *annotation = nullptr;
 
   if      (plot)
-    annotation = plot->addPolygonAnnotation(CQChartsGeom::Polygon(points));
+    annotation = plot->addPolygonAnnotation(poly);
   else if (view)
-    annotation = view->addPolygonAnnotation(CQChartsGeom::Polygon(points));
+    annotation = view->addPolygonAnnotation(poly);
   else
     return false;
 
@@ -10961,7 +10966,12 @@ execCmd(CQChartsCmdArgs &argv)
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
-  auto points = argv.getParsePoly("points");
+  CQChartsUnits pointsUnits;
+  auto points = argv.getParsePoly("points", pointsUnits);
+
+  CQChartsPolygon poly(points);
+  if (pointsUnits != CQChartsUnits::none())
+    poly.setUnits(pointsUnits.type());
 
 //fill.setVisible(argv.getParseBool   ("filled"      , fill.isVisible()));
 //fill.setColor  (argv.getParseColor  ("fill_color"  , fill.color    ()));
@@ -10984,9 +10994,9 @@ execCmd(CQChartsCmdArgs &argv)
   CQChartsPolylineAnnotation *annotation = nullptr;
 
   if      (plot)
-    annotation = plot->addPolylineAnnotation(points);
+    annotation = plot->addPolylineAnnotation(poly);
   else if (view)
-    annotation = view->addPolylineAnnotation(points);
+    annotation = view->addPolylineAnnotation(poly);
   else
     return false;
 

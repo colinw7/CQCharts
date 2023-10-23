@@ -1735,11 +1735,17 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  virtual Point subPlotToPlot(const Point &p) const;
+
+  //---
+
   Point positionToPlot (const Position &pos) const;
   Point positionToPixel(const Position &pos) const;
 
   BBox rectToPlot (const Rect &rect) const;
   BBox rectToPixel(const Rect &rect) const;
+
+  Polygon polyToPlot(const CQChartsPolygon &poly) const;
 
   //---
 

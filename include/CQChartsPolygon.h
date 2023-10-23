@@ -32,17 +32,19 @@ class CQChartsPolygon :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsPolygon, metaTypeId)
 
  public:
-  CQChartsPolygon(const Units &units, const Polygon &polygon) :
+  explicit CQChartsPolygon(const Units &units, const Polygon &polygon) :
    units_(units), polygon_(polygon) {
   }
 
-  CQChartsPolygon(const Polygon &polygon=Polygon(), const Units &units=Units::PLOT) :
+  explicit CQChartsPolygon(const Polygon &polygon=Polygon(), const Units &units=Units::PLOT) :
    units_(units), polygon_(polygon) {
   }
 
-  CQChartsPolygon(const QString &s, const Units &units=Units::PLOT) {
+  explicit CQChartsPolygon(const QString &s, const Units &units=Units::PLOT) {
     setValue(s, units);
   }
+
+  //---
 
   CQChartsPolygon(const CQChartsPolygon &rhs) :
     units_(rhs.units_), polygon_(rhs.polygon_) {

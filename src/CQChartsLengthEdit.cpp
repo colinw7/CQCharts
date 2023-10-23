@@ -286,6 +286,7 @@ spinKeyPress(int key, int /*modifiers*/)
   else if (key == 'X' && lastKey == 'E') unitsEdit_->setUnits(Units::EX);
   else if (key == '%'                  ) unitsEdit_->setUnits(Units::PERCENT);
   else if (key == 'P'                  ) unitsEdit_->setUnits(Units::PLOT);
+  else if (key == 'P' && lastKey == 'S') unitsEdit_->setUnits(Units::SUB_PLOT);
   else if (key == 'V'                  ) unitsEdit_->setUnits(Units::VIEW);
   else if (key == 'X'                  ) unitsEdit_->setUnits(Units::PIXEL);
 

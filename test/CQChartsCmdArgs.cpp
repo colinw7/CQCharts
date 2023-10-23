@@ -283,7 +283,7 @@ getParseFont(const QString &name, const QFont &def) const
 
 CQChartsCmdBaseArgs::Polygon
 CQChartsCmdBaseArgs::
-getParsePoly(const QString &name, const Polygon &def) const
+getParsePoly(const QString &name, Units &units, const Polygon &def) const
 {
   auto p = parseStr_.find(name);
   if (p == parseStr_.end()) return def;
@@ -292,7 +292,7 @@ getParsePoly(const QString &name, const Polygon &def) const
 
   Polygon poly;
 
-  if (! parsePoly(value, poly))
+  if (! parsePoly(value, poly, units))
     return def;
 
   return poly;
@@ -392,16 +392,16 @@ stringToPolygon(const QString &str) const
 
 bool
 CQChartsCmdBaseArgs::
-parsePoly(const QString &str, Polygon &poly) const
+parsePoly(const QString &str, Polygon &poly, Units &units) const
 {
   CQStrParse parse(str);
 
-  return parsePoly(parse, poly);
+  return parsePoly(parse, poly, units);
 }
 
 bool
 CQChartsCmdBaseArgs::
-parsePoly(CQStrParse &parse, Polygon &poly) const
+parsePoly(CQStrParse &parse, Polygon &poly, Units &units) const
 {
   parse.skipSpace();
 
@@ -422,7 +422,7 @@ parsePoly(CQStrParse &parse, Polygon &poly) const
 
       auto str = parse.getAt(pos1 + 1, pos2 - pos1 - 2);
 
-      return parsePoly(str, poly);
+      return parsePoly(str, poly, units);
     }
 
     parse.setPos(pos1);
@@ -430,11 +430,25 @@ parsePoly(CQStrParse &parse, Polygon &poly) const
 
   //--
 
+  units = CQChartsUnits::none();
+
   while (! parse.eof()) {
     Point p;
 
-    if (! parsePoint(parse, p))
+    int pos1 = parse.getPos();
+
+    if (! parsePoint(parse, p)) {
+      parse.setPos(pos1);
+
+      CQChartsUnits units1;
+
+      if (units1.fromString(parse.getAt())) {
+        units = units1;
+        break;
+      }
+
       return false;
+    }
 
     poly.addPoint(p);
   }

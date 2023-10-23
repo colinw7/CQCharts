@@ -1716,8 +1716,12 @@ calcBucketRanges() const
       bool ok;
       double r = CQChartsVariant::toReal(v, ok);
 
-      if (ok)
-        updateRange(r, 0);
+      if (ok) {
+        auto bucket = calcBucket(-1, r).value();
+
+        updateRange(bucket - 0.5, 0);
+        updateRange(bucket + 0.5, 0);
+      }
     }
   }
 
@@ -3337,9 +3341,27 @@ mapPosition(const Point &w, Point &w1) const
       double value;
 
       if (barObj && barObj->bucketXValue(w.x, value)) {
-        w1.x = value;
         found = true;
+        w1.x = value;
         break;
+      }
+    }
+
+    if (! found) {
+      Qt::Alignment align = Qt::AlignLeft;
+
+      for (const auto &plotObj : plotObjs_) {
+        auto *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+
+        double value;
+
+        if (barObj && barObj->bucketXValue(w.x, value, align)) {
+          found = true;
+          w1.x = value;
+          break;
+        }
+
+        align = Qt::AlignRight;
       }
     }
   }
@@ -3352,9 +3374,27 @@ mapPosition(const Point &w, Point &w1) const
       double value;
 
       if (barObj && barObj->bucketYValue(w.y, value)) {
-        w1.y = value;
         found = true;
+        w1.y = value;
         break;
+      }
+    }
+
+    if (! found) {
+      Qt::Alignment align = Qt::AlignLeft;
+
+      for (const auto &plotObj : plotObjs_) {
+        auto *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+
+        double value;
+
+        if (barObj && barObj->bucketYValue(w.y, value, align)) {
+          found = true;
+          w1.y = value;
+          break;
+        }
+
+        align = Qt::AlignRight;
       }
     }
   }
@@ -3442,7 +3482,18 @@ unmapPosition(const Point &w, Point &w1) const
     }
   }
 
-  return true;
+  return found;
+}
+
+CQChartsGeom::Point
+CQChartsDistributionPlot::
+subPlotToPlot(const Point &p) const
+{
+  auto p1 = p;
+
+  (void) unmapPosition(p, p1);
+
+  return p1;
 }
 
 //------
@@ -3985,9 +4036,18 @@ bucketStr() const
 
 bool
 CQChartsDistributionBarObj::
-bucketXValue(double x, double &value) const
+bucketXValue(double x, double &value, Qt::Alignment align) const
 {
-  if (! insideX(x))
+  bool inside = false;
+
+  if      (align & Qt::AlignLeft)
+    inside = (x < rect().getXMin());
+  else if (align & Qt::AlignRight)
+    inside = (x >= rect().getXMax());
+  else
+    inside = insideX(x);
+
+  if (! inside)
     return false;
 
   if (! distributionPlot_->isBucketed())
@@ -4005,9 +4065,18 @@ bucketXValue(double x, double &value) const
 
 bool
 CQChartsDistributionBarObj::
-bucketYValue(double y, double &value) const
+bucketYValue(double y, double &value, Qt::Alignment align) const
 {
-  if (! insideY(y))
+  bool inside = false;
+
+  if      (align & Qt::AlignLeft)
+    inside = (y < rect().getYMin());
+  else if (align & Qt::AlignRight)
+    inside = (y >= rect().getYMax());
+  else
+    inside = insideY(y);
+
+  if (! inside)
     return false;
 
   if (! distributionPlot_->isBucketed())
@@ -4047,7 +4116,7 @@ bucketValueX(double value, double &x, Qt::Alignment align) const
     inside = (value >= value1 && value < value2); // half open
 
   if (inside) {
-    x = CMathUtil::map(x, value1, value2, rect().getXMin(), rect().getXMax());
+    x = CMathUtil::map(value, value1, value2, rect().getXMin(), rect().getXMax());
     return true;
   }
 
@@ -4078,7 +4147,7 @@ bucketValueY(double value, double &y, Qt::Alignment align) const
     inside = (value >= value1 && value < value2); // half open
 
   if (inside) {
-    y = CMathUtil::map(y, value1, value2, rect().getYMin(), rect().getYMax());
+    y = CMathUtil::map(value, value1, value2, rect().getYMin(), rect().getYMax());
     return true;
   }
 

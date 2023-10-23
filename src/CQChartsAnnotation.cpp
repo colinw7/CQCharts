@@ -2949,9 +2949,9 @@ moveExtraHandle(const QVariant &data, double dx, double dy)
   //---
 
   if (! angle().isZero())
-    polygon_ = apoly_.rotated(polygon_.getCenter(), -angle());
+    polygon_ = CQChartsPolygon(apoly_.rotated(polygon_.getCenter(), -angle()));
   else
-    polygon_ = apoly_;
+    polygon_ = CQChartsPolygon(apoly_);
 }
 
 //---
@@ -3027,9 +3027,9 @@ draw(PaintDevice *device)
   CQChartsPolygon apoly;
 
   if (! angle().isZero())
-    apoly_ = polygon_.rotated(polygon_.getCenter(), angle());
+    apoly_ = CQChartsPolygon(polygon_.rotated(polygon_.getCenter(), angle()));
   else
-    apoly_ = polygon_;
+    apoly_ = CQChartsPolygon(polygon_);
 
   //---
 
@@ -3168,7 +3168,7 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   double x1 = annotationBBox().getXMin();
   double y1 = annotationBBox().getYMin();
 
-  auto poly = polygon_.polygon();
+  auto poly = getPolygon();
 
   for (int i = 0; i < poly.size(); ++i) {
     double x = sx*(poly.point(i).x - x1) + x1 + dx;
@@ -3207,9 +3207,9 @@ moveExtraHandle(const QVariant &data, double dx, double dy)
   //---
 
   if (! angle().isZero())
-    polygon_ = apoly_.rotated(polygon_.getCenter(), -angle());
+    polygon_ = CQChartsPolygon(apoly_.rotated(polygon_.getCenter(), -angle()));
   else
-    polygon_ = apoly_;
+    polygon_ = CQChartsPolygon(apoly_);
 }
 
 //---
@@ -3247,7 +3247,7 @@ void
 CQChartsPolylineAnnotation::
 draw(PaintDevice *device)
 {
-  const auto &polygon = polygon_.polygon();
+  auto polygon = getPolygon();
   if (! polygon.size()) return;
 
   //---
@@ -3342,9 +3342,9 @@ draw(PaintDevice *device)
   CQChartsPolygon apoly;
 
   if (! angle().isZero())
-    apoly_ = polygon_.rotated(polygon_.getCenter(), angle());
+    apoly_ = CQChartsPolygon(polygon_.rotated(polygon_.getCenter(), angle()));
   else
-    apoly_ = polygon_;
+    apoly_ = CQChartsPolygon(polygon_);
 
   //---
 
@@ -3402,13 +3402,25 @@ void
 CQChartsPolylineAnnotation::
 writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  writePoints(os, polygon_.polygon());
+  writePoints(os, getPolygon());
 
   os << "]\n";
 
   //---
 
   writeProperties(os, varName);
+}
+
+//---
+
+CQChartsGeom::Polygon
+CQChartsPolylineAnnotation::
+getPolygon() const
+{
+  if (plot())
+    return plot()->polyToPlot(polygon_);
+  else
+    return polygon_.polygon();
 }
 
 //------

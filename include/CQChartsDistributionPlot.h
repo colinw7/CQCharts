@@ -228,8 +228,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   QString bucketStr() const;
 
-  bool bucketXValue(double x, double &value) const;
-  bool bucketYValue(double y, double &value) const;
+  bool bucketXValue(double x, double &value, Qt::Alignment align=Qt::AlignCenter) const;
+  bool bucketYValue(double y, double &value, Qt::Alignment align=Qt::AlignCenter) const;
 
   bool bucketValueX(double value, double &x, Qt::Alignment align=Qt::AlignCenter) const;
   bool bucketValueY(double value, double &y, Qt::Alignment align=Qt::AlignCenter) const;
@@ -908,8 +908,12 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   QString posStr(const Point &w) const override;
 
+  // plot position to value position
   bool mapPosition  (const Point &w, Point &w1) const;
+  // map value position to plot position
   bool unmapPosition(const Point &w, Point &w1) const;
+
+  Point subPlotToPlot(const Point &p) const override;
 
   //---
 

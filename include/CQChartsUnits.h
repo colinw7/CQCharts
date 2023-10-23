@@ -21,6 +21,7 @@ class CQChartsUnits :
     NONE,
     VIEW,
     PLOT,
+    SUB_PLOT,
     PIXEL,
     PERCENT,
     EM,
@@ -35,6 +36,11 @@ class CQChartsUnits :
   //---
 
   CQUTIL_DEF_META_CONVERSIONS(CQChartsUnits, metaTypeId)
+
+ public:
+  static CQChartsUnits view() { return CQChartsUnits(Type::VIEW); }
+  static CQChartsUnits plot() { return CQChartsUnits(Type::PLOT); }
+  static CQChartsUnits none() { return CQChartsUnits(Type::NONE); }
 
  public:
   CQChartsUnits() = default;
