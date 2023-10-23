@@ -2020,10 +2020,22 @@ initSmooth() const
   if (! smooth_) {
     auto *th = const_cast<CQChartsPolyShapeAnnotationBase *>(this);
 
-    const auto &polygon = polygon_.polygon();
+    auto polygon = getPolygon();
 
     th->smooth_ = std::make_unique<Smooth>(polygon, /*sorted*/false);
   }
+}
+
+//---
+
+CQChartsGeom::Polygon
+CQChartsPolyShapeAnnotationBase::
+getPolygon() const
+{
+  if (plot())
+    return plot()->polyToPlot(polygon_);
+  else
+    return polygon_.polygon();
 }
 
 //------
@@ -2910,7 +2922,7 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   double x1 = annotationBBox().getXMin();
   double y1 = annotationBBox().getYMin();
 
-  auto poly = polygon_.polygon();
+  auto poly = getPolygon();
 
   for (int i = 0; i < poly.size(); ++i) {
     double x = sx*(poly.point(i).x - x1) + x1 + dx;
@@ -2971,7 +2983,7 @@ void
 CQChartsPolygonAnnotation::
 draw(PaintDevice *device)
 {
-  const auto &polygon = polygon_.polygon();
+  const auto &polygon = getPolygon();
   if (! polygon.size()) return;
 
   //---
@@ -3087,7 +3099,7 @@ void
 CQChartsPolygonAnnotation::
 writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  writePoints(os, polygon_.polygon());
+  writePoints(os, getPolygon());
 
   os << "]\n";
 
@@ -3409,18 +3421,6 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
   //---
 
   writeProperties(os, varName);
-}
-
-//---
-
-CQChartsGeom::Polygon
-CQChartsPolylineAnnotation::
-getPolygon() const
-{
-  if (plot())
-    return plot()->polyToPlot(polygon_);
-  else
-    return polygon_.polygon();
 }
 
 //------

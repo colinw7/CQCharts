@@ -940,7 +940,6 @@ setBorder(const Margin &l)
   } );
 }
 
-#if 0
 void
 CQChartsSummaryPlot::
 setUndefRegionGray(double r)
@@ -958,7 +957,6 @@ setUndefRegionWidth(const Length &l)
     drawObjs(); Q_EMIT customDataChanged();
   } );
 }
-#endif
 
 void
 CQChartsSummaryPlot::
@@ -1145,8 +1143,8 @@ addProperties()
   addProp("region", "regionSelectMargin", "selectMargin", "Region select margin");
   addProp("region", "regionSelectWidth" , "selectWidth" , "Region select width");
   addProp("region", "regionSelectFill"  , "selectFill"  , "Region select fill");
-//addProp("region", "undefRegionGray"   , "undefGray"   , "Undefined region gray");
-//addProp("region", "undefRegionWidth"  , "undefWidth"  , "Undefined region width");
+  addProp("region", "undefRegionGray"   , "undefGray"   , "Undefined region gray");
+  addProp("region", "undefRegionWidth"  , "undefWidth"  , "Undefined region width");
 
   addProp("region", "regionEditStroke", "editStroke", "Region edit stroke");
   addProp("region", "regionEditFill"  , "editFill"  , "Region edit fill");
@@ -1918,7 +1916,7 @@ bool
 CQChartsSummaryPlot::
 plotToSubPlot(int r, int c, const Point &p, Point &pp) const
 {
-  CellObj *cellObj = getCellObj(r, c);
+  auto *cellObj = getCellObj(r, c);
   if (! cellObj) return false;
 
   pp = cellObj->parentToPlot(p);
@@ -1930,7 +1928,7 @@ bool
 CQChartsSummaryPlot::
 subPlotToPlot(int r, int c, const Point &p, Point &pp) const
 {
-  CellObj *cellObj = getCellObj(r, c);
+  auto *cellObj = getCellObj(r, c);
   if (! cellObj) return false;
 
   pp = cellObj->plotToParent(p);
@@ -3398,7 +3396,15 @@ drawScatter(PaintDevice *device) const
 
   //---
 
-  drawScatterPoints(device);
+  // draw outside points first if dim outside
+  if (summaryPlot_->regionPointType() == CQChartsSummaryPlot::RegionPointType::DIM_OUTSIDE) {
+    bool anyRange = summaryPlot_->anyColumnRange();
+
+    if (anyRange)
+      drawScatterPoints(device, /*outside*/true);
+  }
+
+  drawScatterPoints(device, /*outside*/false);
 
   //---
 
@@ -3415,7 +3421,7 @@ drawScatter(PaintDevice *device) const
 
 void
 CQChartsSummaryCellObj::
-drawScatterPoints(PaintDevice *device) const
+drawScatterPoints(PaintDevice *device, bool outside) const
 {
   auto colColumn = this->colColumn();
   auto rowColumn = this->rowColumn();
@@ -3470,6 +3476,16 @@ drawScatterPoints(PaintDevice *device) const
   summaryPlot_->setScatterSymbolPenBrush(penBrush2, colorInd2);
 
   for (uint i = 0; i < uint(nx); ++i) {
+    // skip if outside does not match requirement
+    bool rangeSelected = summaryPlot_->isRangeSelectedRow(i);
+
+    if (summaryPlot_->regionPointType() == CQChartsSummaryPlot::RegionPointType::DIM_OUTSIDE) {
+      bool outside1 = (anyRange && rangeSelected);
+      if (outside != outside1) continue;
+    }
+
+    //---
+
     // get scatter point
     double x = 0.0, y = 0.0;
 
@@ -3493,7 +3509,6 @@ drawScatterPoints(PaintDevice *device) const
 
     //---
 
-    bool rangeSelected = summaryPlot_->isRangeSelectedRow(i);
     bool modelSelected = summaryPlot_->isModelSelectedRow(i);
 
     //---
@@ -3589,8 +3604,14 @@ drawScatterPoints(PaintDevice *device) const
 
     auto ps = plotToParent(p);
 
+    double psx, psy;
+    summaryPlot_->pixelSymbolSize(symbolSize1, psx, psy, /*scale*/true);
+//  auto psx = summaryPlot_->lengthPixelWidth (symbolSize1);
+//  auto psy = summaryPlot_->lengthPixelHeight(symbolSize1);
+
+    auto ss = Length::pixel(std::min(psx, psy));
     CQChartsDrawUtil::drawSymbol(device, groupPenBrush1, groupSymbol,
-                                 ps, symbolSize1, /*scale*/true);
+                                 ps, ss, /*scale*/false);
 
     //---
 
@@ -4059,6 +4080,11 @@ drawDistribution(PaintDevice *device) const
 
       auto bbox = BBox(x1, y1, x2, y2);
 
+      double xgap1 = std::min(xgap, bbox.getWidth ());
+      double ygap1 = std::min(ygap, bbox.getHeight());
+
+      bbox.expand(xgap1/2.0, ygap1/2.0, -xgap1/2.0, -ygap1/2.0);
+
       //---
 
       bool rangeSelected = false;
@@ -4073,8 +4099,8 @@ drawDistribution(PaintDevice *device) const
 
       size_t numModelSelected = 0;
 
-      for (const auto &r : pb.second) {
-        if (summaryPlot_->isRangeSelectedRow(r))
+      for (const auto &row : pb.second) {
+        if (summaryPlot_->isModelSelectedRow(row))
           ++numModelSelected;
       }
 
@@ -4170,17 +4196,17 @@ drawDistribution(PaintDevice *device) const
 
       //---
 
-      double h1 = (invert ? pxmin_ : pymin_);
-      double h2 = CMathUtil::map(n, 0, maxCount_, pymin_, pymax_);
+      auto h1 = (invert ? pxmin_ : pymin_);
+      auto h2 = CMathUtil::map(n, 0, maxCount_, pymin_, pymax_);
 
-      double pos1 = (invert ? CMathUtil::map(ic, 0, nc, pymin_, pymax_) :
-                              CMathUtil::map(ic, 0, nc, pxmin_, pxmax_));
-      double pos2 = pos1 + dn;
+      auto pos1 = (invert ? CMathUtil::map(ic, 0, nc, pymin_, pymax_) :
+                            CMathUtil::map(ic, 0, nc, pxmin_, pxmax_));
+      auto pos2 = pos1 + dn;
 
       auto bbox = (invert ? BBox(h1, pos1, h2, pos2) : BBox(pos1, h1, pos2, h2));
 
-      double xgap1 = std::min(xgap, bbox.getWidth ());
-      double ygap1 = std::min(ygap, bbox.getHeight());
+      auto xgap1 = std::min(xgap, bbox.getWidth ());
+      auto ygap1 = std::min(ygap, bbox.getHeight());
 
       bbox.expand(xgap1/2.0, ygap1/2.0, -xgap1/2.0, -ygap1/2.0);
 
@@ -4241,7 +4267,7 @@ drawDistribution(PaintDevice *device) const
 
       //---
 
-      CQChartsDrawUtil::setPenBrush(device, penBrush1);
+      CQChartsDrawUtil::setPenBrush(device, penBrush2);
 
       drawRect(bbox);
 
@@ -4341,6 +4367,21 @@ drawRangeBox(PaintDevice *device, bool overlay) const
 
   auto rbbox = BBox(plotToParent(rangeBox_.getLL()), plotToParent(rangeBox_.getUR()));
 
+  auto cellType = getCellType();
+
+  //---
+
+  auto drawRectSides = [&](const BBox &bbox) {
+    if (summaryPlot_->orientation() == Qt::Vertical) {
+      device->drawLine(bbox.getLL(), bbox.getUL());
+      device->drawLine(bbox.getLR(), bbox.getUR());
+    }
+    else {
+      device->drawLine(bbox.getLL(), bbox.getLR());
+      device->drawLine(bbox.getUL(), bbox.getUR());
+    }
+  };
+
   //---
 
   if (! overlay) {
@@ -4354,16 +4395,21 @@ drawRangeBox(PaintDevice *device, bool overlay) const
     summaryPlot_->setPenBrush(penBrush,
       summaryPlot_->regionPenData(bc), summaryPlot_->regionBrushData(fc));
 
-    if (! rangeDefined_)
-      CQChartsDrawUtil::setPenGray(penBrush.pen, 0.3);
-    else
-      penBrush.pen.setWidthF(3);
+    if (! rangeDefined_) {
+      CQChartsDrawUtil::setPenGray(penBrush.pen, summaryPlot_->undefRegionGray());
+
+      auto w = summaryPlot_->lengthPixelWidth(summaryPlot_->undefRegionWidth());
+      penBrush.pen.setWidthF(w);
+    }
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     //---
 
-    device->drawRect(rbbox);
+    if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION)
+      drawRectSides(rbbox);
+    else
+      device->drawRect(rbbox);
   }
 
   //---
@@ -4380,9 +4426,19 @@ drawRangeBox(PaintDevice *device, bool overlay) const
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     if (! rangeBoxSide_) {
-      device->drawRect(rbbox);
+      if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION)
+        drawRectSides(rbbox);
+      else
+        device->drawRect(rbbox);
     }
     else {
+      if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION) {
+        if (summaryPlot_->orientation() == Qt::Vertical)
+          rangeBoxSide_ &= ~(Qt::AlignBottom | Qt::AlignTop);
+        else
+          rangeBoxSide_ &= ~(Qt::AlignLeft | Qt::AlignRight);
+      }
+
       if      (rangeBoxSide_ & Qt::AlignLeft  )
         device->drawLine(rbbox.getLL(), rbbox.getUL());
       else if (rangeBoxSide_ & Qt::AlignRight )
@@ -4464,6 +4520,9 @@ void
 CQChartsSummaryCellObj::
 drawParetoDir(PaintDevice *device) const
 {
+  if (summaryPlot_->paretoOriginType() == CQChartsSummaryPlot::ParetoOriginType::NONE)
+    return;
+
   CQPerfTrace trace("CQChartsSummaryCellObj::drawParetoDirection");
 
   //---
@@ -5459,7 +5518,7 @@ nextInsideInd(bool force) const
       selectInd_ = 0;
 
     if (const_cast<CQChartsSummaryCellObj *>(this)->updateInside() || force)
-      const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay());
+      const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay();
 
     return true;
   }
@@ -5486,7 +5545,7 @@ prevInsideInd(bool force) const
       selectInd_ = std::max(int(selectPointDatas_.size()) - 1, 0);
 
     if (const_cast<CQChartsSummaryCellObj *>(this)->updateInside() || force)
-      const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay());
+      const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay();
 
     return true;
   }
@@ -5510,7 +5569,7 @@ resetInsideInd(bool force) const
     selectInd_ = 0;
 
     if (const_cast<CQChartsSummaryCellObj *>(this)->updateInside() || force)
-      const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay());
+      const_cast<CQChartsSummaryPlot *>(summaryPlot_)->invalidateOverlay();
 
     return true;
   }

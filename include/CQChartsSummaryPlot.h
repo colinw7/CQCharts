@@ -155,9 +155,11 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   // region
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Region, region)
 
-  Q_PROPERTY(double        regionSelectMargin READ regionSelectMargin WRITE setRegionSelectMargin)
-  Q_PROPERTY(double        regionSelectWidth  READ regionSelectWidth  WRITE setRegionSelectWidth)
-  Q_PROPERTY(CQChartsColor regionSelectFill   READ regionSelectFill   WRITE setRegionSelectFill)
+  Q_PROPERTY(double         regionSelectMargin READ regionSelectMargin WRITE setRegionSelectMargin)
+  Q_PROPERTY(double         regionSelectWidth  READ regionSelectWidth  WRITE setRegionSelectWidth)
+  Q_PROPERTY(CQChartsColor  regionSelectFill   READ regionSelectFill   WRITE setRegionSelectFill)
+  Q_PROPERTY(double         undefRegionGray    READ undefRegionGray    WRITE setUndefRegionGray)
+  Q_PROPERTY(CQChartsLength undefRegionWidth   READ undefRegionWidth   WRITE setUndefRegionWidth)
 
   Q_PROPERTY(CQChartsColor regionEditStroke READ regionEditStroke WRITE setRegionEditStroke)
   Q_PROPERTY(CQChartsColor regionEditFill   READ regionEditFill   WRITE setRegionEditFill)
@@ -456,6 +458,12 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   const RegionPointType &regionPointType() const { return regionPointType_; }
   void setRegionPointType(const RegionPointType &t) { regionPointType_ = t; }
 
+  double undefRegionGray() const { return undefRegionGray_; }
+  void setUndefRegionGray(double r);
+
+  const Length &undefRegionWidth() const { return undefRegionWidth_; }
+  void setUndefRegionWidth(const Length &w);
+
   //---
 
   //! get/set outside gray
@@ -751,6 +759,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   RegionPointType regionPointType_ { RegionPointType::DIM_OUTSIDE };
 
+  double undefRegionGray_  { 0.3 };
+  Length undefRegionWidth_ { Length::pixel(1) };
+
   double outsideGray_  { 0.1 };
   double outsideAlpha_ { 0.05 };
 
@@ -918,7 +929,7 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   void initYAxis(bool buckets) const;
 
   void drawScatter      (PaintDevice *device) const;
-  void drawScatterPoints(PaintDevice *device) const;
+  void drawScatterPoints(PaintDevice *device, bool outside) const;
 
   void drawBestFit     (PaintDevice *device) const;
   void drawCorrelation (PaintDevice *device) const;

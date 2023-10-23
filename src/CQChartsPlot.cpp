@@ -19651,6 +19651,8 @@ positionToPlot(const Position &pos) const
     p1 = pixelToWindow(p);
   else if (pos.units() == Units::PLOT)
     p1 = p;
+  else if (pos.units() == Units::SUB_PLOT)
+    p1 = subPlotToPlot(p);
   else if (pos.units() == Units::VIEW)
     p1 = pixelToWindow(view()->windowToPixel(p));
   else if (pos.units() == Units::PERCENT) {
@@ -19674,8 +19676,6 @@ positionToPlot(const Position &pos) const
 
     return Point(x, y);
   }
-  else
-    p1 = subPlotToPlot(p);
 
   return p1;
 }
