@@ -1736,6 +1736,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   virtual Point subPlotToPlot(const Point &p) const;
+  virtual Point plotToSubPlot(const Point &p) const;
 
   //---
 
@@ -2167,6 +2168,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual void invalidateObjTree();
 
+  //---
+
   virtual bool updateInsideObjects(const Point &w, Constraints constraints);
 
   bool setInsideObjects(const Point &w, Objs &objs);
@@ -2174,13 +2177,19 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Obj *groupedInsideObject() const;
 
   virtual Obj *insideObject() const;
-
   void setInsideObject();
 
   virtual QString insideObjectText() const;
 
   void nextInsideInd();
   void prevInsideInd();
+
+  //---
+
+  Obj *currentObj() const;
+
+  const QString &currentObjId() const { return currentObjId_; }
+  void setCurrentObjId(const QString &s) { currentObjId_ = s; }
 
   //---
 
@@ -2921,6 +2930,9 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void setLayersChanged(bool update);
 
   void clearPlotObjects1();
+
+  //---
+
   void clearInsideObjects1();
 
   void invalidateObjTree1();
@@ -2930,6 +2942,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Obj *insideObject1() const;
 
   QString insideObjectText1() const;
+
+  //---
 
   void deselectAll1(SelectTypes selectTypes, bool &changed);
 
@@ -4242,6 +4256,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   };
 
   InsideData insideData_;
+
+  //---
+
+  QString currentObjId_;
 
   //---
 

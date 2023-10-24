@@ -3496,6 +3496,17 @@ subPlotToPlot(const Point &p) const
   return p1;
 }
 
+CQChartsGeom::Point
+CQChartsDistributionPlot::
+plotToSubPlot(const Point &p) const
+{
+  auto p1 = p;
+
+  (void) mapPosition(p, p1);
+
+  return p1;
+}
+
 //------
 
 bool

@@ -618,6 +618,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   uint numModelSelectedRows() const;
   bool isModelSelectedRow(int r) const;
 
+  void updateSelectionRows() const;
+
   void clearSelection() const;
 
   //---
@@ -634,6 +636,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   bool subPlotToPlot(int r, int c, const Point &p, Point &pp) const;
   bool plotToSubPlot(int r, int c, const Point &p, Point &pp) const;
+
+  Point subPlotToPlot(const Point &p) const override;
+  Point plotToSubPlot(const Point &p) const override;
 
   CellObj *getCellObj(int r, int c) const;
 
@@ -881,7 +886,8 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   CQChartsSummaryPlot::CellType getCellType() const;
   CQChartsSummaryPlot::CellType getCellType(int row, int col) const;
 
-  void drawPointSelection(PaintDevice *device, const BBox &bbox, SelectionType type) const;
+  void drawPointSelection(PaintDevice *device, const BBox &bbox, const PointData &pointData,
+                          const PenBrush &penBrush, SelectionType type) const;
 
   //---
 

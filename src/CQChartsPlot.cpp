@@ -7909,6 +7909,23 @@ insideObjectText1() const
 
 //------
 
+CQChartsObj *
+CQChartsPlot::
+currentObj() const
+{
+  if (currentObjId_ == "")
+    return nullptr;
+
+  for (auto &plotObj : plotObjects()) {
+    if (plotObj->id() == currentObjId_)
+      return plotObj;
+  }
+
+  return nullptr;
+}
+
+//------
+
 void
 CQChartsPlot::
 setOverviewDisplayed(bool b)
@@ -19638,6 +19655,13 @@ subPlotToPlot(const Point &p) const
   return p;
 }
 
+CQChartsGeom::Point
+CQChartsPlot::
+plotToSubPlot(const Point &p) const
+{
+  return p;
+}
+
 //------
 
 CQChartsGeom::Point
@@ -19691,6 +19715,8 @@ positionToPixel(const Position &pos) const
     p1 = p;
   else if (pos.units() == Units::PLOT)
     p1 = windowToPixel(p);
+  else if (pos.units() == Units::SUB_PLOT)
+    p1 = windowToPixel(positionToPlot(pos));
   else if (pos.units() == Units::VIEW)
     p1 = view()->windowToPixel(p);
   else if (pos.units() == Units::PERCENT) {
@@ -19734,6 +19760,12 @@ rectToPlot(const Rect &rect) const
     r1 = pixelToWindow(r);
   else if (rect.units() == Units::PLOT)
     r1 = r;
+  else if (rect.units() == Units::SUB_PLOT) {
+    auto units = rect.units();
+    auto p1 = positionToPlot(Position(rect.bbox().getLL(), units));
+    auto p2 = positionToPlot(Position(rect.bbox().getUR(), units));
+    r1 = BBox(p1, p2);
+  }
   else if (rect.units() == Units::VIEW)
     r1 = pixelToWindow(view()->windowToPixel(r));
   else if (rect.units() == Units::PERCENT) {
@@ -19781,6 +19813,8 @@ rectToPixel(const Rect &rect) const
     r1 = r;
   else if (rect.units() == Units::PLOT)
     r1 = windowToPixel(r);
+  else if (rect.units() == Units::SUB_PLOT)
+    r1 = windowToPixel(rectToPlot(rect));
   else if (rect.units() == Units::VIEW)
     r1 = view()->windowToPixel(r);
   else if (rect.units() == Units::PERCENT) {

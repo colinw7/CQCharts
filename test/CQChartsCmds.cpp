@@ -6401,7 +6401,7 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
          "selected_objects" << "inds" << "plot_width" << "plot_height" << "pixel_width" <<
          "pixel_height" << "pixel_position" << "properties" << "set_hidden" << "errors" <<
          "color_filter" << "symbol_type_filter" << "symbol_size_filter" <<
-         "subplot_to_plot" << "plot_to_subplot";
+         "current_obj" << "subplot_to_plot" << "plot_to_subplot";
         return names;
       }
       else {
@@ -7403,6 +7403,7 @@ execCmd(CQChartsCmdArgs &argv)
     else if (name == "subplot_to_plot") {
       auto data = argv.getParseStr("data");
 
+#if 0
       QStringList strs;
       if (! CQTcl::splitList(data, strs) || strs.length() != 4)
         return errorMsg("Invalid data '" + argv.getParseStr("data") + "' specified");
@@ -7420,12 +7421,27 @@ execCmd(CQChartsCmdArgs &argv)
       CQChartsGeom::Point p(x, y), p1;
       if (! summaryPlot->subPlotToPlot(r, c, p, p1))
         return false;
+#else
+      CQChartsGeom::Point p;
+      if (! argv.parsePoint(data, p))
+        return errorMsg("Invalid point '" + argv.getParseStr("data") + "' specified");
+
+      auto p1 = plot->subPlotToPlot(p);
+#endif
 
       return cmdBase_->setCmdRc(p1.qpoint());
+    }
+    else if (name == "current_obj") {
+      auto *obj = plot->currentObj();
+
+      auto id = (obj ? obj->id() : "");
+
+      return cmdBase_->setCmdRc(id);
     }
     else if (name == "plot_to_subplot") {
       auto data = argv.getParseStr("data");
 
+#if 0
       QStringList strs;
       if (! CQTcl::splitList(data, strs) || strs.length() != 4)
         return errorMsg("Invalid data '" + argv.getParseStr("data") + "' specified");
@@ -7443,6 +7459,13 @@ execCmd(CQChartsCmdArgs &argv)
       CQChartsGeom::Point p(x, y), p1;
       if (! summaryPlot->plotToSubPlot(r, c, p, p1))
         return false;
+#else
+      CQChartsGeom::Point p;
+      if (! argv.parsePoint(data, p))
+        return errorMsg("Invalid point '" + argv.getParseStr("data") + "' specified");
+
+      auto p1 = plot->plotToSubPlot(p);
+#endif
 
       return cmdBase_->setCmdRc(p1.qpoint());
     }
@@ -7761,7 +7784,7 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
       if (! hasObject) {
         static auto names = QStringList() <<
          "fit" << "zoom_full" << "updates_enabled" << "set_hidden" << "model" <<
-         "color_filter" << "symbol_type_filter" << "symbol_size_filter";
+         "color_filter" << "symbol_type_filter" << "symbol_size_filter" << "current_obj";
         return names;
       }
       else {
@@ -8195,6 +8218,9 @@ execCmd(CQChartsCmdArgs &argv)
       QStringList strs;
       if (pointPlot && CQTcl::splitList(value, strs))
         pointPlot->setSymbolSizeFilterNames(strs);
+    }
+    else if (name == "current_obj") {
+      plot->setCurrentObjId(value);
     }
     // plot object property
     else if (name == "?") {

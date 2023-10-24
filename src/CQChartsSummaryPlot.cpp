@@ -1750,6 +1750,7 @@ updateSelectionObjects(const std::set<QModelIndex> &selectIndices)
 
   drawObjs();
 }
+#endif
 
 void
 CQChartsSummaryPlot::
@@ -1763,7 +1764,7 @@ updateSelectionRows() const
     auto r = rowCols.first;
 
     for (const auto &c : rowCols.second) {
-      auto ind1 = modelIndex(r, c, QModelIndex());
+      auto ind1 = modelIndex(r, Column(c), QModelIndex());
 
       sel.select(ind1, ind1);
     }
@@ -1771,7 +1772,6 @@ updateSelectionRows() const
 
   modelData->select(sel);
 }
-#endif
 
 //---
 
@@ -1934,6 +1934,28 @@ subPlotToPlot(int r, int c, const Point &p, Point &pp) const
   pp = cellObj->plotToParent(p);
 
   return true;
+}
+
+CQChartsSummaryPlot::Point
+CQChartsSummaryPlot::
+plotToSubPlot(const Point &p) const
+{
+  auto *cellObj = dynamic_cast<CQChartsSummaryCellObj *>(currentObj());
+
+  auto p1 = (cellObj ? cellObj->parentToPlot(p) : p);
+
+  return p1;
+}
+
+CQChartsSummaryPlot::Point
+CQChartsSummaryPlot::
+subPlotToPlot(const Point &p) const
+{
+  auto *cellObj = dynamic_cast<CQChartsSummaryCellObj *>(currentObj());
+
+  auto p1 = (cellObj ? cellObj->plotToParent(p) : p);
+
+  return p1;
 }
 
 //------
@@ -2430,7 +2452,7 @@ handleSelectPress(const Point &p, SelMod selMod)
   }
 
   if (insideObject() && ! dynamic_cast<CQChartsSummaryCellObj *>(insideObject()))
-    return handleSelectPress(p, selMod);
+    return CQChartsPlot::handleSelectPress(p, selMod);
 
   //---
 
@@ -2544,6 +2566,9 @@ CQChartsSummaryPlot::
 handleSelectRelease(const Point &p)
 {
   if (selectMode() == SelectMode::CELL)
+    return CQChartsPlot::handleSelectRelease(p);
+
+  if (insideObject() && ! dynamic_cast<CQChartsSummaryCellObj *>(insideObject()))
     return CQChartsPlot::handleSelectRelease(p);
 
   //---
@@ -3480,7 +3505,7 @@ drawScatterPoints(PaintDevice *device, bool outside) const
     bool rangeSelected = summaryPlot_->isRangeSelectedRow(i);
 
     if (summaryPlot_->regionPointType() == CQChartsSummaryPlot::RegionPointType::DIM_OUTSIDE) {
-      bool outside1 = (anyRange && rangeSelected);
+      bool outside1 = (anyRange && ! rangeSelected);
       if (outside != outside1) continue;
     }
 
@@ -3610,8 +3635,9 @@ drawScatterPoints(PaintDevice *device, bool outside) const
 //  auto psy = summaryPlot_->lengthPixelHeight(symbolSize1);
 
     auto ss = Length::pixel(std::min(psx, psy));
+
     CQChartsDrawUtil::drawSymbol(device, groupPenBrush1, groupSymbol,
-                                 ps, ss, /*scale*/false);
+                                 ps, ss, ss, /*scale*/false);
 
     //---
 
@@ -4019,7 +4045,7 @@ drawDistribution(PaintDevice *device) const
 
   double xgap = 0.0, ygap = 0.0;
 
-  if (summaryPlot_->orientation() == Qt::Horizontal)
+  if (summaryPlot_->orientation() == Qt::Vertical)
     xgap = summaryPlot_->lengthPlotWidth(summaryPlot_->distributionMargin());
   else
     ygap = summaryPlot_->lengthPlotHeight(summaryPlot_->distributionMargin());
@@ -4080,8 +4106,8 @@ drawDistribution(PaintDevice *device) const
 
       auto bbox = BBox(x1, y1, x2, y2);
 
-      double xgap1 = std::min(xgap, bbox.getWidth ());
-      double ygap1 = std::min(ygap, bbox.getHeight());
+      auto xgap1 = std::min(xgap, bbox.getWidth ());
+      auto ygap1 = std::min(ygap, bbox.getHeight());
 
       bbox.expand(xgap1/2.0, ygap1/2.0, -xgap1/2.0, -ygap1/2.0);
 
@@ -4580,18 +4606,24 @@ drawParetoDir(PaintDevice *device) const
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    auto ss = 4.0;
+  //auto symbolSize = summaryPlot_->paretoOriginSize();
+    auto symbolSize = Length::percent(2);
 
-    auto symbolSize = Length::pixel(ss);
-
-    auto pxs = summaryPlot_->pixelToWindowWidth (ss);
-    auto pys = summaryPlot_->pixelToWindowHeight(ss);
+    auto pxs = summaryPlot_->lengthPlotWidth (symbolSize);
+    auto pys = summaryPlot_->lengthPlotHeight(symbolSize);
 
     auto o1 = plotToParent(origin);
     auto o2 = Point(o1.x + (invX ? -pxs : pxs), o1.y + (invY ? -pys : pys));
 
+    double psx, psy;
+    summaryPlot_->pixelSymbolSize(symbolSize, psx, psy, /*scale*/true);
+//  auto psx = summaryPlot_->lengthPixelWidth (symbolSize);
+//  auto psy = summaryPlot_->lengthPixelHeight(symbolSize);
+
+    auto ss = Length::pixel(std::min(psx, psy));
+
     CQChartsDrawUtil::drawSymbol(device, penBrush, CQChartsSymbol::box(), o2,
-                                 symbolSize, /*scale*/true);
+                                 ss, ss, /*scale*/false);
   }
   // draw origin gradient
   else if (summaryPlot_->paretoOriginType() == CQChartsSummaryPlot::ParetoOriginType::GRADIENT) {
@@ -4830,12 +4862,10 @@ drawOverlay(PaintDevice *device) const
 
           PenBrush penBrush1;
 
-          summaryPlot_->setPenBrush(penBrush1,
-            PenData(false), BrushData(true, fillColor));
+          summaryPlot_->setPenBrush(penBrush1, PenData(false), BrushData(true, fillColor));
 
           CQChartsDrawUtil::setPenBrush(device, penBrush1);
-
-          drawPointSelection(device, bbox, SelectionType::RANGE);
+          drawPointSelection(device, bbox, pointData, penBrush1, SelectionType::RANGE);
         }
 
         if (pointData.modelSelected) {
@@ -4844,22 +4874,28 @@ drawOverlay(PaintDevice *device) const
             /*selected*/true, /*inside*/false);
 
           CQChartsDrawUtil::setPenBrush(device, penBrush1);
-
-          drawPointSelection(device, bbox, SelectionType::MODEL);
+          drawPointSelection(device, bbox, pointData, penBrush1, SelectionType::MODEL);
         }
       }
 
       //---
 
-      if (pointData.inside) {
+      if (summaryPlot_->insideObject() == this && pointData.inside) {
         auto penBrush1 = penBrush;
         summaryPlot_->updatePenBrushState(ColorInd(), penBrush1,
           /*selected*/false, /*inside*/true);
 
         CQChartsDrawUtil::setPenBrush(device, penBrush1);
 
+        double psx, psy;
+        summaryPlot_->pixelSymbolSize(pointData.symbolSize, psx, psy, /*scale*/true);
+        //auto psx = summaryPlot_->lengthPixelWidth (pointData.symbolSize);
+        //auto psy = summaryPlot_->lengthPixelHeight(pointData.symbolSize);
+
+        auto ss = Length::pixel(std::min(psx, psy));
+
         CQChartsDrawUtil::drawSymbol(device, penBrush1, pointData.symbol, ps,
-                                     pointData.symbolSize, /*scale*/true);
+                                     ss, ss, /*scale*/false);
       }
     }
   }
@@ -4867,13 +4903,33 @@ drawOverlay(PaintDevice *device) const
     th->updateInside();
 
     for (const auto &rectData : rectDatas_) {
+      if (rectData.rangeSelected || rectData.modelSelected) {
+        if (rectData.rangeSelected) {
+          auto fillColor = summaryPlot_->interpColor(summaryPlot_->regionSelectFill(), ColorInd());
+          PenBrush penBrush1;
+          summaryPlot_->setPenBrush(penBrush1,
+            PenData(true, fillColor, Alpha(0.6), Length::pixel(2)), BrushData(false));
+
+          CQChartsDrawUtil::setPenBrush(device, penBrush1);
+          device->drawRect(rectData.pbbox);
+        }
+
+        if (rectData.modelSelected) {
+          auto penBrush1 = penBrush;
+          summaryPlot_->updatePenBrushState(ColorInd(), penBrush1,
+            /*selected*/true, /*inside*/false);
+
+          CQChartsDrawUtil::setPenBrush(device, penBrush1);
+          device->drawRect(rectData.pbbox);
+        }
+      }
+
       if (rectData.inside) {
         auto penBrush1 = penBrush;
         summaryPlot_->updatePenBrushState(ColorInd(), penBrush1,
           /*selected*/false, /*inside*/true);
 
         CQChartsDrawUtil::setPenBrush(device, penBrush1);
-
         device->drawRect(rectData.pbbox);
       }
     }
@@ -4902,7 +4958,8 @@ drawOverlay(PaintDevice *device) const
 
 void
 CQChartsSummaryCellObj::
-drawPointSelection(PaintDevice *device, const BBox &bbox, SelectionType type) const
+drawPointSelection(PaintDevice *device, const BBox &bbox, const PointData &pointData,
+                   const PenBrush &penBrush, SelectionType type) const
 {
   if      (type == SelectionType::RANGE) {
     if (summaryPlot_->regionPointType() == CQChartsSummaryPlot::RegionPointType::OUTLINE_INSIDE) {
@@ -4912,7 +4969,21 @@ drawPointSelection(PaintDevice *device, const BBox &bbox, SelectionType type) co
     }
   }
   else if (type == SelectionType::MODEL) {
-    device->drawEllipse(bbox);
+    if (pointData.symbol.symbolType().type() != CQChartsSymbolType::Type::CIRCLE) {
+      auto ps = bbox.getCenter();
+
+      double psx, psy;
+      summaryPlot_->pixelSymbolSize(pointData.symbolSize, psx, psy, /*scale*/true);
+      //auto psx = summaryPlot_->lengthPixelWidth (pointData.symbolSize);
+      //auto psy = summaryPlot_->lengthPixelHeight(pointData.symbolSize);
+
+      auto ss = Length::pixel(std::min(psx, psy));
+
+      CQChartsDrawUtil::drawSymbol(device, penBrush, pointData.symbol, ps,
+                                   ss, ss, /*scale*/false);
+    }
+    else
+      device->drawEllipse(bbox);
   }
 }
 
@@ -5116,27 +5187,43 @@ handleSelectRelease(const Point &p, bool add)
   auto cellType = getCellType();
 
   if      (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION) {
+    auto *summaryPlot = const_cast<CQChartsSummaryPlot *>(summaryPlot_);
+
     if (selectRectData_) {
-      bool invert = (summaryPlot_->orientation() == Qt::Horizontal);
+      // update region from select
+      if (summaryPlot_->barSelectTarget() == CQChartsSummaryPlot::SelectTarget::REGION) {
+        bool invert = (summaryPlot_->orientation() == Qt::Horizontal);
 
-      auto minMax = (invert ?
-        MinMax(selectRectData_->bbox.getYMin(), selectRectData_->bbox.getYMax()) :
-        MinMax(selectRectData_->bbox.getXMin(), selectRectData_->bbox.getXMax()));
+        auto minMax = (invert ?
+          MinMax(selectRectData_->bbox.getYMin(), selectRectData_->bbox.getYMax()) :
+          MinMax(selectRectData_->bbox.getXMin(), selectRectData_->bbox.getXMax()));
 
-      auto column = rowColumn();
+        auto column = rowColumn();
 
-      auto *summaryPlot = const_cast<CQChartsSummaryPlot *>(summaryPlot_);
+        if (add && summaryPlot->hasColumnRange(column)) {
+          auto range = summaryPlot->columnRange(column);
 
-      if (add && summaryPlot->hasColumnRange(column)) {
-        auto range = summaryPlot->columnRange(column);
+          minMax.add(range.min());
+          minMax.add(range.max());
+        }
 
-        minMax.add(range.min());
-        minMax.add(range.max());
+        summaryPlot->setColumnRange(column, minMax.min(), minMax.max());
+
+        summaryPlot->updateColumnRanges();
       }
+      else {
+        if (! add)
+          summaryPlot->clearModelSelectedRows(/*update*/false);
 
-      summaryPlot->setColumnRange(column, minMax.min(), minMax.max());
+        for (const auto &r : selectRectData_->rows)
+          summaryPlot->addModelSelectedRow(r, rowColumn().column(), /*update*/false);
 
-      summaryPlot->updateColumnRanges();
+        summaryPlot->updateSelectionRows();
+
+        summaryPlot->view()->updateSelText();
+
+        summaryPlot->drawObjs();
+      }
 
       //---
 

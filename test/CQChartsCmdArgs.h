@@ -141,7 +141,6 @@ class CQChartsCmdBaseArgs : public CQTclCmd::CmdArgs {
 
   //---
 
- protected:
   // string to polygon
   Polygon stringToPolygon(const QString &str) const;
 

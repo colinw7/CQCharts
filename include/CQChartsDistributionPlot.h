@@ -914,6 +914,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   bool unmapPosition(const Point &w, Point &w1) const;
 
   Point subPlotToPlot(const Point &p) const override;
+  Point plotToSubPlot(const Point &p) const override;
 
   //---
 
