@@ -3036,12 +3036,10 @@ draw(PaintDevice *device)
 
   //---
 
-  CQChartsPolygon apoly;
-
   if (! angle().isZero())
-    apoly_ = CQChartsPolygon(polygon_.rotated(polygon_.getCenter(), angle()));
+    apoly_ = CQChartsPolygon(polygon.rotated(polygon.getCenter(), angle().radians()));
   else
-    apoly_ = CQChartsPolygon(polygon_);
+    apoly_ = CQChartsPolygon(polygon);
 
   //---
 
@@ -3351,12 +3349,10 @@ draw(PaintDevice *device)
 
   //---
 
-  CQChartsPolygon apoly;
-
   if (! angle().isZero())
-    apoly_ = CQChartsPolygon(polygon_.rotated(polygon_.getCenter(), angle()));
+    apoly_ = CQChartsPolygon(polygon.rotated(polygon.getCenter(), angle().radians()));
   else
-    apoly_ = CQChartsPolygon(polygon_);
+    apoly_ = CQChartsPolygon(polygon);
 
   //---
 

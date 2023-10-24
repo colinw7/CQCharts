@@ -1604,6 +1604,14 @@ calcBucketRanges() const
       dataRange.updateRange(densityBBox.getXMin(), densityBBox.getYMin());
       dataRange.updateRange(densityBBox.getXMax(), densityBBox.getYMax());
     }
+
+    for (const auto &v : extraValues_.values()) {
+      bool ok;
+      double r = CQChartsVariant::toReal(v, ok);
+
+      if (ok)
+        dataRange.updateRange(r, 0.0);
+    }
   }
   else if (isScatter()) {
     if (maxValues > 0) {
