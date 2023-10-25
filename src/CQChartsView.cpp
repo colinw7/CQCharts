@@ -7985,6 +7985,8 @@ printPNG(const QString &filename, Plot *plot)
 
   auto image = CQChartsUtil::initImage(QSize(w, h));
 
+  image.fill(Qt::transparent);
+
   QPainter painter;
 
   if (! painter.begin(&image))

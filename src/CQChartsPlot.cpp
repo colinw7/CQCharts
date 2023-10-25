@@ -13624,7 +13624,7 @@ drawParts(QPainter *painter) const
 
       auto initImage = [&](CQChartsBuffer *buffer) {
         if (image.isNull()) {
-          image = QImage(buffer->image()->size(), QImage::Format_ARGB32_Premultiplied);
+          image = CQChartsUtil::initImage(buffer->image()->size());
 
           painter.begin(&image);
         }

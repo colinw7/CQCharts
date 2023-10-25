@@ -7400,6 +7400,13 @@ execCmd(CQChartsCmdArgs &argv)
 
       return cmdBase_->setCmdRc(p.qpoint());
     }
+    else if (name == "current_obj") {
+      auto *obj = plot->currentObj();
+
+      auto id = (obj ? obj->id() : "");
+
+      return cmdBase_->setCmdRc(id);
+    }
     else if (name == "subplot_to_plot") {
       auto data = argv.getParseStr("data");
 
@@ -7430,13 +7437,6 @@ execCmd(CQChartsCmdArgs &argv)
 #endif
 
       return cmdBase_->setCmdRc(p1.qpoint());
-    }
-    else if (name == "current_obj") {
-      auto *obj = plot->currentObj();
-
-      auto id = (obj ? obj->id() : "");
-
-      return cmdBase_->setCmdRc(id);
     }
     else if (name == "plot_to_subplot") {
       auto data = argv.getParseStr("data");

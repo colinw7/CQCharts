@@ -424,11 +424,11 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   const Color &paretoOriginColor() const { return paretoData_.originColor; }
   void setParetoOriginColor(const Color &c);
 
-//const Length &paretoOriginLength() const { return paretoData_.originLength; }
-//void setParetoOriginColor(const Length &c);
+  const Length &paretoOriginSize() const { return paretoData_.originSize; }
+  void setParetoOriginSize(const Length &s);
 
-//const Symbol &paretoOriginSymbol() const { return paretoData_.originSymbol; }
-//void setParetoOriginSymbol(const Symbol &c);
+  const Symbol &paretoOriginSymbol() const { return paretoData_.originSymbol; }
+  void setParetoOriginSymbol(const Symbol &s);
 
   int numBuckets() const;
   void setNumBuckets(int);

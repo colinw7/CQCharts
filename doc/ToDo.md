@@ -4,6 +4,12 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + dendrogram sorting by value
+
+ + view based mapping in subplot object
+
+ + distribution/scatter pareto
+
  + cycle select annotation and scatter points on summary plot
 
  + scroll selected

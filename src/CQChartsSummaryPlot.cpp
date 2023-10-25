@@ -501,9 +501,6 @@ updatePlots()
       distributionPlot()->xAxis()->setGridLinesDisplayed(xAxis()->gridLinesDisplayed());
       distributionPlot()->yAxis()->setGridLinesDisplayed(yAxis()->gridLinesDisplayed());
 
-//    distributionPlot()->setTickLabelPlacement(
-//     CQChartsAxisTickLabelPlacement(CQChartsAxisTickLabelPlacement::Type::BETWEEN));
-
 //    distributionPlot()->valueAxis()->setAutoFormat(isAutoFormatValues());
 //    distributionPlot()->countAxis()->setAutoFormat(false);
 
@@ -786,13 +783,12 @@ setParetoOriginColor(const Color &c)
   } );
 }
 
-#if 0
 void
 CQChartsSummaryPlot::
 setParetoOriginSize(const Length &s)
 {
   CQChartsUtil::testAndSet(paretoData_.originSize, s, [&]() {
-    scatterPlot     ()->setParetoOriginSize(s);
+//  scatterPlot     ()->setParetoOriginSize(s);
 //  distributionPlot()->setParetoOriginSize(s);
 
     drawObjs(); Q_EMIT customDataChanged();
@@ -804,13 +800,12 @@ CQChartsSummaryPlot::
 setParetoOriginSymbol(const Symbol &s)
 {
   CQChartsUtil::testAndSet(paretoData_.originSymbol, s, [&]() {
-    scatterPlot     ()->setParetoOriginSymbol(s);
+//  scatterPlot     ()->setParetoOriginSymbol(s);
 //  distributionPlot()->setParetoOriginSymbol(s);
 
     drawObjs(); Q_EMIT customDataChanged();
   } );
 }
-#endif
 
 //---
 
@@ -1130,8 +1125,8 @@ addProperties()
   addProp("overlays/pareto", "paretoLineColor"   , "lineColor"   , "Pareto front line color");
   addProp("overlays/pareto", "paretoOriginType"  , "originType"  , "Pareto front origin type");
   addProp("overlays/pareto", "paretoOriginColor" , "originColor" , "Pareto front origin color");
-//addProp("overlays/pareto", "paretoOriginSize"  , "originSize"  , "Pareto front origin size");
-//addProp("overlays/pareto", "paretoOriginSymbol", "originSymbol", "Pareto front origin symbol");
+  addProp("overlays/pareto", "paretoOriginSize"  , "originSize"  , "Pareto front origin size");
+  addProp("overlays/pareto", "paretoOriginSymbol", "originSymbol", "Pareto front origin symbol");
 
   // region
   addProp("region/fill", "regionFilled", "visible", "Box fill visible");
@@ -4601,13 +4596,11 @@ drawParetoDir(PaintDevice *device) const
     PenBrush penBrush;
 
     summaryPlot_->setPenBrush(penBrush,
-      PenData(true, originColor, Alpha(), summaryPlot_->paretoWidth()),
-      BrushData(true, originColor));
+      PenData(true, originColor, Alpha()), BrushData(true, originColor));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  //auto symbolSize = summaryPlot_->paretoOriginSize();
-    auto symbolSize = Length::percent(2);
+    auto symbolSize = summaryPlot_->paretoOriginSize();
 
     auto pxs = summaryPlot_->lengthPlotWidth (symbolSize);
     auto pys = summaryPlot_->lengthPlotHeight(symbolSize);
@@ -4622,7 +4615,7 @@ drawParetoDir(PaintDevice *device) const
 
     auto ss = Length::pixel(std::min(psx, psy));
 
-    CQChartsDrawUtil::drawSymbol(device, penBrush, CQChartsSymbol::box(), o2,
+    CQChartsDrawUtil::drawSymbol(device, penBrush, summaryPlot_->paretoOriginSymbol(), o2,
                                  ss, ss, /*scale*/false);
   }
   // draw origin gradient
@@ -4859,9 +4852,7 @@ drawOverlay(PaintDevice *device) const
 
         if (pointData.rangeSelected) {
           auto fillColor = summaryPlot_->interpColor(summaryPlot_->regionSelectFill(), ColorInd());
-
           PenBrush penBrush1;
-
           summaryPlot_->setPenBrush(penBrush1, PenData(false), BrushData(true, fillColor));
 
           CQChartsDrawUtil::setPenBrush(device, penBrush1);
@@ -5187,9 +5178,9 @@ handleSelectRelease(const Point &p, bool add)
   auto cellType = getCellType();
 
   if      (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION) {
-    auto *summaryPlot = const_cast<CQChartsSummaryPlot *>(summaryPlot_);
-
     if (selectRectData_) {
+      auto *summaryPlot = const_cast<CQChartsSummaryPlot *>(summaryPlot_);
+
       // update region from select
       if (summaryPlot_->barSelectTarget() == CQChartsSummaryPlot::SelectTarget::REGION) {
         bool invert = (summaryPlot_->orientation() == Qt::Horizontal);

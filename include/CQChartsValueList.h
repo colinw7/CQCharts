@@ -60,7 +60,7 @@ class CQChartsValueList :
     auto n2 = rhs.valueList_.size();
     if (n1 != n2) return (n1 > n2 ? 1 : -1);
 
-    for (std::size_t i; i < n1; ++i) {
+    for (std::size_t i = 0; i < n1; ++i) {
       if (lhs.valueList_[i] != rhs.valueList_[i])
         return CQChartsVariant::cmp(lhs.valueList_[i], rhs.valueList_[i]);
     }
