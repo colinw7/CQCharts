@@ -849,6 +849,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   void collapseNode(Node *hierNode, bool all);
 
  private Q_SLOTS:
+  void modelChangedSlot() override;
+
   void expandSlot();
   void expandAllSlot();
   void collapseAllSlot();

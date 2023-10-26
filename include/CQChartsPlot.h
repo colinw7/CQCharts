@@ -3540,7 +3540,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void modelDeletedSlot();
 
   // model change slots
-  void modelChangedSlot();
+  virtual void modelChangedSlot();
 
   void currentModelChangedSlot();
 

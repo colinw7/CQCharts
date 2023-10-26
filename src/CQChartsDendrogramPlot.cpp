@@ -3480,6 +3480,16 @@ setOpen(NodeObj *nodeObj, bool open)
 
 //---
 
+void
+CQChartsDendrogramPlot::
+modelChangedSlot()
+{
+  cacheData_.needsReload = true;
+  CQChartsPlot::modelChangedSlot();
+}
+
+//---
+
 bool
 CQChartsDendrogramPlot::
 addMenuItems(QMenu *menu, const Point &)
