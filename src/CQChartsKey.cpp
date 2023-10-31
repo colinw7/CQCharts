@@ -192,27 +192,34 @@ void
 CQChartsKey::
 setHeaderStr(const QString &s)
 {
-  CQChartsUtil::testAndSet(headerStr_, s, [&]() { updateLayout(); } );
+  CQChartsUtil::testAndSet(headerData_.text, s, [&]() { updateLayout(); } );
 }
 
 void
 CQChartsKey::
 setDefHeaderStr(const QString &s, bool update)
 {
-  CQChartsUtil::testAndSet(defHeaderStr_, s, [&]() {
+  CQChartsUtil::testAndSet(headerData_.defText, s, [&]() {
     if (update)
       updateLayout();
   } );
+}
+
+void
+CQChartsKey::
+setHeaderInline(bool b)
+{
+  CQChartsUtil::testAndSet(headerData_.isInline, b, [&]() { updateLayout(); } );
 }
 
 QString
 CQChartsKey::
 calcHeaderStr() const
 {
-  if (headerStr_.length())
-    return headerStr_;
+  if (headerStr().length())
+    return headerStr();
 
-  return defHeaderStr_;
+  return defHeaderStr();
 }
 
 //---
@@ -472,37 +479,39 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   auto headerPath     = path + "/header";
   auto headerTextPath = headerPath + "/text";
 
-  auto addHeaderProp = [&](const QString &name, const QString &alias,
-                           const QString &desc, bool hidden=false) {
+  auto addHeaderTextProp = [&](const QString &name, const QString &alias,
+                               const QString &desc, bool hidden=false) {
     auto *item = model->addProperty(headerTextPath, this, name, alias);
     item->setDesc("Key header text " + desc);
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
 
-  auto addHeaderStyleProp = [&](const QString &name, const QString &alias,
-                                const QString &desc, bool hidden=false) {
-    auto *item = addHeaderProp(name, alias, desc, hidden);
+  auto addHeaderTextStyleProp = [&](const QString &name, const QString &alias,
+                                    const QString &desc, bool hidden=false) {
+    auto *item = addHeaderTextProp(name, alias, desc, hidden);
     CQCharts::setItemIsStyle(item);
     return item;
   };
 
   //---
 
-  addHeaderProp("header", "string", "string");
+  addProp("headerInline", "Geader/line", "string");
 
-  addHeaderStyleProp("headerTextColor"        , "color"        , "color");
-  addHeaderStyleProp("headerTextAlpha"        , "alpha"        , "alpha");
-  addHeaderStyleProp("headerTextFont"         , "font"         , "font");
-//addHeaderStyleProp("headerTextAngle"        , "angle"        , "angle");
-  addHeaderStyleProp("headerTextContrast"     , "contrast"     , "contrast");
-  addHeaderStyleProp("headerTextContrastAlpha", "contrastAlpha", "contrast alpha");
-  addHeaderStyleProp("headerTextAlign"        , "align"        , "align");
-  addHeaderStyleProp("headerTextFormatted"    , "formatted"    , "formatted to fit box");
-  addHeaderStyleProp("headerTextScaled"       , "scaled"       , "scaled to box");
-  addHeaderStyleProp("headerTextHtml"         , "html"         , "is html");
-  addHeaderStyleProp("headerTextClipLength"   , "clipLength"   , "clipped to length");
-  addHeaderStyleProp("headerTextClipElide"    , "clipElide"    , "clip elide");
+  addHeaderTextProp("header", "string", "string");
+
+  addHeaderTextStyleProp("headerTextColor"        , "color"        , "color");
+  addHeaderTextStyleProp("headerTextAlpha"        , "alpha"        , "alpha");
+  addHeaderTextStyleProp("headerTextFont"         , "font"         , "font");
+//addHeaderTextStyleProp("headerTextAngle"        , "angle"        , "angle");
+  addHeaderTextStyleProp("headerTextContrast"     , "contrast"     , "contrast");
+  addHeaderTextStyleProp("headerTextContrastAlpha", "contrastAlpha", "contrast alpha");
+  addHeaderTextStyleProp("headerTextAlign"        , "align"        , "align");
+  addHeaderTextStyleProp("headerTextFormatted"    , "formatted"    , "formatted to fit box");
+  addHeaderTextStyleProp("headerTextScaled"       , "scaled"       , "scaled to box");
+  addHeaderTextStyleProp("headerTextHtml"         , "html"         , "is html");
+  addHeaderTextStyleProp("headerTextClipLength"   , "clipLength"   , "clipped to length");
+  addHeaderTextStyleProp("headerTextClipElide"    , "clipElide"    , "clip elide");
 
   //---
 
@@ -1179,36 +1188,46 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   auto headerTextPath = headerPath + "/text";
 
   auto addHeaderProp = [&](const QString &name, const QString &alias,
-                           const QString &desc, bool hidden=false) {
+                               const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(headerPath, this, name, alias);
+    item->setDesc("Key header " + desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  auto addHeaderTextProp = [&](const QString &name, const QString &alias,
+                               const QString &desc, bool hidden=false) {
     auto *item = model->addProperty(headerTextPath, this, name, alias);
     item->setDesc("Key header text " + desc);
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
 
-  auto addHeaderStyleProp = [&](const QString &name, const QString &alias,
+  auto addHeaderTextStyleProp = [&](const QString &name, const QString &alias,
                                 const QString &desc, bool hidden=false) {
-    auto *item = addHeaderProp(name, alias, desc, hidden);
+    auto *item = addHeaderTextProp(name, alias, desc, hidden);
     CQCharts::setItemIsStyle(item);
     return item;
   };
 
   //---
 
-  addHeaderProp("header", "string", "string");
+  addHeaderProp("headerInline", "inline", "drawn inline");
 
-  addHeaderStyleProp("headerTextColor"        , "color"        , "color");
-  addHeaderStyleProp("headerTextAlpha"        , "alpha"        , "alpha");
-  addHeaderStyleProp("headerTextFont"         , "font"         , "font");
-//addHeaderStyleProp("headerTextAngle"        , "angle"        , "angle");
-  addHeaderStyleProp("headerTextContrast"     , "contrast"     , "contrast");
-  addHeaderStyleProp("headerTextContrastAlpha", "contrastAlpha", "contrast alpha");
-  addHeaderStyleProp("headerTextAlign"        , "align"        , "align");
-  addHeaderStyleProp("headerTextFormatted"    , "formatted"    , "formatted to fit box");
-  addHeaderStyleProp("headerTextScaled"       , "scaled"       , "scaled to box");
-  addHeaderStyleProp("headerTextHtml"         , "html"         , "is html");
-  addHeaderStyleProp("headerTextClipLength"   , "clipLength"   , "clipped to length");
-  addHeaderStyleProp("headerTextClipElide"    , "clipElide"    , "clip elide");
+  addHeaderTextProp("header", "string", "string");
+
+  addHeaderTextStyleProp("headerTextColor"        , "color"        , "color");
+  addHeaderTextStyleProp("headerTextAlpha"        , "alpha"        , "alpha");
+  addHeaderTextStyleProp("headerTextFont"         , "font"         , "font");
+//addHeaderTextStyleProp("headerTextAngle"        , "angle"        , "angle");
+  addHeaderTextStyleProp("headerTextContrast"     , "contrast"     , "contrast");
+  addHeaderTextStyleProp("headerTextContrastAlpha", "contrastAlpha", "contrast alpha");
+  addHeaderTextStyleProp("headerTextAlign"        , "align"        , "align");
+  addHeaderTextStyleProp("headerTextFormatted"    , "formatted"    , "formatted to fit box");
+  addHeaderTextStyleProp("headerTextScaled"       , "scaled"       , "scaled to box");
+  addHeaderTextStyleProp("headerTextHtml"         , "html"         , "is html");
+  addHeaderTextStyleProp("headerTextClipLength"   , "clipLength"   , "clipped to length");
+  addHeaderTextStyleProp("headerTextClipElide"    , "clipElide"    , "clip elide");
 
   //---
 
@@ -1390,8 +1409,8 @@ doLayout()
   //----
 
   // get header text size
-  layoutData_.headerWidth  = 0;
-  layoutData_.headerHeight = 0;
+  layoutData_.headerWidth  = 0.0;
+  layoutData_.headerHeight = 0.0;
 
   auto headerStr = calcHeaderStr();
 
@@ -1411,15 +1430,24 @@ doLayout()
     layoutData_.headerHeight = drawPlot->pixelToWindowHeight(ptsize.height()) + 2*ys_;
   }
 
+  if (isHeaderInline()) {
+    for (int r = 0; r < numRows; ++r)
+      rowHeights_[r] = std::max(rowHeights_[r], layoutData_.headerHeight);
+  }
+
   //---
 
   // update cell positions and sizes
   double y = -(pmargin_.yb + ppadding_.yb);
 
-  y -= layoutData_.headerHeight;
+  if (! isHeaderInline())
+    y -= layoutData_.headerHeight;
 
   for (int r = 0; r < numRows; ++r) {
     double x = pmargin_.xl + ppadding_.xl;
+
+    if (isHeaderInline())
+      x += layoutData_.headerWidth + xs_;
 
     double rh = rowHeights_[r] + 2*ys_;
 
@@ -1436,7 +1464,7 @@ doLayout()
       x += cell.width;
     }
 
-    y -= rh; // T->B
+    y -= rh; // Top to Bottom
   }
 
   //----
@@ -1450,7 +1478,10 @@ doLayout()
     w += cell.width;
   }
 
-  w = std::max(w, layoutData_.headerWidth);
+  if (! isHeaderInline())
+    w = std::max(w, layoutData_.headerWidth);
+  else
+    w += layoutData_.headerWidth + xs_;
 
   w += pmargin_.xl + ppadding_.xl + pmargin_.xr + ppadding_.xr;
 
@@ -1460,7 +1491,10 @@ doLayout()
     h += cell.height;
   }
 
-  h += pmargin_.yb + ppadding_.yb + pmargin_.yt + ppadding_.yt + layoutData_.headerHeight;
+  h += pmargin_.yb + ppadding_.yb + pmargin_.yt + ppadding_.yt;
+
+  if (! isHeaderInline())
+    h += layoutData_.headerHeight;
 
   layoutData_.fullSize = Size(w, h);
 
@@ -1501,18 +1535,28 @@ doLayout()
   }
 
   layoutData_.vscrolled        = false;
-  layoutData_.scrollAreaHeight = h - layoutData_.headerHeight;
+  layoutData_.scrollAreaHeight = h;
+
+  if (! isHeaderInline())
+    h -= layoutData_.headerHeight;
 
   if      (scrollData_.height.isSet()) {
     double sh = drawPlot->lengthPlotHeight(scrollData_.height.length());
 
-    layoutData_.vscrolled        = (h > sh + layoutData_.headerHeight);
+    auto sh1 = sh;
+
+    if (! isHeaderInline())
+      sh1 += layoutData_.headerHeight;
+
+    layoutData_.vscrolled        = (h > sh1);
     layoutData_.scrollAreaHeight = sh;
   }
   else if (layoutData_.pixelHeightExceeded) {
     layoutData_.vscrolled        = true;
-    layoutData_.scrollAreaHeight = drawPlot->pixelToWindowHeight(maxPixelHeight) -
-                                   layoutData_.headerHeight;
+    layoutData_.scrollAreaHeight = drawPlot->pixelToWindowHeight(maxPixelHeight);
+
+    if (! isHeaderInline())
+      layoutData_.scrollAreaHeight -= layoutData_.headerHeight;
   }
 
   //---
@@ -1530,7 +1574,10 @@ doLayout()
   //---
 
   w = layoutData_.scrollAreaWidth  + layoutData_.vbarWidth;
-  h = layoutData_.scrollAreaHeight + layoutData_.headerHeight + layoutData_.hbarHeight;
+  h = layoutData_.scrollAreaHeight + layoutData_.hbarHeight;
+
+  if (! isHeaderInline())
+    h += layoutData_.vbarWidth;
 
   //---
 
@@ -1758,8 +1805,14 @@ editDragResize(const BBox &bbox)
 
   setAbsolutePlotRectangle(this->bbox());
 
-  auto width  = CQChartsLength::plot(this->bbox().getWidth ());
-  auto height = CQChartsLength::plot(this->bbox().getHeight() - layoutData_.headerHeight);
+  auto width = CQChartsLength::plot(this->bbox().getWidth ());
+
+  CQChartsLength height;
+
+  if (! isHeaderInline())
+    height = CQChartsLength::plot(this->bbox().getHeight() - layoutData_.headerHeight);
+  else
+    height = CQChartsLength::plot(this->bbox().getHeight());
 
   setScrollWidth (CQChartsOptLength(width ));
   setScrollHeight(CQChartsOptLength(height));
@@ -1988,7 +2041,10 @@ draw(PaintDevice *device) const
   sx_ = 0.0;
   sy_ = 0.0;
 
-  auto phh = drawPlot->windowToPixelHeight(layoutData_.headerHeight);
+  double phh = 0.0;
+
+  if (! isHeaderInline())
+    phh = drawPlot->windowToPixelHeight(layoutData_.headerHeight);
 
   double vspw = 0.0;
   double hsph = 0.0;
@@ -2178,10 +2234,20 @@ draw(PaintDevice *device) const
     // calc text rect
     auto ptsize = CQChartsDrawUtil::calcTextSize(headerStr, font, textOptions);
 
-    double tw = pw;
+    double tx, tw;
+
+    if (! isHeaderInline()) {
+      tx = p.x; // key left
+      tw = pw;  // full key width
+    }
+    else {
+      tx = p.x + spacing(); // key left width space
+      tw = ptsize.width(); // exact text size
+    }
+
     double th = ptsize.height() + 2*spacing();
 
-    BBox trect(p.x, p.y + pytm, p.x + tw, p.y + pytm + th);
+    BBox trect(tx, p.y + pytm, tx + tw, p.y + pytm + th);
 
     //---
 
@@ -2253,7 +2319,12 @@ draw(PaintDevice *device) const
   if (plot()->isShowBoxes()) {
     drawPlot->drawWindowColorBox(&device1, this->bbox());
 
-    BBox headerBox(x, y - layoutData_.headerHeight, x + sw, y);
+    double y1 = y;
+
+    if (! isHeaderInline())
+      y1 -= layoutData_.headerHeight;
+
+    BBox headerBox(x, y1, x + sw, y);
 
     drawPlot->drawWindowColorBox(&device1, headerBox);
   }

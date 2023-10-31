@@ -832,6 +832,8 @@ setSpreadNodeOverlaps(bool b)
       restoreOverlapRects();
     }
 
+    setZoomScroll(spreadData_.enabled);
+
     drawObjs();
   } );
 }
@@ -1232,9 +1234,9 @@ updateZoomScroll()
         auto p3 = windowToPixel(Point(1.0, spreadData_.pos));
         auto p4 = windowToPixel(Point(1.0, spreadData_.scale));
 
-        int h1 = p1.y - p2.y;
-        int h2 = p1.y - p3.y;
-        int h3 = p1.y - p4.y;
+        int h1 = int(p1.y - p2.y);
+        int h2 = int(p1.y - p3.y);
+        int h3 = int(p1.y - p4.y);
 
         setVBarRange(0, h3, h1, h2, 0.0, spreadData_.scale - 1.0);
       }
@@ -1253,9 +1255,9 @@ updateZoomScroll()
         auto p3 = windowToPixel(Point(spreadData_.pos, 1.0));
         auto p4 = windowToPixel(Point(spreadData_.scale, 1.0));
 
-        int w1 = p2.x - p1.x;
-        int w2 = p3.x - p1.x;
-        int w3 = p4.x - p1.x;
+        int w1 = int(p2.x - p1.x);
+        int w2 = int(p3.x - p1.x);
+        int w3 = int(p4.x - p1.x);
 
         setHBarRange(0, w3, w1, w2, 0.0, spreadData_.scale - 1.0);
       }
@@ -1332,8 +1334,10 @@ void
 CQChartsDendrogramPlot::
 updateScrollOffset()
 {
-  if (! spreadData_.bbox.isValid())
+  if (! spreadData_.bbox.isValid()) {
+    applyDataRangeAndDraw();
     return;
+  }
 
   if (orientation() == Qt::Horizontal) {
     auto d = CMathUtil::map(scrollData_.ypos, scrollData_.ymin, scrollData_.ymax,
@@ -2068,6 +2072,11 @@ addBuchheimHierNode(CBuchHeim::Tree *tree, Node *hierNode, int depth) const
 
   hierNode->setDepth(depth);
 
+  if (hideDepth() > 0 && ! isHideDepth(hierNode, depth)) {
+    if (! hierNode->isOpen())
+       hierNode->setOpen(true);
+  }
+
   if (! hierNode->isOpen())
     return;
 
@@ -2376,7 +2385,7 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
 
     const auto &nname = nameList1[n - 1];
 
-    auto *node = dendrogram_->addNode(hierNode, nname, value.realOr(0.0));
+    auto *node = dendrogram_->addNode(hierNode, nname, value.value());
     assert(node);
 
     auto *node1 = dynamic_cast<PlotDendrogram::PlotNode *>(node); assert(node1);
@@ -2444,7 +2453,7 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
       }
     }
 
-    auto *node = dendrogram_->addNode(hierNode, name1, value.realOr(0.0));
+    auto *node = dendrogram_->addNode(hierNode, name1, value.value());
     assert(node);
 
     auto *node1 = dynamic_cast<PlotDendrogram::PlotNode *>(node); assert(node1);

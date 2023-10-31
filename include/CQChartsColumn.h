@@ -365,7 +365,7 @@ class CQChartsColumns :
   // return number of columns (minimum is one as single invalid counts)
   int count() const {
     if (columns_.empty())
-      return 1;
+      return (column_.isValid() ? 1 : 0);
 
     return int(columns_.size());
   }

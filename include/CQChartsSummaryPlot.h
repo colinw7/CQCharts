@@ -110,6 +110,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   Q_PROPERTY(bool showBucketCount READ isShowBucketCount WRITE setShowBucketCount)
   Q_PROPERTY(bool autoScaleLabels READ isAutoScaleLabels WRITE setAutoScaleLabels)
+  Q_PROPERTY(bool hideFirstAxis   READ isHideFirstAxis   WRITE setHideFirstAxis  )
 
   // cell shape
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(PlotCell, plotCell)
@@ -124,7 +125,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Q_PROPERTY(bool            innerBorder READ isInnerBorder WRITE setInnerBorder)
 
   // select mode
-  Q_PROPERTY(SelectMode selectMode READ selectMode WRITE setSelectMode)
+  Q_PROPERTY(SelectMode selectMode   READ selectMode     WRITE setSelectMode)
+  Q_PROPERTY(bool       selectInside READ isSelectInside WRITE setSelectInside)
 
   // scatter
   CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Scatter, scatter)
@@ -180,11 +182,13 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   // TODO: hull
 
   // pareto
-  Q_PROPERTY(bool             pareto            READ isPareto          WRITE setPareto)
-  Q_PROPERTY(CQChartsLength   paretoWidth       READ paretoWidth       WRITE setParetoWidth)
-  Q_PROPERTY(CQChartsColor    paretoLineColor   READ paretoLineColor   WRITE setParetoLineColor)
-  Q_PROPERTY(ParetoOriginType paretoOriginType  READ paretoOriginType  WRITE setParetoOriginType)
-  Q_PROPERTY(CQChartsColor    paretoOriginColor READ paretoOriginColor WRITE setParetoOriginColor)
+  Q_PROPERTY(bool             pareto             READ isPareto           WRITE setPareto)
+  Q_PROPERTY(CQChartsLength   paretoWidth        READ paretoWidth        WRITE setParetoWidth)
+  Q_PROPERTY(CQChartsColor    paretoLineColor    READ paretoLineColor    WRITE setParetoLineColor)
+  Q_PROPERTY(ParetoOriginType paretoOriginType   READ paretoOriginType   WRITE setParetoOriginType)
+  Q_PROPERTY(CQChartsColor    paretoOriginColor  READ paretoOriginColor  WRITE setParetoOriginColor)
+  Q_PROPERTY(CQChartsLength   paretoOriginSize   READ paretoOriginSize   WRITE setParetoOriginSize)
+  Q_PROPERTY(CQChartsSymbol   paretoOriginSymbol READ paretoOriginSymbol WRITE setParetoOriginSymbol)
 
   Q_ENUMS(PlotType)
   Q_ENUMS(DiagonalType)
@@ -352,6 +356,10 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   bool isAutoScaleLabels() const { return autoScaleLabels_; }
   void setAutoScaleLabels(bool b);
 
+  //! get/set hide first axis
+  bool isHideFirstAxis() const { return hideFirstAxis_; }
+  void setHideFirstAxis(bool b);
+
   //---
 
   //! get/set matrix cell types
@@ -376,6 +384,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   const SelectMode &selectMode() const { return selectMode_; }
   void setSelectMode(const SelectMode &m);
+
+  bool isSelectInside() const { return selectInside_; }
+  void setSelectInside(bool b) { selectInside_ = b; }
 
   //---
 
@@ -429,6 +440,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   const Symbol &paretoOriginSymbol() const { return paretoData_.originSymbol; }
   void setParetoOriginSymbol(const Symbol &s);
+
+  //---
 
   int numBuckets() const;
   void setNumBuckets(int);
@@ -698,12 +711,13 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   bool xLabels_ { true }; //!< x labels
   bool yLabels_ { true }; //!< y labels
 
-  bool showBucketCount_       { true };
-  bool showDistributionRange_ { true };
+  bool showBucketCount_       { false };
+  bool showDistributionRange_ { false };
 
   PlotType plotType_ { PlotType::MATRIX }; //!< unexpanded plot type
 
   bool autoScaleLabels_ { false };
+  bool hideFirstAxis_   { false };
 
   bool expanded_  { false };
   int  expandRow_ { 0 };
@@ -716,7 +730,8 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Qt::Orientation orientation_ { Qt::Vertical };
   bool            innerBorder_ { false };
 
-  SelectMode selectMode_ { SelectMode::DATA };
+  SelectMode selectMode_   { SelectMode::DATA };
+  bool       selectInside_ { false };
 
   Plot* currentPlot_ { nullptr };
 
@@ -937,16 +952,18 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
   void drawScatter      (PaintDevice *device) const;
   void drawScatterPoints(PaintDevice *device, bool outside) const;
 
-  void drawBestFit     (PaintDevice *device) const;
-  void drawCorrelation (PaintDevice *device) const;
-  void drawBoxPlot     (PaintDevice *device) const;
+  void drawBestFit    (PaintDevice *device) const;
+  void drawCorrelation(PaintDevice *device) const;
+  void drawBoxPlot    (PaintDevice *device) const;
+
   void drawDistribution(PaintDevice *device) const;
+  void drawDistributionRange(PaintDevice *device) const;
 
   void drawRangeBox(PaintDevice *device, bool overlay=false) const;
 
   void drawDensity  (PaintDevice *device) const;
   void drawParetoDir(PaintDevice *device) const;
-  void drawPareto   (PaintDevice *device) const;
+  void drawPareto   (PaintDevice *device, std::set<int> &inds) const;
   void drawPie      (PaintDevice *device) const;
 
   void initGroupedValues();
@@ -990,6 +1007,8 @@ class CQChartsSummaryCellObj : public CQChartsPlotObj {
 
   mutable BBox          modifyBox_;
   mutable Qt::Alignment modifySide_ { };
+
+  mutable std::set<int> paretoInds_;
 
   //---
 

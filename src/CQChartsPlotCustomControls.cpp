@@ -1407,6 +1407,8 @@ updateWidgets()
 
   //---
 
+  int ivc = 0;
+
   CQChartsPlot::HeaderNameData headerData;
 
   for (int ic = 0; ic < nc; ++ic) {
@@ -1416,14 +1418,21 @@ updateWidgets()
 
     //---
 
-    auto *visibleItem = createBoolTableItem(isColumnVisible(ic));
+    bool visible = isColumnVisible(ic);
+
+    auto *visibleItem = createBoolTableItem(visible);
 
     columnList_->setItem(ic, ic1++, visibleItem);
 
     //---
 
     if (isShowColumnColor()) {
-      auto *colorItem = createColorTableItem(columnColor(ic));
+      QTableWidgetItem *colorItem;
+
+      if (visible)
+        colorItem = createColorTableItem(columnColor(ivc++));
+      else
+        colorItem = createStringTableItem("");
 
       columnList_->setItem(ic, ic1++, colorItem);
     }

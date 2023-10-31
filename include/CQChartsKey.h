@@ -30,18 +30,19 @@ class CQChartsKey : public CQChartsBoxObj,
  public CQChartsObjHeaderTextData<CQChartsKey> {
   Q_OBJECT
 
-  Q_PROPERTY(Qt::Orientation          orientation   READ orientation   WRITE setOrientation  )
-  Q_PROPERTY(bool                     autoHide      READ isAutoHide    WRITE setAutoHide     )
-  Q_PROPERTY(bool                     clipped       READ isClipped     WRITE setClipped      )
-  Q_PROPERTY(bool                     above         READ isAbove       WRITE setAbove        )
-  Q_PROPERTY(CQChartsKeyLocation      location      READ location      WRITE setLocation     )
-  Q_PROPERTY(QString                  header        READ headerStr     WRITE setHeaderStr    )
-  Q_PROPERTY(CQChartsColor            hiddenColor   READ hiddenColor   WRITE setHiddenColor  )
-  Q_PROPERTY(CQChartsAlpha            hiddenAlpha   READ hiddenAlpha   WRITE setHiddenAlpha  )
-  Q_PROPERTY(int                      columns       READ columns       WRITE setColumns      )
-  Q_PROPERTY(int                      maxRows       READ maxRows       WRITE setMaxRows      )
-  Q_PROPERTY(bool                     interactive   READ isInteractive WRITE setInteractive  )
-  Q_PROPERTY(CQChartsKeyPressBehavior pressBehavior READ pressBehavior WRITE setPressBehavior)
+  Q_PROPERTY(Qt::Orientation          orientation   READ orientation    WRITE setOrientation  )
+  Q_PROPERTY(bool                     autoHide      READ isAutoHide     WRITE setAutoHide     )
+  Q_PROPERTY(bool                     clipped       READ isClipped      WRITE setClipped      )
+  Q_PROPERTY(bool                     above         READ isAbove        WRITE setAbove        )
+  Q_PROPERTY(CQChartsKeyLocation      location      READ location       WRITE setLocation     )
+  Q_PROPERTY(QString                  header        READ headerStr      WRITE setHeaderStr    )
+  Q_PROPERTY(bool                     headerInline  READ isHeaderInline WRITE setHeaderInline )
+  Q_PROPERTY(CQChartsColor            hiddenColor   READ hiddenColor    WRITE setHiddenColor  )
+  Q_PROPERTY(CQChartsAlpha            hiddenAlpha   READ hiddenAlpha    WRITE setHiddenAlpha  )
+  Q_PROPERTY(int                      columns       READ columns        WRITE setColumns      )
+  Q_PROPERTY(int                      maxRows       READ maxRows        WRITE setMaxRows      )
+  Q_PROPERTY(bool                     interactive   READ isInteractive  WRITE setInteractive  )
+  Q_PROPERTY(CQChartsKeyPressBehavior pressBehavior READ pressBehavior  WRITE setPressBehavior)
 
   CQCHARTS_TEXT_DATA_PROPERTIES
 
@@ -114,11 +115,15 @@ class CQChartsKey : public CQChartsBoxObj,
   //---
 
   //! get/set header text
-  const QString &headerStr() const { return headerStr_; }
+  const QString &headerStr() const { return headerData_.text; }
   void setHeaderStr(const QString &s);
 
-  const QString &defHeaderStr() const { return defHeaderStr_; }
+  const QString &defHeaderStr() const { return headerData_.defText; }
   void setDefHeaderStr(const QString &s, bool update=true);
+
+  //! get/set header inline (horizontal)
+  bool isHeaderInline() const { return headerData_.isInline; }
+  void setHeaderInline(bool b);
 
   //---
 
@@ -199,11 +204,18 @@ class CQChartsKey : public CQChartsBoxObj,
   Qt::Orientation orientation_ { Qt::Vertical }; //!< layout direction
   bool            above_       { true };         //!< draw above view/plot
   Location        location_;                     //!< key location
-  QString         headerStr_;                    //!< header string
-  QString         defHeaderStr_;                 //!< default header string
-  bool            autoHide_    { true };         //!< auto hide if too big
-  bool            clipped_     { true };         //!< clipped to parent
-  bool            interactive_ { true };         //!< is interactive
+
+  struct HeaderData {
+    QString text;               //!< text
+    QString defText;            //!< default text
+    bool    isInline { false }; //!< is inline
+  };
+
+  HeaderData headerData_;
+
+  bool autoHide_    { true }; //!< auto hide if too big
+  bool clipped_     { true }; //!< clipped to parent
+  bool interactive_ { true }; //!< is interactive
 
   Color hiddenColor_;          //!< color for hidden item
   Alpha hiddenAlpha_  { 0.3 }; //!< alpha for hidden item

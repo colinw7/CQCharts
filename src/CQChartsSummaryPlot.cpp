@@ -587,6 +587,13 @@ setAutoScaleLabels(bool b)
   CQChartsUtil::testAndSet(autoScaleLabels_, b, [&]() { drawObjs(); } );
 }
 
+void
+CQChartsSummaryPlot::
+setHideFirstAxis(bool b)
+{
+  CQChartsUtil::testAndSet(hideFirstAxis_, b, [&]() { drawObjs(); } );
+}
+
 #if 0
 void
 CQChartsSummaryPlot::
@@ -1023,14 +1030,17 @@ addProperties()
   addProp("columns", "symbolSizeColumn", "symbolSize", "Symbol size column");
 
   // style
-  addProp("options", "plotType"  , "plotType"  , "Plot type");
-  addProp("options", "selectMode", "selectMode", "Select mode");
+  addProp("options", "plotType"    , "plotType"    , "Plot type");
+  addProp("options", "selectMode"  , "selectMode"  , "Select mode");
+  addProp("options", "selectInside", "selectInside", "Select only runs inside region");
 
   addProp("options", "outsideGray" , "outsideGray" , "Outside gray factor");
   addProp("options", "outsideAlpha", "outsideAlpha", "Outside alpha");
 
   addProp("options", "autoScaleLabels", "autoScaleLabels",
           "Auto scale axis labels to fit");
+  addProp("options", "hideFirstAxis"  , "hideFirstAxis",
+          "Hide first cell axis");
 #if 0
   addProp("options", "autoFormatValues", "autoFormatValues",
           "Auto format axis values to add numeric prefix");
@@ -1046,8 +1056,6 @@ addProperties()
 
   addTextProperties("yaxis/text", "yLabelText", "Y label",
                     CQChartsTextOptions::ValueType::ALL);
-
-  addPropI("options", "showBucketCount", "showBucketCount", "Show bucket count on y axis");
 
   // plot cell
   addProp("cell/fill", "plotCellFilled", "visible", "Cell fill visible");
@@ -1080,8 +1088,10 @@ addProperties()
 
   addLineProperties("distribution/stroke", "distributionStroke", "Distribution");
 
-  addPropI("options", "showDistributionRange", "showDistributionRange",
+  addPropI("distribution", "showDistributionRange", "showRange",
            "Show range on distribution plot");
+  addPropI("distribution", "showBucketCount", "showBucketCount",
+           "Show bucket count on y axis");
 
   addProp("distribution", "numBuckets"        , "numBuckets"  , "Number of buckets");
   addProp("distribution", "barSelectTarget"   , "selectTarget", "Target for selection of bar");
@@ -2952,48 +2962,64 @@ draw(PaintDevice *device) const
   bool drawXAxis = false;
 
   auto *xaxis = summaryPlot_->xAxis();
+
+  // only draw x axis on first (above) or last (below) row
   if (xaxis->side().type() == CQChartsAxisSide::Type::TOP_RIGHT)
     drawXAxis = (row_ == nc_ - 1);
   else
     drawXAxis = (row_ == 0);
 
-  if (drawXAxis) {
+  if (summaryPlot_->orientation() == Qt::Horizontal && col_ == 0)
     drawXAxis = false;
 
-    for (int row = 0; row < nc_; ++row) {
-      if (getCellType(row, col_) == CQChartsSummaryPlot::CellType::SCATTER) {
-        drawXAxis = true;
-        break;
+  // hide x axis on just distribution cell
+  if (summaryPlot_->isHideFirstAxis()) {
+    if (drawXAxis) {
+      drawXAxis = false;
+
+      for (int row = 0; row < nc_; ++row) {
+        if (getCellType(row, col_) == CQChartsSummaryPlot::CellType::SCATTER) {
+          drawXAxis = true;
+          break;
+        }
       }
     }
-
-    if (drawXAxis)
-      this->drawXAxis(device);
   }
+
+  if (drawXAxis)
+    this->drawXAxis(device);
 
   //---
 
   bool drawYAxis = false;
 
   auto *yaxis = summaryPlot_->yAxis();
+
+  // only draw y axis on first (left) or last (right) column
   if (yaxis->side().type() == CQChartsAxisSide::Type::TOP_RIGHT)
     drawYAxis = (col_ == nc_ - 1);
   else
     drawYAxis = (col_ == 0);
 
-  if (drawYAxis) {
+  if (summaryPlot_->orientation() == Qt::Vertical && row_ == nc_ - 1)
     drawYAxis = false;
 
-    for (int col = 0; col < nc_; ++col) {
-      if (getCellType(row_, col) == CQChartsSummaryPlot::CellType::SCATTER) {
-        drawYAxis = true;
-        break;
+  // hide y axis on just distribution cell
+  if (summaryPlot_->isHideFirstAxis()) {
+    if (drawYAxis) {
+      drawYAxis = false;
+
+      for (int col = 0; col < nc_; ++col) {
+        if (getCellType(row_, col) == CQChartsSummaryPlot::CellType::SCATTER) {
+          drawYAxis = true;
+          break;
+        }
       }
     }
-
-    if (drawYAxis)
-      this->drawYAxis(device);
   }
+
+  if (drawYAxis)
+    this->drawYAxis(device);
 
   //---
 
@@ -3432,7 +3458,7 @@ drawScatter(PaintDevice *device) const
     drawBestFit(device);
 
   if (summaryPlot_->isPareto())
-    drawPareto(device);
+    drawPareto(device, paretoInds_);
 
   //---
 
@@ -3690,10 +3716,9 @@ drawBestFit(PaintDevice *device) const
 
     //---
 
-    device->save();
-
     auto path = CQChartsDrawUtil::polygonToPath(fitPoly, /*closed*/false);
 
+    device->save();
     device->setClipRect(bbox);
 
     device->strokePath(path, device->pen());
@@ -4316,64 +4341,65 @@ drawDistribution(PaintDevice *device) const
   //---
 
   drawRangeBox(device);
+}
+
+void
+CQChartsSummaryCellObj::
+drawDistributionRange(PaintDevice *device) const
+{
+  PenBrush tpenBrush;
+
+  auto tc = summaryPlot_->xAxis()->interpAxesLabelTextColor(ColorInd());
+
+  CQChartsUtil::setPen(tpenBrush.pen, true, tc);
+
+  device->setPen(tpenBrush.pen);
 
   //---
 
-  if (rangeBox_.isValid() && summaryPlot_->isShowDistributionRange()) {
-    PenBrush tpenBrush;
+  summaryPlot_->setPainterFont(device, summaryPlot_->xAxis()->axesTickLabelTextFont());
 
-    auto tc = summaryPlot_->xAxis()->interpAxesLabelTextColor(ColorInd());
+  auto textOptions = summaryPlot_->boxPlotTextOptions(device);
 
-    CQChartsUtil::setPen(tpenBrush.pen, true, tc);
+  textOptions.formatted = false;
+  textOptions.scaled    = false;
+  textOptions.html      = false;
 
-    device->setPen(tpenBrush.pen);
+  Point   p1, p2;
+  QString str1, str2;
 
-    //---
+  if (summaryPlot_->orientation() == Qt::Vertical) {
+    str1 = CQChartsUtil::scaledNumberString(rangeBox_.getXMin());
+    str2 = CQChartsUtil::scaledNumberString(rangeBox_.getXMax());
+  }
+  else {
+    str1 = CQChartsUtil::scaledNumberString(rangeBox_.getYMin());
+    str2 = CQChartsUtil::scaledNumberString(rangeBox_.getYMax());
+  }
 
-    summaryPlot_->setPainterFont(device, summaryPlot_->xAxis()->axesTickLabelTextFont());
+  if (summaryPlot_->orientation() == Qt::Vertical) {
+    auto p1 = plotToParent(rangeBox_.getLL());
+    auto p2 = plotToParent(rangeBox_.getLR());
 
-    auto textOptions = summaryPlot_->boxPlotTextOptions(device);
+    bool centered = false;
 
-    textOptions.formatted = false;
-    textOptions.scaled    = false;
-    textOptions.html      = false;
+    textOptions.align = Qt::AlignRight | Qt::AlignTop;
+    CQChartsDrawUtil::drawTextAtPoint(device, p1, str1, textOptions, centered);
 
-    Point   p1, p2;
-    QString str1, str2;
+    textOptions.align = Qt::AlignLeft | Qt::AlignTop;
+    CQChartsDrawUtil::drawTextAtPoint(device, p2, str2, textOptions, centered);
+  }
+  else {
+    auto p1 = plotToParent(rangeBox_.getLR());
+    auto p2 = plotToParent(rangeBox_.getUR());
 
-    if (summaryPlot_->orientation() == Qt::Vertical) {
-      str1 = CQChartsUtil::scaledNumberString(rangeBox_.getXMin());
-      str2 = CQChartsUtil::scaledNumberString(rangeBox_.getXMax());
-    }
-    else {
-      str1 = CQChartsUtil::scaledNumberString(rangeBox_.getYMin());
-      str2 = CQChartsUtil::scaledNumberString(rangeBox_.getYMax());
-    }
+    bool centered = true;
 
-    if (summaryPlot_->orientation() == Qt::Vertical) {
-      auto p1 = plotToParent(rangeBox_.getLL());
-      auto p2 = plotToParent(rangeBox_.getLR());
+    textOptions.angle = CQChartsAngle::degrees(90);
+    textOptions.align = Qt::AlignHCenter | Qt::AlignTop;
 
-      bool centered = false;
-
-      textOptions.align = Qt::AlignRight | Qt::AlignTop;
-      CQChartsDrawUtil::drawTextAtPoint(device, p1, str1, textOptions, centered);
-
-      textOptions.align = Qt::AlignLeft | Qt::AlignTop;
-      CQChartsDrawUtil::drawTextAtPoint(device, p2, str2, textOptions, centered);
-    }
-    else {
-      auto p1 = plotToParent(rangeBox_.getLR());
-      auto p2 = plotToParent(rangeBox_.getUR());
-
-      bool centered = true;
-
-      textOptions.angle = CQChartsAngle::degrees(90);
-      textOptions.align = Qt::AlignHCenter | Qt::AlignTop;
-
-      CQChartsDrawUtil::drawTextAtPoint(device, p1, str1, textOptions, centered);
-      CQChartsDrawUtil::drawTextAtPoint(device, p2, str2, textOptions, centered);
-    }
+    CQChartsDrawUtil::drawTextAtPoint(device, p1, str1, textOptions, centered);
+    CQChartsDrawUtil::drawTextAtPoint(device, p2, str2, textOptions, centered);
   }
 }
 
@@ -4525,7 +4551,6 @@ drawDensity(PaintDevice *device) const
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   device->save();
-
   device->setClipRect(bbox);
 
   CQChartsDensity::DrawData drawData;
@@ -4659,7 +4684,7 @@ drawParetoDir(PaintDevice *device) const
 
 void
 CQChartsSummaryCellObj::
-drawPareto(PaintDevice *device) const
+drawPareto(PaintDevice *device, std::set<int> &inds) const
 {
   CQPerfTrace trace("CQChartsSummaryCellObj::drawPareto");
 
@@ -4709,7 +4734,18 @@ drawPareto(PaintDevice *device) const
 
     //---
 
-    device->save();
+    std::map<Point, std::set<int>> spoints;
+
+    for (int i = 0; i < polygon.size(); ++i)
+      spoints[polygon.point(i)].insert(i);
+
+    for (const auto &p : front) {
+      auto pi = spoints.find(p);
+      if (pi == spoints.end()) continue;
+
+      for (auto i : (*pi).second)
+        inds.insert(i);
+    }
 
     //---
 
@@ -4726,11 +4762,10 @@ drawPareto(PaintDevice *device) const
 
     auto path = CQChartsDrawUtil::polygonToPath(frontPoly, /*closed*/false);
 
+    device->save();
     device->setClipRect(bbox);
 
     device->strokePath(path, device->pen());
-
-    //---
 
     device->restore();
   };
@@ -4944,6 +4979,13 @@ drawOverlay(PaintDevice *device) const
     auto p2 = plotToParent(modifyBox_.getUR());
 
     device->drawRect(BBox(p1, p2));
+  }
+
+  //---
+
+  if (cellType == CQChartsSummaryPlot::CellType::DISTRIBUTION) {
+    if (rangeBox_.isValid() && summaryPlot_->isShowDistributionRange())
+      drawDistributionRange(device);
   }
 }
 
@@ -5469,6 +5511,11 @@ updateSelectData(const Point &p)
 
   auto cellType = getCellType();
 
+  bool selectInside = summaryPlot_->isSelectInside();
+
+  if (! summaryPlot_->anyColumnRange())
+    selectInside = false;
+
   if      (cellType == CQChartsSummaryPlot::CellType::SCATTER) {
     auto symbolSize = summaryPlot_->calcScatterSymbolSize();
 
@@ -5478,6 +5525,9 @@ updateSelectData(const Point &p)
     auto s = std::min(sx, sy);
 
     for (auto &pointData : pointDatas_) {
+      if (selectInside && ! pointData.rangeSelected)
+        continue;
+
       auto p2 = plotToParent(pointData.p);
 
       auto d = p.distanceTo(p2);

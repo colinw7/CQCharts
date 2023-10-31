@@ -4,7 +4,12 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + key inline
+
+ + filter select/tip outside region
+ + select pareto runs
  + dendrogram sorting by value
+ + save/restore expand
 
  + view based mapping in subplot object
 
