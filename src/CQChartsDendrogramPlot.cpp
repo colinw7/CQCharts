@@ -296,7 +296,7 @@ CQChartsDendrogramPlot::
 setRootVisible(bool b)
 {
   CQChartsUtil::testAndSet(rootVisible_, b, [&]() {
-    updateRangeAndObjs();
+    cacheData_.needsPlace = true; updateRangeAndObjs();
   } );
 }
 
@@ -812,6 +812,24 @@ setOverlapMargin(const Length &l)
   } );
 }
 
+void
+CQChartsDendrogramPlot::
+setDepthSort(bool b)
+{
+  CQChartsUtil::testAndSet(depthSort_, b, [&]() {
+    cacheData_.needsPlace = true; updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsDendrogramPlot::
+setReverseSort(bool b)
+{
+  CQChartsUtil::testAndSet(reverseSort_, b, [&]() {
+    cacheData_.needsPlace = true; updateRangeAndObjs();
+  } );
+}
+
 //---
 
 void
@@ -893,6 +911,9 @@ addProperties()
   addProp("options", "overlapMargin"      , "overlapMargin"      , "Overlap margin");
 
   addProp("options", "hierValueTip", "hierValueTip", "Show hier value in tip");
+
+  addProp("options", "depthSort"  , "depthSort"  , "Sort per level");
+  addProp("options", "reverseSort", "reverseSort", "Reverse sort");
 
   // root
   addProp("root"      , "rootVisible"     , "visible"   , "Root is visible");
@@ -1107,9 +1128,11 @@ createObjs(PlotObjs &objs) const
 
     cacheData_.rootNodeObj = addNodeObj(root, nodeObjs, /*hier*/true);
 
-    cacheData_.rootNodeObj->setRoot(true);
+    if (cacheData_.rootNodeObj) {
+      cacheData_.rootNodeObj->setRoot(true);
 
-    addNodeObjs(root, 0, cacheData_.rootNodeObj, nodeObjs);
+      addNodeObjs(root, 0, cacheData_.rootNodeObj, nodeObjs);
+    }
   }
   else
     cacheData_.rootNodeObj = nullptr;
@@ -1179,9 +1202,8 @@ createObjs(PlotObjs &objs) const
   //---
 
   // move nodes if root not visible
-  if (! isRootVisible()) {
+  if (! isRootVisible())
     th->execMoveNonRoot(nodeObjs);
-  }
 
   // remove overlaps
   if (placeType() == PlaceType::BUCHHEIM) {
@@ -2016,14 +2038,17 @@ place() const
   if (! dendrogram_)
     return;
 
-  if      (placeType() == PlaceType::BUCHHEIM) {
+  if      (placeType() == PlaceType::DENDROGRAM) {
+    dendrogram_->placeNodes();
+  }
+  else if (placeType() == PlaceType::BUCHHEIM) {
     placeBuchheim();
+  }
+  else if (placeType() == PlaceType::SORTED) {
+    placeSorted();
   }
   else if (placeType() == PlaceType::CIRCULAR) {
     placeCircular();
-  }
-  else {
-    dendrogram_->placeNodes();
   }
 }
 
@@ -2118,6 +2143,123 @@ moveBuchheimHierNode(CBuchHeim::DrawTree *drawTree) const
 
   for (const auto &node : drawTree->children())
     moveBuchheimHierNode(node.get());
+}
+
+void
+CQChartsDendrogramPlot::
+placeSorted() const
+{
+  auto *root = rootNode();
+  if (! root) return;
+
+  root->resetPlaced();
+
+  DepthNodes depthNodes;
+
+  int minDepth = 0;
+  int maxDepth = 0;
+
+  if (! isRootVisible()) {
+    minDepth = 1;
+
+    root->setBBox(BBox(0, 0, 1, 1));
+  }
+
+  initSortedDepth(root, depthNodes, 0, maxDepth);
+
+  using DepthSizeRange = std::map<int, RMinMax>;
+
+  uint           maxDepthCount = 0;
+  RMinMax        sizeRange;
+  DepthSizeRange depthSizeRange;
+
+  for (const auto &pd : depthNodes) {
+    int depth = pd.first;
+
+    maxDepthCount = std::max(maxDepthCount, uint(pd.second.size()));
+
+    for (auto *node : pd.second) {
+      if (node->size()) {
+        sizeRange.add(*node->size());
+
+        depthSizeRange[depth].add(*node->size());
+      }
+    }
+  }
+
+  double vmin = 0.0;
+  double vmax = 1.0;
+
+  if (isReverseSort())
+    std::swap(vmin, vmax);
+
+  for (const auto &pd : depthNodes) {
+    int depth = pd.first;
+
+    if (depth == 0 && ! isRootVisible())
+      continue;
+
+    double x1 = CMathUtil::map(depth    , minDepth, maxDepth, 0.0, 1.0);
+    double x2 = CMathUtil::map(depth + 1, minDepth, maxDepth, 0.0, 1.0);
+
+    auto h = 1.0/maxDepthCount;
+
+    int i = 0;
+
+    for (auto *node : pd.second) {
+      double y1, y2;
+
+      if      (isDepthSort() && depthSizeRange[depth].isSet()) {
+        const auto &sizeRange1 = depthSizeRange[depth];
+
+        auto size = (node->size() ? *node->size() : sizeRange1.min());
+
+        auto y = CMathUtil::map(size, sizeRange1.min(), sizeRange1.max(), vmin, vmax);
+
+        y1 = y - h/2.0;
+        y2 = y + h/2.0;
+      }
+      else if (sizeRange.isSet()) {
+        auto size = (node->size() ? *node->size() : sizeRange.min());
+
+        auto y = CMathUtil::map(size, sizeRange.min(), sizeRange.max(), vmin, vmax);
+
+        y1 = y - h/2.0;
+        y2 = y + h/2.0;
+      }
+      else {
+        y1 = CMathUtil::map(i    , 0, maxDepthCount, vmin, vmax);
+        y2 = CMathUtil::map(i + 1, 0, maxDepthCount, vmin, vmax);
+      }
+
+      auto bbox = BBox(x1, y1, x2, y2);
+
+      node->setBBox(bbox);
+
+      ++i;
+    }
+  }
+
+  for (const auto &pd : depthNodes) {
+    for (auto *node : pd.second)
+      node->setPlaced(true);
+  }
+}
+
+void
+CQChartsDendrogramPlot::
+initSortedDepth(Node *hierNode, DepthNodes &depthNodes, int depth, int &maxDepth) const
+{
+  maxDepth = std::max(maxDepth, depth);
+
+  depthNodes[depth].push_back(hierNode);
+
+  if (hierNode->isOpen()) {
+    maxDepth = std::max(maxDepth, depth + 1);
+
+    for (const auto &child : hierNode->getChildren())
+      initSortedDepth(child.node, depthNodes, depth + 1, maxDepth);
+  }
 }
 
 void
@@ -3380,36 +3522,36 @@ CQChartsGeom::BBox
 CQChartsDendrogramPlot::
 getBBox(Node *node) const
 {
-  if (placeType() == PlaceType::BUCHHEIM)
+  if      (placeType() == PlaceType::DENDROGRAM) {
+    // get specified shape size
+    auto calcSize = [&]() {
+      if (node->isRoot()) return calcRootSize();
+      if (node->isHier()) return calcHierSize();
+      return calcLeafSize();
+    };
+
+    auto cs = calcSize();
+
+    double cw = pixelToWindowWidth (cs.width ());
+    double ch = pixelToWindowHeight(cs.height());
+
+  //double mw = pixelToWindowWidth(tm);
+
+  //double xc = dendrogram_->nodeX(node) + mw;
+    double xc = dendrogram_->nodeX(node);
+    double yc = dendrogram_->nodeYC(node);
+
+    if (orientation() == Qt::Horizontal)
+      return BBox(xc - cw/2.0, yc - ch/2.0, xc + cw/2.0, yc + ch/2.0);
+    else
+      return BBox(yc - cw/2.0, 1.0 - (xc - ch/2.0), yc + cw/2.0, 1.0 - (xc + ch/2.0));
+  }
+  else if (placeType() == PlaceType::BUCHHEIM)
     return node->bbox();
-
-  if (placeType() == PlaceType::CIRCULAR)
+  else if (placeType() == PlaceType::SORTED)
     return node->bbox();
-
-  //---
-
-  // get specified shape size
-  auto calcSize = [&]() {
-    if (node->isRoot()) return calcRootSize();
-    if (node->isHier()) return calcHierSize();
-    return calcLeafSize();
-  };
-
-  auto cs = calcSize();
-
-  double cw = pixelToWindowWidth (cs.width ());
-  double ch = pixelToWindowHeight(cs.height());
-
-//double mw = pixelToWindowWidth(tm);
-
-//double xc = dendrogram_->nodeX(node) + mw;
-  double xc = dendrogram_->nodeX(node);
-  double yc = dendrogram_->nodeYC(node);
-
-  if (orientation() == Qt::Horizontal)
-    return BBox(xc - cw/2.0, yc - ch/2.0, xc + cw/2.0, yc + ch/2.0);
   else
-    return BBox(yc - cw/2.0, 1.0 - (xc - ch/2.0), yc + cw/2.0, 1.0 - (xc + ch/2.0));
+    return node->bbox();
 }
 
 //------

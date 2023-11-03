@@ -496,8 +496,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   //---
 
-  addProp("headerInline", "Geader/line", "string");
-
   addHeaderTextProp("header", "string", "string");
 
   addHeaderTextStyleProp("headerTextColor"        , "color"        , "color");
@@ -677,7 +675,7 @@ draw(PaintDevice *device) const
 
     BBox prect(p1.x, p2.y, p2.x, p1.y);
 
-    prects_.push_back(std::move(prect));
+    prects_.push_back(prect);
 
     //---
 
@@ -1577,7 +1575,7 @@ doLayout()
   h = layoutData_.scrollAreaHeight + layoutData_.hbarHeight;
 
   if (! isHeaderInline())
-    h += layoutData_.vbarWidth;
+    h += layoutData_.headerHeight;
 
   //---
 

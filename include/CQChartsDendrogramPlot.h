@@ -384,6 +384,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   Q_PROPERTY(CQChartsLength overlapMargin READ overlapMargin WRITE setOverlapMargin)
 
+  Q_PROPERTY(bool depthSort   READ isDepthSort   WRITE setDepthSort)
+  Q_PROPERTY(bool reverseSort READ isReverseSort WRITE setReverseSort)
+
   // node stroke/fill
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Root, root)
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Hier, hier)
@@ -416,6 +419,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   enum class PlaceType {
     DENDROGRAM,
     BUCHHEIM,
+    SORTED,
     CIRCULAR
   };
 
@@ -693,6 +697,12 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   double overlapScale() const { return overlapScale_; }
 
+  bool isDepthSort() const { return depthSort_; }
+  void setDepthSort(bool b);
+
+  bool isReverseSort() const { return reverseSort_; }
+  void setReverseSort(bool b);
+
   //---
 
   bool isHierValueTip() const { return hierValueTip_; }
@@ -804,8 +814,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
                             const QVariant &value) override;
 
  protected:
-  using DepthNodes   = std::vector<Node *>;
-  using DepthNodeSet = std::set<Node *>;
+  using NodesArray = std::vector<Node *>;
+  using NodeSet    = std::set<Node *>;
+  using DepthNodes = std::map<int, NodesArray>;
 
   struct AnglePair {
     double a  { 0.0 };
@@ -815,7 +826,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   using NodeAngles = std::map<Node *, AnglePair>;
 
   struct CircularNode {
-    DepthNodes nodes;
+    NodesArray nodes;
   };
 
   using CircularDepth = std::map<int, CircularNode>;
@@ -825,8 +836,12 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   void place() const;
 
   void placeBuchheim() const;
+
   void addBuchheimHierNode(CBuchHeim::Tree *tree, Node *hierNode, int depth) const;
   void moveBuchheimHierNode(CBuchHeim::DrawTree *tree) const;
+
+  void placeSorted() const;
+  void initSortedDepth(Node *hierNode, DepthNodes &depthNodes, int depth, int &maxDepth) const;
 
   void placeCircular() const;
   void initCircularDepth(Node *hierNode, CircularDepth &circularDepth,
@@ -924,6 +939,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Length         overlapMargin_       { Length::pixel(4.0) }; //!< overlap margin
   bool           adjustOverlaps_      { false };              //!< adjust overlaps
   mutable double overlapScale_        { 1.0 };                //!< overlap scale factor
+  bool           depthSort_           { true };               //!< sort per depth
+  bool           reverseSort_         { false };              //!< reverse sort
 
   struct SpreadData {
     bool   enabled { false }; //!< spread node overlaps
