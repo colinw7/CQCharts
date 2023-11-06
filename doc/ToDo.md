@@ -6,7 +6,6 @@ Abstract Painter/Javascript
 TODO:
  + filter select/tip outside region
  + select pareto runs
- + dendrogram sorting by value
  + save/restore expand
 
  + view based mapping in subplot object

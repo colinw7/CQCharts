@@ -141,6 +141,8 @@ class CQChartsDendrogram {
 
     int calcDepth(bool ignoreOpen=false) const;
 
+    int calcHierDepth() const;
+
     //---
 
     bool hasChild(Node *child) const;

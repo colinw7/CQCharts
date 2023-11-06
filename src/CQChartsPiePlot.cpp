@@ -59,7 +59,8 @@ addParameters()
 
   addBoolParameter("donut"     , "Donut"      , "donut"     ).
     setTip("Display pie as donut using inner radius");
-  addBoolParameter("donutTitle", "Donut Title", "donutTitle").setTip("how title in donut center");
+  addBoolParameter("donutTitle", "Donut Title", "donutTitle").
+    setTip("Show title in donut center");
 
   addBoolParameter("summary", "Summary", "summary").setTip("Draw summary group");
 

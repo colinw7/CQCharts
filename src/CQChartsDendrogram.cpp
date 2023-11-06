@@ -159,6 +159,16 @@ calcDepth(bool ignoreOpen) const
   return maxDepth + 1;
 }
 
+int
+CQChartsDendrogram::Node::
+calcHierDepth() const
+{
+  if (parent_)
+    return parent_->calcHierDepth() + 1;
+  else
+    return 1;
+}
+
 //---
 
 bool

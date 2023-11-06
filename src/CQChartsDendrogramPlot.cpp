@@ -609,10 +609,24 @@ mapHierValue(double value) const
 
 double
 CQChartsDendrogramPlot::
+mapDepthValue(int depth, double value) const
+{
+  auto pd = depthValueRange_.find(depth);
+
+  if (pd == depthValueRange_.end())
+    return mapValue(value);
+
+  return (*pd).second.map(value, 0.0, 1.0);
+}
+
+double
+CQChartsDendrogramPlot::
 mapValue(double value) const
 {
   return valueRange_.map(value, 0.0, 1.0);
 }
+
+//---
 
 double
 CQChartsDendrogramPlot::
@@ -1098,8 +1112,10 @@ createObjs(PlotObjs &objs) const
     placeModel();
 
     cacheData_.needsReload = false;
+    cacheData_.needsPlace  = true;
   }
-  else if (cacheData_.needsPlace) {
+
+  if (cacheData_.needsPlace) {
     place();
 
     cacheData_.needsPlace = false;
@@ -1416,6 +1432,8 @@ placeModel() const
   th->dendrogram_ = std::make_unique<PlotDendrogram>();
 
   //---
+
+  th->depthValueRange_.clear();
 
   th->tempRoot_ = th->dendrogram_->createNode(nullptr, "tempRoot");
   th->tempRoot_->setTemp(true);
@@ -2001,10 +2019,6 @@ placeModel() const
   //---
 
   processMetaData(isEdgeRows_);
-
-  //---
-
-  place();
 }
 
 //---
@@ -2527,8 +2541,13 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
 
     const auto &nname = nameList1[n - 1];
 
-    auto *node = dendrogram_->addNode(hierNode, nname, value.value());
-    assert(node);
+    auto *node = hierNode->findChild(nname);
+    if (! node) {
+      node = dendrogram_->addNode(hierNode, nname, value.value());
+      assert(node);
+    }
+    else
+      node->setSize(value.value());
 
     auto *node1 = dynamic_cast<PlotDendrogram::PlotNode *>(node); assert(node1);
 
@@ -2546,6 +2565,14 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
       node1->setSizeValue(sizeValue);
 
     processNodeNameValues(node1, nameValues);
+
+    //---
+
+    if (value.isSet()) {
+      auto *th = const_cast<CQChartsDendrogramPlot *>(this);
+
+      th->depthValueRange_[node1->calcHierDepth()].add(value.real());
+    }
   }
   // edges for separated names
   else {
@@ -2595,8 +2622,13 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
       }
     }
 
-    auto *node = dendrogram_->addNode(hierNode, name1, value.value());
-    assert(node);
+    auto *node = hierNode->findChild(name1);
+    if (! node) {
+      node = dendrogram_->addNode(hierNode, name1, value.value());
+      assert(node);
+    }
+    else
+      node->setSize(value.value());
 
     auto *node1 = dynamic_cast<PlotDendrogram::PlotNode *>(node); assert(node1);
 
@@ -2614,6 +2646,14 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
       node1->setSizeValue(sizeValue);
 
     processNodeNameValues(node1, nameValues);
+
+    //---
+
+    if (value.isSet()) {
+      auto *th = const_cast<CQChartsDendrogramPlot *>(this);
+
+      th->depthValueRange_[node1->calcHierDepth()].add(value.real());
+    }
   }
 }
 
@@ -3955,9 +3995,10 @@ textRect() const
   textOptions.formatted = false;
   textOptions.html      = false;
 
-  const auto &name = this->name();
-
+#if 0
   using TextPosition = CQChartsDendrogramPlot::TextPosition;
+
+  const auto &name = this->name();
 
   BBox tbbox;
 
@@ -3968,6 +4009,9 @@ textRect() const
     tbbox = CQChartsDrawUtil::calcTextAtPointRect(&device, p, name, textOptions,
                                                   centered, 0.0, 0.0);
   }
+#else
+  auto tbbox = displayRect();
+#endif
 
 #if 0
   QFontMetricsF fm(qfont);
@@ -4131,6 +4175,14 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   else if (dendrogramPlot_->nodeColorByValue() == CQChartsDendrogramPlot::ValueType::NODE) {
     auto value = this->value().realOr(0.0);
     auto color = dendrogramPlot_->mapValue(value);
+
+    fillColor = plot()->interpPaletteColor(ColorInd(color));
+  }
+  else if (dendrogramPlot_->nodeColorByValue() == CQChartsDendrogramPlot::ValueType::DEPTH_NODE) {
+    auto depth = this->node()->calcHierDepth();
+
+    auto value = this->value().realOr(0.0);
+    auto color = dendrogramPlot_->mapDepthValue(depth, value);
 
     fillColor = plot()->interpPaletteColor(ColorInd(color));
   }

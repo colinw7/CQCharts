@@ -1536,7 +1536,7 @@ doLayout()
   layoutData_.scrollAreaHeight = h;
 
   if (! isHeaderInline())
-    h -= layoutData_.headerHeight;
+    layoutData_.scrollAreaHeight -= layoutData_.headerHeight;
 
   if      (scrollData_.height.isSet()) {
     double sh = drawPlot->lengthPlotHeight(scrollData_.height.length());

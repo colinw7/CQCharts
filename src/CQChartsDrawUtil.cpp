@@ -1134,7 +1134,8 @@ drawTextAtPoint(PaintDevice *device, const Point &point, const QString &text,
 
     if      (options.align & Qt::AlignTop    ) dy1 =  ta + pdy;
     else if (options.align & Qt::AlignBottom ) dy1 = -td - pdy;
-    else if (options.align & Qt::AlignVCenter) dy1 = -ta/2.0 + td;
+  //else if (options.align & Qt::AlignVCenter) dy1 = -ta/2.0 + td;
+    else if (options.align & Qt::AlignVCenter) dy1 = (ta - td)/2.0;
 
     auto tp = point;
 

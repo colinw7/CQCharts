@@ -454,6 +454,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   enum ValueType {
     NONE,
     NODE,
+    DEPTH_NODE,
     HIER
   };
 
@@ -650,9 +651,10 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   //---
 
-  double mapHierValue(double value) const;
+  double mapHierValue (double value) const;
+  double mapDepthValue(int depth, double value) const;
+  double mapValue     (double value) const;
 
-  double mapValue(double value) const;
   double mapColor(double value) const;
   double mapSize(double value) const;
 
@@ -939,8 +941,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Length         overlapMargin_       { Length::pixel(4.0) }; //!< overlap margin
   bool           adjustOverlaps_      { false };              //!< adjust overlaps
   mutable double overlapScale_        { 1.0 };                //!< overlap scale factor
-  bool           depthSort_           { true };               //!< sort per depth
-  bool           reverseSort_         { false };              //!< reverse sort
+
+  bool depthSort_   { true };  //!< sort per depth
+  bool reverseSort_ { false }; //!< reverse sort
 
   struct SpreadData {
     bool   enabled { false }; //!< spread node overlaps
@@ -959,9 +962,12 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   bool hierValueTip_ { true }; //!< show hier value in tip
 
-  RMinMax valueRange_; //!< value column range
-  RMinMax colorRange_; //!< color column range
-  RMinMax sizeRange_;  //!< size column range
+  using DepthValueRange = std::map<int, RMinMax>;
+
+  RMinMax         valueRange_;      //!< value column range
+  DepthValueRange depthValueRange_; //!< depth value column range
+  RMinMax         colorRange_;      //!< color column range
+  RMinMax         sizeRange_;       //!< size column range
 
   RMinMax nodeValueRange_; //!< node value range
   RMinMax edgeValueRange_; //!< edge value range
