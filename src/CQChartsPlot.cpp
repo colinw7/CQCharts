@@ -4684,12 +4684,12 @@ void
 CQChartsPlot::
 addColorMapProperties()
 {
-  addProp("mapping/color", "colorMapped"    , "enabled"  , "Color values mapped");
-  addProp("mapping/color", "colorMapMin"    , "min"      , "Color value map min");
-  addProp("mapping/color", "colorMapMax"    , "max"      , "Color value map max");
+  addProp("mapping/color", "colorMapped"    , "enabled"  , "Color values mapped by column range");
+  addProp("mapping/color", "colorMapMin"    , "min"      , "Color value map target min");
+  addProp("mapping/color", "colorMapMax"    , "max"      , "Color value map target max");
   addProp("mapping/color", "colorMapPalette", "palette"  , "Color map palette");
   addProp("mapping/color", "colorMap"       , "color_map", "Value to color map");
-  addProp("mapping/color", "colorColumn"    , "column"   , "Color map column");
+  addProp("mapping/color", "colorMapColumn" , "column"   , "Color map column");
 }
 
 //--

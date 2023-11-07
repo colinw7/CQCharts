@@ -3304,6 +3304,101 @@ execSpreadOverlaps(const PlotObjs &objs)
 
   //---
 
+#if 0
+  using DistObjs = std::map<double, NodeObjs>;
+
+  for (const auto &pd : depthObjs) {
+    // find object nearest center
+    NodeObj *centerObj = nullptr;
+    double   dc        = 0.0;
+
+    for (auto *obj : pd.second) {
+      auto r = obj->displayRect();
+
+      auto mid = (orientation() == Qt::Horizontal ? r.getYMid() : r.getXMid());
+      auto dc1 = std::abs(mid - 0.5);
+
+      if (! centerObj || dc1 < dc) {
+        centerObj = obj;
+        dc        = dc1;
+      }
+    }
+
+    assert(centerObj);
+
+    // build objs above/below (left/right) in order of distance to center
+    DistObjs aboveObjs, belowObjs;
+
+    for (auto *obj : pd.second) {
+      if (obj == centerObj) continue;
+
+      auto r = obj->displayRect();
+
+      auto mid = (orientation() == Qt::Horizontal ? r.getYMid() : r.getXMid());
+
+      if (mid < 0.5)
+        belowObjs[-mid].push_back(obj); // invert order
+      else
+        aboveObjs[mid].push_back(obj);
+    }
+
+    //---
+
+//  auto *lastObj  = centerObj;
+    auto  lastRect = centerObj->displayRect();
+
+    for (auto &po : belowObjs) {
+      for (auto *obj : po.second) {
+        auto r = obj->displayRect();
+
+        auto r1 = r.expanded(-margin, -margin, margin, margin);
+
+        auto overlaps = (orientation() == Qt::Horizontal ?
+          r1.overlapsY(lastRect) : r1.overlapsX(lastRect));
+
+        if (overlaps) {
+          auto d = (orientation() == Qt::Horizontal ?
+            lastRect.getYMin() - r1.getYMax() : lastRect.getXMin() - r1.getXMax());
+
+          //std::cerr << "Move Below by " << d << "\n";
+          obj->movePerpBy(d);
+
+          r = obj->displayRect();
+        }
+
+//      lastObj  = obj;
+        lastRect = r;
+      }
+    }
+
+    for (auto &po : aboveObjs) {
+      for (auto *obj : po.second) {
+        auto r = obj->displayRect();
+
+        auto r1 = r.expanded(-margin, -margin, margin, margin);
+
+        auto overlaps = (orientation() == Qt::Horizontal ?
+          r1.overlapsY(lastRect) : r1.overlapsX(lastRect));
+
+        if (overlaps) {
+          auto d = (orientation() == Qt::Horizontal ?
+            lastRect.getYMax() - r1.getYMin() : lastRect.getXMax() - r1.getXMin());
+
+          //std::cerr << "Move Above by " << d << "\n";
+          obj->movePerpBy(d);
+
+          r = obj->displayRect();
+        }
+
+//      lastObj  = obj;
+        lastRect = r;
+      }
+    }
+  }
+#endif
+
+  //---
+
   spreadData_.bbox = BBox();
 
   for (auto *plotObj : objs) {
@@ -3676,6 +3771,7 @@ CQChartsDendrogramPlot::
 modelChangedSlot()
 {
   cacheData_.needsReload = true;
+
   CQChartsPlot::modelChangedSlot();
 }
 
