@@ -2721,6 +2721,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   BBox displayRangeBBox() const;
   BBox rawDisplayRangeBBox() const;
 
+  BBox equalDisplayRangeBBox() const;
+
   BBox calcDataPixelRect() const;
 
   BBox calcPlotRect() const;

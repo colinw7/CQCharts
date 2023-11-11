@@ -39,19 +39,19 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   //! get/set name columns
   const Columns &nameColumns() const { return nameColumns_; }
-  void setNameColumns(const Columns &c);
+  virtual void setNameColumns(const Columns &c);
 
   //! get/set value column
   const Column &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const Column &c);
+  virtual void setValueColumn(const Column &c);
 
   //! get/set group column
   const Column &groupColumn() const { return groupColumn_; }
-  void setGroupColumn(const Column &c);
+  virtual void setGroupColumn(const Column &c);
 
   //! get/set attributes column
   const Column &attributesColumn() const { return attributesColumn_; }
-  void setAttributesColumn(const Column &c);
+  virtual void setAttributesColumn(const Column &c);
 
   //---
 
@@ -69,7 +69,7 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   //! get/set separator
   const QString &separator() const { return separator_; }
-  void setSeparator(const QString &s) { separator_ = s; }
+  virtual void setSeparator(const QString &s) { separator_ = s; }
 
   QString calcSeparator() const { return (separator().length() ? separator() : QString("/")); }
 
@@ -77,7 +77,7 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   //! get/set follow view expand
   bool isFollowViewExpand() const { return followViewExpand_; }
-  void setFollowViewExpand(bool b);
+  virtual void setFollowViewExpand(bool b);
 
   virtual void followViewExpandChanged() { }
 

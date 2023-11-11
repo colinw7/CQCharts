@@ -19,9 +19,6 @@ class CQChartsColorColumnData : public CQChartsMapColumnData<double> {
  public:
   CQChartsColorColumnData() = default;
 
-  bool isIntMapped() const { return intMapped_; }
-  void setIntMapped(bool b) { intMapped_ = b; }
-
   const ColorType &colorType() const { return colorType_; }
   void setColorType(const ColorType &t) { colorType_ = t; setValid(false); }
 
@@ -40,14 +37,17 @@ class CQChartsColorColumnData : public CQChartsMapColumnData<double> {
   const Column &colorColumn() const { return colorColumn_; }
   void setColorColumn(const Column &c) { colorColumn_ = c; }
 
+  bool isIntMapped() const { return intMapped_; }
+  void setIntMapped(bool b) { intMapped_ = b; }
+
  private:
-  bool        intMapped_ { true };            //!< integer mapped
   ColorType   colorType_ { ColorType::AUTO }; //!< color type
   PaletteName palette_;                       //!< color palette
   ColorStops  xStops_;                        //!< color x stops
   ColorStops  yStops_;                        //!< color y stops
   ColorMap    colorMap_;                      //!< color map
   Column      colorColumn_;                   //!< color map column
+  bool        intMapped_ { true };            //!< is integer type mapped
 };
 
 #endif

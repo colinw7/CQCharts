@@ -384,8 +384,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   Q_PROPERTY(CQChartsLength overlapMargin READ overlapMargin WRITE setOverlapMargin)
 
-  Q_PROPERTY(bool depthSort   READ isDepthSort   WRITE setDepthSort)
-  Q_PROPERTY(bool reverseSort READ isReverseSort WRITE setReverseSort)
+  Q_PROPERTY(bool   depthSort   READ isDepthSort   WRITE setDepthSort)
+  Q_PROPERTY(bool   reverseSort READ isReverseSort WRITE setReverseSort)
+  Q_PROPERTY(double sortSize    READ sortSize      WRITE setSortSize)
 
   // node stroke/fill
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Root, root)
@@ -478,6 +479,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   void setSizeColumn(const Column &c);
 
   void setColorColumn(const Column &c) override;
+
+  void setValueColumn(const Column &c) override;
 
   const Column &swatchColorColumn() const { return swatchColorColumn_; }
   void setSwatchColorColumn(const Column &c);
@@ -704,6 +707,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   bool isReverseSort() const { return reverseSort_; }
   void setReverseSort(bool b);
+
+  double sortSize() const { return sortSize_; }
+  void setSortSize(double s);
 
   //---
 
@@ -942,8 +948,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   bool           adjustOverlaps_      { false };              //!< adjust overlaps
   mutable double overlapScale_        { 1.0 };                //!< overlap scale factor
 
-  bool depthSort_   { true };  //!< sort per depth
-  bool reverseSort_ { false }; //!< reverse sort
+  bool   depthSort_   { true };  //!< sort per depth
+  bool   reverseSort_ { false }; //!< reverse sort
+  double sortSize_    { 1.0 };   //!< sort perp range size
 
   struct SpreadData {
     bool   enabled { false }; //!< spread node overlaps

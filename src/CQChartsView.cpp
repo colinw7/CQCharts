@@ -4461,7 +4461,7 @@ rulerMousePress()
   auto w = pixelToWindow(mousePressPoint());
 
   rulerData_.start = w;
-  rulerData_.end   = rulerData_.end;
+  rulerData_.end   = rulerData_.start;
 
   invalidateOverlay();
 

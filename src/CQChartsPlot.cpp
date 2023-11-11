@@ -16159,6 +16159,21 @@ execWaitTree()
 
 CQChartsGeom::BBox
 CQChartsPlot::
+equalDisplayRangeBBox() const
+{
+  if (! isEqualScale())
+    return displayRangeBBox();
+
+  auto bbox = unequalDataRange_.bbox();
+
+  if (! bbox.isSet())
+    bbox = displayRangeBBox();
+
+  return bbox;
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
 displayRangeBBox() const
 {
   // calc current (zoomed/panned) data range
@@ -16406,16 +16421,7 @@ setFitBBox(const BBox &bbox)
   auto bbox1 = fitMargin().adjustPlotRange(this, bbox, /*inside*/true);
 
   // calc margin so plot box fits in specified box
-  BBox pbbox;
-
-  if (! isEqualScale())
-    pbbox = displayRangeBBox();
-  else {
-    pbbox = unequalDataRange_.bbox();
-
-    if (! pbbox.isSet())
-      pbbox = displayRangeBBox();
-  }
+  auto pbbox = equalDisplayRangeBBox();
 
   double left   = 100.0*(pbbox.getXMin() - bbox1.getXMin())/bbox1.getWidth ();
   double bottom = 100.0*(pbbox.getYMin() - bbox1.getYMin())/bbox1.getHeight();
@@ -16486,7 +16492,8 @@ CQChartsGeom::BBox
 CQChartsPlot::
 dataFitBBox() const
 {
-  auto bbox = displayRangeBBox();
+//auto bbox = displayRangeBBox();
+  auto bbox = equalDisplayRangeBBox();
 
   return bbox;
 }

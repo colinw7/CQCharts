@@ -282,6 +282,15 @@ setSizeColumn(const Column &c)
 
 void
 CQChartsDendrogramPlot::
+setValueColumn(const Column &c)
+{
+  CQChartsUtil::testAndSet(valueColumn_, c, [&]() {
+    cacheData_.needsReload = true; updateRangeAndObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
+void
+CQChartsDendrogramPlot::
 setSwatchColorColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(swatchColorColumn_, c, [&]() {
@@ -844,6 +853,15 @@ setReverseSort(bool b)
   } );
 }
 
+void
+CQChartsDendrogramPlot::
+setSortSize(double s)
+{
+  CQChartsUtil::testAndSet(sortSize_, s, [&]() {
+    cacheData_.needsPlace = true; updateRangeAndObjs();
+  } );
+}
+
 //---
 
 void
@@ -926,8 +944,9 @@ addProperties()
 
   addProp("options", "hierValueTip", "hierValueTip", "Show hier value in tip");
 
-  addProp("options", "depthSort"  , "depthSort"  , "Sort per level");
-  addProp("options", "reverseSort", "reverseSort", "Reverse sort");
+  addProp("sort", "depthSort"  , "depth"  , "Sort per level");
+  addProp("sort", "reverseSort", "reverse", "Reverse sort");
+  addProp("sort", "sortSize"   , "size"   , "Sort perpendicular size");
 
   // root
   addProp("root"      , "rootVisible"     , "visible"   , "Root is visible");
@@ -1067,9 +1086,21 @@ calcRange() const
   // fixed range (data scaled to fit)
   Range dataRange;
 
-  if (placeType() == PlaceType::CIRCULAR) {
+  if      (placeType() == PlaceType::CIRCULAR) {
     dataRange.updateRange(-1, -1);
     dataRange.updateRange( 1,  1);
+  }
+  else if (placeType() == PlaceType::SORTED) {
+    auto s = sortSize();
+
+    if (orientation() == Qt::Horizontal) {
+      dataRange.updateRange(0.0, 0.0);
+      dataRange.updateRange(1.0,   s);
+    }
+    else {
+      dataRange.updateRange(0.0, 0.0);
+      dataRange.updateRange(  s, 1.0);
+    }
   }
   else {
     dataRange.updateRange(0, 0);
@@ -1222,14 +1253,12 @@ createObjs(PlotObjs &objs) const
     th->execMoveNonRoot(nodeObjs);
 
   // remove overlaps
-  if (placeType() == PlaceType::BUCHHEIM) {
-    th->saveOverlapRects(nodeObjs);
+  th->saveOverlapRects(nodeObjs);
 
-    if      (isRemoveNodeOverlaps())
-      th->execRemoveOverlaps(nodeObjs);
-    else if (isSpreadNodeOverlaps())
-      th->execSpreadOverlaps(nodeObjs);
-  }
+  if      (isRemoveNodeOverlaps())
+    th->execRemoveOverlaps(nodeObjs);
+  else if (isSpreadNodeOverlaps())
+    th->execSpreadOverlaps(nodeObjs);
 
   //th->calcNodeSize(nodeObjs);
 
@@ -1252,7 +1281,9 @@ void
 CQChartsDendrogramPlot::
 updateZoomScroll()
 {
-  if (isSpreadNodeOverlaps()) {
+  auto scrollFit = (fitMode_ == FitMode::SCROLL);
+
+  if (scrollFit) {
     if (! scrollData_.invalid)
       return;
 
@@ -1330,7 +1361,9 @@ bool
 CQChartsDendrogramPlot::
 allowZoomX() const
 {
-  if (isSpreadNodeOverlaps())
+  auto scrollFit = (fitMode_ == FitMode::SCROLL);
+
+  if (scrollFit)
     return false;
 
   return true;
@@ -1340,7 +1373,9 @@ bool
 CQChartsDendrogramPlot::
 allowZoomY() const
 {
-  if (isSpreadNodeOverlaps())
+  auto scrollFit = (fitMode_ == FitMode::SCROLL);
+
+  if (scrollFit)
     return false;
 
   return true;
@@ -1350,7 +1385,9 @@ void
 CQChartsDendrogramPlot::
 wheelVScroll(int delta)
 {
-  if (isSpreadNodeOverlaps()) {
+  auto scrollFit = (fitMode_ == FitMode::SCROLL);
+
+  if (scrollFit) {
     spreadData_.pos += (delta > 0 ? -0.1 : 0.1);
 
     spreadData_.pos = std::min(std::max(spreadData_.pos, 0.0), spreadData_.scale - 1.0);
@@ -2173,10 +2210,19 @@ placeSorted() const
   int minDepth = 0;
   int maxDepth = 0;
 
+  auto s = sortSize();
+
+  double xs = 1.0, ys = 1.0;
+
+  if (orientation() == Qt::Horizontal)
+    ys = sortSize();
+  else
+    xs = sortSize();
+
   if (! isRootVisible()) {
     minDepth = 1;
 
-    root->setBBox(BBox(0, 0, 1, 1));
+    root->setBBox(BBox(0, 0, xs, ys));
   }
 
   initSortedDepth(root, depthNodes, 0, maxDepth);
@@ -2202,7 +2248,7 @@ placeSorted() const
   }
 
   double vmin = 0.0;
-  double vmax = 1.0;
+  double vmax = s;
 
   if (isReverseSort())
     std::swap(vmin, vmax);
@@ -2213,37 +2259,61 @@ placeSorted() const
     if (depth == 0 && ! isRootVisible())
       continue;
 
-    double x1 = CMathUtil::map(depth    , minDepth, maxDepth, 0.0, 1.0);
-    double x2 = CMathUtil::map(depth + 1, minDepth, maxDepth, 0.0, 1.0);
+    double x1, y1, x2, y2;
 
-    auto h = 1.0/maxDepthCount;
+    if (orientation() == Qt::Horizontal) {
+      x1 = CMathUtil::map(depth    , minDepth, maxDepth, 0.0, xs);
+      x2 = CMathUtil::map(depth + 1, minDepth, maxDepth, 0.0, xs);
+    }
+    else {
+      y1 = CMathUtil::map(depth    , minDepth, maxDepth, 0.0, ys);
+      y2 = CMathUtil::map(depth + 1, minDepth, maxDepth, 0.0, ys);
+    }
+
+    auto s1 = s/maxDepthCount;
 
     int i = 0;
 
     for (auto *node : pd.second) {
-      double y1, y2;
-
       if      (isDepthSort() && depthSizeRange[depth].isSet()) {
         const auto &sizeRange1 = depthSizeRange[depth];
 
         auto size = (node->size() ? *node->size() : sizeRange1.min());
 
-        auto y = CMathUtil::map(size, sizeRange1.min(), sizeRange1.max(), vmin, vmax);
+        auto vpos = CMathUtil::map(size, sizeRange1.min(), sizeRange1.max(), vmin, vmax);
 
-        y1 = y - h/2.0;
-        y2 = y + h/2.0;
+        if (orientation() == Qt::Horizontal) {
+          y1 = vpos - s1/2.0;
+          y2 = vpos + s1/2.0;
+        }
+        else {
+          x1 = vpos - s1/2.0;
+          x2 = vpos + s1/2.0;
+        }
       }
       else if (sizeRange.isSet()) {
         auto size = (node->size() ? *node->size() : sizeRange.min());
 
-        auto y = CMathUtil::map(size, sizeRange.min(), sizeRange.max(), vmin, vmax);
+        auto vpos = CMathUtil::map(size, sizeRange.min(), sizeRange.max(), vmin, vmax);
 
-        y1 = y - h/2.0;
-        y2 = y + h/2.0;
+        if (orientation() == Qt::Horizontal) {
+          y1 = vpos - s1/2.0;
+          y2 = vpos + s1/2.0;
+        }
+        else {
+          x1 = vpos - s1/2.0;
+          x2 = vpos + s1/2.0;
+        }
       }
       else {
-        y1 = CMathUtil::map(i    , 0, maxDepthCount, vmin, vmax);
-        y2 = CMathUtil::map(i + 1, 0, maxDepthCount, vmin, vmax);
+        if (orientation() == Qt::Horizontal) {
+          y1 = CMathUtil::map(i    , 0, maxDepthCount, vmin, vmax);
+          y2 = CMathUtil::map(i + 1, 0, maxDepthCount, vmin, vmax);
+        }
+        else {
+          x1 = CMathUtil::map(i    , 0, maxDepthCount, vmin, vmax);
+          x2 = CMathUtil::map(i + 1, 0, maxDepthCount, vmin, vmax);
+        }
       }
 
       auto bbox = BBox(x1, y1, x2, y2);
