@@ -181,6 +181,8 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   void drawText(PaintDevice *device, const QColor &shapeColor) const;
 
+  virtual QString calcValueLabel() const;
+
   void calcTextPos(Point &p, const QFont &font, Angle &angle, uint &position,
                    Qt::Alignment &align, bool &centered) const;
 
@@ -271,6 +273,8 @@ class CQChartsDendrogramEdgeObj : public CQChartsPlotObj {
   //---
 
   void draw(PaintDevice *device) const override;
+
+  void getEdgePoints(Point &p1, Point &p4) const;
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
@@ -380,7 +384,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_PROPERTY(bool adjustOverlaps      READ isAdjustOverlaps      WRITE setAdjustOverlaps)
   Q_PROPERTY(bool spreadNodeOverlaps  READ isSpreadNodeOverlaps  WRITE setSpreadNodeOverlaps)
 
-  Q_PROPERTY(bool hierValueTip READ isHierValueTip WRITE setHierValueTip)
+  Q_PROPERTY(bool propagateHier READ isPropagateHier WRITE setPropagateHier)
+  Q_PROPERTY(bool hierValueTip  READ isHierValueTip  WRITE setHierValueTip)
 
   Q_PROPERTY(CQChartsLength overlapMargin READ overlapMargin WRITE setOverlapMargin)
 
@@ -432,7 +437,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   enum class TextPosition {
     LEFT,
     RIGHT,
-    CENTER
+    CENTER,
+    INSIDE,
+    OUTSIDE
   };
 
   struct Edge {
@@ -452,11 +459,16 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   using Edges = std::vector<Edge *>;
 
-  enum ValueType {
+  enum class ValueType {
     NONE,
     NODE,
     DEPTH_NODE,
     HIER
+  };
+
+  enum class EdgeType {
+    CURVE,
+    LINE
   };
 
  public:
@@ -569,6 +581,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   bool isHierValueLabel() const { return hierNodeData_.valueLabel; }
   void setHierValueLabel(bool b);
 
+  bool isColorByHier() const { return colorByHier_; }
+  void setColorByHier(bool b);
+
   QSizeF calcHierSize() const;
 
   //---
@@ -632,6 +647,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   //---
 
+  const EdgeType &edgeType() const { return edgeData_.type; }
+  void setEdgeType(const EdgeType &t);
+
   //! get/set edge width
   const Length &edgeWidth() const { return edgeData_.width; }
   void setEdgeWidth(const Length &l);
@@ -657,6 +675,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   double mapHierValue (double value) const;
   double mapDepthValue(int depth, double value) const;
   double mapValue     (double value) const;
+
+  void depthValueRange(int depth, double &min, double &max) const;
+  void valueRange     (double &min, double &max) const;
 
   double mapColor(double value) const;
   double mapSize(double value) const;
@@ -713,8 +734,11 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   //---
 
+  bool isPropagateHier() const { return propagateHier_; }
+  void setPropagateHier(bool b);
+
   bool isHierValueTip() const { return hierValueTip_; }
-  void setHierValueTip(bool b) { hierValueTip_ = b; }
+  void setHierValueTip(bool b);
 
   //---
 
@@ -917,17 +941,19 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   // global node data
   bool   colorClosed_ { true };  //! fill closed node
+  bool   colorByHier_ { false }; //! color using min//max per hier
   bool   swatchColor_ { false }; //! draw color as swatch
   double swatchSize_  { 0.1 };   //! swatch size
 
   // edge data
   struct EdgeData {
-    bool   scaled       { false };              //!< scaled
-    Length width        { Length::pixel(8.0) }; //!< width
-    Length minWidth     { Length::pixel(1.0) }; //!< min width
-    bool   colorByValue { false };              //!< color by value
-    bool   sizeByValue  { false };              //!< size by value
-    bool   selectable   { true };               //!< is selectable
+    EdgeType type         { EdgeType::CURVE };
+    bool     scaled       { false };              //!< scaled
+    Length   width        { Length::pixel(8.0) }; //!< width
+    Length   minWidth     { Length::pixel(1.0) }; //!< min width
+    bool     colorByValue { false };              //!< color by value
+    bool     sizeByValue  { false };              //!< size by value
+    bool     selectable   { true };               //!< is selectable
   };
 
   EdgeData edgeData_;
@@ -967,7 +993,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   SpreadData spreadData_;
 
-  bool hierValueTip_ { true }; //!< show hier value in tip
+  bool propagateHier_ { false }; //!< propagate hier values
+  bool hierValueTip_  { true };  //!< show hier value in tip
 
   using DepthValueRange = std::map<int, RMinMax>;
 
