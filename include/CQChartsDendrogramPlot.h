@@ -181,10 +181,11 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   void drawText(PaintDevice *device, const QColor &shapeColor) const;
 
-  virtual QString calcValueLabel() const;
-
   void calcTextPos(Point &p, const QFont &font, Angle &angle, uint &position,
                    Qt::Alignment &align, bool &centered) const;
+
+  // convert value to string for node value
+  virtual QString calcValueLabel() const;
 
   //---
 
@@ -274,9 +275,11 @@ class CQChartsDendrogramEdgeObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  void getEdgePoints(Point &p1, Point &p4) const;
-
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
+  //---
+
+  void getEdgePoints(Point &p1, Point &p4) const;
 
  private:
   const DendrogramPlot* dendrogramPlot_ { nullptr }; //!< plot
@@ -340,6 +343,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_PROPERTY(bool         hierRotatedText  READ isHierRotatedText WRITE setHierRotatedText )
   Q_PROPERTY(double       hierTextMargin   READ hierTextMargin    WRITE setHierTextMargin  )
   Q_PROPERTY(bool         hierValueLabel   READ isHierValueLabel  WRITE setHierValueLabel  )
+  Q_PROPERTY(bool         colorByHier      READ isColorByHier     WRITE setColorByHier     )
 
   // leaf node data
   Q_PROPERTY(CQChartsLength    leafSize    READ leafSize    WRITE setLeafSize   )
@@ -360,10 +364,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_PROPERTY(double    swatchSize       READ swatchSize       WRITE setSwatchSize      )
 
   // edge data
-//Q_PROPERTY(bool           edgeArrow        READ isEdgeArrow        WRITE setEdgeArrow       )
+  Q_PROPERTY(EdgeType       edgeType         READ edgeType           WRITE setEdgeType        )
   Q_PROPERTY(CQChartsLength edgeWidth        READ edgeWidth          WRITE setEdgeWidth       )
   Q_PROPERTY(CQChartsLength minEdgeWidth     READ minEdgeWidth       WRITE setMinEdgeWidth    )
-//Q_PROPERTY(double         arrowWidth       READ arrowWidth         WRITE setArrowWidth      )
   Q_PROPERTY(bool           edgeColorByValue READ isEdgeColorByValue WRITE setEdgeColorByValue)
   Q_PROPERTY(bool           edgeSizeByValue  READ isEdgeSizeByValue  WRITE setEdgeSizeByValue )
   Q_PROPERTY(bool           edgeSelectable   READ isEdgeSelectable   WRITE setEdgeSelectable  )
@@ -410,6 +413,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_ENUMS(FitMode)
   Q_ENUMS(TextPosition)
   Q_ENUMS(ValueType)
+  Q_ENUMS(EdgeType)
 
  public:
   using NodeObj   = CQChartsDendrogramNodeObj;
@@ -462,8 +466,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   enum class ValueType {
     NONE,
     NODE,
-    DEPTH_NODE,
-    HIER
+    HIER,
+    TARGET_NODE
   };
 
   enum class EdgeType {
@@ -494,6 +498,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   void setValueColumn(const Column &c) override;
 
+  //! get/set swatch color column
   const Column &swatchColorColumn() const { return swatchColorColumn_; }
   void setSwatchColorColumn(const Column &c);
 
@@ -643,7 +648,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   void setSwatchColor(bool b);
 
   double swatchSize() const { return swatchSize_; }
-  void setSwatchSize(double b);
+  void setSwatchSize(double s);
 
   //---
 
@@ -673,8 +678,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   //---
 
   double mapHierValue (double value) const;
-  double mapDepthValue(int depth, double value) const;
   double mapValue     (double value) const;
+  double mapDepthValue(int depth, double value) const;
 
   void depthValueRange(int depth, double &min, double &max) const;
   void valueRange     (double &min, double &max) const;
@@ -723,6 +728,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   double overlapScale() const { return overlapScale_; }
 
+  //---
+
   bool isDepthSort() const { return depthSort_; }
   void setDepthSort(bool b);
 
@@ -731,6 +738,11 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   double sortSize() const { return sortSize_; }
   void setSortSize(double s);
+
+  double sortSizeFactor() const { return sortSizeFactor_; }
+  void setSortSizeFactor(double r);
+
+  double calcSortSize() const;
 
   //---
 
@@ -767,11 +779,26 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
                     const Color &color, const OptReal &colorValue, OptReal &sizeValue,
                     const CQChartsNameValues &nameValues, Edges &edges) const;
 
+  //---
+
+#if 0
+  BBox nodesBBox() const;
+  BBox nodesBBox(const PlotObjs &objs) const;
+#endif
+
+  //---
+
   void clearPlotObjects() override;
 
   bool createObjs(PlotObjs &objs) const override;
 
   bool isEdgeRows() const { return isEdgeRows_; }
+
+  //--
+
+  void autoFit() override;
+
+  //---
 
   void updateZoomScroll() override;
 
@@ -782,6 +809,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   bool allowZoomY() const override;
 
   void wheelVScroll(int delta) override;
+
+  void wheelZoom(const Point &pp, int delta) override;
 
   void updateScrollOffset();
 
@@ -839,6 +868,12 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   virtual EdgeObj *createEdgeObj(NodeObj *fromNode, NodeObj *toNode, const BBox &rect,
                                  const ColorInd &ig, const ColorInd &iv) const;
 
+  //---
+
+#if 0
+  double targetValue() const { return cacheData_.targetValue; }
+#endif
+
  protected:
   bool processMetaNodeValue(const QString &name, const QString &key,
                             const QVariant &value) override;
@@ -868,7 +903,6 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   void place() const;
 
   void placeBuchheim() const;
-
   void addBuchheimHierNode(CBuchHeim::Tree *tree, Node *hierNode, int depth) const;
   void moveBuchheimHierNode(CBuchHeim::DrawTree *tree) const;
 
@@ -934,20 +968,20 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   NodeData rootNodeData_;         //!< root node data
 
   // hier node data
-  NodeData hierNodeData_; //!< hier node data
+  NodeData hierNodeData_;          //!< hier node data
+  bool     colorByHier_ { false }; //! color by hierarchy
 
   // leaf node data
   NodeData leafNodeData_; //!< leaf node data
 
   // global node data
   bool   colorClosed_ { true };  //! fill closed node
-  bool   colorByHier_ { false }; //! color using min//max per hier
   bool   swatchColor_ { false }; //! draw color as swatch
   double swatchSize_  { 0.1 };   //! swatch size
 
   // edge data
   struct EdgeData {
-    EdgeType type         { EdgeType::CURVE };
+    EdgeType type         { EdgeType::CURVE };    //!< edge type
     bool     scaled       { false };              //!< scaled
     Length   width        { Length::pixel(8.0) }; //!< width
     Length   minWidth     { Length::pixel(1.0) }; //!< min width
@@ -965,7 +999,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   PlaceType       placeType_   { PlaceType::BUCHHEIM }; //!< place type
   FitMode         fitMode_     { FitMode::SCALE };      //!< fit mode
   int             hideDepth_   { -1 };                  //!< place type
-  double          sizeScale_   { 1.0 };                 //!< size scale
+
+  double sizeScale_ { 1.0 }; //!< size scale
 
   // overlap
   bool           removeNodeOverlaps_  { false };              //!< remove node overlaps
@@ -974,9 +1009,12 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   bool           adjustOverlaps_      { false };              //!< adjust overlaps
   mutable double overlapScale_        { 1.0 };                //!< overlap scale factor
 
-  bool   depthSort_   { true };  //!< sort per depth
-  bool   reverseSort_ { false }; //!< reverse sort
-  double sortSize_    { 1.0 };   //!< sort perp range size
+  bool   depthSort_      { true };  //!< sort per depth
+  bool   reverseSort_    { false }; //!< reverse sort
+  double sortSize_       { 1.0 };   //!< sort perp range size
+  double sortSizeFactor_ { 1.0 };   //!< sort size factor
+
+  //---
 
   struct SpreadData {
     bool   enabled { false }; //!< spread node overlaps
@@ -993,18 +1031,29 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   SpreadData spreadData_;
 
-  bool propagateHier_ { false }; //!< propagate hier values
+  //---
+
+  struct SortedData {
+    double pos { 0.0 }; //!< sorted pos
+  };
+
+  SortedData sortedData_;
+
+  //---
+
+  bool propagateHier_ { false }; //!< propagate values through hierarchy
   bool hierValueTip_  { true };  //!< show hier value in tip
 
-  using DepthValueRange = std::map<int, RMinMax>;
-
-  RMinMax         valueRange_;      //!< value column range
-  DepthValueRange depthValueRange_; //!< depth value column range
-  RMinMax         colorRange_;      //!< color column range
-  RMinMax         sizeRange_;       //!< size column range
+  RMinMax valueRange_; //!< value column range
+  RMinMax colorRange_; //!< color column range
+  RMinMax sizeRange_;  //!< size column range
 
   RMinMax nodeValueRange_; //!< node value range
   RMinMax edgeValueRange_; //!< edge value range
+
+  using DepthValueRange = std::map<int, RMinMax>;
+
+  DepthValueRange depthValueRange_; //!< depth value column range
 
   //---
 
@@ -1029,6 +1078,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
     int nodeInd { 0 };
     int edgeInd { 0 };
+
+//  double targetValue { 0.0 };
   };
 
   mutable CacheData cacheData_;

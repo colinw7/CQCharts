@@ -1,11 +1,105 @@
-#ifndef CQChartsParallelPlot_H
-#define CQChartsParallelPlot_H
+#ifndef CQChartsHierParallelPlot_H
+#define CQChartsHierParallelPlot_H
 
-#include <CQChartsPlot.h>
-#include <CQChartsPlotType.h>
+#include <CQChartsHierPlot.h>
+#include <CQChartsHierPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
 #include <CSafeIndex.h>
+
+class CQChartsHierParallelPlot;
+
+class CQChartsHierParallelNode {
+ public:
+  using HierParallelPlot = CQChartsHierParallelPlot;
+  using Node             = CQChartsHierParallelNode;
+
+  struct NodeValue {
+    Node*  node  { nullptr };
+    double value { 0.0 };
+
+    NodeValue(Node *node1, double &value1) :
+     node(node1), value(value1) {
+    }
+  };
+
+  using Children    = std::vector<Node *>;
+  using Point       = CQChartsGeom::Point;
+  using Values      = std::vector<NodeValue>;
+  using ValuesArray = std::vector<Values>;
+
+  CQChartsHierParallelNode(const HierParallelPlot *plot, Node *parent, const QString &name) :
+   parallelPlot_(plot), parent_(parent), name_(name) {
+    if (parent)
+      parent->children_.push_back(this);
+  }
+
+  Node *parent() const { return parent_; }
+
+  const QString &name() const { return name_; }
+
+  QString hierName() {
+    auto parentName = (parent_ ? parent_->hierName() : "");
+
+    return (parentName.length() ? parentName + "/" + name_ : name_);
+  }
+
+  double value() const { return value_; }
+  void setValue(double r) { value_ = r; }
+
+  const QModelIndex &modelInd() const { return modelInd_; }
+  void setModelInd(const QModelIndex &v) { modelInd_ = v; }
+
+  int parentDepth() const {
+    return (parent_ ? parent_->parentDepth() + 1 : 0);
+  }
+
+  int childDepth() const {
+    int d = 0;
+
+    for (auto *child : children_)
+      d = std::max(d, child->childDepth() + 1);
+
+    return d;
+  }
+
+  Node *getChild(const QString &name) const {
+    for (auto *child : children_)
+      if (child->name_ == name)
+        return child;
+
+    return nullptr;
+  }
+
+  void valueArrays(ValuesArray &valuesArray) {
+    Values values;
+    valueArrays1(valuesArray, values, 0);
+  }
+
+ private:
+  void valueArrays1(ValuesArray &valuesArray, Values &values, uint depth) {
+    values.push_back(NodeValue(this, value_));
+
+    if (children_.empty()) {
+      valuesArray.push_back(values);
+    }
+    else {
+      for (auto *child : children_) {
+        auto values1 = values;
+
+        child->valueArrays1(valuesArray, values1, depth + 1);
+      }
+    }
+  }
+
+ private:
+  const HierParallelPlot* parallelPlot_ { nullptr }; //!< parent plot
+  Node*                   parent_       { nullptr }; //!< parent node
+  Children                children_;                 //!< child nodes
+  QString                 name_;                     //!< node name
+  double                  value_        { 0.0 };     //!< node value
+  QModelIndex             modelInd_;                 //!< model index
+};
 
 //---
 
@@ -13,17 +107,17 @@
  * \brief Parallel plot type
  * \ingroup Charts
  */
-class CQChartsParallelPlotType : public CQChartsPlotType {
+class CQChartsHierParallelPlotType : public CQChartsHierPlotType {
  public:
   using ColumnType = CQBaseModelType;
 
  public:
-  CQChartsParallelPlotType();
+  CQChartsHierParallelPlotType();
 
-  QString name() const override { return "parallel"; }
-  QString desc() const override { return "Parallel"; }
+  QString name() const override { return "hierparallel"; }
+  QString desc() const override { return "HierParallel"; }
 
-  Category category() const override { return Category::TWO_D; }
+  Category category() const override { return Category::HIER; }
 
   void addParameters() override;
 
@@ -44,21 +138,21 @@ class CQChartsParallelPlotType : public CQChartsPlotType {
 
 //---
 
-class CQChartsParallelPlot;
+class CQChartsHierParallelPlot;
 
 /*!
  * \brief Parallel Plot Line object
  * \ingroup Charts
  */
-class CQChartsParallelLineObj : public CQChartsPlotObj {
+class CQChartsHierParallelLineObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using ParallelPlot = CQChartsParallelPlot;
+  using HierParallelPlot = CQChartsHierParallelPlot;
 
  public:
-  CQChartsParallelLineObj(const ParallelPlot *plot, const BBox &rect, const Polygon &poly,
-                          const QModelIndex &ind, const ColorInd &is);
+  CQChartsHierParallelLineObj(const HierParallelPlot *plot, const BBox &rect, int ind,
+                              const Polygon &poly, const ColorInd &is);
 
   //---
 
@@ -83,8 +177,6 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   bool inside(const Point &p) const override;
 
-  //bool interpY(double x, std::vector<double> &yvals) const;
-
   //---
 
   void getObjSelectIndices(Indices &inds) const override;
@@ -98,12 +190,11 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
  private:
   void getPolyLine(Polygon &poly) const;
 
-  QString xName() const;
-
  private:
-  const ParallelPlot* parallelPlot_ { nullptr }; //!< plot
-  Polygon             poly_;                     //!< polygon
-  mutable Polygon     polyLine_;                 //!< polyline
+  const HierParallelPlot* parallelPlot_ { nullptr }; //!< plot
+  int                     ind_          { 0 };       //!< line index
+  Polygon                 poly_;                     //!< polygon
+  mutable Polygon         polyLine_;                 //!< polyline
 };
 
 //---
@@ -112,24 +203,29 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
  * \brief Parallel Plot Point object
  * \ingroup Charts
  */
-class CQChartsParallelPointObj : public CQChartsPlotPointObj {
+class CQChartsHierParallelPointObj : public CQChartsPlotPointObj {
   Q_OBJECT
 
  public:
-  using ParallelPlot = CQChartsParallelPlot;
-  using Column       = CQChartsColumn;
-  using Length       = CQChartsLength;
-  using Symbol       = CQChartsSymbol;
+  using HierParallelPlot = CQChartsHierParallelPlot;
+  using Column           = CQChartsColumn;
+  using Length           = CQChartsLength;
+  using Symbol           = CQChartsSymbol;
 
  public:
-  CQChartsParallelPointObj(const ParallelPlot *plot, const BBox &rect, double yval, const Point &p,
-                           const QModelIndex &ind, const ColorInd &is, const ColorInd &iv);
+  CQChartsHierParallelPointObj(const HierParallelPlot *plot, const BBox &rect, const QString &name,
+                               int depth, double yval, const Point &p, const QModelIndex &ind,
+                               const ColorInd &is, const ColorInd &iv);
 
   //---
 
-  const ParallelPlot *parallelPlot() const { return parallelPlot_; }
+  const HierParallelPlot *parallelPlot() const { return parallelPlot_; }
 
-  double yval() const { return yval_; }
+  const QString &name() const { return name_; }
+
+  int depth() const { return depth_; }
+
+  double value() const { return value_; }
 
   //---
 
@@ -149,12 +245,14 @@ class CQChartsParallelPointObj : public CQChartsPlotPointObj {
 
   Length calcSymbolSize() const override;
 
- private:
-  QString xName() const;
+  Point calcPoint() const;
 
  private:
-  const ParallelPlot* parallelPlot_ { nullptr }; //!< plot
-  double              yval_         { 0.0 };     //!< y value
+  const HierParallelPlot* parallelPlot_ { nullptr }; //!< plot
+  QString                 name_;                     //!< name
+  double                  depth_        { 0 };       //!< depth value
+  double                  value_        { 0.0 };     //!< value
+  Point                   point_;
 };
 
 //---
@@ -163,18 +261,17 @@ class CQChartsParallelPointObj : public CQChartsPlotPointObj {
  * \brief Parallel Plot
  * \ingroup Charts
  */
-class CQChartsParallelPlot : public CQChartsPlot,
- public CQChartsObjLineData <CQChartsParallelPlot>,
- public CQChartsObjPointData<CQChartsParallelPlot> {
+class CQChartsHierParallelPlot : public CQChartsHierPlot,
+ public CQChartsObjLineData <CQChartsHierParallelPlot>,
+ public CQChartsObjPointData<CQChartsHierParallelPlot> {
   Q_OBJECT
-
-  // columns
-  Q_PROPERTY(CQChartsColumn  xColumn  READ xColumn  WRITE setXColumn )
-  Q_PROPERTY(CQChartsColumns yColumns READ yColumns WRITE setYColumns)
 
   // options
   Q_PROPERTY(Qt::Orientation orientation  READ orientation  WRITE setOrientation)
   Q_PROPERTY(bool            normalized   READ isNormalized WRITE setNormalized)
+
+  // root
+  Q_PROPERTY(bool rootVisible READ isRootVisible WRITE setRootVisible)
 
   // axis
   Q_PROPERTY(AxisLabelPos axisLabelPos READ axisLabelPos WRITE setAxisLabelPos)
@@ -192,6 +289,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
   Q_ENUMS(AxisLabelPos)
 
  public:
+  using Node     = CQChartsHierParallelNode;
   using Color    = CQChartsColor;
   using Alpha    = CQChartsAlpha;
   using Symbol   = CQChartsSymbol;
@@ -199,6 +297,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
   using PenData  = CQChartsPenData;
   using Length   = CQChartsLength;
   using ColorInd = CQChartsUtil::ColorInd;
+  using RMinMax  = CQChartsGeom::RMinMax;
 
   enum class AxisLabelPos {
     AXIS,
@@ -208,27 +307,13 @@ class CQChartsParallelPlot : public CQChartsPlot,
   };
 
  public:
-  CQChartsParallelPlot(View *view, const ModelP &model);
- ~CQChartsParallelPlot();
+  CQChartsHierParallelPlot(View *view, const ModelP &model);
+ ~CQChartsHierParallelPlot();
 
   //---
 
   void init() override;
   void term() override;
-
-  //---
-
-  // columns
-  const Column &xColumn() const { return xColumn_; }
-  void setXColumn(const Column &c);
-
-  const Columns &yColumns() const { return yColumns_; }
-  void setYColumns(const Columns &c);
-
-  //---
-
-  //! get visible y columns
-  const Columns &visibleYColumns() const { return visibleYColumns_; }
 
   //---
 
@@ -260,6 +345,12 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
+  //! get/set root visible
+  bool isRootVisible() const { return rootVisible_; }
+  void setRootVisible(bool b);
+
+  //---
+
   //! get/set axis label pos
   const AxisLabelPos &axisLabelPos() const { return axisLabelPos_; }
   void setAxisLabelPos(const AxisLabelPos &p);
@@ -274,11 +365,12 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
-  Range setRange(int i) const {
-    if (i >= 0 && i < int(setRanges_.size()))
-      return setRanges_[size_t(i)];
+  RMinMax depthRange(int i) const {
+    auto pr = depthRanges_.find(i);
+    if (pr != depthRanges_.end())
+      return (*pr).second;
 
-    return Range();
+    return RMinMax();
   }
 
   Axis *axis(int i) const { return CUtil::safeIndex(axes_, i).get(); }
@@ -293,16 +385,13 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   Range calcRange() const override;
 
+  Node *addNode(Node *parent, const QString &name, const QModelIndex &nameInd) const;
+
   void updateAxes();
 
   //---
 
   bool createObjs(PlotObjs &objs) const override;
-
-  //---
-
-  bool rowColValue(const CQChartsModelColumnDetails *details,
-                   const ModelIndex &ind, double &value, double defVal) const;
 
   //---
 
@@ -330,42 +419,29 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
-  void resetYColumnVisible();
-
-  bool isYColumnVisible(int ic) const;
-  void setYColumnVisible(int ic, bool visible);
-
  protected:
-  using LineObj  = CQChartsParallelLineObj;
-  using PointObj = CQChartsParallelPointObj;
+  using LineObj  = CQChartsHierParallelLineObj;
+  using PointObj = CQChartsHierParallelPointObj;
 
-  virtual LineObj *createLineObj(const BBox &rect, const Polygon &poly, const QModelIndex &ind,
+  virtual LineObj *createLineObj(const BBox &rect, int ind, const Polygon &poly,
                                  const ColorInd &is) const;
 
-  virtual PointObj *createPointObj(const BBox &rect, double yval, const Point &p,
-                                   const QModelIndex &ind, const ColorInd &is,
-                                   const ColorInd &iv) const;
+  virtual PointObj *createPointObj(const BBox &rect, const QString &name, int depth, double yval,
+                                   const Point &p, const QModelIndex &modelInd,
+                                   const ColorInd &is, const ColorInd &iv) const;
 
  public Q_SLOTS:
   // set horizontal
   void setHorizontal(bool b);
 
  protected:
-  void updateVisibleYColumns();
-
   CQChartsPlotCustomControls *createCustomControls() override;
 
  private:
-  using Ranges        = std::vector<Range>;
+  using DepthRanges   = std::map<int, RMinMax>;
   using AxisP         = std::unique_ptr<CQChartsAxis>;
   using YAxes         = std::vector<AxisP>;
   using ColumnVisible = std::map<int, bool>;
-
-  Column  xColumn_;  //!< x value column
-  Columns yColumns_; //!< y value columns
-
-  Columns       visibleYColumns_; //!< calculated visible y columns
-  ColumnVisible yColumnVisible_;  //!< visible y column list
 
   Qt::Orientation orientation_ { Qt::Vertical }; //!< axis orientation
   bool            normalized_  { true };         //!< is normalized
@@ -376,7 +452,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
   // lines
   bool linesSelectable_ { false }; //!< are lines selectable
 
-  Ranges setRanges_; //!< value set ranges
+  DepthRanges depthRanges_; //!< range at depth
 
   // axes
   Qt::Orientation    adir_      { Qt::Horizontal }; //!< axis direction
@@ -388,26 +464,29 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   double max_tw_ { 0.0 }; //!< max text width
 
+  bool rootVisible_ { false }; //!< root is visible
+
   AxisLabelPos axisLabelPos_ { AxisLabelPos::TOP };
   bool         axisLocal_    { true };
   bool         axisSpread_   { true };
+
+  mutable Node *root_  { nullptr };
+  mutable int   depth_ { 1 };
 };
 
 //---
 
 #include <CQChartsPlotCustomControls.h>
 
-class CQChartsParallelPlotColumnChooser;
-
 /*!
  * \brief Parallel Plot plot custom controls
  * \ingroup Charts
  */
-class CQChartsParallelPlotCustomControls : public CQChartsPlotCustomControls {
+class CQChartsHierParallelPlotCustomControls : public CQChartsPlotCustomControls {
   Q_OBJECT
 
  public:
-  CQChartsParallelPlotCustomControls(CQCharts *charts);
+  CQChartsHierParallelPlotCustomControls(CQCharts *charts);
 
   void init() override;
 
@@ -434,31 +513,11 @@ class CQChartsParallelPlotCustomControls : public CQChartsPlotCustomControls {
   void orientationSlot();
 
  protected:
-  CQChartsParallelPlot* parallelPlot_ { nullptr };
+  CQChartsHierParallelPlot* parallelPlot_ { nullptr };
 
   FrameData optionsFrame_;
 
   CQChartsEnumParameterEdit* orientationCombo_ { nullptr };
-
-  CQChartsParallelPlotColumnChooser* chooser_ { nullptr };
-};
-
-//---
-
-/*!
- * \brief Parallel Plot Column Chooser Widget
- * \ingroup Charts
- */
-class CQChartsParallelPlotColumnChooser : public CQChartsPlotColumnChooser {
-  Q_OBJECT
-
- public:
-  CQChartsParallelPlotColumnChooser(CQChartsParallelPlot *plot=nullptr);
-
-  const CQChartsColumns &getColumns() const override;
-
-  bool isColumnVisible(int ic) const override;
-  void setColumnVisible(int ic, bool visible) override;
 };
 
 #endif

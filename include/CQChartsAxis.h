@@ -270,11 +270,11 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //! get/set custom value start
   const OptReal &valueStart() const { return valueStart_; }
-  void setValueStart(const OptReal &v);
+  void setValueStart(const OptReal &r);
 
   //! get/set custom value end
   const OptReal &valueEnd() const { return valueEnd_; }
-  void setValueEnd(const OptReal &v);
+  void setValueEnd(const OptReal &r);
 
   //! set custom start and end value
   void setValueRange(double start, double end);
@@ -283,11 +283,11 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //! get/set custom value start
   const OptReal &gridStart() const { return gridStart_; }
-  void setGridStart(const OptReal &v);
+  void setGridStart(const OptReal &r);
 
   //! get/set custom value end
   const OptReal &gridEnd() const { return gridEnd_; }
-  void setGridEnd(const OptReal &v);
+  void setGridEnd(const OptReal &r);
 
   //---
 
@@ -309,7 +309,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //! get/set value type
   const AxisValueType &valueType() const { return data_.valueType; }
-  void setValueType(const AxisValueType &v, bool notify=true);
+  void setValueType(const AxisValueType &t, bool notify=true);
 
   bool isIntegral() const { return (valueType().type() == AxisValueType::Type::INTEGER); }
   bool isDate    () const { return (valueType().type() == AxisValueType::Type::DATE); }

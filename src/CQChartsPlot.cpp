@@ -5045,11 +5045,11 @@ setAxisColumnLabels(Axis *axis)
 
   if (! details || details->isNumeric()) {
     axis->setMajorIncrement(0);
-    axis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL));
+    axis->setValueType(CQChartsAxisValueType::real());
   }
   else {
     axis->setMajorIncrement(1);
-    axis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER));
+    axis->setValueType(CQChartsAxisValueType::integer());
 
     for (int i = 0; i < details->numUnique(); ++i)
       axis->setTickLabel(i, details->uniqueValue(i).toString());

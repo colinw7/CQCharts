@@ -1338,6 +1338,26 @@ class Range :
 
   //---
 
+  double normalizeX(double x) const {
+    auto d = xmax() - xmin();
+
+    if (d > 0.0)
+      return (x - xmin())/d;
+    else
+      return xmin();
+  }
+
+  double normalizeY(double y) const {
+    auto d = ymax() - ymin();
+
+    if (d > 0.0)
+      return (y - ymin())/d;
+    else
+      return ymin();
+  }
+
+  //---
+
   friend bool operator==(const Range &lhs, const Range &rhs) {
     if (! lhs.set_ && ! rhs.set_) return true;
     if (! lhs.set_ || ! rhs.set_) return false;
@@ -1585,9 +1605,22 @@ class MinMax {
   T min(const T &t) const { return (set_ ? min_ : t); }
   T max(const T &t) const { return (set_ ? max_ : t); }
 
+  //---
+
   T map(const T &r, const T &min, const T &max) const {
     return CMathUtil::map(r, min_, max_, min, max);
   }
+
+  T normalize(const T &r) const {
+    auto d = max() - min();
+
+    if (d > T(0))
+      return (r - min())/d;
+    else
+      return min();
+  }
+
+  //---
 
   bool inside(const T &r) const {
     if (! set_) return false;

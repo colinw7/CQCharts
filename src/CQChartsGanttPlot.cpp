@@ -407,8 +407,8 @@ postCalcRange()
 {
   xAxis()->setColumn(startColumn());
 
-  xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::DATE));
-  yAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER));
+  xAxis()->setValueType(CQChartsAxisValueType::date());
+  yAxis()->setValueType(CQChartsAxisValueType::integer());
 
   yAxis()->setMajorIncrement(1);
 }

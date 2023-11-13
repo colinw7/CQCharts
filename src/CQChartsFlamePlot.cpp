@@ -405,7 +405,7 @@ postCalcRange()
 {
   xAxis()->setColumn(startColumn());
 
-  yAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER));
+  yAxis()->setValueType(CQChartsAxisValueType::integer());
   yAxis()->setMajorIncrement(1);
 }
 

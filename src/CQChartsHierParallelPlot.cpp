@@ -1,4 +1,4 @@
-#include <CQChartsParallelPlot.h>
+#include <CQChartsHierParallelPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsModelDetails.h>
@@ -22,22 +22,16 @@
 #include <QMenu>
 #include <QVBoxLayout>
 
-CQChartsParallelPlotType::
-CQChartsParallelPlotType()
+CQChartsHierParallelPlotType::
+CQChartsHierParallelPlotType()
 {
 }
 
 void
-CQChartsParallelPlotType::
+CQChartsHierParallelPlotType::
 addParameters()
 {
   startParameterGroup("Parallel");
-
-  // columns
-  addColumnParameter("x", "X", "xColumn").
-    setUnique().setPropPath("columns.x").setTip("X value column");
-  addColumnsParameter("y", "Y", "yColumns").
-    setNumericColumn().setRequired().setPropPath("columns.y").setTip("Y value columns");
 
   addEnumParameter("orientation", "Orientation", "orientation").
     addNameValue("HORIZONTAL", static_cast<int>(Qt::Horizontal)).
@@ -48,11 +42,11 @@ addParameters()
 
   //---
 
-  CQChartsPlotType::addParameters();
+  CQChartsHierPlotType::addHierParameters("Parallel");
 }
 
 QString
-CQChartsParallelPlotType::
+CQChartsHierParallelPlotType::
 description() const
 {
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
@@ -70,71 +64,41 @@ description() const
 }
 
 void
-CQChartsParallelPlotType::
-analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
+CQChartsHierParallelPlotType::
+analyzeModel(ModelData *, AnalyzeModelData &)
 {
-  auto *details = modelData->details();
-  if (! details) return;
-
-  using UniqueColumns = std::map<int, Column>;
-
-  UniqueColumns xColumns;
-  Columns       yColumns;
-
-  for (int c = 0; c < details->numColumns(); ++c) {
-    const auto *columnDetails = details->columnDetails(Column(c));
-    if (! columnDetails) continue;
-
-    if      (columnDetails->isNumeric()) {
-      yColumns.addColumn(columnDetails->column());
-    }
-    else if (columnDetails->type() == ColumnType::STRING) {
-      int n = columnDetails->numUnique();
-
-      auto p = xColumns.find(-n);
-
-      if (p == xColumns.end())
-        xColumns[-n] = columnDetails->column();
-    }
-  }
-
-  if (! xColumns.empty())
-    analyzeModelData.parameterNameColumn["x"] = (*xColumns.begin()).second;
-
-  if (yColumns.count())
-    analyzeModelData.parameterNameColumns["y"] = yColumns;
 }
 
 CQChartsPlot *
-CQChartsParallelPlotType::
+CQChartsHierParallelPlotType::
 create(View *view, const ModelP &model) const
 {
-  return new CQChartsParallelPlot(view, model);
+  return new CQChartsHierParallelPlot(view, model);
 }
 
 //---
 
-CQChartsParallelPlot::
-CQChartsParallelPlot(View *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("parallel"), model),
- CQChartsObjLineData <CQChartsParallelPlot>(this),
- CQChartsObjPointData<CQChartsParallelPlot>(this)
+CQChartsHierParallelPlot::
+CQChartsHierParallelPlot(View *view, const ModelP &model) :
+ CQChartsHierPlot(view, view->charts()->plotType("hierparallel"), model),
+ CQChartsObjLineData <CQChartsHierParallelPlot>(this),
+ CQChartsObjPointData<CQChartsHierParallelPlot>(this)
 {
 }
 
-CQChartsParallelPlot::
-~CQChartsParallelPlot()
+CQChartsHierParallelPlot::
+~CQChartsHierParallelPlot()
 {
-  CQChartsParallelPlot::term();
+  CQChartsHierParallelPlot::term();
 }
 
 //---
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 init()
 {
-  CQChartsPlot::init();
+  CQChartsHierPlot::init();
 
   //---
 
@@ -166,90 +130,54 @@ init()
 }
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 term()
 {
 }
 
 //---
 
-void
-CQChartsParallelPlot::
-setXColumn(const Column &c)
-{
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() {
-    updateRangeAndObjs(); Q_EMIT customDataChanged();
-  } );
-}
-
-void
-CQChartsParallelPlot::
-setYColumns(const Columns &c)
-{
-  CQChartsUtil::testAndSet(yColumns_, c, [&]() {
-    visibleYColumns_ = yColumns_;
-
-    resetYColumnVisible();
-
-    updateRangeAndObjs();
-
-    Q_EMIT customDataChanged();
-  } );
-}
-
-//---
-
 CQChartsColumn
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 getNamedColumn(const QString &name) const
 {
-  Column c;
-
-  if (name == "x") c = this->xColumn();
-  else             c = CQChartsPlot::getNamedColumn(name);
+  auto c = CQChartsHierPlot::getNamedColumn(name);
 
   return c;
 }
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 setNamedColumn(const QString &name, const Column &c)
 {
-  if (name == "x") this->setXColumn(c);
-  else             CQChartsPlot::setNamedColumn(name, c);
+  return CQChartsHierPlot::setNamedColumn(name, c);
 }
 
 CQChartsColumns
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 getNamedColumns(const QString &name) const
 {
-  Columns c;
-
-  if (name == "y") c = this->yColumns();
-  else             c = CQChartsPlot::getNamedColumns(name);
-
-  return c;
+  return CQChartsHierPlot::getNamedColumns(name);
 }
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 setNamedColumns(const QString &name, const Columns &c)
 {
-  if (name == "y") this->setYColumns(c);
-  else             CQChartsPlot::setNamedColumns(name, c);
+  CQChartsHierPlot::setNamedColumns(name, c);
 }
 
 //---
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 setHorizontal(bool b)
 {
   setOrientation(b ? Qt::Horizontal : Qt::Vertical);
 }
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 setOrientation(const Qt::Orientation &orientation)
 {
   CQChartsUtil::testAndSet(orientation_, orientation, [&]() {
@@ -258,7 +186,7 @@ setOrientation(const Qt::Orientation &orientation)
 }
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 setNormalized(bool b)
 {
   CQChartsUtil::testAndSet(normalized_, b, [&]() {
@@ -269,7 +197,7 @@ setNormalized(bool b)
 //---
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 setLinesSelectable(bool b)
 {
   CQChartsUtil::testAndSet(linesSelectable_, b, [&]() { drawObjs(); } );
@@ -278,21 +206,30 @@ setLinesSelectable(bool b)
 //---
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
+setRootVisible(bool b)
+{
+  CQChartsUtil::testAndSet(rootVisible_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsHierParallelPlot::
 setAxisLabelPos(const AxisLabelPos &p)
 {
   CQChartsUtil::testAndSet(axisLabelPos_, p, [&]() { drawObjs(); } );
 }
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 setAxisLocal(bool b)
 {
   CQChartsUtil::testAndSet(axisLocal_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 setAxisSpread(bool b)
 {
   CQChartsUtil::testAndSet(axisSpread_, b, [&]() { updateRangeAndObjs(); } );
@@ -301,14 +238,10 @@ setAxisSpread(bool b)
 //------
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 addProperties()
 {
   addBaseProperties();
-
-  // columns
-  addProp("columns", "xColumn" , "x", "X column");
-  addProp("columns", "yColumns", "y", "Y columns");
 
   // options
   addProp("options", "orientation", "", "Draw horizontal or vertical");
@@ -343,6 +276,8 @@ addProperties()
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
+
+  addProp("root", "rootVisible", "visible", "Root is visible");
 
   addProp("axis", "axisLabelPos", "labelPos", "Axis label position");
   addProp("axis", "axisLocal"   , "local"   , "Local axis for each range");
@@ -442,7 +377,7 @@ addProperties()
 //---
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 initRange()
 {
   if (! currentModelData())
@@ -450,35 +385,26 @@ initRange()
 }
 
 CQChartsGeom::Range
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 calcRange() const
 {
-  CQPerfTrace trace("CQChartsParallelPlot::calcRange");
+  CQPerfTrace trace("CQChartsHierParallelPlot::calcRange");
 
   //---
 
   NoUpdate noUpdate(this);
 
-  auto *th = const_cast<CQChartsParallelPlot *>(this);
+  auto *th = const_cast<CQChartsHierParallelPlot *>(this);
 
   th->clearErrors();
-
-  th->updateVisibleYColumns();
-
-  //---
-
-  // update axes to match columns
-  th->updateAxes();
 
   //---
 
   // check columns
   bool columnsValid = true;
 
-  if (! checkColumn(xColumn(), "X"))
-    columnsValid = false;
-  if (! checkColumns(visibleYColumns(), "Y", /*required*/true))
-    columnsValid = false;
+  if (! checkColumns      (nameColumns(), "Name" )) columnsValid = false;
+  if (! checkNumericColumn(valueColumn(), "Value")) columnsValid = false;
 
   if (! columnsValid) {
     auto dataRange = Range(0.0, 0.0, 1.0, 1.0);
@@ -494,95 +420,186 @@ calcRange() const
   // calc range for each value column (set)
   class RowVisitor : public ModelVisitor {
    public:
-    using ParallelPlot = CQChartsParallelPlot;
+    using HierParallelPlot = CQChartsHierParallelPlot;
+    using Node             = CQChartsHierParallelNode;
 
    public:
-    RowVisitor(const ParallelPlot *parallelPlot) :
+    RowVisitor(const HierParallelPlot *parallelPlot, Node *root) :
      parallelPlot_(parallelPlot) {
-      ns_ = parallelPlot_->visibleYColumns().count();
-
-      details_.resize(size_t(ns_));
-
-      for (int i = 0; i < ns_; ++i) {
-        const auto &yColumn = parallelPlot_->visibleYColumns().getColumn(i);
-
-        details_[size_t(i)] = parallelPlot_->columnDetails(yColumn);
-
-        setRanges_.emplace_back();
-      }
+      nodeStack_.push_back(root);
     }
 
-    State visit(const QAbstractItemModel *, const VisitData &data) override {
-      for (int i = 0; i < ns_; ++i) {
-        auto &range = setRanges_[size_t(i)];
+    State hierVisit(const QAbstractItemModel *, const VisitData &data) override {
+      QStringList names;
+      QModelIndex nameInd;
 
-        const auto &yColumn = parallelPlot_->visibleYColumns().getColumn(i);
+      (void) getNames(data, names, nameInd);
 
-        ModelIndex yColumnInd(parallelPlot_, data.row, yColumn, data.parent);
+      //---
 
-        //---
+      if (names.length() > 0) {
+        Node *parentNode = this->parentNode();
 
-        double defVal = parallelPlot_->getModelBadValue(yColumn, data.row);
+        auto name = names[0];
 
-        double x = 0.0;
-        double y = defVal;
+        auto *childNode = parentNode->getChild(name);
 
-        // TODO: control default value ?
-        if (! parallelPlot_->rowColValue(details_[size_t(i)], yColumnInd, y, /*defVal*/y))
-          continue;
+        if (! childNode)
+          childNode = parallelPlot_->addNode(parentNode, name, nameInd);
 
-        if (parallelPlot_->isVertical())
-          range.updateRange(x, y);
-        else
-          range.updateRange(y, x);
+        nodeStack_.push_back(childNode);
       }
 
       return State::OK;
     }
 
-    const Ranges &setRanges() const { return setRanges_; }
+    State hierPostVisit(const QAbstractItemModel *, const VisitData &) override {
+      nodeStack_.pop_back();
+
+      assert(! nodeStack_.empty());
+
+      return State::OK;
+    }
+
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
+      QStringList names;
+      QModelIndex nameInd;
+
+      (void) getNames(data, names, nameInd);
+
+      //---
+
+      QModelIndex valueInd;
+
+      ModelIndex valueModelInd(parallelPlot_, data.row, parallelPlot_->valueColumn(),
+                               data.parent);
+
+      valueInd = parallelPlot_->modelIndex(valueModelInd);
+
+      bool ok;
+      auto value = parallelPlot_->modelReal(valueModelInd, ok);
+      if (! ok) return State::SKIP;
+
+      //---
+
+      Node *parentNode = this->parentNode();
+
+      for (const auto &name : names) {
+        auto *childNode = parentNode->getChild(name);
+
+        if (! childNode)
+          childNode = parallelPlot_->addNode(parentNode, name, nameInd);
+
+        parentNode = childNode;
+      }
+
+      parentNode->setValue(value);
+
+      return State::OK;
+    }
 
    private:
-    using ColumnDetailsArray = std::vector<CQChartsModelColumnDetails *>;
+    Node *parentNode() const {
+      assert(! nodeStack_.empty());
 
-    const ParallelPlot* parallelPlot_ { nullptr };
-    int                 ns_           { 0 };
-    ColumnDetailsArray  details_      { nullptr };
-    Ranges              setRanges_;
+      return nodeStack_.back();
+    }
+
+    bool getNames(const VisitData &data, QStringList &names, QModelIndex &nameInd) const {
+      ModelIndex nameModelInd(parallelPlot_, data.row, parallelPlot_->nameColumns().column(),
+                              data.parent);
+
+      nameInd = parallelPlot_->modelIndex(nameModelInd);
+
+      bool ok;
+      auto name = parallelPlot_->modelString(nameModelInd, ok);
+      if (! ok) return false;
+
+      //---
+
+      // split name into hier path elements
+      int pos = name.indexOf('/');
+
+      while (pos != -1) {
+        auto lhs = name.mid(0, pos);
+        auto rhs = name.mid(pos + 1);
+
+        names.push_back(lhs);
+
+        name = rhs;
+
+        pos = name.indexOf('/');
+      }
+
+      names.push_back(name);
+
+      return true;
+    }
+
+   private:
+    using NodeStack = std::vector<Node *>;
+
+    const HierParallelPlot* parallelPlot_ { nullptr };
+    NodeStack               nodeStack_;
   };
 
-  RowVisitor visitor(this);
+  //---
+
+  delete root_;
+
+  root_ = new Node(this, nullptr, QString());
+
+  RowVisitor visitor(this, root_);
 
   visitModel(visitor);
 
-  th->setRanges_ = visitor.setRanges();
+  depth_ = root_->childDepth() + 1;
+
+  //---
+
+  // update axes to match columns
+  th->updateAxes();
 
   //---
 
   // set range from data
   th->dataRange_ = Range();
 
-  int ns = visibleYColumns().count();
+  int minDepth = (isRootVisible() ? 0 : 1);
+  int maxDepth = depth_;
 
-  for (int j = 0; j < ns; ++j) {
-    auto &range = th->setRanges_[size_t(j)];
+  th->depthRanges_.clear();
+
+  CQChartsHierParallelNode::ValuesArray valuesArray;
+
+  root_->valueArrays(valuesArray);
+
+  for (const auto &values : valuesArray) {
+    for (const auto &pv : values) {
+      auto depth = pv.node->parentDepth();
+
+      if (depth == 0 && ! isRootVisible())
+        continue;
+
+      auto &range = th->depthRanges_[depth];
+
+      range.add(pv.value);
+    }
+  }
+
+  for (int depth = minDepth; depth < maxDepth; ++depth) {
+    auto &range = th->depthRanges_[depth];
     if (! range.isSet()) continue;
 
     auto updateRange = [&](double x, double y) {
-      if (isVertical()) {
-        range.updateRange(x, y);
-
+      if (isVertical())
         th->dataRange_.updateRange(x, y);
-      }
-      else {
-        range.updateRange(y, x);
-
+      else
         th->dataRange_.updateRange(y, x);
-      }
     };
 
-    updateRange(   - 0.5, range.ymin());
-    updateRange(ns - 0.5, range.ymax());
+    updateRange(minDepth - 0.5, range.min());
+    updateRange(maxDepth - 0.5, range.max());
   }
 
   //---
@@ -597,8 +614,8 @@ calcRange() const
       dataRange.updateRange(y, x);
   };
 
-  updateRange(   - 0.5, 0.0);
-  updateRange(ns - 0.5, 1.0);
+  updateRange(minDepth - 0.5, 0.0);
+  updateRange(maxDepth - 0.5, 1.0);
 
   th->normalizedDataRange_ = dataRange;
 
@@ -606,62 +623,49 @@ calcRange() const
 
   // set axes range and name
   if (isAxisLocal()) {
-    for (int j = 0; j < ns; ++j) {
-      auto *axis = this->axis(j);
+    for (int depth = minDepth; depth < maxDepth; ++depth) {
+      auto *axis = this->axis(depth);
 
-      const auto &range = setRange(j);
-      if (! range.isValid()) continue;
+      const auto &range = depthRange(depth);
+      if (! range.isSet()) continue;
 
-      const auto &yColumn = visibleYColumns().getColumn(j);
-
-      bool ok;
-      auto name = modelHHeaderString(yColumn, ok);
-
-      //const_cast<CQChartsParallelPlot *>(this)->setDataRange(range);
-
-      if (range.isSet()) {
-        if (isVertical()) {
-          if (isNormalized()) {
-            axis->setRange(0.0, 1.0);
-            axis->setValueRange(range.ymin(), range.ymax());
-          }
-          else {
-            if (! isAxisSpread()) {
-              axis->setRange     (range.ymin(), range.ymax());
-              axis->setValueRange(range.ymin(), range.ymax());
-            }
-            else {
-              axis->setRange     (dataRange_.ymin(), dataRange_.ymax());
-              axis->setValueRange(dataRange_.ymin(), dataRange_.ymax());
-            }
-          }
-
-          axis->setDefLabel(name);
+      if (isVertical()) {
+        if (isNormalized()) {
+          axis->setRange(0.0, 1.0);
+          axis->setValueRange(range.min(), range.max());
         }
         else {
-          if (isNormalized()) {
-            axis->setRange(0.0, 1.0);
-            axis->setValueRange(range.xmin(), range.xmax());
+          if (! isAxisSpread()) {
+            axis->setRange     (range.min(), range.max());
+            axis->setValueRange(range.min(), range.max());
           }
           else {
-            if (! isAxisSpread()) {
-              axis->setRange     (range.xmin(), range.xmax());
-              axis->setValueRange(range.xmin(), range.xmax());
-            }
-            else {
-              axis->setRange     (dataRange_.xmin(), dataRange_.xmax());
-              axis->setValueRange(dataRange_.xmin(), dataRange_.xmax());
-            }
+            axis->setRange     (dataRange_.ymin(), dataRange_.ymax());
+            axis->setValueRange(dataRange_.ymin(), dataRange_.ymax());
           }
-
-          axis->setDefLabel(name);
+        }
+      }
+      else {
+        if (isNormalized()) {
+          axis->setRange(0.0, 1.0);
+          axis->setValueRange(range.min(), range.max());
+        }
+        else {
+          if (! isAxisSpread()) {
+            axis->setRange     (range.min(), range.max());
+            axis->setValueRange(range.min(), range.max());
+          }
+          else {
+            axis->setRange     (dataRange_.xmin(), dataRange_.xmax());
+            axis->setValueRange(dataRange_.xmin(), dataRange_.xmax());
+          }
         }
       }
     }
   }
   else {
     if (isVertical()) {
-      mainXAxis_->setRange(0, ns);
+      mainXAxis_->setRange(minDepth, maxDepth);
       mainYAxis_->setRange(dataRange_.ymin(), dataRange_.ymax());
 
       mainXAxis_->setValueType(CQChartsAxisValueType::integer());
@@ -669,7 +673,7 @@ calcRange() const
     }
     else {
       mainXAxis_->setRange(dataRange_.xmin(), dataRange_.xmax());
-      mainYAxis_->setRange(0, ns);
+      mainYAxis_->setRange(minDepth, maxDepth);
 
       mainXAxis_->setValueType(CQChartsAxisValueType::real   ());
       mainYAxis_->setValueType(CQChartsAxisValueType::integer());
@@ -697,8 +701,21 @@ calcRange() const
     return dataRange_;
 }
 
+CQChartsHierParallelNode *
+CQChartsHierParallelPlot::
+addNode(Node *parent, const QString &name, const QModelIndex &nameInd) const
+{
+  auto nameInd1 = normalizeIndex(nameInd);
+
+  auto *node = new Node(this, parent, name);
+
+  node->setModelInd(nameInd1);
+
+  return node;
+}
+
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 updateAxes()
 {
   if (isVertical()) {
@@ -713,16 +730,16 @@ updateAxes()
   //---
 
   // create axes
-  int ns = visibleYColumns().count();
+  int maxDepth = depth_;
 
   auto adir = orientation();
 
-  if (int(axes_.size()) != ns || adir_ != adir) {
+  if (int(axes_.size()) != maxDepth || adir_ != adir) {
     adir_ = adir;
 
     axes_.clear();
 
-    for (int j = 0; j < ns; ++j) {
+    for (int depth = 0; depth < maxDepth; ++depth) {
       auto *axis = new CQChartsAxis(this, adir_, 0, 1);
 
       axis->moveToThread(this->thread());
@@ -735,162 +752,71 @@ updateAxes()
       axes_.push_back(AxisP(axis));
     }
   }
-
-  //---
-
-  // update axis style
-  for (int j = 0; j < ns; ++j) {
-    auto *axis = this->axis(j);
-
-    const auto &yColumn = visibleYColumns().getColumn(j);
-
-    axis->setColumn(yColumn);
-
-    if (! isAxisLocal())
-      setAxisColumnLabels(axis);
-  }
-}
-
-//------
-
-void
-CQChartsParallelPlot::
-updateVisibleYColumns()
-{
-  visibleYColumns_ = Columns();
-
-  int nc = yColumns().count();
-
-  for (int ic = 0; ic < nc; ++ic) {
-    if (! isYColumnVisible(ic))
-      continue;
-
-    visibleYColumns_.addColumn(yColumns().getColumn(ic));
-  }
 }
 
 //------
 
 bool
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 createObjs(PlotObjs &objs) const
 {
-  CQPerfTrace trace("CQChartsParallelPlot::createObjs");
+  CQPerfTrace trace("CQChartsHierParallelPlot::createObjs");
 
   NoUpdate noUpdate(this);
 
   //---
 
-  // create polyline for value from each set
-  using Polygons = std::vector<Polygon>;
-  using Indices  = std::vector<QModelIndex>;
-
-  class RowVisitor : public ModelVisitor {
-   public:
-    using ParallelPlot = CQChartsParallelPlot;
-
-   public:
-    RowVisitor(const ParallelPlot *plot) :
-     parallelPlot_(plot) {
-      ns_ = parallelPlot_->visibleYColumns().count();
-
-      details_.resize(size_t(ns_));
-
-      for (int i = 0; i < ns_; ++i) {
-        const auto &yColumn = parallelPlot_->visibleYColumns().getColumn(i);
-
-        details_[size_t(i)] = parallelPlot_->columnDetails(yColumn);
-      }
-    }
-
-    State visit(const QAbstractItemModel *, const VisitData &data) override {
-      ModelIndex xModelInd(parallelPlot_, data.row, parallelPlot_->xColumn(), data.parent);
-
-      Polygon poly;
-
-      auto xind = parallelPlot_->modelIndex(xModelInd);
-
-      xinds_.push_back(xind);
-
-      //---
-
-      for (int i = 0; i < ns_; ++i) {
-        const auto &yColumn = parallelPlot_->visibleYColumns().getColumn(i);
-
-        ModelIndex yColumnInd(parallelPlot_, data.row, yColumn, data.parent);
-
-        //---
-
-        double x = i;
-        double y = i;
-
-        // TODO: control default value ?
-        if (! parallelPlot_->rowColValue(details_[size_t(i)], yColumnInd, y, /*defVal*/y))
-          continue;
-
-        if (parallelPlot_->isVertical())
-          poly.addPoint(Point(x, y));
-        else
-          poly.addPoint(Point(y, x));
-      }
-
-      polys_.push_back(std::move(poly));
-
-      return State::OK;
-    }
-
-    const Polygons &polys() const { return polys_; }
-
-    const Indices &xinds() const { return xinds_; }
-
-   private:
-    using ColumnDetailsArray = std::vector<CQChartsModelColumnDetails *>;
-
-    const ParallelPlot* parallelPlot_ { nullptr };
-    int                 ns_           { 0 };
-    ColumnDetailsArray  details_      { nullptr };
-    Polygons            polys_;
-    Indices             xinds_;
-  };
-
-  RowVisitor visitor(this);
-
-  visitModel(visitor);
-
-  const auto &polys = visitor.polys();
-  const auto &xinds = visitor.xinds();
-
-  auto *th = const_cast<CQChartsParallelPlot *>(this);
-
-  //---
+//auto *th = const_cast<CQChartsHierParallelPlot *>(this);
 
   double sx, sy;
 
   plotSymbolSize(symbolSize(), sx, sy);
 
-  int n = int(polys.size());
+  //---
 
-  for (int i = 0; i < n; ++i) {
-    const auto &poly = polys[size_t(i)];
-    const auto &xind = xinds[size_t(i)];
+  CQChartsHierParallelNode::ValuesArray valuesArray;
 
-    auto xind1 = normalizeIndex(xind);
+  root_->valueArrays(valuesArray);
 
-    //---
+  // create polyline for each value array
+  struct PolyNodes {
+    Polygon             poly;
+    std::vector<Node *> nodes;
+  };
 
-    // add poly line object
-    QString xname;
+  using Polygons = std::vector<PolyNodes>;
 
-    if (xind.column() >= 0) {
-      ModelIndex xModelInd(th, xind.row(), Column(xind.column()), xind.parent());
+  Polygons polygons;
 
-      bool ok;
+  for (const auto &values : valuesArray) {
+    PolyNodes polyNodes;
 
-      xname = modelString(xModelInd, ok);
+    for (const auto &pv : values) {
+      auto depth = pv.node->parentDepth();
+
+      if (depth == 0 && ! isRootVisible())
+        continue;
+
+      Point p;
+
+      if (isVertical())
+        p = Point(depth, pv.value);
+      else
+        p = Point(pv.value, depth);
+
+      polyNodes.poly .addPoint(p);
+      polyNodes.nodes.push_back(pv.node);
     }
-    else
-      xname = QString::number(xind.row());
 
+    polygons.push_back(polyNodes);
+  }
+
+  //---
+
+  int i = 0;
+  int n = polygons.size();
+
+  for (const auto &polyNodes : polygons) {
     BBox bbox;
 
     if (isNormalized())
@@ -902,62 +828,90 @@ createObjs(PlotObjs &objs) const
 
     ColorInd is(i, n);
 
-    auto *lineObj = createLineObj(bbox, poly, xind1, is);
+    QModelIndex xind;
+
+    auto *lineObj = createLineObj(bbox, i, polyNodes.poly, is);
+
+    for (auto *node : polyNodes.nodes) {
+      if (node->modelInd().isValid())
+        lineObj->addModelInd(node->modelInd());
+    }
 
     lineObj->connectDataChanged(this, SLOT(updateSlot()));
 
     objs.push_back(lineObj);
 
-    //---
+    ++i;
+  }
 
-    // create point object for each poly point
-    int nl = poly.size();
+  //---
 
-    for (int j = 0; j < nl; ++j) {
-      const auto &yColumn = visibleYColumns().getColumn(j);
+  using NodeSet = std::set<Node *>;
 
-      ModelIndex yColumnInd(th, i, yColumn, xind.parent());
+  NodeSet nodeSet;
 
-      auto yind  = modelIndex(yColumnInd);
-      auto yind1 = normalizeIndex(yind);
+  i = 0;
+  n = valuesArray.size();
+
+  for (const auto &values : valuesArray) {
+    for (const auto &pv : values) {
+      auto pn = nodeSet.find(pv.node);
+      if (pn != nodeSet.end()) continue;
+
+      nodeSet.insert(pv.node);
 
       //---
 
-      const auto &range = setRange(j);
-      if (! range.isValid()) continue;
+      auto depth = pv.node->parentDepth();
 
-      auto p = poly.point(j);
+      if (depth == 0 && ! isRootVisible())
+        continue;
 
-      double pos = 0.0;
+      //---
 
-      // normalize point in range
-      if (isNormalized())
-        pos = (isVertical() ? range.normalizeY(p.y) : range.normalizeX(p.x));
+      Point p;
+
+      if (isVertical())
+        p = Point(depth, pv.value);
       else
-        pos = (isVertical() ? p.y : p.x);
+        p = Point(pv.value, depth);
 
-      double x, y;
+      // create point object for value
+      auto range = depthRange(depth);
+      if (! range.isSet()) continue;
+
+      auto pos  = (isVertical() ? p.y : p.x);
+      auto pos1 = pos;
+
+      if (isNormalized())
+        pos1 = range.normalize(pos);
+
+      double x, x1, y, y1;
 
       if (isVertical()) {
-        x = j;
-        y = pos;
+        x = depth; x1 = x; y = pos; y1 = pos1;
       }
       else {
-        x = pos;
-        y = j;
+        x = pos; x1 = pos1; y = depth; y1 = y;
       }
 
-      BBox bbox(x - sx/2, y - sy/2, x + sx/2, y + sy/2);
+      BBox bbox(x1 - sx/2, y1 - sy/2, x1 + sx/2, y1 + sy/2);
+
+      auto name = pv.node->hierName();
 
       ColorInd is(i, n);
-      ColorInd iv(j, nl);
+      ColorInd iv(depth, depth_);
 
-      auto *pointObj = createPointObj(bbox, p.y, Point(x, y), yind1, is, iv);
+      auto ind = pv.node->modelInd();
+
+      auto *pointObj = createPointObj(bbox, name, depth, pos, Point(x, y), ind, is, iv);
 
       pointObj->connectDataChanged(this, SLOT(updateSlot()));
 
       objs.push_back(pointObj);
     }
+
+    ++i;
   }
 
   //---
@@ -966,102 +920,36 @@ createObjs(PlotObjs &objs) const
 }
 
 bool
-CQChartsParallelPlot::
-rowColValue(const CQChartsModelColumnDetails *details,
-            const ModelIndex &ind, double &value, double defVal) const
-{
-  auto useDefault = [&]() {
-    value = defVal;
-    return true;
-  };
-
-  bool ok;
-
-  if (details && details->isNumeric()) {
-    value = modelReal(ind, ok);
-    if (! ok) return useDefault();
-  }
-  else {
-    auto var = modelValue(ind, ok);
-    if (! ok) return useDefault();
-
-    value = (details ? details->uniqueId(var) : 0.0);
-  }
-
-  if (CMathUtil::isNaN(value))
-    return false;
-
-  return true;
-}
-
-bool
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 probe(ProbeData &probeData) const
 {
-  int n = visibleYColumns().count();
+  int n = 1;
 
   if (isVertical()) {
-#if 0
-    int x1 = std::min(std::max(CMathRound::RoundDown(probeData.p.x), 0), n - 1);
-    int x2 = std::min(std::max(CMathRound::RoundUp  (probeData.p.x), 0), n - 1);
-
-    auto range1 = setRange(x1);
-    auto range2 = setRange(x2);
-    if (! range1.isValid() || ! range2.isValid()) return false;
-
-    for (const auto &plotObj : plotObjs_) {
-      auto *obj = dynamic_cast<CQChartsParallelLineObj *>(plotObj);
-      if (! obj) continue;
-
-      std::vector<double> yvals;
-
-      // interpolate to normalized (0-1) y
-      if (! obj->interpY(probeData.p.x, yvals))
-        continue;
-
-      for (const auto &y : yvals) {
-        double y1 = y*range1.ysize() + range1.ymin();
-        double y2 = y*range2.ysize() + range2.ymin();
-
-        double dx1 = probeData.p.x - x1;
-        double dx2 = x2 - probeData.p.x;
-
-        double yi;
-
-        if (x1 != x2)
-          yi = y1*(1 - dx1) + y2*(1 - dx2);
-        else
-          yi = y1;
-
-        probeData.yvals.emplace_back(y, QString::number(yi));
-      }
-    }
-#else
     int x = CMathRound::RoundNearest(probeData.p.x);
 
     x = std::min(std::max(x, 0), n - 1);
 
-    auto range = setRange(x);
-    if (! range.isValid()) return false;
+    auto range = depthRange(x);
+    if (! range.isSet()) return false;
 
     probeData.p.x = x;
 
     probeData.yvals.emplace_back(probeData.p.y, "",
-      QString::number(probeData.p.y*range.ysize() + range.ymin()));
-#endif
+      QString::number(probeData.p.y*(range.max() - range.min()) + range.min()));
   }
   else {
     int y = CMathRound::RoundNearest(probeData.p.y);
 
     y = std::min(std::max(y, 0), n - 1);
 
-    auto range = setRange(y);
-    if (! range.isValid()) return false;
+    auto range = depthRange(y);
+    if (! range.isSet()) return false;
 
     probeData.p.y = y;
 
     probeData.xvals.emplace_back(probeData.p.x, "",
-      QString::number(probeData.p.x*range.xsize() + range.xmin()));
+      QString::number(probeData.p.x*(range.max() - range.min()) + range.min()));
   }
 
   return true;
@@ -1070,7 +958,7 @@ probe(ProbeData &probeData) const
 //------
 
 bool
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 addMenuItems(QMenu *menu, const Point &)
 {
   menu->addSeparator();
@@ -1092,7 +980,7 @@ addMenuItems(QMenu *menu, const Point &)
 //---
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 redrawAxis(CQChartsAxis *, bool wait)
 {
   if (wait)
@@ -1102,17 +990,17 @@ redrawAxis(CQChartsAxis *, bool wait)
 }
 
 CQChartsGeom::BBox
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 axesFitBBox() const
 {
   return axesBBox_;
 }
 
 CQChartsGeom::BBox
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 calcExtraFitBBox() const
 {
-  CQPerfTrace trace("CQChartsParallelPlot::calcExtraFitBBox");
+  CQPerfTrace trace("CQChartsHierParallelPlot::calcExtraFitBBox");
 
   auto range = (isNormalized() ? normalizedDataRange_ : dataRange_);
   if (! range.isSet()) return BBox();
@@ -1153,14 +1041,14 @@ calcExtraFitBBox() const
 //---
 
 bool
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 hasFgAxes() const
 {
   return true;
 }
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 drawFgAxes(PaintDevice *device) const
 {
   if (axes_.empty())
@@ -1168,7 +1056,7 @@ drawFgAxes(PaintDevice *device) const
 
   //--
 
-  auto *th = const_cast<CQChartsParallelPlot *>(this);
+  auto *th = const_cast<CQChartsHierParallelPlot *>(this);
 
   //---
 
@@ -1179,13 +1067,14 @@ drawFgAxes(PaintDevice *device) const
   double tm = 4.0;
 
   // draw axes
-  int ns = visibleYColumns().count();
+  int minDepth = (isRootVisible() ? 0 : 1);
+  int maxDepth = depth_;
 
   if (isAxisLocal()) {
-    for (int j = 0; j < ns; ++j) {
-      assert(j < int(axes_.size()));
+    for (int depth = minDepth; depth < maxDepth; ++depth) {
+      assert(depth < int(axes_.size()));
 
-      auto *axis = this->axis(j);
+      auto *axis = this->axis(depth);
 
       axis->setAxesLineData         (mainYAxis_->axesLineData());
       axis->setAxesLabelTextData    (mainYAxis_->axesLabelTextData());
@@ -1197,13 +1086,13 @@ drawFgAxes(PaintDevice *device) const
 
       //---
 
-      const auto &range = setRange(j);
-      if (! range.isValid()) continue;
+      const auto &range = depthRange(depth);
+      if (! range.isSet()) continue;
 
       //---
 
       // draw set axis
-      axis->setPosition(CQChartsOptReal(j));
+      axis->setPosition(CQChartsOptReal(depth));
 
       axis->draw(this, device);
 
@@ -1229,11 +1118,11 @@ drawFgAxes(PaintDevice *device) const
     //---
 
     // draw set axis
-    axis->setPosition(CQChartsOptReal(-0.5));
+    axis->setPosition(CQChartsOptReal(minDepth - 0.5));
 
     if (mainYAxis_->gridLinesDisplayed() != CQChartsAxis::GridLinesDisplayed::NONE) {
-      axis->setGridStart(OptReal(-0.5));
-      axis->setGridEnd  (OptReal(ns - 0.5));
+      axis->setGridStart(OptReal(minDepth - 0.5));
+      axis->setGridEnd  (OptReal(maxDepth - 0.5));
 
       axis->drawGrid(this, device);
     }
@@ -1251,10 +1140,10 @@ drawFgAxes(PaintDevice *device) const
   //---
 
   // draw axes labels
-  for (int j = 0; j < ns; ++j) {
-    assert(j < int(axes_.size()));
+  for (int depth = minDepth; depth < maxDepth; ++depth) {
+    assert(depth < int(axes_.size()));
 
-    auto *axis = this->axis(j);
+    auto *axis = this->axis(depth);
 
     //---
 
@@ -1264,7 +1153,7 @@ drawFgAxes(PaintDevice *device) const
       auto axisLabelLen = Length::plot(1.0);
 
       if (axisLabelPos == AxisLabelPos::ALTERNATE) {
-        axisLabelPos = (j & 1 ? AxisLabelPos::BOTTOM : AxisLabelPos::TOP);
+        axisLabelPos = (depth & 1 ? AxisLabelPos::BOTTOM : AxisLabelPos::TOP);
         axisLabelLen = Length::plot(2.0);
       }
 
@@ -1274,12 +1163,6 @@ drawFgAxes(PaintDevice *device) const
 
       if (isAxisLocal())
         label = axis->label().string();
-      else {
-        const auto &yColumn = visibleYColumns().getColumn(j);
-
-        bool ok;
-        label = modelHHeaderString(yColumn, ok);
-      }
 
       //---
 
@@ -1290,15 +1173,15 @@ drawFgAxes(PaintDevice *device) const
       if (textRange.isSet()) {
         if (axisLabelPos == AxisLabelPos::TOP) {
           if (isVertical())
-            p = windowToPixel(Point(j, textRange.ymax()));
+            p = windowToPixel(Point(depth, textRange.ymax()));
           else
-            p = windowToPixel(Point(textRange.xmax(), j));
+            p = windowToPixel(Point(textRange.xmax(), depth));
         }
         else {
           if (isVertical())
-            p = windowToPixel(Point(j, textRange.ymin()));
+            p = windowToPixel(Point(depth, textRange.ymin()));
           else
-            p = windowToPixel(Point(textRange.xmin(), j));
+            p = windowToPixel(Point(textRange.xmin(), depth));
         }
       }
 
@@ -1356,26 +1239,25 @@ drawFgAxes(PaintDevice *device) const
 
 //---
 
-CQChartsParallelLineObj *
-CQChartsParallelPlot::
-createLineObj(const BBox &rect, const Polygon &poly, const QModelIndex &ind,
-              const ColorInd &is) const
+CQChartsHierParallelLineObj *
+CQChartsHierParallelPlot::
+createLineObj(const BBox &rect, int ind, const Polygon &poly, const ColorInd &is) const
 {
-  return new CQChartsParallelLineObj(this, rect, poly, ind, is);
+  return new CQChartsHierParallelLineObj(this, rect, ind, poly, is);
 }
 
-CQChartsParallelPointObj *
-CQChartsParallelPlot::
-createPointObj(const BBox &rect, double yval, const Point &p, const QModelIndex &ind,
-               const ColorInd &is, const ColorInd &iv) const
+CQChartsHierParallelPointObj *
+CQChartsHierParallelPlot::
+createPointObj(const BBox &rect, const QString &name, int depth, double value, const Point &p,
+               const QModelIndex &modelInd, const ColorInd &is, const ColorInd &iv) const
 {
-  return new CQChartsParallelPointObj(this, rect, yval, p, ind, is, iv);
+  return new CQChartsHierParallelPointObj(this, rect, name, depth, value, p, modelInd, is, iv);
 }
 
 //---
 
 bool
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 hasForeground() const
 {
   if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
@@ -1385,49 +1267,19 @@ hasForeground() const
 }
 
 void
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 execDrawForeground(PaintDevice *device) const
 {
-  CQChartsPlot::execDrawForeground(device);
-}
-
-//---
-
-void
-CQChartsParallelPlot::
-resetYColumnVisible()
-{
-  yColumnVisible_.clear();
-}
-
-bool
-CQChartsParallelPlot::
-isYColumnVisible(int ic) const
-{
-  auto p = yColumnVisible_.find(ic);
-  if (p == yColumnVisible_.end()) return true;
-
-  return (*p).second;
-}
-
-void
-CQChartsParallelPlot::
-setYColumnVisible(int ic, bool visible)
-{
-  yColumnVisible_[ic] = visible;
-
-  updateRangeAndObjs();
-
-  Q_EMIT customDataChanged();
+  CQChartsHierPlot::execDrawForeground(device);
 }
 
 //---
 
 CQChartsPlotCustomControls *
-CQChartsParallelPlot::
+CQChartsHierParallelPlot::
 createCustomControls()
 {
-  auto *controls = new CQChartsParallelPlotCustomControls(charts());
+  auto *controls = new CQChartsHierParallelPlotCustomControls(charts());
 
   controls->init();
 
@@ -1440,62 +1292,28 @@ createCustomControls()
 
 //------
 
-CQChartsParallelLineObj::
-CQChartsParallelLineObj(const CQChartsParallelPlot *parallelPlot, const BBox &rect,
-                        const Polygon &poly, const QModelIndex &ind, const ColorInd &is) :
- CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(parallelPlot),
+CQChartsHierParallelLineObj::
+CQChartsHierParallelLineObj(const CQChartsHierParallelPlot *parallelPlot, const BBox &rect,
+                            int ind, const Polygon &poly, const ColorInd &is) :
+ CQChartsPlotObj(const_cast<CQChartsHierParallelPlot *>(parallelPlot),
                  rect, is, ColorInd(), ColorInd()),
- parallelPlot_(parallelPlot), poly_(poly)
+ parallelPlot_(parallelPlot), ind_(ind), poly_(poly)
 {
   setDetailHint(DetailHint::MAJOR);
-
-  if (ind.isValid())
-    setModelInd(ind);
 }
 
 QString
-CQChartsParallelLineObj::
+CQChartsHierParallelLineObj::
 calcId() const
 {
-  QString xname;
-
-  if (parallelPlot_->xColumn().isValid()) {
-    ModelIndex xModelInd(plot(), modelInd().row(), parallelPlot_->xColumn(), modelInd().parent());
-
-    bool ok;
-
-    xname = plot()->modelString(xModelInd, ok);
-  }
-  else {
-    xname = QString::number(modelInd().row());
-  }
-
-  return QString("%1:%2").arg(typeName()).arg(xname);
+  return QString("line%1").arg(ind_);
 }
 
 QString
-CQChartsParallelLineObj::
+CQChartsHierParallelLineObj::
 calcTipId() const
 {
   CQChartsTableTip tableTip;
-
-  auto xname = this->xName();
-
-  tableTip.addBoldLine(xname);
-
-  int nl = poly_.size();
-
-  for (int j = 0; j < nl; ++j) {
-    const auto &yColumn = parallelPlot_->visibleYColumns().getColumn(j);
-
-    bool ok;
-
-    auto yname = parallelPlot_->modelHHeaderString(yColumn, ok);
-
-    tableTip.addTableRow(yname, poly_.point(j).y);
-  }
-
-  //---
 
   plot()->addTipColumns(tableTip, modelInd());
 
@@ -1504,28 +1322,8 @@ calcTipId() const
   return tableTip.str();
 }
 
-QString
-CQChartsParallelLineObj::
-xName() const
-{
-  QString xname;
-
-  if (parallelPlot_->xColumn().isValid()) {
-    ModelIndex xModelInd(plot(), modelInd().row(), parallelPlot_->xColumn(), modelInd().parent());
-
-    bool ok;
-
-    xname = parallelPlot_->modelString(xModelInd, ok);
-  }
-  else {
-    xname = QString::number(modelInd().row());
-  }
-
-  return xname;
-}
-
 bool
-CQChartsParallelLineObj::
+CQChartsHierParallelLineObj::
 isVisible() const
 {
   if (! parallelPlot_->isLines())
@@ -1535,7 +1333,7 @@ isVisible() const
 }
 
 bool
-CQChartsParallelLineObj::
+CQChartsHierParallelLineObj::
 inside(const Point &p) const
 {
   if (! isVisible())
@@ -1576,45 +1374,14 @@ inside(const Point &p) const
   return false;
 }
 
-#if 0
-bool
-CQChartsParallelLineObj::
-interpY(double x, std::vector<double> &yvals) const
-{
-  if (! isVisible())
-    return false;
-
-  Polygon poly;
-
-  getPolyLine(poly);
-
-  for (int i = 1; i < poly.count(); ++i) {
-    double x1 = poly.point(i - 1).x;
-    double y1 = poly.point(i - 1).y;
-    double x2 = poly.point(i    ).x;
-    double y2 = poly.point(i    ).y;
-
-    if (x >= x1 && x <= x2) {
-      double y = (y2 - y1)*(x - x1)/(x2 - x1) + y1;
-
-      yvals.push_back(y);
-    }
-  }
-
-  return ! yvals.empty();
-}
-#endif
-
 void
-CQChartsParallelLineObj::
-getObjSelectIndices(Indices &inds) const
+CQChartsHierParallelLineObj::
+getObjSelectIndices(Indices &) const
 {
-  addColumnSelectIndex (inds, parallelPlot_->xColumn());
-  addColumnsSelectIndex(inds, parallelPlot_->visibleYColumns());
 }
 
 void
-CQChartsParallelLineObj::
+CQChartsHierParallelLineObj::
 draw(PaintDevice *device) const
 {
   // set pen and brush
@@ -1642,7 +1409,7 @@ draw(PaintDevice *device) const
 }
 
 void
-CQChartsParallelLineObj::
+CQChartsHierParallelLineObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto colorInd = calcColorInd();
@@ -1650,7 +1417,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   parallelPlot_->setLineDataPen(penBrush.pen, colorInd);
 
   if (parallelPlot_->colorColumn().isValid() &&
-      parallelPlot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+      parallelPlot_->colorType() == CQChartsHierPlot::ColorType::AUTO) {
     auto ind1 = modelInd();
 
     Color indColor;
@@ -1662,28 +1429,33 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   parallelPlot_->setBrush(penBrush, BrushData(false));
 
   if (updateState)
-    parallelPlot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::LINE);
+    parallelPlot_->updateObjPenBrushState(this, penBrush, CQChartsHierPlot::DrawType::LINE);
 }
 
 void
-CQChartsParallelLineObj::
+CQChartsHierParallelLineObj::
 getPolyLine(Polygon &poly) const
 {
   // create normalized polyline
   if (parallelPlot_->isNormalized()) {
     for (int i = 0; i < poly_.size(); ++i) {
-      const auto &range = parallelPlot_->setRange(i);
-      if (! range.isValid()) continue;
+      auto p = poly_.point(i);
 
       double x, y;
 
       if (parallelPlot_->isVertical()) {
-        x = poly_.point(i).x;
-        y = range.normalizeY(poly_.point(i).y);
+        const auto &range = parallelPlot_->depthRange(int(p.x));
+        if (! range.isSet()) continue;
+
+        x = p.x;
+        y = range.normalize(p.y);
       }
       else {
-        x = range.normalizeX(poly_.point(i).x);
-        y = poly_.point(i).y;
+        const auto &range = parallelPlot_->depthRange(int(p.y));
+        if (! range.isSet()) continue;
+
+        x = range.normalize(p.x);
+        y = p.y;
       }
 
       poly.addPoint(Point(x, y));
@@ -1696,21 +1468,23 @@ getPolyLine(Polygon &poly) const
 
 //------
 
-CQChartsParallelPointObj::
-CQChartsParallelPointObj(const ParallelPlot *parallelPlot, const BBox &rect, double yval,
-                         const Point &p, const QModelIndex &ind, const ColorInd &is,
-                         const ColorInd &iv) :
- CQChartsPlotPointObj(const_cast<ParallelPlot *>(parallelPlot), rect, p, is, ColorInd(), iv),
- parallelPlot_(parallelPlot), yval_(yval)
+CQChartsHierParallelPointObj::
+CQChartsHierParallelPointObj(const HierParallelPlot *parallelPlot, const BBox &rect,
+                             const QString &name, int depth, double value, const Point &p,
+                             const QModelIndex &modelInd, const ColorInd &is, const ColorInd &iv) :
+ CQChartsPlotPointObj(const_cast<HierParallelPlot *>(parallelPlot), rect, p, is, ColorInd(), iv),
+ parallelPlot_(parallelPlot), name_(name), depth_(depth), value_(value), point_(p)
 {
-  if (ind.isValid())
-    setModelInd(ind);
+  p_ = calcPoint();
+
+  if (modelInd.isValid())
+    setModelInd(modelInd);
 }
 
 //---
 
 CQChartsLength
-CQChartsParallelPointObj::
+CQChartsHierParallelPointObj::
 calcSymbolSize() const
 {
   return parallelPlot()->symbolSize();
@@ -1719,37 +1493,26 @@ calcSymbolSize() const
 //---
 
 QString
-CQChartsParallelPointObj::
+CQChartsHierParallelPointObj::
 calcId() const
 {
-  auto xname = this->xName();
+  auto name = this->name();
+  if (name == "") name = "root";
 
-  const auto &yColumn = parallelPlot_->visibleYColumns().getColumn(iv_.i);
-
-  bool ok1;
-
-  auto yname = parallelPlot_->modelHHeaderString(yColumn, ok1);
-
-  return QString("%1:%2:%3=%4").arg(typeName()).arg(xname).arg(yname).arg(yval_);
+  return name;
 }
 
 QString
-CQChartsParallelPointObj::
+CQChartsHierParallelPointObj::
 calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  auto xname = this->xName();
+  auto name = this->name();
 
-  tableTip.addBoldLine(xname);
+  tableTip.addBoldLine(name);
 
-  const auto &yColumn = parallelPlot_->visibleYColumns().getColumn(iv_.i);
-
-  bool ok1;
-
-  auto yname = parallelPlot_->modelHHeaderString(yColumn, ok1);
-
-  tableTip.addTableRow(yname, yval_);
+  tableTip.addTableRow("Value", value_);
 
   //---
 
@@ -1762,30 +1525,8 @@ calcTipId() const
 
 //---
 
-QString
-CQChartsParallelPointObj::
-xName() const
-{
-  QString xname;
-
-  if (parallelPlot_->xColumn().isValid()) {
-    ModelIndex xModelInd(plot(), modelInd().row(), parallelPlot_->xColumn(), modelInd().parent());
-
-    bool ok;
-
-    xname = parallelPlot_->modelString(xModelInd, ok);
-  }
-  else {
-    xname = QString::number(modelInd().row());
-  }
-
-  return xname;
-}
-
-//---
-
 bool
-CQChartsParallelPointObj::
+CQChartsHierParallelPointObj::
 isVisible() const
 {
   if (! parallelPlot_->isPoints())
@@ -1797,7 +1538,7 @@ isVisible() const
 //---
 
 void
-CQChartsParallelPointObj::
+CQChartsHierParallelPointObj::
 getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, Column(modelInd().column()));
@@ -1806,7 +1547,7 @@ getObjSelectIndices(Indices &inds) const
 //---
 
 void
-CQChartsParallelPointObj::
+CQChartsHierParallelPointObj::
 draw(PaintDevice *device) const
 {
   auto symbol = parallelPlot()->symbol();
@@ -1833,11 +1574,42 @@ draw(PaintDevice *device) const
   //---
 
   // draw symbol
-  plot()->drawSymbol(device, point(), symbol, sx, sy, penBrush, /*scaled*/false);
+  auto p = calcPoint();
+
+  plot()->drawSymbol(device, p, symbol, sx, sy, penBrush, /*scaled*/false);
+}
+
+CQChartsGeom::Point
+CQChartsHierParallelPointObj::
+calcPoint() const
+{
+  // draw symbol
+  auto p = point_;
+
+  if (parallelPlot_->isNormalized()) {
+    const auto &range = parallelPlot_->depthRange(depth_);
+
+    if (range.isSet()) {
+      double x, y;
+
+      if (parallelPlot_->isVertical()) {
+        x = p.x;
+        y = range.normalize(p.y);
+      }
+      else {
+        x = range.normalize(p.x);
+        y = p.y;
+      }
+
+      p = Point(x, y);
+    }
+  }
+
+  return p;
 }
 
 void
-CQChartsParallelPointObj::
+CQChartsHierParallelPointObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto colorInd = calcColorInd();
@@ -1845,7 +1617,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   parallelPlot()->setSymbolPenBrush(penBrush, colorInd);
 
   if (parallelPlot_->colorColumn().isValid() &&
-      parallelPlot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+      parallelPlot_->colorType() == CQChartsHierPlot::ColorType::AUTO) {
     auto ind1 = modelInd();
 
     Color indColor;
@@ -1860,51 +1632,14 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 //------
 
-CQChartsParallelPlotColumnChooser::
-CQChartsParallelPlotColumnChooser(CQChartsParallelPlot *plot) :
- CQChartsPlotColumnChooser(plot)
-{
-}
-
-const CQChartsColumns &
-CQChartsParallelPlotColumnChooser::
-getColumns() const
-{
-  auto *plot = dynamic_cast<CQChartsParallelPlot *>(this->plot());
-  assert(plot);
-
-  return plot->yColumns();
-}
-
-bool
-CQChartsParallelPlotColumnChooser::
-isColumnVisible(int ic) const
-{
-  auto *plot = dynamic_cast<CQChartsParallelPlot *>(this->plot());
-
-  return (plot ? plot->isYColumnVisible(ic) : false);
-}
-
-void
-CQChartsParallelPlotColumnChooser::
-setColumnVisible(int ic, bool visible)
-{
-  auto *plot = dynamic_cast<CQChartsParallelPlot *>(this->plot());
-
-  if (plot)
-    plot->setYColumnVisible(ic, visible);
-}
-
-//------
-
-CQChartsParallelPlotCustomControls::
-CQChartsParallelPlotCustomControls(CQCharts *charts) :
- CQChartsPlotCustomControls(charts, "parallel")
+CQChartsHierParallelPlotCustomControls::
+CQChartsHierParallelPlotCustomControls(CQCharts *charts) :
+ CQChartsPlotCustomControls(charts, "hierparallel")
 {
 }
 
 void
-CQChartsParallelPlotCustomControls::
+CQChartsHierParallelPlotCustomControls::
 init()
 {
   addWidgets();
@@ -1917,7 +1652,7 @@ init()
 }
 
 void
-CQChartsParallelPlotCustomControls::
+CQChartsHierParallelPlotCustomControls::
 addWidgets()
 {
   addColumnWidgets();
@@ -1928,25 +1663,13 @@ addWidgets()
 }
 
 void
-CQChartsParallelPlotCustomControls::
+CQChartsHierParallelPlotCustomControls::
 addColumnWidgets()
 {
-  // columns frame
-  auto columnsFrame = createGroupFrame("Columns", "columnsFrame");
-
-  //---
-
-  // x and y columns
-  addNamedColumnWidgets(QStringList() << "x" << "y", columnsFrame);
-
-  // column chooser
-  chooser_ = new CQChartsParallelPlotColumnChooser;
-
-  addFrameWidget(columnsFrame, chooser_);
 }
 
 void
-CQChartsParallelPlotCustomControls::
+CQChartsHierParallelPlotCustomControls::
 addOptionsWidgets()
 {
   // options group
@@ -1964,7 +1687,7 @@ addOptionsWidgets()
 }
 
 void
-CQChartsParallelPlotCustomControls::
+CQChartsHierParallelPlotCustomControls::
 connectSlots(bool b)
 {
   CQUtil::optConnectDisconnect(b,
@@ -1974,15 +1697,13 @@ connectSlots(bool b)
 }
 
 void
-CQChartsParallelPlotCustomControls::
+CQChartsHierParallelPlotCustomControls::
 setPlot(CQChartsPlot *plot)
 {
   if (plot_ && parallelPlot_)
     disconnect(parallelPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
 
-  parallelPlot_ = dynamic_cast<CQChartsParallelPlot *>(plot);
-
-  chooser_->setPlot(parallelPlot_);
+  parallelPlot_ = dynamic_cast<CQChartsHierParallelPlot *>(plot);
 
   CQChartsPlotCustomControls::setPlot(plot);
 
@@ -1991,7 +1712,7 @@ setPlot(CQChartsPlot *plot)
 }
 
 void
-CQChartsParallelPlotCustomControls::
+CQChartsHierParallelPlotCustomControls::
 updateWidgets()
 {
   connectSlots(false);
@@ -1999,8 +1720,6 @@ updateWidgets()
   //---
 
   orientationCombo_->setCurrentValue(static_cast<int>(parallelPlot_->orientation()));
-
-  chooser_->updateWidgets();
 
   //---
 
@@ -2012,21 +1731,21 @@ updateWidgets()
 }
 
 void
-CQChartsParallelPlotCustomControls::
+CQChartsHierParallelPlotCustomControls::
 orientationSlot()
 {
   parallelPlot_->setOrientation(static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
 }
 
 CQChartsColor
-CQChartsParallelPlotCustomControls::
+CQChartsHierParallelPlotCustomControls::
 getColorValue()
 {
   return parallelPlot_->linesColor();
 }
 
 void
-CQChartsParallelPlotCustomControls::
+CQChartsHierParallelPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
   parallelPlot_->setLinesColor(c);

@@ -1135,19 +1135,16 @@ updateAxes()
 
   if (! isSplitGroups()) {
     if (xColumnType_ == ColumnType::TIME)
-      xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::DATE),
-                            /*notify*/false);
+      xAxis()->setValueType(CQChartsAxisValueType::date(), /*notify*/false);
 
     if (calcMapXColumn()) {
-      xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
-                            /*notify*/false);
+      xAxis()->setValueType(CQChartsAxisValueType::integer(), /*notify*/false);
 
       xAxis()->setMajorIncrement(1);
     }
   }
   else {
-    xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
-                          /*notify*/false);
+    xAxis()->setValueType(CQChartsAxisValueType::integer(), /*notify*/false);
   }
 
   //---
@@ -1252,8 +1249,7 @@ updateAxes()
     //---
 
     if (xColumnType_ == ColumnType::TIME)
-      xaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::DATE),
-                          /*notify*/false);
+      xaxis->setValueType(CQChartsAxisValueType::date(), /*notify*/false);
 
     xaxis->setColumn(xAxisColumn);
 

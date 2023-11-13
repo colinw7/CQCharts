@@ -1185,8 +1185,7 @@ updateAxes()
     xAxis()->setValueType(CQChartsAxisValueType(xType), /*notify*/false);
   }
   else {
-    xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
-                          /*notify*/false);
+    xAxis()->setValueType(CQChartsAxisValueType::integer(), /*notify*/false);
   }
 
   //---

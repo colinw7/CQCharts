@@ -806,12 +806,10 @@ postCalcRange()
   auto *xAxis = mappedXAxis();
   auto *yAxis = mappedYAxis();
 
-  xAxis->setValueType     (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
-                           /*notify*/false);
+  xAxis->setValueType     (CQChartsAxisValueType::integer(), /*notify*/false);
   xAxis->setMajorIncrement(1);
 
-  yAxis->setValueType     (CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
-                           /*notify*/false);
+  yAxis->setValueType     (CQChartsAxisValueType::real(), /*notify*/false);
   yAxis->setMajorIncrement(0);
 }
 

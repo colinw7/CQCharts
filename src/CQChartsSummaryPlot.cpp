@@ -3237,9 +3237,9 @@ initXAxis(bool buckets) const
   xaxis->setColumn(column);
 
   if (type == CQBaseModelType::REAL)
-    xaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL), false);
+    xaxis->setValueType(CQChartsAxisValueType::real(), false);
   else
-    xaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER), false);
+    xaxis->setValueType(CQChartsAxisValueType::integer(), false);
 
   xaxis->setValueRange(xmin, xmax);
 
@@ -3356,9 +3356,9 @@ initYAxis(bool buckets) const
   yaxis->setColumn(column);
 
   if (type == CQBaseModelType::REAL)
-    yaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL), false);
+    yaxis->setValueType(CQChartsAxisValueType::real(), false);
   else
-    yaxis->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER), false);
+    yaxis->setValueType(CQChartsAxisValueType::integer(), false);
 
   yaxis->setValueRange(ymin, ymax);
 

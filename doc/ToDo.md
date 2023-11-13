@@ -4,6 +4,19 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + column ordering
+
+ + dendrogram horizontal scrollbars
+
+ + dendrogram optional aspect (fix calc)
+ + dendrogram zoom change x/y range
+
+ + parallel plot (https://www.data-to-viz.com/graph/parallel.html)
+   + non-normalized
+   + normalized
+   + statistic normalized
+   + reorder
+
  + filter select/tip outside region
  + select pareto runs
  + save/restore expand
@@ -305,8 +318,9 @@ TODO:
    + default font, equal scaling
    + support node sizing
    + symbol -> shape
+ + parallel plot
+ +   parallel plot redraw issues
  + check zoom on all symbol plots
- + parallel plot redraw issues
  + check column role
  + open gl 3d plot
    + 3d axes, cube

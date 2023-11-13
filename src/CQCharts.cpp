@@ -22,6 +22,7 @@
 #include <CQChartsGraphVizPlot.h>
 #include <CQChartsGridPlot.h>
 #include <CQChartsHierBubblePlot.h>
+#include <CQChartsHierParallelPlot.h>
 #include <CQChartsHierScatterPlot.h>
 #include <CQChartsImagePlot.h>
 #include <CQChartsParallelPlot.h>
@@ -669,6 +670,7 @@ init()
   plotTypeMgr()->addTypeT<CQChartsGraphPlotType        >("graph"        );
   plotTypeMgr()->addTypeT<CQChartsGridPlotType         >("grid"         );
   plotTypeMgr()->addTypeT<CQChartsHierBubblePlotType   >("hierbubble"   );
+  plotTypeMgr()->addTypeT<CQChartsHierParallelPlotType >("hierparallel" );
   plotTypeMgr()->addTypeT<CQChartsHierScatterPlotType  >("hierscatter"  );
   plotTypeMgr()->addTypeT<CQChartsImagePlotType        >("image"        );
   plotTypeMgr()->addTypeT<CQChartsParallelPlotType     >("parallel"     );

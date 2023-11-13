@@ -584,8 +584,7 @@ createObjs(PlotObjs &objs) const
 
   xAxis->clearTickLabels();
 
-  xAxis->setValueType     (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
-                           /*notify*/false);
+  xAxis->setValueType     (CQChartsAxisValueType::integer(), /*notify*/false);
   xAxis->setGridMid       (true);
   xAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
 
@@ -596,8 +595,7 @@ createObjs(PlotObjs &objs) const
 
   if (plotType() != PlotType::GRID) {
     if (valueType() != ValueType::COUNT) {
-      yAxis->setValueType     (CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
-                               /*notify*/false);
+      yAxis->setValueType     (CQChartsAxisValueType::real(), /*notify*/false);
       yAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
 
       if      (valueType() == ValueType::SUM)
@@ -610,8 +608,7 @@ createObjs(PlotObjs &objs) const
         yAxis->setDefLabel("Mean");
     }
     else {
-      yAxis->setValueType     (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
-                               /*notify*/false);
+      yAxis->setValueType     (CQChartsAxisValueType::integer(), /*notify*/false);
       yAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
 
       yAxis->setDefLabel("Count");
@@ -620,8 +617,7 @@ createObjs(PlotObjs &objs) const
   else {
     yAxis->clearTickLabels();
 
-    yAxis->setValueType     (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
-                             /*notify*/false);
+    yAxis->setValueType     (CQChartsAxisValueType::integer(), /*notify*/false);
     yAxis->setGridMid       (true);
     xAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
 

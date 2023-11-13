@@ -28,6 +28,14 @@ class CQChartsAxisValueType : public CQChartsEnum<CQChartsAxisValueType> {
   CQUTIL_DEF_META_CONVERSIONS(CQChartsAxisValueType, metaTypeId)
 
  public:
+  static CQChartsAxisValueType real   () { return CQChartsAxisValueType(Type::REAL); }
+  static CQChartsAxisValueType integer() { return CQChartsAxisValueType(Type::INTEGER); }
+  static CQChartsAxisValueType string () { return CQChartsAxisValueType(Type::STRING); }
+  static CQChartsAxisValueType log    () { return CQChartsAxisValueType(Type::LOG); }
+  static CQChartsAxisValueType date   () { return CQChartsAxisValueType(Type::DATE); }
+
+  //---
+
   explicit CQChartsAxisValueType(Type type=Type::REAL) :
    type_(type) {
   }

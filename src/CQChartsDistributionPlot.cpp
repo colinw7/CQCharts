@@ -2725,38 +2725,33 @@ updateAxes()
 #endif
 
   if      (isDensity()) {
-    valueAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
-                                     /*notify*/false);
+    valueAxis()->setValueType       (CQChartsAxisValueType::real(), /*notify*/false);
     valueAxis()->setGridMid         (false);
     valueAxis()->setMajorIncrement  (0);
     valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
     valueAxis()->setRequireTickLabel(false);
 
-    countAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
-                                     /*notify*/false);
+    countAxis()->setValueType       (CQChartsAxisValueType::real(), /*notify*/false);
     countAxis()->setGridMid         (false);
     countAxis()->setMajorIncrement  (0);
     countAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
     countAxis()->setRequireTickLabel(false);
   }
   else if (isScatter()) {
-    valueAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
-                                     /*notify*/false);
+    valueAxis()->setValueType       (CQChartsAxisValueType::integer(), /*notify*/false);
     valueAxis()->setGridMid         (true);
     valueAxis()->setMajorIncrement  (1);
     valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
     valueAxis()->setRequireTickLabel(false);
 
-    countAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
-                                     /*notify*/false);
+    countAxis()->setValueType       (CQChartsAxisValueType::integer(), /*notify*/false);
     countAxis()->setGridMid         (true);
     countAxis()->setMajorIncrement  (1);
     countAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
     countAxis()->setRequireTickLabel(false);
   }
   else {
-    valueAxis()->setValueType       (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
-                                     /*notify*/false);
+    valueAxis()->setValueType       (CQChartsAxisValueType::integer(), /*notify*/false);
     valueAxis()->setGridMid         (true);
     valueAxis()->setMajorIncrement  (1);
     valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
@@ -2764,15 +2759,12 @@ updateAxes()
 
     if (! CQChartsPlot::isLogY()) {
       if (isValueCount())
-        countAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
-                                  /*notify*/false);
+        countAxis()->setValueType(CQChartsAxisValueType::integer(), /*notify*/false);
       else
-        countAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::REAL),
-                                  /*notify*/false);
+        countAxis()->setValueType(CQChartsAxisValueType::real(), /*notify*/false);
     }
     else
-      countAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::LOG),
-                                /*notify*/false);
+      countAxis()->setValueType(CQChartsAxisValueType::log(), /*notify*/false);
 
     countAxis()->setGridMid         (false);
     countAxis()->setMajorIncrement  (0);

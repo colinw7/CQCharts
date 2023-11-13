@@ -235,7 +235,7 @@ calcRange() const
 
   th->xAxis()->clearTickLabels();
 
-  th->xAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER));
+  th->xAxis()->setValueType(CQChartsAxisValueType::integer());
 
   //---
 

@@ -570,7 +570,7 @@ void
 CQChartsDendrogramPlot::
 setEdgeType(const EdgeType &t)
 {
-  CQChartsUtil::testAndSet(edgeData_.type, t, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(edgeData_.type, t, [&]() { drawObjs(); } );
 }
 
 void
@@ -896,8 +896,24 @@ CQChartsDendrogramPlot::
 setSortSize(double s)
 {
   CQChartsUtil::testAndSet(sortSize_, s, [&]() {
-    cacheData_.needsPlace = true; updateRangeAndObjs();
+    scrollData_.invalid = true; cacheData_.needsPlace = true; updateRangeAndObjs();
   } );
+}
+
+void
+CQChartsDendrogramPlot::
+setSortSizeFactor(double s)
+{
+  CQChartsUtil::testAndSet(sortSizeFactor_, s, [&]() {
+    scrollData_.invalid = true; cacheData_.needsPlace = true; updateRangeAndObjs();
+  } );
+}
+
+double
+CQChartsDendrogramPlot::
+calcSortSize() const
+{
+  return sortSize()*sortSizeFactor();
 }
 
 //---
@@ -990,7 +1006,8 @@ addProperties()
   addProp("options", "placeType"  , "placeType"  , "Place type");
   addProp("options", "fitMode"    , "fitMode"    , "Fit mode");
   addProp("options", "hideDepth"  , "hideDepth"  , "Hide depth");
-  addProp("options", "sizeScale"  , "sizeScale"  , "Size scale");
+
+  addProp("options", "sizeScale", "sizeScale", "Size scale");
 
   addProp("options", "removeNodeOverlaps" , "removeNodeOverlaps" , "Remove node overlaps");
   addProp("options", "removeGroupOverlaps", "removeGroupOverlaps", "Remove group overlaps");
@@ -1150,7 +1167,7 @@ calcRange() const
     dataRange.updateRange( 1,  1);
   }
   else if (placeType() == PlaceType::SORTED) {
-    auto s = sortSize();
+    auto s = calcSortSize();
 
     if (orientation() == Qt::Horizontal) {
       dataRange.updateRange(0.0, 0.0);
@@ -1168,6 +1185,35 @@ calcRange() const
 
   return dataRange;
 }
+
+//------
+
+#if 0
+EkChartsGeom::BBox
+CQChartsDendrogramPlot::
+nodesBBox() const
+{
+  return nodesBBox(plotObjects());
+}
+
+EkChartsGeom::BBox
+CQChartsDendrogramPlot::
+nodesBBox(const PlotObjs &plotObjs) const
+{
+  for (auto *plotObj : plotObjs) {
+    auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
+    if (nodeObj) continue;
+
+    if (nodeObj->isRoot() && ! isRootVisible())
+      continue;
+
+    bbox += nodeObj->displayRect();
+  }
+
+  return bbox;
+}
+
+#endif
 
 //------
 
@@ -1349,7 +1395,49 @@ createObjs(PlotObjs &objs) const
   for (auto *nodeObj : nodeObjs)
     objs.push_back(nodeObj);
 
+  //---
+
+#if 0
+  if (placeType() == PlaceType::SORTED) {
+    auto isVisible = [&](NodeObj *obj) {
+      if (! obj) return false;
+
+      if (obj->isRoot() && ! isRootVisible())
+        return false;
+
+      return true;
+    };
+
+    auto margin = std::max(orientation() == Qt::Horizontal ?
+      lengthPlotHeight(overlapMargin()) : lengthPlotWidth(overlapMargin()), 0.0);
+
+    th->sortedData_.bbox = BBox();
+
+    for (auto *plotObj : objs) {
+      auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
+      if (! isVisible(nodeObj)) continue;
+
+      auto r = nodeObj->displayRect();
+
+      auto r1 = r.expanded(-margin, -margin, margin, margin);
+
+      th->sortedData_.bbox += r1;
+    }
+  }
+#endif
+
   return true;
+}
+
+//---
+
+void
+CQChartsDendrogramPlot::
+autoFit()
+{
+  setSortSizeFactor(1.0);
+
+  CQChartsPlot::autoFit();
 }
 
 //---
@@ -1358,184 +1446,323 @@ void
 CQChartsDendrogramPlot::
 updateZoomScroll()
 {
-  auto scrollFit = (fitMode_ == FitMode::SCROLL);
+  auto scrollFit = (fitMode() == FitMode::SCROLL);
 
-  if (! scrollFit)
-    return CQChartsPlot::updateZoomScroll();
+  if      (scrollFit) {
+    if (! scrollData_.invalid)
+      return;
 
-  //---
+    scrollData_.invalid = false;
 
-  if (! scrollData_.invalid)
-    return;
+    if (isSpreadNodeOverlaps()) {
+      if (orientation() == Qt::Horizontal) {
+        bool showV = (spreadData_.scale > 1.0);
 
-  scrollData_.invalid = false;
+        showScrollVBar(showV);
+        showScrollHBar(false);
 
-  if (isSpreadNodeOverlaps()) {
-    if (orientation() == Qt::Horizontal) {
-      bool showV = (spreadData_.scale > 1.0);
+        if (showV) {
+          placeScrollVBar();
 
-      showScrollVBar(showV);
-      showScrollHBar(false);
+          auto p1 = windowToPixel(Point(0.0, 0.0));
+          auto p2 = windowToPixel(Point(1.0, 1.0));
+          auto p3 = windowToPixel(Point(1.0, spreadData_.pos));
+          auto p4 = windowToPixel(Point(1.0, spreadData_.scale));
 
-      if (showV) {
+          int h1 = int(p1.y - p2.y);
+          int h2 = int(p1.y - p3.y);
+          int h3 = int(p1.y - p4.y);
+
+          setVBarRange(0, h3, h1, h2, 0.0, spreadData_.scale - 1.0);
+        }
+      }
+      else {
+        bool showH = (spreadData_.scale > 1.0);
+
+        showScrollVBar(false);
+        showScrollHBar(showH);
+
+        if (showH) {
+          placeScrollHBar();
+
+          auto p1 = windowToPixel(Point(0.0, 0.0));
+          auto p2 = windowToPixel(Point(1.0, 1.0));
+          auto p3 = windowToPixel(Point(spreadData_.pos, 1.0));
+          auto p4 = windowToPixel(Point(spreadData_.scale, 1.0));
+
+          int w1 = int(p2.x - p1.x);
+          int w2 = int(p3.x - p1.x);
+          int w3 = int(p4.x - p1.x);
+
+          setHBarRange(0, w3, w1, w2, 0.0, spreadData_.scale - 1.0);
+        }
+      }
+    }
+
+    applyDataRangeAndDraw();
+  }
+  else if (placeType() == PlaceType::SORTED) {
+    if (! scrollData_.invalid)
+      return;
+
+    scrollData_.invalid = false;
+
+    auto f = sortSizeFactor();
+
+    if (f > 1.0) {
+      auto s  = sortSize();
+      auto s1 = calcSortSize();
+      auto s2 = (s1 - s)/2.0;
+
+      if (orientation() == Qt::Horizontal) {
         placeScrollVBar();
 
         auto p1 = windowToPixel(Point(0.0, 0.0));
-        auto p2 = windowToPixel(Point(1.0, 1.0));
-        auto p3 = windowToPixel(Point(1.0, spreadData_.pos));
-        auto p4 = windowToPixel(Point(1.0, spreadData_.scale));
+        auto p2 = windowToPixel(Point(1.0, s));
+        auto p3 = windowToPixel(Point(1.0, s1));
 
-        int h1 = int(p1.y - p2.y);
-        int h2 = int(p1.y - p3.y);
-        int h3 = int(p1.y - p4.y);
+        auto p4 = windowToPixel(Point(1.0, s2));
 
-        setVBarRange(0, h3, h1, h2, 0.0, spreadData_.scale - 1.0);
+        int h1 = int(p1.y - p2.y); // page size
+        int h2 = int(p1.y - p3.y); // end
+        int h3 = int(p1.y - p4.y); // value
+
+        setVBarRange(0, h2, h1, h3, -s2, s2);
+
+        showScrollVBar(true);
+      }
+      else {
+        placeScrollVBar();
+
+        auto p1 = windowToPixel(Point(0.0, 0.0));
+        auto p2 = windowToPixel(Point(s, 1.0));
+        auto p3 = windowToPixel(Point(s1, 1.0));
+
+        auto p4 = windowToPixel(Point(s2, 1.0));
+
+        int w1 = int(p1.x - p2.x); // page size
+        int w2 = int(p1.x - p3.x); // end
+        int w3 = int(p1.x - p4.x); // value
+
+        setHBarRange(0, w2, w1, w3, -s1, s2);
+
+        showScrollHBar(true);
       }
     }
     else {
-      bool showH = (spreadData_.scale > 1.0);
-
       showScrollVBar(false);
-      showScrollHBar(showH);
-
-      if (showH) {
-        placeScrollHBar();
-
-        auto p1 = windowToPixel(Point(0.0, 0.0));
-        auto p2 = windowToPixel(Point(1.0, 1.0));
-        auto p3 = windowToPixel(Point(spreadData_.pos, 1.0));
-        auto p4 = windowToPixel(Point(spreadData_.scale, 1.0));
-
-        int w1 = int(p2.x - p1.x);
-        int w2 = int(p3.x - p1.x);
-        int w3 = int(p4.x - p1.x);
-
-        setHBarRange(0, w3, w1, w2, 0.0, spreadData_.scale - 1.0);
-      }
+      showScrollHBar(false);
     }
   }
-
-  applyDataRangeAndDraw();
+  else
+    return CQChartsPlot::updateZoomScroll();
 }
 
 void
 CQChartsDendrogramPlot::
 hscrollBy(double dx)
 {
-  auto scrollFit = (fitMode_ == FitMode::SCROLL);
+  auto scrollFit = (fitMode() == FitMode::SCROLL);
 
-  if (! scrollFit)
+  if      (scrollFit) {
+    spreadData_.pos = scrollData_.xpos;
+
+    updateScrollOffset();
+  }
+  else if (placeType() == PlaceType::SORTED) {
+    sortedData_.pos = scrollData_.xpos;
+
+    updateScrollOffset();
+  }
+  else
     return CQChartsPlot::hscrollBy(dx);
-
-  spreadData_.pos = scrollData_.xpos;
-
-  updateScrollOffset();
 }
 
 void
 CQChartsDendrogramPlot::
 vscrollBy(double dy)
 {
-  auto scrollFit = (fitMode_ == FitMode::SCROLL);
+  auto scrollFit = (fitMode() == FitMode::SCROLL);
 
-  if (! scrollFit)
+  if      (scrollFit) {
+    spreadData_.pos = scrollData_.ypos;
+
+    updateScrollOffset();
+  }
+  else if (placeType() == PlaceType::SORTED) {
+    sortedData_.pos = scrollData_.ypos;
+
+    updateScrollOffset();
+  }
+  else
     return CQChartsPlot::vscrollBy(dy);
-
-  spreadData_.pos = scrollData_.ypos;
-
-  updateScrollOffset();
 }
 
 bool
 CQChartsDendrogramPlot::
 allowZoomX() const
 {
-  auto scrollFit = (fitMode_ == FitMode::SCROLL);
+  auto scrollFit = (fitMode() == FitMode::SCROLL);
 
-  if (! scrollFit)
+  if      (scrollFit) {
+    return false;
+  }
+  else if (placeType() == PlaceType::SORTED) {
+    return (orientation() != Qt::Horizontal);
+  }
+  else
     return CQChartsPlot::allowZoomX();
-
-  return false;
 }
 
 bool
 CQChartsDendrogramPlot::
 allowZoomY() const
 {
-  auto scrollFit = (fitMode_ == FitMode::SCROLL);
+  auto scrollFit = (fitMode() == FitMode::SCROLL);
 
-  if (! scrollFit)
+  if      (scrollFit) {
+    return false;
+  }
+  else if (placeType() == PlaceType::SORTED) {
+    return (orientation() == Qt::Horizontal);
+  }
+  else
     return CQChartsPlot::allowZoomY();
 
-  return false;
 }
 
 void
 CQChartsDendrogramPlot::
 wheelVScroll(int delta)
 {
-  auto scrollFit = (fitMode_ == FitMode::SCROLL);
+  auto scrollFit = (fitMode() == FitMode::SCROLL);
 
-  if (! scrollFit)
-    return CQChartsPlot::wheelVScroll(delta);
+  if      (scrollFit) {
+    spreadData_.pos += (delta > 0 ? -0.1 : 0.1);
 
-  //---
+    spreadData_.pos = std::min(std::max(spreadData_.pos, 0.0), spreadData_.scale - 1.0);
 
-  spreadData_.pos += (delta > 0 ? -0.1 : 0.1);
+    if (orientation() == Qt::Horizontal)
+      scrollData_.ypos = spreadData_.pos;
+    else
+      scrollData_.xpos = spreadData_.pos;
 
-  spreadData_.pos = std::min(std::max(spreadData_.pos, 0.0), spreadData_.scale - 1.0);
+    scrollData_.invalid = true;
 
-  if (orientation() == Qt::Horizontal)
-    scrollData_.ypos = spreadData_.pos;
+    updateScrollOffset();
+  }
+  else if (placeType() == PlaceType::SORTED) {
+    sortedData_.pos += (delta > 0 ? -0.1 : 0.1);
+
+    auto s  = sortSize();
+    auto s1 = calcSortSize();
+
+    sortedData_.pos = std::min(std::max(sortedData_.pos, 0.0), s1 - s);
+
+    if (orientation() == Qt::Horizontal)
+      scrollData_.ypos = sortedData_.pos;
+    else
+      scrollData_.xpos = sortedData_.pos;
+
+    scrollData_.invalid = true;
+
+    updateScrollOffset();
+  }
   else
-    scrollData_.xpos = spreadData_.pos;
+    return CQChartsPlot::wheelVScroll(delta);
+}
 
-  scrollData_.invalid = true;
+void
+CQChartsDendrogramPlot::
+wheelZoom(const Point &pp, int delta)
+{
+  auto scrollFit = (fitMode() == FitMode::SCROLL);
 
-  updateScrollOffset();
+  if      (scrollFit) {
+    return CQChartsPlot::wheelZoom(pp, delta);
+  }
+  else if (placeType() == PlaceType::SORTED) {
+    double zoomFactor = 1.10;
+
+    if (delta > 0)
+      setSortSizeFactor(sortSizeFactor()*zoomFactor);
+    else
+      setSortSizeFactor(sortSizeFactor()/zoomFactor);
+
+    if (orientation() == Qt::Horizontal)
+      setDataScaleY(sortSizeFactor());
+    else
+      setDataScaleX(sortSizeFactor());
+  }
+  else
+    return CQChartsPlot::wheelZoom(pp, delta);
 }
 
 void
 CQChartsDendrogramPlot::
 updateScrollOffset()
 {
-  auto scrollFit = (fitMode_ == FitMode::SCROLL);
+  auto scrollFit = (fitMode() == FitMode::SCROLL);
 
-  if (! scrollFit) {
+  if      (scrollFit) {
+    if (isSpreadNodeOverlaps()) {
+      if (orientation() == Qt::Horizontal) {
+        auto d = CMathUtil::map(scrollData_.ypos, scrollData_.ymin, scrollData_.ymax,
+                                spreadData_.bbox.getYMax() - 1.0, spreadData_.bbox.getYMin());
+
+        setDataOffsetY(d);
+
+        spreadData_.pos =
+          CMathUtil::map(d, spreadData_.bbox.getYMax() - 1.0, spreadData_.bbox.getYMin(),
+                         scrollData_.ymin, scrollData_.ymax);
+
+        scrollData_.ypos = spreadData_.pos;
+      }
+      else {
+        auto d = CMathUtil::map(scrollData_.xpos, scrollData_.xmin, scrollData_.xmax,
+                                spreadData_.bbox.getXMin(), spreadData_.bbox.getXMax() - 1.0);
+
+        setDataOffsetX(d);
+
+        spreadData_.pos =
+          CMathUtil::map(d, spreadData_.bbox.getXMin(), spreadData_.bbox.getXMax() - 1.0,
+                         scrollData_.xmin, scrollData_.xmax);
+
+        scrollData_.xpos = spreadData_.pos;
+      }
+    }
+
     applyDataRangeAndDraw();
-    return;
   }
+  else if (placeType() == PlaceType::SORTED) {
+    auto s  = sortSize();
+    auto s1 = calcSortSize();
+    auto s2 = (s1 - s)/2.0;
 
-  //---
-
-  if (isSpreadNodeOverlaps()) {
     if (orientation() == Qt::Horizontal) {
-      auto d = CMathUtil::map(scrollData_.ypos, scrollData_.ymin, scrollData_.ymax,
-                              spreadData_.bbox.getYMax() - 1.0, spreadData_.bbox.getYMin());
+      auto d = CMathUtil::map(scrollData_.ypos, scrollData_.ymin, scrollData_.ymax, s2, -s2);
 
       setDataOffsetY(d);
 
-      spreadData_.pos =
-        CMathUtil::map(d, spreadData_.bbox.getYMax() - 1.0, spreadData_.bbox.getYMin(),
-                       scrollData_.ymin, scrollData_.ymax);
+      sortedData_.pos = CMathUtil::map(d, s2, -s2, scrollData_.ymin, scrollData_.ymax);
 
-      scrollData_.ypos = spreadData_.pos;
+      scrollData_.ypos = sortedData_.pos;
     }
     else {
-      auto d = CMathUtil::map(scrollData_.xpos, scrollData_.xmin, scrollData_.xmax,
-                              spreadData_.bbox.getXMin(), spreadData_.bbox.getXMax() - 1.0);
+      auto d = CMathUtil::map(scrollData_.xpos, scrollData_.xmin, scrollData_.xmax, -s2, s2);
 
       setDataOffsetX(d);
 
-      spreadData_.pos =
-        CMathUtil::map(d, spreadData_.bbox.getXMin(), spreadData_.bbox.getXMax() - 1.0,
-                       scrollData_.xmin, scrollData_.xmax);
+      sortedData_.pos = CMathUtil::map(d, -s2, s2, scrollData_.xmin, scrollData_.xmax);
 
-      scrollData_.xpos = spreadData_.pos;
+      scrollData_.xpos = sortedData_.pos;
     }
-  }
 
-  applyDataRangeAndDraw();
+    applyDataRangeAndDraw();
+  }
+  else {
+    applyDataRangeAndDraw();
+  }
 }
 
 //---
@@ -2318,14 +2545,14 @@ placeSorted() const
   int minDepth = 0;
   int maxDepth = 0;
 
-  auto s = sortSize();
+  auto s = calcSortSize();
 
   double xs = 1.0, ys = 1.0;
 
   if (orientation() == Qt::Horizontal)
-    ys = sortSize();
+    ys = s;
   else
-    xs = sortSize();
+    xs = s;
 
   if (! isRootVisible()) {
     minDepth = 1;
@@ -2938,7 +3165,7 @@ calcExtraFitBBox() const
 
   BBox bbox;
 
-  auto scrollFit = (fitMode_ == FitMode::SCROLL);
+  auto scrollFit = (fitMode() == FitMode::SCROLL);
   if (scrollFit) return bbox;
 
   for (const auto &plotObj : plotObjects()) {
@@ -3113,7 +3340,7 @@ execRemoveOverlaps(const PlotObjs &objs)
     auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
     if (! nodeObj) continue;
 
-    auto depth = nodeObj->node()->depth();
+    auto depth = nodeObj->node()->calcDepth(/*ignoreOpen*/true);
     auto ppos  = makePosParent(nodeObj);
 
     depthParentNodeObjs[depth][ppos].second.push_back(nodeObj);
@@ -3438,7 +3665,7 @@ execSpreadOverlaps(const PlotObjs &objs)
     auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
     if (! isVisible(nodeObj)) continue;
 
-    auto depth = nodeObj->node()->depth();
+    auto depth = nodeObj->node()->calcDepth(/*ignoreOpen*/true);
 
     depthObjs[depth].push_back(nodeObj);
   }
@@ -3548,6 +3775,7 @@ execSpreadOverlaps(const PlotObjs &objs)
             for (auto *obj1 : po1.second) {
               if (belowMovedObjs.find(obj1) == belowMovedObjs.end())
                 obj1->movePerpBy(d);
+            }
           }
 
           r = obj->displayRect();
@@ -3580,10 +3808,13 @@ execSpreadOverlaps(const PlotObjs &objs)
             for (auto *obj1 : po1.second) {
               if (aboveMovedObjs.find(obj1) == aboveMovedObjs.end())
                 obj1->movePerpBy(d);
+            }
           }
 
           r = obj->displayRect();
         }
+
+        aboveMovedObjs.insert(obj);
 
 //      lastObj  = obj;
         lastRect = r;
@@ -3621,7 +3852,7 @@ execSpreadOverlaps(const PlotObjs &objs)
   //---
 
 #if 0
-  auto scrollFit = (fitMode_ == FitMode::SCROLL);
+  auto scrollFit = (fitMode() == FitMode::SCROLL);
 
   if (! scrollFit) {
     // get new bbox
@@ -3653,7 +3884,9 @@ calcNodeSize(PlotObjs &objs)
     auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
     if (! nodeObj) continue;
 
-    depthParentNodeObjs[nodeObj->node()->depth()][nodeObj->parent()].push_back(nodeObj);
+    auto depth = nodeObj->node()->depth();
+
+    depthParentNodeObjs[depth][nodeObj->parent()].push_back(nodeObj);
   }
 
   for (auto &dpn : depthParentNodeObjs) {
@@ -4132,7 +4365,7 @@ CQChartsDendrogramNodeObj(const DendrogramPlot *dendrogramPlot, Node *node, cons
   if (node->size())
     setValue(OptReal(*node->size()));
 
-  if (dendrogramPlot_->isPropagateHier() && node->calcHierSize(s))
+  if (dendrogramPlot->isPropagateHier() && node->calcHierSize(s))
     setHierValue(OptReal(s));
 
   setOpen(node->isOpen());
@@ -4285,7 +4518,7 @@ textRect() const
 
   //---
 
-  CQChartsPlotPaintDevice device(const_cast<CQChartsDendrogramPlot *>(plot()), nullptr);
+  CQChartsPlotPaintDevice device(const_cast<DendrogramPlot *>(plot()), nullptr);
 
   device.setFont(qfont);
 
@@ -4522,14 +4755,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     fillColor = plot()->interpPaletteColor(ColorInd(color));
   }
 #endif
-  else if (dendrogramPlot_->nodeColorByValue() == DendrogramPlot::ValueType::DEPTH_NODE) {
-    auto depth = this->node()->calcHierDepth();
-
-    auto value = this->value().realOr(0.0);
-    auto color = dendrogramPlot_->mapDepthValue(depth, value);
-
-    fillColor = plot()->interpPaletteColor(ColorInd(color));
-  }
   else if (colorValue.isSet()) {
     auto color = colorValue.real();
 
@@ -4669,7 +4894,8 @@ drawText(PaintDevice *device, const QColor &shapeColor) const
   if (isValueLabel()) {
     auto label = calcValueLabel();
 
-    strs << label;
+    if (label.length())
+      strs << label;
   }
 
   auto calcTextOptions = [&]() {
@@ -4723,6 +4949,10 @@ calcValueLabel() const
     label = QString::number(value().real());
   else if (hierValue().isSet())
     label = QString::number(hierValue().real());
+#if 0
+  else if (dendrogramPlot_->nullValueString().length())
+    label = dendrogramPlot_->nullValueString());
+#endif
 
   return label;
 }
@@ -5224,8 +5454,6 @@ getEdgePoints(Point &p1, Point &p4) const
 
   auto pbbox1 = plot()->windowToPixel(rect1); // from
   auto pbbox2 = plot()->windowToPixel(rect2); // to
-
-  //---
 
   double x1, y1, x4, y4;
 

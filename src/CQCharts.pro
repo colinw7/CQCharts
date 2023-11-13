@@ -93,6 +93,7 @@ CQChartsGraphPlot.cpp \
 CQChartsGraphVizPlot.cpp \
 CQChartsGridPlot.cpp \
 CQChartsHierBubblePlot.cpp \
+CQChartsHierParallelPlot.cpp \
 CQChartsHierScatterPlot.cpp \
 CQChartsImagePlot.cpp \
 CQChartsParallelPlot.cpp \
@@ -529,6 +530,7 @@ HEADERS += \
 ../include/CQChartsGraphVizPlot.h \
 ../include/CQChartsGridPlot.h \
 ../include/CQChartsHierBubblePlot.h \
+../include/CQChartsHierParallelPlot.h \
 ../include/CQChartsHierScatterPlot.h \
 ../include/CQChartsImagePlot.h \
 ../include/CQChartsParallelPlot.h \

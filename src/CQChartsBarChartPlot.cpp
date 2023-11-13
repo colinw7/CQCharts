@@ -1840,7 +1840,7 @@ initObjAxesI()
   xAxis->clearTickLabels();
   yAxis->clearTickLabels();
 
-  xAxis->setValueType     (CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER),
+  xAxis->setValueType     (CQChartsAxisValueType::integer(),
                            /*notify*/false);
   xAxis->setGridMid       (true);
 //xAxis->setMajorIncrement(1);
