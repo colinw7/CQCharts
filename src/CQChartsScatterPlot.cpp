@@ -3267,7 +3267,7 @@ hasBackground() const
   if (isXDensity()) return true;
   if (isYDensity()) return true;
 
-  if (isSymbols() && (isPareto() || paretoOriginType() != ParetoOriginType::NONE))
+  if (isSymbols() && paretoOriginType() != ParetoOriginType::NONE)
     return true;
 
   return false;
@@ -3309,11 +3309,6 @@ execDrawBackground(PaintDevice *device) const
 
   if (isXDensity()) drawXDensity(device);
   if (isYDensity()) drawYDensity(device);
-
-  //---
-
-  if (isPareto() && isSymbols())
-    drawPareto(device);
 }
 
 bool
@@ -3323,6 +3318,9 @@ hasForeground() const
   if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
     return false;
 
+//if (isPareto() && isSymbols())
+//  return true;
+
   return true;
 }
 
@@ -3330,6 +3328,9 @@ void
 CQChartsScatterPlot::
 execDrawForeground(PaintDevice *device) const
 {
+  if (isPareto() && isSymbols())
+    drawPareto(device);
+
   CQChartsPointPlot::execDrawForeground(device);
 }
 

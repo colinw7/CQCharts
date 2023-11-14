@@ -185,10 +185,12 @@ class CQChartsSummaryPlot : public CQChartsPlot,
   Q_PROPERTY(bool             pareto             READ isPareto           WRITE setPareto)
   Q_PROPERTY(CQChartsLength   paretoWidth        READ paretoWidth        WRITE setParetoWidth)
   Q_PROPERTY(CQChartsColor    paretoLineColor    READ paretoLineColor    WRITE setParetoLineColor)
+  Q_PROPERTY(CQChartsAlpha    paretoLineAlpha    READ paretoLineAlpha    WRITE setParetoLineAlpha)
   Q_PROPERTY(ParetoOriginType paretoOriginType   READ paretoOriginType   WRITE setParetoOriginType)
   Q_PROPERTY(CQChartsColor    paretoOriginColor  READ paretoOriginColor  WRITE setParetoOriginColor)
   Q_PROPERTY(CQChartsLength   paretoOriginSize   READ paretoOriginSize   WRITE setParetoOriginSize)
-  Q_PROPERTY(CQChartsSymbol   paretoOriginSymbol READ paretoOriginSymbol WRITE setParetoOriginSymbol)
+  Q_PROPERTY(CQChartsSymbol   paretoOriginSymbol READ paretoOriginSymbol
+                                                 WRITE setParetoOriginSymbol)
 
   Q_ENUMS(PlotType)
   Q_ENUMS(DiagonalType)
@@ -428,6 +430,9 @@ class CQChartsSummaryPlot : public CQChartsPlot,
 
   const Color &paretoLineColor() const { return paretoData_.lineColor; }
   void setParetoLineColor(const Color &c);
+
+  const Alpha &paretoLineAlpha() const { return paretoData_.lineAlpha; }
+  void setParetoLineAlpha(const Alpha &c);
 
   const ParetoOriginType &paretoOriginType() const { return paretoData_.originType; }
   void setParetoOriginType(const ParetoOriginType &t);
@@ -748,6 +753,7 @@ class CQChartsSummaryPlot : public CQChartsPlot,
     bool             visible      { false };
     Length           lineWidth    { Length::pixel(5) };
     Color            lineColor    { Color::makePalette() };
+    Alpha            lineAlpha    { Alpha(0.8) };
     Color            originColor  { Color::makeInterfaceValue(0.5) };
     ParetoOriginType originType   { ParetoOriginType::NONE };
     Length           originSize   { Length::percent(2) };

@@ -352,7 +352,6 @@ class CQChartsHierParallelPlot : public CQChartsHierPlot,
   bool isLinesNodeColored() const { return linesNodeColored_; }
   void setLinesNodeColored(bool b);
 
-
   //---
 
   //! get/set root visible

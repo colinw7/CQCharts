@@ -226,6 +226,7 @@ init()
   scatterPlot_->setYColumn(Column::makeRow());
 
   scatterPlot_->setParetoOriginColor(paretoOriginColor());
+  scatterPlot_->setParetoStrokeAlpha(paretoLineAlpha());
   scatterPlot_->setParetoStrokeWidth(paretoWidth());
 
   scatterPlot_->setColorMapped(false);
@@ -766,6 +767,17 @@ setParetoLineColor(const Color &c)
 
 void
 CQChartsSummaryPlot::
+setParetoLineAlpha(const Alpha &a)
+{
+  CQChartsUtil::testAndSet(paretoData_.lineAlpha, a, [&]() {
+    scatterPlot()->setParetoStrokeAlpha(a);
+
+    drawObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
+void
+CQChartsSummaryPlot::
 setParetoOriginType(const ParetoOriginType &t)
 {
   CQChartsUtil::testAndSet(paretoData_.originType, t, [&]() {
@@ -1133,6 +1145,7 @@ addProperties()
   addProp("overlays/pareto", "pareto"            , "visible"     , "Show pareto front on scatter");
   addProp("overlays/pareto", "paretoWidth"       , "lineWidth"   , "Pareto front line width");
   addProp("overlays/pareto", "paretoLineColor"   , "lineColor"   , "Pareto front line color");
+  addProp("overlays/pareto", "paretoLineAlpha"   , "lineAlpha"   , "Pareto front line alpha");
   addProp("overlays/pareto", "paretoOriginType"  , "originType"  , "Pareto front origin type");
   addProp("overlays/pareto", "paretoOriginColor" , "originColor" , "Pareto front origin color");
   addProp("overlays/pareto", "paretoOriginSize"  , "originSize"  , "Pareto front origin size");
@@ -4753,9 +4766,10 @@ drawPareto(PaintDevice *device, std::set<int> &inds) const
     PenBrush penBrush;
 
     auto lineColor = summaryPlot_->interpColor(summaryPlot_->paretoLineColor(), ic);
+    auto lineAlpha = summaryPlot_->paretoLineAlpha();
 
     summaryPlot_->setPenBrush(penBrush,
-      PenData(true, lineColor, Alpha(), summaryPlot_->paretoWidth()),
+      PenData(true, lineColor, lineAlpha, summaryPlot_->paretoWidth()),
       BrushData(false));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);

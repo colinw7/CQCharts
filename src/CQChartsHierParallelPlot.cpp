@@ -803,7 +803,6 @@ createObjs(PlotObjs &objs) const
 //auto *th = const_cast<CQChartsHierParallelPlot *>(this);
 
   double sx, sy;
-
   plotSymbolSize(symbolSize(), sx, sy);
 
   //---
@@ -1041,24 +1040,27 @@ calcExtraFitBBox() const
 
   //--
 
-  auto font = view()->plotFont(this, view()->font());
-
-  QFontMetricsF fm(font);
-
-  double tm = 4.0;
-
-  double ts;
-
-  if (isVertical())
-    ts = pixelToWindowHeight(fm.height() + tm);
-  else
-    ts = pixelToWindowWidth(max_tw_ + tm);
-
   double tst = 0.0, tsb = 0.0;
-  if (axisLabelPos() == AxisLabelPos::TOP    || axisLabelPos() == AxisLabelPos::ALTERNATE)
-    tst = ts;
-  if (axisLabelPos() == AxisLabelPos::BOTTOM || axisLabelPos() == AxisLabelPos::ALTERNATE)
-    tsb = ts;
+
+  if (labels_.length()) {
+    auto font = view()->plotFont(this, view()->font());
+
+    QFontMetricsF fm(font);
+
+    double tm = 4.0;
+
+    double ts;
+
+    if (isVertical())
+      ts = pixelToWindowHeight(fm.height() + tm);
+    else
+      ts = pixelToWindowWidth(max_tw_ + tm);
+
+    if (axisLabelPos() == AxisLabelPos::TOP    || axisLabelPos() == AxisLabelPos::ALTERNATE)
+      tst = ts;
+    if (axisLabelPos() == AxisLabelPos::BOTTOM || axisLabelPos() == AxisLabelPos::ALTERNATE)
+      tsb = ts;
+  }
 
   //---
 
@@ -1100,6 +1102,14 @@ drawFgAxes(PaintDevice *device) const
 
   double tm = 4.0;
 
+  double sx, sy;
+  plotSymbolSize(symbolSize(), sx, sy);
+
+  if (isVertical())
+    tm = std::max(tm, sy);
+  else
+    tm = std::max(tm, sx);
+
   // draw axes
   int minDepth = (isRootVisible() ? 0 : 1);
   int maxDepth = depth_;
@@ -1125,8 +1135,19 @@ drawFgAxes(PaintDevice *device) const
 
       //---
 
-      // draw set axis
+      // draw depth axis
       axis->setPosition(CQChartsOptReal(depth));
+
+      if (depth == minDepth && ! isNormalized()) {
+        if (mainYAxis_->gridLinesDisplayed() != CQChartsAxis::GridLinesDisplayed::NONE) {
+          axis->setGridLinesDisplayed(mainYAxis_->gridLinesDisplayed());
+
+          axis->setGridStart(OptReal(minDepth - 0.5));
+          axis->setGridEnd  (OptReal(maxDepth - 0.5));
+
+          axis->drawGrid(this, device);
+        }
+      }
 
       axis->draw(this, device);
 
@@ -1175,8 +1196,8 @@ drawFgAxes(PaintDevice *device) const
 
   // draw axes labels
   for (int depth = minDepth; depth < maxDepth; ++depth) {
-  //assert(depth < int(axes_.size()));
-  //auto *axis = this->axis(depth);
+    assert(depth < int(axes_.size()));
+    auto *axis = this->axis(depth);
 
     //---
 
@@ -1196,6 +1217,8 @@ drawFgAxes(PaintDevice *device) const
 
       if (depth < labels_.length())
         label = labels_[depth];
+
+      axis->setLabelStr(label);
 
       //---
 
@@ -1239,16 +1262,32 @@ drawFgAxes(PaintDevice *device) const
       Point tp;
 
       if (axisLabelPos == AxisLabelPos::TOP) {
-        if (isVertical())
-          tp = Point(p.x - tw/2.0, p.y - td - tm);
-        else
-          tp = Point(p.x + tm, p.y - (ta - td)/2);
+        if (isVertical()) {
+          if (! isInvertY())
+            tp = Point(p.x - tw/2.0, p.y - td - tm);
+          else
+            tp = Point(p.x - tw/2.0, p.y + ta + tm);
+        }
+        else {
+          if (! isInvertX())
+            tp = Point(p.x + tm, p.y - (ta - td)/2);
+          else
+            tp = Point(p.x - tw - tm, p.y - (ta - td)/2);
+        }
       }
       else {
-        if (isVertical())
-          tp = Point(p.x - tw/2.0, p.y + ta + tm);
-        else
-          tp = Point(p.x - tw - tm, p.y - (ta - td)/2);
+        if (isVertical()) {
+          if (! isInvertY())
+            tp = Point(p.x - tw/2.0, p.y + ta + tm);
+          else
+            tp = Point(p.x - tw/2.0, p.y - td - tm);
+        }
+        else {
+          if (! isInvertX())
+            tp = Point(p.x - tw - tm, p.y - (ta - td)/2);
+          else
+            tp = Point(p.x + tm, p.y - (ta - td)/2);
+        }
       }
 
       auto textOptions = mainYAxis_->axesLabelTextOptions();
@@ -1348,9 +1387,9 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  plot()->addTipColumns(tableTip, modelInd());
+  // TODO: hier path ?
 
-  //---
+  plot()->addTipColumns(tableTip, modelInd());
 
   return tableTip.str();
 }
