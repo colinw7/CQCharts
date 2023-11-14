@@ -379,12 +379,11 @@ class CQChartsParallelPlot : public CQChartsPlot,
   Ranges setRanges_; //!< value set ranges
 
   // axes
-  Qt::Orientation    adir_      { Qt::Horizontal }; //!< axis direction
-  AxisP              mainXAxis_;                    //!< main x axis
-  AxisP              mainYAxis_;                    //!< main y axis
-  YAxes              axes_;                         //!< value axes
-  mutable std::mutex axesMutex_;                    //!< value axes
-  BBox               axesBBox_;                     //!< axes bbox
+  Qt::Orientation adir_      { Qt::Horizontal }; //!< axis direction
+  AxisP           mainXAxis_;                    //!< main x axis
+  AxisP           mainYAxis_;                    //!< main y axis
+  YAxes           axes_;                         //!< value axes
+  BBox            axesBBox_;                     //!< axes bbox
 
   double max_tw_ { 0.0 }; //!< max text width
 

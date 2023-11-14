@@ -3267,7 +3267,8 @@ hasBackground() const
   if (isXDensity()) return true;
   if (isYDensity()) return true;
 
-  if (isPareto()) return true;
+  if (isSymbols() && (isPareto() || paretoOriginType() != ParetoOriginType::NONE))
+    return true;
 
   return false;
 }
@@ -3278,7 +3279,7 @@ execDrawBackground(PaintDevice *device) const
 {
   CQChartsPlot::execDrawBackground(device);
 
-  if (isPareto() && isSymbols())
+  if (isSymbols())
     drawParetoDir(device);
 
   // draw stats lines on background
@@ -3777,6 +3778,11 @@ void
 CQChartsScatterPlot::
 drawParetoDir(PaintDevice *device) const
 {
+  if (paretoOriginType() == ParetoOriginType::NONE)
+    return;
+
+  //---
+
   const auto &dataRange = this->dataRange();
 
   auto *xDetails = (xColumn().isValid() ? columnDetails(xColumn()) : nullptr);

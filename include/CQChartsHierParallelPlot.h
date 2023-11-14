@@ -267,8 +267,9 @@ class CQChartsHierParallelPlot : public CQChartsHierPlot,
   Q_OBJECT
 
   // options
-  Q_PROPERTY(Qt::Orientation orientation  READ orientation  WRITE setOrientation)
-  Q_PROPERTY(bool            normalized   READ isNormalized WRITE setNormalized)
+  Q_PROPERTY(Qt::Orientation orientation READ orientation  WRITE setOrientation)
+  Q_PROPERTY(bool            normalized  READ isNormalized WRITE setNormalized)
+  Q_PROPERTY(QString         labels      READ labels       WRITE setLabels)
 
   // root
   Q_PROPERTY(bool rootVisible READ isRootVisible WRITE setRootVisible)
@@ -281,7 +282,8 @@ class CQChartsHierParallelPlot : public CQChartsHierPlot,
   // lines (display, stroke)
   CQCHARTS_LINE_DATA_PROPERTIES
 
-  Q_PROPERTY(bool linesSelectable READ isLinesSelectable WRITE setLinesSelectable)
+  Q_PROPERTY(bool linesSelectable  READ isLinesSelectable  WRITE setLinesSelectable)
+  Q_PROPERTY(bool linesNodeColored READ isLinesNodeColored WRITE setLinesNodeColored)
 
   // points (display, symbol)
   CQCHARTS_POINT_DATA_PROPERTIES
@@ -337,11 +339,19 @@ class CQChartsHierParallelPlot : public CQChartsHierPlot,
   bool isNormalized() const { return normalized_; }
   void setNormalized(bool b);
 
+  QString labels() const;
+  void setLabels(const QString &s);
+
   //---
 
   //! get/set lines selectable
   bool isLinesSelectable() const { return linesSelectable_; }
   void setLinesSelectable(bool b);
+
+  //! get/set lines colored from nodes
+  bool isLinesNodeColored() const { return linesNodeColored_; }
+  void setLinesNodeColored(bool b);
+
 
   //---
 
@@ -445,22 +455,23 @@ class CQChartsHierParallelPlot : public CQChartsHierPlot,
 
   Qt::Orientation orientation_ { Qt::Vertical }; //!< axis orientation
   bool            normalized_  { true };         //!< is normalized
+  QStringList     labels_;
 
   Range dataRange_;           //!< global data range
   Range normalizedDataRange_; //!< normalized data range
 
   // lines
-  bool linesSelectable_ { false }; //!< are lines selectable
+  bool linesSelectable_  { false }; //!< are lines selectable
+  bool linesNodeColored_ { false }; //!< are lines colored from nodes
 
   DepthRanges depthRanges_; //!< range at depth
 
   // axes
-  Qt::Orientation    adir_      { Qt::Horizontal }; //!< axis direction
-  AxisP              mainXAxis_;                    //!< main x axis
-  AxisP              mainYAxis_;                    //!< main y axis
-  YAxes              axes_;                         //!< value axes
-  mutable std::mutex axesMutex_;                    //!< value axes
-  BBox               axesBBox_;                     //!< axes bbox
+  Qt::Orientation adir_      { Qt::Horizontal }; //!< axis direction
+  AxisP           mainXAxis_;                    //!< main x axis
+  AxisP           mainYAxis_;                    //!< main y axis
+  YAxes           axes_;                         //!< value axes
+  BBox            axesBBox_;                     //!< axes bbox
 
   double max_tw_ { 0.0 }; //!< max text width
 

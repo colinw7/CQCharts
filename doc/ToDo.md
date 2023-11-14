@@ -4,7 +4,11 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + pareto alpha. line on top
+
  + column ordering
+
+ + target/optimization direction
 
  + dendrogram horizontal scrollbars
 

@@ -15,6 +15,7 @@
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
+#include <CQTclUtil.h>
 #include <CQPerfMonitor.h>
 #include <CMathRound.h>
 
@@ -196,11 +197,42 @@ setNormalized(bool b)
 
 //---
 
+QString
+CQChartsHierParallelPlot::
+labels() const
+{
+  return CQTcl::mergeList(labels_);
+}
+
+void
+CQChartsHierParallelPlot::
+setLabels(const QString &s)
+{
+  if (s != labels()) {
+    QStringList strs;
+    if (! CQTcl::splitList(s, strs))
+      return;
+
+    labels_ = strs;
+
+    updateRangeAndObjs(); Q_EMIT customDataChanged();
+  }
+}
+
+//---
+
 void
 CQChartsHierParallelPlot::
 setLinesSelectable(bool b)
 {
   CQChartsUtil::testAndSet(linesSelectable_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsHierParallelPlot::
+setLinesNodeColored(bool b)
+{
+  CQChartsUtil::testAndSet(linesNodeColored_, b, [&]() { drawObjs(); } );
 }
 
 //---
@@ -246,6 +278,7 @@ addProperties()
   // options
   addProp("options", "orientation", "", "Draw horizontal or vertical");
   addProp("options", "normalized" , "", "Is data normalized");
+  addProp("options", "labels"     , "", "Depth labels");
 
   // points
   addProp("points", "points", "visible", "Points visible");
@@ -253,8 +286,9 @@ addProperties()
   addSymbolProperties("points/symbol", "", "Points");
 
   // lines
-  addProp("lines", "lines"          , "visible"   , "Lines visible");
-  addProp("lines", "linesSelectable", "selectable", "Lines selectable");
+  addProp("lines", "lines"           , "visible"    , "Lines visible");
+  addProp("lines", "linesSelectable" , "selectable" , "Lines selectable");
+  addProp("lines", "linesNodeColored", "nodeColored", "Lines colored from nodes");
 
   addLineProperties("lines/stroke", "lines", "");
 
@@ -1141,9 +1175,8 @@ drawFgAxes(PaintDevice *device) const
 
   // draw axes labels
   for (int depth = minDepth; depth < maxDepth; ++depth) {
-    assert(depth < int(axes_.size()));
-
-    auto *axis = this->axis(depth);
+  //assert(depth < int(axes_.size()));
+  //auto *axis = this->axis(depth);
 
     //---
 
@@ -1161,8 +1194,8 @@ drawFgAxes(PaintDevice *device) const
 
       QString label;
 
-      if (isAxisLocal())
-        label = axis->label().string();
+      if (depth < labels_.length())
+        label = labels_[depth];
 
       //---
 
@@ -1416,14 +1449,19 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   parallelPlot_->setLineDataPen(penBrush.pen, colorInd);
 
-  if (parallelPlot_->colorColumn().isValid() &&
-      parallelPlot_->colorType() == CQChartsHierPlot::ColorType::AUTO) {
-    auto ind1 = modelInd();
+  if (parallelPlot_->colorColumn().isValid() && parallelPlot_->isLinesNodeColored()) {
+    std::vector<QColor> colors;
 
-    Color indColor;
+    for (const auto &ind : modelInds()) {
+      Color indColor;
 
-    if (parallelPlot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
-      penBrush.pen.setColor(parallelPlot_->interpColor(indColor, colorInd));
+      if (parallelPlot_->colorColumnColor(ind.row(), ind.parent(), indColor))
+        colors.push_back(parallelPlot_->interpColor(indColor, colorInd));
+    }
+
+    auto c = CQChartsUtil::blendColors(colors);
+
+    penBrush.pen.setColor(c);
   }
 
   parallelPlot_->setBrush(penBrush, BrushData(false));
