@@ -214,12 +214,14 @@ class CQChartsHierParallelPointObj : public CQChartsPlotPointObj {
 
  public:
   CQChartsHierParallelPointObj(const HierParallelPlot *plot, const BBox &rect, const QString &name,
-                               int depth, double yval, const Point &p, const QModelIndex &ind,
-                               const ColorInd &is, const ColorInd &iv);
+                               const QString &hierName, int depth, double yval, const Point &p,
+                               const QModelIndex &ind, const ColorInd &is, const ColorInd &iv);
 
   //---
 
   const HierParallelPlot *parallelPlot() const { return parallelPlot_; }
+
+  const QString &hierName() const { return hierName_; }
 
   const QString &name() const { return name_; }
 
@@ -250,6 +252,7 @@ class CQChartsHierParallelPointObj : public CQChartsPlotPointObj {
  private:
   const HierParallelPlot* parallelPlot_ { nullptr }; //!< plot
   QString                 name_;                     //!< name
+  QString                 hierName_;                 //!< hierarical name
   double                  depth_        { 0 };       //!< depth value
   double                  value_        { 0.0 };     //!< value
   Point                   point_;
@@ -300,6 +303,9 @@ class CQChartsHierParallelPlot : public CQChartsHierPlot,
   using Length   = CQChartsLength;
   using ColorInd = CQChartsUtil::ColorInd;
   using RMinMax  = CQChartsGeom::RMinMax;
+
+  using LineObj  = CQChartsHierParallelLineObj;
+  using PointObj = CQChartsHierParallelPointObj;
 
   enum class AxisLabelPos {
     AXIS,
@@ -428,23 +434,23 @@ class CQChartsHierParallelPlot : public CQChartsHierPlot,
 
   //---
 
- protected:
-  using LineObj  = CQChartsHierParallelLineObj;
-  using PointObj = CQChartsHierParallelPointObj;
+  const PointObj *getModelPointObj(const QModelIndex &ind) const;
 
+ protected:
   virtual LineObj *createLineObj(const BBox &rect, int ind, const Polygon &poly,
                                  const ColorInd &is) const;
 
-  virtual PointObj *createPointObj(const BBox &rect, const QString &name, int depth, double yval,
-                                   const Point &p, const QModelIndex &modelInd,
-                                   const ColorInd &is, const ColorInd &iv) const;
+  virtual PointObj *createPointObj(const BBox &rect, const QString &name, const QString &hierName,
+                                   int depth, double yval, const Point &p,
+                                   const QModelIndex &modelInd, const ColorInd &is,
+                                   const ColorInd &iv) const;
 
  public Q_SLOTS:
   // set horizontal
   void setHorizontal(bool b);
 
  protected:
-  CQChartsPlotCustomControls *createCustomControls() override;
+  CQChartsHierPlotCustomControls *createCustomControls() override;
 
  private:
   using DepthRanges   = std::map<int, RMinMax>;
@@ -486,13 +492,11 @@ class CQChartsHierParallelPlot : public CQChartsHierPlot,
 
 //---
 
-#include <CQChartsPlotCustomControls.h>
-
 /*!
  * \brief Parallel Plot plot custom controls
  * \ingroup Charts
  */
-class CQChartsHierParallelPlotCustomControls : public CQChartsPlotCustomControls {
+class CQChartsHierParallelPlotCustomControls : public CQChartsHierPlotCustomControls {
   Q_OBJECT
 
  public:
@@ -521,6 +525,7 @@ class CQChartsHierParallelPlotCustomControls : public CQChartsPlotCustomControls
 
  protected Q_SLOTS:
   void orientationSlot();
+  void normalizedSlot();
 
  protected:
   CQChartsHierParallelPlot* parallelPlot_ { nullptr };
@@ -528,6 +533,7 @@ class CQChartsHierParallelPlotCustomControls : public CQChartsPlotCustomControls
   FrameData optionsFrame_;
 
   CQChartsEnumParameterEdit* orientationCombo_ { nullptr };
+  CQChartsBoolParameterEdit* normalizedCheck_  { nullptr };
 };
 
 #endif

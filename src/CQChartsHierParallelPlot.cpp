@@ -32,6 +32,10 @@ void
 CQChartsHierParallelPlotType::
 addParameters()
 {
+  CQChartsHierPlotType::addHierParameters("Parallel");
+
+  //---
+
   startParameterGroup("Parallel");
 
   addEnumParameter("orientation", "Orientation", "orientation").
@@ -39,11 +43,14 @@ addParameters()
     addNameValue("VERTICAL"  , static_cast<int>(Qt::Vertical  )).
     setTip("Draw orientation");
 
+  addBoolParameter("normalized", "Normalized", "normalized").
+    setPropPath("options.normalized").setTip("Normalize each depth range");
+
   endParameterGroup();
 
   //---
 
-  CQChartsHierPlotType::addHierParameters("Parallel");
+  CQChartsPlotType::addParameters();
 }
 
 QString
@@ -142,9 +149,7 @@ CQChartsColumn
 CQChartsHierParallelPlot::
 getNamedColumn(const QString &name) const
 {
-  auto c = CQChartsHierPlot::getNamedColumn(name);
-
-  return c;
+  return CQChartsHierPlot::getNamedColumn(name);
 }
 
 void
@@ -273,7 +278,7 @@ void
 CQChartsHierParallelPlot::
 addProperties()
 {
-  addBaseProperties();
+  addHierProperties();
 
   // options
   addProp("options", "orientation", "", "Draw horizontal or vertical");
@@ -930,14 +935,15 @@ createObjs(PlotObjs &objs) const
 
       BBox bbox(x1 - sx/2, y1 - sy/2, x1 + sx/2, y1 + sy/2);
 
-      auto name = pv.node->hierName();
+      auto name     = pv.node->name();
+      auto hierName = pv.node->hierName();
 
       ColorInd is(i, n);
       ColorInd iv(depth, depth_);
 
       auto ind = pv.node->modelInd();
 
-      auto *pointObj = createPointObj(bbox, name, depth, pos, Point(x, y), ind, is, iv);
+      auto *pointObj = createPointObj(bbox, name, hierName, depth, pos, Point(x, y), ind, is, iv);
 
       pointObj->connectDataChanged(this, SLOT(updateSlot()));
 
@@ -1320,10 +1326,28 @@ createLineObj(const BBox &rect, int ind, const Polygon &poly, const ColorInd &is
 
 CQChartsHierParallelPointObj *
 CQChartsHierParallelPlot::
-createPointObj(const BBox &rect, const QString &name, int depth, double value, const Point &p,
-               const QModelIndex &modelInd, const ColorInd &is, const ColorInd &iv) const
+createPointObj(const BBox &rect, const QString &name, const QString &hierName, int depth,
+               double value, const Point &p, const QModelIndex &modelInd,
+               const ColorInd &is, const ColorInd &iv) const
 {
-  return new CQChartsHierParallelPointObj(this, rect, name, depth, value, p, modelInd, is, iv);
+  return new CQChartsHierParallelPointObj(this, rect, name, hierName, depth,
+                                          value, p, modelInd, is, iv);
+}
+
+//---
+
+const CQChartsHierParallelPointObj *
+CQChartsHierParallelPlot::
+getModelPointObj(const QModelIndex &ind) const
+{
+  for (const auto *obj : plotObjects()) {
+    const auto *pointObj = dynamic_cast<const PointObj *>(obj);
+
+    if (pointObj && pointObj->modelInd() == ind)
+      return pointObj;
+  }
+
+  return nullptr;
 }
 
 //---
@@ -1347,7 +1371,7 @@ execDrawForeground(PaintDevice *device) const
 
 //---
 
-CQChartsPlotCustomControls *
+CQChartsHierPlotCustomControls *
 CQChartsHierParallelPlot::
 createCustomControls()
 {
@@ -1387,7 +1411,21 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  // TODO: hier path ?
+  std::map<int, QString> depthName;
+
+  for (const auto &ind : modelInds()) {
+    auto *pointObj = parallelPlot_->getModelPointObj(ind);
+    if (! pointObj) continue;
+
+    depthName[pointObj->depth()] = pointObj->name();
+  }
+
+  QStringList names;
+
+  for (const auto &pn : depthName)
+    names.push_back(pn.second);
+
+  tableTip.addTableRow("Path", names.join("/"));
 
   plot()->addTipColumns(tableTip, modelInd());
 
@@ -1547,10 +1585,12 @@ getPolyLine(Polygon &poly) const
 
 CQChartsHierParallelPointObj::
 CQChartsHierParallelPointObj(const HierParallelPlot *parallelPlot, const BBox &rect,
-                             const QString &name, int depth, double value, const Point &p,
-                             const QModelIndex &modelInd, const ColorInd &is, const ColorInd &iv) :
+                             const QString &name, const QString &hierName, int depth,
+                             double value, const Point &p, const QModelIndex &modelInd,
+                             const ColorInd &is, const ColorInd &iv) :
  CQChartsPlotPointObj(const_cast<HierParallelPlot *>(parallelPlot), rect, p, is, ColorInd(), iv),
- parallelPlot_(parallelPlot), name_(name), depth_(depth), value_(value), point_(p)
+ parallelPlot_(parallelPlot), name_(name), hierName_(hierName), depth_(depth),
+ value_(value), point_(p)
 {
   p_ = calcPoint();
 
@@ -1573,7 +1613,7 @@ QString
 CQChartsHierParallelPointObj::
 calcId() const
 {
-  auto name = this->name();
+  auto name = this->hierName();
   if (name == "") name = "root";
 
   return name;
@@ -1585,10 +1625,11 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  auto name = this->name();
+  auto hierName = this->hierName();
 
-  tableTip.addBoldLine(name);
+  tableTip.addBoldLine(hierName);
 
+  tableTip.addTableRow("Name" , name());
   tableTip.addTableRow("Value", value_);
 
   //---
@@ -1711,7 +1752,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 CQChartsHierParallelPlotCustomControls::
 CQChartsHierParallelPlotCustomControls(CQCharts *charts) :
- CQChartsPlotCustomControls(charts, "hierparallel")
+ CQChartsHierPlotCustomControls(charts, "hierparallel")
 {
 }
 
@@ -1732,11 +1773,11 @@ void
 CQChartsHierParallelPlotCustomControls::
 addWidgets()
 {
-  addColumnWidgets();
+  addHierColumnWidgets();
 
   addOptionsWidgets();
 
-  addColorColumnWidgets("Line Color");
+  addColorColumnWidgets();
 }
 
 void
@@ -1755,8 +1796,11 @@ addOptionsWidgets()
   //---
 
   orientationCombo_ = createEnumEdit("orientation");
+  normalizedCheck_  = createBoolEdit("normalized", /*choice*/false);
 
   addFrameWidget(optionsFrame_, "Orientation", orientationCombo_);
+
+  addFrameColWidget(optionsFrame_, normalizedCheck_);
 
   //addFrameRowStretch(optionsFrame_);
 
@@ -1769,8 +1813,10 @@ connectSlots(bool b)
 {
   CQUtil::optConnectDisconnect(b,
     orientationCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(orientationSlot()));
+  CQUtil::optConnectDisconnect(b,
+    normalizedCheck_, SIGNAL(stateChanged(int)), this, SLOT(normalizedSlot()));
 
-  CQChartsPlotCustomControls::connectSlots(b);
+  CQChartsHierPlotCustomControls::connectSlots(b);
 }
 
 void
@@ -1782,7 +1828,7 @@ setPlot(CQChartsPlot *plot)
 
   parallelPlot_ = dynamic_cast<CQChartsHierParallelPlot *>(plot);
 
-  CQChartsPlotCustomControls::setPlot(plot);
+  CQChartsHierPlotCustomControls::setPlot(plot);
 
   if (parallelPlot_)
     connect(parallelPlot_, SIGNAL(customDataChanged()), this, SLOT(updateWidgets()));
@@ -1798,13 +1844,15 @@ updateWidgets()
 
   orientationCombo_->setCurrentValue(static_cast<int>(parallelPlot_->orientation()));
 
+  normalizedCheck_->setChecked(parallelPlot_->isNormalized());
+
   //---
 
   connectSlots(true);
 
   //---
 
-  CQChartsPlotCustomControls::updateWidgets();
+  CQChartsHierPlotCustomControls::updateWidgets();
 }
 
 void
@@ -1814,16 +1862,23 @@ orientationSlot()
   parallelPlot_->setOrientation(static_cast<Qt::Orientation>(orientationCombo_->currentValue()));
 }
 
+void
+CQChartsHierParallelPlotCustomControls::
+normalizedSlot()
+{
+  parallelPlot_->setNormalized(normalizedCheck_->isChecked());
+}
+
 CQChartsColor
 CQChartsHierParallelPlotCustomControls::
 getColorValue()
 {
-  return parallelPlot_->linesColor();
+  return parallelPlot_->symbolFillColor();
 }
 
 void
 CQChartsHierParallelPlotCustomControls::
 setColorValue(const CQChartsColor &c)
 {
-  parallelPlot_->setLinesColor(c);
+  parallelPlot_->setSymbolFillColor(c);
 }

@@ -1802,12 +1802,20 @@ addKeyItems(PlotKey *key)
   };
 
   auto addColorKeyRow = [&](const QVariant &value, int i, int n) {
-    auto name = value.toString();
+    ColorInd ic(i, n);
 
-    auto *colorItem = new CQChartsColorBoxKeyItem(this, ColorInd(), ColorInd(), ColorInd(i, n));
-    auto *textItem  = new CQChartsTextKeyItem    (this, name, ColorInd(i, n));
+    QString name;
+    if (! CQChartsVariant::toString(value, name) || name == "")
+      name = QString::number(i);
+
+    auto *colorItem = new CQChartsColorBoxKeyItem(this, ColorInd(), ColorInd(), ic);
+    auto *textItem  = new CQChartsTextKeyItem    (this, name, ic);
 
     colorItem->setValue(value);
+
+    bool ok;
+    auto c = CQChartsVariant::toColor(value, ok);
+    if (ok) colorItem->setColor(c);
 
     auto *groupItem = new CQChartsGroupKeyItem(this);
 
@@ -2081,7 +2089,6 @@ calcTipId() const
 
   // get tip values
   QString groupName, labelName, label, valueStr;
-
   calcTipData(groupName, labelName, label, valueStr);
 
   // add tip values
@@ -2918,7 +2925,6 @@ getDrawLabels(QStringList &labels) const
 {
   // get tip values
   QString groupName, labelName, label, valueStr;
-
   calcTipData(groupName, labelName, label, valueStr);
 
   if (label.trimmed().length() && piePlot_->isShowLabel())
