@@ -185,7 +185,11 @@ class CQChartsHierParallelLineObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void drawOverlay(PaintDevice *device) const;
+
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
+
+  bool hasIndex(const QModelIndex &ind) const;
 
  private:
   void getPolyLine(Polygon &poly) const;
@@ -242,6 +246,8 @@ class CQChartsHierParallelPointObj : public CQChartsPlotPointObj {
   void getObjSelectIndices(Indices &inds) const override;
 
   void draw(PaintDevice *device) const override;
+
+  void drawOverlay(PaintDevice *device) const;
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
@@ -429,8 +435,10 @@ class CQChartsHierParallelPlot : public CQChartsHierPlot,
   //---
 
   bool hasForeground() const override;
-
   void execDrawForeground(PaintDevice *) const override;
+
+  bool hasOverlay() const override;
+  void execDrawOverlay(PaintDevice *device) const override;
 
   //---
 

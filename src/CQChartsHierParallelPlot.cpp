@@ -1315,6 +1315,26 @@ drawFgAxes(PaintDevice *device) const
     th->axesBBox_ = pixelToWindow(axesBBox_);
 }
 
+bool
+CQChartsHierParallelPlot::
+hasOverlay() const
+{
+  return true;
+}
+
+void
+CQChartsHierParallelPlot::
+execDrawOverlay(PaintDevice *device) const
+{
+  for (const auto &plotObj : plotObjects()) {
+    auto *pointObj = dynamic_cast<CQChartsHierParallelPointObj *>(plotObj);
+    if (! pointObj) continue;
+
+    if (pointObj->isInside())
+      pointObj->drawOverlay(device);
+  }
+}
+
 //---
 
 CQChartsHierParallelLineObj *
@@ -1520,6 +1540,16 @@ draw(PaintDevice *device) const
 
 void
 CQChartsHierParallelLineObj::
+drawOverlay(PaintDevice *device) const
+{
+  device->setPen(QPen(Qt::red));
+
+  for (int i = 1; i < polyLine_.size(); ++i)
+    device->drawLine(polyLine_.point(i - 1), polyLine_.point(i));
+}
+
+void
+CQChartsHierParallelLineObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto colorInd = calcColorInd();
@@ -1527,6 +1557,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   parallelPlot_->setLineDataPen(penBrush.pen, colorInd);
 
   if (parallelPlot_->colorColumn().isValid() && parallelPlot_->isLinesNodeColored()) {
+    double alpha = CQChartsDrawUtil::penAlpha(penBrush.pen);
+
     std::vector<QColor> colors;
 
     for (const auto &ind : modelInds()) {
@@ -1537,8 +1569,9 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     }
 
     auto c = CQChartsUtil::blendColors(colors);
-
     penBrush.pen.setColor(c);
+
+    CQChartsDrawUtil::setPenAlpha(penBrush.pen, alpha);
   }
 
   parallelPlot_->setBrush(penBrush, BrushData(false));
@@ -1579,6 +1612,18 @@ getPolyLine(Polygon &poly) const
   else {
     poly = poly_;
   }
+}
+
+bool
+CQChartsHierParallelLineObj::
+hasIndex(const QModelIndex &ind) const
+{
+  for (const auto &ind1 : modelInds()) {
+    if (ind == ind1)
+      return true;
+  }
+
+  return false;
 }
 
 //------
@@ -1697,6 +1742,19 @@ draw(PaintDevice *device) const
   plot()->drawSymbol(device, p, symbol, sx, sy, penBrush, /*scaled*/false);
 }
 
+void
+CQChartsHierParallelPointObj::
+drawOverlay(PaintDevice *device) const
+{
+  for (const auto &plotObj : parallelPlot_->plotObjects()) {
+    auto *lineObj = dynamic_cast<CQChartsHierParallelLineObj *>(plotObj);
+    if (! lineObj) continue;
+
+    if (lineObj->hasIndex(modelInd()))
+      lineObj->drawOverlay(device);
+  }
+}
+
 CQChartsGeom::Point
 CQChartsHierParallelPointObj::
 calcPoint() const
@@ -1740,8 +1798,13 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
     Color indColor;
 
-    if (parallelPlot_->colorColumnColor(ind1.row(), ind1.parent(), indColor))
+    if (parallelPlot_->colorColumnColor(ind1.row(), ind1.parent(), indColor)) {
+      double alpha = CQChartsDrawUtil::brushAlpha(penBrush.brush);
+
       penBrush.brush.setColor(parallelPlot_->interpColor(indColor, colorInd));
+
+      CQChartsDrawUtil::setBrushAlpha(penBrush.brush, alpha);
+    }
   }
 
   if (updateState)

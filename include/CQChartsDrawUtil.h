@@ -117,6 +117,7 @@ void updateBrushColor(QBrush &brush, const QColor &c);
 void setPenGray  (QPen   &pen  , double alpha=1.0);
 void setBrushGray(QBrush &brush, double alpha=1.0);
 
+inline double penAlpha  (QPen   &pen  ) { return pen  .color().alphaF(); }
 inline double brushAlpha(QBrush &brush) { return brush.color().alphaF(); }
 
 void setBrushAlpha(QBrush &brush, double a);
