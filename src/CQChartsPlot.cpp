@@ -14891,12 +14891,12 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
     else {
       auto drawLayer = plotObj->drawLayer();
 
-      if (drawLayer != CQChartsPlotObj::DrawLayer::NONE) {
-        bool draw = ((drawLayer == CQChartsPlotObj::DrawLayer::BACKGROUND &&
+      if (drawLayer != PlotObj::DrawLayer::NONE) {
+        bool draw = ((drawLayer == PlotObj::DrawLayer::BACKGROUND &&
                       layerType == Layer::Type::BG_PLOT) ||
-                     (drawLayer == CQChartsPlotObj::DrawLayer::MIDDLE &&
+                     (drawLayer == PlotObj::DrawLayer::MIDDLE &&
                       layerType == Layer::Type::MID_PLOT) ||
-                     (drawLayer == CQChartsPlotObj::DrawLayer::FOREGROUND &&
+                     (drawLayer == PlotObj::DrawLayer::FOREGROUND &&
                       layerType == Layer::Type::FG_PLOT));
 
         if (draw)
@@ -15643,7 +15643,9 @@ hasAnnotations(const Layer::Type &layerType) const
     return ((layerType == Layer::Type::BG_ANNOTATION &&
              annotation->drawLayer() == Annotation::DrawLayer::BACKGROUND) ||
             (layerType == Layer::Type::FG_ANNOTATION &&
-             annotation->drawLayer() == Annotation::DrawLayer::FOREGROUND));
+             annotation->drawLayer() == Annotation::DrawLayer::FOREGROUND) ||
+            (layerType == Layer::Type::MOUSE_OVER &&
+             annotation->drawLayer() == Annotation::DrawLayer::MOUSE_OVER));
   };
 
   //---
@@ -15659,7 +15661,8 @@ hasAnnotations(const Layer::Type &layerType) const
         continue;
     }
     else if (layerType == Layer::Type::MOUSE_OVER) {
-      if (! annotation->isInside())
+      if (annotation->drawLayer() != Annotation::DrawLayer::MOUSE_OVER &&
+          ! annotation->isInside())
         continue;
     }
     else {
@@ -15694,7 +15697,9 @@ drawAnnotations(PaintDevice *device, const Layer::Type &layerType) const
     return ((layerType == Layer::Type::BG_ANNOTATION &&
              annotation->drawLayer() == Annotation::DrawLayer::BACKGROUND) ||
             (layerType == Layer::Type::FG_ANNOTATION &&
-             annotation->drawLayer() == Annotation::DrawLayer::FOREGROUND));
+             annotation->drawLayer() == Annotation::DrawLayer::FOREGROUND) ||
+            (layerType == Layer::Type::MOUSE_OVER &&
+             annotation->drawLayer() == Annotation::DrawLayer::MOUSE_OVER));
   };
 
   //---
@@ -15715,8 +15720,13 @@ drawAnnotations(PaintDevice *device, const Layer::Type &layerType) const
         continue;
     }
     else if (layerType == Layer::Type::MOUSE_OVER) {
-      if (! annotation->isInside())
-        continue;
+      if (! annotation->isInside()) {
+        if (annotation->drawLayer() != Annotation::DrawLayer::MOUSE_OVER)
+          continue;
+
+        if (! annotation->isMouseOverVisible())
+          continue;
+      }
     }
     else {
       if (! isAnnotationLayer(annotation, layerType))

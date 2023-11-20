@@ -94,4 +94,3 @@ proc updateAnnotations { view plot } {
     }
   }
 }
-

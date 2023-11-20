@@ -208,6 +208,9 @@ class CQChartsColumnType {
   // get value sum
   virtual QVariant sumValue(const NameValues &) const { return QVariant(); }
 
+  // get target value
+  virtual QVariant targetValue(const NameValues &) const { return QVariant(); }
+
   // get decreasing
   virtual QVariant decreasing(const NameValues &) const { return QVariant(); }
 
@@ -350,6 +353,9 @@ class CQChartsColumnRealType : public CQChartsColumnType {
   // get value sum
   QVariant sumValue(const NameValues &nameValues) const override;
 
+  // get target value
+  QVariant targetValue(const NameValues &nameValues) const override;
+
   // get decreasing
   QVariant decreasing(const NameValues &nameValues) const override;
 
@@ -359,6 +365,8 @@ class CQChartsColumnRealType : public CQChartsColumnType {
   bool rmin(const NameValues &nameValues, double &r) const;
   bool rmax(const NameValues &nameValues, double &r) const;
   bool rsum(const NameValues &nameValues, double &r) const;
+
+  bool rtarget(const NameValues &nameValues, double &r) const;
 
   QString getIFormat(const NameValues &nameValues) const;
   QString getOFormat(const NameValues &nameValues) const override;

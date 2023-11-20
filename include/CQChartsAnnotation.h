@@ -70,6 +70,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   // objref
   Q_PROPERTY(CQChartsObjRef objRef READ objRef WRITE setObjRef)
 
+  Q_PROPERTY(CQChartsObjRef mouseObjRef READ mouseObjRef WRITE setMouseObjRef)
+
   Q_ENUMS(DrawLayer)
 
  public:
@@ -102,7 +104,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     SYMBOL_MAP_KEY = int(CQChartsAnnotationType::SYMBOL_MAP_KEY)
   };
 
-  // annotation sub types (classifcation)
+  // annotation sub types (classification)
   enum class SubType {
     GROUP,
     SHAPE,
@@ -120,7 +122,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   // annotation draw layer
   enum class DrawLayer {
     BACKGROUND,
-    FOREGROUND
+    FOREGROUND,
+    MOUSE_OVER
   };
 
   using View        = CQChartsView;
@@ -154,7 +157,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   CQChartsAnnotation(View *view, Type type);
   CQChartsAnnotation(Plot *plot, Type type);
 
-  virtual ~CQChartsAnnotation();
+ ~CQChartsAnnotation() override;
 
   //---
 
@@ -244,6 +247,10 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   const ObjRef &objRef() const { return objRef_; }
   void setObjRef(const ObjRef &o);
 
+  //! get/set mouse over object reference
+  const ObjRef &mouseObjRef() const { return mouseObjRef_; }
+  void setMouseObjRef(const ObjRef &o) { mouseObjRef_ = o; }
+
   //---
 
   //! get/set value
@@ -287,9 +294,13 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   void addTextProperties(PropertyModel *model, const QString &path, uint types);
 
+  CQPropertyViewItem *addStylePropI(PropertyModel *model, const QString &path, const QString &name,
+                                    const QString &alias, const QString &desc);
   CQPropertyViewItem *addStyleProp(PropertyModel *model, const QString &path, const QString &name,
                                    const QString &alias, const QString &desc, bool hidden=false);
 
+  CQPropertyViewItem *addPropI(PropertyModel *model, const QString &path, const QString &name,
+                               const QString &alias, const QString &desc);
   CQPropertyViewItem *addProp(PropertyModel *model, const QString &path, const QString &name,
                               const QString &alias, const QString &desc, bool hidden=false);
 
@@ -324,6 +335,10 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   virtual bool inside(const Point &p) const;
 
   bool intersects(const BBox &r, bool inside) const;
+
+  //---
+
+  virtual bool isMouseOverVisible() const;
 
   //---
 
@@ -477,7 +492,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   PaletteName defaultPalette_; //!< default palette
 
   // objref
-  ObjRef objRef_; //!< object ref for ppsition
+  ObjRef objRef_;      //!< object ref for position
+  ObjRef mouseObjRef_; //!< mouse over object ref
 
   mutable bool disableSignals_ { false }; //!< disable signals
 };
@@ -531,7 +547,7 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
   CQChartsAnnotationGroup(View *view);
   CQChartsAnnotationGroup(Plot *plot);
 
- ~CQChartsAnnotationGroup();
+ ~CQChartsAnnotationGroup() override;
 
   const char *typeName() const override { return "group"; }
 
@@ -634,7 +650,7 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
 
   struct LayoutData {
     LayoutType      type    { LayoutType::NONE };                    //!< layout type
-    Qt::Orientation orient  { Qt::Horizontal };                      //!< layout orientaton
+    Qt::Orientation orient  { Qt::Horizontal };                      //!< layout orientation
     Qt::Alignment   align   { Qt::AlignHCenter | Qt::AlignVCenter }; //!< layout align
     int             margin  { 2 };                                   //!< layout margin in pixels
     int             spacing { 2 };                                   //!< layout spacing in pixels
@@ -666,7 +682,7 @@ class CQChartsShapeAnnotationBase : public CQChartsAnnotation {
   CQChartsShapeAnnotationBase(View *view, Type type);
   CQChartsShapeAnnotationBase(Plot *plot, Type type);
 
- ~CQChartsShapeAnnotationBase();
+ ~CQChartsShapeAnnotationBase() override;
 
   //---
 
@@ -717,7 +733,7 @@ class CQChartsPolyShapeAnnotationBase : public CQChartsShapeAnnotationBase {
   CQChartsPolyShapeAnnotationBase(View *view, Type type, const Polygon &polygon=Polygon());
   CQChartsPolyShapeAnnotationBase(Plot *plot, Type type, const Polygon &polygon=Polygon());
 
-  virtual ~CQChartsPolyShapeAnnotationBase();
+ ~CQChartsPolyShapeAnnotationBase() override;
 
   //! get/set polygon
   const Polygon &polygon() const { return polygon_; }
@@ -775,7 +791,7 @@ class CQChartsRectangleAnnotation : public CQChartsShapeAnnotationBase {
   CQChartsRectangleAnnotation(View *view, const Rect &rect=Rect());
   CQChartsRectangleAnnotation(Plot *plot, const Rect &rect=Rect());
 
-  virtual ~CQChartsRectangleAnnotation();
+ ~CQChartsRectangleAnnotation() override;
 
   //---
 
@@ -857,7 +873,7 @@ class CQChartsShapeAnnotation : public CQChartsShapeAnnotationBase {
   CQChartsShapeAnnotation(View *view, const Rect &rect=Rect());
   CQChartsShapeAnnotation(Plot *plot, const Rect &rect=Rect());
 
-  virtual ~CQChartsShapeAnnotation();
+ ~CQChartsShapeAnnotation() override;
 
   //---
 
@@ -972,7 +988,7 @@ class CQChartsEllipseAnnotation : public CQChartsShapeAnnotationBase {
                             const Length &xRadius=Length::plot(1.0),
                             const Length &yRadius=Length::plot(1.0));
 
-  virtual ~CQChartsEllipseAnnotation();
+ ~CQChartsEllipseAnnotation() override;
 
   //---
 
@@ -1045,7 +1061,7 @@ class CQChartsPolygonAnnotation : public CQChartsPolyShapeAnnotationBase {
   CQChartsPolygonAnnotation(View *view, const Polygon &polygon=Polygon());
   CQChartsPolygonAnnotation(Plot *plot, const Polygon &polygon=Polygon());
 
-  virtual ~CQChartsPolygonAnnotation();
+ ~CQChartsPolygonAnnotation() override;
 
   //---
 
@@ -1110,7 +1126,7 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotationBase {
   CQChartsPolylineAnnotation(View *view, const Polygon &polygon=Polygon());
   CQChartsPolylineAnnotation(Plot *plot, const Polygon &polygon=Polygon());
 
-  virtual ~CQChartsPolylineAnnotation();
+ ~CQChartsPolylineAnnotation() override;
 
   //---
 
@@ -1176,7 +1192,7 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
   CQChartsRectAnnotation(View *view, Type type, const Rect &rect);
   CQChartsRectAnnotation(Plot *plot, Type type, const Rect &rect);
 
-  virtual ~CQChartsRectAnnotation();
+ ~CQChartsRectAnnotation() override;
 
   //---
 
@@ -1227,7 +1243,7 @@ class CQChartsTextAnnotation : public CQChartsRectAnnotation {
   CQChartsTextAnnotation(View *view, const Rect &r, const QString &text=QString());
   CQChartsTextAnnotation(Plot *plot, const Rect &r, const QString &text=QString());
 
-  virtual ~CQChartsTextAnnotation();
+ ~CQChartsTextAnnotation() override;
 
   //---
 
@@ -1310,7 +1326,7 @@ class CQChartsImageAnnotation : public CQChartsShapeAnnotationBase {
   CQChartsImageAnnotation(View *view, const Rect &r, const Image &image=Image());
   CQChartsImageAnnotation(Plot *plot, const Rect &r, const Image &image=Image());
 
-  virtual ~CQChartsImageAnnotation();
+ ~CQChartsImageAnnotation() override;
 
   //---
 
@@ -1417,7 +1433,7 @@ class CQChartsPathAnnotation : public CQChartsShapeAnnotationBase {
   CQChartsPathAnnotation(View *view, const Path &path=Path());
   CQChartsPathAnnotation(Plot *plot, const Path &path=Path());
 
-  virtual ~CQChartsPathAnnotation();
+ ~CQChartsPathAnnotation() override;
 
   //---
 
@@ -1487,7 +1503,7 @@ class CQChartsConnectorAnnotationBase : public CQChartsAnnotation {
   CQChartsConnectorAnnotationBase(View *view, Type type);
   CQChartsConnectorAnnotationBase(Plot *plot, Type type);
 
-  virtual ~CQChartsConnectorAnnotationBase();
+ ~CQChartsConnectorAnnotationBase() override;
 
   //---
 
@@ -1535,7 +1551,7 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
   CQChartsArrowAnnotation(Plot *plot, const ObjRefPos &start=ObjRefPos::plot(Point(0, 0)),
                           const ObjRefPos &end=ObjRefPos::plot(Point(1, 1)));
 
-  virtual ~CQChartsArrowAnnotation();
+ ~CQChartsArrowAnnotation() override;
 
   //---
 
@@ -1666,7 +1682,7 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotationBase {
   CQChartsArcAnnotation(Plot *plot, const ObjRefPos &start=ObjRefPos::plot(Point(0, 0)),
                         const ObjRefPos &end=ObjRefPos::plot(Point(1, 1)));
 
-  virtual ~CQChartsArcAnnotation();
+ ~CQChartsArcAnnotation() override;
 
   //---
 
@@ -1796,7 +1812,7 @@ class CQChartsArcConnectorAnnotation : public CQChartsConnectorAnnotationBase {
                                  const Angle &destSpanAngle=Angle(180.0),
                                  bool self=false);
 
-  virtual ~CQChartsArcConnectorAnnotation();
+ ~CQChartsArcConnectorAnnotation() override;
 
   //---
 
@@ -1917,7 +1933,7 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
   CQChartsPointAnnotation(Plot *plot, const ObjRefPos &p=ObjRefPos(),
                           const Symbol &symbol=Symbol::circle());
 
-  virtual ~CQChartsPointAnnotation();
+ ~CQChartsPointAnnotation() override;
 
   //---
 
@@ -2011,7 +2027,7 @@ class CQChartsPieSliceAnnotation : public CQChartsShapeAnnotationBase {
                              const Angle &startAngle=Angle(0.0),
                              const Angle &spanAngle=Angle(90.0));
 
-  virtual ~CQChartsPieSliceAnnotation();
+ ~CQChartsPieSliceAnnotation() override;
 
   //---
 
@@ -2100,7 +2116,7 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
   CQChartsAxisAnnotation(Plot *plot, Qt::Orientation direction=Qt::Horizontal,
                          double start=0.0, double end=1.0);
 
-  virtual ~CQChartsAxisAnnotation();
+ ~CQChartsAxisAnnotation() override;
 
   //---
 
@@ -2193,7 +2209,7 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
   CQChartsKeyAnnotation(View *plot);
   CQChartsKeyAnnotation(Plot *plot, const Column &column=Column());
 
-  virtual ~CQChartsKeyAnnotation();
+ ~CQChartsKeyAnnotation() override;
 
   //---
 
@@ -2281,7 +2297,7 @@ class CQChartsPoint3DSetAnnotation : public CQChartsShapeAnnotationBase {
   CQChartsPoint3DSetAnnotation(View *view, const Points &values=Points());
   CQChartsPoint3DSetAnnotation(Plot *plot, const Points &values=Points());
 
-  virtual ~CQChartsPoint3DSetAnnotation();
+ ~CQChartsPoint3DSetAnnotation() override;
 
   //---
 
@@ -2384,7 +2400,7 @@ class CQChartsPointSetAnnotation : public CQChartsShapeAnnotationBase,
   CQChartsPointSetAnnotation(Plot *plot, const Rect &rectangle=Rect(),
                              const Points &values=Points());
 
-  virtual ~CQChartsPointSetAnnotation();
+ ~CQChartsPointSetAnnotation() override;
 
   //---
 
@@ -2510,7 +2526,7 @@ class CQChartsValueSetAnnotation : public CQChartsShapeAnnotationBase {
   CQChartsValueSetAnnotation(Plot *plot, const Rect &rectangle=Rect(),
                              const Reals &values=Reals());
 
-  virtual ~CQChartsValueSetAnnotation();
+ ~CQChartsValueSetAnnotation() override;
 
   //---
 
@@ -2588,7 +2604,7 @@ class CQChartsValueSetAnnotation : public CQChartsShapeAnnotationBase {
 
   // data
   DensityP    density_;               //!< density object
-  CirclePackP circlePack_;            //!< curcle pack
+  CirclePackP circlePack_;            //!< circle pack
   CircleMgr*  circleMgr_ { nullptr }; //!< circle mgr
 };
 
@@ -2611,7 +2627,7 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
   CQChartsButtonAnnotation(Plot *plot, const ObjRefPos &p=ObjRefPos(),
                            const QString &text=QString());
 
-  virtual ~CQChartsButtonAnnotation();
+ ~CQChartsButtonAnnotation() override;
 
   //---
 
@@ -2697,7 +2713,7 @@ class CQChartsWidgetAnnotation : public CQChartsRectAnnotation {
   CQChartsWidgetAnnotation(View *view, const Rect &r, const Widget &widget=Widget());
   CQChartsWidgetAnnotation(Plot *plot, const Rect &r, const Widget &widget=Widget());
 
-  virtual ~CQChartsWidgetAnnotation();
+ ~CQChartsWidgetAnnotation() override;
 
   //---
 
@@ -2776,8 +2792,6 @@ class CQChartsWidgetAnnotation : public CQChartsRectAnnotation {
   void updateWinGeometry();
 
  protected:
-  OptPosition   position_;                                     //!< widget position
-  OptRect       rectangle_;                                    //!< widget bounding rectangle
   Widget        widget_;                                       //!< widget
   Qt::Alignment align_       { Qt::AlignLeft | Qt::AlignTop }; //!< position alignment
   QSizePolicy   sizePolicy_;                                   //!< size policy
@@ -2809,7 +2823,7 @@ class CQChartsTkWidgetAnnotation : public CQChartsRectAnnotation {
   CQChartsTkWidgetAnnotation(View *view, const Rect &r, const QString &id="");
   CQChartsTkWidgetAnnotation(Plot *plot, const Rect &r, const QString &id="");
 
-  virtual ~CQChartsTkWidgetAnnotation();
+ ~CQChartsTkWidgetAnnotation() override;
 
   //---
 
@@ -2879,8 +2893,6 @@ class CQChartsTkWidgetAnnotation : public CQChartsRectAnnotation {
   void positionToBBox() override;
 
  protected:
-  OptPosition   position_;                                     //!< widget position
-  OptRect       rectangle_;                                    //!< widget bounding rectangle
   QString       widgetId_;                                     //!< widget id
   CTkWidget*    widget_;                                       //!< widget
   Qt::Alignment align_       { Qt::AlignLeft | Qt::AlignTop }; //!< position alignment
@@ -2905,7 +2917,7 @@ class CQChartsSymbolSizeMapKeyAnnotation : public CQChartsAnnotation {
  public:
   CQChartsSymbolSizeMapKeyAnnotation(Plot *plot);
 
-  virtual ~CQChartsSymbolSizeMapKeyAnnotation();
+ ~CQChartsSymbolSizeMapKeyAnnotation() override;
 
   //---
 

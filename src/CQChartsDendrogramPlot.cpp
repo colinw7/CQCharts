@@ -8,6 +8,7 @@
 #include <CQChartsHtml.h>
 #include <CQChartsTip.h>
 #include <CQChartsNamePair.h>
+#include <CQChartsModelDetails.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -1240,7 +1241,6 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-#if 0
   cacheData_.targetValue = 0.0;
 
   if (valueColumn().isValid()) {
@@ -1248,11 +1248,10 @@ createObjs(PlotObjs &objs) const
 
     if (details) {
       bool ok;
-      cacheData_.targetValue = CQChartsVariant::toReal(details->targetValue, ok);
+      cacheData_.targetValue = CQChartsVariant::toReal(details->targetValue(), ok);
       if (! ok) cacheData_.targetValue = 0.0;
     }
   }
-#endif
 
   //---
 
@@ -4727,7 +4726,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
     fillColor = plot()->interpPaletteColor(ColorInd(color));
   }
-#if 0
   else if (dendrogramPlot_->nodeColorByValue() == DendrogramPlot::ValueType::TARGET_NODE) {
     auto value = this->value().realOr(0.0);
 
@@ -4754,7 +4752,6 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
     fillColor = plot()->interpPaletteColor(ColorInd(color));
   }
-#endif
   else if (colorValue.isSet()) {
     auto color = colorValue.real();
 

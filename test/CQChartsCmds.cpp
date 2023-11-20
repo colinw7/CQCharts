@@ -10264,19 +10264,20 @@ execCmd(CQChartsCmdArgs &argv)
   if (! pos.isValid())
     return errorMsg("Invalid position");
 
+  //---
+
   auto innerRadius = argv.getParseLength(view, plot, "inner_radius");
   auto outerRadius = argv.getParseLength(view, plot, "outer_radius");
+
+  if (innerRadius.value() < 0.0 || outerRadius.value() <= 0.0)
+    return errorMsg("Invalid pie slice radii");
+
+  //---
 
   auto startAngle = argv.getParseAngle("start_angle");
   auto spanAngle  = argv.getParseAngle("span_angle");
 
-  if (innerRadius.value() < 0 || outerRadius.value() < 0)
-    return errorMsg("Invalid radius value");
-
   //---
-
-  if (innerRadius.value() < 0.0 || outerRadius.value() <= 0.0)
-    return errorMsg("Invalid pie slice radii");
 
   CQChartsPieSliceAnnotation *annotation = nullptr;
 

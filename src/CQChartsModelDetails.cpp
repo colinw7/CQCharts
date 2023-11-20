@@ -401,10 +401,10 @@ CQChartsModelColumnDetails::
 getLongNamedValues()
 {
   static auto namedValues = QStringList() <<
-    "name" << "type" << "minimum" << "maximum" << "mean" << "standard_deviation" <<
-    "monotonic" << "increasing" << "num_unique" << "unique_values" << "unique_counts" <<
-    "num_null" << "median" << "lower_median" << "upper_median" <<
-    "outliers";
+    "name" << "type" << "minimum" << "maximum" << "average" << "sum" << "target" <<
+    "standard_deviation" << "monotonic" << "increasing" << "num_unique" <<
+    "unique_values" << "unique_counts" << "num_null" << "median" << "lower_median" <<
+    "upper_median" << "outliers";
 
   return namedValues;
 }
@@ -414,7 +414,7 @@ CQChartsModelColumnDetails::
 getShortNamedValues()
 {
   static auto namedValues = QStringList() <<
-    "min" << "max" << "mean" << "sum" << "avg" << "stdev" << "stddev" << "std_dev";
+    "min" << "max" << "mean" << "avg" << "stdev" << "stddev" << "std_dev";
 
   return namedValues;
 }
@@ -433,6 +433,9 @@ getNamedValue(const QString &name) const
 
   else if (lname == "mean" || lname == "avg" || lname == "average") return this->meanValue();
   else if (lname == "sum")                                          return this->sumValue();
+
+  else if (lname == "target") return this->targetValue();
+
   else if (lname == "stdev" || lname == "stddev" ||
            lname == "std_dev" || lname == "standard_deviation")
     return this->stdDevValue();
@@ -594,12 +597,10 @@ sumValue(bool useNaN) const
 
   if (type() == CQBaseModelType::INTEGER ||
       type() == CQBaseModelType::REAL ||
-      type() == CQBaseModelType::TIME) {
+      type() == CQBaseModelType::TIME)
     return sumValue_;
-  }
-  else {
-    return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
-  }
+
+  return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
 #else
   auto *valueSet = this->calcValueSet();
 
@@ -621,6 +622,18 @@ sumValue(bool useNaN) const
 
   return QVariant();
 #endif
+}
+
+QVariant
+CQChartsModelColumnDetails::
+targetValue(bool useNaN) const
+{
+  initCache();
+
+  if (type() == CQBaseModelType::REAL)
+    return targetValue_;
+
+  return (useNaN ? CQChartsVariant::fromNaN() : QVariant());;
 }
 
 QVariant
@@ -1494,9 +1507,10 @@ calcCache()
       const auto *columnType = columnTypeMgr->getType(details_->type());
 
       if (columnType) {
-        min_ = columnType->minValue(details->nameValues()); // type custom min value
-        max_ = columnType->maxValue(details->nameValues()); // type custom max value
-        sum_ = columnType->sumValue(details->nameValues()); // type custom value sum
+        min_    = columnType->minValue   (details->nameValues()); // type custom min value
+        max_    = columnType->maxValue   (details->nameValues()); // type custom max value
+        sum_    = columnType->sumValue   (details->nameValues()); // type custom value sum
+        target_ = columnType->targetValue(details->nameValues()); // type custom target value
 
         badValue_ = columnType->badValue(details->nameValues()); // type custom bad value
 
@@ -1835,9 +1849,10 @@ calcCache()
       lastValue2_ = CQChartsVariant::fromColor(c);
     }
 
-    QVariant minValue() const { return min_; }
-    QVariant maxValue() const { return max_; }
-    QVariant sumValue() const { return sum_; }
+    QVariant minValue   () const { return min_; }
+    QVariant maxValue   () const { return max_; }
+    QVariant sumValue   () const { return sum_; }
+    QVariant targetValue() const { return target_; }
 
     QVariant badValue() const { return badValue_; }
 
@@ -1854,6 +1869,7 @@ calcCache()
     QVariant                    min_;
     QVariant                    max_;
     QVariant                    sum_;
+    QVariant                    target_;
     QVariant                    badValue_;
     QVariant                    decreasing_;
     QVariant                    oformat_;
@@ -1890,15 +1906,16 @@ calcCache()
 
   //---
 
-  minValue_   = detailVisitor.minValue();
-  maxValue_   = detailVisitor.maxValue();
-  sumValue_   = detailVisitor.sumValue();
-  badValue_   = detailVisitor.badValue();
-  decreasing_ = detailVisitor.decreasing();
-  oformat_    = detailVisitor.oformat();
-  numRows_    = detailVisitor.numRows();
-  monotonic_  = detailVisitor.isMonotonic();
-  increasing_ = detailVisitor.isIncreasing();
+  minValue_    = detailVisitor.minValue();
+  maxValue_    = detailVisitor.maxValue();
+  sumValue_    = detailVisitor.sumValue();
+  targetValue_ = detailVisitor.targetValue();
+  badValue_    = detailVisitor.badValue();
+  decreasing_  = detailVisitor.decreasing();
+  oformat_     = detailVisitor.oformat();
+  numRows_     = detailVisitor.numRows();
+  monotonic_   = detailVisitor.isMonotonic();
+  increasing_  = detailVisitor.isIncreasing();
 
   if (modelFilter)
     modelFilter->setMapping(true);

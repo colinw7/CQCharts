@@ -98,6 +98,8 @@ CQChartsHierParallelPlot::
 ~CQChartsHierParallelPlot()
 {
   CQChartsHierParallelPlot::term();
+
+  delete root_;
 }
 
 //---

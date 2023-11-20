@@ -1760,6 +1760,7 @@ writeCSV(std::ostream &fs) const
       writeMetaColumnNameValue("min");
       writeMetaColumnNameValue("max");
       writeMetaColumnNameValue("sum");
+      writeMetaColumnNameValue("target");
       writeMetaColumnNameValue("decreasing");
       writeMetaColumnNameValue("bad_value");
     }

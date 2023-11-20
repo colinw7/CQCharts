@@ -870,9 +870,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   //---
 
-#if 0
   double targetValue() const { return cacheData_.targetValue; }
-#endif
 
  protected:
   bool processMetaNodeValue(const QString &name, const QString &key,
@@ -1079,7 +1077,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
     int nodeInd { 0 };
     int edgeInd { 0 };
 
-//  double targetValue { 0.0 };
+    double targetValue { 0.0 };
   };
 
   mutable CacheData cacheData_;

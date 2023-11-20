@@ -34,6 +34,11 @@ class CQChartsHierParallelNode {
       parent->children_.push_back(this);
   }
 
+ ~CQChartsHierParallelNode() {
+    for (auto *child : children_)
+      delete child;
+  }
+
   Node *parent() const { return parent_; }
 
   const QString &name() const { return name_; }

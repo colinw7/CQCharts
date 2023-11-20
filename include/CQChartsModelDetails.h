@@ -210,6 +210,7 @@ class CQChartsModelColumnDetails {
   //! get mean, sum, std deviation
   QVariant meanValue  (bool useNaN=true) const;
   QVariant sumValue   (bool useNaN=true) const;
+  QVariant targetValue(bool useNaN=true) const;
   QVariant stdDevValue(bool useNaN=true) const;
 
   //! get bad value
@@ -455,6 +456,7 @@ class CQChartsModelColumnDetails {
   QVariant minValue_;              //!< min value (as variant)
   QVariant maxValue_;              //!< max value (as variant)
   QVariant sumValue_;              //!< value sum (as variant)
+  QVariant targetValue_;           //!< target value (as variant)
   QVariant badValue_;              //!< bad value (as variant)
   QVariant decreasing_;            //!< is decreasing sense (as variant)
   QVariant oformat_;               //!< output format (as variant)

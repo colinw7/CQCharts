@@ -1364,6 +1364,9 @@ CQChartsColumnRealType() :
   addParam("sum", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::Sum), "Value Sum", 1.0)->
     setDesc("Override value sum for column");
 
+  addParam("target", Type::REAL, CQModelUtil::roleCast(CQBaseModelRole::Target),
+           "Target Value", 0.0)->setDesc("Override target value for column");
+
   addParam("decreasing", Type::BOOLEAN, "Decreasing")->
     setDesc("Values are ordered decreasing");
 
@@ -1524,6 +1527,18 @@ sumValue(const NameValues &nameValues) const
 
 QVariant
 CQChartsColumnRealType::
+targetValue(const NameValues &nameValues) const
+{
+  double r;
+
+  if (! rtarget(nameValues, r))
+    return QVariant();
+
+  return CQChartsVariant::fromReal(r);
+}
+
+QVariant
+CQChartsColumnRealType::
 decreasing(const NameValues &nameValues) const
 {
   bool b;
@@ -1571,6 +1586,16 @@ CQChartsColumnRealType::
 rsum(const NameValues &nameValues, double &r) const
 {
   if (! CQChartsColumnUtil::nameValueReal(nameValues, "sum", r))
+    return false;
+
+  return true;
+}
+
+bool
+CQChartsColumnRealType::
+rtarget(const NameValues &nameValues, double &r) const
+{
+  if (! CQChartsColumnUtil::nameValueReal(nameValues, "target", r))
     return false;
 
   return true;

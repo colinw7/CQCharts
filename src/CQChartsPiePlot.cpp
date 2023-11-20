@@ -2058,7 +2058,9 @@ calcTipId() const
 
     if (! value1.length()) {
       if (column.isValid()) {
-        ModelIndex columnInd(piePlot_, modelInd().row(), column, modelInd().parent());
+        auto modelInd1 = piePlot_->unnormalizeIndex(modelInd());
+
+        ModelIndex columnInd(piePlot_, modelInd1.row(), column, modelInd1.parent());
 
         bool ok;
 

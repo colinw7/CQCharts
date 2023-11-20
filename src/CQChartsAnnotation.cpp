@@ -71,7 +71,7 @@ stringToType(const QString &str)
   else if (str == "rect"           ) return Type::RECT;
   else if (str == "ellipse"        ) return Type::ELLIPSE;
   else if (str == "polygon"        ) return Type::POLYGON;
-  else if (str == "polylin"        ) return Type::POLYLINE;
+  else if (str == "polyline"       ) return Type::POLYLINE;
   else if (str == "text"           ) return Type::TEXT;
   else if (str == "image"          ) return Type::IMAGE;
   else if (str == "path"           ) return Type::PATH;
@@ -431,52 +431,51 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   model->setObjectRoot(path1, this);
 
-  addProp(model, path1, "id" , "id" , "Annotation id");
-  addProp(model, path1, "tip", "tip", "Annotation tip");
+  addProp(model, path1, "id"   , "id" , "Annotation id");
+  addProp(model, path1, "tipId", "tip", "Annotation tip");
 
   //---
 
   // state
   auto statePath = path1 + "/state";
 
-  addProp(model, statePath, "visible"   , "visible"   , "Is visible");
-  addProp(model, statePath, "enabled"   , "enabled"   , "Is enabled"   , true);
-  addProp(model, statePath, "checkable" , "checkable" , "Is checkable" , true);
-  addProp(model, statePath, "checked"   , "checked"   , "Is checked"   , true);
-  addProp(model, statePath, "selected"  , "selected"  , "Is selected"  , true);
-  addProp(model, statePath, "selectable", "selectable", "Is selectable");
-  addProp(model, statePath, "editable"  , "editable"  , "Is editable"  , true);
-  addProp(model, statePath, "fitted"    , "fitted"    , "Is fitted"    , true);
+  addProp (model, statePath, "visible"   , "visible"   , "Is visible"   );
+  addPropI(model, statePath, "enabled"   , "enabled"   , "Is enabled"   );
+  addPropI(model, statePath, "checkable" , "checkable" , "Is checkable" );
+  addPropI(model, statePath, "checked"   , "checked"   , "Is checked"   );
+  addPropI(model, statePath, "selected"  , "selected"  , "Is selected"  );
+  addProp (model, statePath, "selectable", "selectable", "Is selectable");
+  addPropI(model, statePath, "editable"  , "editable"  , "Is editable"  );
+  addPropI(model, statePath, "fitted"    , "fitted"    , "Is fitted"    );
 
   //---
 
   if (hasMargin())
-    addProp(model, path1, "margin", "", "Outer margin", true);
+    addPropI(model, path1, "margin", "", "Outer margin");
 
   if (hasPadding())
-    addProp(model, path1, "padding", "", "Inner padding", true);
+    addPropI(model, path1, "padding", "", "Inner padding");
 
   //---
 
   auto layerPath = path1 + "/layer";
 
-  addProp(model, layerPath, "drawLayer", "drawLayer", "Draw layer", true);
+  addPropI(model, layerPath, "drawLayer", "drawLayer", "Draw layer");
 
   //---
 
   auto coloringPath = path1 + "/coloring";
 
-  addProp(model, coloringPath, "defaultPalette"  , "defaultPalette"  ,
-          "Default palette");
-  addProp(model, coloringPath, "disabledLighter" , "disabledLighter" ,
-          "Ligher when disabled" , true);
-  addProp(model, coloringPath, "uncheckedLighter", "uncheckedLighter",
-          "Ligher when unchecked", true);
+  addProp (model, coloringPath, "defaultPalette"  , "defaultPalette"  , "Default palette");
+  addPropI(model, coloringPath, "disabledLighter" , "disabledLighter" , "Ligher when disabled" );
+  addPropI(model, coloringPath, "uncheckedLighter", "uncheckedLighter", "Ligher when unchecked");
 
   //---
 
-  addProp(model, path1, "value" , "", "Associated value");
-  addProp(model, path1, "objRef", "", "Object reference");
+  addProp(model, path1, "value", "", "Associated value");
+
+  addPropI(model, path1, "objRef"     , "", "Object reference for position");
+  addPropI(model, path1, "mouseObjRef", "", "Mouse over object reference");
 
   // TODO: modelIndex
 }
@@ -524,7 +523,7 @@ CQChartsAnnotation::
 addTextProperties(PropertyModel *model, const QString &path, uint types)
 {
   if (types & static_cast<uint>(TextOptions::ValueType::DATA))
-    addStyleProp(model, path, "textData", "style", "Text style", true);
+    addStylePropI(model, path, "textData", "style", "Text style");
 
   addStyleProp(model, path, "textColor", "color", "Text color");
   addStyleProp(model, path, "textAlpha", "alpha", "Text alpha");
@@ -560,6 +559,14 @@ addTextProperties(PropertyModel *model, const QString &path, uint types)
 
 CQPropertyViewItem *
 CQChartsAnnotation::
+addStylePropI(PropertyModel *model, const QString &path, const QString &name,
+              const QString &alias, const QString &desc)
+{
+  return addStyleProp(model, path, name, alias, desc, /*hidden*/true);
+}
+
+CQPropertyViewItem *
+CQChartsAnnotation::
 addStyleProp(PropertyModel *model, const QString &path, const QString &name,
              const QString &alias, const QString &desc, bool hidden)
 {
@@ -568,6 +575,14 @@ addStyleProp(PropertyModel *model, const QString &path, const QString &name,
   CQCharts::setItemIsStyle(item);
 
   return item;
+}
+
+CQPropertyViewItem *
+CQChartsAnnotation::
+addPropI(PropertyModel *model, const QString &path, const QString &name,
+         const QString &alias, const QString &desc)
+{
+  return addProp(model, path, name, alias, desc, /*hidden*/true);
 }
 
 CQPropertyViewItem *
@@ -794,6 +809,28 @@ intersects(const BBox &r, bool inside) const
 }
 
 //---
+
+bool
+CQChartsAnnotation::
+isMouseOverVisible() const
+{
+  if (! plot_) return false;
+
+  if (mouseObjRef_.isValid()) {
+    auto *plotObj = plot_->getPlotObject(mouseObjRef_.name());
+    if (! plotObj) return false;
+
+    return plotObj->isInside();
+  }
+  else {
+    for (auto *plotObj : plot_->plotObjects()) {
+      if (plotObj->isInside())
+        return true;
+    }
+  }
+
+  return false;
+}
 
 QColor
 CQChartsAnnotation::
@@ -6056,8 +6093,7 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 CQChartsPointAnnotation::
 CQChartsPointAnnotation(View *view, const ObjRefPos &position, const Symbol &symbol) :
- CQChartsAnnotation(view, Type::POINT),
- CQChartsObjPointData<CQChartsPointAnnotation>(this),
+ CQChartsAnnotation(view, Type::POINT), CQChartsObjPointData<CQChartsPointAnnotation>(this),
  position_(position.position())
 {
   if (position.objRef().isValid())
@@ -6068,8 +6104,7 @@ CQChartsPointAnnotation(View *view, const ObjRefPos &position, const Symbol &sym
 
 CQChartsPointAnnotation::
 CQChartsPointAnnotation(Plot *plot, const ObjRefPos &position, const Symbol &symbol) :
- CQChartsAnnotation(plot, Type::POINT),
- CQChartsObjPointData<CQChartsPointAnnotation>(this),
+ CQChartsAnnotation(plot, Type::POINT), CQChartsObjPointData<CQChartsPointAnnotation>(this),
  position_(position.position())
 {
   if (position.objRef().isValid())
@@ -6708,7 +6743,7 @@ draw(PaintDevice *device)
   if (! isVisible())
     return;
 
-  if (objRef_.isValid())
+  if (objRef().isValid())
     updateAxis();
 
   //---
