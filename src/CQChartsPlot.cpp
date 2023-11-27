@@ -282,6 +282,15 @@ deleteScrollBars()
 
 //---
 
+CQCharts *
+CQChartsPlot::
+charts() const
+{
+  return view()->charts();
+}
+
+//---
+
 void
 CQChartsPlot::
 setView(View *view)
@@ -316,9 +325,9 @@ emitParentViewChanged()
 
 QString
 CQChartsPlot::
-typeStr() const
+typeName() const
 {
-  return type_->name();
+  return type()->name();
 }
 
 QString
@@ -331,6 +340,13 @@ calcName() const
     name = this->id();
 
   return name;
+}
+
+QString
+CQChartsPlot::
+pathId() const
+{
+  return view()->id() + "|" + id();
 }
 
 //---
@@ -943,29 +959,6 @@ getSelectIndices(QItemSelectionModel *sm, QModelIndexSet &selectIndices)
 
     selectIndices.insert(ind1);
   }
-}
-
-//---
-
-CQCharts *
-CQChartsPlot::
-charts() const
-{
-  return view()->charts();
-}
-
-QString
-CQChartsPlot::
-typeName() const
-{
-  return type()->name();
-}
-
-QString
-CQChartsPlot::
-pathId() const
-{
-  return view()->id() + "|" + id();
 }
 
 //---

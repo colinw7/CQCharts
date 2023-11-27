@@ -167,11 +167,19 @@ CQCHARTS_NAMED_SHAPE_DATA(Fit , fit ) // fit area
  * A plot performs the following required steps:
  *  + calcRange  : calculate display range
  *  + createObjs : create plot objects
+ *  + drawObjs   : draw plot objects
  *
  * Other key operations are:
  *  + addProperties : add customization properties to property view tree
  *  + addMenuItems  : add custom menu items to context menu
  *
+ * Plot parts are drawn on multiple layers to allow objects to stack correctly:
+ *  + background
+ *  + middle
+ *  + foreground
+ *  + overlay
+ *
+ * Annotations can be added and drawn on any layer.
  */
 class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
  public CQChartsObjPlotShapeData<CQChartsPlot>,
@@ -183,7 +191,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(QString viewId READ viewId)
 
   // type
-  Q_PROPERTY(QString typeStr READ typeStr)
+  Q_PROPERTY(QString typeName READ typeName)
 
   // name
   Q_PROPERTY(QString name READ name WRITE setName)
@@ -399,13 +407,14 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(double rulerFontScale READ rulerFontScale   WRITE setRulerFontScale)
 
 #ifdef CQCHARTS_MODULE_SHLIB
-  // module
+  // shared library module
   Q_PROPERTY(QString plotModule READ plotModule WRITE setPlotModule)
 #endif
 
   Q_ENUMS(ColorType)
 
  public:
+  // object coloring type
   enum class ColorType {
     AUTO    = int(CQChartsColorType::AUTO),
     SET     = int(CQChartsColorType::SET),
@@ -415,6 +424,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     Y_VALUE = int(CQChartsColorType::Y_VALUE)
   };
 
+  // draw region
   enum class DrawRegion {
     PLOT,
     FIT,
@@ -422,6 +432,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     CLIP
   };
 
+  // types for selection
   enum SelectTypes {
     PLOT       = (1<<0),
     PLOT_OBJ   = (1<<1),
@@ -434,6 +445,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     NONE = 0,
     ALL  = (PLOT | PLOT_OBJ | ANNOTATION | TITLE | KEY | AXIS | MAP_KEY)
   };
+
+  //---
 
   using Plot  = CQChartsPlot;
   using PlotP = QPointer<CQChartsPlot>;
@@ -503,6 +516,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  // interaction (mouse) constraints
   enum class Constraints {
     NONE       = 0,
     SELECTABLE = (1<<0),
@@ -602,42 +616,61 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   friend CQChartsView;
 
  public:
+  //! create plot in view of specified plot type and associated model
   CQChartsPlot(View *view, PlotType *type, const ModelP &model);
 
+  //! destro plot
   virtual ~CQChartsPlot();
 
   //---
 
+  //! separate init function (to support virtuals) which must be called after construct
   virtual void init();
+
+  //! virtual term function called by destructor
   virtual void term();
 
   //---
 
  public:
+  //! get charts
+  CQCharts *charts() const;
+
+  //! get view
   View *view() const { return view_; }
 
  protected:
+  //! set view
   void setView(View *view);
 
  public:
+  //! get view id (for property)
   QString viewId() const;
 
+ protected:
+  //! signal emiited when parent view changed (move plot to new view)
   void emitParentViewChanged();
 
   //---
 
  public:
+  //! get plot type
   PlotType *type() const { return type_; }
 
-  QString typeStr() const;
+  //! get plot type name (for property)
+  QString typeName() const;
 
+  //! get plot name or id (if no name)
   QString calcName() const;
+
+  //! get view/plot path id
+  QString pathId() const;
 
   //---
 
   // current model
 
-  // current mode;model data
+  //! get current mode, model data
   ModelP     currentModel() const;
   ModelData *currentModelData() const;
 
@@ -653,37 +686,36 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  // add model
+  //! add model
   void addModel(const ModelP &model);
 
-  // replace model with new model
+  //! replace model with new model
   void replaceModel(const ModelP &oldModel, const ModelP &newModel);
 
+ protected:
   virtual void addModelI(const ModelP &model);
 
   //---
 
-  // add extra model
+ public:
+  //! add extra model
   void addExtraModel(const ModelData *modelData);
+  //! remove extra model
   void removeExtraModel(const ModelData *modelData);
 
+  //! has specified extra model
   bool hasExtraModel(const ModelData *modelData, int &ind) const;
 
+  //! get extra models
   const ModelArray &extraModels() const { return extraModels_; }
 
   //---
 
+  //! is model hierarchical
   virtual bool isHierarchical() const;
 
+  //! number of groups in model
   virtual int numGroups() const { return 0; }
-
-  //---
-
-  CQCharts *charts() const;
-
-  QString typeName() const;
-
-  QString pathId() const;
 
   //---
 

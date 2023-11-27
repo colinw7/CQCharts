@@ -3890,6 +3890,10 @@ drawPareto(PaintDevice *device) const
 
   //---
 
+  device->save();
+
+  setClipRect(device);
+
   for (const auto &groupInd : groupInds_) {
     auto pnv = groupNameValues_.find(groupInd);
     assert(pnv != groupNameValues_.end());
@@ -3927,6 +3931,8 @@ drawPareto(PaintDevice *device) const
 
     ++ig;
   }
+
+  device->restore();
 }
 
 //------
