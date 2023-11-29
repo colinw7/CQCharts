@@ -1,4 +1,7 @@
 #include <CQChartsObjRef.h>
+#include <CQChartsHelpDlg.h>
+#include <CQChartsHtml.h>
+
 #include <CQTclUtil.h>
 #include <CQPropertyView.h>
 
@@ -13,6 +16,29 @@ registerMetaType()
   metaTypeId = CQUTIL_REGISTER_META(CQChartsObjRef);
 
   CQPropertyViewMgrInst->setUserName("CQChartsObjRef", "objRef");
+
+  auto LI = [](const QString &str) { return CQChartsHtml::Str(str); };
+
+  auto desc = CQChartsHtml().
+    h2("ObjRef").
+     p("Object reference and optional location.").
+    h3("Format").
+     p("&lt;name&gt; [&lt;location&gt;]").
+     p("Default location is center.").
+     p("Location types").
+     ul({ LI("center    : Object center"),
+          LI("left      : Object center left"),
+          LI("right     : Object center right"),
+          LI("top       : Object top center"),
+          LI("bottom    : Object bottom center"),
+          LI("ll        : Object lower left"),
+          LI("ul        : Object upper left"),
+          LI("lr        : Object lower right"),
+          LI("ur        : Object upper right"),
+          LI("intersect : Object intersect")
+       });
+
+  CQChartsHelpDlgMgrInst->addTypeDesc("objRef", desc);
 }
 
 QString

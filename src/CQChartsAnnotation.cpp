@@ -6517,8 +6517,6 @@ draw(PaintDevice *device)
 
   Point c(p);
 
-  setAnnotationBBox(BBox(c.x - xro, c.y - yro, c.x + xro, c.y + yro));
-
   //---
 
   // set pen and brush
@@ -6566,7 +6564,11 @@ draw(PaintDevice *device)
 
   //---
 
-  drawText(device, BBox(path.boundingRect()));
+  auto bbox = BBox(path.boundingRect());
+
+  setAnnotationBBox(bbox);
+
+  drawText(device, bbox);
 
   //---
 

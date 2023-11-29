@@ -4254,7 +4254,7 @@ addBaseProperties()
 {
   // data
   addPropI("state", "viewId"    , "view", "Parent view id" );
-  addPropI("state", "typeStr"   , "type", "Type name"      );
+  addPropI("state", "typeName"  , "type", "Type name"      );
   addPropI("state", "visible"   , ""    , "Plot visible"   );
   addPropI("state", "selected"  , ""    , "Plot selected"  );
   addPropI("state", "selectable", ""    , "Plot selectable");
@@ -15706,6 +15706,10 @@ drawAnnotations(PaintDevice *device, const Layer::Type &layerType) const
 
   for (auto &annotation : annotations()) {
     if (! annotation->isVisible())
+      continue;
+
+    // drawn by group
+    if (annotation->group())
       continue;
 
     if      (layerType == Layer::Type::SELECTION) {

@@ -4,9 +4,7 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + annotations on mouse over
-
- + pareto alpha. line on top
+ + annotations on mouse over (inside) - self inside
 
  + column ordering
 

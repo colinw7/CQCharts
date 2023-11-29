@@ -20,6 +20,7 @@ class QToolButton;
 class CQChartsHelpDlgMgr {
  public:
   using TclCommands = std::vector<QString>;
+  using TypeDesc    = std::map<QString, QString>;
 
  public:
   static CQChartsHelpDlgMgr *instance() {
@@ -41,12 +42,19 @@ class CQChartsHelpDlgMgr {
     tclCommands_.push_back(cmd);
   }
 
+  const TypeDesc &typeDesc() const { return typeDesc_; }
+
+  void addTypeDesc(const QString &type, const QString &desc) {
+    typeDesc_[type] = desc;
+  }
+
  private:
   CQChartsHelpDlgMgr();
 
  private:
   CQChartsHelpDlg* dlg_ { nullptr };
   TclCommands      tclCommands_;
+  TypeDesc         typeDesc_;
 };
 
 //---

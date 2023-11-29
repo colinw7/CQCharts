@@ -217,7 +217,14 @@ addItems()
   auto *commandsItem = addTopItem("Commands", "commands");
 
   for (const auto &command : CQChartsHelpDlgMgrInst->tclCommands())
-    addItem(commandsItem, command, command);
+    addItem(commandsItem, command, "command:" + command);
+
+  //---
+
+  auto *typesItem = addTopItem("Types", "types");
+
+  for (const auto &pt : CQChartsHelpDlgMgrInst->typeDesc())
+    addItem(typesItem, pt.first, "type:" + pt.first);
 }
 
 bool
@@ -379,6 +386,17 @@ loadSectionText()
     setHtml(type->description());
   }
   else if (parentId == "commands") {
+  }
+  else if (parentId == "types") {
+    auto strs = id.split(":");
+    assert(strs.size() == 2);
+
+    const auto &typeDesc = CQChartsHelpDlgMgrInst->typeDesc();
+
+    auto pt = typeDesc.find(strs[1]);
+
+    if (pt != typeDesc.end())
+      setHtml((*pt).second);
   }
 }
 

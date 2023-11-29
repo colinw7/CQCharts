@@ -17,7 +17,7 @@ set viewId [get_charts_property -plot $plotId -name state.viewId]
 set group [create_charts_annotation_group -plot $plotId -id group]
 
 set image [create_charts_image_annotation -plot $plotId -id image \
-  -rectangle {0 0 0.5 0.5} -svg "data/beer_bottle.svg" -group $group]
+  -rectangle {0 0 0.5 0.5} -svg "pics/beer_bottle.svg" -group $group]
 set text [create_charts_text_annotation -plot $plotId -id test \
   -position {0 0} -text "Beer Bottle" -group $group]
 
