@@ -62,6 +62,7 @@ class CQChartsAngle :
 
   //---
 
+  // get is valid value
   bool isValid() const { return true; }
 
   // is zero angle
@@ -165,8 +166,8 @@ class CQChartsAngle :
 
   //---
 
+  //! convert to/from string
   QString toString() const;
-
   bool fromString(const QString &s);
 
  private:

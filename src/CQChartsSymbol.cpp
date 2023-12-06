@@ -403,6 +403,9 @@ fromString(const QString &s)
 {
   reset();
 
+  if (s.trimmed() == "")
+    return true;
+
   if      (s.left(7) == "symbol:") {
     type_ = Type::SYMBOL;
 

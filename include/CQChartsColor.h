@@ -243,9 +243,8 @@ class CQChartsColor :
   //---
 
   //! color to/from string for QVariant
-  QString toString() const { return colorStr(); }
-
-  bool fromString(const QString &s) { return setColorStr(s); }
+  QString toString() const;
+  bool fromString(const QString &s);
 
   //---
 

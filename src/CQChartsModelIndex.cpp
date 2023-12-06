@@ -55,6 +55,9 @@ QString
 CQChartsModelIndex::
 toString() const
 {
+  if (! plot_ && row_ < 0 && ! column_.isValid())
+    return "";
+
   QStringList strs;
 
   strs += (plot_ ? plot_->id() : "");
@@ -71,11 +74,17 @@ bool
 CQChartsModelIndex::
 fromString(const QString &str)
 {
+  if (str.trimmed() == "") {
+    *this = CQChartsModelIndex();
+    return true;
+  }
+
   QStringList strs;
 
   if (! CQTcl::splitList(str, strs))
     return false;
 
+  // <plot> <row> <column>
   if (strs.size() < 3)
     return false;
 
@@ -88,6 +97,8 @@ fromString(const QString &str)
 
   CQChartsColumn c(strs[2]);
   if (! c.isValid()) return false;
+
+  column_ = c;
 
   return true;
 }

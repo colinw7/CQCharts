@@ -53,7 +53,7 @@ class CQChartsKeyLocation : public CQChartsEnum<CQChartsKeyLocation> {
   //---
 
   QString toString() const override;
-  bool fromString(const QString &s) override { return setValue(s); }
+  bool fromString(const QString &s) override;
 
   //---
 

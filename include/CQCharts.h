@@ -10,6 +10,7 @@
 #include <QSharedPointer>
 
 #include <vector>
+#include <set>
 #include <memory>
 
 class CQChartsWindow;
@@ -30,6 +31,8 @@ class CQChartsLoadModelDlg;
 class CQChartsManageModelsDlg;
 class CQChartsEditModelDlg;
 class CQChartsCreatePlotDlg;
+
+class CQChartsPropertyMeta;
 
 class CQPropertyViewModel;
 class CQPropertyViewItem;
@@ -171,6 +174,8 @@ class CQCharts : public QObject {
   //---
 
   void getModelTypeNames(QStringList &names) const;
+
+  void getPropertyTypeNames(QStringList &names) const;
 
   //---
 
@@ -425,6 +430,13 @@ class CQCharts : public QObject {
 
   void errorMsg(const QString &msg) const;
 
+  //---
+
+  QStringList getMetaTypeNames() const;
+
+  QString getPropertyTypeData(const QString &name) const;
+  void setPropertyTypeData(const QString &name, const QString &value);
+
  Q_SIGNALS:
   void modelDataAdded(int);
   void modelDataRemoved(int);
@@ -518,10 +530,13 @@ class CQCharts : public QObject {
   CQTcl*           cmdTcl_      { nullptr }; //!< command line tcl
   CQChartsExprTcl* currentExpr_ { nullptr }; //!< current expression evaluator
 
-  PropertyModelP propertyModel_; //!< property model
+  std::set<QString> propertyNames_; //!< property names
+  PropertyModelP    propertyModel_; //!< property model
 
   // paths
   QStringList pathList_; //!< list of paths for external files
+
+  CQChartsPropertyMeta *metaObj_ { nullptr };
 };
 
 #endif

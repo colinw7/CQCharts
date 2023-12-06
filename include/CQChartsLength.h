@@ -83,10 +83,7 @@ class CQChartsLength :
   //---
 
   QString toString() const;
-
-  bool fromString(const QString &s) {
-    return setValue(s);
-  }
+  bool fromString(const QString &s);
 
   //---
 

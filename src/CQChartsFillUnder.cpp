@@ -17,6 +17,20 @@ registerMetaType()
   CQPropertyViewMgrInst->setUserName("CQChartsFillUnderSide", "fill_under_side");
 }
 
+bool
+CQChartsFillUnderSide::
+setValue(const QString &str)
+{
+  Type type;
+
+  if (! decodeString(str, type))
+    return false;
+
+  type_ = type;
+
+  return true;
+}
+
 QString
 CQChartsFillUnderSide::
 toString() const
@@ -27,6 +41,18 @@ toString() const
     case Type::BELOW: return "below";
     default:          return "below";
   }
+}
+
+bool
+CQChartsFillUnderSide::
+fromString(const QString &s)
+{
+  if (s.trimmed() == "") {
+    *this = CQChartsFillUnderSide();
+    return true;
+  }
+
+  return setValue(s);
 }
 
 bool
@@ -68,6 +94,24 @@ registerMetaType()
   CQPropertyViewMgrInst->setUserName("CQChartsFillUnderPos", "fill_under_position");
 }
 
+bool
+CQChartsFillUnderPos::
+setValue(const QString &str)
+{
+  Type xtype { Type::NONE }; double xpos { 0.0 };
+  Type ytype { Type::NONE }; double ypos { 0.0 };
+
+  if (! decodeString(str, xtype, xpos, ytype, ypos))
+    return false;
+
+  xtype_ = xtype;
+  xpos_  = xpos;
+  ytype_ = ytype;
+  ypos_  = ypos;
+
+  return true;
+}
+
 QString
 CQChartsFillUnderPos::
 toString() const
@@ -96,6 +140,18 @@ toString() const
     return xstr;
   else
     return ystr;
+}
+
+bool
+CQChartsFillUnderPos::
+fromString(const QString &s)
+{
+  if (s.trimmed() == "") {
+    *this = CQChartsFillUnderPos();
+    return true;
+  }
+
+  return setValue(s);
 }
 
 bool

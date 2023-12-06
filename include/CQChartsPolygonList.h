@@ -1,7 +1,6 @@
 #ifndef CQChartsPolygonList_H
 #define CQChartsPolygonList_H
 
-#include <CQChartsUtil.h>
 #include <CQChartsGeom.h>
 #include <CQUtilMeta.h>
 
@@ -35,19 +34,12 @@ class CQChartsPolygonList {
 
   //---
 
-  bool setValue(const QString &str) {
-    return CQChartsUtil::stringToPolygons(str, polygons_);
-  }
+  bool setValue(const QString &str);
 
   //---
 
-  QString toString() const {
-    return CQChartsUtil::polygonListToString(polygons_);
-  }
-
-  bool fromString(const QString &s) {
-    return setValue(s);
-  }
+  QString toString() const;
+  bool fromString(const QString &s);
 
   //---
 

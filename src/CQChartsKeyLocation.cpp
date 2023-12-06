@@ -37,6 +37,18 @@ toString() const
 
 bool
 CQChartsKeyLocation::
+fromString(const QString &s)
+{
+  if (s.trimmed() == "") {
+    *this = CQChartsKeyLocation();
+    return true;
+  }
+
+  return setValue(s);
+}
+
+bool
+CQChartsKeyLocation::
 decodeString(const QString &str, Type &type)
 {
   auto ustr = str.toUpper().replace(' ', '_');

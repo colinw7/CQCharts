@@ -58,6 +58,11 @@ bool
 CQChartsModelInd::
 fromString(const QString &str)
 {
+  if (str.trimmed() == "") {
+    modelInd_ = -1;
+    return true;
+  }
+
   CQChartsModelData *modelData = nullptr;
 
   if (charts()) {

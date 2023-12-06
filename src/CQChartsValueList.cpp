@@ -19,6 +19,9 @@ QString
 CQChartsValueList::
 toString() const
 {
+  if (valueList_.empty())
+    return "";
+
   QStringList strs;
 
   for (const auto &value : valueList_) {
@@ -39,6 +42,11 @@ bool
 CQChartsValueList::
 fromString(const QString &s)
 {
+  if (s.trimmed() == "") {
+    valueList_.clear();
+    return true;
+  }
+
   QStringList strs;
 
   if (! CQTcl::splitList(s, strs))

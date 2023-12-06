@@ -14,6 +14,27 @@ registerMetaType()
   CQPropertyViewMgrInst->setUserName("CQChartsSides", "sides");
 }
 
+QString
+CQChartsSides::
+toString() const
+{
+  QString str;
+
+  if (isLeft  ()) str += "l";
+  if (isRight ()) str += "r";
+  if (isTop   ()) str += "t";
+  if (isBottom()) str += "b";
+
+  return str;
+}
+
+bool
+CQChartsSides::
+fromString(const QString &s)
+{
+  return setValue(s);
+}
+
 bool
 CQChartsSides::
 decodeString(const QString &str, Sides &sides)

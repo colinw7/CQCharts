@@ -18,6 +18,25 @@ registerMetaType()
 
 QString
 CQChartsFont::
+toString() const
+{
+  return fontStr();
+}
+
+bool
+CQChartsFont::
+fromString(const QString &s)
+{
+  if (s.trimmed() == "") {
+    *this = CQChartsFont();
+    return true;
+  }
+
+  return setFontStr(s);
+}
+
+QString
+CQChartsFont::
 fontStr() const
 {
   if (! isValid())

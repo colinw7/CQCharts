@@ -25,7 +25,9 @@ class CQChartsKeyPressBehavior : public CQChartsEnum<CQChartsKeyPressBehavior> {
   CQUTIL_DEF_META_CONVERSIONS(CQChartsKeyPressBehavior, metaTypeId)
 
  public:
-  explicit CQChartsKeyPressBehavior(Type type=Type::SHOW) :
+  CQChartsKeyPressBehavior() { }
+
+  explicit CQChartsKeyPressBehavior(Type type) :
    type_(type) {
   }
 

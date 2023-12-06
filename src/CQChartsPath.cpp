@@ -30,6 +30,13 @@ toString() const
   return pathToString(*path_);
 }
 
+bool
+CQChartsPath::
+fromString(const QString &s)
+{
+  return setValue(s);
+}
+
 QString
 CQChartsPath::
 pathToString(const QPainterPath &path)

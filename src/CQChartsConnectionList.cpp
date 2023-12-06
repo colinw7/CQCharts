@@ -19,6 +19,32 @@ registerMetaType()
 
 bool
 CQChartsConnectionList::
+setValue(const QString &str)
+{
+  return stringToConnections(str, connections_);
+}
+
+QString
+CQChartsConnectionList::
+toString() const
+{
+  return connectionsToString(connections_);
+}
+
+bool
+CQChartsConnectionList::
+fromString(const QString &s)
+{
+  if (s.trimmed() == "") {
+    *this = CQChartsConnectionList();
+    return true;
+  }
+
+  return setValue(s);
+}
+
+bool
+CQChartsConnectionList::
 stringToConnections(const QString &str, Connections &connections)
 {
   // connections are { <connection> <connection> ... }

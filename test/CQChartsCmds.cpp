@@ -7702,6 +7702,27 @@ execCmd(CQChartsCmdArgs &argv)
     else if (name == "pattern_names") {
       return cmdBase_->setCmdRc(CQChartsFillPattern().enumNames());
     }
+    else if (name == "model_type_names") {
+      QStringList names;
+      charts->getModelTypeNames(names);
+      return cmdBase_->setCmdRc(names);
+    }
+    else if (name == "property_type_names") {
+      QStringList names;
+      charts->getPropertyTypeNames(names);
+      return cmdBase_->setCmdRc(names);
+    }
+    else if (name == "meta_type_names") {
+      auto names = charts->getMetaTypeNames();
+      return cmdBase_->setCmdRc(names);
+    }
+    else if (name == "property_type_data") {
+      auto name = argv.getParseStr("data");
+
+      auto s = charts->getPropertyTypeData(name);
+
+      return cmdBase_->setCmdRc(s);
+    }
     else if (name == "?") {
       NameValueMap nameValues;
 
@@ -8319,6 +8340,11 @@ execCmd(CQChartsCmdArgs &argv)
       double r = CQChartsUtil::toReal(value, ok);
 
       charts->setMaxLineWidth(r);
+    }
+    else if (name == "property_type_data") {
+      auto name = argv.getParseStr("data");
+
+      charts->setPropertyTypeData(name, value);
     }
     else if (name == "?") {
       NameValueMap nameValues;

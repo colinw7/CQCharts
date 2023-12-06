@@ -175,9 +175,8 @@ class CQChartsFont :
 
   //---
 
-  QString toString() const { return fontStr(); }
-
-  bool fromString(const QString &s) { return setFontStr(s); }
+  QString toString() const;
+  bool fromString(const QString &s);
 
   //---
 

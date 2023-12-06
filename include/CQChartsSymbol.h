@@ -197,7 +197,6 @@ class CQChartsSymbol :
   //---
 
   QString toString() const;
-
   bool fromString(const QString &s);
 
   //---
@@ -223,6 +222,7 @@ class CQChartsSymbol :
   void reset() {
     type_       = Type::NONE;
     symbolType_ = SymbolType();
+    ind_        = -1;
     c_          = "";
     name_       = "";
     filled_     = true;

@@ -684,6 +684,20 @@ registerMetaType()
   CQPropertyViewMgrInst->setUserName("CQChartsColumns", "column_list");
 }
 
+QString
+CQChartsColumns::
+toString() const
+{
+  return columnsStr();
+}
+
+bool
+CQChartsColumns::
+fromString(const QString &s)
+{
+  return setColumnsStr(s);
+}
+
 int
 CQChartsColumns::
 cmp(const CQChartsColumns &c) const

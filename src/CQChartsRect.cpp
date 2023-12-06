@@ -70,6 +70,18 @@ toString() const
 
 bool
 CQChartsRect::
+fromString(const QString &s)
+{
+  if (s.trimmed() == "") {
+    *this = CQChartsRect();
+    return true;
+  }
+
+  return setValue(s);
+}
+
+bool
+CQChartsRect::
 decodeString(const QString &str, Units &units, BBox &bbox, const Units &defUnits)
 {
   CQStrParse parse(str);

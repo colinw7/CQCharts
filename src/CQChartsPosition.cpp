@@ -30,6 +30,18 @@ toString() const
 
 bool
 CQChartsPosition::
+fromString(const QString &s)
+{
+  if (s.trimmed() == "") {
+    *this = CQChartsPosition();
+    return true;
+  }
+
+  return setPoint(s, Units::PIXEL);
+}
+
+bool
+CQChartsPosition::
 decodeString(const QString &str, Units &units, Point &point, const Units &defUnits)
 {
   // format is <x> <y> [<units>]

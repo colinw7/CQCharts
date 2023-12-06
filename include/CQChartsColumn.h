@@ -443,9 +443,8 @@ class CQChartsColumns :
 
   //---
 
-  QString toString() const { return columnsStr(); }
-
-  bool fromString(const QString &s) { return setColumnsStr(s); }
+  QString toString() const;
+  bool fromString(const QString &s);
 
   //---
 

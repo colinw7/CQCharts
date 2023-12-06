@@ -50,6 +50,12 @@ bool
 CQChartsModelColumn::
 fromString(const QString &str)
 {
+  if (str.trimmed() == "") {
+    modelInd_ = -1;
+    column_   = Column();
+    return true;
+  }
+
   auto strs = str.split(":");
 
   if (strs.size() == 2) {

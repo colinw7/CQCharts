@@ -49,6 +49,11 @@ bool
 CQChartsLineCap::
 fromString(const QString &str)
 {
+  if (str.trimmed() == "") {
+    *this = CQChartsLineCap();
+    return true;
+  }
+
   auto lstr = str.toLower();
 
   if      (lstr == "flat"  ) cap_ = Qt::FlatCap;

@@ -82,10 +82,7 @@ class CQChartsPosition :
   //---
 
   QString toString() const;
-
-  bool fromString(const QString &s, const Units &defUnits=Units::PIXEL) {
-    return setPoint(s, defUnits);
-  }
+  bool fromString(const QString &s);
 
   //---
 

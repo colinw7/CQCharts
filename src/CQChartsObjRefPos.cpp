@@ -16,6 +16,22 @@ registerMetaType()
   CQPropertyViewMgrInst->setUserName("CQChartsObjRefPos", "objRefPos");
 }
 
+bool
+CQChartsObjRefPos::
+setObjRef(const QString &str, const Units &units)
+{
+  ObjRef   objRef;
+  Position position;
+
+  if (! decodeString(str, objRef, position, units))
+    return false;
+
+  objRef_   = objRef;
+  position_ = position;
+
+  return true;
+}
+
 QString
 CQChartsObjRefPos::
 toString() const
@@ -40,6 +56,18 @@ toString() const
   }
 
   return str;
+}
+
+bool
+CQChartsObjRefPos::
+fromString(const QString &s)
+{
+  if (s.trimmed() == "") {
+    *this = CQChartsObjRefPos();
+    return true;
+  }
+
+  return setObjRef(s, Units::PLOT);
 }
 
 bool
@@ -86,7 +114,7 @@ decodeString(const QString &str, ObjRef &objRef, Position &position, const Units
 
   auto rhs = parse.getAt();
 
-  if (! position.fromString(rhs, defUnits))
+  if (! position.setPoint(rhs, defUnits))
     return false;
 
   return true;

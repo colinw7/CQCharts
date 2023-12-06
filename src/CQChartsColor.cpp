@@ -384,6 +384,20 @@ setColorStr(const QString &str)
   return true;
 }
 
+QString
+CQChartsColor::
+toString() const
+{
+  return colorStr();
+}
+
+bool
+CQChartsColor::
+fromString(const QString &s)
+{
+  return setColorStr(s);
+}
+
 bool
 CQChartsColor::
 getPaletteName(QString &name) const

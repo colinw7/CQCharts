@@ -19,6 +19,9 @@ QString
 CQChartsMargin::
 toString() const
 {
+  if (! left().isValid() || ! top().isValid() || ! right().isValid() || ! bottom().isValid())
+    return "";
+
   QStringList strs;
 
   if (left() != top() || left() != right() || left() != bottom()) {
@@ -41,6 +44,14 @@ bool
 CQChartsMargin::
 fromString(const QString &str)
 {
+  if (str.trimmed() == "") {
+    left_   = Length();
+    top_    = Length();
+    right_  = Length();
+    bottom_ = Length();
+    return true;
+  }
+
   QStringList strs;
 
   if (! CQTcl::splitList(str, strs))

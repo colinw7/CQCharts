@@ -46,13 +46,8 @@ class CQChartsNamePair {
 
   //---
 
-  QString toString() const {
-    return namesToString(names_, separator_);
-  }
-
-  bool fromString(const QString &s) {
-    return setValue(s, separator_);
-  }
+  QString toString() const;
+  bool fromString(const QString &s);
 
   //---
 

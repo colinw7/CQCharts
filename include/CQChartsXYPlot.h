@@ -761,9 +761,9 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
  private:
   struct FillUnderData {
-    bool          selectable { false }; //!< is fill under selectable
-    FillUnderPos  pos;                  //!< fill under position
-    FillUnderSide side;                 //!< fill under side
+    bool          selectable { false };  //!< is fill under selectable
+    FillUnderPos  pos        { "ymin" }; //!< fill under position
+    FillUnderSide side;                  //!< fill under side
   };
 
  public:

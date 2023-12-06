@@ -94,6 +94,11 @@ bool
 Size::
 fromString(const QString &s)
 {
+  if (s.trimmed() == "") {
+    set_ = false;
+    return true;
+  }
+
   Size size;
 
   if (! CQChartsUtil::stringToSize(s, size))
@@ -158,6 +163,13 @@ bool
 BBox::
 fromString(const QString &s)
 {
+  if (s.trimmed() == "") {
+    set_ = false;
+    return true;
+  }
+
+  Size size;
+
   BBox bbox;
 
   if (! CQChartsUtil::stringToBBox(s, bbox))
@@ -207,6 +219,14 @@ bool
 Point::
 fromString(const QString &s)
 {
+  if (s.trimmed() == "") {
+    x = 0.0;
+    y = 0.0;
+    return true;
+  }
+
+  Size size;
+
   Point p;
 
   if (! CQChartsUtil::stringToPoint(s, p))
@@ -231,6 +251,13 @@ bool
 Point3D::
 fromString(const QString &s)
 {
+  if (s.trimmed() == "") {
+    x = 0.0;
+    y = 0.0;
+    z = 0.0;
+    return true;
+  }
+
   Point3D p;
 
   if (! CQChartsUtil::stringToPoint3D(s, p))

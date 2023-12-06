@@ -17,6 +17,20 @@ registerMetaType()
 
 QString
 CQChartsUnits::
+toString() const
+{
+  return unitsString(type_);
+}
+
+bool
+CQChartsUnits::
+fromString(const QString &s)
+{
+  return setValue(s);
+}
+
+QString
+CQChartsUnits::
 unitsString(const Type &type)
 {
   if      (type == Type::PIXEL   ) return "px";

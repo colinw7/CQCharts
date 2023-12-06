@@ -196,6 +196,11 @@ bool
 CQChartsArrowData::
 fromString(const QString &str)
 {
+  if (str.trimmed() == "") {
+    *this = CQChartsArrowData();
+    return true;
+  }
+
   CQChartsNameValues nameValues(str);
 
   return getNameValues(nameValues);

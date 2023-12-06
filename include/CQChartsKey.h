@@ -220,10 +220,11 @@ class CQChartsKey : public CQChartsBoxObj,
   Color hiddenColor_;          //!< color for hidden item
   Alpha hiddenAlpha_  { 0.3 }; //!< alpha for hidden item
 
-  int                columns_        { 1 };   //!< columns
-  int                maxRows_        { 100 }; //!< max rows
-  KeyBehavior        pressBehavior_;          //!< press behavior
-  mutable ScrollData scrollData_;             //!< scrollbar data
+  int         columns_       { 1 };                       //!< columns
+  int         maxRows_       { 100 };                     //!< max rows
+  KeyBehavior pressBehavior_ { KeyBehavior::Type::SHOW }; //!< press behavior
+
+  mutable ScrollData scrollData_; //!< scrollbar data
 };
 
 //------

@@ -690,29 +690,31 @@ struct CQChartsTitleData {
  * \ingroup Charts
  */
 struct CQChartsKeyData {
-  using Point = CQChartsGeom::Point;
-  using Alpha = CQChartsAlpha;
+  using KeyLocation      = CQChartsKeyLocation;
+  using KeyPressBehavior = CQChartsKeyPressBehavior;
+  using Point            = CQChartsGeom::Point;
+  using Alpha            = CQChartsAlpha;
 
-  bool                     visible      { true };
-  bool                     horizontal   { false };
-  bool                     autoHide     { false };
-  bool                     clipped      { false };
-  bool                     above        { false };
-  CQChartsKeyLocation      location;
-  bool                     insideX      { false };
-  bool                     insideY      { false };
-  Point                    absolutePosition;
-  Alpha                    hiddenAlpha  { 0.3 };
-  int                      maxRows;
-  bool                     interactive  { false };
-  CQChartsKeyPressBehavior pressBehavior;
-  double                   spacing      { 2 }; // pixels
-  bool                     flipped      { false };
-  QString                  header;
-  CQChartsTextData         headerTextData;
-  CQChartsOptLength        scrollWidth;
-  CQChartsOptLength        scrollHeight;
-  CQChartsTextBoxData      textBoxData;
+  bool                visible          { true };
+  bool                horizontal       { false };
+  bool                autoHide         { false };
+  bool                clipped          { false };
+  bool                above            { false };
+  KeyLocation         location;
+  bool                insideX          { false };
+  bool                insideY          { false };
+  Point               absolutePosition;
+  Alpha               hiddenAlpha      { 0.3 };
+  int                 maxRows;
+  bool                interactive      { false };
+  KeyPressBehavior    pressBehavior    { KeyPressBehavior::Type::SHOW };
+  double              spacing          { 2 }; // pixels
+  bool                flipped          { false };
+  QString             header;
+  CQChartsTextData    headerTextData;
+  CQChartsOptLength   scrollWidth;
+  CQChartsOptLength   scrollHeight;
+  CQChartsTextBoxData textBoxData;
 };
 
 //------

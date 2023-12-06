@@ -33,12 +33,14 @@ bool
 CQChartsAngle::
 fromString(const QString &str)
 {
+  if (str.trimmed() == "") {
+    a_ = 0.0;
+    return true;
+  }
+
   bool ok;
-
   double a = CQChartsUtil::toReal(str, ok);
-
-  if (! ok)
-    return false;
+  if (! ok) return false;
 
   a_ = a;
 

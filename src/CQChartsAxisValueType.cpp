@@ -38,6 +38,11 @@ bool
 CQChartsAxisValueType::
 setValue(const QString &str)
 {
+  if (str.trimmed() == "") {
+    *this = CQChartsAxisValueType();
+    return true;
+  }
+
   Type type = Type::NONE;
 
   if      (str == "REAL"   ) type = Type::REAL;

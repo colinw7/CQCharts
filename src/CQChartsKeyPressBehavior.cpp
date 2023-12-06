@@ -29,6 +29,11 @@ bool
 CQChartsKeyPressBehavior::
 fromString(const QString &str)
 {
+  if (str.trimmed() == "") {
+    type_ = Type::NONE;
+    return true;
+  }
+
   return setValue(str);
 }
 

@@ -877,6 +877,8 @@ HEADERS += \
 ../include/CQChartsPropertyViewTree.h \
 ../include/CQChartsPropertyViewEditor.h \
 \
+../include/CQChartsPropertyMeta.h \
+\
 ../include/CQCsvModel.h \
 ../include/CQTsvModel.h \
 ../include/CQJsonModel.h \

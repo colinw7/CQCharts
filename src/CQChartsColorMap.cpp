@@ -56,7 +56,7 @@ fromString(const QString &str)
       continue;
 
     QVariant value(strs1[0]);
-    Color   color(strs1[1]);
+    Color    color(strs1[1]);
 
     valueColor[value] = color;
   }

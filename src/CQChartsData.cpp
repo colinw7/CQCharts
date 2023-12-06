@@ -30,6 +30,20 @@ toString() const
   return nameValues.toString();
 }
 
+bool
+CQChartsTextData::
+fromString(const QString &str)
+{
+  if (str.trimmed() == "") {
+    *this = CQChartsTextData();
+    return true;
+  }
+
+  CQChartsNameValues nameValues(str);
+
+  return getNameValues(nameValues);
+}
+
 void
 CQChartsTextData::
 setNameValues(CQChartsNameValues &nameValues) const
@@ -69,15 +83,6 @@ setNameValues(CQChartsNameValues &nameValues) const
 
 //if (clipElide() != Elide())
 //  nameValues.setNameValueType<Length>("clipElide", clipElide());
-}
-
-bool
-CQChartsTextData::
-fromString(const QString &str)
-{
-  CQChartsNameValues nameValues(str);
-
-  return getNameValues(nameValues);
 }
 
 bool
@@ -141,6 +146,20 @@ toString() const
   return nameValues.toString();
 }
 
+bool
+CQChartsLineData::
+fromString(const QString &str)
+{
+  if (str.trimmed() == "") {
+    *this = CQChartsLineData();
+    return true;
+  }
+
+  CQChartsNameValues nameValues(str);
+
+  return getNameValues(nameValues);
+}
+
 void
 CQChartsLineData::
 setNameValues(CQChartsNameValues &nameValues) const
@@ -163,15 +182,6 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   if (lineJoin() != LineJoin())
     nameValues.setNameValueType<LineJoin>("join", lineJoin());
-}
-
-bool
-CQChartsLineData::
-fromString(const QString &str)
-{
-  CQChartsNameValues nameValues(str);
-
-  return getNameValues(nameValues);
 }
 
 bool
@@ -223,21 +233,26 @@ toString() const
   return nameValues.toString();
 }
 
+bool
+CQChartsShapeData::
+fromString(const QString &str)
+{
+  if (str.trimmed() == "") {
+    *this = CQChartsShapeData();
+    return true;
+  }
+
+  CQChartsNameValues nameValues(str);
+
+  return getNameValues(nameValues);
+}
+
 void
 CQChartsShapeData::
 setNameValues(CQChartsNameValues &nameValues) const
 {
   fill_  .setNameValues(nameValues);
   stroke_.setNameValues(nameValues);
-}
-
-bool
-CQChartsShapeData::
-fromString(const QString &str)
-{
-  CQChartsNameValues nameValues(str);
-
-  return getNameValues(nameValues);
 }
 
 bool
@@ -278,6 +293,20 @@ toString() const
   return nameValues.toString();
 }
 
+bool
+CQChartsBoxData::
+fromString(const QString &str)
+{
+  if (str.trimmed() == "") {
+    *this = CQChartsBoxData();
+    return true;
+  }
+
+  CQChartsNameValues nameValues(str);
+
+  return getNameValues(nameValues);
+}
+
 void
 CQChartsBoxData::
 setNameValues(CQChartsNameValues &nameValues) const
@@ -291,15 +320,6 @@ setNameValues(CQChartsNameValues &nameValues) const
   shape_.setNameValues(nameValues);
 
   nameValues.setNameValue("border_sides", borderSides().toString());
-}
-
-bool
-CQChartsBoxData::
-fromString(const QString &str)
-{
-  CQChartsNameValues nameValues(str);
-
-  return getNameValues(nameValues);
 }
 
 bool
@@ -352,21 +372,26 @@ toString() const
   return nameValues.toString();
 }
 
+bool
+CQChartsTextBoxData::
+fromString(const QString &str)
+{
+  if (str.trimmed() == "") {
+    *this = CQChartsTextBoxData();
+    return true;
+  }
+
+  CQChartsNameValues nameValues(str);
+
+  return getNameValues(nameValues);
+}
+
 void
 CQChartsTextBoxData::
 setNameValues(CQChartsNameValues &nameValues) const
 {
   text_.setNameValues(nameValues);
   box_ .setNameValues(nameValues);
-}
-
-bool
-CQChartsTextBoxData::
-fromString(const QString &str)
-{
-  CQChartsNameValues nameValues(str);
-
-  return getNameValues(nameValues);
 }
 
 bool
@@ -407,6 +432,20 @@ toString() const
   return nameValues.toString();
 }
 
+bool
+CQChartsFillData::
+fromString(const QString &str)
+{
+  if (str.trimmed() == "") {
+    *this = CQChartsFillData();
+    return true;
+  }
+
+  CQChartsNameValues nameValues(str);
+
+  return getNameValues(nameValues);
+}
+
 void
 CQChartsFillData::
 setNameValues(CQChartsNameValues &nameValues) const
@@ -420,15 +459,6 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   if (pattern() != CQChartsFillPattern::makeSolid())
     nameValues.setNameValueType<CQChartsFillPattern>("fillPattern", pattern());
-}
-
-bool
-CQChartsFillData::
-fromString(const QString &str)
-{
-  CQChartsNameValues nameValues(str);
-
-  return getNameValues(nameValues);
 }
 
 bool
@@ -478,6 +508,20 @@ toString() const
   return nameValues.toString();
 }
 
+bool
+CQChartsStrokeData::
+fromString(const QString &str)
+{
+  if (str.trimmed() == "") {
+    *this = CQChartsStrokeData();
+    return true;
+  }
+
+  CQChartsNameValues nameValues(str);
+
+  return getNameValues(nameValues);
+}
+
 void
 CQChartsStrokeData::
 setNameValues(CQChartsNameValues &nameValues) const
@@ -503,15 +547,6 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   if (cornerSize() != Length::pixel(0))
     nameValues.setNameValueType<Length>("strokeCornerSize", cornerSize());
-}
-
-bool
-CQChartsStrokeData::
-fromString(const QString &str)
-{
-  CQChartsNameValues nameValues(str);
-
-  return getNameValues(nameValues);
 }
 
 bool
@@ -573,6 +608,20 @@ toString() const
   return nameValues.toString();
 }
 
+bool
+CQChartsSymbolData::
+fromString(const QString &str)
+{
+  if (str.trimmed() == "") {
+    *this = CQChartsSymbolData();
+    return true;
+  }
+
+  CQChartsNameValues nameValues(str);
+
+  return getNameValues(nameValues);
+}
+
 void
 CQChartsSymbolData::
 setNameValues(CQChartsNameValues &nameValues) const
@@ -584,15 +633,6 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   stroke_.setNameValues(nameValues);
   fill_  .setNameValues(nameValues);
-}
-
-bool
-CQChartsSymbolData::
-fromString(const QString &str)
-{
-  CQChartsNameValues nameValues(str);
-
-  return getNameValues(nameValues);
 }
 
 bool

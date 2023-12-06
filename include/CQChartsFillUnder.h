@@ -49,24 +49,12 @@ class CQChartsFillUnderSide :
 
   const Type &type() const { return type_; }
 
-  bool setValue(const QString &str) {
-    Type type;
-
-    if (! decodeString(str, type))
-      return false;
-
-    type_ = type;
-
-    return true;
-  }
+  bool setValue(const QString &str);
 
   //---
 
   QString toString() const;
-
-  bool fromString(const QString &s) {
-    return setValue(s);
-  }
+  bool fromString(const QString &s);
 
   //---
 
@@ -128,30 +116,14 @@ class CQChartsFillUnderPos :
   const Type &ytype() const { return ytype_; }
   double      ypos () const { return ypos_ ; }
 
-  bool setValue(const QString &str) {
-    Type xtype { Type::NONE }; double xpos { 0.0 };
-    Type ytype { Type::NONE }; double ypos { 0.0 };
-
-    if (! decodeString(str, xtype, xpos, ytype, ypos))
-      return false;
-
-    xtype_ = xtype;
-    xpos_  = xpos;
-    ytype_ = ytype;
-    ypos_  = ypos;
-
-    return true;
-  }
+  bool setValue(const QString &str);
 
   bool isValid() const { return xtype_ != Type::NONE || ytype_ != Type::NONE; }
 
   //---
 
   QString toString() const;
-
-  bool fromString(const QString &s) {
-    return setValue(s);
-  }
+  bool fromString(const QString &s);
 
   //---
 
@@ -180,7 +152,7 @@ class CQChartsFillUnderPos :
  private:
   Type   xtype_ { Type::NONE };
   double xpos_  { 0.0 };
-  Type   ytype_ { Type::MIN };
+  Type   ytype_ { Type::NONE };
   double ypos_  { 0.0 };
 };
 

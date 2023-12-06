@@ -137,12 +137,15 @@ bool
 CQChartsWidget::
 fromString(const QString &str)
 {
+  if (str.trimmed() == "") {
+    setWidget(WidgetP());
+    return true;
+  }
+
   auto *obj = CQUtil::nameToObject(str);
 
   auto *w = qobject_cast<QWidget *>(obj);
-
-  if (! w)
-    return false;
+  if (! w) return false;
 
   setWidget(w);
 

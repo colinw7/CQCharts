@@ -39,19 +39,14 @@ class CQChartsConnectionList {
 
   const Connections &connections() const { return connections_; }
 
-  bool setValue(const QString &str) {
-    return stringToConnections(str, connections_);
-  }
+  //---
+
+  bool setValue(const QString &str);
 
   //---
 
-  QString toString() const {
-    return connectionsToString(connections_);
-  }
-
-  bool fromString(const QString &s) {
-    return setValue(s);
-  }
+  QString toString() const;
+  bool fromString(const QString &s);
 
   //---
 

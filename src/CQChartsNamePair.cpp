@@ -44,6 +44,28 @@ setValue(const QString &str, const QString &separator)
   return stringToNames(str, names_, separator_);
 }
 
+QString
+CQChartsNamePair::
+toString() const
+{
+  if (! names_.valid)
+    return "";
+
+  return namesToString(names_, separator_);
+}
+
+bool
+CQChartsNamePair::
+fromString(const QString &s)
+{
+  if (s.trimmed() == "") {
+    *this = CQChartsNamePair();
+    return true;
+  }
+
+  return setValue(s, separator_);
+}
+
 bool
 CQChartsNamePair::
 stringToNames(const QString &str, Names &names, const QString &separator)

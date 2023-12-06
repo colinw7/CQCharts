@@ -32,6 +32,11 @@ bool
 CQChartsTitleLocation::
 fromString(const QString &str)
 {
+  if (str.trimmed() == "") {
+    *this = CQChartsTitleLocation();
+    return true;
+  }
+
   return setValue(str);
 }
 

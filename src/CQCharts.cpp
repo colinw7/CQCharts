@@ -84,9 +84,9 @@
 #include <CQChartsKeyLocationEdit.h>
 #include <CQChartsKeyPressBehaviorEdit.h>
 #include <CQChartsLengthEdit.h>
-#include <CQChartsLineDataEdit.h>
-#include <CQChartsLineDashEdit.h>
 #include <CQChartsLineCapEdit.h>
+#include <CQChartsLineDashEdit.h>
+#include <CQChartsLineDataEdit.h>
 #include <CQChartsLineJoinEdit.h>
 #include <CQChartsMarginEdit.h>
 #include <CQChartsModelColumnEdit.h>
@@ -191,6 +191,12 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 
+//---
+
+#include <CQChartsPropertyMeta.h>
+
+//---
+
 // generic widgets
 #include <CQIntRangeSlider.h>
 #include <CQDoubleRangeSlider.h>
@@ -220,6 +226,8 @@
 #include <QFileInfo>
 
 #include <iostream>
+
+//---
 
 // svg files
 #include <svg/select_light_svg.h>
@@ -331,6 +339,8 @@
 #include <svg/font_larger_dark_svg.h>
 #include <svg/font_smaller_light_svg.h>
 #include <svg/font_smaller_dark_svg.h>
+
+//---
 
 #define addChartsWidgetFactoryT(N) \
 CQWidgetFactoryMgrInst->addWidgetFactoryT<CQCharts##N>("CQCharts:" #N);
@@ -630,6 +640,8 @@ CQCharts()
   //---
 
   cmdTcl_ = new CQTcl();
+
+  metaObj_ = new CQChartsPropertyMeta(this);
 }
 
 CQCharts::
@@ -650,70 +662,74 @@ init()
   //---
 
   // add plot types
-  plotTypeMgr()->addTypeT<CQChartsAdjacencyPlotType    >("adjacency"    );
-  plotTypeMgr()->addTypeT<CQChartsBarChartPlotType     >("barchart"     );
-  plotTypeMgr()->addTypeT<CQChartsBoxPlotType          >("box"          );
-  plotTypeMgr()->addTypeT<CQChartsBubblePlotType       >("bubble"       );
-  plotTypeMgr()->addTypeT<CQChartsChordPlotType        >("chord"        );
-  plotTypeMgr()->addTypeT<CQChartsCompositePlotType    >("composite"    );
-  plotTypeMgr()->addTypeT<CQChartsContourPlotType      >("contour"      );
-  plotTypeMgr()->addTypeT<CQChartsCorrelationPlotType  >("correlation"  );
-  plotTypeMgr()->addTypeT<CQChartsDelaunayPlotType     >("delaunay"     );
-  plotTypeMgr()->addTypeT<CQChartsDendrogramPlotType   >("dendrogram"   );
-  plotTypeMgr()->addTypeT<CQChartsDistributionPlotType >("distribution" );
-  plotTypeMgr()->addTypeT<CQChartsGraphVizPlotType     >("graphviz"     );
-  plotTypeMgr()->addTypeT<CQChartsEmptyPlotType        >("empty"        );
-  plotTypeMgr()->addTypeT<CQChartsFlamePlotType        >("flame"        );
-  plotTypeMgr()->addTypeT<CQChartsForceDirectedPlotType>("forcedirected");
-  plotTypeMgr()->addTypeT<CQChartsGanttPlotType        >("gantt"        );
-  plotTypeMgr()->addTypeT<CQChartsGeometryPlotType     >("geometry"     );
-  plotTypeMgr()->addTypeT<CQChartsGraphPlotType        >("graph"        );
-  plotTypeMgr()->addTypeT<CQChartsGridPlotType         >("grid"         );
-  plotTypeMgr()->addTypeT<CQChartsHierBubblePlotType   >("hierbubble"   );
-  plotTypeMgr()->addTypeT<CQChartsHierParallelPlotType >("hierparallel" );
-  plotTypeMgr()->addTypeT<CQChartsHierScatterPlotType  >("hierscatter"  );
-  plotTypeMgr()->addTypeT<CQChartsImagePlotType        >("image"        );
-  plotTypeMgr()->addTypeT<CQChartsParallelPlotType     >("parallel"     );
-  plotTypeMgr()->addTypeT<CQChartsPiePlotType          >("pie"          );
-  plotTypeMgr()->addTypeT<CQChartsPivotPlotType        >("pivot"        );
-  plotTypeMgr()->addTypeT<CQChartsRadarPlotType        >("radar"        );
-  plotTypeMgr()->addTypeT<CQChartsSankeyPlotType       >("sankey"       );
-  plotTypeMgr()->addTypeT<CQChartsScatterPlotType      >("scatter"      );
-  plotTypeMgr()->addTypeT<CQChartsScatterPlot3DType    >("scatter3d"    );
-  plotTypeMgr()->addTypeT<CQChartsStripPlotType        >("strip"        );
-  plotTypeMgr()->addTypeT<CQChartsSummaryPlotType      >("summary"      );
-  plotTypeMgr()->addTypeT<CQChartsSunburstPlotType     >("sunburst"     );
-  plotTypeMgr()->addTypeT<CQChartsTablePlotType        >("table"        );
-  plotTypeMgr()->addTypeT<CQChartsTreeMapPlotType      >("treemap"      );
-  plotTypeMgr()->addTypeT<CQChartsVennPlotType         >("venn"         );
-  plotTypeMgr()->addTypeT<CQChartsWheelPlotType        >("wheel"        );
-  plotTypeMgr()->addTypeT<CQChartsWordCloudPlotType    >("wordCloud"    );
-  plotTypeMgr()->addTypeT<CQChartsXYPlotType           >("xy"           );
+  auto *plotTypeMgr = this->plotTypeMgr();
+
+  plotTypeMgr->addTypeT<CQChartsAdjacencyPlotType    >("adjacency"    );
+  plotTypeMgr->addTypeT<CQChartsBarChartPlotType     >("barchart"     );
+  plotTypeMgr->addTypeT<CQChartsBoxPlotType          >("box"          );
+  plotTypeMgr->addTypeT<CQChartsBubblePlotType       >("bubble"       );
+  plotTypeMgr->addTypeT<CQChartsChordPlotType        >("chord"        );
+  plotTypeMgr->addTypeT<CQChartsCompositePlotType    >("composite"    );
+  plotTypeMgr->addTypeT<CQChartsContourPlotType      >("contour"      );
+  plotTypeMgr->addTypeT<CQChartsCorrelationPlotType  >("correlation"  );
+  plotTypeMgr->addTypeT<CQChartsDelaunayPlotType     >("delaunay"     );
+  plotTypeMgr->addTypeT<CQChartsDendrogramPlotType   >("dendrogram"   );
+  plotTypeMgr->addTypeT<CQChartsDistributionPlotType >("distribution" );
+  plotTypeMgr->addTypeT<CQChartsGraphVizPlotType     >("graphviz"     );
+  plotTypeMgr->addTypeT<CQChartsEmptyPlotType        >("empty"        );
+  plotTypeMgr->addTypeT<CQChartsFlamePlotType        >("flame"        );
+  plotTypeMgr->addTypeT<CQChartsForceDirectedPlotType>("forcedirected");
+  plotTypeMgr->addTypeT<CQChartsGanttPlotType        >("gantt"        );
+  plotTypeMgr->addTypeT<CQChartsGeometryPlotType     >("geometry"     );
+  plotTypeMgr->addTypeT<CQChartsGraphPlotType        >("graph"        );
+  plotTypeMgr->addTypeT<CQChartsGridPlotType         >("grid"         );
+  plotTypeMgr->addTypeT<CQChartsHierBubblePlotType   >("hierbubble"   );
+  plotTypeMgr->addTypeT<CQChartsHierParallelPlotType >("hierparallel" );
+  plotTypeMgr->addTypeT<CQChartsHierScatterPlotType  >("hierscatter"  );
+  plotTypeMgr->addTypeT<CQChartsImagePlotType        >("image"        );
+  plotTypeMgr->addTypeT<CQChartsParallelPlotType     >("parallel"     );
+  plotTypeMgr->addTypeT<CQChartsPiePlotType          >("pie"          );
+  plotTypeMgr->addTypeT<CQChartsPivotPlotType        >("pivot"        );
+  plotTypeMgr->addTypeT<CQChartsRadarPlotType        >("radar"        );
+  plotTypeMgr->addTypeT<CQChartsSankeyPlotType       >("sankey"       );
+  plotTypeMgr->addTypeT<CQChartsScatterPlotType      >("scatter"      );
+  plotTypeMgr->addTypeT<CQChartsScatterPlot3DType    >("scatter3d"    );
+  plotTypeMgr->addTypeT<CQChartsStripPlotType        >("strip"        );
+  plotTypeMgr->addTypeT<CQChartsSummaryPlotType      >("summary"      );
+  plotTypeMgr->addTypeT<CQChartsSunburstPlotType     >("sunburst"     );
+  plotTypeMgr->addTypeT<CQChartsTablePlotType        >("table"        );
+  plotTypeMgr->addTypeT<CQChartsTreeMapPlotType      >("treemap"      );
+  plotTypeMgr->addTypeT<CQChartsVennPlotType         >("venn"         );
+  plotTypeMgr->addTypeT<CQChartsWheelPlotType        >("wheel"        );
+  plotTypeMgr->addTypeT<CQChartsWordCloudPlotType    >("wordCloud"    );
+  plotTypeMgr->addTypeT<CQChartsXYPlotType           >("xy"           );
 
   //---
 
   // add column types
-  columnTypeMgr()->addTypeT<CQChartsColumnStringType        >(CQBaseModelType::STRING         );
-  columnTypeMgr()->addTypeT<CQChartsColumnIntegerType       >(CQBaseModelType::INTEGER        );
-  columnTypeMgr()->addTypeT<CQChartsColumnRealType          >(CQBaseModelType::REAL           );
-  columnTypeMgr()->addTypeT<CQChartsColumnBooleanType       >(CQBaseModelType::BOOLEAN        );
-  columnTypeMgr()->addTypeT<CQChartsColumnTimeType          >(CQBaseModelType::TIME           );
-  columnTypeMgr()->addTypeT<CQChartsColumnColorType         >(CQBaseModelType::COLOR          );
-  columnTypeMgr()->addTypeT<CQChartsColumnFontType          >(CQBaseModelType::FONT           );
-  columnTypeMgr()->addTypeT<CQChartsColumnPointType         >(CQBaseModelType::POINT          );
-  columnTypeMgr()->addTypeT<CQChartsColumnRectType          >(CQBaseModelType::RECT           );
-  columnTypeMgr()->addTypeT<CQChartsColumnLengthType        >(CQBaseModelType::LENGTH         );
-  columnTypeMgr()->addTypeT<CQChartsColumnPolygonType       >(CQBaseModelType::POLYGON        );
-  columnTypeMgr()->addTypeT<CQChartsColumnPolygonListType   >(CQBaseModelType::POLYGON_LIST   );
-  columnTypeMgr()->addTypeT<CQChartsColumnImageType         >(CQBaseModelType::IMAGE          );
-  columnTypeMgr()->addTypeT<CQChartsColumnSymbolTypeType    >(CQBaseModelType::SYMBOL         );
-  columnTypeMgr()->addTypeT<CQChartsColumnSymbolSizeType    >(CQBaseModelType::SYMBOL_SIZE    );
-  columnTypeMgr()->addTypeT<CQChartsColumnFontSizeType      >(CQBaseModelType::FONT_SIZE      );
-  columnTypeMgr()->addTypeT<CQChartsColumnPathType          >(CQBaseModelType::PATH           );
-  columnTypeMgr()->addTypeT<CQChartsColumnStyleType         >(CQBaseModelType::STYLE          );
-  columnTypeMgr()->addTypeT<CQChartsColumnNamePairType      >(CQBaseModelType::NAME_PAIR      );
-  columnTypeMgr()->addTypeT<CQChartsColumnNameValuesType    >(CQBaseModelType::NAME_VALUES    );
-  columnTypeMgr()->addTypeT<CQChartsColumnConnectionListType>(CQBaseModelType::CONNECTION_LIST);
+  auto *columnTypeMgr = this->columnTypeMgr();
+
+  columnTypeMgr->addTypeT<CQChartsColumnStringType        >(CQBaseModelType::STRING         );
+  columnTypeMgr->addTypeT<CQChartsColumnIntegerType       >(CQBaseModelType::INTEGER        );
+  columnTypeMgr->addTypeT<CQChartsColumnRealType          >(CQBaseModelType::REAL           );
+  columnTypeMgr->addTypeT<CQChartsColumnBooleanType       >(CQBaseModelType::BOOLEAN        );
+  columnTypeMgr->addTypeT<CQChartsColumnTimeType          >(CQBaseModelType::TIME           );
+  columnTypeMgr->addTypeT<CQChartsColumnColorType         >(CQBaseModelType::COLOR          );
+  columnTypeMgr->addTypeT<CQChartsColumnFontType          >(CQBaseModelType::FONT           );
+  columnTypeMgr->addTypeT<CQChartsColumnPointType         >(CQBaseModelType::POINT          );
+  columnTypeMgr->addTypeT<CQChartsColumnRectType          >(CQBaseModelType::RECT           );
+  columnTypeMgr->addTypeT<CQChartsColumnLengthType        >(CQBaseModelType::LENGTH         );
+  columnTypeMgr->addTypeT<CQChartsColumnPolygonType       >(CQBaseModelType::POLYGON        );
+  columnTypeMgr->addTypeT<CQChartsColumnPolygonListType   >(CQBaseModelType::POLYGON_LIST   );
+  columnTypeMgr->addTypeT<CQChartsColumnImageType         >(CQBaseModelType::IMAGE          );
+  columnTypeMgr->addTypeT<CQChartsColumnSymbolTypeType    >(CQBaseModelType::SYMBOL         );
+  columnTypeMgr->addTypeT<CQChartsColumnSymbolSizeType    >(CQBaseModelType::SYMBOL_SIZE    );
+  columnTypeMgr->addTypeT<CQChartsColumnFontSizeType      >(CQBaseModelType::FONT_SIZE      );
+  columnTypeMgr->addTypeT<CQChartsColumnPathType          >(CQBaseModelType::PATH           );
+  columnTypeMgr->addTypeT<CQChartsColumnStyleType         >(CQBaseModelType::STYLE          );
+  columnTypeMgr->addTypeT<CQChartsColumnNamePairType      >(CQBaseModelType::NAME_PAIR      );
+  columnTypeMgr->addTypeT<CQChartsColumnNameValuesType    >(CQBaseModelType::NAME_VALUES    );
+  columnTypeMgr->addTypeT<CQChartsColumnConnectionListType>(CQBaseModelType::CONNECTION_LIST);
 
   //---
 
@@ -725,68 +741,70 @@ init()
 
     //---
 
+#define CQChartsAddPropertyType(T, N) \
+propertyNames_.insert(N); \
+CQPropertyViewMgrInst->addTypeT<CQCharts##T##PropertyViewType>(N);
+
     // add property types (and editors)
-    auto *viewMgr = CQPropertyViewMgrInst;
+    CQChartsAddPropertyType(Alpha                 , "CQChartsAlpha"                 );
+    CQChartsAddPropertyType(Angle                 , "CQChartsAngle"                 );
+    CQChartsAddPropertyType(ArrowData             , "CQChartsArrowData"             );
+    CQChartsAddPropertyType(AxisSide              , "CQChartsAxisSide"              );
+    CQChartsAddPropertyType(AxisTickLabelPlacement, "CQChartsAxisTickLabelPlacement");
+    CQChartsAddPropertyType(AxisValueType         , "CQChartsAxisValueType"         );
+    CQChartsAddPropertyType(BoxData               , "CQChartsBoxData"               );
+    CQChartsAddPropertyType(Color                 , "CQChartsColor"                 );
+    CQChartsAddPropertyType(Column                , "CQChartsColumn"                );
+    CQChartsAddPropertyType(Columns               , "CQChartsColumns"               );
+    CQChartsAddPropertyType(ColumnNum             , "CQChartsColumnNum"             );
+    CQChartsAddPropertyType(FillData              , "CQChartsFillData"              );
+    CQChartsAddPropertyType(FillPattern           , "CQChartsFillPattern"           );
+    CQChartsAddPropertyType(FillUnderPos          , "CQChartsFillUnderPos"          );
+    CQChartsAddPropertyType(FillUnderSide         , "CQChartsFillUnderSide"         );
+    CQChartsAddPropertyType(Font                  , "CQChartsFont"                  );
+    CQChartsAddPropertyType(Image                 , "CQChartsImage"                 );
+    CQChartsAddPropertyType(KeyLocation           , "CQChartsKeyLocation"           );
+    CQChartsAddPropertyType(KeyPressBehavior      , "CQChartsKeyPressBehavior"      );
+    CQChartsAddPropertyType(Length                , "CQChartsLength"                );
+    CQChartsAddPropertyType(LineCap               , "CQChartsLineCap"               );
+    CQChartsAddPropertyType(LineDash              , "CQChartsLineDash"              );
+    CQChartsAddPropertyType(LineData              , "CQChartsLineData"              );
+    CQChartsAddPropertyType(LineJoin              , "CQChartsLineJoin"              );
+    CQChartsAddPropertyType(Margin                , "CQChartsMargin"                );
+    CQChartsAddPropertyType(ModelColumn           , "CQChartsModelColumn"           );
+//  CQChartsAddPropertyType(ModelInd              , "CQChartsModelInd"              );
+//  CQChartsAddPropertyType(ObjRef                , "CQChartsObjRef"                );
+//  CQChartsAddPropertyType(ObjRefPos             , "CQChartsObjRefPos"             );
+    CQChartsAddPropertyType(PaletteName           , "CQChartsPaletteName"           );
+//  CQChartsAddPropertyType(Points                , "CQChartsPoints"                );
+    CQChartsAddPropertyType(Polygon               , "CQChartsPolygon"               );
+    CQChartsAddPropertyType(Position              , "CQChartsPosition"              );
+//  CQChartsAddPropertyType(Reals                 , "CQChartsReals"                 );
+    CQChartsAddPropertyType(Rect                  , "CQChartsRect"                  );
+    CQChartsAddPropertyType(ShapeData             , "CQChartsShapeData"             );
+    CQChartsAddPropertyType(ShapeType             , "CQChartsShapeType"             );
+    CQChartsAddPropertyType(Sides                 , "CQChartsSides"                 );
+    CQChartsAddPropertyType(StrokeData            , "CQChartsStrokeData"            );
+    CQChartsAddPropertyType(SymbolData            , "CQChartsSymbolData"            );
+    CQChartsAddPropertyType(Symbol                , "CQChartsSymbol"                );
+//  CQChartsAddPropertyType(SymbolSet             , "CQChartsSymbolSet"             );
+//  CQChartsAddPropertyType(SymbolType            , "CQChartsSymbolType"            );
+    CQChartsAddPropertyType(TextBoxData           , "CQChartsTextBoxData"           );
+    CQChartsAddPropertyType(TextData              , "CQChartsTextData"              );
+    CQChartsAddPropertyType(TitleLocation         , "CQChartsTitleLocation"         );
+    CQChartsAddPropertyType(Units                 , "CQChartsUnits"                 );
+    CQChartsAddPropertyType(ValueList             , "CQChartsValueList"             );
 
-    viewMgr->addTypeT<CQChartsAlphaPropertyViewType           >("CQChartsAlpha"           );
-    viewMgr->addTypeT<CQChartsAnglePropertyViewType           >("CQChartsAngle"           );
-    viewMgr->addTypeT<CQChartsArrowDataPropertyViewType       >("CQChartsArrowData"       );
-    viewMgr->addTypeT<CQChartsAxisSidePropertyViewType        >("CQChartsAxisSide"        );
-    viewMgr->addTypeT<CQChartsAxisTickLabelPlacementPropertyViewType>
-                                                               ("CQChartsAxisTickLabelPlacement");
-    viewMgr->addTypeT<CQChartsAxisValueTypePropertyViewType   >("CQChartsAxisValueType"   );
-    viewMgr->addTypeT<CQChartsBoxDataPropertyViewType         >("CQChartsBoxData"         );
-    viewMgr->addTypeT<CQChartsColorPropertyViewType           >("CQChartsColor"           );
-    viewMgr->addTypeT<CQChartsColumnPropertyViewType          >("CQChartsColumn"          );
-    viewMgr->addTypeT<CQChartsColumnsPropertyViewType         >("CQChartsColumns"         );
-    viewMgr->addTypeT<CQChartsColumnNumPropertyViewType       >("CQChartsColumnNum"       );
-    viewMgr->addTypeT<CQChartsFillDataPropertyViewType        >("CQChartsFillData"        );
-    viewMgr->addTypeT<CQChartsFillPatternPropertyViewType     >("CQChartsFillPattern"     );
-    viewMgr->addTypeT<CQChartsFillUnderPosPropertyViewType    >("CQChartsFillUnderPos"    );
-    viewMgr->addTypeT<CQChartsFillUnderSidePropertyViewType   >("CQChartsFillUnderSide"   );
-    viewMgr->addTypeT<CQChartsFontPropertyViewType            >("CQChartsFont"            );
-    viewMgr->addTypeT<CQChartsGeomBBoxPropertyViewType        >("CQChartsGeom::BBox"      );
-    viewMgr->addTypeT<CQChartsGeomPointPropertyViewType       >("CQChartsGeom::Point"     );
-    viewMgr->addTypeT<CQChartsImagePropertyViewType           >("CQChartsImage"           );
-    viewMgr->addTypeT<CQChartsKeyLocationPropertyViewType     >("CQChartsKeyLocation"     );
-    viewMgr->addTypeT<CQChartsKeyPressBehaviorPropertyViewType>("CQChartsKeyPressBehavior");
-    viewMgr->addTypeT<CQChartsLengthPropertyViewType          >("CQChartsLength"          );
-    viewMgr->addTypeT<CQChartsLineCapPropertyViewType         >("CQChartsLineCap"         );
-    viewMgr->addTypeT<CQChartsLineDashPropertyViewType        >("CQChartsLineDash"        );
-    viewMgr->addTypeT<CQChartsLineDataPropertyViewType        >("CQChartsLineData"        );
-    viewMgr->addTypeT<CQChartsLineJoinPropertyViewType        >("CQChartsLineJoin"        );
-    viewMgr->addTypeT<CQChartsMarginPropertyViewType          >("CQChartsMargin"          );
-    viewMgr->addTypeT<CQChartsModelColumnPropertyViewType     >("CQChartsModelColumn"     );
-//  viewMgr->addTypeT<CQChartsModelIndPropertyViewType        >("CQChartsModelInd"        );
-//  viewMgr->addTypeT<CQChartsObjRefPropertyViewType          >("CQChartsObjRef"          );
-//  viewMgr->addTypeT<CQChartsObjRefPosPropertyViewType       >("CQChartsObjRefPos"       );
-    viewMgr->addTypeT<CQChartsPaletteNamePropertyViewType     >("CQChartsPaletteName"     );
-//  viewMgr->addTypeT<CQChartsPointsPropertyViewType          >("CQChartsPoints"          );
-    viewMgr->addTypeT<CQChartsPolygonPropertyViewType         >("CQChartsPolygon"         );
-    viewMgr->addTypeT<CQChartsPositionPropertyViewType        >("CQChartsPosition"        );
-//  viewMgr->addTypeT<CQChartsRealsPropertyViewType           >("CQChartsReals"           );
-    viewMgr->addTypeT<CQChartsRectPropertyViewType            >("CQChartsRect"            );
-    viewMgr->addTypeT<CQChartsShapeDataPropertyViewType       >("CQChartsShapeData"       );
-    viewMgr->addTypeT<CQChartsShapeTypePropertyViewType       >("CQChartsShapeType"       );
-    viewMgr->addTypeT<CQChartsSidesPropertyViewType           >("CQChartsSides"           );
-    viewMgr->addTypeT<CQChartsStrokeDataPropertyViewType      >("CQChartsStrokeData"      );
-    viewMgr->addTypeT<CQChartsSymbolDataPropertyViewType      >("CQChartsSymbolData"      );
-    viewMgr->addTypeT<CQChartsSymbolPropertyViewType          >("CQChartsSymbol"          );
-//  viewMgr->addTypeT<CQChartsSymbolSetPropertyViewType       >("CQChartsSymbolSet"       );
-//  viewMgr->addTypeT<CQChartsSymbolTypePropertyViewType      >("CQChartsSymbolType"      );
-    viewMgr->addTypeT<CQChartsTextBoxDataPropertyViewType     >("CQChartsTextBoxData"     );
-    viewMgr->addTypeT<CQChartsTextDataPropertyViewType        >("CQChartsTextData"        );
-    viewMgr->addTypeT<CQChartsTitleLocationPropertyViewType   >("CQChartsTitleLocation"   );
-    viewMgr->addTypeT<CQChartsUnitsPropertyViewType           >("CQChartsUnits"           );
-    viewMgr->addTypeT<CQChartsValueListPropertyViewType       >("CQChartsValueList"       );
+    CQChartsAddPropertyType(GeomBBox , "CQChartsGeom::BBox" );
+    CQChartsAddPropertyType(GeomPoint, "CQChartsGeom::Point");
 
-    viewMgr->addTypeT<CQChartsOptBoolPropertyViewType    >("CQChartsOptBool"    );
-    viewMgr->addTypeT<CQChartsOptIntPropertyViewType     >("CQChartsOptInt"     );
-    viewMgr->addTypeT<CQChartsOptRealPropertyViewType    >("CQChartsOptReal"    );
-    viewMgr->addTypeT<CQChartsOptStringPropertyViewType  >("CQChartsOptString"  );
-    viewMgr->addTypeT<CQChartsOptLengthPropertyViewType  >("CQChartsOptLength"  );
-    viewMgr->addTypeT<CQChartsOptPositionPropertyViewType>("CQChartsOptPosition");
-    viewMgr->addTypeT<CQChartsOptRectPropertyViewType    >("CQChartsOptRect"    );
+    CQChartsAddPropertyType(OptBool    , "CQChartsOptBool"    );
+    CQChartsAddPropertyType(OptInt     , "CQChartsOptInt"     );
+    CQChartsAddPropertyType(OptReal    , "CQChartsOptReal"    );
+    CQChartsAddPropertyType(OptString  , "CQChartsOptString"  );
+    CQChartsAddPropertyType(OptLength  , "CQChartsOptLength"  );
+    CQChartsAddPropertyType(OptPosition, "CQChartsOptPosition");
+    CQChartsAddPropertyType(OptRect    , "CQChartsOptRect"    );
 
     //---
 
@@ -1042,6 +1060,14 @@ CQCharts::
 getModelTypeNames(QStringList &names) const
 {
   names << CQChartsFileTypeUtil::fileTypeNames();
+}
+
+void
+CQCharts::
+getPropertyTypeNames(QStringList &names) const
+{
+  for (const auto &s : propertyNames_)
+    names << s;
 }
 
 //---
@@ -2092,4 +2118,43 @@ CQCharts::
 errorMsg(const QString &msg) const
 {
   std::cerr << msg.toStdString() << "\n";
+}
+
+//---
+
+QStringList
+CQCharts::
+getMetaTypeNames() const
+{
+  return metaObj_->names();
+}
+
+QString
+CQCharts::
+getPropertyTypeData(const QString &name) const
+{
+  QString name1 = name;
+  if      (name1.left(14) == "CQChartsGeom::")
+    name1 = "Geom" + name1.mid(14);
+  else if (name1.left(8) == "CQCharts")
+    name1 = name1.mid(8);
+
+  QString value;
+  if (! metaObj_->getTypeStr(name1, value))
+    return "<null>";
+
+  return value;
+}
+
+void
+CQCharts::
+setPropertyTypeData(const QString &name, const QString &value)
+{
+  QString name1 = name;
+  if      (name1.left(14) == "CQChartsGeom::")
+    name1 = "Geom" + name1.mid(14);
+  else if (name1.left(8) == "CQCharts")
+    name1 = name1.mid(8);
+
+  metaObj_->setTypeStr(name1, value);
 }

@@ -43,6 +43,18 @@ toString() const
 
 bool
 CQChartsArea::
+fromString(const QString &s)
+{
+  if (s.trimmed() == "") {
+    *this = CQChartsArea();
+    return true;
+  }
+
+  return setValue(s);
+}
+
+bool
+CQChartsArea::
 decodeString(const QString &str, Units &units, double &value, const Units &defUnits)
 {
   // format is <area> [<units>]

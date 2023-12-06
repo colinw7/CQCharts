@@ -51,8 +51,8 @@ class CQChartsThemeName :
 
   //---
 
-  QString toString() const { return name(); }
-  bool fromString(const QString &s) { return setName(s); }
+  QString toString() const;
+  bool fromString(const QString &s);
 
   //---
 

@@ -77,20 +77,8 @@ class CQChartsSides :
 
   //---
 
-  QString toString() const {
-    QString str;
-
-    if (isLeft  ()) str += "l";
-    if (isRight ()) str += "r";
-    if (isTop   ()) str += "t";
-    if (isBottom()) str += "b";
-
-    return str;
-  }
-
-  bool fromString(const QString &s) {
-    return setValue(s);
-  }
+  QString toString() const;
+  bool fromString(const QString &s);
 
   //---
 

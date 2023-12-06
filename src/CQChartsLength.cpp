@@ -43,6 +43,18 @@ toString() const
 
 bool
 CQChartsLength::
+fromString(const QString &s)
+{
+  if (s.trimmed() == "") {
+    *this = CQChartsLength();
+    return true;
+  }
+
+  return setValue(s);
+}
+
+bool
+CQChartsLength::
 decodeString(const QString &str, Units &units, double &value, const Units &defUnits)
 {
   // format is <l> [<units>]

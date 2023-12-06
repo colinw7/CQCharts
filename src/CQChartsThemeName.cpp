@@ -27,3 +27,22 @@ setName(const QString &name)
 
   return true;
 }
+
+QString
+CQChartsThemeName::
+toString() const
+{
+  return name();
+}
+
+bool
+CQChartsThemeName::
+fromString(const QString &s)
+{
+  if (s.trimmed() == "") {
+    *this = CQChartsThemeName();
+    return true;
+  }
+
+  return setName(s);
+}

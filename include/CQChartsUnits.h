@@ -72,11 +72,8 @@ class CQChartsUnits :
 
   //---
 
-  QString toString() const { return unitsString(type_); }
-
-  bool fromString(const QString &s) {
-    return setValue(s);
-  }
+  QString toString() const;
+  bool fromString(const QString &s);
 
   //---
 

@@ -62,6 +62,11 @@ bool
 CQChartsObjRef::
 fromString(const QString &str)
 {
+  if (str.trimmed() == "") {
+    *this = CQChartsObjRef();
+    return true;
+  }
+
   QStringList strs;
 
   if (! CQTcl::splitList(str, strs))
@@ -74,17 +79,19 @@ bool
 CQChartsObjRef::
 fromStrings(const QStringList &strs)
 {
-  if (strs.length() >= 2) {
+  if      (strs.length() >= 2) {
     setName    (strs[0]);
     setLocation(nameToLocation(strs[1]));
 
     if (location() == Location::NONE)
       setLocation(Location::CENTER);
   }
-  else {
+  else if (strs.length() == 1) {
     setName    (strs[0]);
     setLocation(Location::CENTER);
   }
+  else
+    return false;
 
   return true;
 }

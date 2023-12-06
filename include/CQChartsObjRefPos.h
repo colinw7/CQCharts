@@ -65,26 +65,12 @@ class CQChartsObjRefPos :
   const Position &position() const { return position_; }
   void setPosition(const Position &p) { position_ = p; }
 
-  bool setObjRef(const QString &str, const Units &units=Units::PLOT) {
-    ObjRef   objRef;
-    Position position;
-
-    if (! decodeString(str, objRef, position, units))
-      return false;
-
-    objRef_   = objRef;
-    position_ = position;
-
-    return true;
-  }
+  bool setObjRef(const QString &str, const Units &units=Units::PLOT);
 
   //---
 
   QString toString() const;
-
-  bool fromString(const QString &s, const Units &units=Units::PLOT) {
-    return setObjRef(s, units);
-  }
+  bool fromString(const QString &s);
 
   bool decodeString(const QString &str, ObjRef &objRef, Position &position,
                     const Units &units=Units::PLOT);
