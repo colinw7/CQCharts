@@ -1964,7 +1964,7 @@ class CQChartsView : public QFrame,
   BufferP   overlayBuffer_ ;                    //!< buffer for view overlays
   LayerType drawLayerType_ { LayerType::NONE }; //!< current draw layer type
 
-  mutable std::atomic<bool> painterLocked_ { false}; //!< is painter locked
+//mutable std::atomic<bool> painterLocked_ { false}; //!< is painter locked
   mutable std::mutex        painterMutex_;           //!< painter mutex
 
   // view settings

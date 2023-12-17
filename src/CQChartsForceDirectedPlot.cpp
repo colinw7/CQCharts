@@ -4610,7 +4610,13 @@ QString
 CQChartsForceDirectedNodeObj::
 calcTipId() const
 {
-  return calcId();
+  auto *snode = dynamic_cast<Node *>(node_.get());
+  if (! snode) return QString();
+
+  CQChartsTableTip tableTip;
+  forceDirectedPlot_->nodeTipText(snode, tableTip);
+
+  return tableTip.str();
 }
 
 bool
@@ -4703,7 +4709,13 @@ QString
 CQChartsForceDirectedEdgeObj::
 calcTipId() const
 {
-  return calcId();
+  auto *sedge = dynamic_cast<Edge *>(edge_.get());
+  if (! sedge) return QString();
+
+  CQChartsTableTip tableTip;
+  forceDirectedPlot_->edgeTipText(sedge, tableTip);
+
+  return tableTip.str();
 }
 
 bool
