@@ -730,6 +730,7 @@ calcExtraFitBBox() const
   double tm = 4;
 
   if (isXLabels()) {
+#if 0
     double tw = 0.0;
 
     for (int c = 0; c < numColumns(); ++c) {
@@ -743,9 +744,16 @@ calcExtraFitBBox() const
       tw = std::max(tw, fm.horizontalAdvance(name));
     }
 
-    double tw1 = pixelToWindowHeight(tw + tm);
+    auto tw1 = pixelToWindowHeight(tw + tm);
 
     BBox tbbox(0, -tw1, numColumns(), 0);
+#else
+    auto th = fm.height();
+
+    double th1 = pixelToWindowHeight(th + tm);
+
+    BBox tbbox(0, -th1, numColumns(), 0);
+#endif
 
     bbox += tbbox;
   }
@@ -762,7 +770,7 @@ calcExtraFitBBox() const
       tw = std::max(tw, fm.horizontalAdvance(name));
     }
 
-    double tw1 = pixelToWindowWidth(tw + tm);
+    auto tw1 = pixelToWindowWidth(tw + tm);
 
     BBox tbbox(-tw1, 0, 0, numRows());
 

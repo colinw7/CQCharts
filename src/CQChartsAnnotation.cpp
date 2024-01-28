@@ -44,9 +44,14 @@ CQChartsAnnotation::
 typeNames()
 {
   static auto names = QStringList() <<
-    "arc" << "arrow" << "axis" << "button" << "ellipse" << "image" << "key" << "path" <<
-    "pie_slice" << "point" << "point_set" << "polygon" << "polyline" << "rectangle" <<
-    "text" << "value_set" << "widget" << "group";
+    "arc" << "arc_connector" << "arrow" << "axis" << "button" << "ellipse" << "group" <<
+    "image" << "key" << "path" << "pie_slice" << "point" << "point_set" << "point3d_set" <<
+    "polygon" << "polyline" << "rectangle" << "symbol_map_key" << "text" << "value_set" <<
+    "widget"
+#ifdef CQCHARTS_TK_WIDGET
+    << "tk_widget"
+#endif
+  ;
 
   return names;
 }
@@ -56,9 +61,14 @@ CQChartsAnnotation::
 typeDescs()
 {
   static auto names = QStringList() <<
-    "Arc" << "Arrow" << "Axis" << "Button" << "Ellipse" << "Image" << "Key" << "Path" <<
-    "Pie Slice" << "Point" << "Point Set" << "Polygon" << "Polyline" << "Rectangle" <<
-    "Text" << "Value Set" << "Widget" << "Group";
+    "Arc" << "Arc Connector"<< "Arrow" << "Axis" << "Button" << "Ellipse" << "Group" <<
+    "Image" << "Key" << "Path" << "Pie Slice" << "Point" << "Point Set" << "Point 3d Set" <<
+    "Polygon" << "Polyline" << "Rectangle" << "Symbol Map Key" << "Text" << "Value Set" <<
+    "Widget"
+#ifdef CQCHARTS_TK_WIDGET
+    << "Tk Widget"
+#endif
+  ;
 
   return names;
 }
@@ -67,30 +77,35 @@ CQChartsAnnotation::Type
 CQChartsAnnotation::
 stringToType(const QString &str)
 {
-  if      (str == "group"          ) return Type::GROUP;
-  else if (str == "rect"           ) return Type::RECT;
-  else if (str == "ellipse"        ) return Type::ELLIPSE;
-  else if (str == "polygon"        ) return Type::POLYGON;
-  else if (str == "polyline"       ) return Type::POLYLINE;
-  else if (str == "text"           ) return Type::TEXT;
-  else if (str == "image"          ) return Type::IMAGE;
-  else if (str == "path"           ) return Type::PATH;
-  else if (str == "arrow"          ) return Type::ARROW;
-  else if (str == "arc"            ) return Type::ARC;
-  else if (str == "arc_connector"  ) return Type::ARC_CONNECTOR;
-  else if (str == "point"          ) return Type::POINT;
-  else if (str == "pie_slice"      ) return Type::PIE_SLICE;
-  else if (str == "axis"           ) return Type::AXIS;
-  else if (str == "key"            ) return Type::KEY;
-  else if (str == "point3d_set"    ) return Type::POINT3D_SET;
-  else if (str == "point_set"      ) return Type::POINT_SET;
-  else if (str == "value_set"      ) return Type::VALUE_SET;
-  else if (str == "button"         ) return Type::BUTTON;
-  else if (str == "widget"         ) return Type::WIDGET;
+  auto lstr = str.toLower();
+
+  if (lstr == "rect")
+    lstr = "rectangle";
+
+  if      (lstr == "arc"            ) return Type::ARC;
+  else if (lstr == "arc_connector"  ) return Type::ARC_CONNECTOR;
+  else if (lstr == "arrow"          ) return Type::ARROW;
+  else if (lstr == "axis"           ) return Type::AXIS;
+  else if (lstr == "button"         ) return Type::BUTTON;
+  else if (lstr == "ellipse"        ) return Type::ELLIPSE;
+  else if (lstr == "group"          ) return Type::GROUP;
+  else if (lstr == "image"          ) return Type::IMAGE;
+  else if (lstr == "key"            ) return Type::KEY;
+  else if (lstr == "path"           ) return Type::PATH;
+  else if (lstr == "pie_slice"      ) return Type::PIE_SLICE;
+  else if (lstr == "point"          ) return Type::POINT;
+  else if (lstr == "point_set"      ) return Type::POINT_SET;
+  else if (lstr == "point3d_set"    ) return Type::POINT3D_SET;
+  else if (lstr == "polygon"        ) return Type::POLYGON;
+  else if (lstr == "polyline"       ) return Type::POLYLINE;
+  else if (lstr == "rectangle"      ) return Type::RECT;
+  else if (lstr == "symbol_map_key" ) return Type::SYMBOL_MAP_KEY;
+  else if (lstr == "text"           ) return Type::TEXT;
+  else if (lstr == "value_set"      ) return Type::VALUE_SET;
+  else if (lstr == "widget"         ) return Type::WIDGET;
 #ifdef CQCHARTS_TK_WIDGET
-  else if (str == "tk_widget"      ) return Type::TK_WIDGET;
+  else if (lstr == "tk_widget"      ) return Type::TK_WIDGET;
 #endif
-  else if (str == "symbol_map_key" ) return Type::SYMBOL_MAP_KEY;
 
   return Type::NONE;
 }
@@ -1701,6 +1716,12 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
   //---
 
+  auto fontPath = path1 + "/font";
+
+  addProp(model, fontPath, "commonFontSize", "commonSize" , "Use common font size for children");
+
+  //---
+
   addStrokeFillProperties(model, path1);
 }
 
@@ -1839,6 +1860,7 @@ void
 CQChartsAnnotationGroup::
 draw(PaintDevice *device)
 {
+  // update bbox id needed
   if (initBBox_) {
     auto bbox = childrenBBox();
 
@@ -1851,6 +1873,7 @@ draw(PaintDevice *device)
 
   //---
 
+  // update layout if needed
   if (needsLayout_) {
     if (layoutType() != LayoutType::NONE)
       doLayout();
@@ -1887,11 +1910,64 @@ draw(PaintDevice *device)
 
   //---
 
+  using TextAnnotations = std::vector<CQChartsTextAnnotation *>;
+
+  TextAnnotations textAnnotations;
+
+  textFontScale_ = -1.0;
+
+  if (isCommonFontSize()) {
+    // calc common scale factor for all scaled child text annotations
+    for (auto *annotation : annotations_) {
+      auto *textAnnotation = dynamic_cast<CQChartsTextAnnotation *>(annotation);
+      if (! textAnnotation) continue;
+
+      //---
+
+      textAnnotations.push_back(textAnnotation);
+
+      // skip draw but calc font
+      textAnnotation->setOverrideFontScale(-1.0);
+      textAnnotation->setSkipDraw(true);
+
+      textAnnotation->draw(device);
+
+      textAnnotation->setSkipDraw(false);
+
+      //---
+
+      // update smallest font scale
+      auto calcFontScale = textAnnotation->calcFontScale();
+      if (calcFontScale < 0.0) continue;
+
+      if (textFontScale_ < 0.0 || calcFontScale < textFontScale_)
+        textFontScale_ = calcFontScale;
+    }
+
+    // update all text annotations to use calculated font scale
+    for (auto *textAnnotation : textAnnotations) {
+      textAnnotation->setOverrideFontScale(textFontScale_);
+    }
+  }
+
+  //---
+
+  // draw child annotations
   for (auto *annotation : annotations_)
     annotation->draw(device);
 
   //---
 
+  // if using common font size reset override size
+  if (isCommonFontSize()) {
+    for (auto *textAnnotation : textAnnotations) {
+      textAnnotation->setOverrideFontScale(-1.0);
+    }
+  }
+
+  //---
+
+  // update annotation box
   if (layoutType() == LayoutType::NONE) {
     BBox bbox;
 
@@ -3879,11 +3955,22 @@ drawInRect(PaintDevice *device, const BBox &rect)
   //---
 
   // draw text
+  calcFontScale_ = -1.0;
+
   if (tbbox.isValid()) {
+    auto textScale = (group() ? group()->textFontScale() : -1.0);
+
+    if (textScale > 0.0)
+      textOptions.scale = textScale;
+
+    textOptions.skipDraw = isSkipDraw();
+
     device->setRenderHints(QPainter::Antialiasing);
 
     // TODO: multiple strings
     CQChartsDrawUtil::drawTextInBox(device, tbbox, textStr(), textOptions);
+
+    calcFontScale_ = textOptions.calcFontScale;
   }
 }
 

@@ -510,7 +510,7 @@ class CQCharts : public QObject {
   int        lastModelInd_    { 0 };  //!< last model ind
 
   // views
-  NameViews views_;  //!< views
+  NameViews views_; //!< views
 
   // type procs
   TypeProcs typeProcs_; //!< tcl procs

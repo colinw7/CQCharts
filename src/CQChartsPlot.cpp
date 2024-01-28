@@ -13000,6 +13000,9 @@ preResize()
   std::unique_lock<std::mutex> lock(resizeMutex_);
 
   interruptDraw();
+
+  // TODO: added instead of drawObjs in postResize (force all buffers to update)
+  invalidateLayers();
 }
 
 void
@@ -13031,7 +13034,8 @@ postResize()
 
   scrollData_.invalid = true;
 
-  drawObjs();
+  // TODO: replaced with invalidateLayers in preResize (without this mid layer not redrawn)
+  //drawObjs();
 }
 
 bool
@@ -15467,12 +15471,12 @@ drawRulers(PaintDevice *device) const
 
   device->setBrush(fg);
 
-  for (int i = 0; i < yinterval.calcNumMajor(); ++i) {
+  for (uint i = 0; i < yinterval.calcNumMajor(); ++i) {
     auto y = yinterval.interval(i);
 
     device->drawLine(Point(ll.x + xs - majorX, y), Point(ll.x + xs, y));
 
-    for (int j = 1; j < yinterval.calcNumMinor(); ++j) {
+    for (uint j = 1; j < yinterval.calcNumMinor(); ++j) {
       auto y = yinterval.minorInterval(i, j);
 
       device->drawLine(Point(ll.x + xs - minorX, y), Point(ll.x + xs, y));
@@ -15494,12 +15498,12 @@ drawRulers(PaintDevice *device) const
 
   device->setBrush(fg);
 
-  for (int i = 0; i < xinterval.calcNumMajor(); ++i) {
+  for (uint i = 0; i < xinterval.calcNumMajor(); ++i) {
     auto x = xinterval.interval(i);
 
     device->drawLine(Point(x, ll.y - ys), Point(x, ll.y - ys + majorY));
 
-    for (int j = 1; j < xinterval.calcNumMinor(); ++j) {
+    for (uint j = 1; j < xinterval.calcNumMinor(); ++j) {
       auto x = xinterval.minorInterval(i, j);
 
       device->drawLine(Point(x, ll.y - ys), Point(x, ll.y - ys + minorY));

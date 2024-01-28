@@ -1375,11 +1375,11 @@ QString modelHHeaderString(const QAbstractItemModel *model, int section, bool &o
 }
 
 QString modelVHeaderString(const QAbstractItemModel *model, int section, int role, bool &ok) {
-  return modelHeaderStringI(model, Column(section), Qt::Horizontal, role, ok);
+  return modelHeaderStringI(model, Column(section), Qt::Vertical, role, ok);
 }
 
 QString modelVHeaderString(const QAbstractItemModel *model, int section, bool &ok) {
-  return modelHeaderStringI(model, Column(section), Qt::Horizontal, Qt::DisplayRole, ok);
+  return modelHeaderStringI(model, Column(section), Qt::Vertical, Qt::DisplayRole, ok);
 }
 
 QString modelHHeaderString(const QAbstractItemModel *model, const Column &column,

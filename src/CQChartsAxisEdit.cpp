@@ -126,7 +126,7 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   data_.valueType      = axis->valueType();
   data_.format         = axis->format();
   data_.tickIncrement  = axis->tickIncrement ().integerOr(0);
-  data_.majorIncrement = axis->majorIncrement().integerOr(0);
+  data_.majorIncrement = axis->majorIncrement().realOr(0.0);
   data_.start          = axis->start();
   data_.end            = axis->end();
   data_.includeZero    = axis->isIncludeZero();
@@ -209,7 +209,7 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   //--
 
   // majorIncrement
-  majorIncrementEdit_ = CQUtil::makeWidget<CQIntegerSpin>("majorIncrementEdit");
+  majorIncrementEdit_ = CQUtil::makeWidget<CQRealSpin>("majorIncrementEdit");
 
   majorIncrementEdit_->setValue(data_.majorIncrement);
   majorIncrementEdit_->setToolTip("Major Tick Increment");
@@ -400,7 +400,7 @@ connectSlots(bool b)
   connectDisconnect(valueTypeCombo_, SIGNAL(currentIndexChanged(int)), SLOT(widgetsToData()));
   connectDisconnect(formatEdit_, SIGNAL(editingFinished()), SLOT(widgetsToData()));
   connectDisconnect(tickIncrementEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(majorIncrementEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(majorIncrementEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
   connectDisconnect(startEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
   connectDisconnect(endEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
   connectDisconnect(includeZeroEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));

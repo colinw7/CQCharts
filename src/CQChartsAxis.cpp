@@ -497,9 +497,9 @@ setGridEnd(const OptReal &v)
 
 void
 CQChartsAxis::
-setMajorIncrement(const CQChartsOptInt &i)
+setMajorIncrement(const CQChartsOptReal &r)
 {
-  CQChartsUtil::testAndSet(data_.majorIncrement, i, [&]() { calcAndRedraw(); } );
+  CQChartsUtil::testAndSet(data_.majorIncrement, r, [&]() { calcAndRedraw(); } );
 }
 
 void
@@ -993,18 +993,11 @@ calc()
   interval_.setDate    (isDate    ());
   interval_.setLog     (isLog     ());
 
-  if (majorIncrement().isSet())
-    interval_.setMajorIncrement(majorIncrement().integer());
-  else
-    interval_.setMajorIncrement(0);
+  interval_.setMajorIncrement(majorIncrement().realOr(0.0));
+  interval_.setTickIncrement (tickIncrement ().integerOr(0));
 
-  if (tickIncrement().isSet())
-    interval_.setTickIncrement(tickIncrement().integer());
-  else
-    interval_.setTickIncrement(0);
-
-  numMajorTicks_ = uint(std::max(interval_.calcNumMajor(), 1));
-  numMinorTicks_ = uint(std::max(interval_.calcNumMinor(), 1));
+  numMajorTicks_ = std::max(interval_.calcNumMajor(), 1U);
+  numMinorTicks_ = std::max(interval_.calcNumMinor(), 1U);
   calcIncrement_ = interval_.calcIncrement();
   calcStart_     = interval_.calcStart    ();
   calcEnd_       = interval_.calcEnd      ();

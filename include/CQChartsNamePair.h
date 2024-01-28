@@ -30,9 +30,6 @@ class CQChartsNamePair {
 
  public:
   CQChartsNamePair(const QString &str=QString(), const QString &separator="/");
-  CQChartsNamePair(const CQChartsNamePair &rhs);
-
-  CQChartsNamePair &operator=(const CQChartsNamePair &rhs);
 
   bool isValid() const { return names_.valid; }
 

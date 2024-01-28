@@ -649,6 +649,8 @@ CQCharts::
 {
   for (auto &modelData : modelDatas_)
     delete modelData;
+
+  delete cmdTcl_;
 }
 
 void

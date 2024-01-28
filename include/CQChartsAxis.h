@@ -66,11 +66,11 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(double  maxFitExtent READ maxFitExtent WRITE setMaxFitExtent)
 
   // tick calc
-  Q_PROPERTY(CQChartsOptInt tickIncrement   READ tickIncrement     WRITE setTickIncrement  )
-  Q_PROPERTY(CQChartsOptInt majorIncrement  READ majorIncrement    WRITE setMajorIncrement )
-  Q_PROPERTY(double         start           READ start             WRITE setStart          )
-  Q_PROPERTY(double         end             READ end               WRITE setEnd            )
-  Q_PROPERTY(bool           includeZero     READ isIncludeZero     WRITE setIncludeZero    )
+  Q_PROPERTY(double          start          READ start          WRITE setStart         )
+  Q_PROPERTY(double          end            READ end            WRITE setEnd           )
+  Q_PROPERTY(bool            includeZero    READ isIncludeZero  WRITE setIncludeZero   )
+  Q_PROPERTY(CQChartsOptReal majorIncrement READ majorIncrement WRITE setMajorIncrement)
+  Q_PROPERTY(CQChartsOptInt  tickIncrement  READ tickIncrement  WRITE setTickIncrement )
 
   Q_PROPERTY(bool annotation      READ isAnnotation      WRITE setAnnotation     )
   Q_PROPERTY(bool allowHtmlLabels READ isAllowHtmlLabels WRITE setAllowHtmlLabels)
@@ -446,10 +446,10 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   //! get/set user specified major increment
-  const OptInt &majorIncrement() const { return data_.majorIncrement; }
-  void setMajorIncrement(const OptInt &i);
+  const OptReal &majorIncrement() const { return data_.majorIncrement; }
+  void setMajorIncrement(const OptReal &r);
 
-  void setMajorIncrement(int i) { setMajorIncrement(OptInt(i)); }
+  void setMajorIncrement(double r) { setMajorIncrement(OptReal(r)); }
 
   //---
 
@@ -723,12 +723,12 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
     AxisTickLabelPlacement tickLabelPlacement;           //!< tick placement
 
     // placement state
-    double start           { 0.0 };   //!< axis start
-    double end             { 1.0 };   //!< axis end
-    bool   includeZero     { false }; //!< include zero in range
-    uint   maxMajorTicks   { 1000 };  //!< max major ticks
-    OptInt tickIncrement;             //!< user specified tick increment
-    OptInt majorIncrement;            //!< user specified major increment
+    double  start           { 0.0 };   //!< axis start
+    double  end             { 1.0 };   //!< axis end
+    bool    includeZero     { false }; //!< include zero in range
+    uint    maxMajorTicks   { 1000 };  //!< max major ticks
+    OptInt  tickIncrement;             //!< user specified tick increment
+    OptReal majorIncrement;            //!< user specified major increment
 
     // customization (for annotations)
     bool allowHtmlLabels { false }; //!< allow html labels

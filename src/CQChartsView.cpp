@@ -70,9 +70,9 @@ description()
     p("A view is a container for one or more plots").
     p("Plots can be placed side by side, in a grid, or overlaid with shared x and/or y"
       "coordinates.").
-    p("The view has it's own coordinate system. By default this is (0, 0) to (100, 100) "
+    p("The view has its own coordinate system. By default this is (0, 0) to (100, 100) "
       "but can be changed as needed.").
-    p("The view can have a title width is shown on in the window manager title.").
+    p("The view can have a title which is shown in the window manager title.").
     h3("Theme").
     p("The view controls the theme used to draw its child plots (dark or light).").
     p("The default palette, and text style, used by the child plots can be defined.").
@@ -6984,16 +6984,23 @@ showMenu(const Point &p)
 
   //---
 
-  if (plotType && plotType->hasTitle()) {
-    auto *title = (basePlot ? basePlot->title() : nullptr);
+  bool hasTitle = true;
 
+  if (plotType && ! plotType->hasTitle())
+    hasTitle = false;
+
+  auto *title = (basePlot ? basePlot->title() : nullptr);
+
+  if (! title || ! title->isDrawn())
+    hasTitle = false;
+
+  if (hasTitle) {
     auto *titleMenu = addSubMenu(popupMenu, "Title");
 
     auto *titleVisibleAction =
       addCheckAction(titleMenu, "Visible", false, SLOT(titleVisibleSlot(bool)));
 
-    if (title)
-      titleVisibleAction->setChecked(title->isVisible());
+    titleVisibleAction->setChecked(title->isVisible());
 
     //---
 
@@ -7026,8 +7033,7 @@ showMenu(const Point &p)
       addTitleLocationGroupAction(name, type);
     }
 
-    if (title)
-      titleLocationActionMap[title->location().type()]->setChecked(true);
+    titleLocationActionMap[title->location().type()]->setChecked(true);
 
     connect(titleLocationGroup, SIGNAL(triggered(QAction *)),
             this, SLOT(titleLocationSlot(QAction *)));

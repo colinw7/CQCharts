@@ -51,6 +51,9 @@ struct CQChartsTextOptions {
   double            minScaleFontSize { 6.0 };              //!< min scaled font size
   double            maxScaleFontSize { 48.0 };             //!< max scaled font size
 
+  bool           skipDraw      { false }; //!< skip draw
+  mutable double calcFontScale { 1.0 };   //!< calculated scale value
+
   CQChartsTextOptions() = default;
 };
 

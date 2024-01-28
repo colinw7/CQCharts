@@ -2452,7 +2452,9 @@ drawSegment(PaintDevice *device) const
   // calc stroke and brush
   PenBrush penBrush;
 
-  calcPenBrush(penBrush, /*updateState*/device->isInteractive());
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(penBrush, updateState);
 
   //---
 
@@ -2574,7 +2576,9 @@ drawTreeMap(PaintDevice *device) const
   // calc stroke and brush
   PenBrush penBrush;
 
-  calcPenBrush(penBrush, /*updateState*/device->isInteractive());
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(penBrush, updateState);
 
   //---
 
@@ -2629,7 +2633,9 @@ drawWaffle(PaintDevice *device) const
   // calc stroke and brush
   PenBrush penBrush;
 
-  calcPenBrush(penBrush, /*updateState*/device->isInteractive());
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(penBrush, updateState);
 
   //---
 
@@ -3466,7 +3472,9 @@ drawDumbbell(PaintDevice *device) const
 
   PenBrush groupPenBrush;
 
-  calcPenBrush(groupPenBrush, /*updateState*/device->isInteractive());
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(groupPenBrush, updateState);
 
   groupPenBrush.pen = QPen(Qt::NoPen);
 
@@ -3496,7 +3504,7 @@ drawDumbbell(PaintDevice *device) const
   for (const auto &obj : objs_) {
     PenBrush penBrush;
 
-    obj->calcPenBrushInside(penBrush, /*updateState*/device->isInteractive(), obj->isInside());
+    obj->calcPenBrushInside(penBrush, updateState, obj->isInside());
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -3556,7 +3564,9 @@ setPenBrush(PaintDevice *device) const
 {
   PenBrush groupPenBrush;
 
-  calcPenBrush(groupPenBrush, /*updateState*/device->isInteractive());
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(groupPenBrush, updateState);
 
   CQChartsDrawUtil::setPenBrush(device, groupPenBrush);
 }

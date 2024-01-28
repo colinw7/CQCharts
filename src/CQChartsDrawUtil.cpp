@@ -901,6 +901,8 @@ drawTextsInBox(PaintDevice *device, const BBox &rect, const QStringList &strs,
     bool zoomFont = device->isZoomFont();
     device->setZoomFont(false);
 
+    options.calcFontScale = s;
+
     device->setFont(CQChartsUtil::scaleFontSize(
       device->font(), s, options.minScaleFontSize, options.maxScaleFontSize));
 
@@ -936,10 +938,12 @@ drawTextsInBox(PaintDevice *device, const BBox &rect, const QStringList &strs,
 
     auto pt = device->pixelToWindow(Point(x, y));
 
-    if (options.contrast)
-      drawContrastText(device, pt, strs[i], options.contrastAlpha);
-    else
-      drawSimpleText(device, pt, strs[i]);
+    if (! options.skipDraw) {
+      if (options.contrast)
+        drawContrastText(device, pt, strs[i], options.contrastAlpha);
+      else
+        drawSimpleText(device, pt, strs[i]);
+    }
 
     y += fm.height();
   }
@@ -2782,6 +2786,8 @@ drawScaledHtmlText(PaintDevice *device, const BBox &tbbox, const QString &text,
 
   bool zoomFont = device->isZoomFont();
   device->setZoomFont(false);
+
+  options.calcFontScale = s;
 
   device->setFont(CQChartsUtil::scaleFontSize(device->font(), s));
 

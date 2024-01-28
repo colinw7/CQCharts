@@ -27,6 +27,8 @@ class CQChartsForceDirectedPlotType : public CQChartsConnectionPlotType {
   void addParameters() override;
   void addGeneralParameters() override;
 
+  bool hasKey() const override { return false; }
+
   bool hasAxes() const override { return false; }
 
   bool canProbe() const override { return false; }
@@ -34,6 +36,9 @@ class CQChartsForceDirectedPlotType : public CQChartsConnectionPlotType {
 //bool canRectSelect() const override { return false; }
 
   bool canEqualScale() const override { return true; }
+
+  bool allowInvertX() const override { return false; }
+  bool allowInvertY() const override { return false; }
 
   QString description() const override;
 

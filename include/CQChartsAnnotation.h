@@ -520,6 +520,9 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
   Q_PROPERTY(int             layoutMargin  READ layoutMargin  WRITE setLayoutMargin )
   Q_PROPERTY(int             layoutSpacing READ layoutSpacing WRITE setLayoutSpacing)
 
+  // font
+  Q_PROPERTY(bool commonFontSize READ isCommonFontSize WRITE setCommonFontSize)
+
   Q_ENUMS(LayoutType)
   Q_ENUMS(ShapeType)
 
@@ -586,6 +589,14 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
   //! get/set layout spacing
   int layoutSpacing() const { return layoutData_.spacing; }
   void setLayoutSpacing(int i) { layoutData_.spacing = i; invalidateLayout(); }
+
+  //---
+
+  //! get/set child text annotations have common font size
+  bool isCommonFontSize() const { return commonFontSize_; }
+  void setCommonFontSize(bool b) { commonFontSize_ = b; }
+
+  double textFontScale() const { return textFontScale_; }
 
   //---
 
@@ -656,11 +667,15 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
     int             spacing { 2 };                                   //!< layout spacing in pixels
   };
 
-  Annotations  annotations_;                      //!< child annotations
-  LayoutData   layoutData_;                       //!< layout data
-  ShapeType    shapeType_    { ShapeType::NONE }; //!< shape type
-  mutable bool initBBox_     { true };            //!< bbox inited
-  mutable bool needsLayout_  { true };            //!< layout needed
+  Annotations annotations_;                     //!< child annotations
+  LayoutData  layoutData_;                      //!< layout data
+  ShapeType   shapeType_   { ShapeType::NONE }; //!< shape type
+
+  bool   commonFontSize_ { false }; //!< do child text annotations have common font size
+  double textFontScale_  { -1.0 };  //!< calculated common text font scale
+
+  mutable bool initBBox_    { true }; //!< bbox inited
+  mutable bool needsLayout_ { true }; //!< layout needed
 };
 
 //---
@@ -1260,6 +1275,16 @@ class CQChartsTextAnnotation : public CQChartsRectAnnotation {
 
   //---
 
+  double calcFontScale() const { return calcFontScale_; }
+
+  double overrideFontScale() const { return overrideFontScale_; }
+  void setOverrideFontScale(double r) { overrideFontScale_ = r; }
+
+  bool isSkipDraw() const { return skipDraw_; }
+  void setSkipDraw(bool b) { skipDraw_ = b; }
+
+  //---
+
   void positionToBBox() override;
 
   //---
@@ -1293,6 +1318,11 @@ class CQChartsTextAnnotation : public CQChartsRectAnnotation {
   void calcTextSize(Size &psize, Size &wsize) const;
 
   void positionToLL(double w, double h, double &x, double &y) const;
+
+ private:
+  double calcFontScale_     { -1.0 };
+  bool   skipDraw_          { false };
+  double overrideFontScale_ { -1.0 };
 };
 
 //---

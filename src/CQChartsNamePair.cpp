@@ -20,21 +20,6 @@ CQChartsNamePair(const QString &str, const QString &separator)
   setValue(str, separator);
 }
 
-CQChartsNamePair::
-CQChartsNamePair(const CQChartsNamePair &rhs) :
- names_(rhs.names_)
-{
-}
-
-CQChartsNamePair &
-CQChartsNamePair::
-operator=(const CQChartsNamePair &rhs)
-{
-  names_ = rhs.names_;
-
-  return *this;
-}
-
 bool
 CQChartsNamePair::
 setValue(const QString &str, const QString &separator)

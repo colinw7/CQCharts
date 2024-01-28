@@ -168,8 +168,6 @@ fromString(const QString &s)
     return true;
   }
 
-  Size size;
-
   BBox bbox;
 
   if (! CQChartsUtil::stringToBBox(s, bbox))
@@ -224,8 +222,6 @@ fromString(const QString &s)
     y = 0.0;
     return true;
   }
-
-  Size size;
 
   Point p;
 
