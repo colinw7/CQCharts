@@ -435,12 +435,12 @@ void
 CQChartsPlotObj::
 drawDebugRect(PaintDevice *device) const
 {
-  drawDebugRect(device, rect());
+  drawDebugBBox(device, rect());
 }
 
 void
 CQChartsPlotObj::
-drawDebugRect(PaintDevice *device, const BBox &rect) const
+drawDebugBBox(PaintDevice *device, const BBox &rect) const
 {
   plot()->drawWindowColorBox(device, rect);
 }

@@ -963,6 +963,37 @@ drawRotatedTextInBox(PaintDevice *device, const BBox &rect,
 //------
 
 CQChartsGeom::BBox
+calcTextsAtPointRect(PaintDevice *device, const Point &point, const QStringList &texts,
+                     const TextOptions &options, bool centered, double pdx, double pdy)
+{
+  std::vector<BBox> bboxes;
+
+  double h = 0.0;
+
+  for (const auto &text : texts) {
+    auto bbox = calcTextAtPointRect(device, point, text, options, centered, pdx, pdy);
+
+    bboxes.push_back(bbox);
+
+    h += bbox.getHeight();
+  }
+
+  BBox bbox1;
+
+  auto y = point.y + h/2.0;
+
+  for (auto &bbox : bboxes) {
+    bbox.moveBy(Point(0.0, y - bbox.getYMax()));
+
+    y -= bbox.getHeight();
+
+    bbox1 += bbox;
+  }
+
+  return bbox1;
+}
+
+CQChartsGeom::BBox
 calcTextAtPointRect(PaintDevice *device, const Point &point, const QString &text,
                     const TextOptions &options, bool centered, double pdx, double pdy)
 {
@@ -1010,7 +1041,8 @@ calcTextAtPointRect(PaintDevice *device, const Point &point, const QString &text
 
     if      (options.align & Qt::AlignTop    ) dy1 =  ta + pdy;
     else if (options.align & Qt::AlignBottom ) dy1 = -td - pdy;
-    else if (options.align & Qt::AlignVCenter) dy1 = -ta/2.0 + td;
+  //else if (options.align & Qt::AlignVCenter) dy1 = -ta/2.0 + td;
+    else if (options.align & Qt::AlignVCenter) dy1 = (ta - td)/2.0;
 
     auto tp = point;
 

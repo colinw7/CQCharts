@@ -177,12 +177,16 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void drawDebugRect(PaintDevice *device) const override;
+
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
   void drawText(PaintDevice *device, const QColor &shapeColor) const;
 
   void calcTextPos(Point &p, const QFont &font, Angle &angle, uint &position,
                    Qt::Alignment &align, bool &centered) const;
+
+  QStringList calcNodeText() const;
 
   // convert value to string for node value
   virtual QString calcValueLabel() const;
@@ -390,11 +394,17 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_PROPERTY(bool propagateHier READ isPropagateHier WRITE setPropagateHier)
   Q_PROPERTY(bool hierValueTip  READ isHierValueTip  WRITE setHierValueTip)
 
+  Q_PROPERTY(bool calcNodeTextSize READ isCalcNodeTextSize WRITE setCalcNodeTextSize)
+
   Q_PROPERTY(CQChartsLength overlapMargin READ overlapMargin WRITE setOverlapMargin)
 
   Q_PROPERTY(bool   depthSort   READ isDepthSort   WRITE setDepthSort)
   Q_PROPERTY(bool   reverseSort READ isReverseSort WRITE setReverseSort)
   Q_PROPERTY(double sortSize    READ sortSize      WRITE setSortSize)
+
+  Q_PROPERTY(bool pixelScaled READ isPixelScaled WRITE setPixelScaled)
+
+  Q_PROPERTY(bool allExpanded READ isAllExpanded)
 
   // node stroke/fill
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Root, root)
@@ -549,6 +559,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   void setRootValueLabel(bool b);
 
   QSizeF calcRootSize() const;
+
+  QSizeF calcNodeSize(const NodeObj *obj) const;
+  QSizeF calcNodeSize(const Node *node) const;
 
   //---
 
@@ -746,11 +759,21 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   //---
 
+  bool isPixelScaled() const { return pixelScaled_; }
+  void setPixelScaled(bool b) { pixelScaled_ = b; }
+
+  //---
+
   bool isPropagateHier() const { return propagateHier_; }
   void setPropagateHier(bool b);
 
   bool isHierValueTip() const { return hierValueTip_; }
   void setHierValueTip(bool b);
+
+  //---
+
+  bool isCalcNodeTextSize() const { return calcNodeTextSize_; }
+  void setCalcNodeTextSize(bool b);
 
   //---
 
@@ -763,6 +786,11 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   //---
 
   BBox calcExtraFitBBox() const override;
+
+  bool calcTextVisible(const NodeObj *obj) const;
+  Font calcTextFont(const NodeObj *obj) const;
+
+  CQChartsTextOptions calcTextOptions(PaintDevice *device, const NodeObj *obj) const;
 
   bool isEdgeValue() const;
 
@@ -830,7 +858,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   void execSpreadOverlaps();
   void execSpreadOverlaps(const PlotObjs &objs);
 
-//void calcNodeSize(PlotObjs &objs);
+//void calcNodesSize(PlotObjs &objs);
 
   //---
 
@@ -927,6 +955,12 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   void expandNode(Node *hierNode, bool all);
   void collapseNode(Node *hierNode, bool all);
 
+ public:
+  bool isAllExpanded() const;
+
+ private:
+  bool isAllExpanded(Node *hierNode) const;
+
  private Q_SLOTS:
   void modelChangedSlot() override;
 
@@ -1012,6 +1046,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   double sortSize_       { 1.0 };   //!< sort perp range size
   double sortSizeFactor_ { 1.0 };   //!< sort size factor
 
+  bool pixelScaled_ { false };
+
   //---
 
   struct SpreadData {
@@ -1041,6 +1077,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   bool propagateHier_ { false }; //!< propagate values through hierarchy
   bool hierValueTip_  { true };  //!< show hier value in tip
+
+  bool calcNodeTextSize_ { false };
 
   RMinMax valueRange_; //!< value column range
   RMinMax colorRange_; //!< color column range

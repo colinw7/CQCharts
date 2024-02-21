@@ -868,7 +868,7 @@ CQChartsViewPlotPaintDevice::
 setFont(const QFont &f, bool scale)
 {
   if (scale && isZoomFont() && plot_) {
-    auto f1 = CQChartsUtil::scaleFontSize(f, plot_->dataScale(), 1.0/72.0);
+    auto f1 = plot_->dataScaleFont(f);
 
     if (painter_) {
       painter_->setFont(f1);

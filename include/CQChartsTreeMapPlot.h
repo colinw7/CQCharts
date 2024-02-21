@@ -373,7 +373,7 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
 
-  void calcPenBrushNodePoint(PenBrush &penBrush, bool isNodePoint, bool updateState) const;
+  void calcNodePointPenBrush(PenBrush &penBrush, bool isNodePoint, bool updateState) const;
 
   bool isMinArea() const;
 

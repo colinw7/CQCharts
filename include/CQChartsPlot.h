@@ -993,6 +993,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   QFont qfont() const;
   QFont qfont(const Font &font) const;
 
+  QFont dataScaleFont(const QFont &f) const;
+
   //! get/set tabbed bar font
   void setTabbedFont(const Font &f);
   const Font &tabbedFont() const;
@@ -1785,16 +1787,16 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   double lengthPlotSize(const Length &len, bool horizontal) const;
   double lengthPlotPerpSize(const Length &len, bool horizontal) const;
 
-  double lengthPlotWidth (const Length &len) const;
-  double lengthPlotHeight(const Length &len) const;
+  double lengthPlotWidth (const Length &len, bool pixelScaled=false) const;
+  double lengthPlotHeight(const Length &len, bool pixelScaled=false) const;
 
   double lengthPlotSignedWidth (const Length &len) const;
   double lengthPlotSignedHeight(const Length &len) const;
 
   double lengthPixelSize(const Length &len, bool vertical) const;
 
-  double lengthPixelWidth (const Length &len) const;
-  double lengthPixelHeight(const Length &len) const;
+  double lengthPixelWidth (const Length &len, bool pixelScaled=false) const;
+  double lengthPixelHeight(const Length &len, bool pixelScaled=false) const;
 
   //---
 

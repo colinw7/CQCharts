@@ -371,6 +371,22 @@ calcRootSize() const
   return lengthPixelSize(rootSize(), rootTextFont());
 }
 
+QSizeF
+CQChartsDendrogramPlot::
+calcNodeSize(const NodeObj *obj) const
+{
+  return calcNodeSize(obj->node());
+}
+
+QSizeF
+CQChartsDendrogramPlot::
+calcNodeSize(const Node *node) const
+{
+  if (node->isRoot()) return calcRootSize();
+  if (node->isHier()) return calcHierSize();
+  return calcLeafSize();
+}
+
 //---
 
 void
@@ -510,9 +526,11 @@ QSizeF
 CQChartsDendrogramPlot::
 lengthPixelSize(const Length &l, const Font &font) const
 {
+  bool pixelScaled = isPixelScaled();
+
   // get specified shape size
-  auto w = lengthPixelWidth (l);
-  auto h = lengthPixelHeight(l);
+  auto w = lengthPixelWidth (l, pixelScaled);
+  auto h = lengthPixelHeight(l, pixelScaled);
 
   // if negative set shape size based on font size
   if (w <= 0 || h <= 0) {
@@ -941,6 +959,17 @@ setHierValueTip(bool b)
 
 void
 CQChartsDendrogramPlot::
+setCalcNodeTextSize(bool b)
+{
+  CQChartsUtil::testAndSet(calcNodeTextSize_, b, [&]() {
+    updateRangeAndObjs();
+  } );
+}
+
+//---
+
+void
+CQChartsDendrogramPlot::
 setSpreadNodeOverlaps(bool b)
 {
   CQChartsUtil::testAndSet(spreadData_.enabled, b, [&]() {
@@ -1019,9 +1048,16 @@ addProperties()
   addProp("options", "propagateHier", "propagateHier", "Propagate hier values");
   addProp("options", "hierValueTip" , "hierValueTip" , "Show hier value in tip");
 
+  addProp("options", "calcNodeTextSize", "calcNodeTextSize",
+          "Calc node size to include text");
+
+  addProp("options", "pixelScaled", "pixelScaled", "Are pixel sizes scaled");
+
   addProp("sort", "depthSort"  , "depth"  , "Sort per level");
   addProp("sort", "reverseSort", "reverse", "Reverse sort");
   addProp("sort", "sortSize"   , "size"   , "Sort perpendicular size");
+
+  addProp("state", "allExpanded", "allExpanded", "Is all expaned");
 
   // root
   addProp("root"      , "rootVisible"     , "visible"   , "Root is visible");
@@ -1201,9 +1237,12 @@ EkChartsGeom::BBox
 CQChartsDendrogramPlot::
 nodesBBox(const PlotObjs &plotObjs) const
 {
+  // calc bounding box of all nodes
+  BBox bbox;
+
   for (auto *plotObj : plotObjs) {
     auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
-    if (nodeObj) continue;
+    if (! nodeObj) continue;
 
     if (nodeObj->isRoot() && ! isRootVisible())
       continue;
@@ -1213,7 +1252,6 @@ nodesBBox(const PlotObjs &plotObjs) const
 
   return bbox;
 }
-
 #endif
 
 //------
@@ -1382,7 +1420,7 @@ createObjs(PlotObjs &objs) const
       th->execSpreadOverlaps(nodeObjs);
   }
 
-  //th->calcNodeSize(nodeObjs);
+  //th->calcNodesSize(nodeObjs);
 
   //---
 
@@ -3176,15 +3214,40 @@ calcExtraFitBBox() const
 
     bbox += nodeObj->displayRect();
 
-    bool isHier = nodeObj->isHier();
-
-    bool textVisible = (isHier ? isHierTextVisible() : isLeafTextVisible());
+    bool textVisible = calcTextVisible(nodeObj);
 
     if (textVisible)
       bbox += nodeObj->textRect();
   }
 
   return bbox;
+}
+
+bool
+CQChartsDendrogramPlot::
+calcTextVisible(const NodeObj *obj) const
+{
+  if (obj->isRoot()) return isRootTextVisible();
+  if (obj->isHier()) return isHierTextVisible();
+  return isLeafTextVisible();
+}
+
+CQChartsFont
+CQChartsDendrogramPlot::
+calcTextFont(const NodeObj *obj) const
+{
+  if (obj->isRoot()) return rootTextFont();
+  if (obj->isHier()) return hierTextFont();
+  return leafTextFont();
+}
+
+CQChartsTextOptions
+CQChartsDendrogramPlot::
+calcTextOptions(PaintDevice *device, const NodeObj *obj) const
+{
+  if (obj->isRoot()) return rootTextOptions(device);
+  if (obj->isHier()) return hierTextOptions(device);
+  return leafTextOptions(device);
 }
 
 //---
@@ -3672,6 +3735,75 @@ execSpreadOverlaps(const PlotObjs &objs)
   if (depthObjs.empty())
     return;
 
+  //---
+
+#if 0
+  auto printDepthRanges = [&](const QString &msg) {
+    std::cerr << "Depth Ranges: " << msg.toStdString() << "\n";
+
+    for (const auto  &pd : deptgObjs) {
+      BBox bbox;
+
+      for (auto *obj : pd.second) {
+        auto r = obj->displayRect();
+
+        bbox += r;
+      }
+
+      std::cerr << " " << pd.frst < " " << bbox.toString().toStdString() << "\n";
+    }
+  };
+
+  auto checkOverlaps = [&](const QSTring &msg) {
+    std::cerr << "Overlaps: " << msg.toStdString() << "\n";
+
+    bool rc = false;
+
+    using ObjsArray  = std::vector<NodeObj *>;
+    using CenterObjs = std::vector<double, ObjsArray>;
+
+    for (const auto &pd : depthObjs) {
+      CenterObjs centerObjs;
+
+      for (auto *obj : pd.second) {
+        auto r = obj->displayRect();
+
+        auto mid = (orientation() == Qt::Horizontal ? r.getYMid() : r.getXMid());
+
+        centerObjs[mid].push_back(obj);
+      }
+
+      ObjsArray sortedObjs;
+
+      for (const auto &pc : centerObjs( {
+        for (auto *obj : pc.second)
+          sortedObjs.push_back(obj);
+      }
+
+      NodeObj *lastObj = nullptr;
+
+      for (auto *obj : sortedObjs) {
+        if (lastObj) {
+          auto r1 = lastObj->displayRect();
+          auto r2 = obj    ->displayRect();
+
+          if (r1.overlaps(r2)) {
+            std::cerr << "  Overlap: " << lastObj->name().toStdString() <<
+                         " " << obj->name().toStdString() << "\n";
+          }
+        }
+
+        lastObj = obj;
+      }
+    }
+
+    return rc;
+  };
+#endif
+
+  //---
+
+  // get max size over all depths
   auto margin = std::max(orientation() == Qt::Horizontal ?
     lengthPlotHeight(overlapMargin()) : lengthPlotWidth(overlapMargin()), 0.0);
 
@@ -3700,19 +3832,27 @@ execSpreadOverlaps(const PlotObjs &objs)
   if (maxN <= 1)
     return;
 
+  // spread over mas size (-maxSize/2 -> maxSize/2)
   for (const auto &pd : depthObjs) {
     for (auto *obj : pd.second) {
       auto r = obj->displayRect();
 
-      obj->movePerpBy(maxS*(r.getYMid() - 0.5));
+      auto mid = (orientation() == Qt::Horizontal ? r.getYMid() : r.getXMid());
+
+      auto mid1 = maxS*(mid - 0.5)*2.0; // old range (0->1)
+
+      obj->movePerpBy(mid1 - mid);
     }
   }
 
   //---
 
 #if 0
+  // distribute objects over range to remove overlaps
   using DistObjs  = std::map<double, NodeObjs>;
   using MovedObjs = std::set<NodeObj *>;
+
+  double midRef = 0.0; // 0.5 ?
 
   for (const auto &pd : depthObjs) {
     // find object nearest center
@@ -3723,7 +3863,7 @@ execSpreadOverlaps(const PlotObjs &objs)
       auto r = obj->displayRect();
 
       auto mid = (orientation() == Qt::Horizontal ? r.getYMid() : r.getXMid());
-      auto dc1 = std::abs(mid - 0.5);
+      auto dc1 = std::abs(mid - midRef);
 
       if (! centerObj || dc1 < dc) {
         centerObj = obj;
@@ -3732,6 +3872,8 @@ execSpreadOverlaps(const PlotObjs &objs)
     }
 
     assert(centerObj);
+
+    //---
 
     // build objs above/below (left/right) in order of distance from center
     DistObjs aboveObjs, belowObjs;
@@ -3743,7 +3885,7 @@ execSpreadOverlaps(const PlotObjs &objs)
 
       auto mid = (orientation() == Qt::Horizontal ? r.getYMid() : r.getXMid());
 
-      if (mid < 0.5)
+      if (mid < midRef)
         belowObjs[-mid].push_back(obj); // invert order
       else
         aboveObjs[mid].push_back(obj);
@@ -3754,6 +3896,7 @@ execSpreadOverlaps(const PlotObjs &objs)
 //  auto *lastObj  = centerObj;
     auto  lastRect = centerObj->displayRect();
 
+    // move below objects (down/left) to remove overlaps
     MovedObjs belowMovedObjs;
 
     for (auto &po : belowObjs) {
@@ -3787,6 +3930,7 @@ execSpreadOverlaps(const PlotObjs &objs)
       }
     }
 
+    // move above objects (up/right) to remove overlaps
     MovedObjs aboveMovedObjs;
 
     for (auto &po : aboveObjs) {
@@ -3824,6 +3968,7 @@ execSpreadOverlaps(const PlotObjs &objs)
 
   //---
 
+  // update spread data bbox and scale
   spreadData_.bbox = BBox();
 
   for (auto *plotObj : objs) {
@@ -3844,6 +3989,7 @@ execSpreadOverlaps(const PlotObjs &objs)
 
   //---
 
+  // update scrollbars
   scrollData_.invalid = true;
 
   updateScrollOffset();
@@ -3851,6 +3997,7 @@ execSpreadOverlaps(const PlotObjs &objs)
   //---
 
 #if 0
+  // fit
   auto scrollFit = (fitMode() == FitMode::SCROLL);
 
   if (! scrollFit) {
@@ -4102,13 +4249,7 @@ getBBox(Node *node) const
 {
   if      (placeType() == PlaceType::DENDROGRAM) {
     // get specified shape size
-    auto calcSize = [&]() {
-      if (node->isRoot()) return calcRootSize();
-      if (node->isHier()) return calcHierSize();
-      return calcLeafSize();
-    };
-
-    auto cs = calcSize();
+    auto cs = calcNodeSize(node);
 
     double cw = pixelToWindowWidth (cs.width ());
     double ch = pixelToWindowHeight(cs.height());
@@ -4334,6 +4475,34 @@ collapseNode(Node *hierNode, bool all)
   }
 }
 
+bool
+CQChartsDendrogramPlot::
+isAllExpanded() const
+{
+  auto *root = rootNode();
+  if (! root) return true;
+
+  if (! isAllExpanded(root))
+    return false;
+
+  return true;;
+}
+
+bool
+CQChartsDendrogramPlot::
+isAllExpanded(Node *hierNode) const
+{
+  if (! hierNode->isOpen())
+    return false;
+
+  for (const auto &child : hierNode->getChildren()) {
+    if (! isAllExpanded(child.node))
+      return false;
+  }
+
+  return true;;
+}
+
 //---
 
 CQChartsPlotCustomControls *
@@ -4447,8 +4616,8 @@ calcTipId() const
   if (size().isSet())
     tableTip.addTableRow("Size", size().real());
 
-  if (dendrogramPlot_->isSwatchColor() && dendrogramPlot_->swatchColorColumn().isValid())
-    plot()->addTipColumn(tableTip, dendrogramPlot_->swatchColorColumn(), modelInd());
+  if (plot()->isSwatchColor() && plot()->swatchColorColumn().isValid())
+    plot()->addTipColumn(tableTip, plot()->swatchColorColumn(), modelInd());
 
   //---
 
@@ -4465,11 +4634,11 @@ void
 CQChartsDendrogramNodeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  if (! dendrogramPlot_->isEdgeRows()) {
-    addColumnsSelectIndex(inds, dendrogramPlot_->nameColumns());
-    addColumnSelectIndex (inds, dendrogramPlot_->linkColumn ());
-    addColumnSelectIndex (inds, dendrogramPlot_->valueColumn());
-    addColumnSelectIndex (inds, dendrogramPlot_->sizeColumn ());
+  if (! plot()->isEdgeRows()) {
+    addColumnsSelectIndex(inds, plot()->nameColumns());
+    addColumnSelectIndex (inds, plot()->linkColumn ());
+    addColumnSelectIndex (inds, plot()->valueColumn());
+    addColumnSelectIndex (inds, plot()->sizeColumn ());
   }
 }
 
@@ -4479,11 +4648,11 @@ inside(const Point &p) const
 {
   auto rect = displayRect();
 
-  auto pbbox = dendrogramPlot_->windowToPixel(rect);
+  auto pbbox = plot()->windowToPixel(rect);
 
   pbbox.expand(2.0);
 
-  auto pp = dendrogramPlot_->windowToPixel(p);
+  auto pp = plot()->windowToPixel(p);
 
   return pbbox.inside(pp);
 }
@@ -4494,14 +4663,13 @@ CQChartsGeom::BBox
 CQChartsDendrogramNodeObj::
 textRect() const
 {
-  // get font
-  auto calcFont = [&]() {
-    if (isRoot()) return plot()->rootTextFont();
-    if (isHier()) return plot()->hierTextFont();
-    return plot()->leafTextFont();
-  };
+  auto tbbox = displayRect();
 
-  auto font  = calcFont();
+  if (! plot()->isCalcNodeTextSize())
+    return tbbox;
+
+  // get font
+  auto font  = plot()->calcTextFont(this);
   auto qfont = plot()->view()->plotFont(plot(), font);
 
   //---
@@ -4519,64 +4687,40 @@ textRect() const
 
   CQChartsPlotPaintDevice device(const_cast<DendrogramPlot *>(plot()), nullptr);
 
+  device.setZoomFont(true);
+
   device.setFont(qfont);
 
-  auto calcTextOptions = [&]() {
-    if (isRoot()) return plot()->rootTextOptions(&device);
-    if (isHier()) return plot()->hierTextOptions(&device);
-    return plot()->leafTextOptions(&device);
-  };
+  //---
 
-  auto textOptions = calcTextOptions();
+  using TextPosition = DendrogramPlot::TextPosition;
+
+  bool textCenter = (TextPosition(position) == TextPosition::CENTER);
+
+  //---
+
+  // get node text (could be multiple lines)
+  auto strs = calcNodeText();
+
+  //---
+
+  // calc node text size
+  auto textOptions = plot()->calcTextOptions(&device, this);
 
   textOptions.angle     = angle;
   textOptions.align     = align;
   textOptions.formatted = false;
   textOptions.html      = false;
 
-#if 0
-  using TextPosition = DendrogramPlot::TextPosition;
+  if (textOptions.scaled && textCenter)
+    return tbbox;
 
-  const auto &name = this->name();
-
-  BBox tbbox;
-
-  if (textOptions.scaled && TextPosition(position) == TextPosition::CENTER) {
-    tbbox = displayRect();
-  }
-  else {
-    tbbox = CQChartsDrawUtil::calcTextAtPointRect(&device, p, name, textOptions,
+  if (strs.size() == 1)
+    tbbox = CQChartsDrawUtil::calcTextAtPointRect(&device, p, strs[0], textOptions,
                                                   centered, 0.0, 0.0);
-  }
-#else
-  auto tbbox = displayRect();
-#endif
-
-#if 0
-  QFontMetricsF fm(qfont);
-
-  double dy = (fm.ascent() - fm.descent())/2.0;
-  double dx = fm.horizontalAdvance(name);
-
-  auto pbbox = plot()->windowToPixel(rect());
-
-  auto pc = pbbox.getCenter();
-  auto pr = pbbox.getWidth()/2.0;
-
-  Point p;
-
-  if (isHier())
-    p = Point(pc.x - pr - dx, pc.y + dy);
   else
-    p = Point(pc.x + pr, pc.y + dy);
-
-  Point p1(p.x     , p.y - fm.ascent());
-  Point p2(p.x + dx, p.y + fm.ascent());
-
-  BBox ptbbox(p1, p2);
-
-  auto tbbox = plot()->pixelToWindow(ptbbox);
-#endif
+    tbbox = CQChartsDrawUtil::calcTextsAtPointRect(&device, p, strs, textOptions,
+                                                   centered, 0.0, 0.0);
 
   return tbbox;
 }
@@ -4660,14 +4804,15 @@ draw(PaintDevice *device) const
   //---
 
   drawText(device, shapeColor);
+}
 
-  //---
+void
+CQChartsDendrogramNodeObj::
+drawDebugRect(PaintDevice *device) const
+{
+  auto rect1 = displayRect();
 
-  if (plot()->isShowBoxes()) {
-    auto bbox = textRect();
-
-    drawDebugRect(device, bbox);
-  }
+  drawDebugBBox(device, rect1);
 }
 
 void
@@ -4702,46 +4847,46 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   auto colorValue = this->colorValue();
 
-  if (isHier() && ! this->color().isValid() && dendrogramPlot_->isColorByHier())
+  if (isHier() && ! this->color().isValid() && plot()->isColorByHier())
     colorValue = OptReal(hierColor());
 
-  if      (dendrogramPlot_->nodeColorByValue() == DendrogramPlot::ValueType::HIER) {
+  if      (plot()->nodeColorByValue() == DendrogramPlot::ValueType::HIER) {
     auto value = this->hierValue().realOr(0.0);
-    auto color = dendrogramPlot_->mapHierValue(value);
+    auto color = plot()->mapHierValue(value);
 
     fillColor = plot()->interpPaletteColor(ColorInd(color));
   }
-  else if (dendrogramPlot_->nodeColorByValue() == DendrogramPlot::ValueType::NODE) {
+  else if (plot()->nodeColorByValue() == DendrogramPlot::ValueType::NODE) {
     auto value = this->value().realOr(0.0);
 
     double color = 0.0;
 
-    if (dendrogramPlot_->isDepthSort()) {
+    if (plot()->isDepthSort()) {
       auto depth = this->node()->calcHierDepth();
 
-      color = dendrogramPlot_->mapDepthValue(depth, value);
+      color = plot()->mapDepthValue(depth, value);
     }
     else
-      color = dendrogramPlot_->mapValue(value);
+      color = plot()->mapValue(value);
 
     fillColor = plot()->interpPaletteColor(ColorInd(color));
   }
-  else if (dendrogramPlot_->nodeColorByValue() == DendrogramPlot::ValueType::TARGET_NODE) {
+  else if (plot()->nodeColorByValue() == DendrogramPlot::ValueType::TARGET_NODE) {
     auto value = this->value().realOr(0.0);
 
     double color = 0.0;
 
     double min, max;
 
-    if (dendrogramPlot_->isDepthSort()) {
+    if (plot()->isDepthSort()) {
       auto depth = this->node()->calcHierDepth();
 
-      dendrogramPlot_->depthValueRange(depth, min, max);
+      plot()->depthValueRange(depth, min, max);
     }
     else
-      dendrogramPlot_->valueRange(min, max);
+      plot()->valueRange(min, max);
 
-    auto target = dendrogramPlot_->targetValue();
+    auto target = plot()->targetValue();
 
     if      (value == target)
       color = 0.5;
@@ -4757,7 +4902,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
     double color1 = 0.0;
 
-    if (plot()->calcColorMapped(dendrogramPlot_->colorColumn(), /*defValue*/true))
+    if (plot()->calcColorMapped(plot()->colorColumn(), /*defValue*/true))
       color1 = plot()->mapColor(color);
     else {
       auto maxColor = (parent() ? parent()->hierColor() : color);
@@ -4805,14 +4950,14 @@ void
 CQChartsDendrogramNodeObj::
 drawText(PaintDevice *device, const QColor &shapeColor) const
 {
-  auto calcTextVisible = [&]() {
-    if (isRoot()) return dendrogramPlot_->isRootTextVisible();
-    if (isHier()) return dendrogramPlot_->isHierTextVisible();
-    return dendrogramPlot_->isLeafTextVisible();
-  };
-
-  auto textVisible = calcTextVisible();
+  auto textVisible = plot()->calcTextVisible(this);
   if (! textVisible) return;
+
+  //---
+
+  // get font
+  auto font  = plot()->calcTextFont(this);
+  auto qfont = plot()->view()->plotFont(plot(), font);
 
   //---
 
@@ -4823,7 +4968,7 @@ drawText(PaintDevice *device, const QColor &shapeColor) const
   Qt::Alignment align;
   bool          centered;
 
-  calcTextPos(p, device->font(), angle, position, align, centered);
+  calcTextPos(p, qfont, angle, position, align, centered);
 
   //---
 
@@ -4841,15 +4986,15 @@ drawText(PaintDevice *device, const QColor &shapeColor) const
   PenBrush tpenBrush;
 
   auto calcTextColor = [&]() {
-    if (isRoot()) return dendrogramPlot_->interpRootTextColor(colorInd);
-    if (isHier()) return dendrogramPlot_->interpHierTextColor(colorInd);
-    return dendrogramPlot_->interpLeafTextColor(colorInd);
+    if (isRoot()) return plot()->interpRootTextColor(colorInd);
+    if (isHier()) return plot()->interpHierTextColor(colorInd);
+    return plot()->interpLeafTextColor(colorInd);
   };
 
   auto calcTextAlpha = [&]() {
-    if (isRoot()) return dendrogramPlot_->rootTextAlpha();
-    if (isHier()) return dendrogramPlot_->hierTextAlpha();
-    return dendrogramPlot_->leafTextAlpha();
+    if (isRoot()) return plot()->rootTextAlpha();
+    if (isHier()) return plot()->hierTextAlpha();
+    return plot()->leafTextAlpha();
   };
 
   auto tc = calcTextColor();
@@ -4862,46 +5007,17 @@ drawText(PaintDevice *device, const QColor &shapeColor) const
   //---
 
   // set font
-  auto calcTextFont = [&]() {
-    if (isRoot()) return dendrogramPlot_->rootTextFont();
-    if (isHier()) return dendrogramPlot_->hierTextFont();
-    return dendrogramPlot_->leafTextFont();
-  };
-
-  auto font = calcTextFont();
-
   plot()->setPainterFont(device, font);
 
   //---
 
-  auto isValueLabel = [&]() {
-    if (isRoot()) return dendrogramPlot_->isRootValueLabel();
-    if (isHier()) return dendrogramPlot_->isHierValueLabel();
-    return dendrogramPlot_->isLeafValueLabel();
-  };
+  // get node text (could be multiple lines)
+  auto strs = calcNodeText();
+
+  //---
 
   // draw node text
-  // only support contrast and clip
-  const auto &name = this->name();
-
-  QStringList strs;
-
-  strs << name;
-
-  if (isValueLabel()) {
-    auto label = calcValueLabel();
-
-    if (label.length())
-      strs << label;
-  }
-
-  auto calcTextOptions = [&]() {
-    if (isRoot()) return dendrogramPlot_->rootTextOptions(device);
-    if (isHier()) return dendrogramPlot_->hierTextOptions(device);
-    return dendrogramPlot_->leafTextOptions(device);
-  };
-
-  auto textOptions = calcTextOptions();
+  auto textOptions = plot()->calcTextOptions(device, this);
 
   textOptions.angle     = angle;
   textOptions.align     = align;
@@ -4919,13 +5035,13 @@ drawText(PaintDevice *device, const QColor &shapeColor) const
     }
 
     if (strs.size() == 1)
-      CQChartsDrawUtil::drawTextInBox(device, rect1, name, textOptions);
+      CQChartsDrawUtil::drawTextInBox(device, rect1, strs[0], textOptions);
     else
       CQChartsDrawUtil::drawTextsInBox(device, rect1, strs, textOptions);
   }
   else {
     if (strs.size() == 1)
-      CQChartsDrawUtil::drawTextAtPoint(device, p, name, textOptions, centered);
+      CQChartsDrawUtil::drawTextAtPoint(device, p, strs[0], textOptions, centered);
     else
       CQChartsDrawUtil::drawTextsAtPoint(device, p, strs, textOptions);
   }
@@ -4934,6 +5050,40 @@ drawText(PaintDevice *device, const QColor &shapeColor) const
 
   if (textCenter)
     charts()->resetContrastColor();
+
+  //---
+
+  if (plot()->isShowBoxes()) {
+    auto bbox = textRect();
+
+    drawDebugBBox(device, bbox);
+  }
+}
+
+QStringList
+CQChartsDendrogramNodeObj::
+calcNodeText() const
+{
+  auto isValueLabel = [&]() {
+    if (isRoot()) return plot()->isRootValueLabel();
+    if (isHier()) return plot()->isHierValueLabel();
+    return plot()->isLeafValueLabel();
+  };
+
+  const auto &name = this->name();
+
+  QStringList strs;
+
+  strs << name;
+
+  if (isValueLabel()) {
+    auto label = calcValueLabel();
+
+    if (label.length())
+      strs << label;
+  }
+
+  return strs;
 }
 
 QString
@@ -4947,8 +5097,8 @@ calcValueLabel() const
   else if (hierValue().isSet())
     label = QString::number(hierValue().real());
 #if 0
-  else if (dendrogramPlot_->nullValueString().length())
-    label = dendrogramPlot_->nullValueString());
+  else if (plot()->nullValueString().length())
+    label = plot()->nullValueString());
 #endif
 
   return label;
@@ -4956,14 +5106,16 @@ calcValueLabel() const
 
 void
 CQChartsDendrogramNodeObj::
-calcTextPos(Point &p, const QFont &font, Angle &angle, uint &iposition,
+calcTextPos(Point &p, const QFont &qfont, Angle &angle, uint &iposition,
             Qt::Alignment &align, bool &centered) const
 {
+  auto qfont1 = plot()->dataScaleFont(qfont);
+
   auto rect1 = displayRect();
 
   const auto &name = this->name();
 
-  QFontMetricsF fm(font);
+  QFontMetricsF fm(qfont1);
 
   double ta = fm.ascent();
   double td = fm.descent();
@@ -4975,9 +5127,9 @@ calcTextPos(Point &p, const QFont &font, Angle &angle, uint &iposition,
   auto pbbox = plot()->windowToPixel(rect1);
 
   auto calcTextMargin = [&]() {
-    if (isRoot()) return dendrogramPlot_->rootTextMargin();
-    if (isHier()) return dendrogramPlot_->hierTextMargin();
-    return dendrogramPlot_->leafTextMargin();
+    if (isRoot()) return plot()->rootTextMargin();
+    if (isHier()) return plot()->hierTextMargin();
+    return plot()->leafTextMargin();
   };
 
   auto textMargin = calcTextMargin();
@@ -4996,15 +5148,15 @@ calcTextPos(Point &p, const QFont &font, Angle &angle, uint &iposition,
 
   if (plot()->placeType() != DendrogramPlot::PlaceType::CIRCULAR) {
     auto calcTextPosition = [&]() {
-      if (isRoot()) return dendrogramPlot_->rootTextPosition();
-      if (isHier()) return dendrogramPlot_->hierTextPosition();
-      return dendrogramPlot_->leafTextPosition();
+      if (isRoot()) return plot()->rootTextPosition();
+      if (isHier()) return plot()->hierTextPosition();
+      return plot()->leafTextPosition();
     };
 
     auto calcIsRotatedText = [&]() {
-      if (isRoot()) return dendrogramPlot_->isRootRotatedText();
-      if (isHier()) return dendrogramPlot_->isHierRotatedText();
-      return dendrogramPlot_->isLeafRotatedText();
+      if (isRoot()) return plot()->isRootRotatedText();
+      if (isHier()) return plot()->isHierRotatedText();
+      return plot()->isLeafRotatedText();
     };
 
     position      = calcTextPosition();
@@ -5133,16 +5285,16 @@ displayRect() const
 
   // aspect w/h (> 1.0 wider, < 1.0 taller)
   auto calcAspect = [&]() {
-    if (isRoot()) return dendrogramPlot_->rootAspect();
-    if (isHier()) return dendrogramPlot_->hierAspect();
-    return dendrogramPlot_->leafAspect();
+    if (isRoot()) return plot()->rootAspect();
+    if (isHier()) return plot()->hierAspect();
+    return plot()->leafAspect();
   };
 
   auto aspect = calcAspect();
   if (aspect <= 0.0) aspect = 1.0;
 
-  auto shapeWidth  = aspect*dendrogramPlot_->pixelToWindowWidth(ss.width());
-  auto shapeHeight = dendrogramPlot_->pixelToWindowHeight(ss.height())/aspect;
+  auto shapeWidth  = aspect*plot()->pixelToWindowWidth(ss.width());
+  auto shapeHeight = plot()->pixelToWindowHeight(ss.height())/aspect;
 
   double xf = 1.0, yf = 1.0;
 
@@ -5152,7 +5304,7 @@ displayRect() const
   if (rect1.getHeight() > 0.0)
     yf = shapeHeight/rect1.getHeight();
 
-  auto scale = dendrogramPlot_->overlapScale()*dendrogramPlot_->sizeScale();
+  auto scale = plot()->overlapScale()*plot()->sizeScale();
   if (scale <= 0.0) scale = 1.0;
 
   xf *= scale;
@@ -5168,24 +5320,18 @@ CQChartsDendrogramNodeObj::
 calcScaledShapePixelSize() const
 {
   // get specified shape size
-  auto calcSize = [&]() {
-    if (isRoot()) return plot()->calcRootSize();
-    if (isHier()) return plot()->calcHierSize();
-    return plot()->calcLeafSize();
-  };
-
   auto minSize = [&]() {
     if (isRoot()) return plot()->rootMinSize();
     if (isHier()) return plot()->hierMinSize();
     return plot()->leafMinSize();
   };
 
-  auto leafSize    = calcSize();
+  auto leafSize    = plot()->calcNodeSize(this);
   auto leafMinSize = plot()->lengthPixelSize(minSize(), plot()->leafTextFont());
 
   if      (plot()->nodeSizeByValue() == DendrogramPlot::ValueType::HIER) {
     auto value     = this->hierValue().realOr(0.0);
-    auto sizeScale = dendrogramPlot_->mapHierValue(value);
+    auto sizeScale = plot()->mapHierValue(value);
 
     leafSize = QSizeF(
       CMathUtil::map(sizeScale, 0.0, 1.0, leafMinSize.width (), leafSize.width ()),
@@ -5193,7 +5339,7 @@ calcScaledShapePixelSize() const
   }
   else if (plot()->nodeSizeByValue() == DendrogramPlot::ValueType::NODE) {
     auto value     = this->value().realOr(0.0);
-    auto sizeScale = dendrogramPlot_->mapNodeValue(value);
+    auto sizeScale = plot()->mapNodeValue(value);
 
     leafSize = QSizeF(
       CMathUtil::map(sizeScale, 0.0, 1.0, leafMinSize.width (), leafSize.width ()),
@@ -5233,7 +5379,7 @@ movePerpCenter(double pos)
 {
   auto rect = this->rect();
 
-  if (dendrogramPlot_->orientation() == Qt::Horizontal) {
+  if (plot()->orientation() == Qt::Horizontal) {
     auto d = pos - rect.getYMid();
 
     rect.moveBy(Point(0.0, d));
@@ -5254,7 +5400,7 @@ movePerpBy(double d)
 {
   auto rect = this->rect();
 
-  if (dendrogramPlot_->orientation() == Qt::Horizontal)
+  if (plot()->orientation() == Qt::Horizontal)
     rect.moveBy(Point(0.0, d));
   else
     rect.moveBy(Point(d, 0.0));
@@ -5268,7 +5414,7 @@ moveParBy(double d)
 {
   auto rect = this->rect();
 
-  if (dendrogramPlot_->orientation() == Qt::Horizontal)
+  if (plot()->orientation() == Qt::Horizontal)
     rect.moveBy(Point(d, 0.0));
   else
     rect.moveBy(Point(0.0, d));
@@ -5344,11 +5490,11 @@ void
 CQChartsDendrogramEdgeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  if (dendrogramPlot_->isEdgeRows()) {
-    addColumnsSelectIndex(inds, dendrogramPlot_->nameColumns());
-    addColumnSelectIndex (inds, dendrogramPlot_->linkColumn ());
-    addColumnSelectIndex (inds, dendrogramPlot_->valueColumn());
-    addColumnSelectIndex (inds, dendrogramPlot_->sizeColumn ());
+  if (plot()->isEdgeRows()) {
+    addColumnsSelectIndex(inds, plot()->nameColumns());
+    addColumnSelectIndex (inds, plot()->linkColumn ());
+    addColumnSelectIndex (inds, plot()->valueColumn());
+    addColumnSelectIndex (inds, plot()->sizeColumn ());
   }
 }
 
@@ -5391,12 +5537,14 @@ draw(PaintDevice *device) const
   //---
 
   // calc edge width
-  auto lw    = dendrogramPlot_->lengthPlotWidth(dendrogramPlot_->edgeWidth());
-  auto minLw = dendrogramPlot_->lengthPlotWidth(dendrogramPlot_->minEdgeWidth());
+  bool pixelScaled = plot()->isPixelScaled();
 
-  if (dendrogramPlot_->isEdgeSizeByValue()) {
+  auto lw    = plot()->lengthPlotWidth(plot()->edgeWidth(), pixelScaled);
+  auto minLw = plot()->lengthPlotWidth(plot()->minEdgeWidth());
+
+  if (plot()->isEdgeSizeByValue()) {
     if (value().isSet()) {
-      auto widthScale = dendrogramPlot_->mapValue(value().real());
+      auto widthScale = plot()->mapValue(value().real());
 
       lw = CMathUtil::map(widthScale, 0.0, 1.0, minLw, lw);
     }
@@ -5411,7 +5559,7 @@ draw(PaintDevice *device) const
   path_ = QPainterPath();
 
   if (plot()->placeType() != DendrogramPlot::PlaceType::CIRCULAR) {
-    if (dendrogramPlot_->edgeType() == DendrogramPlot::EdgeType::CURVE) {
+    if (plot()->edgeType() == DendrogramPlot::EdgeType::CURVE) {
       auto angle1 = Angle::fromOrientation(plot()->orientation());
       auto angle2 = angle1.flippedX();
 
@@ -5483,9 +5631,9 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   QColor fillColor;
 
-  if      (dendrogramPlot_->isEdgeColorByValue()) {
+  if      (plot()->isEdgeColorByValue()) {
     auto value = this->value().realOr(0.0);
-    auto color = dendrogramPlot_->mapValue(value);
+    auto color = plot()->mapValue(value);
 
     fillColor = plot()->interpPaletteColor(ColorInd(color));
   }

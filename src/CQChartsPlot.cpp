@@ -3071,6 +3071,13 @@ qfont(const Font &font) const
   return view()->plotFont(this, font);
 }
 
+QFont
+CQChartsPlot::
+dataScaleFont(const QFont &f) const
+{
+  return CQChartsUtil::scaleFontSize(f, dataScale(), 1.0/72.0);
+}
+
 //---
 
 void
@@ -19906,12 +19913,19 @@ lengthPlotPerpSize(const Length &len, bool horizontal) const
 
 double
 CQChartsPlot::
-lengthPlotWidth(const Length &len) const
+lengthPlotWidth(const Length &len, bool pixelScaled) const
 {
   if (! len.isValid()) return 0.0;
 
-  if      (len.units() == Units::PIXEL)
-    return pixelToWindowWidth(len.value());
+  if      (len.units() == Units::PIXEL) {
+    auto pw = len.value();
+    auto ph = 0.0;
+
+    if (pixelScaled)
+      zoomedPixelSize(pw, ph, pw, ph);
+
+    return pixelToWindowWidth(pw);
+  }
   else if (len.units() == Units::PLOT)
     return len.value();
   else if (len.units() == Units::VIEW)
@@ -19935,12 +19949,19 @@ lengthPlotWidth(const Length &len) const
 
 double
 CQChartsPlot::
-lengthPlotHeight(const Length &len) const
+lengthPlotHeight(const Length &len, bool pixelScaled) const
 {
   if (! len.isValid()) return 0.0;
 
-  if      (len.units() == Units::PIXEL)
-    return pixelToWindowHeight(len.value());
+  if      (len.units() == Units::PIXEL) {
+    auto pw = 0.0;
+    auto ph = len.value();
+
+    if (pixelScaled)
+      zoomedPixelSize(pw, ph, pw, ph);
+
+    return pixelToWindowHeight(ph);
+  }
   else if (len.units() == Units::PLOT)
     return len.value();
   else if (len.units() == Units::VIEW)
@@ -20029,12 +20050,19 @@ lengthPixelSize(const Length &len, bool vertical) const
 
 double
 CQChartsPlot::
-lengthPixelWidth(const Length &len) const
+lengthPixelWidth(const Length &len, bool pixelScaled) const
 {
   if (! len.isValid()) return 0.0;
 
-  if      (len.units() == Units::PIXEL)
-    return len.value();
+  if      (len.units() == Units::PIXEL) {
+    auto pw = len.value();
+    auto ph = 0.0;
+
+    if (pixelScaled)
+      zoomedPixelSize(pw, ph, pw, ph);
+
+    return pw;
+  }
   else if (len.units() == Units::PLOT)
     return windowToPixelWidth(len.value());
   else if (len.units() == Units::VIEW)
@@ -20058,12 +20086,19 @@ lengthPixelWidth(const Length &len) const
 
 double
 CQChartsPlot::
-lengthPixelHeight(const Length &len) const
+lengthPixelHeight(const Length &len, bool pixelScaled) const
 {
   if (! len.isValid()) return 0.0;
 
-  if      (len.units() == Units::PIXEL)
-    return len.value();
+  if      (len.units() == Units::PIXEL) {
+    auto pw = 0.0;
+    auto ph = len.value();
+
+    if (pixelScaled)
+      zoomedPixelSize(pw, ph, pw, ph);
+
+    return ph;
+  }
   else if (len.units() == Units::PLOT)
     return windowToPixelHeight(len.value());
   else if (len.units() == Units::VIEW)

@@ -332,8 +332,9 @@ class CQChartsPlotObj : public CQChartsObj,
 
   virtual void postDraw(PaintDevice *) { }
 
-  void drawDebugRect(PaintDevice *device) const;
-  void drawDebugRect(PaintDevice *device, const BBox &bbox) const;
+  virtual void drawDebugRect(PaintDevice *device) const;
+
+  void drawDebugBBox(PaintDevice *device, const BBox &bbox) const;
 
   virtual bool drawMouseOver() const { return true; }
 

@@ -633,7 +633,7 @@ targetValue(bool useNaN) const
   if (type() == CQBaseModelType::REAL)
     return targetValue_;
 
-  return (useNaN ? CQChartsVariant::fromNaN() : QVariant());;
+  return (useNaN ? CQChartsVariant::fromNaN() : QVariant());
 }
 
 QVariant

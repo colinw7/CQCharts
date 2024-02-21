@@ -2720,7 +2720,7 @@ drawText(PaintDevice *device, const BBox &pbbox, bool updateState) const
 
   PenBrush penBrush;
 
-  calcPenBrushNodePoint(penBrush, /*isNodePoint*/false, updateState);
+  calcNodePointPenBrush(penBrush, /*isNodePoint*/false, updateState);
 
   treeMapPlot_->charts()->setContrastColor(penBrush.brush.color());
 
@@ -2808,12 +2808,12 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   bool isNodePoint = this->isNodePoint();
 
-  calcPenBrushNodePoint(penBrush, isNodePoint, updateState);
+  calcNodePointPenBrush(penBrush, isNodePoint, updateState);
 }
 
 void
 CQChartsTreeMapNodeObj::
-calcPenBrushNodePoint(PenBrush &penBrush, bool isNodePoint, bool updateState) const
+calcNodePointPenBrush(PenBrush &penBrush, bool isNodePoint, bool updateState) const
 {
   if (numColorIds_ < 0)
     numColorIds_ = treeMapPlot_->numColorIds(calcGroupName());

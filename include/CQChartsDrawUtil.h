@@ -184,6 +184,9 @@ void drawTextsInBox(PaintDevice *device, const BBox &rect, const QStringList &st
 void drawRotatedTextInBox(PaintDevice *device, const BBox &rect, const QString &text,
                           const QPen &pen, const TextOptions &options);
 
+BBox calcTextsAtPointRect(PaintDevice *device, const Point &point, const QStringList &texts,
+                          const TextOptions &options=TextOptions(), bool centered=false,
+                          double dx=0.0, double dy=0.0);
 BBox calcTextAtPointRect(PaintDevice *device, const Point &point, const QString &text,
                          const TextOptions &options=TextOptions(), bool centered=false,
                          double dx=0.0, double dy=0.0);

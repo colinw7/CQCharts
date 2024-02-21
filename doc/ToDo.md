@@ -4,6 +4,14 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + plot aspect aut updates view range
+
+ + dendrogram scroll/zoom switch back/forth
+
+ + custom model view
+
+ + hide columns in data table (show different model ?)
+
  + annotations on mouse over (inside) - self inside
 
  + column ordering
