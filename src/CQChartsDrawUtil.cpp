@@ -997,24 +997,46 @@ CQChartsGeom::BBox
 calcTextAtPointRect(PaintDevice *device, const Point &point, const QString &text,
                     const TextOptions &options, bool centered, double pdx, double pdy)
 {
-  auto text1 = clipTextToLength(text, device->font(), options.clipLength, options.clipElide);
-
-  //---
-
   // handle html separately
   if (options.html) {
-    Size psize = CQChartsDrawPrivate::calcHtmlTextSize(text1, device->font(), options.margin);
+    Size psize = CQChartsDrawPrivate::calcHtmlTextSize(text, device->font(), options.margin);
 
     auto sw = device->pixelToWindowWidth (psize.width () + 4);
     auto sh = device->pixelToWindowHeight(psize.height() + 4);
 
-    BBox rect(point.x - sw/2.0, point.y - sh/2.0,
-              point.x + sw/2.0, point.y + sh/2.0);
+    auto c = point;
+
+#if 1
+    if (! centered) { // point is left
+      if      (options.align & Qt::AlignHCenter) c.x -= sw/2.0;
+      else if (options.align & Qt::AlignRight  ) c.x -= sw;
+    }
+    else {
+      if      (options.align & Qt::AlignLeft ) c.x += sw/2.0;
+      else if (options.align & Qt::AlignRight) c.x -= sw/2.0;
+    }
+
+    if      (options.align & Qt::AlignVCenter) c.y -= sh/2.0;
+    else if (options.align & Qt::AlignTop    ) c.y -= sh;
+#else
+    auto options1 = options;
+
+    options1.html = false;
+
+    auto bbox1 = calcTextAtPointRect(device, point, text, options1, centered, pdx, pdy);
+
+    c.x = bbox1.getXMin();
+    c.y = bbox1.getYMin();
+#endif
+
+    auto rect = BBox(c.x, c.y, c.x + sw, c.y + sh);
 
     return rect;
   }
 
   //---
+
+  auto text1 = clipTextToLength(text, device->font(), options.clipLength, options.clipElide);
 
   QFontMetricsF fm(device->font());
 
@@ -1112,22 +1134,9 @@ void
 drawTextAtPoint(PaintDevice *device, const Point &point, const QString &text,
                 const TextOptions &options, bool centered, double pdx, double pdy)
 {
-  auto text1 = clipTextToLength(text, device->font(), options.clipLength, options.clipElide);
-
-  //---
-
-  QFontMetricsF fm(device->font());
-
-  double ta = fm.ascent();
-  double td = fm.descent();
-
-  double tw = fm.horizontalAdvance(text1);
-
-  //---
-
   // handle html separately
   if (options.html) {
-    auto psize = CQChartsDrawPrivate::calcHtmlTextSize(text1, device->font(), options.margin);
+    auto psize = CQChartsDrawPrivate::calcHtmlTextSize(text, device->font(), options.margin);
 
     auto sw = device->pixelToWindowWidth (psize.width () + 4);
     auto sh = device->pixelToWindowHeight(psize.height() + 4);
@@ -1137,20 +1146,49 @@ drawTextAtPoint(PaintDevice *device, const Point &point, const QString &text,
 
     auto c = Point(point.x + dx, point.y + dy);
 
-    BBox rect;
+#if 1
+    if (! centered) { // point is left
+      if      (options.align & Qt::AlignHCenter) c.x -= sw/2.0;
+      else if (options.align & Qt::AlignRight  ) c.x -= sw;
+    }
+    else {
+      if      (options.align & Qt::AlignLeft ) c.x += sw/2.0;
+      else if (options.align & Qt::AlignRight) c.x -= sw/2.0;
+    }
 
-    if (centered)
-      rect = BBox(c.x - sw/2.0, c.y - sh/2.0, c.x + sw/2.0, c.y + sh/2.0);
-    else
-      rect = BBox(c.x, c.y, c.x + sw, c.y + sh);
+    if      (options.align & Qt::AlignVCenter) c.y -= sh/2.0;
+    else if (options.align & Qt::AlignTop    ) c.y -= sh;
+#else
+    auto options1 = options;
+
+    options1.html = false;
+
+    auto bbox1 = calcTextAtPointRect(device, point, text, options1, centered, pdx, pdy);
+
+    c.x = bbox1.getXMin();
+    c.y = bbox1.getYMin();
+#endif
+
+    auto rect = BBox(c.x, c.y, c.x + sw, c.y + sh);
 
     if (options.scaled)
-      CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text1, options);
+      CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text, options);
     else
-      CQChartsDrawPrivate::drawHtmlText(device, c, rect, text1, options, pdx, pdy);
+      CQChartsDrawPrivate::drawHtmlText(device, c, rect, text, options, pdx, pdy);
 
     return;
   }
+
+  //---
+
+  auto text1 = clipTextToLength(text, device->font(), options.clipLength, options.clipElide);
+
+  QFontMetricsF fm(device->font());
+
+  double ta = fm.ascent();
+  double td = fm.descent();
+
+  double tw = fm.horizontalAdvance(text1);
 
   //---
 

@@ -4,7 +4,9 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + plot aspect aut updates view range
+ + dendrogram fit includes title
+
+ + plot aspect auto updates view range
 
  + dendrogram scroll/zoom switch back/forth
 

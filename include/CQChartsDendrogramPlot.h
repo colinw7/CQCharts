@@ -116,6 +116,9 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   const QString &name() const { return name_; }
 
+  const QString &label() const { return label_; }
+  void setLabel(const QString &s) { label_ = s; }
+
   const OptReal &value() const { return value_; }
   void setValue(const OptReal &r) { value_ = r; }
 
@@ -209,6 +212,7 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
   Children              children_;                   //!< children
   Node*                 node_           { nullptr }; //!< associated node
   QString               name_;                       //!< name
+  QString               label_;                      //!< optional label
   int                   ind_            { 0 };       //!< unique index
   OptReal               value_;                      //!< value
   OptReal               hierValue_;                  //!< hier value
@@ -320,8 +324,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_OBJECT
 
   // columns
-  Q_PROPERTY(CQChartsColumn linkColumn READ linkColumn WRITE setLinkColumn)
-  Q_PROPERTY(CQChartsColumn sizeColumn READ sizeColumn WRITE setSizeColumn)
+  Q_PROPERTY(CQChartsColumn linkColumn  READ linkColumn  WRITE setLinkColumn )
+  Q_PROPERTY(CQChartsColumn sizeColumn  READ sizeColumn  WRITE setSizeColumn )
+  Q_PROPERTY(CQChartsColumn labelColumn READ labelColumn WRITE setLabelColumn)
 
   Q_PROPERTY(CQChartsColumn swatchColorColumn READ swatchColorColumn WRITE setSwatchColorColumn)
 
@@ -500,12 +505,18 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   const Column &linkColumn() const { return linkColumn_; }
   void setLinkColumn(const Column &c);
 
-  //! get/set value column
+  //! get/set size column
   const Column &sizeColumn() const { return sizeColumn_; }
   void setSizeColumn(const Column &c);
 
+  //! get/set label column
+  const Column &labelColumn() const { return labelColumn_; }
+  void setLabelColumn(const Column &c);
+
+  //! override set color column
   void setColorColumn(const Column &c) override;
 
+  //! override set value column
   void setValueColumn(const Column &c) override;
 
   //! get/set swatch color column
@@ -803,9 +814,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   void addHierName(const QString &nameStr, const ModelIndex &modelInd) const;
 
   void addNameValue(const QString &nameStr, const CQChartsNamePair &namePair,
-                    const QStringList &names, const OptReal &value, const ModelIndex &modelInd,
-                    const Color &color, const OptReal &colorValue, OptReal &sizeValue,
-                    const CQChartsNameValues &nameValues, Edges &edges) const;
+                    const QStringList &names, const QString &label, const OptReal &value,
+                    const ModelIndex &modelInd, const Color &color, const OptReal &colorValue,
+                    OptReal &sizeValue, const CQChartsNameValues &nameValues, Edges &edges) const;
 
   //---
 
@@ -974,8 +985,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   using NodeObjs   = std::map<Node *, NodeObj *>;
 
   // columns
-  Column linkColumn_; //!< link column
-  Column sizeColumn_; //!< size column
+  Column linkColumn_;  //!< link column
+  Column sizeColumn_;  //!< size column
+  Column labelColumn_; //!< label column
 
   Column swatchColorColumn_; //!< swatch color column
 
@@ -1078,7 +1090,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   bool propagateHier_ { false }; //!< propagate values through hierarchy
   bool hierValueTip_  { true };  //!< show hier value in tip
 
-  bool calcNodeTextSize_ { false };
+  bool calcNodeTextSize_ { true }; //!< add text size to node size to calc fit size
 
   RMinMax valueRange_; //!< value column range
   RMinMax colorRange_; //!< color column range

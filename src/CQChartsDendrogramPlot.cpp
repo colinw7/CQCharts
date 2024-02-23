@@ -58,6 +58,9 @@ class PlotDendrogram : public CQChartsDendrogram {
     const Color &color() const { return color_; }
     void setColor(const Color &c) { color_ = c; }
 
+    const QString &label() const { return label_; }
+    void setLabel(const QString &s) { label_ = s; }
+
     const OptReal &colorValue() const { return colorValue_; }
     void setColorValue(const OptReal &r) { colorValue_ = r; }
 
@@ -99,6 +102,7 @@ class PlotDendrogram : public CQChartsDendrogram {
     ModelIndex  modelInd_;
     QModelIndex ind_;
     Color       color_;
+    QString     label_;
     OptReal     colorValue_;
     OptReal     sizeValue_;
     IdColor     edgeColor_;
@@ -149,10 +153,12 @@ void
 CQChartsDendrogramPlotType::
 addExtraHierParameters()
 {
-  addColumnParameter("link", "Link", "linkColumn").
+  addColumnParameter("link" , "Link" , "linkColumn").
     setStringColumn ().setRequired().setPropPath("columns.link").setTip("Link column");
-  addColumnParameter("size", "Size", "sizeColumn").
+  addColumnParameter("size" , "Size" , "sizeColumn").
     setNumericColumn().setPropPath("columns.size").setTip("Size column");
+  addColumnParameter("label", "Label", "labelColumn").
+    setNumericColumn().setPropPath("columns.label").setTip("Label column");
 
   addColumnParameter("swatchColor", "Swatch Color", "swatchColorColumn").
     setNumericColumn().setPropPath("columns.swatchColor").setTip("Swatch color column");
@@ -277,6 +283,15 @@ CQChartsDendrogramPlot::
 setSizeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(sizeColumn_, c, [&]() {
+    cacheData_.needsReload = true; updateRangeAndObjs(); Q_EMIT customDataChanged();
+  } );
+}
+
+void
+CQChartsDendrogramPlot::
+setLabelColumn(const Column &c)
+{
+  CQChartsUtil::testAndSet(labelColumn_, c, [&]() {
     cacheData_.needsReload = true; updateRangeAndObjs(); Q_EMIT customDataChanged();
   } );
 }
@@ -999,6 +1014,7 @@ getNamedColumn(const QString &name) const
   Column c;
   if      (name == "link"        ) c = this->linkColumn();
   else if (name == "size"        ) c = this->sizeColumn();
+  else if (name == "label"       ) c = this->labelColumn();
   else if (name == "swatch_color") c = this->swatchColorColumn();
   else                             c = CQChartsHierPlot::getNamedColumn(name);
 
@@ -1011,6 +1027,7 @@ setNamedColumn(const QString &name, const Column &c)
 {
   if      (name == "link"        ) this->setLinkColumn(c);
   else if (name == "size"        ) this->setSizeColumn(c);
+  else if (name == "label"       ) this->setLabelColumn(c);
   else if (name == "swatch_color") this->setSwatchColorColumn(c);
   else                             CQChartsHierPlot::setNamedColumn(name, c);
 }
@@ -1024,8 +1041,9 @@ addProperties()
   addHierProperties();
 
   // columns
-  addProp("columns", "linkColumn", "link" , "Link column");
-  addProp("columns", "sizeColumn", "size" , "Size column");
+  addProp("columns", "linkColumn" , "link" , "Link column");
+  addProp("columns", "sizeColumn" , "size" , "Size column");
+  addProp("columns", "labelColumn", "label", "Label column");
 
   addProp("columns", "swatchColorColumn", "swatchColor", "Swatch color column");
 
@@ -1081,7 +1099,8 @@ addProperties()
                     CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::SCALED |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
-                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
+                    CQChartsTextOptions::ValueType::CLIP_ELIDE |
+                    CQChartsTextOptions::ValueType::HTML);
 
   // hier
   addProp("hier"      , "hierSize"        , "size"       , "Hier shape size");
@@ -1106,7 +1125,8 @@ addProperties()
                     CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::SCALED |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
-                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
+                    CQChartsTextOptions::ValueType::CLIP_ELIDE |
+                    CQChartsTextOptions::ValueType::HTML);
 
   // leaf
   addProp("leaf"      , "leafSize"        , "size"      , "Leaf shape size");
@@ -1124,7 +1144,8 @@ addProperties()
                     CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::SCALED |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
-                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
+                    CQChartsTextOptions::ValueType::CLIP_ELIDE |
+                    CQChartsTextOptions::ValueType::HTML);
 
   addProp("leaf/stroke", "leafStroked", "visible", "Leaf stroke visible");
   addLineProperties("leaf/stroke", "leafStroke", "Leaf");
@@ -1184,6 +1205,7 @@ calcRange() const
   if (! checkColumn       (linkColumn (), "Link" )) columnsValid = false;
   if (! checkNumericColumn(valueColumn(), "Value")) columnsValid = false;
   if (! checkNumericColumn(sizeColumn (), "Size" )) columnsValid = false;
+  if (! checkColumn       (labelColumn(), "Label")) columnsValid = false;
 
   // swatch color optional
   if (! checkColumn(swatchColorColumn(), "Swatch Color")) columnsValid = false;
@@ -1968,7 +1990,7 @@ placeModel() const
       //---
 
       // add to nodes/edges
-      dendrogramPlot_->addNameValue(name, namePair, QStringList(),
+      dendrogramPlot_->addNameValue(name, namePair, QStringList(), "",
                                     value, modelNameInd, color, colorValue, sizeValue,
                                     nameValues, edges_);
 
@@ -2203,6 +2225,20 @@ placeModel() const
 
       //---
 
+      // get label
+      QString label;
+
+      if (dendrogramPlot_->labelColumn().isValid()) {
+        ModelIndex labelModelIndex(dendrogramPlot_, data.row,
+                                   dendrogramPlot_->labelColumn(), data.parent);
+
+        bool ok;
+        label = dendrogramPlot_->modelString(labelModelIndex, ok);
+        if (! ok) label = "";
+      }
+
+      //---
+
       // get attributes from optional column
       CQChartsNameValues nameValues;
 
@@ -2220,7 +2256,7 @@ placeModel() const
       //---
 
       // add to nodes/edges
-      dendrogramPlot_->addNameValue(groupName, CQChartsNamePair(), nameStrs,
+      dendrogramPlot_->addNameValue(groupName, CQChartsNamePair(), nameStrs, label,
                                     value, modelNameInd, color, colorValue, sizeValue,
                                     nameValues, edges_);
 
@@ -2900,8 +2936,8 @@ addHierName(const QString &nameStr, const ModelIndex &modelInd) const
 void
 CQChartsDendrogramPlot::
 addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QStringList &nameList,
-             const OptReal &value, const ModelIndex &modelInd, const Color &color,
-             const OptReal &colorValue, OptReal &sizeValue,
+             const QString &label, const OptReal &value, const ModelIndex &modelInd,
+             const Color &color, const OptReal &colorValue, OptReal &sizeValue,
              const CQChartsNameValues &nameValues, Edges &edges) const
 {
   auto *root = rootNode();
@@ -3005,6 +3041,8 @@ addNameValue(const QString &nameStr, const CQChartsNamePair &namePair, const QSt
 
     if (sizeValue.isSet())
       node1->setSizeValue(sizeValue);
+
+    node1->setLabel(label);
 
     processNodeNameValues(node1, nameValues);
 
@@ -4547,6 +4585,7 @@ CQChartsDendrogramNodeObj(const DendrogramPlot *dendrogramPlot, Node *node, cons
       setModelInd(node1->ind());
 
     setColor     (node1->color());
+    setLabel     (node1->label());
     setColorValue(node1->colorValue());
     setSize      (node1->sizeValue());
   }
@@ -4639,6 +4678,7 @@ getObjSelectIndices(Indices &inds) const
     addColumnSelectIndex (inds, plot()->linkColumn ());
     addColumnSelectIndex (inds, plot()->valueColumn());
     addColumnSelectIndex (inds, plot()->sizeColumn ());
+    addColumnSelectIndex (inds, plot()->labelColumn());
   }
 }
 
@@ -4710,7 +4750,6 @@ textRect() const
   textOptions.angle     = angle;
   textOptions.align     = align;
   textOptions.formatted = false;
-  textOptions.html      = false;
 
   if (textOptions.scaled && textCenter)
     return tbbox;
@@ -5022,7 +5061,6 @@ drawText(PaintDevice *device, const QColor &shapeColor) const
   textOptions.angle     = angle;
   textOptions.align     = align;
   textOptions.formatted = false;
-  textOptions.html      = false;
 
   if (textOptions.scaled && textCenter) {
     auto rect1 = displayRect();
@@ -5070,17 +5108,20 @@ calcNodeText() const
     return plot()->isLeafValueLabel();
   };
 
-  const auto &name = this->name();
+  auto label = this->label();
+
+  if (label == "")
+    label = this->name();
 
   QStringList strs;
 
-  strs << name;
+  strs << label;
 
   if (isValueLabel()) {
-    auto label = calcValueLabel();
+    auto vlabel = calcValueLabel();
 
-    if (label.length())
-      strs << label;
+    if (vlabel.length())
+      strs << vlabel;
   }
 
   return strs;
