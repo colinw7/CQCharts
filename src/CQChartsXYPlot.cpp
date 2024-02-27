@@ -4350,10 +4350,20 @@ calcTipId() const
   //---
 
   // add x, y columns
-  const auto &range = xyPlot()->getGroupRange(groupInd_);
+  CQChartsGeom::Range range;
+
+  if (xyPlot()->isSplitGroups())
+    range = xyPlot()->getGroupRange(groupInd_);
+  else
+    range = xyPlot()->dataRange();
 
   if (! tableTip.hasColumn(xyPlot()->xColumn())) {
-    double x = xyPlot()->unmapGroupX(range, groupInd_, point().x);
+    double x;
+
+    if (xyPlot()->isSplitGroups())
+      x = xyPlot()->unmapGroupX(range, groupInd_, point().x);
+    else
+      x = point().x;
 
     QString xstr;
 
@@ -4375,7 +4385,12 @@ calcTipId() const
   }
 
   if (! tableTip.hasColumn(xyPlot()->yColumns().getColumn(0))) {
-    double y = xyPlot()->unmapGroupY(range, point().y);
+    double y;
+
+    if (xyPlot()->isSplitGroups())
+      y = xyPlot()->unmapGroupY(range, point().y);
+    else
+      y = point().y;
 
     auto ystr = xyPlot()->yStr(y);
 

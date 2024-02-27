@@ -4,7 +4,11 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + dendrogram fit includes title
+ + support pixel scale in all plots (per shape ?)
+
+ + QMetaType::registerConverter
+
+ + dendrogram fit includes title ?
 
  + plot aspect auto updates view range
 

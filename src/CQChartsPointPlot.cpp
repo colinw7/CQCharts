@@ -1149,8 +1149,8 @@ double
 CQChartsPointPlot::
 unmapGroupY(const Range &range, double y) const
 {
-  double ymin = (isSplitSharedY() ? range_.ymin() : range.ymin());
-  double ymax = (isSplitSharedY() ? range_.ymax() : range.ymax());
+  double ymin = (isSplitSharedY() && range_.isValid() ? range_.ymin() : range.ymin());
+  double ymax = (isSplitSharedY() && range_.isValid() ? range_.ymax() : range.ymax());
 
   auto *masterYAxis = yAxis();
 

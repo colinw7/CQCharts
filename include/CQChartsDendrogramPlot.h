@@ -337,6 +337,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_PROPERTY(double            rootAspect  READ rootAspect    WRITE setRootAspect )
   Q_PROPERTY(CQChartsShapeType rootShape   READ rootShape     WRITE setRootShape  )
 
+  Q_PROPERTY(bool removeExtraRoots READ isRemoveExtraRoots WRITE setRemoveExtraRoots)
+
   Q_PROPERTY(TextPosition rootTextPosition READ rootTextPosition  WRITE setRootTextPosition)
   Q_PROPERTY(bool         rootRotatedText  READ isRootRotatedText WRITE setRootRotatedText )
   Q_PROPERTY(double       rootTextMargin   READ rootTextMargin    WRITE setRootTextMargin  )
@@ -573,6 +575,10 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   QSizeF calcNodeSize(const NodeObj *obj) const;
   QSizeF calcNodeSize(const Node *node) const;
+
+  //! get/set remove extra roots
+  bool isRemoveExtraRoots() const { return removeExtraRoots_; }
+  void setRemoveExtraRoots(bool b);
 
   //---
 
@@ -937,6 +943,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   void placeModel() const;
 
+  void doRemoveExtraRoots() const;
+
   void place() const;
 
   void placeBuchheim() const;
@@ -1011,9 +1019,11 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   bool     rootVisible_ { true }; //!< root is visible
   NodeData rootNodeData_;         //!< root node data
 
+  bool removeExtraRoots_ { true };
+
   // hier node data
   NodeData hierNodeData_;          //!< hier node data
-  bool     colorByHier_ { false }; //! color by hierarchy
+  bool     colorByHier_ { false }; //!< color by hierarchy
 
   // leaf node data
   NodeData leafNodeData_; //!< leaf node data

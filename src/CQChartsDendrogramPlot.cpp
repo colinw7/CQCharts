@@ -406,6 +406,15 @@ calcNodeSize(const Node *node) const
 
 void
 CQChartsDendrogramPlot::
+setRemoveExtraRoots(bool b)
+{
+  CQChartsUtil::testAndSet(removeExtraRoots_, b, [&]() {
+    cacheData_.needsReload = true; updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsDendrogramPlot::
 setHierSize(const Length &s)
 {
   CQChartsUtil::testAndSet(hierNodeData_.size, s, [&]() {
@@ -1075,6 +1084,8 @@ addProperties()
   addProp("sort", "reverseSort", "reverse", "Reverse sort");
   addProp("sort", "sortSize"   , "size"   , "Sort perpendicular size");
 
+  addPropI("options", "removeExtraRoots", "removeExtraRoots", "Remove extra roots");
+
   addProp("state", "allExpanded", "allExpanded", "Is all expaned");
 
   // root
@@ -1687,7 +1698,6 @@ allowZoomY() const
   }
   else
     return CQChartsPlot::allowZoomY();
-
 }
 
 void
@@ -1764,6 +1774,11 @@ updateScrollOffset()
   auto scrollFit = (fitMode() == FitMode::SCROLL);
 
   if      (scrollFit) {
+    if (! spreadData_.bbox.isValid())
+      return applyDataRangeAndDraw();
+
+    //---
+
     if (isSpreadNodeOverlaps()) {
       if (orientation() == Qt::Horizontal) {
         auto d = CMathUtil::map(scrollData_.ypos, scrollData_.ymin, scrollData_.ymax,
@@ -2408,6 +2423,29 @@ placeModel() const
 
   //---
 
+  doRemoveExtraRoots();
+
+  //---
+
+  root = rootNode();
+
+  if (root)
+    root->setOpen(true);
+
+  //---
+
+  processMetaData(isEdgeRows_);
+}
+
+void
+CQChartsDendrogramPlot::
+doRemoveExtraRoots() const
+{
+  if (! isRemoveExtraRoots())
+    return;
+
+  auto *root = rootNode();
+
   // remove extra roots
   while (root && root->getChildren().size() == 1 && root->isTemp()) {
     auto &child = root->getChildren()[0];
@@ -2443,15 +2481,6 @@ placeModel() const
 
     delete childNode;
   }
-
-  //---
-
-  if (root)
-    root->setOpen(true);
-
-  //---
-
-  processMetaData(isEdgeRows_);
 }
 
 //---
@@ -3779,7 +3808,7 @@ execSpreadOverlaps(const PlotObjs &objs)
   auto printDepthRanges = [&](const QString &msg) {
     std::cerr << "Depth Ranges: " << msg.toStdString() << "\n";
 
-    for (const auto  &pd : deptgObjs) {
+    for (const auto &pd : depthObjs) {
       BBox bbox;
 
       for (auto *obj : pd.second) {
@@ -3788,17 +3817,17 @@ execSpreadOverlaps(const PlotObjs &objs)
         bbox += r;
       }
 
-      std::cerr << " " << pd.frst < " " << bbox.toString().toStdString() << "\n";
+      std::cerr << " " << pd.first < " " << bbox.toString().toStdString() << "\n";
     }
   };
 
-  auto checkOverlaps = [&](const QSTring &msg) {
+  auto checkOverlaps = [&](const QString &msg) {
     std::cerr << "Overlaps: " << msg.toStdString() << "\n";
 
     bool rc = false;
 
     using ObjsArray  = std::vector<NodeObj *>;
-    using CenterObjs = std::vector<double, ObjsArray>;
+    using CenterObjs = std::map<double, ObjsArray>;
 
     for (const auto &pd : depthObjs) {
       CenterObjs centerObjs;
@@ -3813,7 +3842,7 @@ execSpreadOverlaps(const PlotObjs &objs)
 
       ObjsArray sortedObjs;
 
-      for (const auto &pc : centerObjs( {
+      for (const auto &pc : centerObjs) {
         for (auto *obj : pc.second)
           sortedObjs.push_back(obj);
       }
@@ -3828,6 +3857,7 @@ execSpreadOverlaps(const PlotObjs &objs)
           if (r1.overlaps(r2)) {
             std::cerr << "  Overlap: " << lastObj->name().toStdString() <<
                          " " << obj->name().toStdString() << "\n";
+            rc = false;
           }
         }
 
@@ -4020,10 +4050,14 @@ execSpreadOverlaps(const PlotObjs &objs)
     spreadData_.bbox += r1;
   }
 
-  if (orientation() == Qt::Horizontal)
-    spreadData_.scale = std::max(spreadData_.bbox.getHeight(), 1.0);
+  if (spreadData_.bbox.isValid()) {
+    if (orientation() == Qt::Horizontal)
+      spreadData_.scale = std::max(spreadData_.bbox.getHeight(), 1.0);
+    else
+      spreadData_.scale = std::max(spreadData_.bbox.getWidth(), 1.0);
+  }
   else
-    spreadData_.scale = std::max(spreadData_.bbox.getWidth(), 1.0);
+    spreadData_.scale = 1.0;
 
   //---
 
@@ -4055,7 +4089,7 @@ execSpreadOverlaps(const PlotObjs &objs)
 #if 0
 void
 CQChartsDendrogramPlot::
-calcNodeSize(PlotObjs &objs)
+calcNodesSize(PlotObjs &objs)
 {
   using NodeObjs            = std::vector<NodeObj *>;
   using ParentNodeObjs      = std::map<const NodeObj *, NodeObjs>;
@@ -5139,7 +5173,7 @@ calcValueLabel() const
     label = QString::number(hierValue().real());
 #if 0
   else if (plot()->nullValueString().length())
-    label = plot()->nullValueString());
+    label = plot()->nullValueString();
 #endif
 
   return label;
