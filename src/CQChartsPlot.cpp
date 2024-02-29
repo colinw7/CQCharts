@@ -19937,9 +19937,9 @@ lengthPlotWidth(const Length &len, bool pixelScaled) const
     return len.value()*refWidth/100.0;
   }
   else if (len.units() == Units::EM)
-    return pixelToWindowWidth(len.value()*view()->fontEm());
+    return lengthPlotWidth(Length::pixel(len.value()*view()->fontEm()), pixelScaled);
   else if (len.units() == Units::EX)
-    return pixelToWindowWidth(len.value()*view()->fontEx());
+    return lengthPlotWidth(Length::pixel(len.value()*view()->fontEx()), pixelScaled);
   else {
     assert(false);
   }
@@ -19973,9 +19973,9 @@ lengthPlotHeight(const Length &len, bool pixelScaled) const
     return len.value()*refHeight/100.0;
   }
   else if (len.units() == Units::EM)
-    return pixelToWindowHeight(len.value()*view()->fontEm());
+    return lengthPlotHeight(Length::pixel(len.value()*view()->fontEm()), pixelScaled);
   else if (len.units() == Units::EX)
-    return pixelToWindowHeight(len.value()*view()->fontEx());
+    return lengthPlotHeight(Length::pixel(len.value()*view()->fontEx()), pixelScaled);
   else {
     assert(false);
   }
@@ -20074,9 +20074,9 @@ lengthPixelWidth(const Length &len, bool pixelScaled) const
     return len.value()*refWidth/100.0;
   }
   else if (len.units() == Units::EM)
-    return len.value()*view()->fontEm();
+    return lengthPixelWidth(Length::pixel(len.value()*view()->fontEm()), pixelScaled);
   else if (len.units() == Units::EX)
-    return len.value()*view()->fontEx();
+    return lengthPixelWidth(Length::pixel(len.value()*view()->fontEx()), pixelScaled);
   else {
     assert(false);
   }
@@ -20110,9 +20110,9 @@ lengthPixelHeight(const Length &len, bool pixelScaled) const
     return len.value()*refHeight/100.0;
   }
   else if (len.units() == Units::EM)
-    return len.value()*view()->fontEm();
+    return lengthPixelHeight(Length::pixel(len.value()*view()->fontEm()), pixelScaled);
   else if (len.units() == Units::EX)
-    return len.value()*view()->fontEx();
+    return lengthPixelHeight(Length::pixel(len.value()*view()->fontEx()), pixelScaled);
   else {
     assert(false);
   }

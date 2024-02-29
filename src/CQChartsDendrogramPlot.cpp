@@ -413,6 +413,8 @@ setRemoveExtraRoots(bool b)
   } );
 }
 
+//---
+
 void
 CQChartsDendrogramPlot::
 setHierSize(const Length &s)
@@ -1774,12 +1776,12 @@ updateScrollOffset()
   auto scrollFit = (fitMode() == FitMode::SCROLL);
 
   if      (scrollFit) {
-    if (! spreadData_.bbox.isValid())
-      return applyDataRangeAndDraw();
-
-    //---
-
     if (isSpreadNodeOverlaps()) {
+      if (! spreadData_.bbox.isValid())
+        return applyDataRangeAndDraw();
+
+      //---
+
       if (orientation() == Qt::Horizontal) {
         auto d = CMathUtil::map(scrollData_.ypos, scrollData_.ymin, scrollData_.ymax,
                                 spreadData_.bbox.getYMax() - 1.0, spreadData_.bbox.getYMin());
@@ -3900,7 +3902,7 @@ execSpreadOverlaps(const PlotObjs &objs)
   if (maxN <= 1)
     return;
 
-  // spread over mas size (-maxSize/2 -> maxSize/2)
+  // spread over max size (-maxSize/2 -> maxSize/2)
   for (const auto &pd : depthObjs) {
     for (auto *obj : pd.second) {
       auto r = obj->displayRect();

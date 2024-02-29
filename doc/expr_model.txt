@@ -1,0 +1,51 @@
+# get column value
+column(), column(col), column(col, defVal)
+# get row value
+row(), row(row), row(row, defVal)
+# get cell value
+cell
+# set column value
+setColumn
+# set row value
+setRow
+# set cell value
+setCell
+
+# get header value
+header
+# set header value
+setHeader
+
+# get type
+type
+# set type
+setType
+
+# map value to column range (0-1)
+map
+# remap value to range
+remap
+
+# map value to bucket
+bucket
+# normalized column value
+norm
+# scaled column value
+scale
+
+# get rand value
+rand
+# get normalised rand value
+rnorm
+
+# match regexp (true/false)
+match
+
+# string to color
+color
+
+# string to time
+timeval
+
+# concat
+concat

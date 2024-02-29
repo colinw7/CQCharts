@@ -191,7 +191,7 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   QStringList calcNodeText() const;
 
-  // convert value to string for node value
+  // convert value to string for node label
   virtual QString calcValueLabel() const;
 
   //---
@@ -559,7 +559,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   const TextPosition &rootTextPosition() const { return rootNodeData_.textPosition; }
   void setRootTextPosition(const TextPosition &p);
 
-  // get/set is rotated text label (for circular placement)
+  //! get/set is rotated text label (for circular placement)
   bool isRootRotatedText() const { return rootNodeData_.rotatedText; }
   void setRootRotatedText(bool b);
 
@@ -567,7 +567,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   double rootTextMargin() const { return rootNodeData_.textMargin; }
   void setRootTextMargin(double r);
 
-  // get/set is root value label
+  //! get/set is root value label
   bool isRootValueLabel() const { return rootNodeData_.valueLabel; }
   void setRootValueLabel(bool b);
 
@@ -604,7 +604,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   const TextPosition &hierTextPosition() const { return hierNodeData_.textPosition; }
   void setHierTextPosition(const TextPosition &p);
 
-  // get/set is rotated text label (for circular placement)
+  //! get/set is rotated text label (for circular placement)
   bool isHierRotatedText() const { return hierNodeData_.rotatedText; }
   void setHierRotatedText(bool b);
 
@@ -612,7 +612,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   double hierTextMargin() const { return hierNodeData_.textMargin; }
   void setHierTextMargin(double r);
 
-  // get/set is root value label
+  //! get/set is root value label
   bool isHierValueLabel() const { return hierNodeData_.valueLabel; }
   void setHierValueLabel(bool b);
 
@@ -645,7 +645,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   const TextPosition &leafTextPosition() const { return leafNodeData_.textPosition; }
   void setLeafTextPosition(const TextPosition &p);
 
-  // get/set is rotated text label (for circular placement)
+  //! get/set is rotated text label (for circular placement)
   bool isLeafRotatedText() const { return leafNodeData_.rotatedText; }
   void setLeafRotatedText(bool b);
 
@@ -653,7 +653,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   double leafTextMargin() const { return leafNodeData_.textMargin; }
   void setLeafTextMargin(double r);
 
-  // get/set is value label
+  //! get/set is value label
   bool isLeafValueLabel() const { return leafNodeData_.valueLabel; }
   void setLeafValueLabel(bool b);
 
