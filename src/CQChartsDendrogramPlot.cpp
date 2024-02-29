@@ -117,7 +117,7 @@ class PlotDendrogram : public CQChartsDendrogram {
 
   Node *createNode(CQChartsDendrogram::Node *hier, const QString &name,
                    const CQChartsDendrogram::OptReal &size) const override {
-    return new PlotNode(hier, name, size);
+    return new PlotNode(hier, name, CQChartsOptReal(size));
   }
 };
 
@@ -4184,7 +4184,7 @@ addNodeObjs(Node *hier, int depth, NodeObj *parentObj, PlotObjs &objs) const
     if (parentObj) {
       hierNodeObj->setParent(parentObj);
 
-      parentObj->addChild(hierNodeObj, value);
+      parentObj->addChild(hierNodeObj, CQChartsOptReal(value));
     }
 
     addNodeObjs(hierNode, depth + 1, hierNodeObj, objs);

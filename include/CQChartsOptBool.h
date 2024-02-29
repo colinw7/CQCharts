@@ -28,7 +28,10 @@ class CQChartsOptBool :
 
   CQChartsOptBool() = default;
 
-  CQChartsOptBool(const OptBool &value) :
+  CQChartsOptBool(const CQChartsOptBool &) = default;
+  CQChartsOptBool &operator=(const CQChartsOptBool &) = default;
+
+  explicit CQChartsOptBool(const OptBool &value) :
    value_(value) {
   }
 

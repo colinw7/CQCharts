@@ -1106,10 +1106,10 @@ initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initDat
   if (initData.yintegral)
     plot->yAxis()->setValueType(CQChartsAxisValueType(CQChartsAxisValueType::Type::INTEGER));
 
-  if (initData.xmin) plot->setXMin(initData.xmin);
-  if (initData.ymin) plot->setYMin(initData.ymin);
-  if (initData.xmax) plot->setXMax(initData.xmax);
-  if (initData.ymax) plot->setYMax(initData.ymax);
+  if (initData.xmin) plot->setXMin(CQChartsOptReal(initData.xmin));
+  if (initData.ymin) plot->setYMin(CQChartsOptReal(initData.ymin));
+  if (initData.xmax) plot->setXMax(CQChartsOptReal(initData.xmax));
+  if (initData.ymax) plot->setYMax(CQChartsOptReal(initData.ymax));
 
   //---
 

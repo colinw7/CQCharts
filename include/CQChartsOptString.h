@@ -28,14 +28,6 @@ class CQChartsOptString :
 
   CQChartsOptString() = default;
 
-  CQChartsOptString(const OptString &value) :
-   value_(value) {
-  }
-
-  explicit CQChartsOptString(const QString &s) :
-   value_(s) {
-  }
-
   CQChartsOptString(const CQChartsOptString &rhs) :
    value_(rhs.value_), defValue_(rhs.defValue_) {
     // TODO: keep def value if rhs hasn't got one ?
@@ -46,6 +38,14 @@ class CQChartsOptString :
     value_    = rhs.value_;
     defValue_ = rhs.defValue_;
     return *this;
+  }
+
+  explicit CQChartsOptString(const OptString &value) :
+   value_(value) {
+  }
+
+  explicit CQChartsOptString(const QString &s) :
+   value_(s) {
   }
 
   //---

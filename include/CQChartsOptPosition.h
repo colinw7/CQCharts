@@ -28,7 +28,10 @@ class CQChartsOptPosition :
 
   CQChartsOptPosition() = default;
 
-  CQChartsOptPosition(const OptPosition &value) :
+  CQChartsOptPosition(const CQChartsOptPosition &) = default;
+  CQChartsOptPosition &operator=(const CQChartsOptPosition &) = default;
+
+  explicit CQChartsOptPosition(const OptPosition &value) :
    value_(value) {
   }
 

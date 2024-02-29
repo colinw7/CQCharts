@@ -28,7 +28,10 @@ class CQChartsOptInt :
 
   CQChartsOptInt() = default;
 
-  CQChartsOptInt(const OptInt &value) :
+  CQChartsOptInt(const CQChartsOptInt &) = default;
+  CQChartsOptInt &operator=(const CQChartsOptInt &) = default;
+
+  explicit CQChartsOptInt(const OptInt &value) :
    value_(value) {
   }
 

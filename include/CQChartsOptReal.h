@@ -29,7 +29,10 @@ class CQChartsOptReal :
 
   CQChartsOptReal() = default;
 
-  CQChartsOptReal(const OptReal &value) :
+  CQChartsOptReal(const CQChartsOptReal &) = default;
+  CQChartsOptReal &operator=(const CQChartsOptReal &) = default;
+
+  explicit CQChartsOptReal(const OptReal &value) :
    value_(value) {
   }
 

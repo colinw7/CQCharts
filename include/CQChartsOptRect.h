@@ -28,7 +28,10 @@ class CQChartsOptRect :
 
   CQChartsOptRect() = default;
 
-  CQChartsOptRect(const OptRect &value) :
+  CQChartsOptRect(const CQChartsOptRect &) = default;
+  CQChartsOptRect &operator=(const CQChartsOptRect &) = default;
+
+  explicit CQChartsOptRect(const OptRect &value) :
    value_(value) {
   }
 

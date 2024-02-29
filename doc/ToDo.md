@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + dendrogram shape scaling with em sizes
+
  + support pixel scale in all plots (per shape ?)
 
  + QMetaType::registerConverter

@@ -29,7 +29,10 @@ class CQChartsOptLength :
 
   CQChartsOptLength() = default;
 
-  CQChartsOptLength(const OptLength &value) :
+  CQChartsOptLength(const CQChartsOptLength &) = default;
+  CQChartsOptLength &operator=(const CQChartsOptLength &) = default;
+
+  explicit CQChartsOptLength(const OptLength &value) :
    value_(value) {
   }
 

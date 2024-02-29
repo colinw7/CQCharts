@@ -1678,10 +1678,10 @@ execCmd(CQChartsCmdArgs &argv)
   if (filterStr.length())
     plot->setFilterStr(filterStr);
 
-  if (xmin) plot->setXMin(xmin);
-  if (ymin) plot->setYMin(ymin);
-  if (xmax) plot->setXMax(xmax);
-  if (ymax) plot->setYMax(ymax);
+  if (xmin) plot->setXMin(CQChartsOptReal(xmin));
+  if (ymin) plot->setYMin(CQChartsOptReal(ymin));
+  if (xmax) plot->setXMax(CQChartsOptReal(xmax));
+  if (ymax) plot->setYMax(CQChartsOptReal(ymax));
 
   //---
 
