@@ -72,10 +72,10 @@ class CQChartsOptInt :
       value_ = OptInt();
     else {
       bool ok;
-      long i = CQChartsUtil::toInt(s, ok);
+      auto i = CQChartsUtil::toInt(s, ok);
       if (! ok) return false;
 
-      value_ = static_cast<long>(i);
+      value_ = i;
     }
 
     return true;

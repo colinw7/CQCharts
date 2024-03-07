@@ -11,7 +11,8 @@ set_charts_property -plot $plot -name leaf.size  -value 0.1P
 
 set_charts_property -plot $plot -name options.fitMode -value SCROLL
 
-#set_charts_property -plot $plot -name options.spreadNodeOverlaps -value 1
+set_charts_property -plot $plot -name options.spreadNodeOverlaps -value 1
+
 #set_charts_property -plot $plot -name plotBox.fill.color -value {interface 0.12}
 #set_charts_property -plot $plot -name plotBox.clip -value 0
 

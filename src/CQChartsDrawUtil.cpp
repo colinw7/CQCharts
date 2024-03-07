@@ -2254,11 +2254,25 @@ edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
     return stroker.createStroke(path);
   };
 
+  //---
+
+  auto calcControlFactor = [&]() {
+    auto a1 = CQChartsGeom::pointAngle(p1, p2);
+    double a2;
+    if      (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal)
+      a2 = std::abs(std::sin(a1));
+    else if (orient1 == Qt::Vertical && orient2 == Qt::Vertical)
+      a2 = std::abs(std::cos(a1));
+    else
+      return 1.0/3.0;
+    return CMathUtil::map(a2, 0.0, 1.0, 0.5, 0.1);
+  };
+
   if      (edgeType == EdgeType::ARC) {
-    auto f1 = 1.0/3.0;
+    auto f1 = calcControlFactor();
 
 #if 0
-    auto f2 = 2.0/3.0;
+    auto f2 = 1.0 - f1;
 
     Point p3, p4;
 
@@ -2456,19 +2470,33 @@ curvePath(QPainterPath &path, const Point &p1, const Point &p4,
 
   //---
 
+  auto calcControlFactor = [&]() {
+    auto a1 = CQChartsGeom::pointAngle(p1, p4);
+    double a2;
+    if      (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal)
+      a2 = std::abs(std::sin(a1));
+    else if (orient1 == Qt::Vertical && orient2 == Qt::Vertical)
+      a2 = std::abs(std::cos(a1));
+    else
+      return 1.0/3.0;
+    return CMathUtil::map(a2, 0.0, 1.0, 0.5, 0.1);
+  };
+
   if      (edgeType == EdgeType::ARC) {
-    auto f1 = 1.0/3.0;
+    auto f1 = calcControlFactor();
 
 #if 0
-    auto f2 = 2.0/3.0;
+    auto f2 = 1.0 - f1;
 
     Point p2, p3;
 
+    // curve control point f1
     if (orient1 == Qt::Horizontal)
       p2 = Point(CMathUtil::lerp(f1, p1.x, p4.x), p1.y);
     else
       p2 = Point(p1.x, CMathUtil::lerp(f1, p1.y, p4.y));
 
+    // curve control point at f1
     if (orient2 == Qt::Horizontal)
       p3 = Point(CMathUtil::lerp(f2, p1.x, p4.x), p4.y);
     else
@@ -2479,6 +2507,8 @@ curvePath(QPainterPath &path, const Point &p1, const Point &p4,
     auto p2 = CQChartsGeom::movePointOnLine(p1, angle1.radians(), f1*len);
     auto p3 = CQChartsGeom::movePointOnLine(p4, angle2.radians(), f1*len);
 #endif
+
+    //---
 
     path.moveTo(p1.qpoint());
     path.cubicTo(p2.qpoint(), p3.qpoint(), p4.qpoint());
