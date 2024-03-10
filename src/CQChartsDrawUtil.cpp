@@ -797,10 +797,12 @@ drawTextInBox(PaintDevice *device, const BBox &rect,
 
   // handle html separately
   if (options.html) {
+    bool rotateRect = false;
+
     if (options.scaled)
-      CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text, options, adjustScale);
+      CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text, options, adjustScale, rotateRect);
     else
-      CQChartsDrawPrivate::drawHtmlText(device, rect, text, options);
+      CQChartsDrawPrivate::drawHtmlText(device, rect, text, options, rotateRect);
 
     return;
   }
@@ -1890,6 +1892,28 @@ drawParetoGradient(PaintDevice *device, const Point &origin, const BBox &bbox,
   device->fillRect(bbox);
 }
 
+#if 0
+void
+drawParetoCorner(PaintDevice *device, const Point &origin, const BBox &bbox,
+                 double xf, double yf)
+{
+  auto invX = (origin.x > pbbox.getXMid());
+  auto invY = (origin.y > pbbox.getYMid());
+
+  auto opposite = Point(invX ? pbbox.getXMin() : pbbox.getXMax(),
+                        invY ? pbbox.getYMin() : pbbox.getYMax());
+
+  double dx = (opposite.x - origin.x)/10;
+  double dy = (opposite.y - origin.y)/10;
+
+  auto origin1 = origin + Point(dx, 0.0);
+  auto origin2 = origin + Point(0.0, dy);
+
+  device->drawLine(origin, origin1);
+  device->drawLine(origin, origin2);
+}
+#endif
+
 //---
 
 void
@@ -2282,7 +2306,7 @@ edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
     else
       p3 = Point(p1.x, CMathUtil::lerp(f1, p1.y, p2.y));
 
-    // curve control point at f1
+    // curve control point f2
     if (orient2 == Qt::Horizontal)
       p4 = Point(CMathUtil::lerp(f2, p1.x, p2.x), p2.y);
     else
@@ -2496,7 +2520,7 @@ curvePath(QPainterPath &path, const Point &p1, const Point &p4,
     else
       p2 = Point(p1.x, CMathUtil::lerp(f1, p1.y, p4.y));
 
-    // curve control point at f1
+    // curve control point f2
     if (orient2 == Qt::Horizontal)
       p3 = Point(CMathUtil::lerp(f2, p1.x, p4.x), p4.y);
     else
@@ -2830,7 +2854,7 @@ calcHtmlTextSize(const QString &text, const QFont &font, int margin)
 
 void
 drawScaledHtmlText(PaintDevice *device, const BBox &tbbox, const QString &text,
-                   const TextOptions &options, double adjustScale)
+                   const TextOptions &options, double adjustScale, bool rotateRect)
 {
   assert(tbbox.isValid());
 
@@ -2895,19 +2919,21 @@ drawScaledHtmlText(PaintDevice *device, const BBox &tbbox, const QString &text,
 
   //---
 
-  drawHtmlText(device, tbbox, text, options);
+  drawHtmlText(device, tbbox, text, options, 0.0, 0.0, rotateRect);
 }
 
 void
 drawHtmlText(PaintDevice *device, const BBox &tbbox,
-             const QString &text, const TextOptions &options, double pdx, double pdy)
+             const QString &text, const TextOptions &options, double pdx, double pdy,
+             bool rotateRect)
 {
-  drawHtmlText(device, tbbox.getCenter(), tbbox, text, options, pdx, pdy);
+  drawHtmlText(device, tbbox.getCenter(), tbbox, text, options, pdx, pdy, rotateRect);
 }
 
 void
 drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
-             const QString &text, const TextOptions &options, double pdx, double pdy)
+             const QString &text, const TextOptions &options, double pdx, double pdy,
+             bool rotateRect)
 {
   assert(tbbox.isValid());
 
@@ -2935,19 +2961,24 @@ drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
   }
 
   if (! options.angle.isZero()) {
-    double pdx2 = c*pdx1 - s*pdy1;
-    double pdy2 = s*pdx1 + c*pdy1;
+    if (rotateRect) {
+      double pdx2 = c*pdx1 - s*pdy1;
+      double pdy2 = s*pdx1 + c*pdy1;
 
-    pdx1 = pdx2;
-    pdy1 = pdy2;
+      pdx1 = pdx2;
+      pdy1 = pdy2;
+    }
   }
 
   pdx += pdx1;
   pdy += pdy1;
 
 //auto ptbbox1 = ptbbox.translated(pdx, pdy); // inner text rect
-  BBox ptbbox1(ptbbox.getXMin() + pdx                , ptbbox.getYMin() + pdy,
-               ptbbox.getXMin() + pdx + psize.width(), ptbbox.getYMin() + pdy + psize.height());
+  auto ppw = psize.width ();
+  auto pph = psize.height();
+
+  auto ptbbox1 = BBox(ptbbox.getXMin() + pdx      , ptbbox.getYMin() + pdy,
+                      ptbbox.getXMin() + pdx + ppw, ptbbox.getYMin() + pdy + pph);
 
   //---
 
@@ -2973,13 +3004,13 @@ drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
   //painter->drawRect(ptbbox .qrect()); // DEBUG
   //painter->drawRect(ptbbox1.qrect()); // DEBUG
 
-  if (! options.angle.isZero()) {
-  //auto tc = ptbbox1.getCenter().qpoint();
-    auto tc = device->windowToPixel(center).qpoint();
+  auto pcenter = device->windowToPixel(center).qpoint();
 
-    painter->translate(tc);
+  if (! options.angle.isZero()) {
+  //auto pcenter = ptbbox1.getCenter().qpoint();
+    painter->translate(pcenter);
     painter->rotate(-options.angle.value());
-    painter->translate(-tc);
+    painter->translate(-pcenter);
   }
 
   QTextDocument td;
@@ -2993,8 +3024,9 @@ drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
   double tx = ptbbox1.getXMin();
   double ty = ptbbox1.getYMin();
 
-  if (device->isInteractive())
+  if (device->isInteractive()) {
     painter->translate(tx, ty);
+  }
 
   //if (options.angle.isZero())
   //  painter->setClipRect(ptbbox2.qrect(), Qt::IntersectClip);
@@ -3052,8 +3084,9 @@ drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
 
   layout->draw(painter, ctx);
 
-  if (device->isInteractive())
+  if (device->isInteractive()) {
     painter->translate(-tx, -ty);
+  }
 
   //---
 

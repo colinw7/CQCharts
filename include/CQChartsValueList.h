@@ -30,7 +30,16 @@ class CQChartsValueList :
   uint numValues() const { return uint(valueList_.size()); }
 
   const QVariant &value(uint i) const {
-    assert(i < uint(valueList_.size())); return valueList_[i]; }
+    assert(i < uint(valueList_.size()));
+    return valueList_[i];
+  }
+
+  QVariant valueOr(uint i, const QVariant &defValue=QVariant()) const {
+    if (i < uint(valueList_.size()))
+      return valueList_[i];
+    else
+      return defValue;
+  }
 
   void clear() {
     valueList_.clear();

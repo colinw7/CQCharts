@@ -4,6 +4,15 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + tipable and selectable separate ?
+
+ + dendrogram header (like tree widget)
+   + html multi line
+   + horizontal/vertical
+   + tooltip
+
+ + dendrogram scale node size
+
  + dendrogram shape scaling with em sizes
 
  + support pixel scale in all plots (per shape ?)

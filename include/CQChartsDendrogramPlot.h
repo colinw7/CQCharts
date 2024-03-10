@@ -247,6 +247,8 @@ class CQChartsDendrogramEdgeObj : public CQChartsPlotObj {
 
   QString typeName() const override { return "edge"; }
 
+  //---
+
   const DendrogramPlot *plot() const { return dendrogramPlot_; }
 
   NodeObj *fromNode() const { return fromNode_; }
@@ -303,6 +305,43 @@ class CQChartsDendrogramEdgeObj : public CQChartsPlotObj {
 
 //---
 
+class CQChartsDendrogramHeaderObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  using DendrogramPlot = CQChartsDendrogramPlot;
+
+ public:
+  CQChartsDendrogramHeaderObj(const DendrogramPlot *plot, int depth, const BBox &bbox);
+
+  QString typeName() const override { return "header"; }
+
+  //---
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
+
+  //---
+
+  const DendrogramPlot *plot() const { return dendrogramPlot_; }
+
+  int depth() const { return depth_; }
+
+  bool addToQuadTree() const override { return false; }
+
+  //---
+
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
+ private:
+  const DendrogramPlot* dendrogramPlot_ { nullptr }; //!< plot
+  int                   depth_          { -1 };      //!< depth
+};
+
+
+//---
+
 CQCHARTS_NAMED_SHAPE_DATA(Root, root)
 CQCHARTS_NAMED_SHAPE_DATA(Leaf, leaf)
 
@@ -314,13 +353,15 @@ CQCHARTS_NAMED_TEXT_DATA(Leaf, leaf)
  * \ingroup Charts
  */
 class CQChartsDendrogramPlot : public CQChartsHierPlot,
- public CQChartsObjRootShapeData<CQChartsDendrogramPlot>,
- public CQChartsObjHierShapeData<CQChartsDendrogramPlot>,
- public CQChartsObjLeafShapeData<CQChartsDendrogramPlot>,
- public CQChartsObjEdgeShapeData<CQChartsDendrogramPlot>,
- public CQChartsObjRootTextData <CQChartsDendrogramPlot>,
- public CQChartsObjHierTextData <CQChartsDendrogramPlot>,
- public CQChartsObjLeafTextData <CQChartsDendrogramPlot> {
+ public CQChartsObjRootShapeData  <CQChartsDendrogramPlot>,
+ public CQChartsObjHierShapeData  <CQChartsDendrogramPlot>,
+ public CQChartsObjLeafShapeData  <CQChartsDendrogramPlot>,
+ public CQChartsObjEdgeShapeData  <CQChartsDendrogramPlot>,
+ public CQChartsObjRootTextData   <CQChartsDendrogramPlot>,
+ public CQChartsObjHierTextData   <CQChartsDendrogramPlot>,
+ public CQChartsObjLeafTextData   <CQChartsDendrogramPlot>,
+ public CQChartsObjHeaderShapeData<CQChartsDendrogramPlot>,
+ public CQChartsObjHeaderTextData <CQChartsDendrogramPlot> {
   Q_OBJECT
 
   // columns
@@ -382,8 +423,16 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_PROPERTY(bool           edgeSizeByValue  READ isEdgeSizeByValue  WRITE setEdgeSizeByValue )
   Q_PROPERTY(bool           edgeSelectable   READ isEdgeSelectable   WRITE setEdgeSelectable  )
 
+  // header data
+  Q_PROPERTY(bool              headerVisible READ isHeaderVisible WRITE setHeaderVisible)
+  Q_PROPERTY(CQChartsLength    headerSize    READ headerSize      WRITE setHeaderSize)
+  Q_PROPERTY(CQChartsLength    headerMargin  READ headerMargin    WRITE setHeaderMargin)
+  Q_PROPERTY(CQChartsLength    headerSpacing READ headerSpacing   WRITE setHeaderSpacing)
+  Q_PROPERTY(CQChartsValueList headerValues  READ headerValues    WRITE setHeaderValues)
+  Q_PROPERTY(CQChartsValueList headerTips    READ headerTips      WRITE setHeaderTips)
+
   // options
-  Q_PROPERTY(Qt::Orientation orientation READ orientation WRITE setOrientation )
+  Q_PROPERTY(Qt::Orientation orientation READ orientation WRITE setOrientation)
 
   Q_PROPERTY(PlaceType placeType READ placeType WRITE setPlaceType)
 
@@ -426,6 +475,10 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Hier, hier)
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Leaf, leaf)
 
+  // header
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Header, header)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES (Header, header)
+
   Q_ENUMS(PlaceType)
   Q_ENUMS(FitMode)
   Q_ENUMS(TextPosition)
@@ -435,6 +488,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
  public:
   using NodeObj   = CQChartsDendrogramNodeObj;
   using EdgeObj   = CQChartsDendrogramEdgeObj;
+  using HeaderObj = CQChartsDendrogramHeaderObj;
   using Node      = CQChartsDendrogram::Node;
   using Font      = CQChartsFont;
   using Color     = CQChartsColor;
@@ -452,7 +506,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   enum class FitMode {
     SCALE,
-    SCROLL
+    SCROLL,
+    SIZE
   };
 
   enum class TextPosition {
@@ -689,6 +744,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   const Length &edgeWidth() const { return edgeData_.width; }
   void setEdgeWidth(const Length &l);
 
+  Length calcEdgeWidth() const;
+
   //! get/set min edge width
   const Length &minEdgeWidth() const { return edgeData_.minWidth; }
   void setMinEdgeWidth(const Length &l);
@@ -704,6 +761,26 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   //! get/set is edge selectable
   bool isEdgeSelectable() const { return edgeData_.selectable; }
   void setEdgeSelectable(bool b);
+
+  //---
+
+  bool isHeaderVisible() const { return headerData_.visible; }
+  void setHeaderVisible(bool b);
+
+  const CQChartsLength &headerSize() const { return headerData_.size; }
+  void setHeaderSize(const CQChartsLength &s);
+
+  const CQChartsLength &headerMargin() const { return headerData_.margin; }
+  void setHeaderMargin(const CQChartsLength &s);
+
+  const CQChartsLength &headerSpacing() const { return headerData_.spacing; }
+  void setHeaderSpacing(const CQChartsLength &s);
+
+  const CQChartsValueList &headerValues() const { return headerData_.values; }
+  void setHeaderValues(const CQChartsValueList &v);
+
+  const CQChartsValueList &headerTips() const { return headerData_.tips; }
+  void setHeaderTips(const CQChartsValueList &v);
 
   //---
 
@@ -837,6 +914,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
+  void createHeaderObjs(const PlotObjs &nodeObjs, PlotObjs &headerObjs) const;
+
   bool isEdgeRows() const { return isEdgeRows_; }
 
   //--
@@ -913,6 +992,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   virtual EdgeObj *createEdgeObj(NodeObj *fromNode, NodeObj *toNode, const BBox &rect,
                                  const ColorInd &ig, const ColorInd &iv) const;
 
+  virtual HeaderObj *createHeaderObj(int depth, const BBox &rect) const;
+
   //---
 
   double targetValue() const { return cacheData_.targetValue; }
@@ -924,9 +1005,12 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
                             const QVariant &value) override;
 
  protected:
-  using NodesArray = std::vector<Node *>;
+  using NodeArray  = std::vector<Node *>;
   using NodeSet    = std::set<Node *>;
-  using DepthNodes = std::map<int, NodesArray>;
+  using DepthNodes = std::map<int, NodeArray>;
+
+  using NodeObjArray  = std::vector<NodeObj *>;
+  using DepthNodeObjs = std::map<int, NodeObjArray>;
 
   struct AnglePair {
     double a  { 0.0 };
@@ -936,10 +1020,12 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   using NodeAngles = std::map<Node *, AnglePair>;
 
   struct CircularNode {
-    NodesArray nodes;
+    NodeArray nodes;
   };
 
   using CircularDepth = std::map<int, CircularNode>;
+
+  //---
 
   void placeModel() const;
 
@@ -958,6 +1044,13 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   void initCircularDepth(Node *hierNode, CircularDepth &circularDepth,
                          int depth, int &maxDepth) const;
 
+  //---
+
+  void getDepthNodeObjs(DepthNodeObjs &depthObjs) const;
+  void getDepthNodeObjs(const PlotObjs &plotObjs, DepthNodeObjs &depthObjs) const;
+
+  //---
+
   double calcHierColor(const Node *hierNode) const;
   double calcHierSize (const Node *hierNode) const;
 
@@ -967,6 +1060,18 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   void setOpen(NodeObj *nodeObj, bool open);
 
   bool executeSlotFn(const QString &name, const QVariantList &args, QVariant &res) override;
+
+  //---
+
+  bool hasForeground() const override;
+
+  void execDrawForeground(PaintDevice *) const override;
+
+  CQChartsGeom::BBox headerFitBox() const;
+
+  void drawHeader(PaintDevice *device) const;
+
+  //---
 
   CQChartsPlotCustomControls *createCustomControls() override;
 
@@ -990,7 +1095,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
  private:
   using Dendrogram  = CQChartsDendrogram;
   using DendrogramP = std::unique_ptr<Dendrogram>;
-  using NodeObjs   = std::map<Node *, NodeObj *>;
+  using NodeObjs    = std::map<Node *, NodeObj *>;
 
   // columns
   Column linkColumn_;  //!< link column
@@ -1048,6 +1153,18 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   mutable bool isEdgeRows_ { false };
 
+  // header data
+  struct HeaderData {
+    bool              visible { false };                   //!< headers visible
+    CQChartsLength    size    { CQChartsLength::view(5) }; //!< header size
+    CQChartsLength    margin  { CQChartsLength::view(1) }; //!< header margin
+    CQChartsLength    spacing { CQChartsLength::view(0) }; //!< header spacing
+    CQChartsValueList values;                              //!< header values
+    CQChartsValueList tips;                                //!< header tips
+  };
+
+  HeaderData headerData_;
+
   // plot data
   Qt::Orientation orientation_ { Qt::Horizontal };      //!< draw direction
   PlaceType       placeType_   { PlaceType::BUCHHEIM }; //!< place type
@@ -1055,6 +1172,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   int             hideDepth_   { -1 };                  //!< place type
 
   double sizeScale_ { 1.0 }; //!< size scale
+
+  double sizeFactor_ { 1.0 }; //!< size factor
 
   // overlap
   bool           removeNodeOverlaps_  { false };              //!< remove node overlaps
@@ -1076,6 +1195,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
     bool   enabled { false }; //!< spread node overlaps
     double scale   { 1.0 };   //!< spread scale
     double pos     { 0.0 };   //!< spread pos
+    double rpos    { -1.0 };  //!< spread relative pos
     BBox   bbox;              //!< spread bbox
 
     void reset() {
@@ -1112,6 +1232,12 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   using DepthValueRange = std::map<int, RMinMax>;
 
   DepthValueRange depthValueRange_; //!< depth value column range
+
+  //---
+
+  using DepthHeaderObj = std::map<int, HeaderObj *>;
+
+  DepthHeaderObj depthHeaderObj_;
 
   //---
 

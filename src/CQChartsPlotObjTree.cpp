@@ -66,7 +66,7 @@ addObjectsThread()
         if (interrupt_.load())
           break;
 
-        if (! obj->isVisible())
+        if (! obj->isVisible() || ! obj->addToQuadTree())
           continue;
 
         if (obj->rect().isSet())

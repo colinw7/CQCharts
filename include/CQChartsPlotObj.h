@@ -215,6 +215,10 @@ class CQChartsPlotObj : public CQChartsObj,
 
   //---
 
+  virtual bool addToQuadTree() const { return true; }
+
+  //---
+
   // is point inside (override if not simple rect shape)
   virtual bool inside(const Point &p) const {
     if (! isVisible()) return false;

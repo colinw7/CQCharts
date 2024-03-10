@@ -82,6 +82,12 @@ class CQChartsLength :
 
   //---
 
+  void scale(double f) { value_ *= f; }
+
+  Length scaled(double f) const { return Length(value_*f, units_); }
+
+  //---
+
   QString toString() const;
   bool fromString(const QString &s);
 

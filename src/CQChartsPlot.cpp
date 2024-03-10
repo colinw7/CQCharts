@@ -12720,6 +12720,17 @@ plotObjsAtPoint(const Point &p, PlotObjs &plotObjs, const Constraints &constrain
 
   //---
 
+  // get non quad tree objects with point inside
+  for (auto &plotObj : plotObjects()) {
+    if (plotObj->addToQuadTree())
+      continue;
+
+    if (plotObj->inside(p))
+      plotObjs1.push_back(plotObj);
+  }
+
+  //---
+
   // filter to constraints
   auto iconstraints = static_cast<uint>(constraints);
 
@@ -12845,14 +12856,28 @@ plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside,
     objTreeData_.tree->objectsIntersectRect(r, plotObjs1, false);
 
     for (const auto &plotObj : plotObjs1) {
-      if (plotObj->rectIntersect(r, true))
+      if (plotObj->rectIntersect(r, inside))
         plotObjs2.push_back(plotObj);
     }
 
+    //---
+
     plotObjs1 = plotObjs2;
   }
-  else
+  else {
     objTreeData_.tree->objectsIntersectRect(r, plotObjs1, inside);
+  }
+
+  //---
+
+  // get non quad tree objects with rect inside
+  for (auto &plotObj : plotObjects()) {
+    if (plotObj->addToQuadTree())
+      continue;
+
+    if (plotObj->rectIntersect(r, inside))
+      plotObjs1.push_back(plotObj);
+  }
 
   //---
 
@@ -12941,7 +12966,11 @@ objNearestPoint(const Point &p, PlotObj* &obj) const
   double tx = dataRange().xsize()/32.0;
   double ty = dataRange().ysize()/32.0;
 
-  return objTreeData_.tree->objectNearest(p, tx, ty, obj);
+  bool rc1 = objTreeData_.tree->objectNearest(p, tx, ty, obj);
+
+  // TODO : non quad tree ?
+
+  return rc1;
 }
 
 //---

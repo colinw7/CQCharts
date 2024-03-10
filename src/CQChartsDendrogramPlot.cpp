@@ -192,13 +192,15 @@ create(View *view, const ModelP &model) const
 CQChartsDendrogramPlot::
 CQChartsDendrogramPlot(View *view, const ModelP &model) :
  CQChartsHierPlot(view, view->charts()->plotType("dendrogram"), model),
- CQChartsObjRootShapeData<CQChartsDendrogramPlot>(this),
- CQChartsObjHierShapeData<CQChartsDendrogramPlot>(this),
- CQChartsObjLeafShapeData<CQChartsDendrogramPlot>(this),
- CQChartsObjEdgeShapeData<CQChartsDendrogramPlot>(this),
- CQChartsObjRootTextData <CQChartsDendrogramPlot>(this),
- CQChartsObjHierTextData <CQChartsDendrogramPlot>(this),
- CQChartsObjLeafTextData <CQChartsDendrogramPlot>(this)
+ CQChartsObjRootShapeData  <CQChartsDendrogramPlot>(this),
+ CQChartsObjHierShapeData  <CQChartsDendrogramPlot>(this),
+ CQChartsObjLeafShapeData  <CQChartsDendrogramPlot>(this),
+ CQChartsObjEdgeShapeData  <CQChartsDendrogramPlot>(this),
+ CQChartsObjRootTextData   <CQChartsDendrogramPlot>(this),
+ CQChartsObjHierTextData   <CQChartsDendrogramPlot>(this),
+ CQChartsObjLeafTextData   <CQChartsDendrogramPlot>(this),
+ CQChartsObjHeaderShapeData<CQChartsDendrogramPlot>(this),
+ CQChartsObjHeaderTextData <CQChartsDendrogramPlot>(this)
 {
 }
 
@@ -397,9 +399,18 @@ QSizeF
 CQChartsDendrogramPlot::
 calcNodeSize(const Node *node) const
 {
-  if (node->isRoot()) return calcRootSize();
-  if (node->isHier()) return calcHierSize();
-  return calcLeafSize();
+  QSizeF s;
+
+  if      (node->isRoot()) s = calcRootSize();
+  else if (node->isHier()) s = calcHierSize();
+  else                     s = calcLeafSize();
+
+  if (fitMode() == FitMode::SIZE) {
+    s.setWidth (sizeFactor_*s.width ());
+    s.setHeight(sizeFactor_*s.height());
+  }
+
+  return s;
 }
 
 //---
@@ -625,6 +636,18 @@ setEdgeWidth(const Length &l)
   CQChartsUtil::testAndSet(edgeData_.width, l, [&]() { updateRangeAndObjs(); } );
 }
 
+CQChartsLength
+CQChartsDendrogramPlot::
+calcEdgeWidth() const
+{
+  auto w = edgeData_.width;
+
+  if (fitMode() == FitMode::SIZE)
+    w.scale(sizeFactor_);
+
+  return w;
+}
+
 void
 CQChartsDendrogramPlot::
 setMinEdgeWidth(const Length &l)
@@ -802,10 +825,54 @@ setLeafRotatedText(bool b)
 
 void
 CQChartsDendrogramPlot::
+setHeaderVisible(bool b)
+{
+  CQChartsUtil::testAndSet(headerData_.visible, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsDendrogramPlot::
+setHeaderSize(const CQChartsLength &s)
+{
+  CQChartsUtil::testAndSet(headerData_.size, s, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsDendrogramPlot::
+setHeaderMargin(const CQChartsLength &s)
+{
+  CQChartsUtil::testAndSet(headerData_.margin, s, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsDendrogramPlot::
+setHeaderSpacing(const CQChartsLength &s)
+{
+  CQChartsUtil::testAndSet(headerData_.spacing, s, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsDendrogramPlot::
+setHeaderValues(const CQChartsValueList &v)
+{
+  CQChartsUtil::testAndSet(headerData_.values, v, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsDendrogramPlot::
+setHeaderTips(const CQChartsValueList &v)
+{
+  CQChartsUtil::testAndSet(headerData_.tips, v, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsDendrogramPlot::
 setOrientation(const Qt::Orientation &orient)
 {
   CQChartsUtil::testAndSet(orientation_, orient, [&]() {
-    cacheData_.needsPlace = true; updateRangeAndObjs();
+    scrollData_.invalid = true; cacheData_.needsPlace = true; updateRangeAndObjs();
   } );
 }
 
@@ -823,9 +890,12 @@ CQChartsDendrogramPlot::
 setFitMode(const FitMode &m)
 {
   CQChartsUtil::testAndSet(fitMode_, m, [&]() {
-    auto scrollFit = (fitMode_ == FitMode::SCROLL);
+    sizeFactor_ = 1.0;
 
-    if (scrollFit) {
+    auto scrollFit  = (fitMode() == FitMode::SCROLL);
+    auto scrollSize = (fitMode() == FitMode::SIZE);
+
+    if (scrollFit || scrollSize) {
       setPlotClip(false);
       setPlotFillColor(dataFillColor());
     }
@@ -1186,6 +1256,23 @@ addProperties()
   addProp("edge/fill", "edgeFilled", "visible", "Edge fill visible");
   addFillProperties("edge/fill", "edgeFill", "Edge");
 
+  // header
+  addProp("header", "headerVisible", "visible", "Header visible");
+  addProp("header", "headerSize"   , "size"   , "Header size");
+  addProp("header", "headerMargin" , "margin" , "Header margin");
+  addProp("header", "headerSpacing", "spacing", "Header spacing");
+  addProp("header", "headerValues" , "values" , "Header values");
+  addProp("header", "headerTips"   , "tips"   , "Header tips");
+
+  addProp("header/stroke", "headerStroked", "visible", "Header stroke visible");
+  addLineProperties("header/stroke", "headerStroke", "Header");
+
+  addProp("header/fill", "headerFilled", "visible", "Header fill visible");
+  addFillProperties("header/fill", "headerFill", "Header");
+
+  addTextProperties("header/text", "headerText", "Header text",
+                    CQChartsTextOptions::ValueType::ALL);
+
   //---
 
   // color map
@@ -1288,6 +1375,35 @@ nodesBBox(const PlotObjs &plotObjs) const
   return bbox;
 }
 #endif
+
+//------
+
+void
+CQChartsDendrogramPlot::
+getDepthNodeObjs(DepthNodeObjs &depthObjs) const
+{
+  return getDepthNodeObjs(plotObjects(), depthObjs);
+}
+
+void
+CQChartsDendrogramPlot::
+getDepthNodeObjs(const PlotObjs &plotObjs, DepthNodeObjs &depthObjs) const
+{
+  depthObjs.clear();
+
+  // get nodes for each parent at each depth
+  for (auto *plotObj : plotObjs) {
+    auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
+    if (! nodeObj) continue;
+
+    auto depth = nodeObj->node()->depth();
+
+    if (depth == 0 && ! isRootVisible())
+      continue;
+
+    depthObjs[depth].push_back(nodeObj);
+  }
+}
 
 //------
 
@@ -1459,13 +1575,22 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  objs.reserve(edgeObjs.size() + nodeObjs.size());
+  PlotObjs headerObjs;
+
+  createHeaderObjs(nodeObjs, headerObjs);
+
+  //---
+
+  objs.reserve(edgeObjs.size() + nodeObjs.size() + headerObjs.size());
 
   for (auto *edgeObj : edgeObjs)
     objs.push_back(edgeObj);
 
   for (auto *nodeObj : nodeObjs)
     objs.push_back(nodeObj);
+
+  for (auto *headerObj : headerObjs)
+    objs.push_back(headerObj);
 
   //---
 
@@ -1501,6 +1626,29 @@ createObjs(PlotObjs &objs) const
   return true;
 }
 
+void
+CQChartsDendrogramPlot::
+createHeaderObjs(const PlotObjs &nodeObjs, PlotObjs &headerObjs) const
+{
+  DepthNodeObjs depthObjs;
+
+  getDepthNodeObjs(nodeObjs, depthObjs);
+
+  auto *th = const_cast<CQChartsDendrogramPlot *>(this);
+
+  th->depthHeaderObj_.clear();
+
+  for (const auto &pd : depthObjs) {
+    BBox bbox(0, 0, 1, 1);
+
+    auto *obj = createHeaderObj(pd.first, bbox);
+
+    th->depthHeaderObj_[pd.first] = obj;
+
+    headerObjs.push_back(obj);
+  }
+}
+
 //---
 
 void
@@ -1508,6 +1656,8 @@ CQChartsDendrogramPlot::
 autoFit()
 {
   setSortSizeFactor(1.0);
+
+  sizeFactor_ = 1.0;
 
   CQChartsPlot::autoFit();
 }
@@ -1518,9 +1668,10 @@ void
 CQChartsDendrogramPlot::
 updateZoomScroll()
 {
-  auto scrollFit = (fitMode() == FitMode::SCROLL);
+  auto scrollFit  = (fitMode() == FitMode::SCROLL);
+  auto scrollSize = (fitMode() == FitMode::SIZE);
 
-  if      (scrollFit) {
+  if      (scrollFit || scrollSize) {
     if (! scrollData_.invalid)
       return;
 
@@ -1546,6 +1697,19 @@ updateZoomScroll()
           int h3 = int(p1.y - p4.y);
 
           setVBarRange(0, h3, h1, h2, 0.0, spreadData_.scale - 1.0);
+
+          if (scrollSize && spreadData_.rpos >= 0.0) {
+            spreadData_.pos =
+              CMathUtil::map(spreadData_.rpos, 0.0, 1.0, scrollData_.ymin, scrollData_.ymax);
+            spreadData_.rpos = -1.0;
+
+            p3 = windowToPixel(Point(1.0, spreadData_.pos));
+            h2 = int(p1.y - p3.y);
+
+            setVBarRange(0, h3, h1, h2, 0.0, spreadData_.scale - 1.0);
+
+            scrollData_.ypos = spreadData_.pos;
+          }
         }
       }
       else {
@@ -1567,6 +1731,19 @@ updateZoomScroll()
           int w3 = int(p4.x - p1.x);
 
           setHBarRange(0, w3, w1, w2, 0.0, spreadData_.scale - 1.0);
+
+          if (scrollSize && spreadData_.rpos >= 0.0) {
+            spreadData_.pos =
+              CMathUtil::map(spreadData_.rpos, 0.0, 1.0, scrollData_.xmin, scrollData_.xmax);
+            spreadData_.rpos = -1.0;
+
+            p3 = windowToPixel(Point(spreadData_.pos, 1.0));
+            w2 = int(p3.x - p1.x);
+
+            setHBarRange(0, w3, w1, w2, 0.0, spreadData_.scale - 1.0);
+
+            scrollData_.xpos = spreadData_.pos;
+          }
         }
       }
     }
@@ -1634,9 +1811,10 @@ void
 CQChartsDendrogramPlot::
 hscrollBy(double dx)
 {
-  auto scrollFit = (fitMode() == FitMode::SCROLL);
+  auto scrollFit  = (fitMode() == FitMode::SCROLL);
+  auto scrollSize = (fitMode() == FitMode::SIZE);
 
-  if      (scrollFit) {
+  if      (scrollFit || scrollSize) {
     spreadData_.pos = scrollData_.xpos;
 
     updateScrollOffset();
@@ -1654,9 +1832,10 @@ void
 CQChartsDendrogramPlot::
 vscrollBy(double dy)
 {
-  auto scrollFit = (fitMode() == FitMode::SCROLL);
+  auto scrollFit  = (fitMode() == FitMode::SCROLL);
+  auto scrollSize = (fitMode() == FitMode::SIZE);
 
-  if      (scrollFit) {
+  if      (scrollFit || scrollSize) {
     spreadData_.pos = scrollData_.ypos;
 
     updateScrollOffset();
@@ -1674,9 +1853,10 @@ bool
 CQChartsDendrogramPlot::
 allowZoomX() const
 {
-  auto scrollFit = (fitMode() == FitMode::SCROLL);
+  auto scrollFit  = (fitMode() == FitMode::SCROLL);
+  auto scrollSize = (fitMode() == FitMode::SIZE);
 
-  if      (scrollFit) {
+  if      (scrollFit || scrollSize) {
     return false;
   }
   else if (placeType() == PlaceType::SORTED) {
@@ -1690,9 +1870,10 @@ bool
 CQChartsDendrogramPlot::
 allowZoomY() const
 {
-  auto scrollFit = (fitMode() == FitMode::SCROLL);
+  auto scrollFit  = (fitMode() == FitMode::SCROLL);
+  auto scrollSize = (fitMode() == FitMode::SIZE);
 
-  if      (scrollFit) {
+  if      (scrollFit || scrollSize) {
     return false;
   }
   else if (placeType() == PlaceType::SORTED) {
@@ -1706,7 +1887,8 @@ void
 CQChartsDendrogramPlot::
 wheelVScroll(int delta)
 {
-  auto scrollFit = (fitMode() == FitMode::SCROLL);
+  auto scrollFit  = (fitMode() == FitMode::SCROLL);
+  auto scrollSize = (fitMode() == FitMode::SIZE);
 
   if      (scrollFit) {
     spreadData_.pos += (delta > 0 ? -0.1 : 0.1);
@@ -1717,6 +1899,30 @@ wheelVScroll(int delta)
       scrollData_.ypos = spreadData_.pos;
     else
       scrollData_.xpos = spreadData_.pos;
+
+    scrollData_.invalid = true;
+
+    updateScrollOffset();
+  }
+  else if (scrollSize) {
+    spreadData_.rpos = 1.0;
+
+    if (orientation() == Qt::Horizontal)
+      spreadData_.rpos =
+        CMathUtil::map(scrollData_.ypos, scrollData_.ymin, scrollData_.ymax, 0.0, 1.0);
+    else
+      spreadData_.rpos =
+        CMathUtil::map(scrollData_.xpos, scrollData_.xmin, scrollData_.xmax, 0.0, 1.0);
+
+    double f = (delta > 0 ? 1.1 : 0.9);
+
+    sizeFactor_ *= f;
+
+    cacheData_.needsPlace = true;
+
+    updateRangeAndObjs();
+
+    //---
 
     scrollData_.invalid = true;
 
@@ -1747,9 +1953,10 @@ void
 CQChartsDendrogramPlot::
 wheelZoom(const Point &pp, int delta)
 {
-  auto scrollFit = (fitMode() == FitMode::SCROLL);
+  auto scrollFit  = (fitMode() == FitMode::SCROLL);
+  auto scrollSize = (fitMode() == FitMode::SIZE);
 
-  if      (scrollFit) {
+  if      (scrollFit || scrollSize) {
     return CQChartsPlot::wheelZoom(pp, delta);
   }
   else if (placeType() == PlaceType::SORTED) {
@@ -1773,9 +1980,10 @@ void
 CQChartsDendrogramPlot::
 updateScrollOffset()
 {
-  auto scrollFit = (fitMode() == FitMode::SCROLL);
+  auto scrollFit  = (fitMode() == FitMode::SCROLL);
+  auto scrollSize = (fitMode() == FitMode::SIZE);
 
-  if      (scrollFit) {
+  if      (scrollFit || scrollSize) {
     if (isSpreadNodeOverlaps()) {
       if (! spreadData_.bbox.isValid())
         return applyDataRangeAndDraw();
@@ -3271,23 +3479,28 @@ calcExtraFitBBox() const
 
   BBox bbox;
 
-  auto scrollFit = (fitMode() == FitMode::SCROLL);
-  if (scrollFit) return bbox;
+  auto scrollFit  = (fitMode() == FitMode::SCROLL);
+  auto scrollSize = (fitMode() == FitMode::SIZE);
 
-  for (const auto &plotObj : plotObjects()) {
-    auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
-    if (! nodeObj) continue;
+  if (! scrollFit && ! scrollSize) {
+    for (const auto &plotObj : plotObjects()) {
+      auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
+      if (! nodeObj) continue;
 
-    if (nodeObj->isRoot() && ! isRootVisible())
-      continue;
+      if (nodeObj->isRoot() && ! isRootVisible())
+        continue;
 
-    bbox += nodeObj->displayRect();
+      bbox += nodeObj->displayRect();
 
-    bool textVisible = calcTextVisible(nodeObj);
+      bool textVisible = calcTextVisible(nodeObj);
 
-    if (textVisible)
-      bbox += nodeObj->textRect();
+      if (textVisible)
+        bbox += nodeObj->textRect();
+    }
   }
+
+  if (isHeaderVisible())
+    bbox += headerFitBox();
 
   return bbox;
 }
@@ -3342,6 +3555,8 @@ execMoveNonRoot(const PlotObjs &objs)
 
   if (depthObjs.size() <= 1)
     return;
+
+  //---
 
   double dd  = 1.0/(depthObjs.size() - 1);
   double dd1 = dd/2.0;
@@ -4072,9 +4287,10 @@ execSpreadOverlaps(const PlotObjs &objs)
 
 #if 0
   // fit
-  auto scrollFit = (fitMode() == FitMode::SCROLL);
+  auto scrollFit  = (fitMode() == FitMode::SCROLL);
+  auto scrollSize = (fitMode() == FitMode::SIZE);
 
-  if (! scrollFit) {
+  if (! scrollFit && ! scrollSize) {
     // get new bbox
     auto bbox = nodesBBox(objs);
 
@@ -4395,6 +4611,13 @@ createEdgeObj(NodeObj *fromNode, NodeObj *toNode, const BBox &rect,
   return new CQChartsDendrogramEdgeObj(this, fromNode, toNode, rect, ig, iv);
 }
 
+CQChartsDendrogramHeaderObj *
+CQChartsDendrogramPlot::
+createHeaderObj(int depth, const BBox &rect) const
+{
+  return new CQChartsDendrogramHeaderObj(this, depth, rect);
+}
+
 //---
 
 bool
@@ -4575,6 +4798,215 @@ isAllExpanded(Node *hierNode) const
   }
 
   return true;;
+}
+
+//---
+
+bool
+CQChartsDendrogramPlot::
+hasForeground() const
+{
+  return isHeaderVisible();
+}
+
+void
+CQChartsDendrogramPlot::
+execDrawForeground(PaintDevice *device) const
+{
+  drawHeader(device);
+}
+
+CQChartsGeom::BBox
+CQChartsDendrogramPlot::
+headerFitBox() const
+{
+  BBox bbox;
+
+  auto data = dataFitBBox();
+
+  if (orientation() == Qt::Horizontal) {
+    auto vh     = lengthPlotHeight(this->headerSize());
+    auto margin = lengthPlotWidth(headerMargin());
+
+    bbox = BBox(data.getXMin(), data.getYMax(), data.getXMax(), data.getYMax() + vh + 2*margin);
+  }
+  else {
+    auto vw     = lengthPlotWidth(this->headerSize());
+    auto margin = lengthPlotHeight(headerMargin());
+
+    bbox = BBox(data.getXMin() - vw - 2*margin, data.getYMin(), data.getXMin(), data.getYMax());
+  }
+
+  return bbox;
+}
+
+void
+CQChartsDendrogramPlot::
+drawHeader(PaintDevice *device) const
+{
+  // get visible objects per depth
+  DepthNodeObjs depthObjs;
+
+  getDepthNodeObjs(depthObjs);
+
+  if (depthObjs.empty())
+    return;
+
+  //---
+
+  // get centers
+  using DepthCenter = std::map<int, Point>;
+
+  DepthCenter depthCenter;
+
+  for (auto &pd : depthObjs) {
+    BBox bbox;
+
+    for (auto *obj : pd.second) {
+      bbox += obj->displayRect();
+    }
+
+    depthCenter[pd.first] = bbox.getCenter();
+  }
+
+  //---
+
+  auto vr = view()->viewportRange();
+
+  auto pv1 = viewToWindow(Point(0.0, 0.0));
+  auto pv2 = viewToWindow(Point(vr, vr));
+
+  double margin, spacing;
+
+  if (orientation() == Qt::Horizontal) {
+    margin  = lengthPlotWidth(headerMargin ());
+    spacing = lengthPlotWidth(headerSpacing());
+  }
+  else {
+    margin  = lengthPlotHeight(headerMargin ());
+    spacing = lengthPlotHeight(headerSpacing());
+  }
+
+  //---
+
+  bool    first = true;
+  Point   prevCenter;
+  RMinMax sizeMinMax;
+
+  for (const auto &pc : depthCenter) {
+    if (! first) {
+      double size;
+
+      if (orientation() == Qt::Horizontal)
+        size = std::abs(pc.second.x - prevCenter.x);
+      else
+        size = std::abs(pc.second.y - prevCenter.y);
+
+      sizeMinMax.add(size);
+    }
+
+    prevCenter = pc.second;
+
+    first = false;
+  }
+
+  if (! sizeMinMax.isSet()) {
+    if (orientation() == Qt::Horizontal)
+      sizeMinMax = RMinMax(std::abs(pv2.x - pv1.x) - margin);
+    else
+      sizeMinMax = RMinMax(std::abs(pv2.y - pv1.y) - margin);
+  }
+
+  auto headerSize = sizeMinMax.min() - spacing;
+
+  //---
+
+  // calc pen brush
+  ColorInd colorInd;
+
+  auto sc = interpHeaderStrokeColor(colorInd);
+  auto fc = interpHeaderFillColor  (colorInd);
+
+  PenBrush penBrush;
+
+  setPenBrush(penBrush, headerPenData(sc), headerBrushData(fc));
+
+  PenBrush tpenBrush;
+
+  setHeaderTextPenBrush(tpenBrush, ColorInd());
+
+  //---
+
+  if (orientation() == Qt::Horizontal) {
+    double vh = lengthPlotHeight(this->headerSize());
+
+    for (const auto &pc : depthCenter) {
+      auto xm = pc.second.x;
+
+      auto bbox1 = BBox(xm - headerSize/2.0, pv2.y - vh - margin,
+                        xm + headerSize/2.0, pv2.y -      margin);
+
+      // draw box
+      CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+      device->fillRect(bbox1);
+      device->drawRect(bbox1);
+
+      //---
+
+      // draw text
+      CQChartsDrawUtil::setPenBrush(device, tpenBrush);
+
+      auto text = headerValues().valueOr(pc.first).toString();
+
+      auto textOptions = headerTextOptions(device);
+
+      CQChartsDrawUtil::drawTextInBox(device, bbox1, text, textOptions);
+
+      //---
+
+      // update obj
+      auto ph = depthHeaderObj_.find(pc.first);
+      assert(ph != depthHeaderObj_.end());
+
+      (*ph).second->setRect(bbox1);
+    }
+  }
+  else {
+    double vw = lengthPlotWidth(this->headerSize());
+
+    for (const auto &pc : depthCenter) {
+      auto ym = pc.second.y;
+
+      auto bbox1 = BBox(pv1.x +      margin, ym - headerSize/2.0,
+                        pv1.x + vw + margin, ym + headerSize/2.0);
+
+      // draw box
+      CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+      device->fillRect(bbox1);
+      device->drawRect(bbox1);
+
+      //---
+
+      // draw text
+      CQChartsDrawUtil::setPenBrush(device, tpenBrush);
+
+      auto text = headerValues().valueOr(pc.first).toString();
+
+      auto textOptions = headerTextOptions(device);
+
+      CQChartsDrawUtil::drawTextInBox(device, bbox1, text, textOptions);
+
+      //---
+
+      // update obj
+      auto ph = depthHeaderObj_.find(pc.first);
+      assert(ph != depthHeaderObj_.end());
+
+      (*ph).second->setRect(bbox1);
+    }
+  }
 }
 
 //---
@@ -5528,6 +5960,8 @@ CQChartsDendrogramEdgeObj(const DendrogramPlot *dendrogramPlot, NodeObj *fromNod
   }
 }
 
+//---
+
 QString
 CQChartsDendrogramEdgeObj::
 calcId() const
@@ -5616,7 +6050,7 @@ draw(PaintDevice *device) const
   // calc edge width
   bool pixelScaled = plot()->isPixelScaled();
 
-  auto lw    = plot()->lengthPlotWidth(plot()->edgeWidth(), pixelScaled);
+  auto lw    = plot()->lengthPlotWidth(plot()->calcEdgeWidth(), pixelScaled);
   auto minLw = plot()->lengthPlotWidth(plot()->minEdgeWidth());
 
   if (plot()->isEdgeSizeByValue()) {
@@ -5743,6 +6177,48 @@ executeSlotFn(const QString &name, const QVariantList &args, QVariant &res)
     return CQChartsHierPlot::executeSlotFn(name, args, res);
 
   return true;
+}
+
+//------
+
+CQChartsDendrogramHeaderObj::
+CQChartsDendrogramHeaderObj(const DendrogramPlot *dendrogramPlot, int depth, const BBox &bbox) :
+ CQChartsPlotObj(const_cast<DendrogramPlot *>(dendrogramPlot), bbox,
+                 ColorInd(), ColorInd(), ColorInd()),
+ dendrogramPlot_(dendrogramPlot), depth_(depth)
+{
+}
+
+//---
+
+QString
+CQChartsDendrogramHeaderObj::
+calcId() const
+{
+  return QString("%1:%2").arg(typeName()).arg(depth());
+}
+
+QString
+CQChartsDendrogramHeaderObj::
+calcTipId() const
+{
+  auto text = plot()->headerTips().valueOr(depth()).toString();
+
+  if (text == "")
+    text = plot()->headerValues().valueOr(depth()).toString();
+
+  if (text == "")
+    text = calcId();
+
+  return text;
+}
+
+//---
+
+void
+CQChartsDendrogramHeaderObj::
+calcPenBrush(PenBrush &, bool) const
+{
 }
 
 //------
