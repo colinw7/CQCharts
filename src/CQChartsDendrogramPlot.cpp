@@ -4921,91 +4921,67 @@ drawHeader(PaintDevice *device) const
 
   //---
 
-  // calc pen brush
-  ColorInd colorInd;
-
-  auto sc = interpHeaderStrokeColor(colorInd);
-  auto fc = interpHeaderFillColor  (colorInd);
-
-  PenBrush penBrush;
-
-  setPenBrush(penBrush, headerPenData(sc), headerBrushData(fc));
-
+  // calc text pen brush
   PenBrush tpenBrush;
 
   setHeaderTextPenBrush(tpenBrush, ColorInd());
 
   //---
 
-  if (orientation() == Qt::Horizontal) {
-    double vh = lengthPlotHeight(this->headerSize());
+  for (const auto &pc : depthCenter) {
+    // get header obj
+    auto ph = depthHeaderObj_.find(pc.first);
+    assert(ph != depthHeaderObj_.end());
 
-    for (const auto &pc : depthCenter) {
+    auto *headerObj = (*ph).second;
+
+    //---
+
+    // place header
+    BBox bbox1;
+
+    if (orientation() == Qt::Horizontal) {
+      auto vs = lengthPlotHeight(this->headerSize());
+
       auto xm = pc.second.x;
 
-      auto bbox1 = BBox(xm - headerSize/2.0, pv2.y - vh - margin,
-                        xm + headerSize/2.0, pv2.y -      margin);
-
-      // draw box
-      CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-      device->fillRect(bbox1);
-      device->drawRect(bbox1);
-
-      //---
-
-      // draw text
-      CQChartsDrawUtil::setPenBrush(device, tpenBrush);
-
-      auto text = headerValues().valueOr(pc.first).toString();
-
-      auto textOptions = headerTextOptions(device);
-
-      CQChartsDrawUtil::drawTextInBox(device, bbox1, text, textOptions);
-
-      //---
-
-      // update obj
-      auto ph = depthHeaderObj_.find(pc.first);
-      assert(ph != depthHeaderObj_.end());
-
-      (*ph).second->setRect(bbox1);
+      bbox1 = BBox(xm - headerSize/2.0, pv2.y - vs - margin,
+                   xm + headerSize/2.0, pv2.y -      margin);
     }
-  }
-  else {
-    double vw = lengthPlotWidth(this->headerSize());
+    else {
+      auto vs = lengthPlotWidth(this->headerSize());
 
-    for (const auto &pc : depthCenter) {
       auto ym = pc.second.y;
 
-      auto bbox1 = BBox(pv1.x +      margin, ym - headerSize/2.0,
-                        pv1.x + vw + margin, ym + headerSize/2.0);
-
-      // draw box
-      CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-      device->fillRect(bbox1);
-      device->drawRect(bbox1);
-
-      //---
-
-      // draw text
-      CQChartsDrawUtil::setPenBrush(device, tpenBrush);
-
-      auto text = headerValues().valueOr(pc.first).toString();
-
-      auto textOptions = headerTextOptions(device);
-
-      CQChartsDrawUtil::drawTextInBox(device, bbox1, text, textOptions);
-
-      //---
-
-      // update obj
-      auto ph = depthHeaderObj_.find(pc.first);
-      assert(ph != depthHeaderObj_.end());
-
-      (*ph).second->setRect(bbox1);
+      bbox1 = BBox(pv1.x +      margin, ym - headerSize/2.0,
+                   pv1.x + vs + margin, ym + headerSize/2.0);
     }
+
+    headerObj->setRect(bbox1);
+
+    //---
+
+    // calc shape fill/stroke pen brush
+    PenBrush penBrush;
+
+    headerObj->calcPenBrush(penBrush, false);
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    // draw box
+    device->fillRect(bbox1);
+    device->drawRect(bbox1);
+
+    //---
+
+    // draw text
+    CQChartsDrawUtil::setPenBrush(device, tpenBrush);
+
+    auto text = headerValues().valueOr(pc.first).toString();
+
+    auto textOptions = headerTextOptions(device);
+
+    CQChartsDrawUtil::drawTextInBox(device, bbox1, text, textOptions);
   }
 }
 
@@ -6217,8 +6193,16 @@ calcTipId() const
 
 void
 CQChartsDendrogramHeaderObj::
-calcPenBrush(PenBrush &, bool) const
+calcPenBrush(PenBrush &penBrush, bool /*updateState*/) const
 {
+  // TODO: show selected ?
+
+  ColorInd colorInd;
+
+  auto sc = plot()->interpHeaderStrokeColor(colorInd);
+  auto fc = plot()->interpHeaderFillColor  (colorInd);
+
+  plot()->setPenBrush(penBrush, plot()->headerPenData(sc), plot()->headerBrushData(fc));
 }
 
 //------
