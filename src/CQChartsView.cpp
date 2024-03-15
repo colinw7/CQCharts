@@ -163,9 +163,7 @@ init()
 
   displayRange_ = std::make_unique<CQChartsDisplayRange>();
 
-  auto vr = viewportRange();
-
-  displayRange_->setWindowRange(0, 0, vr, vr);
+  setDisplayWindowRange();
 
   //---
 
@@ -483,8 +481,11 @@ addProperties()
   addStyleProp("overview", "overviewRangeAlpha", "rangeAlpha", "Overview Range Alpha");
 
   // sizing
-  addProp("sizing", "autoSize" , "auto"     , "Auto scale to view size");
-  addProp("sizing", "fixedSize", "fixedSize", "Fixed view size");
+  addProp("sizing", "autoSize"  , "auto"     , "Auto scale to view size");
+  addProp("sizing", "fixedSize" , "fixedSize", "Fixed view size");
+
+  // scroll
+  addProp("scroll", "scrollPlots", "plots", "Scroll view to plots size");
 
   // select mode
   addProp("select", "selectMode"  , "mode"  , "Selection mode");
@@ -578,7 +579,7 @@ void
 CQChartsView::
 maximizePlot(Plot *plot)
 {
-  scrollData_.autoInit = true;
+  pageScrollData_.autoInit = true;
 
   setScrolled(true, /*update*/false);
 
@@ -597,7 +598,23 @@ maximizePlot(Plot *plot)
     ++i;
   }
 
-  updateScroll();
+  updatePageScroll();
+}
+
+void
+CQChartsView::
+scrollLeftSlot()
+{
+  if (isScrolled())
+    scrollLeft();
+}
+
+void
+CQChartsView::
+scrollRightSlot()
+{
+  if (isScrolled())
+    scrollRight();
 }
 
 void
@@ -611,21 +628,21 @@ void
 CQChartsView::
 setScrolled(bool b, bool update)
 {
-  if (b == scrollData_.active)
+  if (b == pageScrollData_.active)
     return;
 
-  scrollData_.active = b;
+  pageScrollData_.active = b;
 
-  if (scrollData_.autoInit) {
+  if (pageScrollData_.autoInit) {
     PlotSet basePlots;
 
     addBasePlots(basePlots);
 
-    if (scrollData_.active) {
-      scrollData_.plotBBoxMap.clear();
+    if (pageScrollData_.active) {
+      pageScrollData_.plotBBoxMap.clear();
 
       for (auto &plot : basePlots)
-        scrollData_.plotBBoxMap[plot->id()] = plot->calcViewBBox();
+        pageScrollData_.plotBBoxMap[plot->id()] = plot->calcViewBBox();
 
       double pos = 0.0;
       auto   vr  = viewportRange();
@@ -636,15 +653,15 @@ setScrolled(bool b, bool update)
         pos += vr;
       }
 
-      scrollData_.numPages = int(basePlots.size());
+      pageScrollData_.numPages = int(basePlots.size());
     }
     else {
       bool allFound = true;
 
       for (auto &plot : basePlots) {
-        auto p = scrollData_.plotBBoxMap.find(plot->id());
+        auto p = pageScrollData_.plotBBoxMap.find(plot->id());
 
-        if (p == scrollData_.plotBBoxMap.end()) {
+        if (p == pageScrollData_.plotBBoxMap.end()) {
           allFound = false;
           continue;
         }
@@ -657,7 +674,7 @@ setScrolled(bool b, bool update)
     }
 
     if (update)
-      updateScroll();
+      updatePageScroll();
   }
 
   Q_EMIT scrollDataChanged();
@@ -700,13 +717,13 @@ CQChartsView::
 setAutoSize(bool b)
 {
   // init to current size if turn off for first time
-  if (! b && sizeData_.autoSize) {
-    sizeData_.width   = width ();
-    sizeData_.height  = height();
-    sizeData_.sizeSet = true;
+  if (! b && autoSizeData_.autoSize) {
+    autoSizeData_.width   = width ();
+    autoSizeData_.height  = height();
+    autoSizeData_.sizeSet = true;
   }
 
-  CQChartsUtil::testAndSet(sizeData_.autoSize, b, [&]() { resizeEvent(nullptr); } );
+  CQChartsUtil::testAndSet(autoSizeData_.autoSize, b, [&]() { resizeEvent(nullptr); } );
 }
 
 void
@@ -715,15 +732,35 @@ setFixedSize(const QSize &size)
 {
   bool resize = false;
 
-  CQChartsUtil::testAndSet(sizeData_.width , size.width (), [&]() { resize = true; } );
-  CQChartsUtil::testAndSet(sizeData_.height, size.height(), [&]() { resize = true; } );
+  CQChartsUtil::testAndSet(autoSizeData_.width , size.width (), [&]() { resize = true; } );
+  CQChartsUtil::testAndSet(autoSizeData_.height, size.height(), [&]() { resize = true; } );
 
-  sizeData_.sizeSet = true;
+  autoSizeData_.sizeSet = true;
 
   if (resize) {
     resizeEvent(nullptr);
   }
 }
+
+//---
+
+void
+CQChartsView::
+setScrollPlots(bool b)
+{
+  CQChartsUtil::testAndSet(plotScrollData_.enabled, b, [&]() {
+    updatePlotScrollBars(); updateScrollBars();
+  } );
+}
+
+bool
+CQChartsView::
+calcIsScrollPlots() const
+{
+  return (isPlotZoomMode() && ! isScrolled() && isScrollPlots());
+}
+
+//---
 
 void
 CQChartsView::
@@ -1168,7 +1205,7 @@ setCurrentPlotInd(int ind)
       ++i;
     }
 
-    updateScroll();
+    updatePageScroll();
   }
 
   //---
@@ -1431,18 +1468,39 @@ setRegionMode(const RegionMode &regionMode)
 
 void
 CQChartsView::
+zoomModePlotSlot()
+{
+  setZoomMode(ZoomMode::PLOT);
+}
+
+void
+CQChartsView::
+zoomModeViewSlot()
+{
+  setZoomMode(ZoomMode::VIEW);
+}
+
+void
+CQChartsView::
 setZoomMode(const ZoomMode &zoomMode)
 {
-  CQChartsUtil::testAndSet(zoomData_.mode, zoomMode, [&]() {
-    updateZoomScroll(); Q_EMIT zoomModeChanged();
-  } );
+  if (zoomData_.mode != zoomMode) {
+    if (isViewZoomMode())
+      fitSlot();
+
+    zoomData_.mode = zoomMode;
+
+    updateScrollBars();
+
+    Q_EMIT zoomModeChanged();
+  }
 }
 
 void
 CQChartsView::
 setZoomScroll(bool b)
 {
-  CQChartsUtil::testAndSet(zoomData_.scroll, b, [&]() { updateZoomScroll(); } );
+  CQChartsUtil::testAndSet(zoomData_.scroll, b, [&]() { updateScrollBars(); } );
 }
 
 void
@@ -1452,9 +1510,10 @@ updateZoomScroll()
   bool showHBar = false;
   bool showVBar = false;
 
-  if (zoomData_.scroll) {
+  if (isZoomScroll()) {
     if (! zoomData_.hbar) {
       zoomData_.hbar = new CQRealScroll(Qt::Horizontal, this);
+      zoomData_.hbar->setObjectName("zoomScrollHBar");
       zoomData_.hbar->setFocusPolicy(Qt::NoFocus);
 
       connect(zoomData_.hbar, SIGNAL(valueChanged(double)), this, SLOT(zoomHScrollSlot(double)));
@@ -1462,6 +1521,7 @@ updateZoomScroll()
 
     if (! zoomData_.vbar) {
       zoomData_.vbar = new CQRealScroll(Qt::Vertical, this);
+      zoomData_.vbar->setObjectName("zoomScrollVBar");
       zoomData_.vbar->setFocusPolicy(Qt::NoFocus);
 
       connect(zoomData_.vbar, SIGNAL(valueChanged(double)), this, SLOT(zoomVScrollSlot(double)));
@@ -1538,10 +1598,10 @@ void
 CQChartsView::
 placeZoomBars()
 {
-  int hh1 = (sizeData_.hbar && sizeData_.hbar->isVisible() ?
-              sizeData_.hbar->sizeHint().height() : 0);
-  int vw1 = (sizeData_.vbar && sizeData_.vbar->isVisible() ?
-              sizeData_.vbar->sizeHint().width () : 0);
+  int hh1 = (autoSizeData_.hbar && autoSizeData_.hbar->isVisible() ?
+              autoSizeData_.hbar->sizeHint().height() : 0);
+  int vw1 = (autoSizeData_.vbar && autoSizeData_.vbar->isVisible() ?
+              autoSizeData_.vbar->sizeHint().width () : 0);
 
   int hh = (zoomData_.hbar ? zoomData_.hbar->height() : 0);
   int vw = (zoomData_.vbar ? zoomData_.vbar->width () : 0);
@@ -3356,7 +3416,7 @@ CQChartsGeom::Point
 CQChartsView::
 adjustMousePos(const Point &pos) const
 {
-  return Point(pos.x + sizeData_.xpos, pos.y + sizeData_.ypos);
+  return Point(pos.x + autoSizeData_.xpos, pos.y + autoSizeData_.ypos);
 }
 
 //------
@@ -3426,7 +3486,7 @@ keyPressEvent(QKeyEvent *ke)
   }
   else if (ke->key() == Qt::Key_Left || ke->key() == Qt::Key_Right ||
            ke->key() == Qt::Key_Up   || ke->key() == Qt::Key_Down) {
-    if (zoomMode() == ZoomMode::VIEW) {
+    if (isViewZoomMode()) {
       auto d = viewportRange()/10.0;
 
       if      (ke->key() == Qt::Key_Right) pan( d,  0);
@@ -3438,7 +3498,7 @@ keyPressEvent(QKeyEvent *ke)
     }
   }
   else if (ke->key() == Qt::Key_Plus || ke->key() == Qt::Key_Minus) {
-    if (zoomMode() == ZoomMode::VIEW) {
+    if (isViewZoomMode()) {
       if (ke->key() == Qt::Key_Plus)
         zoomIn(1.5);
       else
@@ -3480,7 +3540,7 @@ wheelEvent(QWheelEvent *e)
 
   auto delta = CQWidgetUtil::wheelDelta(e);
 
-  if (zoomMode() == ZoomMode::VIEW) {
+  if (isViewZoomMode()) {
     wheelZoom(pp, delta);
   }
   else {
@@ -4382,7 +4442,7 @@ void
 CQChartsView::
 modifyMouseMove()
 {
-  if (zoomMode() == ZoomMode::VIEW)
+  if (isViewZoomMode())
     panMouseMove();
 }
 
@@ -4641,7 +4701,7 @@ zoomMouseRelease()
   if (mouseData_.escape)
     return;
 
-  if (zoomMode() == ZoomMode::VIEW) {
+  if (isViewZoomMode()) {
     auto w1 = pixelToWindow(mousePressPoint());
     auto w2 = pixelToWindow(mouseMovePoint ());
 
@@ -4674,7 +4734,7 @@ void
 CQChartsView::
 panMouseMove()
 {
-  if (zoomMode() == ZoomMode::VIEW) {
+  if (isViewZoomMode()) {
     auto w1 = pixelToWindow(mouseData_.oldMovePoint);
     auto w2 = pixelToWindow(mouseMovePoint());
 
@@ -4714,7 +4774,7 @@ updateRegionBand(const Plot *plot, const Point &pressPoint, const Point &movePoi
 {
   updateRegionBand(pressPoint, movePoint);
 
-  if (zoomMode() == ZoomMode::VIEW || ! plot)
+  if (isViewZoomMode() || ! plot)
     return;
 
   if (! plot->allowZoomX() || ! plot->allowZoomY()) {
@@ -4944,8 +5004,8 @@ resizeEvent(QResizeEvent *)
   delete ipainter_;
   delete image_;
 
-  int iw = std::min(std::max((! isAutoSize() ? sizeData_.width  : w), 1), 16384);
-  int ih = std::min(std::max((! isAutoSize() ? sizeData_.height : h), 1), 16384);
+  int iw = std::min(std::max((! isAutoSize() ? autoSizeData_.width  : w), 1), 16384);
+  int ih = std::min(std::max((! isAutoSize() ? autoSizeData_.height : h), 1), 16384);
 
   image_ = CQChartsUtil::newImage(QSize(iw, ih));
 
@@ -4958,8 +5018,8 @@ resizeEvent(QResizeEvent *)
 
   //---
 
-  sizeData_.xpos = 0;
-  sizeData_.ypos = 0;
+  autoSizeData_.xpos = 0;
+  autoSizeData_.ypos = 0;
 
   if (isAutoSize()) {
     invalidateObjects();
@@ -4972,14 +5032,23 @@ resizeEvent(QResizeEvent *)
     invalidateOverlay();
 
     // needed if size not changed ?
-    doResize(sizeData_.width, sizeData_.height);
+    doResize(autoSizeData_.width, autoSizeData_.height);
 
     doUpdate();
   }
 
-  updateSizeBars();
+  updateScrollBars();
+}
+
+void
+CQChartsView::
+updateScrollBars()
+{
+  updateAutoSizeBars();
 
   updateZoomScroll();
+
+  placePlotScrollBars();
 }
 
 void
@@ -5018,8 +5087,8 @@ updatePixelRange()
 {
   int hh = 0, vw = 0, hh1 = 0, vw1 = 0;
 
-  if (sizeData_.hbar && sizeData_.hbar->isVisible()) hh = sizeData_.hbar->height();
-  if (sizeData_.vbar && sizeData_.vbar->isVisible()) vw = sizeData_.vbar->width ();
+  if (autoSizeData_.hbar && autoSizeData_.hbar->isVisible()) hh = autoSizeData_.hbar->height();
+  if (autoSizeData_.vbar && autoSizeData_.vbar->isVisible()) vw = autoSizeData_.vbar->width ();
 
   if (zoomData_.hbar && zoomData_.hbar->isVisible()) hh1 = zoomData_.hbar->height();
   if (zoomData_.vbar && zoomData_.vbar->isVisible()) vw1 = zoomData_.vbar->width ();
@@ -5032,9 +5101,7 @@ updatePixelRange()
   displayRange_->setPixelRange(prect_.getXMin(), prect_.getYMin(),
                                prect_.getXMax(), prect_.getYMax());
 
-  auto vr = viewportRange();
-
-  displayRange_->setWindowRange(0, 0, vr, vr);
+  setDisplayWindowRange();
 
   displayRange_->zoomTo(window.xmin, window.ymin, window.xmax, window.ymax);
 }
@@ -5043,33 +5110,33 @@ updatePixelRange()
 
 void
 CQChartsView::
-createSizeHBar()
+createAutoSizeHBar()
 {
-  if (! sizeData_.hbar) {
-    sizeData_.hbar = new QScrollBar(Qt::Horizontal, this);
-    sizeData_.hbar->setObjectName("viewHBar");
-    sizeData_.hbar->setFocusPolicy(Qt::NoFocus);
+  if (! autoSizeData_.hbar) {
+    autoSizeData_.hbar = new QScrollBar(Qt::Horizontal, this);
+    autoSizeData_.hbar->setObjectName("sizeHBar");
+    autoSizeData_.hbar->setFocusPolicy(Qt::NoFocus);
 
-    connect(sizeData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(sizeHScrollSlot(int)));
+    connect(autoSizeData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(sizeHScrollSlot(int)));
   }
 }
 
 void
 CQChartsView::
-createSizeVBar()
+createAutoSizeVBar()
 {
-  if (! sizeData_.vbar) {
-    sizeData_.vbar = new QScrollBar(Qt::Vertical, this);
-    sizeData_.vbar->setObjectName("viewVBar");
-    sizeData_.vbar->setFocusPolicy(Qt::NoFocus);
+  if (! autoSizeData_.vbar) {
+    autoSizeData_.vbar = new QScrollBar(Qt::Vertical, this);
+    autoSizeData_.vbar->setObjectName("sizeVBar");
+    autoSizeData_.vbar->setFocusPolicy(Qt::NoFocus);
 
-    connect(sizeData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(sizeVScrollSlot(int)));
+    connect(autoSizeData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(sizeVScrollSlot(int)));
   }
 }
 
 void
 CQChartsView::
-updateSizeBars()
+updateAutoSizeBars()
 {
   bool showHBar = false;
   bool showVBar = false;
@@ -5078,29 +5145,29 @@ updateSizeBars()
     int w = width ();
     int h = height();
 
-    showHBar = (sizeData_.width  > w );
-    showVBar = (sizeData_.height > h);
+    showHBar = (autoSizeData_.width  > w );
+    showVBar = (autoSizeData_.height > h);
 
     if (showHBar)
-      createSizeHBar();
+      createAutoSizeHBar();
 
     if (showVBar)
-      createSizeVBar();
+      createAutoSizeVBar();
 
     if (showHBar) {
-      assert(sizeData_.hbar);
+      assert(autoSizeData_.hbar);
 
-      sizeData_.hbar->setRange(0, sizeData_.width - w);
-      sizeData_.hbar->setPageStep(w);
-      sizeData_.hbar->setSingleStep(1);
+      autoSizeData_.hbar->setRange(0, autoSizeData_.width - w);
+      autoSizeData_.hbar->setPageStep(w);
+      autoSizeData_.hbar->setSingleStep(1);
     }
 
     if (showVBar) {
-      assert(sizeData_.vbar);
+      assert(autoSizeData_.vbar);
 
-      sizeData_.vbar->setRange(0, sizeData_.height - h);
-      sizeData_.vbar->setPageStep(h);
-      sizeData_.vbar->setSingleStep(1);
+      autoSizeData_.vbar->setRange(0, autoSizeData_.height - h);
+      autoSizeData_.vbar->setPageStep(h);
+      autoSizeData_.vbar->setSingleStep(1);
     }
   }
 
@@ -5108,21 +5175,21 @@ updateSizeBars()
 
   bool changed = false;
 
-  if (sizeData_.hbar) {
-    if (sizeData_.hbar->isVisible() != showHBar) {
-      sizeData_.hbar->setVisible(showHBar);
+  if (autoSizeData_.hbar) {
+    if (autoSizeData_.hbar->isVisible() != showHBar) {
+      autoSizeData_.hbar->setVisible(showHBar);
       changed = true;
     }
   }
 
-  if (sizeData_.vbar) {
-    if (sizeData_.vbar->isVisible() != showVBar) {
-      sizeData_.vbar->setVisible(showVBar);
+  if (autoSizeData_.vbar) {
+    if (autoSizeData_.vbar->isVisible() != showVBar) {
+      autoSizeData_.vbar->setVisible(showVBar);
       changed = true;
     }
   }
 
-  placeSizeBars();
+  placeAutoSizeBars();
 
   if (changed)
     updatePixelRange();
@@ -5130,19 +5197,19 @@ updateSizeBars()
 
 void
 CQChartsView::
-placeSizeBars()
+placeAutoSizeBars()
 {
-  int hh = (sizeData_.hbar ? sizeData_.hbar->sizeHint().height() : 0);
-  int vw = (sizeData_.vbar ? sizeData_.vbar->sizeHint().width () : 0);
+  int hh = (autoSizeData_.hbar ? autoSizeData_.hbar->sizeHint().height() : 0);
+  int vw = (autoSizeData_.vbar ? autoSizeData_.vbar->sizeHint().width () : 0);
 
-  if (sizeData_.hbar && sizeData_.hbar->isVisible()) {
-    sizeData_.hbar->resize(width() - vw, hh);
-    sizeData_.hbar->move(0, height() - hh);
+  if (autoSizeData_.hbar && autoSizeData_.hbar->isVisible()) {
+    autoSizeData_.hbar->resize(width() - vw, hh);
+    autoSizeData_.hbar->move(0, height() - hh);
   }
 
-  if (sizeData_.vbar && sizeData_.vbar->isVisible()) {
-    sizeData_.vbar->resize(vw, height() - hh);
-    sizeData_.vbar->move(width() - vw, 0);
+  if (autoSizeData_.vbar && autoSizeData_.vbar->isVisible()) {
+    autoSizeData_.vbar->resize(vw, height() - hh);
+    autoSizeData_.vbar->move(width() - vw, 0);
   }
 
   placeZoomBars();
@@ -5152,7 +5219,7 @@ void
 CQChartsView::
 sizeHScrollSlot(int pos)
 {
-  sizeData_.xpos = pos;
+  autoSizeData_.xpos = pos;
 
   doUpdate();
 }
@@ -5161,9 +5228,197 @@ void
 CQChartsView::
 sizeVScrollSlot(int pos)
 {
-  sizeData_.ypos = pos;
+  autoSizeData_.ypos = pos;
 
   doUpdate();
+}
+
+//---
+
+void
+CQChartsView::
+createPlotScrollHBar()
+{
+  if (! plotScrollData_.hbar) {
+    plotScrollData_.hbar = new CQRealScroll(Qt::Horizontal, this);
+    plotScrollData_.hbar->setObjectName("plotScrollHBar");
+    plotScrollData_.hbar->setFocusPolicy(Qt::NoFocus);
+
+    connect(plotScrollData_.hbar, SIGNAL(valueChanged(double)),
+            this, SLOT(plotHScrollSlot(double)));
+  }
+}
+
+void
+CQChartsView::
+createPlotScrollVBar()
+{
+  if (! plotScrollData_.vbar) {
+    plotScrollData_.vbar = new CQRealScroll(Qt::Vertical, this);
+    plotScrollData_.vbar->setObjectName("plotScrollVBar");
+    plotScrollData_.vbar->setFocusPolicy(Qt::NoFocus);
+
+    connect(plotScrollData_.vbar, SIGNAL(valueChanged(double)),
+            this, SLOT(plotVScrollSlot(double)));
+  }
+}
+
+void
+CQChartsView::
+updatePlotScrollBars()
+{
+  BBox bbox;
+  bool showHBar, showVBar;
+  calcShowPlotScrollBars(bbox, showHBar, showVBar);
+
+  if (calcIsScrollPlots()) {
+    auto vr = viewportRange();
+
+    if (showHBar)
+      createPlotScrollHBar();
+
+    if (showVBar)
+      createPlotScrollVBar();
+
+    if (showHBar) {
+      auto w = bbox.getWidth ();
+
+      assert(plotScrollData_.hbar);
+
+      plotScrollData_.hbar->setRange(0, w - vr);
+      plotScrollData_.hbar->setPageStep(vr);
+      plotScrollData_.hbar->setSingleStep(vr/20.0);
+    }
+
+    if (showVBar) {
+      auto h = bbox.getHeight();
+
+      assert(plotScrollData_.vbar);
+
+      plotScrollData_.vbar->setRange(0, h - vr);
+      plotScrollData_.vbar->setPageStep(vr);
+      plotScrollData_.vbar->setSingleStep(vr/20.0);
+    }
+  }
+
+  //---
+
+  auto changed = placePlotScrollBars();
+
+  if (changed)
+    updatePixelRange();
+}
+
+bool
+CQChartsView::
+placePlotScrollBars()
+{
+  // calc show
+  BBox bbox;
+  bool showHBar, showVBar;
+  calcShowPlotScrollBars(bbox, showHBar, showVBar);
+
+  if (calcIsScrollPlots()) {
+    BBox bbox;
+
+    for (auto &plot : plots_)
+      bbox += plot->viewBBox();
+
+    auto w = bbox.getWidth ();
+    auto h = bbox.getHeight();
+
+    auto vr = viewportRange();
+
+    showHBar = (w > vr);
+    showVBar = (h > vr);
+  }
+
+  //---
+
+  // place
+  int hh = (plotScrollData_.hbar ? plotScrollData_.hbar->sizeHint().height() : 0);
+  int vw = (plotScrollData_.vbar ? plotScrollData_.vbar->sizeHint().width () : 0);
+
+  if (showHBar) {
+    if (plotScrollData_.hbar && plotScrollData_.hbar->isVisible()) {
+      plotScrollData_.hbar->resize(width() - vw, hh);
+      plotScrollData_.hbar->move(0, height() - hh);
+    }
+  }
+
+  if (showVBar) {
+    if (plotScrollData_.vbar && plotScrollData_.vbar->isVisible()) {
+      plotScrollData_.vbar->resize(vw, height() - hh);
+      plotScrollData_.vbar->move(width() - vw, 0);
+    }
+  }
+
+  //---
+
+  // set visible
+  bool changed = false;
+
+  if (plotScrollData_.hbar) {
+    if (plotScrollData_.hbar->isVisible() != showHBar) {
+      plotScrollData_.hbar->setVisible(showHBar);
+      changed = true;
+    }
+  }
+
+  if (plotScrollData_.vbar) {
+    if (plotScrollData_.vbar->isVisible() != showVBar) {
+      plotScrollData_.vbar->setVisible(showVBar);
+      changed = true;
+    }
+  }
+
+  return changed;
+}
+
+void
+CQChartsView::
+calcShowPlotScrollBars(BBox &bbox, bool &showHBar, bool &showVBar) const
+{
+  // calc show
+  bbox = BBox();
+
+  showHBar = false;
+  showVBar = false;
+
+  if (calcIsScrollPlots()) {
+    for (auto &plot : plots_)
+      bbox += plot->viewBBox();
+
+    auto w = bbox.getWidth ();
+    auto h = bbox.getHeight();
+
+    auto vr = viewportRange();
+
+    showHBar = (w > vr);
+    showVBar = (h > vr);
+  }
+}
+
+void
+CQChartsView::
+plotHScrollSlot(double pos)
+{
+  plotScrollData_.xpos = pos;
+
+  setDisplayWindowRange();
+
+  updatePlots();
+}
+
+void
+CQChartsView::
+plotVScrollSlot(double pos)
+{
+  plotScrollData_.ypos = pos;
+
+  setDisplayWindowRange();
+
+  updatePlots();
 }
 
 //---
@@ -5353,7 +5608,7 @@ paintEvent(QPaintEvent *)
 
   deviceFont_ = painter.font();
 
-  painter.drawImage(-sizeData_.xpos, -sizeData_.ypos, *image_);
+  painter.drawImage(-autoSizeData_.xpos, -autoSizeData_.ypos, *image_);
 
   lockPainter(false);
 }
@@ -6778,10 +7033,19 @@ showMenu(const Point &p)
   //---
 
   if (basePlots.size() > 1) {
+    auto *focusMenu = addSubMenu(popupMenu, "Focus");
+
     if (! isScrolled())
-      addAction(popupMenu, "Maximize", SLOT(maximizePlotsSlot()));
-    else
-      addAction(popupMenu, "Restore", SLOT(restorePlotsSlot()));
+      addAction(focusMenu, "Maximize", SLOT(maximizePlotsSlot()));
+    else {
+      if (pageScrollData_.page > 0)
+        addAction(focusMenu, "Prev", SLOT(scrollLeftSlot()));
+
+      if (pageScrollData_.page < scrollNumPages() - 1)
+        addAction(focusMenu, "Next", SLOT(scrollRightSlot()));
+
+      addAction(focusMenu, "Restore", SLOT(restorePlotsSlot()));
+    }
   }
 
   //---
@@ -7073,9 +7337,16 @@ showMenu(const Point &p)
 
     addAction(popupMenu, "Fit", SLOT(fitSlot()));
 
+    auto *zoomMenu = addSubMenu(popupMenu, "Zoom");
+
+    auto *zoomModeMenu = addSubMenu(zoomMenu, "Mode");
+
+    addCheckAction(zoomModeMenu, "View", isViewZoomMode(), SLOT(zoomModeViewSlot()));
+    addCheckAction(zoomModeMenu, "Plot", isPlotZoomMode(), SLOT(zoomModePlotSlot()));
+
     if (basePlot && (basePlot->isAllowZoomX() || basePlot->isAllowZoomY())) {
-      addAction(popupMenu, "Zoom Data", SLOT(zoomDataSlot()));
-      addAction(popupMenu, "Zoom Full", SLOT(zoomFullSlot()));
+      addAction(zoomMenu, "Data", SLOT(zoomDataSlot()));
+      addAction(zoomMenu, "Full", SLOT(zoomFullSlot()));
     }
   }
 
@@ -7618,12 +7889,10 @@ void
 CQChartsView::
 fitSlot()
 {
-  if (zoomMode() == ZoomMode::VIEW) {
-    auto vr = viewportRange();
+  if (isViewZoomMode()) {
+    setDisplayWindowRange();
 
-    displayRange_->setWindowRange(0, 0, vr, vr);
-
-    updateZoomScroll();
+    updateScrollBars();
 
     updatePlots();
 
@@ -7674,7 +7943,7 @@ wheelZoom(const Point &pp, int delta)
 
   displayRange_->scroll(pp1.x - pp2.x, pp1.y - pp2.y);
 
-  updateZoomScroll();
+  updateScrollBars();
 }
 
 void
@@ -7683,7 +7952,7 @@ zoomIn(double f)
 {
   displayRange_->zoomIn(f);
 
-  updateZoomScroll();
+  updateScrollBars();
 
   updatePlots();
 }
@@ -7694,7 +7963,7 @@ zoomOut(double f)
 {
   displayRange_->zoomOut(f);
 
-  updateZoomScroll();
+  updateScrollBars();
 
   updatePlots();
 }
@@ -7705,7 +7974,7 @@ zoomTo(const BBox &bbox)
 {
   displayRange_->zoomTo(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
 
-  updateZoomScroll();
+  updateScrollBars();
 
   updatePlots();
 }
@@ -7729,7 +7998,7 @@ unzoomTo(const BBox &bbox)
 
   displayRange_->zoomTo(c.x - xs/2.0, c.y - ys/2.0, c.x + xs/2.0, c.y + ys/2.0);
 
-  updateZoomScroll();
+  updateScrollBars();
 
   updatePlots();
 }
@@ -7738,11 +8007,9 @@ void
 CQChartsView::
 zoomFull()
 {
-  auto vr = viewportRange();
+  setDisplayWindowRange();
 
-  displayRange_->setWindowRange(0, 0, vr, vr);
-
-  updateZoomScroll();
+  updateScrollBars();
 
   updatePlots();
 }
@@ -7753,7 +8020,7 @@ pan(double dx, double dy)
 {
   displayRange_->scroll(dx, dy);
 
-  updateZoomScroll();
+  updateScrollBars();
 
   updatePlots();
 }
@@ -8623,15 +8890,15 @@ resizeToView()
 {
   bool b = true;
 
-  std::swap(sizeData_.autoSize, b);
+  std::swap(autoSizeData_.autoSize, b);
 
   resizeEvent(nullptr);
 
-  sizeData_.width   = width ();
-  sizeData_.height  = height();
-  sizeData_.sizeSet = true;
+  autoSizeData_.width   = width ();
+  autoSizeData_.height  = height();
+  autoSizeData_.sizeSet = true;
 
-  std::swap(sizeData_.autoSize, b);
+  std::swap(autoSizeData_.autoSize, b);
 }
 
 //------
@@ -9028,10 +9295,10 @@ void
 CQChartsView::
 scrollLeft()
 {
-  if (scrollData_.page > 0) {
-    --scrollData_.page;
+  if (pageScrollData_.page > 0) {
+    --pageScrollData_.page;
 
-    updateScroll();
+    updatePageScroll();
   }
 }
 
@@ -9039,32 +9306,50 @@ void
 CQChartsView::
 scrollRight()
 {
-  if (scrollData_.page < scrollNumPages() - 1) {
-    ++scrollData_.page;
+  if (pageScrollData_.page < scrollNumPages() - 1) {
+    ++pageScrollData_.page;
 
-    updateScroll();
+    updatePageScroll();
   }
 }
 
 void
 CQChartsView::
-updateScroll()
+updatePageScroll()
 {
-  auto vr = viewportRange();
-
   if (isScrolled()) {
-    double dx = scrollData_.page*scrollData_.delta;
-
-    displayRange_->setWindowRange(dx, 0, dx + vr, vr);
+    setDisplayWindowRange();
   }
   else {
-    if (zoomMode() != ZoomMode::VIEW)
-      displayRange_->setWindowRange(0, 0, vr, vr);
+    if (! isViewZoomMode())
+      setDisplayWindowRange();
   }
 
   updatePlots();
 
   Q_EMIT scrollDataChanged();
+}
+
+//------
+
+void
+CQChartsView::
+setDisplayWindowRange()
+{
+  auto vr = viewportRange();
+
+  double vx = 0.0;
+  double vy = 0.0;
+
+  if     (isScrolled()) {
+    vx = pageScrollData_.page*pageScrollData_.delta;
+  }
+  else if (calcIsScrollPlots()) {
+    vx = plotScrollData_.xpos;
+    vy = plotScrollData_.ypos;
+  }
+
+  displayRange_->setWindowRange(vx, vy, vr + vx, vr + vy);
 }
 
 //------
@@ -9442,7 +9727,7 @@ lengthPixelWidth(const Length &len) const
   else if (len.units() == Units::VIEW)
     return windowToPixelWidth(len.value());
   else if (len.units() == Units::PERCENT) {
-    int w = (isAutoSize() ? width() : sizeData_.width);
+    int w = (isAutoSize() ? width() : autoSizeData_.width);
 
     return len.value()*w/100.0;
   }
@@ -9465,7 +9750,7 @@ lengthPixelHeight(const Length &len) const
   else if (len.units() == Units::VIEW)
     return windowToPixelHeight(len.value());
   else if (len.units() == Units::PERCENT) {
-    int h = (isAutoSize() ? height() : sizeData_.height);
+    int h = (isAutoSize() ? height() : autoSizeData_.height);
 
     return len.value()*h/100.0;
   }

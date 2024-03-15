@@ -1,0 +1,17 @@
+View Zoom/Scrolling
+
+ . Range is (0, 0) -> (100, 100)
+
+ . Plot Focus
+   . Maximize (setScrolled true)
+   . Restore (setScrolled false)
+   . Next/Prev (next/prev focus plot)
+ . Range Scroll
+   . Place plots in larger range
+
+ . Zoom Mode
+   . Plot : Zoom Plot under mouse
+   . View : Zoom View range
+     + Optional scrollbars when zoom in
+
+ + Scroll when auto resize disabled ?

@@ -379,14 +379,14 @@ using Point       = CQChartsGeom::Point;
 Size calcHtmlTextSize(const QString &text, const QFont &font, int margin=0);
 
 void drawScaledHtmlText(PaintDevice *device, const BBox &tbbox, const QString &text,
-                        const TextOptions &options, double adjustScale=1.0, bool inside=false);
+                        const TextOptions &options, double adjustScale=1.0, bool rotateRect=true);
 
 void drawHtmlText(PaintDevice *device, const BBox &tbbox,
                   const QString &text, const TextOptions &options,
-                  double pdx=0.0, double pdy=0.0, bool inside=false);
+                  double pdx=0.0, double pdy=0.0, bool rotateRect=true);
 void drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
                   const QString &text, const TextOptions &options,
-                  double pdx=0.0, double pdy=0.0, bool inside=false);
+                  double pdx=0.0, double pdy=0.0, bool rotateRect=true);
 
 }
 

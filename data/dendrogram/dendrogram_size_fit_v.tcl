@@ -46,8 +46,8 @@ set_charts_property -plot $plot -name header.text.angle -value 90
 
 set_charts_property -plot $::plot -name options.pixelScaled -value 1
 
-set_charts_property -plot $::plot -name edge.width 3px
-set_charts_property -plot $::plot -name edge.stroke.alpha 0.3
+set_charts_property -plot $::plot -name edge.width -value 3px
+set_charts_property -plot $::plot -name edge.stroke.alpha -value 0.3
 
 proc expandAll { view plot } {
   disconnect_charts_signal -plot $plot -from plotObjsAdded -to expandAll

@@ -1573,6 +1573,8 @@ createObjs(PlotObjs &objs) const
 
   //th->calcNodesSize(nodeObjs);
 
+  updateObjRects(nodeObjs);
+
   //---
 
   PlotObjs headerObjs;
@@ -1891,7 +1893,10 @@ wheelVScroll(int delta)
   auto scrollSize = (fitMode() == FitMode::SIZE);
 
   if      (scrollFit) {
-    spreadData_.pos += (delta > 0 ? -0.1 : 0.1);
+    if (orientation() == Qt::Horizontal)
+      spreadData_.pos += (delta > 0 ? 0.1 : -0.1);
+    else
+      spreadData_.pos += (delta > 0 ? -0.1 : 0.1);
 
     spreadData_.pos = std::min(std::max(spreadData_.pos, 0.0), spreadData_.scale - 1.0);
 
@@ -2739,14 +2744,26 @@ place() const
 
   //---
 
-  for (const auto &plotObj : plotObjects()) {
+  updateObjRects(plotObjects());
+}
+
+void
+CQChartsDendrogramPlot::
+updateObjRects(const PlotObjs &objs) const
+{
+  for (const auto &plotObj : objs) {
+    auto *nodeObj = dynamic_cast<NodeObj *>(plotObj);
     auto *edgeObj = dynamic_cast<EdgeObj *>(plotObj);
-    if (! edgeObj) continue;
 
-    Point p1, p4;
-    edgeObj->getEdgePoints(p1, p4);
+    if      (nodeObj) {
+      nodeObj->setRect(nodeObj->displayRect());
+    }
+    else if (edgeObj) {
+      Point p1, p4;
+      edgeObj->getEdgePoints(p1, p4);
 
-    edgeObj->setRect(BBox(p1, p4));
+      edgeObj->setRect(BBox(p1, p4));
+    }
   }
 }
 
@@ -4782,7 +4799,7 @@ isAllExpanded() const
   if (! isAllExpanded(root))
     return false;
 
-  return true;;
+  return true;
 }
 
 bool
@@ -4797,7 +4814,7 @@ isAllExpanded(Node *hierNode) const
       return false;
   }
 
-  return true;;
+  return true;
 }
 
 //---

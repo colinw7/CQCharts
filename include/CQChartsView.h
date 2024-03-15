@@ -174,8 +174,11 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(bool showBoxes READ isShowBoxes WRITE setShowBoxes)
 
   // fixed size
-  Q_PROPERTY(bool  autoSize  READ isAutoSize WRITE setAutoSize )
-  Q_PROPERTY(QSize fixedSize READ fixedSize  WRITE setFixedSize)
+  Q_PROPERTY(bool  autoSize   READ isAutoSize WRITE setAutoSize )
+  Q_PROPERTY(QSize fixedSize  READ fixedSize  WRITE setFixedSize)
+
+  // scroll plots
+  Q_PROPERTY(bool scrollPlots READ isScrollPlots WRITE setScrollPlots)
 
   // font scaling/factor
   Q_PROPERTY(bool         scaleFont  READ isScaleFont WRITE setScaleFont )
@@ -447,11 +450,23 @@ class CQChartsView : public QFrame,
   //---
 
  private:
-  void createSizeHBar();
-  void createSizeVBar();
-  void placeSizeBars();
+  void createAutoSizeHBar();
+  void createAutoSizeVBar();
 
-  void updateSizeBars();
+  void placeAutoSizeBars();
+
+  void updateAutoSizeBars();
+
+  //---
+
+  void createPlotScrollHBar();
+  void createPlotScrollVBar();
+
+  void updatePlotScrollBars();
+
+  bool placePlotScrollBars();
+
+  void calcShowPlotScrollBars(BBox &bbox, bool &showHBar, bool &showVBar) const;
 
   //---
 
@@ -460,7 +475,12 @@ class CQChartsView : public QFrame,
   const ZoomMode &zoomMode() const { return zoomData_.mode; }
   void setZoomMode(const ZoomMode &m);
 
+  bool isViewZoomMode() const { return zoomMode() == ZoomMode::VIEW; }
+  bool isPlotZoomMode() const { return zoomMode() == ZoomMode::PLOT; }
+
  private:
+  void updateScrollBars();
+
   //! get/set add scroll bar in zoom mode
   bool isZoomScroll() const { return zoomData_.scroll; }
   void setZoomScroll(bool b);
@@ -504,17 +524,17 @@ class CQChartsView : public QFrame,
 
   //---
 
-  bool isScrolled() const { return scrollData_.active; }
+  bool isScrolled() const { return pageScrollData_.active; }
   void setScrolled(bool b, bool update=true);
 
-  double scrollDelta() const { return scrollData_.delta; }
-  void setScrollDelta(double r) { scrollData_.delta = r; }
+  double scrollDelta() const { return pageScrollData_.delta; }
+  void setScrollDelta(double r) { pageScrollData_.delta = r; }
 
-  int scrollNumPages() const { return scrollData_.numPages; }
-  void setScrollNumPages(int i) { scrollData_.numPages = i; }
+  int scrollNumPages() const { return pageScrollData_.numPages; }
+  void setScrollNumPages(int i) { pageScrollData_.numPages = i; }
 
-  int scrollPage() const { return scrollData_.page; }
-  void setScrollPage(int i) { scrollData_.page = i; }
+  int scrollPage() const { return pageScrollData_.page; }
+  void setScrollPage(int i) { pageScrollData_.page = i; }
 
   //---
 
@@ -535,10 +555,18 @@ class CQChartsView : public QFrame,
   //---
 
   // auto/fixed size
-  bool isAutoSize() const { return sizeData_.autoSize; }
+  bool isAutoSize() const { return autoSizeData_.autoSize; }
 
-  QSize fixedSize() const { return QSize(sizeData_.width, sizeData_.height); }
+  QSize fixedSize() const { return QSize(autoSizeData_.width, autoSizeData_.height); }
   void setFixedSize(const QSize &size);
+
+  //---
+
+  // scroll plots
+  bool isScrollPlots() const { return plotScrollData_.enabled; }
+  void setScrollPlots(bool b);
+
+  bool calcIsScrollPlots() const;
 
   //---
 
@@ -1192,7 +1220,9 @@ class CQChartsView : public QFrame,
   void scrollLeft();
   void scrollRight();
 
-  void updateScroll();
+  void updatePageScroll();
+
+  void setDisplayWindowRange();
 
   //---
 
@@ -1424,6 +1454,8 @@ class CQChartsView : public QFrame,
   void paletteChangedSlot(const QString &);
 
   void maximizePlotsSlot();
+  void scrollLeftSlot();
+  void scrollRightSlot();
   void restorePlotsSlot();
 
   void viewKeyVisibleSlot(bool b);
@@ -1464,6 +1496,9 @@ class CQChartsView : public QFrame,
   //---
 
   void fitSlot();
+
+  void zoomModePlotSlot();
+  void zoomModeViewSlot();
 
   void zoomDataSlot();
   void zoomFullSlot();
@@ -1552,11 +1587,14 @@ class CQChartsView : public QFrame,
   //---
 
  private Q_SLOTS:
-  void zoomHScrollSlot(double);
-  void zoomVScrollSlot(double);
+  void zoomHScrollSlot(double pos);
+  void zoomVScrollSlot(double pos);
 
   void sizeHScrollSlot(int pos);
   void sizeVScrollSlot(int pos);
+
+  void plotHScrollSlot(double pos);
+  void plotVScrollSlot(double pos);
 
   void currentPlotZoomPanChanged();
 
@@ -1747,7 +1785,7 @@ class CQChartsView : public QFrame,
   };
 
   //! structure containing the auto/fixed size data and associated scroll bars
-  struct SizeData {
+  struct AutoSizeData {
     bool        autoSize { true };    //!< is auto sized
     bool        sizeSet  { false };   //!< has specific size been set
     int         width    { 800 };     //!< specified width
@@ -1758,8 +1796,19 @@ class CQChartsView : public QFrame,
     int         ypos     { 0 };       //!< vertical scroll bar position
   };
 
+  //! structure containing the plot scroll data and associated scroll bars
+  struct PlotScrollData {
+    bool          enabled  { false };   //!< is scaled to plot
+    int           width    { 800 };     //!< specified width
+    int           height   { 800 };     //!< specified height
+    CQRealScroll* hbar     { nullptr }; //!< horizontal scroll bar
+    CQRealScroll* vbar     { nullptr }; //!< vertical scroll bar
+    int           xpos     { 0 };       //!< horizontal scroll bar position
+    int           ypos     { 0 };       //!< vertical scroll bar position
+  };
+
   //! structure containing the data for scrolled plots
-  struct ScrollData {
+  struct PageScrollData {
     using PlotBBox = std::map<QString, BBox>;
 
     bool     active      { false }; //!< active
@@ -1839,9 +1888,10 @@ class CQChartsView : public QFrame,
   Window*   window_ { nullptr }; //!< parent window
 
   // draw data
-  QImage*       image_         { nullptr }; //!< image buffer
-  QPainter*     ipainter_      { nullptr }; //!< image painter
-  DisplayRangeP displayRange_;              //!< display range
+  QImage*   image_    { nullptr }; //!< image buffer
+  QPainter* ipainter_ { nullptr }; //!< image painter
+
+  DisplayRangeP displayRange_; //!< display range
 
   PropertyModelP propertyModel_; //!< property model
 
@@ -1879,16 +1929,18 @@ class CQChartsView : public QFrame,
   bool  overlayFade_      { false }; //!< overlay fade
   Alpha overlayFadeAlpha_ { 0.5 };   //!< overlay fade alpha
 
-  RegionData regionData_;                //!< region sub mode
-  ZoomData   zoomData_;                  //!< zoom mode
-  RulerData  rulerData_;                 //!< ruler sub mode
-  QString    defaultPalette_;            //!< default palette
-  ScrollData scrollData_;                //!< scroll data
-  bool       antiAlias_       { true };  //!< anti alias
-//bool       showTable_       { false }; //!< show table with plot
-  bool       bufferLayers_    { true };  //!< buffer draw layers
-  bool       preview_         { false }; //!< preview
-  bool       showBoxes_       { false }; //!< show boxes
+  RegionData regionData_;     //!< region sub mode
+  ZoomData   zoomData_;       //!< zoom mode
+  RulerData  rulerData_;      //!< ruler sub mode
+  QString    defaultPalette_; //!< default palette
+
+  PageScrollData pageScrollData_; //!< scroll data
+
+  bool antiAlias_    { true };  //!< anti alias
+//bool showTable_    { false }; //!< show table with plot
+  bool bufferLayers_ { true };  //!< buffer draw layers
+  bool preview_      { false }; //!< preview
+  bool showBoxes_    { false }; //!< show boxes
 
   // fonts
   bool   scaleFont_  { true }; //!< auto scale font
@@ -1917,7 +1969,10 @@ class CQChartsView : public QFrame,
   double handRoughness_ { 1.0 };   //!< handdrawn roughness
   double handFillDelta_ { 16 };    //!< handdrawn fill delta
 
-  SizeData    sizeData_;                          //!< size control
+  AutoSizeData autoSizeData_; //!< size scroll data
+
+  PlotScrollData plotScrollData_; //!< plot scroll data
+
   PosTextType posTextType_ { PosTextType::PLOT }; //!< position text type
   BBox        prect_       { 0, 0, 100, 100 };    //!< plot rect
   double      aspect_      { 1.0 };               //!< current aspect

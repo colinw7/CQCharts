@@ -339,7 +339,6 @@ class CQChartsDendrogramHeaderObj : public CQChartsPlotObj {
   int                   depth_          { -1 };      //!< depth
 };
 
-
 //---
 
 CQCHARTS_NAMED_SHAPE_DATA(Root, root)
@@ -1032,6 +1031,8 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   void doRemoveExtraRoots() const;
 
   void place() const;
+
+  void updateObjRects(const PlotObjs &objs) const;
 
   void placeBuchheim() const;
   void addBuchheimHierNode(CBuchHeim::Tree *tree, Node *hierNode, int depth) const;
