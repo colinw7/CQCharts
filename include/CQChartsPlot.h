@@ -1539,6 +1539,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   using ModelVisitor = CQChartsPlotModelVisitor;
 
   void visitModel(ModelVisitor &visitor) const;
+  void visitModel(ModelP model, ModelVisitor &visitor) const;
 
   //---
 
@@ -3350,6 +3351,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   // get palette color for index
   QColor interpPaletteColor(const ColorInd &ind, bool scale=false) const;
 
+  QColor interpPaletteColor(const QString &palette, const ColorInd &ind, bool scale=false) const;
+
  public:
   virtual QColor interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv,
                                          bool scale=false) const;
@@ -3364,6 +3367,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
  public:
   virtual QColor interpColor(const Color &c, int ig, int ng, const ColorInd &ind) const;
   virtual QColor interpColor(const Color &c, const ColorInd &ind) const;
+  virtual QColor interpColor(const QString &palette, const Color &c, const ColorInd &ind) const;
 
   //---
 

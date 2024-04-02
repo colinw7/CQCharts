@@ -24,6 +24,7 @@ set_charts_property -plot $plot -name options.spreadNodeOverlaps -value 1
 
 set_charts_property -plot $plot -name header.visible -value 1
 
+if {0} {
 set_charts_property -plot $plot -name header.values -value [ \
   list \
     {} \
@@ -40,6 +41,7 @@ set_charts_property -plot $plot -name header.tips -value [ \
   {Column C} \
   \
 ]
+}
 
 set_charts_property -plot $plot -name header.margin  -value 4px
 set_charts_property -plot $plot -name header.spacing -value 4px

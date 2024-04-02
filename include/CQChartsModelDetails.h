@@ -327,6 +327,10 @@ class CQChartsModelColumnDetails {
   const QString &nullValue() const;
   //void setNullValue(const QString &v) { nullValue_ = v; }
 
+  // get cached "current_value" column type value
+  const QString &currentValue() const;
+  //void setcurrentValue(const QString &v) { currentValue_ = v; }
+
   // get cached "extra_values" column type value
   const QVariantList &extraValues() const;
   //void setExtraValues(const QString &v) { extraValues_ = v; }
@@ -465,8 +469,8 @@ class CQChartsModelColumnDetails {
   bool     increasing_  { true };  //!< values are increasing
 
   // values
-  ValueSet*   valueSet_    { nullptr }; //!< values
-  VariantInds valueInds_;               //!< unique values
+  ValueSet*   valueSet_ { nullptr }; //!< values
+  VariantInds valueInds_;            //!< unique values
 
   // buckets
   using BucketerP = std::unique_ptr<CQBucketer>;
@@ -477,8 +481,9 @@ class CQChartsModelColumnDetails {
   // cached parameter values
   int preferredWidth_  { -1 }; //!< preferred column width
 
-  QString      nullValue_;   //!< null value
-  QVariantList extraValues_; //!< extra values
+  QString      nullValue_;    //!< null value
+  QString      currentValue_; //!< null value
+  QVariantList extraValues_;  //!< extra values
 
   Color         tableDrawColor_;                             //!< table draw color
   TableDrawType tableDrawType_   { TableDrawType::HEATMAP }; //!< table draw type

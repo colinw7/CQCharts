@@ -231,8 +231,9 @@ class CQChartsColumnType {
 
   int preferredWidth(const NameValues &nameValues) const;
 
-  QString      nullValue  (const NameValues &nameValues) const;
-  QVariantList extraValues(const NameValues &nameValues) const;
+  QString      nullValue   (const NameValues &nameValues) const;
+  QString      currentValue(const NameValues &nameValues) const;
+  QVariantList extraValues (const NameValues &nameValues) const;
 
   Color      drawColor(const NameValues &nameValues) const;
   DrawType   drawType (const NameValues &nameValues) const;

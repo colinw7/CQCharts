@@ -1713,6 +1713,12 @@ writeCSV(std::ostream &fs) const
 
     //--
 
+    const auto &currentValue = columnDetails->currentValue();
+
+    writeMetaColumnData("current_value", currentValue, currentValue.length());
+
+    //--
+
     writeMetaColumnData("key", "1", columnDetails->isKey());
 
     //--

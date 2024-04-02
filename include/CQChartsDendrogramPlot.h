@@ -423,17 +423,21 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   Q_PROPERTY(bool           edgeSelectable   READ isEdgeSelectable   WRITE setEdgeSelectable  )
 
   // header data
-  Q_PROPERTY(bool              headerVisible READ isHeaderVisible WRITE setHeaderVisible)
-  Q_PROPERTY(CQChartsLength    headerSize    READ headerSize      WRITE setHeaderSize)
-  Q_PROPERTY(CQChartsLength    headerMargin  READ headerMargin    WRITE setHeaderMargin)
-  Q_PROPERTY(CQChartsLength    headerSpacing READ headerSpacing   WRITE setHeaderSpacing)
-  Q_PROPERTY(CQChartsValueList headerValues  READ headerValues    WRITE setHeaderValues)
-  Q_PROPERTY(CQChartsValueList headerTips    READ headerTips      WRITE setHeaderTips)
+  Q_PROPERTY(bool             headerVisible READ isHeaderVisible WRITE setHeaderVisible)
+  Q_PROPERTY(bool             headerStripes READ isHeaderStripes WRITE setHeaderStripes)
+  Q_PROPERTY(CQChartsModelInd headerModel   READ headerModel     WRITE setHeaderModel)
+  Q_PROPERTY(CQChartsLength   headerSize    READ headerSize      WRITE setHeaderSize)
+  Q_PROPERTY(CQChartsLength   headerMargin  READ headerMargin    WRITE setHeaderMargin)
+  Q_PROPERTY(CQChartsLength   headerSpacing READ headerSpacing   WRITE setHeaderSpacing)
+
+//Q_PROPERTY(CQChartsValueList headerValues READ headerValues WRITE setHeaderValues)
+//Q_PROPERTY(CQChartsValueList headerTips   READ headerTips   WRITE setHeaderTips)
 
   // options
   Q_PROPERTY(Qt::Orientation orientation READ orientation WRITE setOrientation)
 
-  Q_PROPERTY(PlaceType placeType READ placeType WRITE setPlaceType)
+  Q_PROPERTY(PlaceType      placeType   READ placeType   WRITE setPlaceType)
+  Q_PROPERTY(CQChartsLength placeMargin READ placeMargin WRITE setPlaceMargin)
 
   Q_PROPERTY(FitMode fitMode READ fitMode WRITE setFitMode)
 
@@ -493,6 +497,7 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   using Color     = CQChartsColor;
   using Length    = CQChartsLength;
   using PenBrush  = CQChartsPenBrush;
+  using PenData   = CQChartsPenData;
   using BrushData = CQChartsBrushData;
   using ColorInd  = CQChartsUtil::ColorInd;
 
@@ -630,6 +635,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   QSizeF calcNodeSize(const NodeObj *obj) const;
   QSizeF calcNodeSize(const Node *node) const;
 
+  double calcNodeTextMargin(const NodeObj *obj) const;
+  double calcNodeTextMargin(const Node *node) const;
+
   //! get/set remove extra roots
   bool isRemoveExtraRoots() const { return removeExtraRoots_; }
   void setRemoveExtraRoots(bool b);
@@ -766,6 +774,12 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   bool isHeaderVisible() const { return headerData_.visible; }
   void setHeaderVisible(bool b);
 
+  bool isHeaderStripes() const { return headerData_.stripes; }
+  void setHeaderStripes(bool b);
+
+  const CQChartsModelInd &headerModel() const { return headerData_.model; }
+  void setHeaderModel(const CQChartsModelInd &c);
+
   const CQChartsLength &headerSize() const { return headerData_.size; }
   void setHeaderSize(const CQChartsLength &s);
 
@@ -775,11 +789,19 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   const CQChartsLength &headerSpacing() const { return headerData_.spacing; }
   void setHeaderSpacing(const CQChartsLength &s);
 
-  const CQChartsValueList &headerValues() const { return headerData_.values; }
-  void setHeaderValues(const CQChartsValueList &v);
+//const CQChartsValueList &headerValues() const { return headerData_.values; }
+//void setHeaderValues(const CQChartsValueList &v);
 
-  const CQChartsValueList &headerTips() const { return headerData_.tips; }
-  void setHeaderTips(const CQChartsValueList &v);
+//const CQChartsValueList &headerTips() const { return headerData_.tips; }
+//void setHeaderTips(const CQChartsValueList &v);
+
+  bool calcHeaderText(int depth, QString &text) const;
+  bool calcHeaderTip(int depth, QString &tip) const;
+  bool calcHeaderDepthPalette(int depth, QString &palette) const;
+
+  bool getHeaderDepthValue(int depth, const QString &name, QVariant &value) const;
+
+  void initHeaderModelData() const;
 
   //---
 
@@ -805,6 +827,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   //! get/set place type
   const PlaceType &placeType() const { return placeType_; }
   void setPlaceType(const PlaceType &t);
+
+  const Length &placeMargin() const { return placeMargin_; }
+  void setPlaceMargin(const Length &l);
 
   const FitMode &fitMode() const { return fitMode_; }
   void setFitMode(const FitMode &m);
@@ -1064,13 +1089,18 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
 
   //---
 
+  bool hasBackground() const override;
   bool hasForeground() const override;
 
+  void execDrawBackground(PaintDevice *) const override;
   void execDrawForeground(PaintDevice *) const override;
 
   CQChartsGeom::BBox headerFitBox() const;
 
-  void drawHeader(PaintDevice *device) const;
+  void drawHeaderBg(PaintDevice *device) const;
+  void drawHeaderFg(PaintDevice *device) const;
+
+  void placeHeaderObjs() const;
 
   //---
 
@@ -1155,13 +1185,24 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   mutable bool isEdgeRows_ { false };
 
   // header data
+  using HeaderColumnValue    = std::map<QString, QVariant>;
+  using HeaderRowColumnValue = std::map<int, HeaderColumnValue>;
+
+  HeaderRowColumnValue rowColumnValue;
+
   struct HeaderData {
     bool              visible { false };                   //!< headers visible
+    bool              stripes { false };                   //!< headers stripes
+    CQChartsModelInd  model;                               //!< header model
     CQChartsLength    size    { CQChartsLength::view(5) }; //!< header size
     CQChartsLength    margin  { CQChartsLength::view(1) }; //!< header margin
     CQChartsLength    spacing { CQChartsLength::view(0) }; //!< header spacing
-    CQChartsValueList values;                              //!< header values
-    CQChartsValueList tips;                                //!< header tips
+
+//  CQChartsValueList values; //!< header values
+//  CQChartsValueList tips;   //!< header tips
+
+    HeaderRowColumnValue rowColumnValue;
+    bool                 rowColumnValueSet { false };
   };
 
   HeaderData headerData_;
@@ -1169,8 +1210,9 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   // plot data
   Qt::Orientation orientation_ { Qt::Horizontal };      //!< draw direction
   PlaceType       placeType_   { PlaceType::BUCHHEIM }; //!< place type
+  Length          placeMargin_ { Length::pixel(8.0) };  //!< place margin
   FitMode         fitMode_     { FitMode::SCALE };      //!< fit mode
-  int             hideDepth_   { -1 };                  //!< place type
+  int             hideDepth_   { -1 };                  //!< hide depth
 
   double sizeScale_ { 1.0 }; //!< size scale
 
@@ -1239,6 +1281,10 @@ class CQChartsDendrogramPlot : public CQChartsHierPlot,
   using DepthHeaderObj = std::map<int, HeaderObj *>;
 
   DepthHeaderObj depthHeaderObj_;
+
+  using HeaderRects = std::map<int, BBox>;
+
+  HeaderRects headerRects_;
 
   //---
 

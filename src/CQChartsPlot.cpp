@@ -17917,6 +17917,19 @@ interpPaletteColor(const ColorInd &ind, bool scale) const
 
 QColor
 CQChartsPlot::
+interpPaletteColor(const QString &palette, const ColorInd &ind, bool scale) const
+{
+  auto c = Color::makePalette();
+
+  c.setScale(scale);
+
+  return interpColor(palette, c, ind);
+
+  //return view()->interpPaletteColor(ind, scale);
+}
+
+QColor
+CQChartsPlot::
 interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale) const
 {
   return view()->interpGroupPaletteColor(ig, iv, scale);
@@ -17969,6 +17982,15 @@ interpColor(const Color &c, const ColorInd &ind) const
 
   if (defaultPalette_.isValid())
     c1 = charts()->adjustDefaultPalette(c, defaultPalette_.name());
+
+  return view()->interpColor(c1, ind);
+}
+
+QColor
+CQChartsPlot::
+interpColor(const QString &palette, const Color &c, const ColorInd &ind) const
+{
+  auto c1 = charts()->adjustDefaultPalette(c, palette);
 
   return view()->interpColor(c1, ind);
 }
@@ -18600,6 +18622,15 @@ void
 CQChartsPlot::
 visitModel(ModelVisitor &visitor) const
 {
+  const auto &model = this->currentModel();
+
+  visitModel(model, visitor);
+}
+
+void
+CQChartsPlot::
+visitModel(ModelP model, ModelVisitor &visitor) const
+{
   CQPerfTrace trace("CQChartsPlot::visitModel");
 
   visitor.setPlot(this);
@@ -18608,8 +18639,6 @@ visitModel(ModelVisitor &visitor) const
 
   //if (isPreview())
   //  visitor.setMaxRows(previewMaxRows());
-
-  const auto &model = this->currentModel();
 
   (void) CQChartsModelVisit::exec(charts(), model.data(), visitor);
 

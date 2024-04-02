@@ -96,6 +96,15 @@ bool getColumnNullValue(CQCharts *charts, QAbstractItemModel *model, const Colum
 bool setColumnNullValue(CQCharts *charts, QAbstractItemModel *model, const Column &column,
                         const QVariant &value);
 
+//---
+
+bool getColumnCurrentValue(CQCharts *charts, QAbstractItemModel *model, const Column &column,
+                           QVariant &value);
+bool setColumnCurrentValue(CQCharts *charts, QAbstractItemModel *model, const Column &column,
+                           const QVariant &value);
+
+//---
+
 bool getColumnParam(CQCharts *charts, QAbstractItemModel *model, const Column &column,
                     const QString &name, QVariant &value);
 bool setColumnParam(CQCharts *charts, QAbstractItemModel *model, const Column &column,

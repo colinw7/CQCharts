@@ -131,7 +131,8 @@ CQChartsPiePlot(View *view, const ModelP &model) :
  CQChartsObjGroupTextData      <CQChartsPiePlot>(this),
  CQChartsObjTextLabelBoxData   <CQChartsPiePlot>(this),
  CQChartsObjTextLabelTextData  <CQChartsPiePlot>(this),
- CQChartsObjRadiusLabelTextData<CQChartsPiePlot>(this)
+ CQChartsObjRadiusLabelTextData<CQChartsPiePlot>(this),
+ CQChartsObjDialLineData       <CQChartsPiePlot>(this)
 {
 }
 
@@ -480,14 +481,14 @@ valueTypeName() const
 
 void
 CQChartsPiePlot::
-setMinValue(double r)
+setMinValue(const OptReal &r)
 {
   CQChartsUtil::testAndSet(minValue_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
-setMaxValue(double r)
+setMaxValue(const OptReal &r)
 {
   CQChartsUtil::testAndSet(maxValue_, r, [&]() { updateRangeAndObjs(); } );
 }
@@ -616,6 +617,15 @@ setRadiusLabels(bool b)
 
 void
 CQChartsPiePlot::
+setShowDial(bool b)
+{
+  CQChartsUtil::testAndSet(showDial_, b, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsPiePlot::
 addProperties()
 {
   addBaseProperties();
@@ -715,6 +725,12 @@ addProperties()
 
   addTextProperties("radius/text", "radiusLabelText", "Radius label",
                     CQChartsTextOptions::ValueType::ALL);
+
+  //---
+
+  addProp("dial", "showDial", "visible", "Show dial for current value");
+
+  addLineProperties("dial", "dialLines", "Lines");
 
   //---
 
@@ -1095,12 +1111,7 @@ createObjs(PlotObjs &objs) const
       auto *groupObj = dynamic_cast<CQChartsPieGroupObj *>(plotObj);
       if (! groupObj) continue;
 
-      double dataTotal = groupObj->dataTotal();
-
-      auto valueSum = calcValueSum();
-
-      if (valueSum > 0.0)
-        dataTotal = valueSum;
+      auto dataTotal = groupObj->calcDataTotal();
 
       int    nsum = 0;
       double err  = 0.0;
@@ -1658,12 +1669,7 @@ adjustObjAngles() const
       double angle1 = startAngle().value();
       double alen   = CQChartsUtil::clampDegrees(angleExtent().value());
 
-      double dataTotal = groupObj->dataTotal();
-
-      auto valueSum = calcValueSum();
-
-      if (valueSum > 0.0)
-        dataTotal = valueSum;
+      auto dataTotal = groupObj->calcDataTotal();
 
       // count visible
       int numObjs = 0;
@@ -1937,7 +1943,7 @@ calcValueSum() const
   }
 
   // assume max is sum e.g. values are percent
-  return maxValue();
+  return maxValue().realOr(0.0);
 }
 
 //---
@@ -3600,6 +3606,58 @@ drawFg(PaintDevice *device) const
 
   if (drawText)
     drawDonutText(device);
+
+  //---
+
+  if (piePlot()->isShowDial()) {
+    auto c = calcCenter();
+
+    double ri, ro;
+
+    getRadii(ri, ro);
+
+    auto valueSum = calcDataTotal();
+
+    auto valueColumn = piePlot()->valueColumns().column();
+
+    auto *details = piePlot()->columnDetails(valueColumn);
+
+    double currentValue = 0.0;
+
+    if (details) {
+      bool ok;
+      currentValue = details->currentValue().toDouble(&ok);
+    }
+
+    auto dv = (valueSum != 0.0 ? currentValue/valueSum : 0.0);
+
+    auto a1 = piePlot()->startAngle ().value();
+    auto da = piePlot()->angleExtent().value();
+
+    auto a = Angle(a1 + dv*da);
+
+    //---
+
+    // calc pen and brush
+    PenBrush penBrush;
+
+    bool updateState = device->isInteractive();
+
+    piePlot()->setDialLineDataPen(penBrush.pen, ig_);
+
+    if (updateState)
+      piePlot()->updateObjPenBrushState(this, penBrush);
+
+    //---
+
+    // draw line
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    auto p1 = Angle::circlePoint(c, ri, a);
+    auto p2 = Angle::circlePoint(c, ro, a);
+
+    device->drawLine(p1, p2);
+  }
 }
 
 void
@@ -3692,6 +3750,20 @@ drawDonutText(PaintDevice *device) const
 
     CQChartsDrawUtil::drawTextsAtPoint(device, pt, labels, textOptions1);
   }
+}
+
+double
+CQChartsPieGroupObj::
+calcDataTotal() const
+{
+  double dataTotal = this->dataTotal();
+
+  auto valueSum = piePlot_->calcValueSum();
+
+  if (valueSum > 0.0)
+    dataTotal = valueSum;
+
+  return dataTotal;
 }
 
 CQChartsGeom::Point

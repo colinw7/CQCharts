@@ -2040,6 +2040,8 @@ calcType()
 
     nullValue_ = columnType->nullValue(nameValues);
 
+    currentValue_ = columnType->currentValue(nameValues);
+
     extraValues_ = columnType->extraValues(nameValues);
 
     tableDrawColor_ = columnType->drawColor(nameValues);
@@ -2218,6 +2220,15 @@ nullValue() const
   initType();
 
   return nullValue_;
+}
+
+const QString &
+CQChartsModelColumnDetails::
+currentValue() const
+{
+  initType();
+
+  return currentValue_;
 }
 
 const QVariantList &

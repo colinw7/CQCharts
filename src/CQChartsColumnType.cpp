@@ -873,6 +873,10 @@ CQChartsColumnType(Type type) :
   addGenericParam("null_value", Type::STRING, "Null Value", "")->
     setDesc("Null value string").setNullValue(true);
 
+  // current value
+  addGenericParam("current_value", Type::STRING, "Current Value", "")->
+    setDesc("Current value");
+
   // extra values
   addGenericParam("extra_values", Type::STRING, "Extra Values", "")->
     setDesc("Extra values string");
@@ -1032,6 +1036,18 @@ nullValue(const NameValues &nameValues) const
     nullStr.clear();
 
   return nullStr;
+}
+
+QString
+CQChartsColumnType::
+currentValue(const NameValues &nameValues) const
+{
+  QString currentStr;
+
+  if (! nameValueString(nameValues, "current_value", currentStr))
+    currentStr.clear();
+
+  return currentStr;
 }
 
 QVariantList

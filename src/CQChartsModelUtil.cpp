@@ -724,6 +724,36 @@ setColumnNullValue(CQCharts *charts, QAbstractItemModel *model, const Column &co
   return true;
 }
 
+//---
+
+bool
+getColumnCurrentValue(CQCharts *charts, QAbstractItemModel *model, const Column &column,
+                      QVariant &value)
+{
+  return getColumnParam(charts, model, column, "current_value", value);
+}
+
+bool
+setColumnCurrentValue(CQCharts *charts, QAbstractItemModel *model, const Column &column,
+                      const QVariant &value)
+{
+  if (! setColumnParam(charts, model, column, "current_value", value))
+    return false;
+
+  auto *modelData = charts->getModelData(model);
+
+  auto *details = (modelData ? modelData->details() : nullptr);
+
+  auto *columnDetails = (details ? details->columnDetails(column) : nullptr);
+
+  if (columnDetails)
+    columnDetails->resetTypeInitialized();
+
+  return true;
+}
+
+//---
+
 bool
 getColumnParam(CQCharts *charts, QAbstractItemModel *model, const Column &column,
                const QString &name, QVariant &value)

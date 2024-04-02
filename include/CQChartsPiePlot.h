@@ -304,6 +304,8 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   double dataTotal() const { return dataTotal_; }
   void setDataTotal(double r) { dataTotal_ = r; }
 
+  double calcDataTotal() const;
+
   int numValues() const { return numValues_; }
   void setNumValues(int n) { numValues_ = n; }
 
@@ -472,6 +474,8 @@ CQCHARTS_NAMED_BOX_DATA (TextLabel, textLabel)
 CQCHARTS_NAMED_TEXT_DATA(TextLabel, textLabel)
 CQCHARTS_NAMED_TEXT_DATA(RadiusLabel, radiusLabel)
 
+CQCHARTS_NAMED_LINE_DATA(Dial, dial)
+
 /*!
  * \brief Pie Chart Plot
  * \ingroup Charts
@@ -492,7 +496,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
  public CQChartsObjGroupTextData      <CQChartsPiePlot>,
  public CQChartsObjTextLabelBoxData   <CQChartsPiePlot>,
  public CQChartsObjTextLabelTextData  <CQChartsPiePlot>,
- public CQChartsObjRadiusLabelTextData<CQChartsPiePlot> {
+ public CQChartsObjRadiusLabelTextData<CQChartsPiePlot>,
+ public CQChartsObjDialLineData       <CQChartsPiePlot> {
   Q_OBJECT
 
   // columns
@@ -524,9 +529,10 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   // value
   Q_PROPERTY(ValueType valueType READ valueType WRITE setValueType)
-  // . min/max value
-  Q_PROPERTY(double minValue READ minValue WRITE setMinValue)
-  Q_PROPERTY(double maxValue READ maxValue WRITE setMaxValue)
+
+  // min/max value
+  Q_PROPERTY(CQChartsOptReal minValue READ minValue WRITE setMinValue)
+  Q_PROPERTY(CQChartsOptReal maxValue READ maxValue WRITE setMaxValue)
 
   // . inner radius, outer radius, label radius, start angle, end angle
   Q_PROPERTY(double        innerRadius READ innerRadius WRITE setInnerRadius)
@@ -571,6 +577,13 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   // grid
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Grid, grid)
+
+  // dial
+  Q_PROPERTY(bool showDial READ isShowDial WRITE setShowDial)
+
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Dial, dial)
+
+  //---
 
   Q_ENUMS(DrawType)
   Q_ENUMS(ExplodeStyle)
@@ -686,11 +699,11 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   //---
 
-  double minValue() const { return minValue_; }
-  void setMinValue(double r);
+  const OptReal &minValue() const { return minValue_; }
+  void setMinValue(const OptReal &r);
 
-  double maxValue() const { return maxValue_; }
-  void setMaxValue(double r);
+  const OptReal &maxValue() const { return maxValue_; }
+  void setMaxValue(const OptReal &r);
 
   //---
 
@@ -754,6 +767,12 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   // radius labels
   bool isRadiusLabels() const { return radiusLabels_; }
+
+  //---
+
+  // dial
+  bool isShowDial() const { return showDial_; }
+  void setShowDial(bool b);
 
   //---
 
@@ -920,8 +939,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   bool      donutTitle_  { false };          //!< show title in donut center
   ValueType valueType_   { ValueType::SUM }; //!< Value type (when multiple values per name)
-  double    minValue_    { -1.0 };           //!< min value
-  double    maxValue_    { -1.0 };           //!< max value
+  OptReal   minValue_;                       //!< min value
+  OptReal   maxValue_;                       //!< max value
   double    innerRadius_ { 0.3 };            //!< relative inner donut radius
   double    outerRadius_ { 0.9 };            //!< relative outer donut radius
   double    labelRadius_ { 1.1 };            //!< label radius
@@ -938,6 +957,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   bool textLabels_   { true }; //!< show labels
   bool radiusLabels_ { true }; //!< show radius labels
+
+  bool showDial_ { false }; //!< show dial
 
   Point           center_;     //!< center point
   GroupDatas      groupDatas_; //!< data per group
