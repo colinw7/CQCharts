@@ -116,18 +116,14 @@ CQChartsAnnotation::
 CQChartsAnnotation(View *view, Type type) :
  CQChartsTextBoxObj(view), type_(type)
 {
-  static int s_lastViewInd;
-
-  init(s_lastViewInd);
+  init();
 }
 
 CQChartsAnnotation::
 CQChartsAnnotation(Plot *plot, Type type) :
  CQChartsTextBoxObj(plot), type_(type)
 {
-  static int s_lastPlotInd;
-
-  init(s_lastPlotInd);
+  init();
 }
 
 CQChartsAnnotation::
@@ -137,9 +133,15 @@ CQChartsAnnotation::
 
 void
 CQChartsAnnotation::
-init(int &lastInd)
+init()
 {
-  ind_ = ++lastInd;
+  static int s_lastPlotInd;
+  static int s_lastViewInd;
+
+  if (plot())
+    ind_ = ++s_lastPlotInd;
+  else
+    ind_ = ++s_lastViewInd;
 
   setEditable(true);
 }
@@ -3664,30 +3666,30 @@ rectToBBox()
 
 CQChartsTextAnnotation::
 CQChartsTextAnnotation(View *view, const ObjRefPos &position, const QString &textStr) :
- CQChartsRectAnnotation(view, Type::TEXT, position)
+ CQChartsRectAnnotation(view, Type::TEXT, position), textStr_(textStr)
 {
-  init(textStr);
+  init();
 }
 
 CQChartsTextAnnotation::
 CQChartsTextAnnotation(Plot *plot, const ObjRefPos &position, const QString &textStr) :
- CQChartsRectAnnotation(plot, Type::TEXT, position)
+ CQChartsRectAnnotation(plot, Type::TEXT, position), textStr_(textStr)
 {
-  init(textStr);
+  init();
 }
 
 CQChartsTextAnnotation::
 CQChartsTextAnnotation(View *view, const Rect &rect, const QString &textStr) :
- CQChartsRectAnnotation(view, Type::TEXT, rect)
+ CQChartsRectAnnotation(view, Type::TEXT, rect), textStr_(textStr)
 {
-  init(textStr);
+  init();
 }
 
 CQChartsTextAnnotation::
 CQChartsTextAnnotation(Plot *plot, const Rect &rect, const QString &textStr) :
- CQChartsRectAnnotation(plot, Type::TEXT, rect)
+ CQChartsRectAnnotation(plot, Type::TEXT, rect), textStr_(textStr)
 {
-  init(textStr);
+  init();
 }
 
 CQChartsTextAnnotation::
@@ -3697,11 +3699,11 @@ CQChartsTextAnnotation::
 
 void
 CQChartsTextAnnotation::
-init(const QString &textStr)
+init()
 {
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
-  setTextStr  (textStr);
+  setTextStr  (textStr_);
   setTextColor(Color::makeInterfaceValue(1.0));
 
   setStroked(false);
@@ -6181,28 +6183,39 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 CQChartsPointAnnotation::
 CQChartsPointAnnotation(View *view, const ObjRefPos &position, const Symbol &symbol) :
  CQChartsAnnotation(view, Type::POINT), CQChartsObjPointData<CQChartsPointAnnotation>(this),
- position_(position.position())
+ position_(position.position()), symbol_(symbol)
 {
   if (position.objRef().isValid())
     setObjRef(position.objRef());
 
-  init(symbol);
+  init();
 }
 
 CQChartsPointAnnotation::
 CQChartsPointAnnotation(Plot *plot, const ObjRefPos &position, const Symbol &symbol) :
  CQChartsAnnotation(plot, Type::POINT), CQChartsObjPointData<CQChartsPointAnnotation>(this),
- position_(position.position())
+ position_(position.position()), symbol_(symbol)
 {
   if (position.objRef().isValid())
     setObjRef(position.objRef());
 
-  init(symbol);
+  init();
 }
 
 CQChartsPointAnnotation::
 ~CQChartsPointAnnotation()
 {
+}
+
+//---
+
+void
+CQChartsPointAnnotation::
+init()
+{
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
+
+  setSymbol(symbol_);
 }
 
 //---
@@ -6219,17 +6232,6 @@ CQChartsPointAnnotation::
 setShapeType(const ShapeType &t)
 {
   CQChartsUtil::testAndSet(shapeType_, t, [&]() { emitDataChanged(); } );
-}
-
-//---
-
-void
-CQChartsPointAnnotation::
-init(const Symbol &symbol)
-{
-  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
-
-  setSymbol(symbol);
 }
 
 //---
@@ -8561,22 +8563,22 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 CQChartsButtonAnnotation::
 CQChartsButtonAnnotation(View *view, const ObjRefPos &position, const QString &textStr) :
- CQChartsAnnotation(view, Type::BUTTON)
+ CQChartsAnnotation(view, Type::BUTTON), textStr_(textStr)
 {
   setPosition(position.position());
   setObjRef  (position.objRef());
 
-  init(textStr);
+  init();
 }
 
 CQChartsButtonAnnotation::
 CQChartsButtonAnnotation(Plot *plot, const ObjRefPos &position, const QString &textStr) :
- CQChartsAnnotation(plot, Type::BUTTON)
+ CQChartsAnnotation(plot, Type::BUTTON), textStr_(textStr)
 {
   setPosition(position.position());
   setObjRef  (position.objRef());
 
-  init(textStr);
+  init();
 }
 
 CQChartsButtonAnnotation::
@@ -8586,11 +8588,11 @@ CQChartsButtonAnnotation::
 
 void
 CQChartsButtonAnnotation::
-init(const QString &textStr)
+init()
 {
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
-  setTextStr  (textStr);
+  setTextStr  (textStr_);
   setTextColor(Color::makeInterfaceValue(1.0));
 }
 
@@ -8794,6 +8796,8 @@ init()
 {
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
+  sizePolicy_ = QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 
   if (view()->is3D())
@@ -8802,17 +8806,21 @@ init()
     widget_.setParent(view());
 
   widget_.initSize();
+
+  updateVisible();
 }
 
 //---
 
 void
 CQChartsWidgetAnnotation::
-setVisible(bool b)
+setVisible(bool b, bool notify)
 {
-  CQChartsAnnotation::setVisible(b);
+  if (b != CQChartsAnnotation::isVisible()) {
+    CQChartsAnnotation::setVisible(b, notify);
 
-  updateVisible();
+    updateVisible();
+  }
 }
 
 void
@@ -8999,6 +9007,18 @@ calcWidgetSize(Size &psize, Size &wsize) const
 
 void
 CQChartsWidgetAnnotation::
+calcWidgetSizeHint(Size &psize, Size &wsize) const
+{
+  // convert to window size
+  psize = Size(widget_.sizeHint());
+
+  if      (plot()) wsize = plot()->pixelToWindowSize(psize);
+  else if (view()) wsize = view()->pixelToWindowSize(psize);
+  else             wsize = psize;
+}
+
+void
+CQChartsWidgetAnnotation::
 positionToTopLeft(double w, double h, double &x, double &y) const
 {
   auto p = positionToParent(objRef(), positionValue());
@@ -9155,9 +9175,10 @@ positionToBBox()
 
   getMarginValues(xlm, xrm, ytm, ybm);
 
-  Size psize, wsize;
+  Size psize, wsize, phsize, whsize;
 
-  calcWidgetSize(psize, wsize);
+  calcWidgetSize    (psize, wsize);
+  calcWidgetSizeHint(phsize, whsize);
 
   double w = wsize.width ();
   double h = wsize.height();
@@ -9166,24 +9187,30 @@ positionToBBox()
 
   positionToTopLeft(w, h, x, y);
 
-  double vr = view()->viewportRange();
+  auto vbbox = view()->viewportBBox();
 
-  if (sizePolicy().horizontalPolicy() == QSizePolicy::Expanding) {
+  if      (sizePolicy().horizontalPolicy() == QSizePolicy::Expanding) {
     if (plot())
-      w = plot()->viewToWindowWidth(vr);
+      w = plot()->viewToWindowWidth(vbbox.getWidth());
     else
-      w = vr;
+      w = vbbox.getWidth();
 
     w -= xlp + xlm + xrp + xrm;
   }
+  else if (sizePolicy().horizontalPolicy() == QSizePolicy::Fixed) {
+    w = whsize.width();
+  }
 
-  if (sizePolicy().verticalPolicy() == QSizePolicy::Expanding) {
+  if      (sizePolicy().verticalPolicy() == QSizePolicy::Expanding) {
     if (plot())
-      h = plot()->viewToWindowHeight(vr);
+      h = plot()->viewToWindowHeight(vbbox.getHeight());
     else
-      h = vr;
+      h = vbbox.getHeight();
 
     h -= xlp + xlm + xrp + xrm;
+  }
+  else if (sizePolicy().verticalPolicy() == QSizePolicy::Fixed) {
+    w = whsize.height();
   }
 
   Point ll(x     - xlp - xlm, y - h - ybp - ybm);
@@ -9279,11 +9306,13 @@ init()
 
 void
 CQChartsTkWidgetAnnotation::
-setVisible(bool b)
+setVisible(bool b, bool notify)
 {
-  CQChartsAnnotation::setVisible(b);
+  if (b != CQChartsAnnotation::isVisible()) {
+    CQChartsAnnotation::setVisible(b, notify);
 
-  updateVisible();
+    updateVisible();
+  }
 }
 
 void
@@ -9526,22 +9555,22 @@ positionToBBox()
 
   positionToTopLeft(w, h, x, y);
 
-  double vr = view()->viewportRange();
+  auto vbbox = view()->viewportBBox();
 
   if (sizePolicy().horizontalPolicy() == QSizePolicy::Expanding) {
     if (plot())
-      w = plot()->viewToWindowWidth(vr);
+      w = plot()->viewToWindowWidth(vbbox.getWidth());
     else
-      w = vr;
+      w = vbbox.getWidth();
 
     w -= xlp + xlm + xrp + xrm;
   }
 
   if (sizePolicy().verticalPolicy() == QSizePolicy::Expanding) {
     if (plot())
-      h = plot()->viewToWindowHeight(vr);
+      h = plot()->viewToWindowHeight(vbbox.getHeight());
     else
-      h = vr;
+      h = vbbox.getHeight();
 
     h -= xlp + xlm + xrp + xrm;
   }

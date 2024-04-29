@@ -53,6 +53,8 @@ class CQChartsWidget : public CQChartsEqBase<CQChartsWidget> {
 
   QSize size() const { return QSize(width(), height()); }
 
+  QSize sizeHint() const;
+
   //---
 
   QString id() const;

@@ -1171,16 +1171,16 @@ updateAxes()
   //--
 
   if (! isSplitGroups()) {
-    auto xType = xAxis()->valueType().type();
+    auto xType = xAxis()->valueType();
 
-    if (xType != CQChartsAxisValueType::Type::INTEGER && xType != CQChartsAxisValueType::Type::REAL)
-      xType = CQChartsAxisValueType::Type::REAL;
+    if (xType != CQChartsAxisValueType::integer() && xType != CQChartsAxisValueType::real())
+      xType = CQChartsAxisValueType::real();
 
-    if (isLogX   ()) xType = CQChartsAxisValueType::Type::LOG;
-    if (isUniqueX()) xType = CQChartsAxisValueType::Type::INTEGER;
+    if (isLogX   ()) xType = CQChartsAxisValueType::log();
+    if (isUniqueX()) xType = CQChartsAxisValueType::integer();
 
     if (xColumnType_ == ColumnType::TIME)
-      xType = CQChartsAxisValueType::Type::DATE;
+      xType = CQChartsAxisValueType::date();
 
     xAxis()->setValueType(CQChartsAxisValueType(xType), /*notify*/false);
   }
@@ -1211,16 +1211,16 @@ updateAxes()
 
   //--
 
-  auto yType = yAxis()->valueType().type();
+  auto yType = yAxis()->valueType();
 
-  if (yType != CQChartsAxisValueType::Type::INTEGER && yType != CQChartsAxisValueType::Type::REAL)
-    yType = CQChartsAxisValueType::Type::REAL;
+  if (yType != CQChartsAxisValueType::integer() && yType != CQChartsAxisValueType::real())
+    yType = CQChartsAxisValueType::real();
 
-  if (isLogY   ()) yType = CQChartsAxisValueType::Type::LOG;
-  if (isUniqueY()) yType = CQChartsAxisValueType::Type::INTEGER;
+  if (isLogY   ()) yType = CQChartsAxisValueType::log();
+  if (isUniqueY()) yType = CQChartsAxisValueType::integer();
 
   if (yColumnType_ == ColumnType::TIME)
-    yType = CQChartsAxisValueType::Type::DATE;
+    yType = CQChartsAxisValueType::date();
 
   yAxis()->setValueType(CQChartsAxisValueType(yType), /*notify*/false);
 

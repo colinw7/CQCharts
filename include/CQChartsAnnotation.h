@@ -447,7 +447,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void invalidateSlot() { invalidate(); }
 
  protected:
-  void init(int &lastInd);
+  void init();
 
   CQChartsResizeHandle *createExtraHandle() const;
 
@@ -1313,16 +1313,17 @@ class CQChartsTextAnnotation : public CQChartsRectAnnotation {
   void initRectangle() override;
 
  protected:
-  void init(const QString &text);
+  void init();
 
   void calcTextSize(Size &psize, Size &wsize) const;
 
   void positionToLL(double w, double h, double &x, double &y) const;
 
  private:
-  double calcFontScale_     { -1.0 };
-  bool   skipDraw_          { false };
-  double overrideFontScale_ { -1.0 };
+  QString textStr_;                     //!< text string
+  double  calcFontScale_     { -1.0 };  //!< calculated font scale
+  bool    skipDraw_          { false }; //!< skip draw
+  double  overrideFontScale_ { -1.0 };  //!< override font scale
 };
 
 //---
@@ -2008,10 +2009,11 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
                     const QString &varName=QString()) const override;
 
  protected:
-  void init(const Symbol &symbol);
+  void init();
 
  protected:
   Position  position_;                        //!< point position
+  Symbol    symbol_;                          //!< symbol
   ShapeType shapeType_ { ShapeType::SYMBOL }; //!< shape type
 };
 
@@ -2703,11 +2705,12 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
   //---
 
  protected:
-  void init(const QString &text);
+  void init();
 
   QRect calcPixelRect() const;
 
  protected:
+  QString  textStr_;           //!< text string
   Position position_;          //!< button position
   QRect    prect_;             //!< pixel rect
   bool     pressed_ { false }; //!< is pressed
@@ -2764,7 +2767,7 @@ class CQChartsWidgetAnnotation : public CQChartsRectAnnotation {
   void setRectangle(const OptRect &r) override;
 
  public:
-  void setVisible(bool b) override;
+  void setVisible(bool b, bool notify=true) override;
 
  private:
   void updateVisible();
@@ -2813,6 +2816,7 @@ class CQChartsWidgetAnnotation : public CQChartsRectAnnotation {
   void init();
 
   void calcWidgetSize(Size &psize, Size &wsize) const;
+  void calcWidgetSizeHint(Size &psize, Size &wsize) const;
 
   void positionToTopLeft(double w, double h, double &x, double &y) const;
 
@@ -2874,7 +2878,7 @@ class CQChartsTkWidgetAnnotation : public CQChartsRectAnnotation {
   void setRectangle(const OptRect &r) override;
 
  public:
-  void setVisible(bool b) override;
+  void setVisible(bool b, bool notify=true) override;
 
  private:
   void updateVisible();

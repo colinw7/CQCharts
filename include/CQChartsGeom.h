@@ -981,6 +981,11 @@ class BBox :
 
   //---
 
+  double xmap(double f) { return CMathUtil::map(f, 0.0, 1.0, getXMin(), getXMax()); }
+  double ymap(double f) { return CMathUtil::map(f, 0.0, 1.0, getYMin(), getYMax()); }
+
+  //---
+
   BBox &moveXTo(double x) {
     assert(set_);
 

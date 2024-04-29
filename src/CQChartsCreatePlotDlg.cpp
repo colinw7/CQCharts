@@ -2338,16 +2338,15 @@ applySlot()
 
   //---
 
-  double vr = CQChartsView::viewportRange();
-
-  CQChartsGeom::BBox bbox(0, 0, vr, vr);
+  auto vbbox = view->viewportBBox();
 
   if (! autoRangeEdit_->isChecked()) {
     double xmin = 0.0, ymin = 0.0, xmax = 1.0, ymax = 1.0;
 
     parsePosition(xmin, ymin, xmax, ymax);
 
-    bbox = CQChartsGeom::BBox(vr*xmin, vr*ymin, vr*xmax, vr*ymax);
+    vbbox = CQChartsGeom::BBox(vbbox.xmap(xmin), vbbox.ymap(ymin),
+                               vbbox.xmap(xmax), vbbox.ymap(ymax));
   }
 
   //---
@@ -2358,7 +2357,7 @@ applySlot()
 
   //---
 
-  view->addPlot(plot_, bbox);
+  view->addPlot(plot_, vbbox);
 
   //---
 

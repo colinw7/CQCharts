@@ -1442,3 +1442,6 @@
 # 9/7/2023
  + add ranges edit to summary plot
  + support min/max zoom scale
+# 4/29/2024
+ + improve draw speed for multiple plots in view
+ + improve plot scroll when plot view box is larger than view box

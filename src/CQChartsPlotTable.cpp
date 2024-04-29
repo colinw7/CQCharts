@@ -425,18 +425,32 @@ plotsSelectionChangeSlot()
 
   //---
 
-  view_->startSelection();
-
-  view_->deselectAll();
+  bool changed = false;
 
   for (auto &plot : plots) {
     if (! plot->isSelectable())
       continue;
 
-    plot->setSelected(true);
+    if (! plot->isSelected()) {
+      changed = true;
+      break;
+    }
   }
 
-  view_->endSelection();
+  if (changed) {
+    view_->startSelection();
+
+    view_->deselectAll();
+
+    for (auto &plot : plots) {
+      if (! plot->isSelectable())
+        continue;
+
+      plot->setSelected(true);
+    }
+
+    view_->endSelection();
+  }
 }
 
 CQChartsPlot *

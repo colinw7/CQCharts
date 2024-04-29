@@ -43,10 +43,13 @@ class CQChartsCompositePlot;
 class CQChartsCompositePlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(CompositeType compositeType  READ compositeType  WRITE setCompositeType )
-  Q_PROPERTY(bool          commonXRange   READ isCommonXRange WRITE setCommonXRange  )
-  Q_PROPERTY(bool          commonYRange   READ isCommonYRange WRITE setCommonYRange  )
-  Q_PROPERTY(int           currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
+  Q_PROPERTY(CompositeType  compositeType  READ compositeType  WRITE setCompositeType )
+  Q_PROPERTY(bool           commonXRange   READ isCommonXRange WRITE setCommonXRange  )
+  Q_PROPERTY(bool           commonYRange   READ isCommonYRange WRITE setCommonYRange  )
+  Q_PROPERTY(int            currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
+  Q_PROPERTY(int            numColumns     READ numColumns     WRITE setNumColumns    )
+  Q_PROPERTY(CQChartsLength headerHeight   READ headerHeight   WRITE setHeaderHeight  )
+  Q_PROPERTY(CQChartsLength rowHeight      READ rowHeight      WRITE setRowHeight     )
 
   Q_ENUMS(CompositeType)
 
@@ -55,7 +58,8 @@ class CQChartsCompositePlot : public CQChartsPlot {
     NONE,
     X1X2,
     Y1Y2,
-    TABBED
+    TABBED,
+    TABLE
   };
 
  public:
@@ -83,6 +87,18 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   //---
 
+  int numColumns() const { return numColumns_; }
+  void setNumColumns(int i);
+
+  const Length &headerHeight() const { return headerHeight_; }
+  void setHeaderHeight(const Length &v);
+
+  const Length &rowHeight() const { return rowHeight_; }
+  void setRowHeight(const Length &v);
+
+
+  //---
+
   void addPlot(Plot *plot);
 
   //---
@@ -92,6 +108,10 @@ class CQChartsCompositePlot : public CQChartsPlot {
   //---
 
  public:
+  void preResize() override;
+
+  //---
+
   Range calcRange() const override;
 
   void postUpdateObjs() override;
@@ -133,6 +153,8 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   bool updateInsideObjects(const Point &w, Constraints constraints) override;
 
+  bool setInsideObjects(const Point &w, Objs &objs) override;
+
   Obj *insideObject() const override;
 
   QString insideObjectText() const override;
@@ -154,6 +176,10 @@ class CQChartsCompositePlot : public CQChartsPlot {
   void updateAxisRanges(const BBox &adjustedRange) override;
 
   void applyDataRange(bool propagate=true) override;
+
+  //---
+
+  std::vector<Plot *> getPlots() const;
 
   //---
 
@@ -362,6 +388,8 @@ class CQChartsCompositePlot : public CQChartsPlot {
   //---
 
  protected:
+  void placeTable();
+
   void pixelToWindowI(double px, double py, double &wx, double &wy) const override;
   void viewToWindowI (double vx, double vy, double &wx, double &wy) const override;
 
@@ -385,13 +413,23 @@ class CQChartsCompositePlot : public CQChartsPlot {
   void setOverlayAxisLabels();
 
  private:
-  using Plots = std::vector<Plot*>;
+  using PlotP = QPointer<Plot>;
+  using Plots = std::vector<PlotP>;
 
-  Plots         plots_;
-  Plot*         currentPlot_   { nullptr };
+  Plots plots_;
+  PlotP currentPlot_;
+
   CompositeType compositeType_ { CompositeType::NONE };
-  bool          commonXRange_  { true };
-  bool          commonYRange_  { true };
+
+  bool commonXRange_  { true };
+  bool commonYRange_  { true };
+
+  // table data
+  int    numColumns_    { 1 };
+  Length headerHeight_;
+  Length rowHeight_;
+
+  mutable bool inSelectMove_ { false };
 };
 
 #endif

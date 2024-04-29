@@ -1581,8 +1581,7 @@ execCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  auto vr = CQChartsView::viewportRange();
-  CQChartsGeom::BBox bbox(0, 0, vr, vr);
+  auto bbox = view->viewportBBox();
 
   if (positionStr != "") {
     // split into position values (xmin, ymin, xmax, ymax)
@@ -3343,8 +3342,7 @@ execCmd(CQChartsCmdArgs &argv)
 
     //---
 
-    auto vr = CQChartsView::viewportRange();
-    CQChartsGeom::BBox bbox(0, 0, vr, vr);
+    auto bbox = view->viewportBBox();
 
     view->addPlot(plot, bbox);
 

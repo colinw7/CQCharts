@@ -1847,8 +1847,8 @@ initObjAxesI()
   xAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
 
   yAxis->setValueType     (CQChartsAxisValueType(isLogY() ?
-                             CQChartsAxisValueType::Type::LOG :
-                             CQChartsAxisValueType::Type::REAL), /*notify*/false);
+                             CQChartsAxisValueType::log() :
+                             CQChartsAxisValueType::real()), /*notify*/false);
   yAxis->setGridMid       (false);
 //yAxis->setMajorIncrement(0);
   yAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);

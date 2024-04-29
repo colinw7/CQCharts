@@ -155,9 +155,8 @@ init()
 
   //--
 
-  double vr = View::viewportRange();
-
-  viewBBox_      = BBox(0, 0, vr, vr);
+  // full screen by default
+  viewBBox_      = view()->viewportBBox();
   innerViewBBox_ = viewBBox_;
 
   innerMargin_ = PlotMargin(Length::plot(0), Length::plot(0), Length::plot(0), Length::plot(0));
@@ -166,7 +165,7 @@ init()
   fitMargin_   = PlotMargin(Length::percent(1), Length::percent(1),
                             Length::percent(1), Length::percent(1));
 
-  setPixelRange(BBox(0.0, 0.0,  vr,  vr));
+  setPixelRange(viewBBox_);
 
   resetWindowRange();
 
@@ -895,7 +894,7 @@ selectionSlot(QItemSelectionModel *sm)
     drawObjs();
 }
 
-void
+bool
 CQChartsPlot::
 selectObjsFromModel()
 {
@@ -905,7 +904,7 @@ selectObjsFromModel()
   bool changed = deselectAllPlotObjs1();
 
   auto *modelData = currentModelData();
-  if (! modelData) return;
+  if (! modelData) return changed;
 
   const auto &sel = modelData->selection();
 
@@ -943,6 +942,8 @@ selectObjsFromModel()
   }
 
   endSelection(changed);
+
+  return changed;
 }
 
 void
@@ -980,7 +981,7 @@ calcVisible() const
 
 void
 CQChartsPlot::
-setVisible(bool b)
+setVisible(bool b, bool /*notify*/)
 {
   CQChartsUtil::testAndSet(visible_, b, [&]() {
     if (! isVisible()) {
@@ -1095,7 +1096,8 @@ bool
 CQChartsPlot::
 isUpdateRangeAndObjs() const
 {
-  assert(! parentPlot());
+  if (parentPlot())
+    return parentPlot()->isUpdateRangeAndObjs();
 
   return updatesData_.updateRangeAndObjs;
 }
@@ -1104,7 +1106,8 @@ bool
 CQChartsPlot::
 isUpdateObjs() const
 {
-  assert(! parentPlot());
+  if (parentPlot())
+    return parentPlot()->isUpdateObjs();
 
   return updatesData_.updateObjs;
 }
@@ -1313,12 +1316,12 @@ applyVisibleFilter()
       bool visible = expr->match(ind, ok);
       if (!ok) visible = true;
 
-      plotObj->setVisible(visible);
+      plotObj->setVisible(visible, /*notify*/false);
     }
   }
   else {
     for (auto &plotObj : plotObjects())
-      plotObj->setVisible(true);
+      plotObj->setVisible(true, /*notify*/false);
   }
 }
 
@@ -1619,8 +1622,15 @@ drawObjs()
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->drawObjs1();
 
-  if (parentPlot())
-    return parentPlot()->drawObjs();
+  if (parentPlot()) {
+    parentPlot()->connectData_.childPlot = this;
+
+    parentPlot()->drawObjs();
+
+    parentPlot()->connectData_.childPlot = PlotP();
+
+    return;
+  }
 
   //---
 
@@ -2978,8 +2988,6 @@ CQChartsTitle *
 CQChartsPlot::
 title() const
 {
-  assert(! isComposite());
-
   return titleObj_.get();
 }
 
@@ -3160,7 +3168,8 @@ bool
 CQChartsPlot::
 isColorKey() const
 {
-  assert(! isComposite());
+  if (isComposite())
+    return false;
 
   return colorKey_;
 }
@@ -3169,7 +3178,8 @@ void
 CQChartsPlot::
 setColorKey(bool b)
 {
-  assert(! isComposite());
+  if (isComposite())
+    return;
 
   CQChartsUtil::testAndSet(colorKey_, b, [&]() {
     resetSetHidden();
@@ -3358,21 +3368,20 @@ const CQChartsGeom::BBox &
 CQChartsPlot::
 viewBBox() const
 {
-  assert(! isComposite());
-
   return viewBBox_;
 }
 
 void
 CQChartsPlot::
-setViewBBox(const BBox &bbox)
+setViewBBox(const BBox &bbox, bool update)
 {
-  assert(! isComposite());
+  if (isComposite())
+    return;
 
   viewBBox_      = bbox;
   innerViewBBox_ = viewBBox_;
 
-  updateMargins();
+  updateMargins(update);
 
   Q_EMIT viewBoxChanged();
 }
@@ -3680,12 +3689,10 @@ updateOverlay()
     plot->stopThreadTimer ();
     plot->startThreadTimer();
 
-    {
-    assert(! parentPlot());
+    if (! parentPlot()) {
+      std::unique_lock<std::mutex> lock(updatesMutex_);
 
-    std::unique_lock<std::mutex> lock(updatesMutex_);
-
-    plot->updatesData_.reset();
+      plot->updatesData_.reset();
     }
   });
 
@@ -4168,7 +4175,7 @@ CQChartsPlot::
 isLogX() const
 {
   // return logX_;
-  return (mappedXAxis() && mappedXAxis()->valueType().type() == CQChartsAxisValueType::Type::LOG);
+  return (mappedXAxis() && mappedXAxis()->valueType() == CQChartsAxisValueType::log());
 }
 
 bool
@@ -4176,7 +4183,7 @@ CQChartsPlot::
 isLogY() const
 {
   // return logY_;
-  return (mappedYAxis() && mappedYAxis()->valueType().type() == CQChartsAxisValueType::Type::LOG);
+  return (mappedYAxis() && mappedYAxis()->valueType() == CQChartsAxisValueType::log());
 }
 
 void
@@ -4184,8 +4191,8 @@ CQChartsPlot::
 setLogX(bool b)
 {
   if (mappedXAxis() && b != isLogX()) {
-    mappedXAxis()->setValueType(CQChartsAxisValueType(b ? CQChartsAxisValueType::Type::LOG :
-                                                          CQChartsAxisValueType::Type::REAL));
+    mappedXAxis()->setValueType(CQChartsAxisValueType(b ? CQChartsAxisValueType::log() :
+                                                          CQChartsAxisValueType::real()));
     updateRangeAndObjs();
   }
 }
@@ -4195,8 +4202,8 @@ CQChartsPlot::
 setLogY(bool b)
 {
   if (mappedYAxis() && b != isLogY()) {
-    mappedYAxis()->setValueType(CQChartsAxisValueType(b ? CQChartsAxisValueType::Type::LOG :
-                                                          CQChartsAxisValueType::Type::REAL));
+    mappedYAxis()->setValueType(CQChartsAxisValueType(b ? CQChartsAxisValueType::log() :
+                                                          CQChartsAxisValueType::real()));
     updateRangeAndObjs();
   }
 }
@@ -5665,6 +5672,11 @@ void
 CQChartsPlot::
 threadTimerSlot()
 {
+  if (view()->isDrawing())
+    return;
+
+  //---
+
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->startThreadTimer();
 
@@ -6021,13 +6033,13 @@ CQChartsPlot::
 execUpdateRangeAndObjs()
 {
   if (! isUpdatesEnabled()) {
-    assert(! parentPlot());
+    if (! parentPlot()) {
+      std::unique_lock<std::mutex> lock(updatesMutex_);
 
-    std::unique_lock<std::mutex> lock(updatesMutex_);
+      updatesData_.updateRangeAndObjs = true;
 
-    updatesData_.updateRangeAndObjs = true;
-
-    return;
+      return;
+    }
   }
 
   updateAndApplyRange(/*apply*/true, /*updateObjs*/true);
@@ -6113,7 +6125,7 @@ CQChartsPlot::
 startCalcRange(bool updateObjs)
 {
   if (parentPlot())
-    parentPlot()->startCalcRange(updateObjs);
+    return parentPlot()->startCalcRange(updateObjs);
 
   //---
 
@@ -6380,13 +6392,13 @@ CQChartsPlot::
 execUpdateObjs()
 {
   if (! isUpdatesEnabled()) {
-    assert(! parentPlot());
+    if (! parentPlot()) {
+      std::unique_lock<std::mutex> lock(updatesMutex_);
 
-    std::unique_lock<std::mutex> lock(updatesMutex_);
+      updatesData_.updateObjs = true;
 
-    updatesData_.updateObjs = true;
-
-    return;
+      return;
+    }
   }
 
   //---
@@ -6689,7 +6701,8 @@ bool
 CQChartsPlot::
 isApplyDataRange() const
 {
-  assert(! parentPlot());
+  if (parentPlot())
+    return parentPlot()->isApplyDataRange();
 
   return updatesData_.applyDataRange;
 }
@@ -6729,18 +6742,16 @@ applyDataRange(bool propagate)
   //---
 
   if (! isUpdatesEnabled()) {
-    assert(! parentPlot());
+    if (! parentPlot()) {
+      std::unique_lock<std::mutex> lock(updatesMutex_);
 
-    std::unique_lock<std::mutex> lock(updatesMutex_);
+      updatesData_.applyDataRange = true;
 
-    updatesData_.applyDataRange = true;
-
-    return;
+      return;
+    }
   }
 
-  if (! dataRange().isSet()) {
-    assert(! parentPlot());
-
+  if (! dataRange().isSet() && ! parentPlot()) {
     std::unique_lock<std::mutex> lock(updatesMutex_);
 
     updatesData_.applyDataRange = true;
@@ -7326,7 +7337,7 @@ initObjs()
   if (! createObjs())
     return false;
 
-  selectObjsFromModel();
+  bool selChanged = selectObjsFromModel();
 
   //---
 
@@ -7340,7 +7351,8 @@ initObjs()
 
   Q_EMIT customDataChanged();
 
-  view_->updateSelText();
+  if (selChanged)
+    view_->updateSelText();
 
   return true;
 }
@@ -8320,7 +8332,7 @@ tabbedSelectPress(const Point &w, SelMod)
 
 CQChartsPlot *
 CQChartsPlot::
-tabbedPressPlot(const Point &w, Plots &plots) const
+tabbedPressPlot(const Point &w, const Plots &plots) const
 {
   for (const auto &plot : plots) {
     if (plot->tabRect().inside(w)) {
@@ -13033,6 +13045,9 @@ void
 CQChartsPlot::
 preResize()
 {
+  if (parentPlot())
+    return;
+
   std::unique_lock<std::mutex> lock(resizeMutex_);
 
   interruptDraw();
@@ -13392,12 +13407,13 @@ void
 CQChartsPlot::
 execWaitDraw()
 {
+  if (parentPlot())
+    return parentPlot()->execWaitDraw();
+
+  auto updateState = this->updateState();
   if (debugUpdate_)
     std::cerr << "CQChartsPlot::execWaitDraw\n";
 
-  assert(! parentPlot());
-
-  auto updateState = this->updateState();
 
   while (updateState == UpdateState::DRAW_OBJS) {
     // if busy wait for draw thread to finish
@@ -17421,13 +17437,13 @@ CQChartsPlot::
 execInvalidateLayer(const Buffer::Type &type)
 {
   if (! isUpdatesEnabled()) {
-    assert(! parentPlot());
+    if (! parentPlot()) {
+      std::unique_lock<std::mutex> lock(updatesMutex_);
 
-    std::unique_lock<std::mutex> lock(updatesMutex_);
+      updatesData_.invalidateLayers = true;
 
-    updatesData_.invalidateLayers = true;
-
-    return;
+      return;
+    }
   }
 
   //assert(type != Buffer::Type::MIDDLE);

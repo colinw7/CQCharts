@@ -108,6 +108,16 @@ height() const
   return 100;
 }
 
+QSize
+CQChartsWidget::
+sizeHint() const
+{
+  if (widget_)
+    return widget_->sizeHint();
+
+  return QSize(100, 100);
+}
+
 QString
 CQChartsWidget::
 id() const

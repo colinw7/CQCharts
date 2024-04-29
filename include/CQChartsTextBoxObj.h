@@ -57,7 +57,14 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
   //---
 
-  void setVisible(bool b) override { CQChartsBoxObj::setVisible(b); textBoxObjInvalidate(); }
+  void setVisible(bool b, bool notify=true) override {
+    if (b != CQChartsBoxObj::isVisible()) {
+      CQChartsBoxObj::setVisible(b);
+
+      if (notify)
+        textBoxObjInvalidate();
+    }
+  }
 
   //---
 

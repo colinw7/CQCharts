@@ -251,6 +251,8 @@ class CQChartsGanttPlot : public CQChartsGroupPlot,
   Column valueColumn_; //!< value column
 
   bool groupStretch_ { true };
+
+  mutable ColumnType xColumnType_;
 };
 
 //---

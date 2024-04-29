@@ -192,9 +192,11 @@ setDirection(Qt::Orientation dir)
 
 void
 CQChartsAxis::
-setVisible(bool b)
+setVisible(bool b, bool /*notify*/)
 {
-  CQChartsUtil::testAndSet(visible_, b, [&]() { optRedraw(); } );
+  CQChartsUtil::testAndSet(visible_, b, [&]() {
+    optRedraw();
+  } );
 }
 
 void

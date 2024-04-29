@@ -172,10 +172,12 @@ main(int argc, char **argv)
   //---
 
   // create plots
-  double vr = CQChartsView::viewportRange();
+  auto vr = CQChartsView::viewportRange();
 
-  double dx = vr/nc;
-  double dy = vr/nr;
+  auto vbbox = CQChartsGeom::BBox(0, 0, vr, vr);
+
+  double dx = vbbox.getWidth ()/nc;
+  double dy = vbbox.getHeight()/nr;
 
   int numPlots = 0;
 
@@ -849,9 +851,8 @@ initPlot(const CQChartsInitData &initData)
   int r = i / initData.nc;
   int c = i % initData.nc;
 
-  double vr = CQChartsView::viewportRange();
-
-  CQChartsGeom::BBox bbox(0, 0, vr, vr);
+  auto vr   = CQChartsView::viewportRange();
+  auto bbox = (view ? view->viewportBBox() : CQChartsGeom::BBox(0, 0, vr, vr));
 
   if (! initData.overlay) {
     double x1 =  c     *initData.dx;
@@ -859,7 +860,7 @@ initPlot(const CQChartsInitData &initData)
     double y1 =  r     *initData.dy;
     double y2 = (r + 1)*initData.dy;
 
-    bbox = CQChartsGeom::BBox(x1, vr - y2, x2, vr - y1);
+    bbox = CQChartsGeom::BBox(x1, bbox.getHeight() - y2, x2, bbox.getHeight() - y1);
   }
 
   //---

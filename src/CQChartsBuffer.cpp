@@ -292,10 +292,14 @@ updateSize()
       glDevice_ = new QOpenGLPaintDevice(size_);
 
       image_ = CQChartsUtil::newImage(size_);
+
+      image_->fill(Qt::transparent);
     }
 #endif
     else if (bufferType() == BufferType::IMAGE) {
       image_ = CQChartsUtil::newImage(size_);
+
+      image_->fill(Qt::transparent);
     }
 
     ipainter_ = nullptr;

@@ -358,11 +358,9 @@ createNamedPlot(const QString &typeName)
 
   plot->setId(QString("Chart.%1.%2").arg(n + 1).arg(typeName));
 
-  double vr = CQChartsView::viewportRange();
+  auto vbbox = view()->viewportBBox();
 
-  BBox bbox(0, 0, vr, vr);
-
-  view()->addPlot(plot, bbox);
+  view()->addPlot(plot, vbbox);
 
   plot->setRootPlot(this);
 

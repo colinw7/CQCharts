@@ -28,6 +28,7 @@ class CQChartsAxisValueType : public CQChartsEnum<CQChartsAxisValueType> {
   CQUTIL_DEF_META_CONVERSIONS(CQChartsAxisValueType, metaTypeId)
 
  public:
+  static CQChartsAxisValueType none   () { return CQChartsAxisValueType(Type::NONE); }
   static CQChartsAxisValueType real   () { return CQChartsAxisValueType(Type::REAL); }
   static CQChartsAxisValueType integer() { return CQChartsAxisValueType(Type::INTEGER); }
   static CQChartsAxisValueType string () { return CQChartsAxisValueType(Type::STRING); }

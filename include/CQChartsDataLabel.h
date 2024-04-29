@@ -59,8 +59,13 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //--
 
-  void setVisible(bool b) override {
-    CQChartsTextBoxObj::setVisible(b); textBoxObjInvalidate();
+  void setVisible(bool b, bool notify=true) override {
+    if (b != CQChartsTextBoxObj::isVisible()) {
+      CQChartsTextBoxObj::setVisible(b);
+
+      if (notify)
+        textBoxObjInvalidate();
+    }
   }
 
   //! position

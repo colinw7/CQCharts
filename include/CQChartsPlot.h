@@ -475,6 +475,8 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     Plot* next    { nullptr }; //!< next plot
     Plot* prev    { nullptr }; //!< previous plot
 
+    mutable PlotP childPlot;
+
     explicit ConnectData() = default;
 
     void reset() {
@@ -720,7 +722,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   bool calcVisible() const;
-  void setVisible(bool b) override;
+  void setVisible(bool b, bool notify=true) override;
 
   void setSelected(bool b) override;
 
@@ -1141,7 +1143,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // get/set bbox in view range
   virtual const BBox &viewBBox() const;
-  virtual void setViewBBox(const BBox &bbox);
+  virtual void setViewBBox(const BBox &bbox, bool update=true);
 
   virtual BBox calcViewBBox() const;
 
@@ -2207,7 +2209,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   virtual bool updateInsideObjects(const Point &w, Constraints constraints);
 
-  bool setInsideObjects(const Point &w, Objs &objs);
+  virtual bool setInsideObjects(const Point &w, Objs &objs);
 
   Obj *groupedInsideObject() const;
 
@@ -2470,7 +2472,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   bool tabbedSelectPress(const Point &w, SelMod selMod);
 
-  Plot *tabbedPressPlot(const Point &w, Plots &plots) const;
+  Plot *tabbedPressPlot(const Point &w, const Plots &plots) const;
 
   bool keySelectPress   (PlotKey *key, const Point &w, SelMod selMod);
   bool mapKeySelectPress(const Point &w, SelMod selMod);
@@ -2561,7 +2563,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   void deselectAll(SelectTypes selectTypes=SelectTypes::ALL);
 
-  void selectObjsFromModel();
+  bool selectObjsFromModel();
 
   //---
 

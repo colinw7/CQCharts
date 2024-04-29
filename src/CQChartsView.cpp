@@ -275,12 +275,10 @@ term()
 
   //---
 
-  {
-  lockPainter(true);
+  if (lockPainter(true)) {
+    delete ipainter_;
 
-  delete ipainter_;
-
-  lockPainter(false);
+    lockPainter(false);
   }
 
   //---
@@ -644,13 +642,13 @@ setScrolled(bool b, bool update)
       for (auto &plot : basePlots)
         pageScrollData_.plotBBoxMap[plot->id()] = plot->calcViewBBox();
 
-      double pos = 0.0;
-      auto   vr  = viewportRange();
+      double pos   = 0.0;
+      auto   vbbox = viewportBBox();
 
       for (auto &plot : basePlots) {
-        plot->setViewBBox(BBox(pos, 0.0, pos + vr, vr));
+        plot->setViewBBox(vbbox.movedBy(Point(pos, 0.0)));
 
-        pos += vr;
+        pos += vbbox.getWidth();
       }
 
       pageScrollData_.numPages = int(basePlots.size());
@@ -1529,12 +1527,12 @@ updateZoomScroll()
 
     //---
 
-    auto vr = CQChartsView::viewportRange();
+    auto vbbox = viewportBBox();
 
     auto window = displayRange_->getCurrentWindow();
 
-    showHBar = (window.dx() < vr);
-    showVBar = (window.dy() < vr);
+    showHBar = (window.dx() < vbbox.getWidth ());
+    showVBar = (window.dy() < vbbox.getHeight());
 
     //---
 
@@ -1547,14 +1545,14 @@ updateZoomScroll()
 
     //---
 
-    zoomData_.hbar->setRange(std::min(0.0, x), std::max(vr, w));
-    zoomData_.vbar->setRange(std::max(vr, h), std::min(0.0, y));
+    zoomData_.hbar->setRange(std::min(0.0, x), std::max(vbbox.getWidth(), w));
+    zoomData_.vbar->setRange(std::max(vbbox.getHeight(), h), std::min(0.0, y));
 
-    zoomData_.hbar->setPageStep(w);
+    zoomData_.hbar->setPageStep( w);
     zoomData_.vbar->setPageStep(-h);
 
-    zoomData_.hbar->setSingleStep(vr/100.0);
-    zoomData_.vbar->setSingleStep(-vr/100.0);
+    zoomData_.hbar->setSingleStep( vbbox.getWidth ()/100.0);
+    zoomData_.vbar->setSingleStep(-vbbox.getHeight()/100.0);
 
     //---
 
@@ -2242,17 +2240,32 @@ updateAnnotationSlot()
 
 //---
 
+CQChartsGeom::BBox
+CQChartsView::
+viewportBBox() const
+{
+  auto vr = viewportRange();
+
+  return BBox(0, 0, vr, vr);
+}
+
+CQChartsGeom::BBox
+CQChartsView::
+displayBBox() const
+{
+  return displayBBox_;
+}
+
+//---
+
 void
 CQChartsView::
 addPlot(Plot *plot, const BBox &bbox)
 {
   auto bbox1 = bbox;
 
-  if (! bbox1.isSet()) {
-    auto vr = CQChartsView::viewportRange();
-
-    bbox1 = BBox(0, 0, vr, vr);
-  }
+  if (! bbox1.isSet())
+    bbox1 = viewportBBox();
 
   if (! plot->hasId()) {
     auto id = QString::number(numPlots() + 1);
@@ -3047,23 +3060,21 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
     CQChartsUtil::countToSquareGrid(np, nc, nr);
   }
 
-  auto vr = CQChartsView::viewportRange();
+  auto vbbox = CQChartsView::viewportBBox();
 
   if (overlay) {
     for (int i = 0; i < np; ++i) {
       auto *plot = plots1[size_t(i)];
 
-      BBox bbox(0, 0, vr, vr);
-
-      setViewBBox(plot, bbox);
+      setViewBBox(plot, vbbox);
     }
   }
   else {
-    double dx = vr/nc;
-    double dy = vr/nr;
+    double dx = vbbox.getWidth ()/nc;
+    double dy = vbbox.getHeight()/nr;
 
     int    i = 0;
-    double y = vr;
+    double y = vbbox.getYMax();
 
     for (int r = 0; r < nr; ++r) {
       double x = 0.0;
@@ -3487,12 +3498,15 @@ keyPressEvent(QKeyEvent *ke)
   else if (ke->key() == Qt::Key_Left || ke->key() == Qt::Key_Right ||
            ke->key() == Qt::Key_Up   || ke->key() == Qt::Key_Down) {
     if (isViewZoomMode()) {
-      auto d = viewportRange()/10.0;
+      auto vbbox = viewportBBox();
 
-      if      (ke->key() == Qt::Key_Right) pan( d,  0);
-      else if (ke->key() == Qt::Key_Left ) pan(-d,  0);
-      else if (ke->key() == Qt::Key_Up   ) pan( 0,  d);
-      else if (ke->key() == Qt::Key_Down ) pan( 0, -d);
+      auto dx = vbbox.getWidth ()/10.0;
+      auto dy = vbbox.getHeight()/10.0;
+
+      if      (ke->key() == Qt::Key_Right) pan( dx,  0);
+      else if (ke->key() == Qt::Key_Left ) pan(-dx,  0);
+      else if (ke->key() == Qt::Key_Up   ) pan( 0,  dy);
+      else if (ke->key() == Qt::Key_Down ) pan( 0, -dy);
 
       return;
     }
@@ -4995,25 +5009,23 @@ resizeEvent(QResizeEvent *)
 
   int w, h;
 
-  {
-  lockPainter(true);
+  if (lockPainter(true)) {
+    w = width ();
+    h = height();
 
-  w = width ();
-  h = height();
+    delete ipainter_;
+    delete image_;
 
-  delete ipainter_;
-  delete image_;
+    int iw = std::min(std::max((! isAutoSize() ? autoSizeData_.width  : w), 1), 16384);
+    int ih = std::min(std::max((! isAutoSize() ? autoSizeData_.height : h), 1), 16384);
 
-  int iw = std::min(std::max((! isAutoSize() ? autoSizeData_.width  : w), 1), 16384);
-  int ih = std::min(std::max((! isAutoSize() ? autoSizeData_.height : h), 1), 16384);
+    image_ = CQChartsUtil::newImage(QSize(iw, ih));
 
-  image_ = CQChartsUtil::newImage(QSize(iw, ih));
+    image_->fill(Qt::transparent);
 
-  image_->fill(Qt::transparent);
+    ipainter_ = new QPainter(image_);
 
-  ipainter_ = new QPainter(image_);
-
-  lockPainter(false);
+    lockPainter(false);
   }
 
   //---
@@ -5272,7 +5284,7 @@ updatePlotScrollBars()
   calcShowPlotScrollBars(bbox, showHBar, showVBar);
 
   if (calcIsScrollPlots()) {
-    auto vr = viewportRange();
+    auto vbbox = viewportBBox();
 
     if (showHBar)
       createPlotScrollHBar();
@@ -5285,9 +5297,9 @@ updatePlotScrollBars()
 
       assert(plotScrollData_.hbar);
 
-      plotScrollData_.hbar->setRange(0, w - vr);
-      plotScrollData_.hbar->setPageStep(vr);
-      plotScrollData_.hbar->setSingleStep(vr/20.0);
+      plotScrollData_.hbar->setRange(0, w - vbbox.getWidth());
+      plotScrollData_.hbar->setPageStep(vbbox.getWidth());
+      plotScrollData_.hbar->setSingleStep(vbbox.getWidth()/100.0);
     }
 
     if (showVBar) {
@@ -5295,9 +5307,9 @@ updatePlotScrollBars()
 
       assert(plotScrollData_.vbar);
 
-      plotScrollData_.vbar->setRange(0, h - vr);
-      plotScrollData_.vbar->setPageStep(vr);
-      plotScrollData_.vbar->setSingleStep(vr/20.0);
+      plotScrollData_.vbar->setRange(h - vbbox.getHeight(), 0);
+      plotScrollData_.vbar->setPageStep(-vbbox.getHeight());
+      plotScrollData_.vbar->setSingleStep(-vbbox.getHeight()/100.0);
     }
   }
 
@@ -5321,16 +5333,20 @@ placePlotScrollBars()
   if (calcIsScrollPlots()) {
     BBox bbox;
 
-    for (auto &plot : plots_)
+    for (auto &plot : plots_) {
+      if (plot->isComposite())
+        continue;
+
       bbox += plot->viewBBox();
+    }
 
     auto w = bbox.getWidth ();
     auto h = bbox.getHeight();
 
-    auto vr = viewportRange();
+    auto vbbox = viewportBBox();
 
-    showHBar = (w > vr);
-    showVBar = (h > vr);
+    showHBar = (w > vbbox.getWidth ());
+    showVBar = (h > vbbox.getHeight());
   }
 
   //---
@@ -5386,16 +5402,20 @@ calcShowPlotScrollBars(BBox &bbox, bool &showHBar, bool &showVBar) const
   showVBar = false;
 
   if (calcIsScrollPlots()) {
-    for (auto &plot : plots_)
+    for (auto &plot : plots_) {
+      if (plot->isComposite())
+        continue;
+
       bbox += plot->viewBBox();
+    }
 
     auto w = bbox.getWidth ();
     auto h = bbox.getHeight();
 
-    auto vr = viewportRange();
+    auto vbbox = viewportBBox();
 
-    showHBar = (w > vr);
-    showVBar = (h > vr);
+    showHBar = (w > vbbox.getWidth ());
+    showVBar = (h > vbbox.getHeight());
   }
 }
 
@@ -5460,7 +5480,7 @@ updateSeparators()
       yPlots[CMathRound::Round(bbox.getYMin())] = plot;
     }
 
-    auto vr = CQChartsView::viewportRange();
+    auto vbbox = viewportBBox();
 
     if (separatorsInvalid_) {
       plotsHorizontal_ = true;
@@ -5473,7 +5493,7 @@ updateSeparators()
         if (plotsHorizontal_) {
           if (! CMathUtil::realEq(bbox.getXMin(), x) ||
               ! CMathUtil::realEq(bbox.getYMin(), 0.0) ||
-              ! CMathUtil::realEq(bbox.getHeight(), vr)) {
+              ! CMathUtil::realEq(bbox.getHeight(), vbbox.getHeight())) {
             plotsHorizontal_ = false;
           }
         }
@@ -5491,7 +5511,7 @@ updateSeparators()
         if (plotsVertical_) {
           if (! CMathUtil::realEq(bbox.getXMin(), 0.0) ||
               ! CMathUtil::realEq(bbox.getYMin(), y) ||
-              ! CMathUtil::realEq(bbox.getWidth(), vr)) {
+              ! CMathUtil::realEq(bbox.getWidth(), vbbox.getWidth())) {
             plotsVertical_ = false;
           }
         }
@@ -5535,7 +5555,7 @@ updateSeparators()
 
           sep->setOrientation(Qt::Vertical);
 
-          double px1 = this->width()*x/vr;
+          double px1 = this->width()*x/vbbox.getWidth();
 
           sep->move(int(px1 - 4), 0);
           sep->resize(8, height());
@@ -5564,7 +5584,7 @@ updateSeparators()
 
           sep->setOrientation(Qt::Horizontal);
 
-          double py1 = this->height()*y/vr;
+          double py1 = this->height()*y/vbbox.getHeight();
 
           sep->move(0, int(py1 - 4));
           sep->resize(width(), 8);
@@ -5593,24 +5613,24 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  if (mode() == Mode::RULER)
-    invalidateOverlay();
+  if (lockPainter(true)) {
+    if (mode() == Mode::RULER)
+      invalidateOverlay();
 
-  //---
+    //---
 
-  lockPainter(true);
+    paint(ipainter_);
 
-  paint(ipainter_);
+    QPainter painter(this);
 
-  QPainter painter(this);
+    painter.setFont(font_.font());
 
-  painter.setFont(font_.font());
+    deviceFont_ = painter.font();
 
-  deviceFont_ = painter.font();
+    painter.drawImage(-autoSizeData_.xpos, -autoSizeData_.ypos, *image_);
 
-  painter.drawImage(-autoSizeData_.xpos, -autoSizeData_.ypos, *image_);
-
-  lockPainter(false);
+    lockPainter(false);
+  }
 }
 
 void
@@ -5656,11 +5676,9 @@ drawBackground(PaintDevice *device) const
   device->painter()->fillRect(prect_.qrecti(), penBrush.brush);
 
 #if 0
-  auto vr = CQChartsView::viewportRange();
+  auto vbbox = CQChartsView::viewportBBox();
 
-  BBox bbox(0, 0, vr, vr);
-
-  device->fillRect(bbox);
+  device->fillRect(vbbox);
 #endif
 }
 
@@ -5668,6 +5686,10 @@ void
 CQChartsView::
 drawPlots(QPainter *painter)
 {
+  setDrawing(true);
+
+  //---
+
   bool hasPlots         = ! plots().empty();
   bool hasBgAnnotations = this->hasAnnotations(Layer::Type::BG_ANNOTATION);
   bool hasFgAnnotations = this->hasAnnotations(Layer::Type::FG_ANNOTATION);
@@ -5689,6 +5711,8 @@ drawPlots(QPainter *painter)
     }
 
     bgBuffer_->endPaint();
+
+    setDrawing(false);
 
     return;
   }
@@ -5717,13 +5741,24 @@ drawPlots(QPainter *painter)
 
   // draw plots
   if (hasPlots) {
+    auto displayBBox = this->displayBBox();
+
     Plots drawPlots;
 
     getDrawPlots(drawPlots);
 
+    Plots waitPlots;
+
     for (const auto &plot : drawPlots) {
       if (! plot->isVisible())
         continue;
+
+      auto viewBBox = plot->viewBBox();
+
+      if (! displayBBox.overlaps(viewBBox))
+        continue;
+
+      waitPlots.push_back(plot);
 
       plot->draw(painter);
 
@@ -5733,6 +5768,13 @@ drawPlots(QPainter *painter)
         drawColorBox(&device, plot->viewBBox());
       }
     }
+
+    setDrawing(false);
+
+    for (const auto &plot : waitPlots)
+      plot->waitDraw();
+
+    setDrawing(true);
   }
 
   //---
@@ -5765,6 +5807,10 @@ drawPlots(QPainter *painter)
   // draw overlay (annotations and key)
   if (hasPlots || hasBgAnnotations || hasFgAnnotations || mode() == Mode::RULER)
     drawOverlay(painter);
+
+  //---
+
+  setDrawing(false);
 }
 
 void
@@ -6151,15 +6197,21 @@ CQChartsView::
 lockPainter(bool lock)
 {
   if (lock) {
-    //if (painterLocked_)
-    //  return false;
+    if (painterLocked_)
+      return false;
 
     painterMutex_.lock();
-  }
-  else
-    painterMutex_.unlock();
 
-  //painterLocked_ = lock;
+    painterLocked_ = true;
+  }
+  else {
+    if (! painterLocked_)
+      return false;
+
+    painterLocked_ = false;
+
+    painterMutex_.unlock();
+  }
 
   return true;
 }
@@ -6752,6 +6804,9 @@ void
 CQChartsView::
 doUpdate()
 {
+  if (painterLocked_)
+    return;
+
   update();
 }
 
@@ -8920,6 +8975,20 @@ currentPlotSlot()
 
 void
 CQChartsView::
+update()
+{
+  if (lockPainter(true)) {
+    QFrame::update();
+
+    lockPainter(false);
+  }
+  else {
+    std::cerr << "CQChartsView::update when painter locked\n";
+  }
+}
+
+void
+CQChartsView::
 updateView()
 {
   invalidateObjects();
@@ -9336,20 +9405,19 @@ void
 CQChartsView::
 setDisplayWindowRange()
 {
-  auto vr = viewportRange();
-
-  double vx = 0.0;
-  double vy = 0.0;
+  auto vbbox = viewportBBox();
 
   if     (isScrolled()) {
-    vx = pageScrollData_.page*pageScrollData_.delta;
+    vbbox.moveBy(Point(pageScrollData_.page*pageScrollData_.delta, 0.0));
   }
   else if (calcIsScrollPlots()) {
-    vx = plotScrollData_.xpos;
-    vy = plotScrollData_.ypos;
+    vbbox.moveBy(Point(plotScrollData_.xpos, plotScrollData_.ypos));
   }
 
-  displayRange_->setWindowRange(vx, vy, vr + vx, vr + vy);
+  displayBBox_ = vbbox;
+
+  displayRange_->setWindowRange(vbbox.getXMin(), vbbox.getYMin(),
+                                vbbox.getXMax(), vbbox.getYMax());
 }
 
 //------
@@ -9504,10 +9572,10 @@ positionToView(const Position &pos) const
   else if (pos.units() == Units::VIEW)
     p1 = p;
   else if (pos.units() == Units::PERCENT) {
-    auto vr = viewportRange();
+    auto vbbox = viewportBBox();
 
-    p1.setX(p.getX()*vr/100.0);
-    p1.setY(p.getY()*vr/100.0);
+    p1.setX(p.getX()*vbbox.getWidth ()/100.0);
+    p1.setY(p.getY()*vbbox.getHeight()/100.0);
   }
   else if (pos.units() == Units::EM) {
     double x = pixelToWindowWidth (p.getX()*fontEm());
@@ -9570,12 +9638,12 @@ rectToView(const CQChartsRect &rect) const
   else if (rect.units() == Units::VIEW)
     r1 = r;
   else if (rect.units() == Units::PERCENT) {
-    auto vr = viewportRange();
+    auto vbbox = viewportBBox();
 
-    r1.setXMin(r.getXMin()*vr/100.0);
-    r1.setYMin(r.getYMin()*vr/100.0);
-    r1.setXMax(r.getXMax()*vr/100.0);
-    r1.setYMax(r.getYMax()*vr/100.0);
+    r1.setXMin(r.getXMin()*vbbox.getWidth ()/100.0);
+    r1.setYMin(r.getYMin()*vbbox.getHeight()/100.0);
+    r1.setXMax(r.getXMax()*vbbox.getWidth ()/100.0);
+    r1.setYMax(r.getYMax()*vbbox.getHeight()/100.0);
   }
   else if (rect.units() == Units::EM) {
     double x1 = pixelToWindowWidth (r.getXMin()*fontEm());
@@ -9646,8 +9714,11 @@ lengthViewWidth(const Length &len) const
     return pixelToWindowWidth(len.value());
   else if (len.units() == Units::VIEW)
     return len.value();
-  else if (len.units() == Units::PERCENT)
-    return len.value()*viewportRange()/100.0;
+  else if (len.units() == Units::PERCENT) {
+    auto vbbox = viewportBBox();
+
+    return len.value()*vbbox.getWidth()/100.0;
+  }
   else if (len.units() == Units::EM)
     return pixelToWindowWidth(len.value()*fontEm());
   else if (len.units() == Units::EX)
@@ -9666,8 +9737,11 @@ lengthViewHeight(const Length &len) const
     return pixelToWindowHeight(len.value());
   else if (len.units() == Units::VIEW)
     return len.value();
-  else if (len.units() == Units::PERCENT)
-    return len.value()*viewportRange()/100.0;
+  else if (len.units() == Units::PERCENT) {
+    auto vbbox = viewportBBox();
+
+    return len.value()*vbbox.getHeight()/100.0;
+  }
   else if (len.units() == Units::EM)
     return pixelToWindowHeight(len.value()*fontEm());
   else if (len.units() == Units::EX)
@@ -9686,8 +9760,11 @@ lengthViewSignedWidth(const Length &len) const
     return pixelToSignedWindowWidth(len.value());
   else if (len.units() == Units::VIEW)
     return len.value();
-  else if (len.units() == Units::PERCENT)
-    return len.value()*viewportRange()/100.0;
+  else if (len.units() == Units::PERCENT) {
+    auto vbbox = viewportBBox();
+
+    return len.value()*vbbox.getWidth()/100.0;
+  }
   else if (len.units() == Units::EM)
     return pixelToSignedWindowWidth(len.value()*fontEm());
   else if (len.units() == Units::EX)
@@ -9706,8 +9783,11 @@ lengthViewSignedHeight(const Length &len) const
     return pixelToSignedWindowHeight(len.value());
   else if (len.units() == Units::VIEW)
     return len.value();
-  else if (len.units() == Units::PERCENT)
-    return len.value()*viewportRange()/100.0;
+  else if (len.units() == Units::PERCENT) {
+    auto vbbox = viewportBBox();
+
+    return len.value()*vbbox.getHeight()/100.0;
+  }
   else if (len.units() == Units::EM)
     return pixelToSignedWindowHeight(len.value()*fontEm());
   else if (len.units() == Units::EX)
@@ -10082,19 +10162,19 @@ mouseReleaseEvent(QMouseEvent *event)
   auto bbox1 = plot1_->viewBBox();
   auto bbox2 = plot2_->viewBBox();
 
-  auto vr = view_->viewportRange();
+  auto vbbox = view_->viewportBBox();
 
   if (isHorizontal()) {
     int dy = movePos_.y() - pressPos_.y();
 
-    double ph1 = view_->height()*bbox1.getHeight()/vr;
-    double ph2 = view_->height()*bbox2.getHeight()/vr;
+    double ph1 = view_->height()*bbox1.getHeight()/vbbox.getHeight();
+    double ph2 = view_->height()*bbox2.getHeight()/vbbox.getHeight();
 
     ph1 = ph1 - dy; // bottom
     ph2 = ph2 + dy; // top
 
-    double h1 = ph1*vr/view_->height();
-    double h2 = ph2*vr/view_->height();
+    double h1 = ph1*vbbox.getHeight()/view_->height();
+    double h2 = ph2*vbbox.getHeight()/view_->height();
 
     bbox1 = BBox(bbox1.getXMin(), bbox1.getYMin(), bbox1.getXMax(), bbox1.getYMin() + h1);
     bbox2 = BBox(bbox2.getXMin(), bbox1.getYMax(), bbox2.getXMax(), bbox1.getYMax() + h2);
@@ -10102,14 +10182,14 @@ mouseReleaseEvent(QMouseEvent *event)
   else {
     int dx = movePos_.x() - pressPos_.x();
 
-    double pw1 = view_->width()*bbox1.getWidth()/vr;
-    double pw2 = view_->width()*bbox2.getWidth()/vr;
+    double pw1 = view_->width()*bbox1.getWidth()/vbbox.getWidth();
+    double pw2 = view_->width()*bbox2.getWidth()/vbbox.getWidth();
 
     pw1 = pw1 + dx; // left
     pw2 = pw2 - dx; // right
 
-    double w1 = pw1*vr/view_->width();
-    double w2 = pw2*vr/view_->width();
+    double w1 = pw1*vbbox.getWidth()/view_->width();
+    double w2 = pw2*vbbox.getWidth()/view_->width();
 
     bbox1 = BBox(bbox1.getXMin(), bbox1.getYMin(), bbox1.getXMin() + w1, bbox1.getYMax());
     bbox2 = BBox(bbox1.getXMax(), bbox2.getYMax(), bbox1.getXMax() + w2, bbox2.getYMax());

@@ -229,7 +229,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   //---
 
   //! get/set visible
-  void setVisible(bool b) override;
+  void setVisible(bool b, bool notify=true) override;
 
   //---
 

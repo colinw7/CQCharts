@@ -5123,10 +5123,10 @@ drawHeaderBg(PaintDevice *device) const
 
   //---
 
-  auto vr = view()->viewportRange();
+  auto vbbox = view()->viewportBBox();
 
-  auto pv1 = viewToWindow(Point(0.0, 0.0));
-  auto pv2 = viewToWindow(Point(vr, vr));
+  auto pv1 = viewToWindow(vbbox.getLL());
+  auto pv2 = viewToWindow(vbbox.getUR());
 
   //---
 
@@ -5238,10 +5238,10 @@ placeHeaderObjs() const
 
   //---
 
-  auto vr = view()->viewportRange();
+  auto vbbox = view()->viewportBBox();
 
-  auto pv1 = viewToWindow(Point(0.0, 0.0));
-  auto pv2 = viewToWindow(Point(vr, vr));
+  auto pv1 = viewToWindow(vbbox.getLL());
+  auto pv2 = viewToWindow(vbbox.getUR());
 
   double margin, spacing;
 

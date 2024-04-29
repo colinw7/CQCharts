@@ -47,7 +47,13 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  void setVisible(bool b) override { TextBoxObj::setVisible(b); updatePlotPosition(); }
+  void setVisible(bool b, bool notify=true) override {
+    if (b != TextBoxObj::isVisible()) {
+      TextBoxObj::setVisible(b, notify);
+
+      updatePlotPosition();
+    }
+  }
 
   void setSelected(bool b) override;
 

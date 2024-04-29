@@ -264,9 +264,15 @@ calcRange() const
   // start/end columns required
   // name, value columns optional
 
-  if (! checkColumn(startColumn(), "Start", /*required*/true) ||
-      ! checkColumn(startColumn(), "End"  , /*required*/true))
+  ColumnType startColumnType { ColumnType::NONE }, endColumnType { ColumnType::NONE };
+  if (! checkColumn(startColumn(), "Start", startColumnType, /*required*/true) ||
+      ! checkColumn(endColumn  (), "End"  , endColumnType  , /*required*/true))
     columnsValid = false;
+
+  if (startColumnType == ColumnType::TIME && endColumnType == ColumnType::TIME)
+    xColumnType_ = ColumnType::TIME;
+  else
+    xColumnType_ = ColumnType::REAL;
 
   if (! checkColumn(nameColumn(), "Name")) columnsValid = false;
 

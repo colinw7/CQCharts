@@ -738,6 +738,11 @@ class CQChartsView : public QFrame,
 
   //---
 
+  BBox viewportBBox() const;
+  BBox displayBBox() const;
+
+  //---
+
   // add/get/modify plots
   void addPlot(Plot *plot, const BBox &bbox=BBox());
 
@@ -1569,7 +1574,7 @@ class CQChartsView : public QFrame,
 
   //---
 
-  void update() { QFrame::update(); }
+  void update();
 
   //---
 
@@ -1585,6 +1590,9 @@ class CQChartsView : public QFrame,
   QStringList getSlotNames() const;
 
   //---
+
+  bool isDrawing() const { return drawing_; }
+  void setDrawing(bool b) { drawing_ = b; }
 
  private Q_SLOTS:
   void zoomHScrollSlot(double pos);
@@ -2019,7 +2027,7 @@ class CQChartsView : public QFrame,
   BufferP   overlayBuffer_ ;                    //!< buffer for view overlays
   LayerType drawLayerType_ { LayerType::NONE }; //!< current draw layer type
 
-//mutable std::atomic<bool> painterLocked_ { false}; //!< is painter locked
+  mutable std::atomic<bool> painterLocked_ { false}; //!< is painter locked
   mutable std::mutex        painterMutex_;           //!< painter mutex
 
   // view settings
@@ -2050,12 +2058,16 @@ class CQChartsView : public QFrame,
   Color selectedColor_;
   Alpha selectedAlpha_ { 0.6 };
 
+  BBox displayBBox_;
+
   //---
 
   // named slots
   using NamedSlots = std::map<QString, QStringList>;
 
   NamedSlots namedSlots_;
+
+  mutable bool drawing_ { false };
 };
 
 //------
