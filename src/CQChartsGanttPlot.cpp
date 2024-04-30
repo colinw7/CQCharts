@@ -159,6 +159,20 @@ setGroupStretch(bool b)
   CQChartsUtil::testAndSet(groupStretch_, b, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsGanttPlot::
+setBarMargin(const Length &l)
+{
+  CQChartsUtil::testAndSet(barMargin_, l, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsGanttPlot::
+setTextInside(bool b)
+{
+  CQChartsUtil::testAndSet(textInside_, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 CQChartsColumn
@@ -220,6 +234,10 @@ addProperties()
   addProp("bar/labels", "textVisible", "visible", "Value labels visible");
 
   addTextProperties("bar/labels/text", "text", "Value", CQChartsTextOptions::ValueType::ALL);
+
+  addProp("bar", "barMargin", "margin", "Top/Bottom Margin");
+
+  addProp("bar/labels", "textInside", "inside", "Text inside");
 
   //---
 
@@ -639,7 +657,7 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  plot()->addNoTipColumns(tableTip);
+  ganttPlot()->addNoTipColumns(tableTip);
 
   ganttPlot_->addTipColumn(tableTip, ganttPlot_->startColumn(), modelInd());
   ganttPlot_->addTipColumn(tableTip, ganttPlot_->endColumn(), modelInd());
@@ -649,7 +667,7 @@ calcTipId() const
   if (value())
     tableTip.addTableRow("Value", value().value());
 
-  plot()->addTipColumns(tableTip, modelInd());
+  ganttPlot()->addTipColumns(tableTip, modelInd());
 
   return tableTip.str();
 }
@@ -675,31 +693,39 @@ draw(PaintDevice *device) const
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  plot_->setRefRect(CQChartsOptRect(CQChartsRect::plot(rect())));
+  auto rect = this->rect();
 
-  CQChartsDrawUtil::drawRoundedRect(device, penBrush, rect(), ganttPlot_->groupCornerSize());
+  plot_->setRefRect(CQChartsOptRect(CQChartsRect::plot(rect)));
+
+  CQChartsDrawUtil::drawRoundedRect(device, penBrush, rect, ganttPlot_->groupCornerSize());
 
   plot_->resetRefRect();
 
-  if (name_.length()) {
-    ColorInd colorInd;
-    PenBrush tpenBrush;
+  if (name_.length())
+    drawText(device, rect);
+}
 
-    auto tc = ganttPlot_->interpGroupTextColor(colorInd);
-    auto ta = ganttPlot_->groupTextAlpha();
+void
+CQChartsGanttGroupObj::
+drawText(PaintDevice *device, const BBox &rect) const
+{
+  ColorInd colorInd;
+  PenBrush tpenBrush;
 
-    plot()->setPen(tpenBrush, PenData(/*stroked*/true, tc, ta));
+  auto tc = ganttPlot_->interpGroupTextColor(colorInd);
+  auto ta = ganttPlot_->groupTextAlpha();
 
-    device->setPen(tpenBrush.pen);
+  ganttPlot()->setPen(tpenBrush, PenData(/*stroked*/true, tc, ta));
 
-    auto font = ganttPlot_->groupTextFont();
+  device->setPen(tpenBrush.pen);
 
-    plot()->setPainterFont(device, font);
+  auto font = ganttPlot_->groupTextFont();
 
-    auto textOptions = ganttPlot_->groupTextOptions(device);
+  ganttPlot()->setPainterFont(device, font);
 
-    CQChartsDrawUtil::drawTextInBox(device, rect(), name_, textOptions);
-  }
+  auto textOptions = ganttPlot_->groupTextOptions(device);
+
+  CQChartsDrawUtil::drawTextInBox(device, rect, name_, textOptions);
 }
 
 void
@@ -743,7 +769,7 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  plot()->addNoTipColumns(tableTip);
+  ganttPlot()->addNoTipColumns(tableTip);
 
   ganttPlot_->addTipColumn(tableTip, ganttPlot_->startColumn(), modelInd());
   ganttPlot_->addTipColumn(tableTip, ganttPlot_->endColumn(), modelInd());
@@ -753,7 +779,7 @@ calcTipId() const
   if (value())
     tableTip.addTableRow("Value", value().value());
 
-  plot()->addTipColumns(tableTip, modelInd());
+  ganttPlot()->addTipColumns(tableTip, modelInd());
 
   return tableTip.str();
 }
@@ -779,30 +805,59 @@ draw(PaintDevice *device) const
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  plot_->setRefRect(CQChartsOptRect(CQChartsRect::plot(rect())));
+  auto rect = this->rect();
 
-  CQChartsDrawUtil::drawRoundedRect(device, penBrush, rect(), ganttPlot_->cornerSize());
+  auto dx = 0.0;
+  auto dy = ganttPlot()->lengthPlotHeight(ganttPlot()->barMargin());
+
+  if (! rect.expand(dx, dy, -dx, -dy))
+    return;
+
+  plot_->setRefRect(CQChartsOptRect(CQChartsRect::plot(rect)));
+
+  CQChartsDrawUtil::drawRoundedRect(device, penBrush, rect, ganttPlot_->cornerSize());
 
   plot_->resetRefRect();
 
-  if (name_.length()) {
-    ColorInd colorInd;
-    PenBrush tpenBrush;
+  if (name_.length())
+    drawText(device, rect);
+}
 
-    auto tc = ganttPlot_->interpTextColor(colorInd);
-    auto ta = ganttPlot_->textAlpha();
+void
+CQChartsGanttBarObj::
+drawText(PaintDevice *device, const BBox &rect) const
+{
+  ColorInd colorInd;
+  PenBrush tpenBrush;
 
-    plot()->setPen(tpenBrush, PenData(/*stroked*/true, tc, ta));
+  auto tc = ganttPlot_->interpTextColor(colorInd);
+  auto ta = ganttPlot_->textAlpha();
 
-    device->setPen(tpenBrush.pen);
+  ganttPlot()->setPen(tpenBrush, PenData(/*stroked*/true, tc, ta));
 
-    auto font = ganttPlot_->textFont();
+  device->setPen(tpenBrush.pen);
 
-    plot()->setPainterFont(device, font);
+  auto font = ganttPlot_->textFont();
 
-    auto textOptions = ganttPlot_->textOptions(device);
+  ganttPlot()->setPainterFont(device, font);
 
-    CQChartsDrawUtil::drawTextInBox(device, rect(), name_, textOptions);
+  auto textOptions = ganttPlot_->textOptions(device);
+
+  if (ganttPlot()->isTextInside()) {
+    CQChartsDrawUtil::drawTextInBox(device, rect, name_, textOptions);
+  }
+  else {
+    auto ps = CQChartsDrawUtil::calcTextSize(name_, device->font(), textOptions);
+    auto tw = ganttPlot_->pixelToWindowWidth(ps.width());
+
+    BBox rect1;
+
+    if (textOptions.align & Qt::AlignLeft)
+      rect1 = BBox(rect.getXMin() - tw, rect.getYMin(), rect.getXMin(), rect.getYMax());
+    else
+      rect1 = BBox(rect.getXMax(), rect.getYMin(), rect.getXMax() + tw, rect.getYMax());
+
+    CQChartsDrawUtil::drawTextInBox(device, rect1, name_, textOptions);
   }
 }
 

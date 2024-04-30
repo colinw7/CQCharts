@@ -13,8 +13,15 @@ class CQRealScroll : public QScrollBar {
   CQRealScroll(Qt::Orientation orientation, QWidget *parent=nullptr);
 
   void setRange(double min, double max);
+
+  double minimum() const { return min_; }
+  double maximum() const { return max_; }
+
   void setPageStep(double d);
+  double pageStep() const { return pageStep_; }
+
   void setSingleStep(double d);
+  double singleStep() const { return singleStep_; }
 
   double value() const;
   void setValue(double r);
@@ -28,6 +35,7 @@ class CQRealScroll : public QScrollBar {
  private:
   void init();
   void updateRange(double);
+  void updateTip();
 
  private:
   double precision_ { 1000 };

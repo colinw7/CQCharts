@@ -63,13 +63,15 @@ CQRealScroll::
 scrollSlot(int)
 {
   valueChanged(value());
+
+  updateTip();
 }
 
 double
 CQRealScroll::
 value() const
 {
-  double pos = double(QScrollBar::value())/precision_;
+  double pos = double(QScrollBar::value())/std::round(precision_);
 
   return min_ + pos*(max_ - min_);
 }
@@ -81,6 +83,8 @@ setValue(double r)
   double pos = (max_ != min_ ? (r - min_)/(max_ - min_) : 0.0);
 
   QScrollBar::setValue(int(std::round(pos*precision_)));
+
+  updateTip();
 }
 
 void
@@ -101,7 +105,7 @@ updateRange(double value)
 
   auto step = pageStep_/singleStep_;
 
-  QScrollBar::setRange(0, int(std::round(precision_ - step)));
+  QScrollBar::setRange(0, int(std::round(precision_)));
 
   QScrollBar::setPageStep  (int(std::round(step)));
   QScrollBar::setSingleStep(1);
@@ -111,4 +115,13 @@ updateRange(double value)
   setValue(value);
 
   connect(this, SIGNAL(valueChanged(int)), this, SLOT(scrollSlot(int)));
+
+  updateTip();
+}
+
+void
+CQRealScroll::
+updateTip()
+{
+  setToolTip(QString("%1 (%2 - %3").arg(value()).arg(minimum()).arg(maximum()));
 }

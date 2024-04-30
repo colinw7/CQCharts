@@ -87,6 +87,8 @@ class CQChartsGanttGroupObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void drawText(PaintDevice *device, const BBox &bbox) const;
+
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
 
  private:
@@ -144,6 +146,8 @@ class CQChartsGanttBarObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void drawText(PaintDevice *device, const BBox &bbox) const;
+
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const override;
 
  private:
@@ -181,9 +185,12 @@ class CQChartsGanttPlot : public CQChartsGroupPlot,
 
   CQCHARTS_TEXT_DATA_PROPERTIES
 
-  Q_PROPERTY(bool groupStretch READ isGroupStretch WRITE setGroupStretch)
+  Q_PROPERTY(bool           groupStretch READ isGroupStretch WRITE setGroupStretch)
+  Q_PROPERTY(CQChartsLength barMargin    READ barMargin      WRITE setBarMargin)
+  Q_PROPERTY(bool           textInside   READ isTextInside   WRITE setTextInside)
 
  public:
+  using Length   = CQChartsLength;
   using Color    = CQChartsColor;
   using Alpha    = CQChartsAlpha;
   using ColorInd = CQChartsUtil::ColorInd;
@@ -215,6 +222,12 @@ class CQChartsGanttPlot : public CQChartsGroupPlot,
 
   bool isGroupStretch() const { return groupStretch_; }
   void setGroupStretch(bool b);
+
+  const Length &barMargin() const { return barMargin_; }
+  void setBarMargin(const Length &l);
+
+  bool isTextInside() const { return textInside_; }
+  void setTextInside(bool b);
 
   //---
 
@@ -251,6 +264,10 @@ class CQChartsGanttPlot : public CQChartsGroupPlot,
   Column valueColumn_; //!< value column
 
   bool groupStretch_ { true };
+
+  Length barMargin_ { Length::pixel(0) };
+
+  bool textInside_ { true };
 
   mutable ColumnType xColumnType_;
 };

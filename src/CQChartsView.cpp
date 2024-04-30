@@ -276,6 +276,8 @@ term()
   //---
 
   if (lockPainter(true)) {
+    //std::cerr << "CQChartsView::term painter locked\n";
+
     delete ipainter_;
 
     lockPainter(false);
@@ -5003,6 +5005,8 @@ resizeEvent(QResizeEvent *)
     return;
   }
 
+  //---
+
   updateSeparators();
 
   //---
@@ -5010,6 +5014,8 @@ resizeEvent(QResizeEvent *)
   int w, h;
 
   if (lockPainter(true)) {
+    //std::cerr << "CQChartsView::resizeEvent painter locked\n";
+
     w = width ();
     h = height();
 
@@ -5026,6 +5032,10 @@ resizeEvent(QResizeEvent *)
     ipainter_ = new QPainter(image_);
 
     lockPainter(false);
+  }
+  else {
+    //std::cerr << "CQChartsView::failed to lock painter in resizeEvent\n";
+    return;
   }
 
   //---
@@ -5614,6 +5624,8 @@ paintEvent(QPaintEvent *)
   //---
 
   if (lockPainter(true)) {
+    //std::cerr << "CQChartsView::paintEvent painter locked\n";
+
     if (mode() == Mode::RULER)
       invalidateOverlay();
 
@@ -5630,6 +5642,10 @@ paintEvent(QPaintEvent *)
     painter.drawImage(-autoSizeData_.xpos, -autoSizeData_.ypos, *image_);
 
     lockPainter(false);
+  }
+  else {
+    //std::cerr << "CQChartsView::failed to lock painter in paintEvent\n";
+    update();
   }
 }
 
@@ -6203,14 +6219,18 @@ lockPainter(bool lock)
     painterMutex_.lock();
 
     painterLocked_ = true;
+
+    //std::cerr << "CQChartsView::lockPainter : true\n";
   }
   else {
     if (! painterLocked_)
       return false;
 
+    painterMutex_.unlock();
+
     painterLocked_ = false;
 
-    painterMutex_.unlock();
+    //std::cerr << "CQChartsView::lockPainter : false\n";
   }
 
   return true;
@@ -8978,12 +8998,14 @@ CQChartsView::
 update()
 {
   if (lockPainter(true)) {
+    //std::cerr << "CQChartsView::update painter locked\n";
+
     QFrame::update();
 
     lockPainter(false);
   }
   else {
-    std::cerr << "CQChartsView::update when painter locked\n";
+    //std::cerr << "CQChartsView::update when painter locked\n";
   }
 }
 

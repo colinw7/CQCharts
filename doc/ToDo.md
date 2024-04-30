@@ -4,6 +4,8 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + hyperlink annotations
+
  + tipable and selectable separate ?
 
  + dendrogram header (like tree widget)
