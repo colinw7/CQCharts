@@ -124,9 +124,36 @@ objIdPressed(const QString &id)
 
 void
 CQChartsCmdsSlot::
-annotationIdPressed(const QString &id)
+viewAnnotationPressed(const QString &id)
 {
   auto cmd = getTclIdCmd(id);
+
+  evalCmd(cmd);
+}
+
+void
+CQChartsCmdsSlot::
+plotAnnotationPressed(const QString &id)
+{
+  auto cmd = getTclIdCmd(id);
+
+  evalCmd(cmd);
+}
+
+void
+CQChartsCmdsSlot::
+annotationPressed(const QString &)
+{
+  auto cmd = getTclIdCmd("");
+
+  evalCmd(cmd);
+}
+
+void
+CQChartsCmdsSlot::
+annotationClicked(const QString &)
+{
+  auto cmd = getTclIdCmd("");
 
   evalCmd(cmd);
 }
@@ -292,7 +319,8 @@ getTclIdCmd(const QString &id) const
   if (modelData_)
     cmd += " \"" + modelData_->id() + "\"";
 
-  cmd += " \"" + id + "\"";
+  if (id != "")
+    cmd += " \"" + id + "\"";
 
   return cmd;
 }

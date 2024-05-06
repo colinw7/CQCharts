@@ -6,7 +6,7 @@ set modelId [load_charts_model -csv data/arrowstyle.csv]
 
 set plotId [create_charts_plot -type xy -columns {{x 0} {y 1}} -title "Annotations"]
 
-connect_charts_signal -plot $plotId -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plotId -from annotationPressed -to annotationSlot
 
 create_charts_point_annotation -plot $plotId -id dot       -position {100 -60} -symbol dot       -size 16px
 create_charts_point_annotation -plot $plotId -id cross     -position {100 -50} -symbol cross     -size 16px

@@ -11,4 +11,4 @@ set_charts_property -plot $plot -name key.visible -value 0
 
 set annotation [create_charts_key_annotation -plot $plot -column 4]
 
-connect_charts_signal -annotation $annotation -from annotationIdPressed -to annotationSlot
+connect_charts_signal -annotation $annotation -from annotationPressed -to annotationSlot

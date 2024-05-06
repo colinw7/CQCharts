@@ -33,4 +33,4 @@ set control [get_charts_property -annotation $ann -name widget]
 
 qt_activate_slot -name $control -slot "setPlotControls()"
 
-connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot -from annotationPressed -to annotationSlot

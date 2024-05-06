@@ -8550,7 +8550,7 @@ objectsSelectPress(const Point &w, SelMod selMod)
     auto *selectPlotObj    = dynamic_cast<PlotObj    *>(selectObj);
     auto *selectAnnotation = dynamic_cast<Annotation *>(selectObj);
 
-    if (selectPlotObj) {
+    if      (selectPlotObj) {
       CQChartsSelectableIFace::SelData selData(selMod);
 
       if (selectPlotObj->selectPress(w, selData)) {

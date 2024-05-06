@@ -116,4 +116,4 @@ print tx
 
 create_text_shape -id sidebyside -x $tx -y 95 -text "Side By Side" -border 1 -background 1
 text4Id = _rc
-connect_chart -view $_viewId -from annotationIdPressed -to annotationSlot
+connect_chart -view $_viewId -from annotationPressed -to annotationSlot

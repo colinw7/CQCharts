@@ -5,6 +5,7 @@ Abstract Painter/Javascript
 
 TODO:
  + hyperlink annotations
+   + tcl proc on text annotation
 
  + tipable and selectable separate ?
 

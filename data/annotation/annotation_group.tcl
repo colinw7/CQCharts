@@ -21,4 +21,4 @@ set image [create_charts_image_annotation -plot $plotId -id image \
 set text [create_charts_text_annotation -plot $plotId -id test \
   -position {0 0} -text "Beer Bottle" -group $group]
 
-connect_charts_signal -plot $plotId -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plotId -from annotationPressed -to annotationSlot

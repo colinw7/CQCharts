@@ -88,4 +88,4 @@ set button [create_charts_button_annotation -plot $plot -id button \
               -position {5 5 V} -text "Button"]
 
 connect_charts_signal -plot $plot -from animateStateChanged -to animateStateChanged
-connect_charts_signal -plot $plot -from annotationIdPressed -to plotAnnotationSlot
+connect_charts_signal -plot $plot -from annotationPressed -to plotAnnotationSlot

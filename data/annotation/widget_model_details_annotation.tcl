@@ -38,7 +38,7 @@ set view [get_charts_data -plot $plot1 -name view]
 
 set_charts_property -view $view -name options.plotSeparators -value 1
 
-connect_charts_signal -plot $plot2 -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot2 -from annotationPressed -to annotationSlot
 
 #---
 

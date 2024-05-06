@@ -37,4 +37,4 @@ qt_add_child_widget -parent $frame -child $button3
 set ann [create_charts_widget_annotation -plot $plot -id frame \
   -position [list 0 0] -widget $frame]
 
-connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot -from annotationPressed -to annotationSlot

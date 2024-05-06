@@ -31,4 +31,4 @@ set_charts_property -annotation $textAnnotationId5 -name text.formatted -value 1
 
 set textAnnotationId6 [create_charts_text_annotation -plot $plotId -id long -rectangle {100 100 400 400 pixel} -text "<table><tr><td>One</td><td>Two</td></tr><tr><td>Three</td><td>Four</td></tr></table>" -stroked 1 -filled 1 -corner_size 12 -html]
 
-connect_charts_signal -plot $plotId -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plotId -from annotationPressed -to annotationSlot

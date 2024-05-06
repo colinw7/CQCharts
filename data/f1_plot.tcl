@@ -154,7 +154,7 @@ incr tx 80
 set last_button [create_charts_button_annotation -view $view -id last \
   -position [list ${tx} ${ty} px] -text "Last"]
 
-connect_charts_signal -view $view -from annotationIdPressed -to annotationSlot
+connect_charts_signal -view $view -from annotationPressed -to annotationSlot
 
 for {set i 1} {$i <= $numRaces} {incr i} {
   show_plot $i

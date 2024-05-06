@@ -18,4 +18,4 @@ set_charts_property -annotation $rect1 -name fill.color -value red
 #set_charts_property -annotation $rect1 -name fill.pattern -value "mask image=pics/seamless_bw.png"
 set_charts_property -annotation $rect1 -name fill.pattern -value "texture,image=pics/particle.png"
 
-connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot -from annotationPressed -to annotationSlot

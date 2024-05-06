@@ -25,4 +25,4 @@ set rectId3 [create_charts_rectangle_annotation -plot $plotId -id rectId3 -tip "
   -stroke_color blue -stroke_alpha 0.5 -stroke_width 3 -border_sides tl \
   -filled 1 -fill_color orange -fill_alpha 0.7]
 
-connect_charts_signal -plot $plotId -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plotId -from annotationPressed -to annotationSlot

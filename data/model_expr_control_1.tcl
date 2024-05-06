@@ -42,4 +42,4 @@ set modelExprControl [get_charts_data -annotation $modelExprControl -name widget
 
 #---
 
-connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot -from annotationPressed -to annotationSlot

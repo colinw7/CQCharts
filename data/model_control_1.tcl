@@ -42,4 +42,4 @@ set modelControl [get_charts_data -annotation $modelControl -name widget_path]
 
 #---
 
-connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot -from annotationPressed -to annotationSlot

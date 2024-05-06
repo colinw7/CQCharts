@@ -50,7 +50,10 @@ class CQChartsCmdsSlot : public QObject {
   void selectionChanged();
 
   // plot, view, annotation
-  void annotationIdPressed(const QString &);
+  void viewAnnotationPressed(const QString &);
+  void plotAnnotationPressed(const QString &);
+  void annotationPressed(const QString &);
+  void annotationClicked(const QString &);
 
   // plot
   void plotObjsAdded      ();

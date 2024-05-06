@@ -6,7 +6,7 @@ set modelId [load_charts_model -csv data/arrowstyle.csv]
 
 set plotId [create_charts_plot -type xy -columns {{x 0} {y 1}} -title "Annotations" -xmin -100 -xmax 100 -ymin -100 -ymax 100]
 
-connect_charts_signal -plot $plotId -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plotId -from annotationPressed -to annotationSlot
 
 set ellipseId1 [create_charts_ellipse_annotation -plot $plotId -id ellipseId1 -center {0 -60} -rx 50 -ry 50 -stroked 1 -stroke_color red -stroke_alpha 0.5]
 

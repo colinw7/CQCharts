@@ -904,9 +904,10 @@ selectPress(const Point &, SelData &)
   if (isCheckable())
     setChecked(! isChecked());
 
-  Q_EMIT pressed(id());
+  // emit pressed
+  Q_EMIT pressed();
 
-  return id().length();
+  return true;
 }
 
 //---
@@ -3735,6 +3736,10 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
   //---
 
+  addProp(model, path1, "isLink", "isLink", "Is link");
+
+  //---
+
   addStrokeFillProperties(model, path1);
 }
 
@@ -3767,19 +3772,13 @@ positionToLL(double w, double h, double &x, double &y) const
   x = 0.0;
   y = 0.0;
 
-  if      (textAlign() & Qt::AlignLeft)
-    x = p.x;
-  else if (textAlign() & Qt::AlignRight)
-    x = p.x - w;
-  else
-    x = p.x - w/2;
+  if      (textAlign() & Qt::AlignLeft ) x = p.x;
+  else if (textAlign() & Qt::AlignRight) x = p.x - w;
+  else                                   x = p.x - w/2;
 
-  if      (textAlign() & Qt::AlignTop)
-    y = p.y;
-  else if (textAlign() & Qt::AlignBottom)
-    y = p.y - h;
-  else
-    y = p.y - h/2;
+  if      (textAlign() & Qt::AlignTop   ) y = p.y;
+  else if (textAlign() & Qt::AlignBottom) y = p.y - h;
+  else                                    y = p.y - h/2;
 }
 
 //---
@@ -3809,19 +3808,13 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
     // get position from align
     double x1, y1;
 
-    if      (textAlign() & Qt::AlignLeft)
-      x1 = bbox.getXMin() + xlp + xlm;
-    else if (textAlign() & Qt::AlignRight)
-      x1 = bbox.getXMax() - xrp - xrm;
-    else
-      x1 = bbox.getXMid();
+    if      (textAlign() & Qt::AlignLeft ) x1 = bbox.getXMin() + xlp + xlm;
+    else if (textAlign() & Qt::AlignRight) x1 = bbox.getXMax() - xrp - xrm;
+    else                                   x1 = bbox.getXMid();
 
-    if      (textAlign() & Qt::AlignBottom)
-      y1 = bbox.getYMin() + ybp + ybm;
-    else if (textAlign() & Qt::AlignTop)
-      y1 = bbox.getYMax() - ytp - ytm;
-    else
-      y1 = bbox.getYMid();
+    if      (textAlign() & Qt::AlignBottom) y1 = bbox.getYMin() + ybp + ybm;
+    else if (textAlign() & Qt::AlignTop   ) y1 = bbox.getYMax() - ytp - ytm;
+    else                                    y1 = bbox.getYMid();
 
     Point ll(x1, y1);
 
@@ -3885,8 +3878,10 @@ drawInRect(PaintDevice *device, const BBox &rect)
 
   calcPenBrush(penBrush);
 
-  if (isEnabled())
-    updatePenBrushState(penBrush, CQChartsObjDrawType::TEXT);
+  if (isEnabled()) {
+    if (! getIsLink())
+      updatePenBrushState(penBrush, CQChartsObjDrawType::TEXT);
+  }
 
   //---
 
@@ -3911,10 +3906,15 @@ drawInRect(PaintDevice *device, const BBox &rect)
     c = CQChartsUtil::blendColors(backgroundColor(), c, f);
   }
 
+  if (getIsLink() && isInside())
+    c = interpColor(view()->linkColor(), ColorInd());
+
   setPenBrush(penBrush, PenData(true, c, textAlpha()), BrushData(false));
 
-  if (isEnabled())
-    updatePenBrushState(penBrush, CQChartsObjDrawType::TEXT);
+  if (isEnabled()) {
+    if (! getIsLink())
+      updatePenBrushState(penBrush, CQChartsObjDrawType::TEXT);
+  }
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -3968,6 +3968,14 @@ drawInRect(PaintDevice *device, const BBox &rect)
     textOptions.skipDraw = isSkipDraw();
 
     device->setRenderHints(QPainter::Antialiasing);
+
+    if (isEnabled() && getIsLink()) {
+      if (isInside()) {
+        auto f = device->font();
+        f.setUnderline(true);
+        device->setFont(f);
+      }
+    }
 
     // TODO: multiple strings
     CQChartsDrawUtil::drawTextInBox(device, tbbox, textStr(), textOptions);
@@ -7109,8 +7117,15 @@ bool
 CQChartsKeyAnnotation::
 selectPress(const Point &w, SelData &selData)
 {
+  if (! isEnabled())
+    return false;
+
+  if (isCheckable())
+    setChecked(! isChecked());
+
+  // emit pressed on key or key item
   if (key_->selectPress(w, selData)) {
-    Q_EMIT pressed(QString("%1:%2").arg(id()).arg(key_->id()));
+    Q_EMIT pressed(QString("key:%1").arg(key_->id()));
     return true;
   }
 
@@ -7124,13 +7139,13 @@ selectPress(const Point &w, SelData &selData)
 
       if (handled) {
         selData.select = false;
-        Q_EMIT pressed(QString("%1:%2:%3").arg(id()).arg(key_->id()).arg(item->id()));
+        Q_EMIT pressed(QString("key_item::%1 %2").arg(key_->id()).arg(item->id()));
         return true;
       }
     }
   }
 
-  return CQChartsAnnotation::selectPress(w, selData);
+  return true;
 }
 
 void
@@ -8638,6 +8653,12 @@ selectPress(const Point &, SelData &)
 {
   pressed_ = true;
 
+  if (isCheckable())
+    setChecked(! isChecked());
+
+  // emit pressed
+  Q_EMIT pressed();
+
   invalidate();
 
   return true;
@@ -8655,6 +8676,9 @@ CQChartsButtonAnnotation::
 selectRelease(const Point &)
 {
   pressed_ = false;
+
+  // emit pressed
+  Q_EMIT clicked();
 
   invalidate();
 

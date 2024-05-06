@@ -439,7 +439,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void dataChanged();
 
   //! emitted when annotation pressed
-  void pressed(const QString &id);
+  void pressed(const QString &id="");
 
  protected Q_SLOTS:
   void emitDataChanged();
@@ -1251,6 +1251,8 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
 class CQChartsTextAnnotation : public CQChartsRectAnnotation {
   Q_OBJECT
 
+  Q_PROPERTY(bool isLink READ getIsLink WRITE setIsLink)
+
  public:
   CQChartsTextAnnotation(View *view, const ObjRefPos &p=ObjRefPos(), const QString &text=QString());
   CQChartsTextAnnotation(Plot *plot, const ObjRefPos &p=ObjRefPos(), const QString &text=QString());
@@ -1272,6 +1274,11 @@ class CQChartsTextAnnotation : public CQChartsRectAnnotation {
 
   bool hasMargin() const override { return true; }
   bool hasPadding() const override { return true; }
+
+  //---
+
+  bool getIsLink() const { return isLink_; }
+  void setIsLink(bool b) { isLink_ = b; }
 
   //---
 
@@ -1321,6 +1328,7 @@ class CQChartsTextAnnotation : public CQChartsRectAnnotation {
 
  private:
   QString textStr_;                     //!< text string
+  bool    isLink_            { false }; //!< is link
   double  calcFontScale_     { -1.0 };  //!< calculated font scale
   bool    skipDraw_          { false }; //!< skip draw
   double  overrideFontScale_ { -1.0 };  //!< override font scale
@@ -2703,6 +2711,10 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
                     const QString &varName=QString()) const override;
 
   //---
+
+ Q_SIGNALS:
+  //! emitted when button clicked
+  void clicked(const QString &id="");
 
  protected:
   void init();

@@ -56,4 +56,4 @@ connect_charts_signal -plot $plot1 -from plotObjsAdded -to addAnnotations
 
 connect_charts_signal -plot $plot1 -from objIdPressed -to objPressed
 
-connect_charts_signal -plot $plot1 -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot1 -from annotationPressed -to annotationSlot

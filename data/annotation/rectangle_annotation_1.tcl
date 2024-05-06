@@ -14,4 +14,4 @@ set_charts_property -plot $plot -name dataBox.fill.visible -value 0
 
 set_charts_property -annotation $rect1 -name fill.alpha -value 0.2
 
-connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot -from annotationPressed -to annotationSlot

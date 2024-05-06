@@ -33,4 +33,4 @@ set_charts_property -annotation $text2 -name stroke.visible -value 1
 set_charts_property -annotation $text2 -name text.scaled -value 1
 set_charts_property -annotation $text2 -name textAlign -value aligncenter
 
-connect_charts_signal -plot $plotId -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plotId -from annotationPressed -to annotationSlot

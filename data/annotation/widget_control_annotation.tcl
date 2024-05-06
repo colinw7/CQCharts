@@ -31,4 +31,4 @@ qt_set_property -object $control1 -property column -value 2
 set ann [create_charts_widget_annotation -plot $plot -id intControl \
   -position [list -1 -1] -widget $control1]
 
-connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot -from annotationPressed -to annotationSlot

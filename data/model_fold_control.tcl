@@ -42,4 +42,4 @@ set modelFoldControl [get_charts_data -annotation $modelFoldControl -name widget
 
 #---
 
-connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot -from annotationPressed -to annotationSlot

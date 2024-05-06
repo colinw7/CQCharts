@@ -194,6 +194,8 @@ init()
   setInsideStrokeColor(Color::makeContrast());
   setInsideStrokeWidth(Length::pixel(2));
 
+  setLinkColor(Color(QColor(20, 20, 200)));
+
   //---
 
   lightPaletteSlot();
@@ -541,6 +543,7 @@ addProperties()
 
   addStyleProp("inside", "insideColor", "insideColor", "Inside Color");
   addStyleProp("inside", "insideAlpha", "insideAlpha", "Inside Alpha");
+  addStyleProp("inside", "linkColor"  , "linkColor"  , "Link Color");
 
   // fade on inside
   addStyleProp("fade", "overlayFade"     , "enabled", "Fade non-overlay");
@@ -6212,26 +6215,17 @@ bool
 CQChartsView::
 lockPainter(bool lock)
 {
-  if (lock) {
-    if (painterLocked_)
-      return false;
+  if (painterLocked_ == lock)
+    return false;
 
+  if (lock)
     painterMutex_.lock();
-
-    painterLocked_ = true;
-
-    //std::cerr << "CQChartsView::lockPainter : true\n";
-  }
-  else {
-    if (! painterLocked_)
-      return false;
-
+  else
     painterMutex_.unlock();
 
-    painterLocked_ = false;
+  painterLocked_ = lock;
 
-    //std::cerr << "CQChartsView::lockPainter : false\n";
-  }
+  //std::cerr << "CQChartsView::lockPainter : " << (lock ? "true" : "false") << "\n";
 
   return true;
 }

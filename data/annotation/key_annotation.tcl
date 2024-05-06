@@ -20,7 +20,7 @@ add_charts_key_item -annotation $annotation -text Box    -symbol box    -color b
 # gradient
 add_charts_key_item -annotation $annotation -text Gradient -gradient moreland -id "gradient"
 
-connect_charts_signal -annotation $annotation -from annotationIdPressed -to annotationSlot
+connect_charts_signal -annotation $annotation -from annotationPressed -to annotationSlot
 
 echo [get_charts_property -key_item "keyitem:gradient:gradient" -name minValue]
 echo [get_charts_property -key_item "keyitem:gradient:gradient" -name maxValue]

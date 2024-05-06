@@ -43,4 +43,4 @@ set plotProperties [get_charts_data -annotation $plotProperties -name widget_pat
 
 #---
 
-connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot -from annotationPressed -to annotationSlot

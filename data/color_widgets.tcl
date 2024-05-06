@@ -45,4 +45,4 @@ set interfaceControl [get_charts_data -annotation $interfaceControl -name widget
 
 #---
 
-connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot -from annotationPressed -to annotationSlot

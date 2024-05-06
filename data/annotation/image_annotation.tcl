@@ -25,4 +25,4 @@ set image3 [create_charts_image_annotation -plot $plotId -id three \
 set image4 [create_charts_image_annotation -plot $plotId -id two \
   -position {0.75 0.75} -image "Terror_from_Planet_X.jpg"]
 
-connect_charts_signal -plot $plotId -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plotId -from annotationPressed -to annotationSlot

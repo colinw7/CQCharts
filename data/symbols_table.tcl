@@ -56,7 +56,7 @@ set pointId [create_charts_point_annotation -view $view -id symbolPoint -tip "Sy
 set toggleId [create_charts_text_annotation -view $view -id imageToggle -tip "Filled" \
   -position {10 20} -text "Filled" -properties {{checkable 1} {checked 0}}]
 
-connect_charts_signal -view $view -from annotationIdPressed -to fillSlot
+connect_charts_signal -view $view -from annotationPressed -to fillSlot
 
 set_charts_property -annotation $::toggleId -name text.html                 -value 1 
 set_charts_property -annotation $::toggleId -name coloring.uncheckedLighter -value 0.0 

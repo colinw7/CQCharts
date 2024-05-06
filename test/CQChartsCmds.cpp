@@ -12631,9 +12631,9 @@ execCmd(CQChartsCmdArgs &argv)
     if      (fromName == "objIdPressed") {
       connectSlot(plot, SIGNAL(objIdPressed(const QString &)), SLOT(objIdPressed(const QString &)));
     }
-    else if (fromName == "annotationIdPressed") {
+    else if (fromName == "annotationIdPressed" || fromName == "annotationPressed") {
       connectSlot(plot, SIGNAL(annotationIdPressed(const QString &)),
-                  SLOT(annotationIdPressed(const QString &)));
+                  SLOT(plotAnnotationPressed(const QString &)));
     }
     else if (fromName == "plotObjsAdded") {
       connectSlot(plot, SIGNAL(plotObjsAdded()), SLOT(plotObjsAdded()));
@@ -12656,7 +12656,7 @@ execCmd(CQChartsCmdArgs &argv)
     }
     else if (fromName == "?") {
       static auto names = QStringList() <<
-        "objIdPressed" << "annotationIdPressed" << "plotObjsAdded" << "newPlotObjsDrawn" <<
+        "objIdPressed" << "annotationPressed" << "plotObjsAdded" << "newPlotObjsDrawn" <<
         "selectionChanged" << "selectPress" << "animateStateChanged" << "currentModelChanged";
       return cmdBase_->setCmdRc(names);
     }
@@ -12667,9 +12667,9 @@ execCmd(CQChartsCmdArgs &argv)
     if      (fromName == "objIdPressed") {
       connectSlot(view, SIGNAL(objIdPressed(const QString &)), SLOT(objIdPressed(const QString &)));
     }
-    else if (fromName == "annotationIdPressed") {
+    else if (fromName == "annotationIdPressed" || fromName == "annotationPressed") {
       connectSlot(view, SIGNAL(annotationIdPressed(const QString &)),
-                  SLOT(annotationIdPressed(const QString &)));
+                  SLOT(viewAnnotationPressed(const QString &)));
     }
     else if (fromName == "selectionChanged") {
       connectSlot(view, SIGNAL(selectionChanged()), SLOT(selectionChanged()));
@@ -12683,19 +12683,23 @@ execCmd(CQChartsCmdArgs &argv)
     }
     else if (fromName == "?") {
       static auto names = QStringList() <<
-        "objIdPressed" << "annotationIdPressed" << "selectionChanged" << "keyEventPress";
+        "objIdPressed" << "annotationPressed" << "selectionChanged" << "keyEventPress";
       return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg("unknown slot");
   }
   else if (annotation) {
-    if      (fromName == "annotationIdPressed") {
+    if      (fromName == "annotationIdPressed" || fromName == "annotationPressed") {
       connectSlot(annotation, SIGNAL(pressed(const QString &)),
-                  SLOT(annotationIdPressed(const QString &)));
+                  SLOT(annotationPressed(const QString &)));
+    }
+    else if (fromName == "annotationIdClicked" || fromName == "annotationClicked") {
+      connectSlot(annotation, SIGNAL(clicked(const QString &)),
+                  SLOT(annotationClicked(const QString &)));
     }
     else if (fromName == "?") {
-      static auto names = QStringList() << "annotationIdPressed";
+      static auto names = QStringList() << "annotationPressed" << "annotationClicked";
       return cmdBase_->setCmdRc(names);
     }
     else

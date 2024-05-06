@@ -6,7 +6,7 @@ set modelId [load_charts_model -csv data/arrowstyle.csv]
 
 set plotId [create_charts_plot -type xy -columns {{x 0} {y 1}} -title "Annotations" -xmin -130 -xmax -65 -ymin 24 -ymax 50]
 
-connect_charts_signal -plot $plotId -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plotId -from annotationPressed -to annotationSlot
 
 # Alabama
 set alabamaPolyId [create_charts_polygon_annotation -plot $plotId -id AL -points "-87.3593 35.0012 -85.6067 34.9847 -85.4314 34.1249 -85.185 32.8597 -85.0699 32.5804 -84.9604 32.4215 -85.0042 32.323 -84.8892 32.2627 -85.059 32.1367 -85.0535 32.0108 -85.1411 31.841 -85.0426 31.5398 -85.1138 31.2769 -85.0042 31.003 -85.4971 30.9975 -87.6003 30.9975 -87.6331 30.8661 -87.4086 30.6744 -87.4469 30.5101 -87.3702 30.4279 -87.5181 30.2801 -87.6551 30.2472 -87.907 30.4115 -87.9344 30.658 -88.0111 30.6854 -88.1042 30.4991 -88.137 30.3184 -88.3944 30.3677 -88.4711 31.8958 -88.2411 33.7963 -88.0987 34.8916 -88.2027 34.9957 -87.3593 35.0012" \

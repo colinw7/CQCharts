@@ -26,4 +26,4 @@ set textAnnotationId5 [create_charts_text_annotation -plot $plotId -id long -pos
 
 set textAnnotationId6 [create_charts_text_annotation -plot $plotId -id html -position {100 100 pixel} -text "<table><tr><td>One</td><td>Two</td></tr><tr><td>Three</td><td>Four</td></tr></table>" -stroked 1 -filled 1 -corner_size 12 -html]
 
-connect_charts_signal -plot $plotId -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plotId -from annotationPressed -to annotationSlot

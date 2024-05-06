@@ -42,4 +42,4 @@ set modelFlattenControl [get_charts_data -annotation $modelFlattenControl -name 
 
 #---
 
-connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot -from annotationPressed -to annotationSlot

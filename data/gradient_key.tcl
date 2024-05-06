@@ -113,7 +113,7 @@ set xminSpin "$view_path|frame|$xminSpin"
 set xmaxSpin "$view_path|frame|$xmaxSpin"
 set nSpin    "$view_path|frame|$nSpin"
 
-#connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot
+#connect_charts_signal -plot $plot -from annotationPressed -to annotationSlot
 
 #---
 

@@ -29,4 +29,4 @@ textAnnotationId4 = _rc
 create_text_shape -plot $plotId -id long -x 0 -y 0 -text "The rain in spain falls mainly on the plain. She sell sea shells on the sea shore. The quick brown fox jumps over the lazy dog." -border 1 -background 1 -corner_size 12
 textAnnotationId5 = _rc
 
-connect_chart -view $viewId -plot $plotId1 -from annotationIdPressed -to annotationSlot
+connect_chart -view $viewId -plot $plotId1 -from annotationPressed -to annotationSlot

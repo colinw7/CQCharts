@@ -42,4 +42,4 @@ set globalProperties [get_charts_data -annotation $globalProperties -name widget
 
 #---
 
-connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot -from annotationPressed -to annotationSlot

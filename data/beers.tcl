@@ -139,6 +139,6 @@ set stout_beer [create_charts_image_annotation -view $view -id stout \
   -rectangle {20 65 25 80} -image "data/beer_bottle_stout.svg" \
   -properties {{checkable 1} {checked 1}}]
 
-connect_charts_signal -view $view -from annotationIdPressed -to imageSlot
+connect_charts_signal -view $view -from annotationPressed -to imageSlot
 
 updateFilter

@@ -117,4 +117,4 @@ set tx [expr {$tx + $tw + $dtx}]
 puts $tx
 
 set text4Id [create_charts_text_annotation -view $::viewId -id sidebyside -position [list $tx $ty] -text "Side By Side" -stroked 1 -filled 1]
-connect_charts_signal -view $::viewId -from annotationIdPressed -to annotationSlot
+connect_charts_signal -view $::viewId -from annotationPressed -to annotationSlot

@@ -10,4 +10,4 @@ set_charts_property -annotation $annotation -name key.position -value {50 50 P}
 set_charts_property -annotation $annotation -name key.mapMin   -value 16
 set_charts_property -annotation $annotation -name key.mapMax   -value 64
 
-connect_charts_signal -annotation $annotation -from annotationIdPressed -to annotationSlot
+connect_charts_signal -annotation $annotation -from annotationPressed -to annotationSlot

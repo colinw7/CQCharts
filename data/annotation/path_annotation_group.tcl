@@ -28,4 +28,4 @@ set path8 [create_charts_path_annotation -plot $plot -id eight -group $group \
 set path9 [create_charts_path_annotation -plot $plot -id nine -group $group \
   -path "M50,59c0,0,4,3,10,0M56,66l2,12l-2,12M25,50c0,0,10,12,23,12c13,0,24,0,35-15" -properties {{fill.visible 0} {stroke.color #000} {stroke.width 0.5}}]
 
-connect_charts_signal -plot $plot -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot -from annotationPressed -to annotationSlot

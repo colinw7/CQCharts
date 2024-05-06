@@ -157,6 +157,7 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(CQChartsAlpha insideAlpha   READ insideAlpha   WRITE setInsideAlpha  )
   Q_PROPERTY(CQChartsColor selectedColor READ selectedColor WRITE setSelectedColor)
   Q_PROPERTY(CQChartsAlpha selectedAlpha READ selectedAlpha WRITE setSelectedAlpha)
+  Q_PROPERTY(CQChartsColor linkColor     READ linkColor     WRITE setLinkColor    )
 
   // scroll (TODO remove)
   Q_PROPERTY(bool        scrolled       READ isScrolled     WRITE setScrolled      )
@@ -1054,6 +1055,9 @@ class CQChartsView : public QFrame,
 
   const Alpha &selectedAlpha() const { return selectedAlpha_; }
   void setSelectedAlpha(const Alpha &a) { selectedAlpha_ = a; }
+
+  Color linkColor() const { return linkColor_; }
+  void setLinkColor(const Color &c) { linkColor_ = c; }
 
   //---
 
@@ -2057,6 +2061,8 @@ class CQChartsView : public QFrame,
 
   Color selectedColor_;
   Alpha selectedAlpha_ { 0.6 };
+
+  Color linkColor_;
 
   BBox displayBBox_;
 
