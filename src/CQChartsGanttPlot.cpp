@@ -431,7 +431,11 @@ postCalcRange()
 {
   xAxis()->setColumn(startColumn());
 
-  xAxis()->setValueType(CQChartsAxisValueType::date());
+  if (xColumnType_ == ColumnType::TIME)
+    xAxis()->setValueType(CQChartsAxisValueType::date());
+  else
+    xAxis()->setValueType(CQChartsAxisValueType::real());
+
   yAxis()->setValueType(CQChartsAxisValueType::integer());
 
   yAxis()->setMajorIncrement(1);

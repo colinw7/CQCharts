@@ -116,14 +116,12 @@ CQChartsAnnotation::
 CQChartsAnnotation(View *view, Type type) :
  CQChartsTextBoxObj(view), type_(type)
 {
-  init();
 }
 
 CQChartsAnnotation::
 CQChartsAnnotation(Plot *plot, Type type) :
  CQChartsTextBoxObj(plot), type_(type)
 {
-  init();
 }
 
 CQChartsAnnotation::
@@ -135,6 +133,18 @@ void
 CQChartsAnnotation::
 init()
 {
+  assert(! initialized_);
+  initialized_ = true;
+
+  updateInd();
+
+  setEditable(true);
+}
+
+void
+CQChartsAnnotation::
+updateInd()
+{
   static int s_lastPlotInd;
   static int s_lastViewInd;
 
@@ -142,8 +152,6 @@ init()
     ind_ = ++s_lastPlotInd;
   else
     ind_ = ++s_lastViewInd;
-
-  setEditable(true);
 }
 
 QString
@@ -1089,6 +1097,8 @@ void
 CQChartsAnnotation::
 drawInit(PaintDevice *device)
 {
+  assert(initialized_);
+
   device->save();
 
   if (device->type() == PaintDevice::Type::SVG) {
@@ -1130,14 +1140,12 @@ CQChartsAnnotationGroup::
 CQChartsAnnotationGroup(View *view) :
  CQChartsAnnotation(view, Type::GROUP)
 {
-  init();
 }
 
 CQChartsAnnotationGroup::
 CQChartsAnnotationGroup(Plot *plot) :
  CQChartsAnnotation(plot, Type::GROUP)
 {
-  init();
 }
 
 CQChartsAnnotationGroup::
@@ -1151,6 +1159,8 @@ void
 CQChartsAnnotationGroup::
 init()
 {
+  CQChartsAnnotation::init();
+
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
@@ -2160,14 +2170,12 @@ CQChartsRectangleAnnotation::
 CQChartsRectangleAnnotation(View *view, const Rect &rectangle) :
  CQChartsShapeAnnotationBase(view, Type::RECT), rectangle_(rectangle)
 {
-  init();
 }
 
 CQChartsRectangleAnnotation::
 CQChartsRectangleAnnotation(Plot *plot, const Rect &rectangle) :
  CQChartsShapeAnnotationBase(plot, Type::RECT), rectangle_(rectangle)
 {
-  init();
 }
 
 CQChartsRectangleAnnotation::
@@ -2179,6 +2187,8 @@ void
 CQChartsRectangleAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
   assert(rectangle_.isValid());
 
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
@@ -2411,14 +2421,12 @@ CQChartsShapeAnnotation::
 CQChartsShapeAnnotation(View *view, const Rect &rectangle) :
  CQChartsShapeAnnotationBase(view, Type::RECT), rectangle_(rectangle)
 {
-  init();
 }
 
 CQChartsShapeAnnotation::
 CQChartsShapeAnnotation(Plot *plot, const Rect &rectangle) :
  CQChartsShapeAnnotationBase(plot, Type::RECT), rectangle_(rectangle)
 {
-  init();
 }
 
 CQChartsShapeAnnotation::
@@ -2430,6 +2438,8 @@ void
 CQChartsShapeAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
   assert(rectangle_.isValid());
 
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
@@ -2761,24 +2771,16 @@ CQChartsEllipseAnnotation::
 CQChartsEllipseAnnotation(View *view, const ObjRefPos &center, const Length &xRadius,
                           const Length &yRadius) :
  CQChartsShapeAnnotationBase(view, Type::ELLIPSE), center_(center.position()),
- xRadius_(xRadius), yRadius_(yRadius)
+ centerObjRef_(center.objRef()), xRadius_(xRadius), yRadius_(yRadius)
 {
-  if (center.objRef().isValid())
-    setObjRef(center.objRef());
-
-  init();
 }
 
 CQChartsEllipseAnnotation::
 CQChartsEllipseAnnotation(Plot *plot, const ObjRefPos &center, const Length &xRadius,
                           const Length &yRadius) :
  CQChartsShapeAnnotationBase(plot, Type::ELLIPSE), center_(center.position()),
- xRadius_(xRadius), yRadius_(yRadius)
+ centerObjRef_(center.objRef()), xRadius_(xRadius), yRadius_(yRadius)
 {
-  if (center.objRef().isValid())
-    setObjRef(center.objRef());
-
-  init();
 }
 
 CQChartsEllipseAnnotation::
@@ -2788,15 +2790,13 @@ CQChartsEllipseAnnotation::
 
 void
 CQChartsEllipseAnnotation::
-setCenter(const Position &c)
-{
-  CQChartsUtil::testAndSet(center_, c, [&]() { emitDataChanged(); } );
-}
-
-void
-CQChartsEllipseAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
+  if (centerObjRef_.isValid())
+    setObjRef(centerObjRef_);
+
   assert(xRadius_.value() > 0.0 && yRadius_.value() > 0.0);
 
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
@@ -2804,6 +2804,13 @@ init()
   setStroked(true);
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
+}
+
+void
+CQChartsEllipseAnnotation::
+setCenter(const Position &c)
+{
+  CQChartsUtil::testAndSet(center_, c, [&]() { emitDataChanged(); } );
 }
 
 //---
@@ -2975,14 +2982,12 @@ CQChartsPolygonAnnotation::
 CQChartsPolygonAnnotation(View *view, const Polygon &polygon) :
  CQChartsPolyShapeAnnotationBase(view, Type::POLYGON, polygon)
 {
-  init();
 }
 
 CQChartsPolygonAnnotation::
 CQChartsPolygonAnnotation(Plot *plot, const Polygon &polygon) :
  CQChartsPolyShapeAnnotationBase(plot, Type::POLYGON, polygon)
 {
-  init();
 }
 
 CQChartsPolygonAnnotation::
@@ -2994,6 +2999,8 @@ void
 CQChartsPolygonAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
   assert(polygon_.isValid(/*closed*/true));
 
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
@@ -3228,14 +3235,12 @@ CQChartsPolylineAnnotation::
 CQChartsPolylineAnnotation(View *view, const Polygon &polygon) :
  CQChartsPolyShapeAnnotationBase(view, Type::POLYLINE, polygon)
 {
-  init();
 }
 
 CQChartsPolylineAnnotation::
 CQChartsPolylineAnnotation(Plot *plot, const Polygon &polygon) :
  CQChartsPolyShapeAnnotationBase(plot, Type::POLYLINE, polygon)
 {
-  init();
 }
 
 CQChartsPolylineAnnotation::
@@ -3247,6 +3252,8 @@ void
 CQChartsPolylineAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
   assert(polygon_.isValid(/*closed*/false));
 
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
@@ -3669,28 +3676,24 @@ CQChartsTextAnnotation::
 CQChartsTextAnnotation(View *view, const ObjRefPos &position, const QString &textStr) :
  CQChartsRectAnnotation(view, Type::TEXT, position), textStr_(textStr)
 {
-  init();
 }
 
 CQChartsTextAnnotation::
 CQChartsTextAnnotation(Plot *plot, const ObjRefPos &position, const QString &textStr) :
  CQChartsRectAnnotation(plot, Type::TEXT, position), textStr_(textStr)
 {
-  init();
 }
 
 CQChartsTextAnnotation::
 CQChartsTextAnnotation(View *view, const Rect &rect, const QString &textStr) :
  CQChartsRectAnnotation(view, Type::TEXT, rect), textStr_(textStr)
 {
-  init();
 }
 
 CQChartsTextAnnotation::
 CQChartsTextAnnotation(Plot *plot, const Rect &rect, const QString &textStr) :
  CQChartsRectAnnotation(plot, Type::TEXT, rect), textStr_(textStr)
 {
-  init();
 }
 
 CQChartsTextAnnotation::
@@ -3702,6 +3705,8 @@ void
 CQChartsTextAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setTextStr  (textStr_);
@@ -4086,40 +4091,26 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 CQChartsImageAnnotation::
 CQChartsImageAnnotation(View *view, const ObjRefPos &position, const Image &image) :
- CQChartsShapeAnnotationBase(view, Type::IMAGE), image_(image)
+ CQChartsShapeAnnotationBase(view, Type::IMAGE), image_(image), positionObjRef_(position)
 {
-  setPosition(position.position());
-  setObjRef  (position.objRef());
-
-  init();
 }
 
 CQChartsImageAnnotation::
 CQChartsImageAnnotation(Plot *plot, const ObjRefPos &position, const Image &image) :
- CQChartsShapeAnnotationBase(plot, Type::IMAGE), image_(image)
+ CQChartsShapeAnnotationBase(plot, Type::IMAGE), image_(image), positionObjRef_(position)
 {
-  setPosition(position.position());
-  setObjRef  (position.objRef());
-
-  init();
 }
 
 CQChartsImageAnnotation::
 CQChartsImageAnnotation(View *view, const Rect &rect, const Image &image) :
- CQChartsShapeAnnotationBase(view, Type::IMAGE), image_(image)
+ CQChartsShapeAnnotationBase(view, Type::IMAGE), image_(image), rect_(rect)
 {
-  setRectangle(rect);
-
-  init();
 }
 
 CQChartsImageAnnotation::
 CQChartsImageAnnotation(Plot *plot, const Rect &rect, const Image &image) :
- CQChartsShapeAnnotationBase(plot, Type::IMAGE), image_(image)
+ CQChartsShapeAnnotationBase(plot, Type::IMAGE), image_(image), rect_(rect)
 {
-  setRectangle(rect);
-
-  init();
 }
 
 CQChartsImageAnnotation::
@@ -4131,6 +4122,17 @@ void
 CQChartsImageAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
+  if (positionObjRef_.isValid()) {
+    setPosition(positionObjRef_.position());
+    setObjRef  (positionObjRef_.objRef());
+  }
+
+  if (rect_.isValid()) {
+    setRectangle(rect_);
+  }
+
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   disabledImage_ = Image();
@@ -4525,14 +4527,12 @@ CQChartsPathAnnotation::
 CQChartsPathAnnotation(View *view, const Path &path) :
  CQChartsShapeAnnotationBase(view, Type::PATH), path_(path)
 {
-  init();
 }
 
 CQChartsPathAnnotation::
 CQChartsPathAnnotation(Plot *plot, const Path &path) :
  CQChartsShapeAnnotationBase(plot, Type::PATH), path_(path)
 {
-  init();
 }
 
 CQChartsPathAnnotation::
@@ -4544,6 +4544,8 @@ void
 CQChartsPathAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   auto bbox = BBox(path_.path().boundingRect());
@@ -4836,32 +4838,16 @@ CQChartsConnectorAnnotationBase::
 
 CQChartsArrowAnnotation::
 CQChartsArrowAnnotation(View *view, const ObjRefPos &start, const ObjRefPos &end) :
- CQChartsConnectorAnnotationBase(view, Type::ARROW), start_(start.position()), end_(end.position())
+ CQChartsConnectorAnnotationBase(view, Type::ARROW), start_(start.position()), end_(end.position()),
+ startObjRef_(start.objRef()), endObjRef_(end.objRef())
 {
-  if (start.objRef().isValid())
-    setStartObjRef(start.objRef());
-
-  if (end.objRef().isValid())
-    setEndObjRef(end.objRef());
-
-  //---
-
-  init();
 }
 
 CQChartsArrowAnnotation::
 CQChartsArrowAnnotation(Plot *plot, const ObjRefPos &start, const ObjRefPos &end) :
- CQChartsConnectorAnnotationBase(plot, Type::ARROW), start_(start.position()), end_(end.position())
+ CQChartsConnectorAnnotationBase(plot, Type::ARROW), start_(start.position()), end_(end.position()),
+ startObjRef_(start.objRef()), endObjRef_(end.objRef())
 {
-  if (start.objRef().isValid())
-    setStartObjRef(start.objRef());
-
-  if (end.objRef().isValid())
-    setEndObjRef(end.objRef());
-
-  //---
-
-  init();
 }
 
 CQChartsArrowAnnotation::
@@ -4875,6 +4861,16 @@ void
 CQChartsArrowAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
+  if (startObjRef_.isValid())
+    setStartObjRef(startObjRef_);
+
+  if (endObjRef_.isValid())
+    setEndObjRef(endObjRef_);
+
+  //---
+
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   if (plot())
@@ -5592,37 +5588,43 @@ getChangedNameValues(NameValues &nameValues) const
 
 CQChartsArcAnnotation::
 CQChartsArcAnnotation(View *view, const ObjRefPos &start, const ObjRefPos &end) :
- CQChartsConnectorAnnotationBase(view, Type::ARC), start_(start.position()), end_(end.position())
+ CQChartsConnectorAnnotationBase(view, Type::ARC), start_(start.position()), end_(end.position()),
+ startObjRef_(start.objRef()), endObjRef_(end.objRef())
 {
-  if (start.objRef().isValid())
-    setStartObjRef(start.objRef());
-
-  if (end.objRef().isValid())
-    setEndObjRef(end.objRef());
-
-  //---
-
-  init();
 }
 
 CQChartsArcAnnotation::
 CQChartsArcAnnotation(Plot *plot, const ObjRefPos &start, const ObjRefPos &end) :
- CQChartsConnectorAnnotationBase(plot, Type::ARC), start_(start.position()), end_(end.position())
+ CQChartsConnectorAnnotationBase(plot, Type::ARC), start_(start.position()), end_(end.position()),
+ startObjRef_(start.objRef()), endObjRef_(end.objRef())
 {
-  if (start.objRef().isValid())
-    setStartObjRef(start.objRef());
-
-  if (end.objRef().isValid())
-    setEndObjRef(end.objRef());
-
-  //---
-
-  init();
 }
 
 CQChartsArcAnnotation::
 ~CQChartsArcAnnotation()
 {
+}
+
+void
+CQChartsArcAnnotation::
+init()
+{
+  CQChartsAnnotation::init();
+
+  if (startObjRef_.isValid())
+    setStartObjRef(startObjRef_);
+
+  if (endObjRef_.isValid())
+    setEndObjRef(endObjRef_);
+
+  //---
+
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
+
+  editHandles()->setMode(EditHandles::Mode::RESIZE);
+
+  setStroked(true);
+  setFilled (true);
 }
 
 void
@@ -5637,18 +5639,6 @@ CQChartsArcAnnotation::
 setEnd(const Position &p)
 {
   CQChartsUtil::testAndSet(end_, p, [&]() { emitDataChanged(); } );
-}
-
-void
-CQChartsArcAnnotation::
-init()
-{
-  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
-
-  editHandles()->setMode(EditHandles::Mode::RESIZE);
-
-  setStroked(true);
-  setFilled (true);
 }
 
 //---
@@ -6005,15 +5995,10 @@ CQChartsArcConnectorAnnotation(Plot *plot, const ObjRefPos &center, const Length
                                const Angle &destStartAngle, const Angle &destSpanAngle,
                                bool self) :
  CQChartsConnectorAnnotationBase(plot, Type::ARC_CONNECTOR), center_(center.position()),
- radius_(radius), srcStartAngle_(srcStartAngle), srcSpanAngle_(srcSpanAngle),
- destStartAngle_(destStartAngle), destSpanAngle_(destSpanAngle), self_(self)
+ centerObjRef_(center.objRef()), radius_(radius), srcStartAngle_(srcStartAngle),
+ srcSpanAngle_(srcSpanAngle), destStartAngle_(destStartAngle), destSpanAngle_(destSpanAngle),
+ self_(self)
 {
-  if (self) {
-    setStartObjRef(center.objRef());
-    setEndObjRef  (center.objRef());
-  }
-
-  init();
 }
 
 CQChartsArcConnectorAnnotation::
@@ -6025,6 +6010,13 @@ void
 CQChartsArcConnectorAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
+  if (self_) {
+    setStartObjRef(centerObjRef_);
+    setEndObjRef  (centerObjRef_);
+  }
+
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setStroked(true);
@@ -6191,23 +6183,15 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 CQChartsPointAnnotation::
 CQChartsPointAnnotation(View *view, const ObjRefPos &position, const Symbol &symbol) :
  CQChartsAnnotation(view, Type::POINT), CQChartsObjPointData<CQChartsPointAnnotation>(this),
- position_(position.position()), symbol_(symbol)
+ position_(position.position()), positionObjRef_(position.objRef()), symbol_(symbol)
 {
-  if (position.objRef().isValid())
-    setObjRef(position.objRef());
-
-  init();
 }
 
 CQChartsPointAnnotation::
 CQChartsPointAnnotation(Plot *plot, const ObjRefPos &position, const Symbol &symbol) :
  CQChartsAnnotation(plot, Type::POINT), CQChartsObjPointData<CQChartsPointAnnotation>(this),
- position_(position.position()), symbol_(symbol)
+ position_(position.position()), positionObjRef_(position.objRef()), symbol_(symbol)
 {
-  if (position.objRef().isValid())
-    setObjRef(position.objRef());
-
-  init();
 }
 
 CQChartsPointAnnotation::
@@ -6221,6 +6205,11 @@ void
 CQChartsPointAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
+  if (positionObjRef_.isValid())
+    setObjRef(positionObjRef_);
+
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setSymbol(symbol_);
@@ -6450,12 +6439,9 @@ CQChartsPieSliceAnnotation(View *view, const ObjRefPos &position, const Length &
                            const Length &outerRadius, const Angle &startAngle,
                            const Angle &spanAngle) :
  CQChartsShapeAnnotationBase(view, Type::PIE_SLICE), position_(position.position()),
- innerRadius_(innerRadius), outerRadius_(outerRadius),
+ positionObjRef_(position.objRef()), innerRadius_(innerRadius), outerRadius_(outerRadius),
  startAngle_(startAngle), spanAngle_(spanAngle)
 {
-  setObjRef(position.objRef());
-
-  init();
 }
 
 CQChartsPieSliceAnnotation::
@@ -6463,17 +6449,32 @@ CQChartsPieSliceAnnotation(Plot *plot, const ObjRefPos &position, const Length &
                            const Length &outerRadius, const Angle &startAngle,
                            const Angle &spanAngle) :
  CQChartsShapeAnnotationBase(plot, Type::PIE_SLICE), position_(position.position()),
- innerRadius_(innerRadius), outerRadius_(outerRadius),
+ positionObjRef_(position.objRef()), innerRadius_(innerRadius), outerRadius_(outerRadius),
  startAngle_(startAngle), spanAngle_(spanAngle)
 {
-  setObjRef(position.objRef());
-
-  init();
 }
 
 CQChartsPieSliceAnnotation::
 ~CQChartsPieSliceAnnotation()
 {
+}
+
+//---
+
+void
+CQChartsPieSliceAnnotation::
+init()
+{
+  CQChartsAnnotation::init();
+
+  setObjRef(positionObjRef_);
+
+  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
+
+  editHandles()->setMode(EditHandles::Mode::RESIZE);
+
+  setStroked(true);
+  setFilled (true);
 }
 
 //---
@@ -6518,20 +6519,6 @@ CQChartsPieSliceAnnotation::
 setArcType(const ArcType &t)
 {
   CQChartsUtil::testAndSet(arcType_, t, [&]() { emitDataChanged(); } );
-}
-
-//---
-
-void
-CQChartsPieSliceAnnotation::
-init()
-{
-  setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
-
-  editHandles()->setMode(EditHandles::Mode::RESIZE);
-
-  setStroked(true);
-  setFilled (true);
 }
 
 //---
@@ -6702,14 +6689,6 @@ CQChartsAxisAnnotation::
 CQChartsAxisAnnotation(Plot *plot, Qt::Orientation direction, double start, double end) :
  CQChartsAnnotation(plot, Type::AXIS), direction_(direction), start_(start), end_(end)
 {
-  init();
-
-  axis_ = std::make_unique<Axis>(plot_, direction_, start_, end_);
-
-  axis_->setAnnotation     (true);
-  axis_->setAllowHtmlLabels(true);
-
-  connectAxis(true);
 }
 
 CQChartsAxisAnnotation::
@@ -6721,12 +6700,23 @@ void
 CQChartsAxisAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
 
   setStroked(true);
   setFilled (false);
+
+  //---
+
+  axis_ = std::make_unique<Axis>(plot_, direction_, start_, end_);
+
+  axis_->setAnnotation     (true);
+  axis_->setAllowHtmlLabels(true);
+
+  connectAxis(true);
 }
 
 //---
@@ -6985,23 +6975,12 @@ CQChartsKeyAnnotation::
 CQChartsKeyAnnotation(View *view) :
  CQChartsAnnotation(view, Type::KEY)
 {
-  init();
-
-  key_ = new CQChartsViewKey(view);
 }
 
 CQChartsKeyAnnotation::
 CQChartsKeyAnnotation(Plot *plot, const Column &column) :
- CQChartsAnnotation(plot, Type::KEY)
+ CQChartsAnnotation(plot, Type::KEY), column_(column)
 {
-  init();
-
-  if (column.isValid())
-    key_ = new CQChartsKeyAnnotationColumnKey(plot, this, column);
-  else
-    key_ = new CQChartsKeyAnnotationPlotKey(plot, this);
-
-  connect(plot_, SIGNAL(rangeChanged()), this, SLOT(updateLocationSlot()));
 }
 
 CQChartsKeyAnnotation::
@@ -7014,9 +6993,22 @@ void
 CQChartsKeyAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
+
+  if (plot()) {
+    if (column_.isValid())
+      key_ = new CQChartsKeyAnnotationColumnKey(plot(), this, column_);
+    else
+      key_ = new CQChartsKeyAnnotationPlotKey(plot(), this);
+
+    connect(plot(), SIGNAL(rangeChanged()), this, SLOT(updateLocationSlot()));
+  }
+  else
+    key_ = new CQChartsViewKey(view());
 }
 
 CQChartsColumn
@@ -7197,7 +7189,6 @@ CQChartsPointSetAnnotation(View *view, const Rect &rectangle, const Points &poin
  CQChartsObjPointData<CQChartsPointSetAnnotation>(this),
  rectangle_(rectangle), values_(points)
 {
-  init();
 }
 
 CQChartsPointSetAnnotation::
@@ -7206,7 +7197,6 @@ CQChartsPointSetAnnotation(Plot *plot, const Rect &rectangle, const Points &poin
  CQChartsObjPointData<CQChartsPointSetAnnotation>(this),
  rectangle_(rectangle), values_(points)
 {
-  init();
 }
 
 CQChartsPointSetAnnotation::
@@ -7220,6 +7210,8 @@ void
 CQChartsPointSetAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
   assert(rectangle_.isValid());
 
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
@@ -7723,14 +7715,12 @@ CQChartsPoint3DSetAnnotation::
 CQChartsPoint3DSetAnnotation(View *view, const Points &points) :
  CQChartsShapeAnnotationBase(view, Type::POINT_SET), points_(points)
 {
-  init();
 }
 
 CQChartsPoint3DSetAnnotation::
 CQChartsPoint3DSetAnnotation(Plot *plot, const Points &points) :
  CQChartsShapeAnnotationBase(plot, Type::POINT3D_SET), points_(points)
 {
-  init();
 }
 
 CQChartsPoint3DSetAnnotation::
@@ -7742,6 +7732,8 @@ void
 CQChartsPoint3DSetAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
@@ -8117,14 +8109,12 @@ CQChartsValueSetAnnotation::
 CQChartsValueSetAnnotation(View *view, const Rect &rectangle, const Reals &reals) :
  CQChartsShapeAnnotationBase(view, Type::VALUE_SET), rectangle_(rectangle), reals_(reals)
 {
-  init();
 }
 
 CQChartsValueSetAnnotation::
 CQChartsValueSetAnnotation(Plot *plot, const Rect &rectangle, const Reals &reals) :
  CQChartsShapeAnnotationBase(plot, Type::VALUE_SET), rectangle_(rectangle), reals_(reals)
 {
-  init();
 }
 
 CQChartsValueSetAnnotation::
@@ -8139,6 +8129,8 @@ void
 CQChartsValueSetAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
   assert(rectangle_.isValid());
 
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
@@ -8578,22 +8570,14 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 CQChartsButtonAnnotation::
 CQChartsButtonAnnotation(View *view, const ObjRefPos &position, const QString &textStr) :
- CQChartsAnnotation(view, Type::BUTTON), textStr_(textStr)
+ CQChartsAnnotation(view, Type::BUTTON), textStr_(textStr), positionObjRef_(position)
 {
-  setPosition(position.position());
-  setObjRef  (position.objRef());
-
-  init();
 }
 
 CQChartsButtonAnnotation::
 CQChartsButtonAnnotation(Plot *plot, const ObjRefPos &position, const QString &textStr) :
- CQChartsAnnotation(plot, Type::BUTTON), textStr_(textStr)
+ CQChartsAnnotation(plot, Type::BUTTON), textStr_(textStr), positionObjRef_(position)
 {
-  setPosition(position.position());
-  setObjRef  (position.objRef());
-
-  init();
 }
 
 CQChartsButtonAnnotation::
@@ -8605,6 +8589,13 @@ void
 CQChartsButtonAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
+  if (positionObjRef_.isValid()) {
+    setPosition(positionObjRef_.position());
+    setObjRef  (positionObjRef_.objRef());
+  }
+
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setTextStr  (textStr_);
@@ -8784,28 +8775,24 @@ CQChartsWidgetAnnotation::
 CQChartsWidgetAnnotation(View *view, const ObjRefPos &position, const Widget &widget) :
  CQChartsRectAnnotation(view, Type::WIDGET, position), widget_(widget)
 {
-  init();
 }
 
 CQChartsWidgetAnnotation::
 CQChartsWidgetAnnotation(Plot *plot, const ObjRefPos &position, const Widget &widget) :
  CQChartsRectAnnotation(plot, Type::WIDGET, position), widget_(widget)
 {
-  init();
 }
 
 CQChartsWidgetAnnotation::
 CQChartsWidgetAnnotation(View *view, const Rect &rect, const Widget &widget) :
  CQChartsRectAnnotation(view, Type::WIDGET, rect), widget_(widget)
 {
-  init();
 }
 
 CQChartsWidgetAnnotation::
 CQChartsWidgetAnnotation(Plot *plot, const Rect &rect, const Widget &widget) :
  CQChartsRectAnnotation(plot, Type::WIDGET, rect), widget_(widget)
 {
-  init();
 }
 
 CQChartsWidgetAnnotation::
@@ -8818,6 +8805,8 @@ void
 CQChartsWidgetAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   sizePolicy_ = QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -9234,7 +9223,7 @@ positionToBBox()
     h -= xlp + xlm + xrp + xrm;
   }
   else if (sizePolicy().verticalPolicy() == QSizePolicy::Fixed) {
-    w = whsize.height();
+    h = whsize.height();
   }
 
   Point ll(x     - xlp - xlm, y - h - ybp - ybm);
@@ -9280,28 +9269,24 @@ CQChartsTkWidgetAnnotation::
 CQChartsTkWidgetAnnotation(View *view, const ObjRefPos &position, const QString &id) :
  CQChartsRectAnnotation(view, Type::TK_WIDGET, position), widgetId_(id)
 {
-  init();
 }
 
 CQChartsTkWidgetAnnotation::
 CQChartsTkWidgetAnnotation(Plot *plot, const ObjRefPos &position, const QString &id) :
  CQChartsRectAnnotation(plot, Type::TK_WIDGET, position), widgetId_(id)
 {
-  init();
 }
 
 CQChartsTkWidgetAnnotation::
 CQChartsTkWidgetAnnotation(View *view, const Rect &rect, const QString &id) :
  CQChartsRectAnnotation(view, Type::TK_WIDGET, rect), widgetId_(id)
 {
-  init();
 }
 
 CQChartsTkWidgetAnnotation::
 CQChartsTkWidgetAnnotation(Plot *plot, const Rect &rect, const QString &id) :
  CQChartsRectAnnotation(plot, Type::TK_WIDGET, rect), widgetId_(id)
 {
-  init();
 }
 
 CQChartsTkWidgetAnnotation::
@@ -9314,6 +9299,8 @@ void
 CQChartsTkWidgetAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   widget_ = new CTkWidget(charts()->tkApp(), widgetId_);
@@ -9639,11 +9626,6 @@ CQChartsSymbolSizeMapKeyAnnotation::
 CQChartsSymbolSizeMapKeyAnnotation(Plot *plot) :
  CQChartsAnnotation(plot, Type::SYMBOL_MAP_KEY)
 {
-  init();
-
-  key_ = new CQChartsSymbolSizeMapKey(plot);
-
-  key_->connectDisconnectDataChanged(true, this, SLOT(invalidateSlot()));
 }
 
 CQChartsSymbolSizeMapKeyAnnotation::
@@ -9656,12 +9638,20 @@ void
 CQChartsSymbolSizeMapKeyAnnotation::
 init()
 {
+  CQChartsAnnotation::init();
+
   setObjectName(QString("%1.%2").arg(typeName()).arg(ind()));
 
   setStroked(true);
   setFilled (true);
 
   setTextColor(Color::makeInterfaceValue(1.0));
+
+  //---
+
+  key_ = new CQChartsSymbolSizeMapKey(plot());
+
+  key_->connectDisconnectDataChanged(true, this, SLOT(invalidateSlot()));
 }
 
 //---

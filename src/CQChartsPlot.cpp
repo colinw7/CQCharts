@@ -17002,6 +17002,8 @@ CQChartsPlot::Annotation *
 CQChartsPlot::
 addAnnotationI(Annotation *annotation)
 {
+  annotation->init();
+
   annotations_.push_back(annotation);
 
   connect(annotation, SIGNAL(idChanged()), this, SLOT(updateAnnotationSlot()));

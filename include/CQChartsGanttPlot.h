@@ -269,7 +269,7 @@ class CQChartsGanttPlot : public CQChartsGroupPlot,
 
   bool textInside_ { true };
 
-  mutable ColumnType xColumnType_;
+  mutable ColumnType xColumnType_ { ColumnType::NONE };
 };
 
 //---

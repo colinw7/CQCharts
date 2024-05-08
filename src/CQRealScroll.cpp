@@ -98,6 +98,9 @@ updateRange(double value)
     range = max_ - min_;
   }
 
+  if (pageStep_ == 0.0)
+    pageStep_ = range/10.0;
+
   if (singleStep_ == 0.0)
     singleStep_ = range/1000.0;
 

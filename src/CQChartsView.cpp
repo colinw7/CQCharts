@@ -1312,7 +1312,7 @@ void
 CQChartsView::
 setMode(const Mode &mode)
 {
-  Mode lastMode = mode_;
+  Mode oldMode = mode_;
 
   CQChartsUtil::testAndSet(mode_, mode, [&]() {
     endRegionBand();
@@ -1320,21 +1320,13 @@ setMode(const Mode &mode)
     for (auto &probeBand : probeData_.bands)
       probeBand->hide();
 
-    bool deselect = true;
+    bool deselect = isDeselectOnModeChange(oldMode, mode);
 
-    if (mode == Mode::EDIT && lastMode == Mode::SELECT) {
+    if (mode == Mode::EDIT && oldMode == Mode::SELECT) {
       invalidateOverlay();
 
       updatePlots();
-
-      deselect = false;
     }
-
-    if ((mode == Mode::ZOOM_IN || mode == Mode::ZOOM_OUT) && lastMode == Mode::SELECT)
-      deselect = false;
-
-    if (mode == Mode::REGION)
-      deselect = false;
 
     if (deselect)
       deselectAll();
@@ -1343,6 +1335,28 @@ setMode(const Mode &mode)
 
     Q_EMIT modeChanged();
   } );
+}
+
+bool
+CQChartsView::
+isDeselectOnModeChange(const Mode & /*oldMode*/, const Mode & /*newMode*/) const
+{
+#if 0
+  bool deselect = true;
+
+  if (newMode == Mode::EDIT && oldMode == Mode::SELECT) {
+    deselect = false;
+
+  if ((newMode == Mode::ZOOM_IN || newMode == Mode::ZOOM_OUT) && oldMode == Mode::SELECT)
+    deselect = false;
+
+  if (newMode == Mode::REGION)
+    deselect = false;
+
+  return deselect;
+#else
+  return false;
+#endif
 }
 
 void
@@ -2088,6 +2102,8 @@ CQChartsView::Annotation *
 CQChartsView::
 addAnnotationI(Annotation *annotation)
 {
+  annotation->init();
+
   annotations_.push_back(annotation);
 
   annotation->connectDataChanged(this, SLOT(updateAnnotationSlot()));

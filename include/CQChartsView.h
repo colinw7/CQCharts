@@ -428,6 +428,8 @@ class CQChartsView : public QFrame,
   const Mode &mode() const { return mode_; }
   void setMode(const Mode &m);
 
+  bool isDeselectOnModeChange(const Mode & /*oldMode*/, const Mode & /*newMode*/) const;
+
   //! get/set default key press behavior
   const KeyBehavior &keyBehavior() const { return keyBehavior_; }
   void setKeyBehavior(const KeyBehavior &b);
