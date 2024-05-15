@@ -966,6 +966,7 @@ INCLUDEPATH += \
 ../../CReadLine/include \
 ../../CFile/include \
 ../../CFileUtil/include \
+../../CXYVals/include \
 ../../CMath/include \
 ../../CStrUtil/include \
 ../../CUtil/include \

@@ -177,11 +177,13 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   //---
 
-  int waffleStart() const { return waffleStart_; }
-  void setWaffleStart(int i) { waffleStart_ = i; }
+  int waffleStart() const { return waffleData_.start; }
+  void setWaffleStart(int i) { waffleData_.start = i; }
 
-  int waffleCount() const { return waffleCount_; }
-  void setWaffleCount(int n) { waffleCount_ = n; }
+  int waffleCount() const { return waffleData_.count; }
+  void setWaffleCount(int n) { waffleData_.count = n; }
+
+  const BBox &waffleBBox() const { return waffleData_.bbox; }
 
   //---
 
@@ -208,6 +210,10 @@ class CQChartsPieObj : public CQChartsPlotObj {
   void drawSegmentLabel(PaintDevice *device) const;
   void drawTreeMapLabel(PaintDevice *device) const;
   void drawWaffleLabel (PaintDevice *device) const;
+
+  //---
+
+  void buildWaffleGeom() const;
 
   //---
 
@@ -260,9 +266,22 @@ class CQChartsPieObj : public CQChartsPlotObj {
   GroupObj*       groupObj_    { nullptr }; //!< parent group object
   bool            exploded_    { false };   //!< exploded
   BBox            treeMapBBox_;             //!< tree map bbox
-  int             waffleStart_ { 0 };       //!< waffle start box
-  int             waffleCount_ { 0 };       //!< waffle number of boxes
-  mutable BBox    waffleBBox_;              //!< waffle bbox
+
+  struct WaffleData {
+    using BBoxes   = std::vector<BBox>;
+    using Polygons = std::vector<Polygon>;
+
+    int start { 0 };  //!< waffle start box
+    int count { 0 };  //!< waffle number of boxes
+
+    bool     geomBuilt { false }; //!< is geom calculated
+    BBox     bbox;                //!< waffle bbox
+    BBoxes   bboxes;              //!< waffle bboxes
+    Polygons polygons;            //!< waffle rectilinear polygons
+    BBox     tbbox;               //!< waffle text bbox
+  };
+
+  WaffleData waffleData_;
 };
 
 //---
@@ -554,6 +573,12 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Q_PROPERTY(bool         explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
   Q_PROPERTY(double       explodeRadius   READ explodeRadius     WRITE setExplodeRadius  )
 
+  // waffle
+  Q_PROPERTY(WaffleType     waffleType   READ waffleType   WRITE setWaffleType  )
+  Q_PROPERTY(int            waffleRows   READ waffleRows   WRITE setWaffleRows  )
+  Q_PROPERTY(int            waffleCols   READ waffleCols   WRITE setWaffleCols  )
+  Q_PROPERTY(CQChartsLength waffleBorder READ waffleBorder WRITE setWaffleBorder)
+
   // group shape and text
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Group, group)
 
@@ -588,6 +613,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Q_ENUMS(DrawType)
   Q_ENUMS(ExplodeStyle)
   Q_ENUMS(ValueType)
+  Q_ENUMS(WaffleType)
 
  public:
   enum class DrawType {
@@ -608,10 +634,16 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
     SUM  = int(CQChartsPieObj::ValueType::SUM)
   };
 
+  enum class WaffleType {
+    BOX,
+    POLYGON
+  };
+
   using PieGroupObj = CQChartsPieGroupObj;
   using PieObj      = CQChartsPieObj;
   using Color       = CQChartsColor;
   using ColorInd    = CQChartsUtil::ColorInd;
+  using Length      = CQChartsLength;
   using Angle       = CQChartsAngle;
 
  public:
@@ -759,6 +791,20 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   double explodeRadius() const { return explodeData_.radius; }
   void setExplodeRadius(double r);
+
+  //---
+
+  const WaffleType &waffleType() const { return waffleData_.type; }
+  void setWaffleType(const WaffleType &t);
+
+  int waffleRows() const { return std::max(waffleData_.rows, 1); }
+  void setWaffleRows(int n);
+
+  int waffleCols() const { return std::max(waffleData_.cols, 1); }
+  void setWaffleCols(int n);
+
+  const Length &waffleBorder() const { return waffleData_.border; }
+  void setWaffleBorder(const Length &l);
 
   //---
 
@@ -964,6 +1010,15 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   GroupDatas      groupDatas_; //!< data per group
   GroupObjs       groupObjs_;  //!< group objects
   CQChartsRValues values_;     //!< all values
+
+  struct WaffleData {
+    WaffleType type   { WaffleType::BOX };  //!< waffle type
+    int        rows   { 10 };               //!< waffle number of rows
+    int        cols   { 10 };               //!< waffle number of columns
+    Length     border { Length::pixel(0) }; //!< wafffle border
+  };
+
+  WaffleData waffleData_;
 };
 
 //---

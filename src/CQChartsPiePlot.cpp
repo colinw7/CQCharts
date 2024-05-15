@@ -21,6 +21,7 @@
 #include <CQPerfMonitor.h>
 #include <CQEnumCombo.h>
 #include <CMathRound.h>
+#include <CXYVals.h>
 
 #include <QMenu>
 #include <QCheckBox>
@@ -52,7 +53,7 @@ addParameters()
     addNameValue("PIE"    , static_cast<int>(CQChartsPiePlot::DrawType::PIE)).
     addNameValue("TREEMAP", static_cast<int>(CQChartsPiePlot::DrawType::TREEMAP)).
     addNameValue("WAFFLE" , static_cast<int>(CQChartsPiePlot::DrawType::WAFFLE)).
-    setTip("Draw type");
+    setPropPath("options.drawType").setTip("Draw type");
 
   addBoolParameter("separated", "Separated", "separated" ).
     setTip("Draw grouped pie charts separately");
@@ -626,6 +627,36 @@ setShowDial(bool b)
 
 void
 CQChartsPiePlot::
+setWaffleType(const WaffleType &t)
+{
+  CQChartsUtil::testAndSet(waffleData_.type, t, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsPiePlot::
+setWaffleRows(int n)
+{
+  CQChartsUtil::testAndSet(waffleData_.rows, n, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPiePlot::
+setWaffleCols(int n)
+{
+  CQChartsUtil::testAndSet(waffleData_.cols, n, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPiePlot::
+setWaffleBorder(const Length &l)
+{
+  CQChartsUtil::testAndSet(waffleData_.border, l, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsPiePlot::
 addProperties()
 {
   addBaseProperties();
@@ -691,9 +722,15 @@ addProperties()
   addLineProperties("grid/stroke", "gridLines", "Grid");
 
   // explode
-  addProp("explode", "explodeStyle"   , "style"   , "Explode style", true); // TODO
-  addProp("explode", "explodeSelected", "selected", "Explode selected segments");
-  addProp("explode", "explodeRadius"  , "radius"  , "Explode radius")->setMinValue(0.0);
+  addPropI("explode", "explodeStyle"   , "style"   , "Explode style"); // TODO
+  addProp ("explode", "explodeSelected", "selected", "Explode selected segments");
+  addProp ("explode", "explodeRadius"  , "radius"  , "Explode radius")->setMinValue(0.0);
+
+  // waffle
+  addProp("waffle", "waffleType"  , "type"  , "Waffle type");
+  addProp("waffle", "waffleRows"  , "rows"  , "Waffle box rows");
+  addProp("waffle", "waffleCols"  , "cols"  , "Waffle box cols");
+  addProp("waffle", "waffleBorder", "border", "Waffle border");
 
   // labels
   addProp("labels", "textLabels" , "visible", "Labels visible");
@@ -1113,24 +1150,25 @@ createObjs(PlotObjs &objs) const
 
       auto dataTotal = groupObj->calcDataTotal();
 
-      int    nsum = 0;
-      double err  = 0.0;
+      int    start = 0;
+      double pos   = 0.0;
+
+      int ncells = waffleRows()*waffleCols();
 
       for (const auto &obj : groupObj->objs()) {
-        auto v = obj->value() + err;
+        auto v = obj->value();
 
-        auto r = CMathUtil::map(v, 0.0, dataTotal, 0.0, 100.0);
-        int  n = CMathRound::RoundNearest(r);
+        pos += v;
 
-        err = r - n;
+        auto r = CMathUtil::map(pos, 0.0, dataTotal, 0.0, double(ncells));
 
-        obj->setWaffleStart(nsum);
-        obj->setWaffleCount(n);
+        int end = std::min(std::max(int(CMathRound::RoundNearest(r)), 0), ncells);
 
-        nsum += n;
+        obj->setWaffleStart(start);
+        obj->setWaffleCount(end - start);
+
+        start = end;
       }
-
-      // TODO: remainder
     }
   }
 
@@ -2240,8 +2278,9 @@ inside(const Point &p) const
     return bbox.inside(p);
   }
   else if (piePlot_->calcWaffle()) {
-    // TODO
-    return false;
+    auto bbox = waffleBBox();
+
+    return bbox.inside(p);
   }
   else if (piePlot_->calcPie()) {
     return arcData().inside(p);
@@ -2630,12 +2669,6 @@ void
 CQChartsPieObj::
 drawWaffle(PaintDevice *device) const
 {
-  assert(groupObj_);
-
-  auto bbox = groupObj_->getBBox();
-
-  //---
-
   // calc stroke and brush
   PenBrush penBrush;
 
@@ -2645,42 +2678,156 @@ drawWaffle(PaintDevice *device) const
 
   //---
 
-  // draw rect
+  // draw polygons
+  buildWaffleGeom();
+
   device->setColorNames();
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
+  if (piePlot()->waffleType() == CQChartsPiePlot::WaffleType::BOX) {
+    auto w = piePlot()->lengthPlotWidth (piePlot()->waffleBorder());
+    auto h = piePlot()->lengthPlotHeight(piePlot()->waffleBorder());
+
+    for (const auto &bbox : waffleData_.bboxes) {
+      auto bbox1 = bbox.adjusted(w, h, -w, -h);
+
+      device->drawRect(bbox1);
+    }
+  }
+  else {
+    for (const auto &poly : waffleData_.polygons)
+      device->drawPolygon(poly);
+  }
+
   //---
+
+  device->resetColorNames();
+}
+
+void
+CQChartsPieObj::
+buildWaffleGeom() const
+{
+  if (waffleData_.geomBuilt)
+    return;
+
+  auto *th = const_cast<CQChartsPieObj *>(this);
+
+  th->waffleData_.geomBuilt = true;
+
+  assert(groupObj_);
+
+  auto bbox = groupObj_->getBBox();
+
+  std::vector<double> xvals, yvals;
+
+  int nc = piePlot()->waffleCols();
+  int nr = piePlot()->waffleRows();
+
+  double dx = bbox.getWidth ()/nc;
+  double dy = bbox.getHeight()/nr;
 
   BBox wbbox;
 
-  double dx = bbox.getWidth ()/10.0;
-  double dy = bbox.getHeight()/10.0;
+  th->waffleData_.bboxes.clear();
 
   for (int i = 0; i < waffleCount(); ++i) {
     int i1 = i + waffleStart();
 
-    int ix = i1 % 10;
-    int iy = i1 / 10;
+    int ix = i1 % nc;
+    int iy = i1 / nc;
 
     double x1 = bbox.getXMin() + ix*dx;
     double y1 = bbox.getYMin() + iy*dy;
     double x2 = x1 + dx;
     double y2 = y1 + dy;
 
-    auto bbox1 = BBox(x1, y1, x2, y2);
+    xvals.push_back(x1); yvals.push_back(y1);
+    xvals.push_back(x2); yvals.push_back(y2);
 
     wbbox += Point(x1, y1);
     wbbox += Point(x2, y2);
 
-    device->drawRect(bbox1);
-  }
+    auto bbox1 = BBox(x1, y1, x2, y2);
 
-  waffleBBox_ = wbbox;
+    th->waffleData_.bboxes.push_back(bbox1);
+  }
 
   //---
 
-  device->resetColorNames();
+  CXYValsInside xyvals(xvals, yvals);
+
+  for (int iy = 0; iy < xyvals.numYVals() - 1; ++iy) {
+    auto ym = (xyvals.yval(iy) + xyvals.yval(iy + 1))/2.0;
+
+    for (int ix = 0; ix < xyvals.numXVals() - 1; ++ix) {
+      auto xm = (xyvals.xval(ix) + xyvals.xval(ix + 1))/2.0;
+
+      bool inside = false;
+
+      for (const auto &bbox : waffleData_.bboxes) {
+        if (bbox.inside(Point(xm, ym))) {
+          inside = true;
+          break;
+        }
+      }
+
+      if (inside)
+        xyvals.setInsideVal(ix, iy);
+    }
+  }
+
+  th->waffleData_.bbox = wbbox;
+
+  //---
+
+  CXYVals::Polygons polygons;
+
+  xyvals.getPolygons(polygons);
+
+  th->waffleData_.polygons.clear();
+
+  for (const auto &poly : polygons) {
+    Polygon gpoly;
+
+    for (int i = 0; i < poly.size(); ++i)
+      gpoly.addPoint(Point(poly.x[i], poly.y[i]));
+
+    th->waffleData_.polygons.push_back(gpoly);
+  }
+
+  //---
+
+  std::set<double> ymvals;
+
+  for (const auto &bbox : waffleData_.bboxes) {
+    auto ym = bbox.getYMid();
+
+    ymvals.insert(ym);
+  }
+
+  auto dty = waffleData_.bbox.getHeight()/100.0;
+
+  double y1 = 0.0, y2 = 0.0;
+
+  if (! ymvals.empty()) {
+    auto ym = *ymvals.begin();
+
+    y1 = ym - dty;
+    y2 = ym + dty;
+  }
+
+  th->waffleData_.tbbox = BBox();
+
+  std::set<double> tyvals;
+
+  for (const auto &bbox : waffleData_.bboxes) {
+    auto ym = bbox.getYMid();
+
+    if (ym  >= y1 && ym <= y2)
+      th->waffleData_.tbbox += bbox;
+  }
 }
 
 void
@@ -2907,6 +3054,8 @@ void
 CQChartsPieObj::
 drawWaffleLabel(PaintDevice *device) const
 {
+  if (! waffleData_.bbox.isSet()) return;
+
   // get display values
   QStringList labels;
 
@@ -2930,7 +3079,13 @@ drawWaffleLabel(PaintDevice *device) const
 
   textOptions = piePlot_->adjustTextOptions(textOptions);
 
-  CQChartsDrawUtil::drawTextsInBox(device, waffleBBox_, labels, textOptions);
+  device->save();
+
+  device->setClipRect(waffleData_.bbox);
+
+  CQChartsDrawUtil::drawTextsInBox(device, waffleData_.tbbox, labels, textOptions);
+
+  device->restore();
 }
 
 void
@@ -3404,6 +3559,7 @@ drawPieBorder(PaintDevice *device) const
 
   //---
 
+  // TODO: config
   auto d = std::min(ro/10.0, device->pixelToWindowWidth(16));
 
   CQChartsDrawUtil::drawPieSlice(device, c, ro, ro + d, Angle(0), Angle(360.0));

@@ -424,6 +424,12 @@ addProperties()
   addPropI("state", "currentPlotInd", "", "Current plot ind");
   addPropI("state", "viewSizeHint"  , "", "View size hint"  );
 
+  // margin
+  addPropI("margin", "marginLeft"  , "left"  , "Left margin");
+  addPropI("margin", "marginTop"   , "top"   , "Top margin");
+  addPropI("margin", "marginRight" , "right" , "Right margin");
+  addPropI("margin", "marginBottom", "bottom", "Bottom margin");
+
   // options
   addPropI("options", "bufferLayers", "", "Buffer layer");
   addPropI("options", "showTable"   , "", "Show table of value");
@@ -626,6 +632,38 @@ restorePlotsSlot()
 {
   setScrolled(false);
 }
+
+//---
+
+void
+CQChartsView::
+setMarginLeft(const Length &l)
+{
+  CQChartsUtil::testAndSet(marginLeft_, l, [&]() { updatePlots(); } );
+}
+
+void
+CQChartsView::
+setMarginTop(const Length &l)
+{
+  CQChartsUtil::testAndSet(marginTop_, l, [&]() { updatePlots(); } );
+}
+
+void
+CQChartsView::
+setMarginRight(const Length &l)
+{
+  CQChartsUtil::testAndSet(marginRight_, l, [&]() { updatePlots(); } );
+}
+
+void
+CQChartsView::
+setMarginBottom(const Length &l)
+{
+  CQChartsUtil::testAndSet(marginBottom_, l, [&]() { updatePlots(); } );
+}
+
+//---
 
 void
 CQChartsView::
@@ -5134,13 +5172,20 @@ updatePixelRange()
   if (zoomData_.hbar && zoomData_.hbar->isVisible()) hh1 = zoomData_.hbar->height();
   if (zoomData_.vbar && zoomData_.vbar->isVisible()) vw1 = zoomData_.vbar->width ();
 
+  auto ml = lengthPixelWidth (marginLeft());
+  auto mr = lengthPixelWidth (marginRight());
+  auto mt = lengthPixelHeight(marginTop());
+  auto mb = lengthPixelHeight(marginBottom());
+
   prect_  = BBox(0, 0, resizeWidth_ - vw - vw1, resizeHeight_ - hh - hh1);
-  aspect_ = prect().aspect();
+  pirect_ = BBox(ml, mt, resizeWidth_ - vw - vw1 - mr, resizeHeight_ - hh - hh1 - mb);
+
+  aspect_ = pirect().aspect();
 
   auto window = displayRange_->getCurrentWindow();
 
-  displayRange_->setPixelRange(prect_.getXMin(), prect_.getYMin(),
-                               prect_.getXMax(), prect_.getYMax());
+  displayRange_->setPixelRange(pirect_.getXMin(), pirect_.getYMin(),
+                               pirect_.getXMax(), pirect_.getYMax());
 
   setDisplayWindowRange();
 
@@ -5329,6 +5374,8 @@ updatePlotScrollBars()
       plotScrollData_.hbar->setRange(0, w - vbbox.getWidth());
       plotScrollData_.hbar->setPageStep(vbbox.getWidth());
       plotScrollData_.hbar->setSingleStep(vbbox.getWidth()/100.0);
+
+      plotScrollData_.xpos = plotScrollData_.hbar->value();
     }
 
     if (showVBar) {
@@ -5339,6 +5386,8 @@ updatePlotScrollBars()
       plotScrollData_.vbar->setRange(h - vbbox.getHeight(), 0);
       plotScrollData_.vbar->setPageStep(-vbbox.getHeight());
       plotScrollData_.vbar->setSingleStep(-vbbox.getHeight()/100.0);
+
+      plotScrollData_.ypos = plotScrollData_.vbar->value();
     }
   }
 
@@ -5346,8 +5395,11 @@ updatePlotScrollBars()
 
   auto changed = placePlotScrollBars();
 
-  if (changed)
+  if (changed) {
     updatePixelRange();
+
+    setDisplayWindowRange();
+  }
 }
 
 bool
@@ -5708,7 +5760,7 @@ drawBackground(PaintDevice *device) const
 
   device->setBrush(penBrush.brush);
 
-  device->painter()->fillRect(prect_.qrecti(), penBrush.brush);
+  device->painter()->fillRect(prect().qrecti(), penBrush.brush);
 
 #if 0
   auto vbbox = CQChartsView::viewportBBox();

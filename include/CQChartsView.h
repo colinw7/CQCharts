@@ -159,6 +159,16 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(CQChartsAlpha selectedAlpha READ selectedAlpha WRITE setSelectedAlpha)
   Q_PROPERTY(CQChartsColor linkColor     READ linkColor     WRITE setLinkColor    )
 
+  //---
+
+  // margin
+  Q_PROPERTY(CQChartsLength marginLeft   READ marginLeft   WRITE setMarginLeft  )
+  Q_PROPERTY(CQChartsLength marginTop    READ marginTop    WRITE setMarginTop   )
+  Q_PROPERTY(CQChartsLength marginRight  READ marginRight  WRITE setMarginRight )
+  Q_PROPERTY(CQChartsLength marginBottom READ marginBottom WRITE setMarginBottom)
+
+  //---
+
   // scroll (TODO remove)
   Q_PROPERTY(bool        scrolled       READ isScrolled     WRITE setScrolled      )
   Q_PROPERTY(double      scrollDelta    READ scrollDelta    WRITE setScrollDelta   )
@@ -524,6 +534,21 @@ class CQChartsView : public QFrame,
   //---
 
   void updateSeparators();
+
+  //---
+
+  // margin
+  const Length &marginLeft() const { return marginLeft_; }
+  void setMarginLeft(const Length &l);
+
+  const Length &marginTop() const { return marginTop_; }
+  void setMarginTop(const Length &l);
+
+  const Length &marginRight() const { return marginRight_; }
+  void setMarginRight(const Length &l);
+
+  const Length &marginBottom() const { return marginBottom_; }
+  void setMarginBottom(const Length &l);
 
   //---
 
@@ -1322,6 +1347,7 @@ class CQChartsView : public QFrame,
 
   // get pixel rect
   const BBox prect() const { return prect_; }
+  const BBox pirect() const { return pirect_; }
 
   // get aspect
   double aspect() const { return aspect_; }
@@ -1948,6 +1974,11 @@ class CQChartsView : public QFrame,
   RulerData  rulerData_;      //!< ruler sub mode
   QString    defaultPalette_; //!< default palette
 
+  Length marginLeft_;
+  Length marginTop_;
+  Length marginRight_;
+  Length marginBottom_;
+
   PageScrollData pageScrollData_; //!< scroll data
 
   bool antiAlias_    { true };  //!< anti alias
@@ -1988,7 +2019,8 @@ class CQChartsView : public QFrame,
   PlotScrollData plotScrollData_; //!< plot scroll data
 
   PosTextType posTextType_ { PosTextType::PLOT }; //!< position text type
-  BBox        prect_       { 0, 0, 100, 100 };    //!< plot rect
+  BBox        prect_       { 0, 0, 100, 100 };    //!< view pixel rect
+  BBox        pirect_      { 0, 0, 100, 100 };    //!< view inner pixel rect
   double      aspect_      { 1.0 };               //!< current aspect
   MouseData   mouseData_;                         //!< mouse data
 
