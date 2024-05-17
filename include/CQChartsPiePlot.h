@@ -373,6 +373,17 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   //---
 
+  bool isWaffleHorizontal() const { return waffleData_.horizontal; }
+  void setWaffleHorizontal(bool b) { waffleData_.horizontal = b; }
+
+  int waffleRows() const { return waffleData_.rows; }
+  void setWaffleRows(int i) { waffleData_.rows = i; }
+
+  int waffleCols() const { return waffleData_.cols; }
+  void setWaffleCols(int i) { waffleData_.cols = i; }
+
+  //---
+
   QString typeName() const override { return "group"; }
 
   QString calcId() const override;
@@ -411,6 +422,12 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   BBox getBBox() const;
 
  private:
+  struct WaffleData {
+    bool horizontal { true };
+    int  rows       { 0 };
+    int  cols       { 0 };
+  };
+
   const PiePlot* piePlot_      { nullptr };  //!< parent plot
   ColorInd       groupInd_;                  //!< group index
   QString        name_;                      //!< group name
@@ -425,6 +442,7 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   PieObjs        objs_;                      //!< objects
   Angle          startAngle_   { 0.0 };      //!< start angle
   Angle          endAngle_     { 0.0 };      //!< end angle
+  WaffleData     waffleData_;
 };
 
 //---
@@ -797,10 +815,10 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   const WaffleType &waffleType() const { return waffleData_.type; }
   void setWaffleType(const WaffleType &t);
 
-  int waffleRows() const { return std::max(waffleData_.rows, 1); }
+  int waffleRows() const { return waffleData_.rows; }
   void setWaffleRows(int n);
 
-  int waffleCols() const { return std::max(waffleData_.cols, 1); }
+  int waffleCols() const { return waffleData_.cols; }
   void setWaffleCols(int n);
 
   const Length &waffleBorder() const { return waffleData_.border; }

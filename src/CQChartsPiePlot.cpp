@@ -1144,30 +1144,97 @@ createObjs(PlotObjs &objs) const
     }
   }
   else if (calcWaffle()) {
-    for (auto &plotObj : objs) {
-      auto *groupObj = dynamic_cast<CQChartsPieGroupObj *>(plotObj);
-      if (! groupObj) continue;
+    bool hbars = (waffleRows() <= 0 && waffleCols() > 0);
+    bool vbars = (waffleCols() <= 0 && waffleRows() > 0);
 
-      auto dataTotal = groupObj->calcDataTotal();
+    if (hbars || vbars) {
+      for (auto &plotObj : objs) {
+        auto *groupObj = dynamic_cast<CQChartsPieGroupObj *>(plotObj);
+        if (! groupObj) continue;
 
-      int    start = 0;
-      double pos   = 0.0;
+        RMinMax minMax;
 
-      int ncells = waffleRows()*waffleCols();
+        for (const auto &obj : groupObj->objs()) {
+          auto v = obj->value();
 
-      for (const auto &obj : groupObj->objs()) {
-        auto v = obj->value();
+          minMax.add(v);
+        }
 
-        pos += v;
+        auto maxValue = minMax.max();
 
-        auto r = CMathUtil::map(pos, 0.0, dataTotal, 0.0, double(ncells));
+        int nr, nc;
 
-        int end = std::min(std::max(int(CMathRound::RoundNearest(r)), 0), ncells);
+        if (hbars) {
+          nr = groupObj->objs().size();
+          nc = waffleCols();
+        }
+        else {
+          nc = groupObj->objs().size();
+          nr = waffleRows();
+        }
 
-        obj->setWaffleStart(start);
-        obj->setWaffleCount(end - start);
+        groupObj->setWaffleHorizontal(hbars);
+        groupObj->setWaffleRows(nr);
+        groupObj->setWaffleCols(nc);
 
-        start = end;
+        int ig = 0;
+
+        for (const auto &obj : groupObj->objs()) {
+          auto v = obj->value();
+
+          if (hbars) {
+            auto c = CMathUtil::map(v, 0.0, maxValue, 0.0, double(nc));
+
+            int ic = std::min(std::max(int(CMathRound::RoundNearest(c)), 0), nc);
+
+            obj->setWaffleStart(ig*nc);
+            obj->setWaffleCount(ic);
+          }
+          else {
+            auto r = CMathUtil::map(v, 0.0, maxValue, 0.0, double(nr));
+
+            int ir = std::min(std::max(int(CMathRound::RoundNearest(r)), 0), nr);
+
+            obj->setWaffleStart(ig*nr);
+            obj->setWaffleCount(ir);
+          }
+
+          ++ig;
+        }
+      }
+    }
+    else {
+      int nr = std::max(waffleCols(), 1);
+      int nc = std::max(waffleRows(), 1);
+
+      for (auto &plotObj : objs) {
+        auto *groupObj = dynamic_cast<CQChartsPieGroupObj *>(plotObj);
+        if (! groupObj) continue;
+
+        groupObj->setWaffleRows(nr);
+        groupObj->setWaffleCols(nc);
+
+        auto dataTotal = groupObj->calcDataTotal();
+
+        int    start = 0;
+        double pos   = 0.0;
+
+        int ncells = nr*nc;
+
+        for (const auto &obj : groupObj->objs()) {
+          auto v = obj->value();
+
+          pos += v;
+
+          auto r = CMathUtil::map(pos, 0.0, dataTotal, 0.0, double(ncells));
+
+          int end = std::min(std::max(int(CMathRound::RoundNearest(r)), 0), ncells);
+
+          obj->setWaffleStart(start);
+          obj->setWaffleCount(end - start);
+
+          start = end;
+        }
       }
     }
   }
@@ -2722,8 +2789,8 @@ buildWaffleGeom() const
 
   std::vector<double> xvals, yvals;
 
-  int nc = piePlot()->waffleCols();
-  int nr = piePlot()->waffleRows();
+  int nc = std::max(groupObj_->waffleCols(), 1);
+  int nr = std::max(groupObj_->waffleRows(), 1);
 
   double dx = bbox.getWidth ()/nc;
   double dy = bbox.getHeight()/nr;
@@ -2735,8 +2802,16 @@ buildWaffleGeom() const
   for (int i = 0; i < waffleCount(); ++i) {
     int i1 = i + waffleStart();
 
-    int ix = i1 % nc;
-    int iy = i1 / nc;
+    int ix, iy;
+
+    if (groupObj_->isWaffleHorizontal()) {
+      ix = i1 % nc;
+      iy = i1 / nc;
+    }
+    else {
+      iy = i1 % nr;
+      ix = i1 / nr;
+    }
 
     double x1 = bbox.getXMin() + ix*dx;
     double y1 = bbox.getYMin() + iy*dy;
@@ -2807,7 +2882,10 @@ buildWaffleGeom() const
     ymvals.insert(ym);
   }
 
-  auto dty = waffleData_.bbox.getHeight()/100.0;
+  double dty = 0.0;
+
+  if (waffleData_.bbox.isSet())
+    dty = waffleData_.bbox.getHeight()/100.0;
 
   double y1 = 0.0, y2 = 0.0;
 
