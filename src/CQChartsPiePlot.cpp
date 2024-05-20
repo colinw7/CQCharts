@@ -58,10 +58,10 @@ addParameters()
   addBoolParameter("separated", "Separated", "separated" ).
     setTip("Draw grouped pie charts separately");
 
-  addBoolParameter("donut"     , "Donut"      , "donut"     ).
+  addBoolParameter("donut"         , "Donut"           , "donut"         ).
     setTip("Display pie as donut using inner radius");
-  addBoolParameter("donutTitle", "Donut Title", "donutTitle").
-    setTip("Show title in donut center");
+  addBoolParameter("donutValueType", "Donut Value Type", "donutValueType").
+    setTip("Value type shown in donut center");
 
   addBoolParameter("summary", "Summary", "summary").setTip("Draw summary group");
 
@@ -350,7 +350,7 @@ void
 CQChartsPiePlot::
 setDonut(bool b)
 {
-  CQChartsUtil::testAndSet(donut_, b, [&]() {
+  CQChartsUtil::testAndSet(donutData_.visible, b, [&]() {
     updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
@@ -451,9 +451,9 @@ setNumBuckets(int n)
 
 void
 CQChartsPiePlot::
-setDonutTitle(bool b)
+setDonutValueType(const DonutValueType &t)
 {
-  CQChartsUtil::testAndSet(donutTitle_, b, [&]() {
+  CQChartsUtil::testAndSet(donutData_.valueType, t, [&]() {
     updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
@@ -672,8 +672,6 @@ addProperties()
   // options
   addProp("options", "drawType"   , "", "Draw type");
   addProp("options", "separated"  , "", "Draw grouped pie charts separately");
-  addProp("options", "donut"      , "", "Display as donut using inner radius");
-  addProp("options", "donutTitle" , "", "Show title in donut center");
   addProp("options", "dumbbell"   , "", "Draw group dumbbell");
   addProp("options", "dumbbellPie", "", "Draw group dumbbell pie");
   addProp("options", "summary"    , "", "Draw summary group");
@@ -694,6 +692,10 @@ addProperties()
   addProp("options", "angleExtent", "", "Angle extent for pie segments");
   addProp("options", "gapAngle"   , "", "Gap angle");
   addProp("options", "clockwise"  , "", "Clockwise");
+
+  // donut
+  addProp("donut", "donut"         , "visible"  , "Display donut using inner radius");
+  addProp("donut", "donutValueType", "valueType", "Value type shown in donut center");
 
   // buckets
   addProp("bucket", "bucketed"  , "enabled", "Is value bucketing enabled");
@@ -1510,7 +1512,7 @@ calcDataTotal() const
     auto &groupData = pg.second;
 
     groupData.dataTotal = 0.0;
-    groupData.numValues = 0.0;
+    groupData.numValues = 0;
 
     for (auto &nv : groupData.nameValueData) {
     //const auto &name      = nv.first;
@@ -2001,13 +2003,12 @@ addMenuItems(QMenu *menu, const Point &)
 
   menu->addSeparator();
 
-  addCheckAction("Donut"      , isDonut     (), SLOT(setDonut     (bool)));
-  addCheckAction("TreeMap"    , isTreeMap   (), SLOT(setTreeMap   (bool)));
-  addCheckAction("Waffle"     , isWaffle    (), SLOT(setWaffle    (bool)));
-  addCheckAction("Summary"    , isSummary   (), SLOT(setSummary   (bool)));
-  addCheckAction("Show Label" , isShowLabel (), SLOT(setShowLabel (bool)));
-  addCheckAction("Show Value" , isShowValue (), SLOT(setShowValue (bool)));
-  addCheckAction("Donut Title", isDonutTitle(), SLOT(setDonutTitle(bool)));
+  addCheckAction("Donut"     , isDonut     (), SLOT(setDonut     (bool)));
+  addCheckAction("TreeMap"   , isTreeMap   (), SLOT(setTreeMap   (bool)));
+  addCheckAction("Waffle"    , isWaffle    (), SLOT(setWaffle    (bool)));
+  addCheckAction("Summary"   , isSummary   (), SLOT(setSummary   (bool)));
+  addCheckAction("Show Label", isShowLabel (), SLOT(setShowLabel (bool)));
+  addCheckAction("Show Value", isShowValue (), SLOT(setShowValue (bool)));
 
   //---
 
@@ -3898,22 +3899,27 @@ void
 CQChartsPieGroupObj::
 drawDonutText(PaintDevice *device) const
 {
+  using DonutValueType = CQChartsPiePlot::DonutValueType;
+
   // get text
   QStringList labels;
 
-  if (piePlot_->isDonutTitle()) {
+  if (piePlot_->donutValueType() == DonutValueType::TITLE) {
     labels.push_back(piePlot_->titleStr());
   }
   else {
     if (name().trimmed().length())
       labels.push_back(name());
 
-    if (piePlot_->isShowValue()) {
-      auto numValuesStr = QString::number(numValues());
+    if      (piePlot_->donutValueType() == DonutValueType::COUNT) {
+      auto label = QString::number(numValues());
 
-      numValuesStr +=  QString(" (%1)").arg(piePlot_->valueTypeName());
+      labels.push_back(label);
+    }
+    else if (piePlot_->donutValueType() == DonutValueType::SUM) {
+      auto label = QString::number(calcDataTotal());
 
-      labels.push_back(numValuesStr);
+      labels.push_back(label);
     }
   }
 
@@ -3967,7 +3973,7 @@ drawDonutText(PaintDevice *device) const
 
   device->setPen(penBrush.pen);
 
-  if (piePlot_->isDonutTitle()) {
+  if (piePlot_->donutValueType() == DonutValueType::TITLE) {
     auto bbox = getBBox();
 
     auto textOptions1 = textOptions;

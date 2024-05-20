@@ -554,8 +554,9 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Q_PROPERTY(bool valuePercent READ isValuePercent WRITE setValuePercent)
 
   // . donut
-  Q_PROPERTY(bool donut      READ isDonut      WRITE setDonut     )
-  Q_PROPERTY(bool donutTitle READ isDonutTitle WRITE setDonutTitle)
+  Q_PROPERTY(bool           donut          READ isDonut        WRITE setDonut         )
+  Q_PROPERTY(DonutValueType donutValueType READ donutValueType WRITE setDonutValueType)
+
   // . dumbbell
   Q_PROPERTY(bool dumbbell    READ isDumbbell    WRITE setDumbbell   )
   Q_PROPERTY(bool dumbbellPie READ isDumbbellPie WRITE setDumbbellPie)
@@ -632,6 +633,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Q_ENUMS(ExplodeStyle)
   Q_ENUMS(ValueType)
   Q_ENUMS(WaffleType)
+  Q_ENUMS(DonutValueType)
 
  public:
   enum class DrawType {
@@ -655,6 +657,13 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   enum class WaffleType {
     BOX,
     POLYGON
+  };
+
+  enum class DonutValueType {
+    NONE,
+    COUNT,
+    SUM,
+    TITLE
   };
 
   using PieGroupObj = CQChartsPieGroupObj;
@@ -712,18 +721,23 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   //---
 
-  bool isDonut() const { return donut_; }
+  bool isSummary() const { return summary_; }
+
+  //---
+
+  bool isDonut() const { return donutData_.visible; }
   bool calcDonut() const;
 
-  bool isSummary() const { return summary_; }
+  const DonutValueType &donutValueType() const { return donutData_.valueType; }
+  void setDonutValueType(const DonutValueType &t);
+
+  //---
 
   bool isDumbbell() const { return dumbbell_; }
   bool calcDumbbell() const;
 
   bool isDumbbellPie() const { return dumbbellPie_; }
   void setDumbbellPie(bool b);
-
-  bool isDonutTitle() const { return donutTitle_; }
 
   //---
 
@@ -914,7 +928,6 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
                                const ColorInd &ig) const;
 
  public Q_SLOTS:
-  void setDonut   (bool b);
   void setTreeMap (bool b);
   void setWaffle  (bool b);
   void setSummary (bool b);
@@ -924,7 +937,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   void setShowValue   (bool b);
   void setValuePercent(bool b);
 
-  void setDonutTitle(bool b);
+  void setDonut(bool b);
 
   void setTextLabels  (bool b);
   void setRadiusLabels(bool b);
@@ -990,18 +1003,24 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   // draw
   DrawType drawType_    { DrawType::PIE }; //!< draw type
-  bool     donut_       { false };         //!< show donut
   bool     summary_     { false };         //!< show summary
   bool     dumbbell_    { false };         //!< show dumbbell
   bool     dumbbellPie_ { true };          //!< show dumbbell pie
   bool     bucketed_    { false };         //!< is bucketed
   int      numBuckets_  { 20 };            //!< num buckets
 
+  // donut
+  struct DonutData {
+    bool           visible   { false };               //!< show donut
+    DonutValueType valueType { DonutValueType::SUM }; //!< value type to show in donut center
+  };
+
+  DonutData donutData_;
+
   bool showLabel_    { true };  //!< show label
   bool showValue_    { false }; //!< show value
   bool valuePercent_ { false }; //!< value is percent
 
-  bool      donutTitle_  { false };          //!< show title in donut center
   ValueType valueType_   { ValueType::SUM }; //!< Value type (when multiple values per name)
   OptReal   minValue_;                       //!< min value
   OptReal   maxValue_;                       //!< max value
