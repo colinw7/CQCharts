@@ -63,14 +63,14 @@ addParameters()
   addBoolParameter("donutValueType", "Donut Value Type", "donutValueType").
     setTip("Value type shown in donut center");
 
+  addBoolParameter("dumbbell"    , "Dumbbell"     , "dumbbell"    ).setTip("Draw group dumbbell");
+  addBoolParameter("dumbbellType", "Dumbbell Type", "dumbbellType").setTip("Draw dumbbell type");
+
   addBoolParameter("summary", "Summary", "summary").setTip("Draw summary group");
 
   addBoolParameter("showLabel"   , "Show Label"   , "showLabel"   ).setTip("Show pie label");
   addBoolParameter("showValue"   , "Show Value"   , "showValue"   ).setTip("Show pie value");
   addBoolParameter("valuePercent", "Value Percent", "valuePercent").setTip("Value is percent");
-
-  addBoolParameter("dumbbell"   , "Dumbbell"    , "dumbbell"   ).setTip("Draw group dumbbell");
-  addBoolParameter("dumbbellPie", "Dumbbell Pie", "dumbbellPie").setTip("Draw dumbbell pie");
 
   endParameterGroup();
 
@@ -383,7 +383,7 @@ void
 CQChartsPiePlot::
 setDumbbell(bool b)
 {
-  CQChartsUtil::testAndSet(dumbbell_, b, [&]() {
+  CQChartsUtil::testAndSet(dumbbellData_.visible, b, [&]() {
     updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
@@ -399,9 +399,9 @@ calcDumbbell() const
 
 void
 CQChartsPiePlot::
-setDumbbellPie(bool b)
+setDumbbellType(const DumbbellType &t)
 {
-  CQChartsUtil::testAndSet(dumbbellPie_, b, [&]() {
+  CQChartsUtil::testAndSet(dumbbellData_.type, t, [&]() {
     updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
@@ -454,6 +454,14 @@ CQChartsPiePlot::
 setDonutValueType(const DonutValueType &t)
 {
   CQChartsUtil::testAndSet(donutData_.valueType, t, [&]() {
+    updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
+}
+
+void
+CQChartsPiePlot::
+setDonutTypeLabel(bool b)
+{
+  CQChartsUtil::testAndSet(donutData_.typeLabel, b, [&]() {
     updateRangeAndObjs(); Q_EMIT customDataChanged(); } );
 }
 
@@ -670,10 +678,8 @@ addProperties()
   addGroupingProperties();
 
   // options
-  addProp("options", "drawType"   , "", "Draw type");
-  addProp("options", "separated"  , "", "Draw grouped pie charts separately");
-  addProp("options", "dumbbell"   , "", "Draw group dumbbell");
-  addProp("options", "dumbbellPie", "", "Draw group dumbbell pie");
+  addProp("options", "drawType"    , "", "Draw type");
+  addProp("options", "separated"   , "", "Draw grouped pie charts separately");
   addProp("options", "summary"    , "", "Draw summary group");
 
   addProp("options", "showLabel"   , "", "Show pie label");
@@ -696,6 +702,11 @@ addProperties()
   // donut
   addProp("donut", "donut"         , "visible"  , "Display donut using inner radius");
   addProp("donut", "donutValueType", "valueType", "Value type shown in donut center");
+  addProp("donut", "donutTypeLabel", "typeLabel", "Value type label shown in donut center");
+
+  // dumbell
+  addProp("dumbbell", "dumbbell"    , "visible", "Draw group dumbbell");
+  addProp("dumbbell", "dumbbellType", "type"   , "Draw group dumbbell type");
 
   // buckets
   addProp("bucket", "bucketed"  , "enabled", "Is value bucketing enabled");
@@ -954,8 +965,7 @@ createObjs(PlotObjs &objs) const
 
     groupObj->setColorIndex(ColorInd(groupInd, ng));
 
-    groupObj->setDataTotal(groupData.dataTotal);
-    groupObj->setNumValues(groupData.numValues);
+    groupObj->setValues(groupData.values);
 
     groupObj->setRadiusMax   (groupData.radiusMax);
     groupObj->setRadiusScaled(groupData.radiusScaled);
@@ -1511,8 +1521,7 @@ calcDataTotal() const
   for (auto &pg : th->groupDatas_) {
     auto &groupData = pg.second;
 
-    groupData.dataTotal = 0.0;
-    groupData.numValues = 0;
+    groupData.values = CQChartsRValues();
 
     for (auto &nv : groupData.nameValueData) {
     //const auto &name      = nv.first;
@@ -1525,11 +1534,10 @@ calcDataTotal() const
       else if (valueType() == ValueType::MEAN) value = valueData.values.mean();
       else if (valueType() == ValueType::SUM ) value = valueData.values.sum();
 
-      valueData.dataTotal  = value;
-      groupData.dataTotal += value;
+      valueData.dataTotal = value;
 
-      ++groupData.numValues;
-
+      groupData.values.addValue(value);
+;
       //std::cerr << name.toStdString() << " : " << valueData.dataTotal << "\n";
     }
 
@@ -1713,11 +1721,11 @@ adjustObjAngles() const
 
   //---
 
-  // get total values
+  // get total number of values
   int totalValues = 0;
 
   for (auto &groupObj : groupObjs_) {
-    totalValues += groupObj->numValues();
+    totalValues += groupObj->values().size();
   }
 
   double da = (totalValues > 0 ? 360.0/totalValues : 0.0);
@@ -1745,7 +1753,7 @@ adjustObjAngles() const
 
     // set group angles
     if (! separated) {
-      double dga = da*groupObj->numValues();
+      double dga = da*groupObj->values().size();
 
       ga2 = ga1 - dga;
 
@@ -2269,7 +2277,7 @@ valueStr() const
   QString str;
 
   if (piePlot_->isValuePercent()) {
-    auto dataTotal = groupObj_->dataTotal();
+    auto dataTotal = groupObj_->values().sum();
 
     auto percent = 100.0*value()/dataTotal;
 
@@ -2679,6 +2687,11 @@ drawSegment(PaintDevice *device) const
 
       CQChartsDrawUtil::drawTextAtPoint(device, pt, labelStr, textOptions, /*centered*/true);
     }
+
+    //----
+
+    if (piePlot()->isSummary())
+      groupObj_->drawDonutInsideText(device, this);
   }
 }
 
@@ -3382,7 +3395,7 @@ calcTipId() const
   CQChartsTableTip tableTip;
 
   tableTip.addTableRow("Name" , name());
-  tableTip.addTableRow("Count", numValues());
+  tableTip.addTableRow("Count", values().size());
 
   //---
 
@@ -3692,6 +3705,8 @@ void
 CQChartsPieGroupObj::
 drawDumbbell(PaintDevice *device) const
 {
+  using DumbbellType = CQChartsPiePlot::DumbbellType;
+
   auto c = calcCenter();
 
   double ri, ro;
@@ -3706,9 +3721,9 @@ drawDumbbell(PaintDevice *device) const
   //---
 
   // draw range line
-  bool showPie = piePlot_->isDumbbellPie();
+  bool showPie = (piePlot_->dumbbellType() == DumbbellType::PIE);
 
-  double x1 = (showPie ?  c.x + ro + 24*dxt : -1.0 + 8*dxt);
+  double x1 = (showPie ? c.x + ro + 24*dxt : -1.0 + 8*dxt);
   double x2 = 1.0 - 8*dxt;
 
   PenBrush groupPenBrush;
@@ -3837,7 +3852,7 @@ drawFg(PaintDevice *device) const
   //---
 
   // draw text at center of donut or summary
-  bool drawText = (piePlot()->calcDonut() || piePlot()->isSummary());
+  bool drawText = piePlot()->isSummary();
 
   if (drawText)
     drawDonutText(device);
@@ -3901,6 +3916,8 @@ drawDonutText(PaintDevice *device) const
 {
   using DonutValueType = CQChartsPiePlot::DonutValueType;
 
+  //---
+
   // get text
   QStringList labels;
 
@@ -3911,13 +3928,32 @@ drawDonutText(PaintDevice *device) const
     if (name().trimmed().length())
       labels.push_back(name());
 
-    if      (piePlot_->donutValueType() == DonutValueType::COUNT) {
-      auto label = QString::number(numValues());
+    QString label, typeLabel;
 
-      labels.push_back(label);
+    if      (piePlot_->donutValueType() == DonutValueType::COUNT) {
+      label     = QString::number(values().size());
+      typeLabel = "Count";
+    }
+    else if (piePlot_->donutValueType() == DonutValueType::MIN) {
+      label     = QString::number(values().min());
+      typeLabel = "Min";
+    }
+    else if (piePlot_->donutValueType() == DonutValueType::MAX) {
+      label     = QString::number(values().max());
+      typeLabel = "Max";
+    }
+    else if (piePlot_->donutValueType() == DonutValueType::MEAN) {
+      label     = QString::number(values().mean());
+      typeLabel = "Mean";
     }
     else if (piePlot_->donutValueType() == DonutValueType::SUM) {
-      auto label = QString::number(calcDataTotal());
+      label     = QString::number(values().sum());
+      typeLabel = "Sum";
+    }
+
+    if (label.length()) {
+      if (piePlot_->isDonutTypeLabel())
+        label += QString(" (%1)").arg(typeLabel);
 
       labels.push_back(label);
     }
@@ -3992,11 +4028,82 @@ drawDonutText(PaintDevice *device) const
   }
 }
 
+void
+CQChartsPieGroupObj::
+drawDonutInsideText(PaintDevice *device, const CQChartsPieObj *obj) const
+{
+  // draw background
+  drawDonut(device);
+
+  //---
+
+  // get text
+  QString groupName, labelName, label, valueStr;
+  obj->calcTipData(groupName, labelName, label, valueStr);
+
+  QStringList labels;
+
+  labels << valueStr;
+
+  //---
+
+  // get text center and radii
+  auto c = calcCenter();
+
+  double ri, ro;
+
+  getRadii(ri, ro);
+
+  //---
+
+  bool separated = piePlot_->calcSeparated();
+
+  Point pt;
+
+  // if full circle always draw text at center
+  if (separated || Angle::isCircle(startAngle(), endAngle())) {
+    pt = c;
+  }
+  else {
+    auto ta = Angle::avg(startAngle(), endAngle());
+
+    pt = Angle::circlePoint(c, CMathUtil::avg(ri, ro), ta);
+  }
+
+  //---
+
+  // set text pen and font
+  PenBrush penBrush;
+
+  auto tc = piePlot_->interpGroupTextColor(calcColorInd());
+
+  piePlot_->setPen(penBrush, PenData(true, tc, piePlot_->groupTextAlpha()));
+
+  piePlot_->setPainterFont(device, piePlot_->groupTextFont());
+
+  //---
+
+  // set text options
+  auto textOptions = piePlot_->groupTextOptions();
+
+  textOptions = piePlot_->adjustTextOptions(textOptions);
+
+  //---
+
+  device->setPen(penBrush.pen);
+
+  auto textOptions1 = textOptions;
+
+  textOptions1.align = Qt::AlignHCenter | Qt::AlignVCenter;
+
+  CQChartsDrawUtil::drawTextsAtPoint(device, pt, labels, textOptions1);
+}
+
 double
 CQChartsPieGroupObj::
 calcDataTotal() const
 {
-  double dataTotal = this->dataTotal();
+  double dataTotal = this->values().sum();
 
   auto valueSum = piePlot_->calcValueSum();
 
