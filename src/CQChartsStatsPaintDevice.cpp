@@ -1,4 +1,5 @@
 #include <CQChartsStatsPaintDevice.h>
+#include <CQChartsVariant.h>
 #include <QPainterPath>
 
 CQChartsStatsPaintDevice::TypeCount CQChartsStatsPaintDevice::s_typeCount;
@@ -79,10 +80,12 @@ drawPolyline(const Polygon &polygon)
 
 void
 CQChartsStatsPaintDevice::
-drawImage(const Point &p, const QImage &image)
+drawImage(const Point &p, const Image &image)
 {
-  auto w = pixelToWindowWidth (image.width ());
-  auto h = pixelToWindowHeight(image.height());
+  auto qimage = image.image();
+
+  auto w = pixelToWindowWidth (qimage.width ());
+  auto h = pixelToWindowHeight(qimage.height());
 
   BBox bbox(p.x, p.y, p.x + w, p.y + h);
 
@@ -166,6 +169,13 @@ print(const BBox &bbox) const
     th->quadTree_.process(printDrawData);
   }
 
+  auto qbbox = this->bbox();
+
+  auto qvar = CQChartsVariant::fromBBox(qbbox);
+  bool ok;
+
+  std::cerr << "BBox: " << CQChartsVariant::toString(qvar, ok).toStdString() << "\n";
+
   for (const auto &pt : s_typeCount)
     std::cerr << typeToString(pt.first).toStdString() << ": " << pt.second << "\n";
 }
@@ -178,6 +188,13 @@ printDrawData(DrawData *drawData)
 
   //std::cerr << typeToString(drawData->type).toStdString() << ": " <<
   //             drawData->bbox.toString().toStdString() << "\n";
+}
+
+CQChartsGeom::BBox
+CQChartsStatsPaintDevice::
+bbox() const
+{
+  return quadTree_.rect();
 }
 
 QString

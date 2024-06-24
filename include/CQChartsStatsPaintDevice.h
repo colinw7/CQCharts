@@ -62,12 +62,14 @@ class CQChartsStatsPaintDevice : public CQChartsPaintDevice {
   void drawText(const Point &p, const QString &text) override;
   void drawTransformedText(const Point &p, const QString &text) override;
 
-  void drawImage(const Point &, const QImage &) override;
+  void drawImage(const Point &, const Image &) override;
   void drawImageInRect(const BBox &, const Image &, bool, const Angle &) override;
 
   void setPainterFont(const Font &) override { }
 
   void print(const BBox &bbox) const;
+
+  BBox bbox() const;
 
  private:
   void addText(const Point &p, const QString &text);

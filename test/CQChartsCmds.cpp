@@ -41,6 +41,7 @@
 #include <CQChartsTextDlg.h>
 #include <CQChartsHelpDlg.h>
 #include <CQChartsViewSettings.h>
+#include <CQChartsStatsPaintDevice.h>
 
 #ifdef CQCHARTS_DATA_FRAME
 #include <CQChartsDataFrame.h>
@@ -64,6 +65,8 @@
 #include <CQPickoverModel.h>
 #include <CQDragon3DModel.h>
 #include <CQLeaf3DModel.h>
+#include <CQFireworksModel.h>
+#include <CQRandomModel.h>
 
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
@@ -134,7 +137,7 @@ addCommands()
     addCommand("define_charts_proc", new CQChartsDefineChartsProcCmd(this));
 
     // correlation, bucket, folded, subset, transpose, summary, collapse, pivot, stats,
-    // data, fractal
+    // data, fractal, fireworks, random
     addCommand("create_charts_correlation_model",
                new CQChartsCreateChartsCorrelationModelCmd(this));
     addCommand("create_charts_bucket_model"     ,
@@ -157,6 +160,10 @@ addCommands()
                new CQChartsCreateChartsDataModelCmd       (this));
     addCommand("create_charts_fractal_model"    ,
                new CQChartsCreateChartsFractalModelCmd    (this));
+    addCommand("create_charts_fireworks_model"  ,
+               new CQChartsCreateChartsFireworksModelCmd  (this));
+    addCommand("create_charts_random_model"  ,
+               new CQChartsCreateChartsRandomModelCmd     (this));
 
     // add/remove view
     addCommand("create_charts_view", new CQChartsCreateChartsViewCmd(this));
@@ -6160,6 +6167,160 @@ execCmd(CQChartsCmdArgs &argv)
 
 //------
 
+// create_charts_fireworks_model command
+
+void
+CQChartsCreateChartsFireworksModelCmd::
+addCmdArgs(CQChartsCmdArgs &)
+{
+}
+
+QStringList
+CQChartsCreateChartsFireworksModelCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsCreateChartsFireworksModelCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+#if 0
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+#endif
+
+  //---
+
+  CQPerfTrace trace("CQChartsCreateChartsFireworksModelCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  auto *model = new CQFireworksModel();
+
+  //------
+
+  auto *proxyModel = new QSortFilterProxyModel;
+
+  proxyModel->setObjectName("proxyModel");
+
+  proxyModel->setSortRole(static_cast<int>(Qt::EditRole));
+
+  proxyModel->setSourceModel(model);
+
+  CQChartsCmds::ModelP proxyModelP(proxyModel);
+
+  auto *modelData = charts()->initModelData(proxyModelP);
+
+  //---
+
+  return cmdBase_->setCmdRc(modelData->id());
+}
+
+//------
+
+// create_charts_random_model command
+
+void
+CQChartsCreateChartsRandomModelCmd::
+addCmdArgs(CQChartsCmdArgs &argv)
+{
+  addArg(argv, "-rows"   , ArgType::Integer, "number of rows");
+  addArg(argv, "-columns", ArgType::Integer, "number of columns");
+  addArg(argv, "-ranges" , ArgType::String , "column ranges");
+}
+
+QStringList
+CQChartsCreateChartsRandomModelCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsCreateChartsRandomModelCmd::
+execCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCreateChartsRandomModelCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  int  rows    = argv.getParseInt("rows"   , -1); // number of rows
+  int  columns = argv.getParseInt("columns", -1); // number of columns
+  auto ranges  = argv.getParseStr("ranges");
+
+  //---
+
+  auto *model = new CQRandomModel();
+
+  if (rows > 0 && columns > 0)
+    model->resize(rows, columns);
+
+  QStringList columnRanges;
+  if (! CQTcl::splitList(ranges, columnRanges))
+    return errorMsg(QString("Invalid ranges string '%1'").arg(ranges));
+
+  int c = 0;
+
+  for (const auto &columnRangeStr : columnRanges) {
+    QStringList strs;
+    if (! CQTcl::splitList(columnRangeStr, strs) || strs.size() != 2)
+      return errorMsg(QString("Invalid column range string '%1'").arg(columnRangeStr));
+
+    bool ok1, ok2;
+    double min = CQChartsUtil::toReal(strs[0], ok1);
+    double max = CQChartsUtil::toReal(strs[1], ok2);
+
+    model->setColumnRange(c, min, max);
+
+    ++c;
+  }
+
+  //------
+
+  auto *proxyModel = new QSortFilterProxyModel;
+
+  proxyModel->setObjectName("proxyModel");
+
+  proxyModel->setSortRole(static_cast<int>(Qt::EditRole));
+
+  proxyModel->setSourceModel(model);
+
+  CQChartsCmds::ModelP proxyModelP(proxyModel);
+
+  auto *modelData = charts()->initModelData(proxyModelP);
+
+  //---
+
+  return cmdBase_->setCmdRc(modelData->id());
+}
+
+//------
+
 // export_charts_model command
 
 void
@@ -6397,9 +6558,9 @@ getArgValues(const QString &arg, const NameValueMap &nameValues)
         static auto names = QStringList() <<
          "model" << "view" << "value" << "map" << "annotations" << "objects" <<
          "selected_objects" << "inds" << "plot_width" << "plot_height" << "pixel_width" <<
-         "pixel_height" << "pixel_position" << "properties" << "set_hidden" << "errors" <<
-         "color_filter" << "symbol_type_filter" << "symbol_size_filter" <<
-         "current_obj" << "subplot_to_plot" << "plot_to_subplot";
+         "pixel_height" << "position" << "pixel_position" << "current_obj" << "subplot_to_plot" <<
+         "plot_to_subplot" << "errors" << "properties" << "set_hidden" <<
+         "color_filter" << "symbol_type_filter" << "symbol_size_filter" << "fit_bbox";
         return names;
       }
       else {
@@ -7391,6 +7552,13 @@ execCmd(CQChartsCmdArgs &argv)
 
       return cmdBase_->setCmdRc(h);
     }
+    else if (name == "position") {
+      auto data = argv.getParseStr("data");
+
+      auto p = plot->positionToPlot(CQChartsPosition::plot(data));
+
+      return cmdBase_->setCmdRc(p.qpoint());
+    }
     else if (name == "pixel_position") {
       auto data = argv.getParseStr("data");
 
@@ -7514,6 +7682,13 @@ execCmd(CQChartsCmdArgs &argv)
 
       return cmdBase_->setCmdRc(typeNames);
     }
+    else if (name == "fit_bbox") {
+      auto bbox = plot->fitBBox();
+
+      auto var = CQChartsVariant::fromBBox(bbox);
+
+      return cmdBase_->setCmdRc(var);
+   }
     else if (name == "?") {
       NameValueMap nameValues; nameValues["plot"] = "";
       if (objectId.length()) nameValues["object"] = "";
@@ -7562,6 +7737,13 @@ execCmd(CQChartsCmdArgs &argv)
       if (! widgetAnnotation) return errorMsg("Invalid annotation for widget_path");
 
       return cmdBase_->setCmdRc(CQUtil::fullName(widgetAnnotation->widget().widget()));
+    }
+    else if (name.left(5) == "meta.") {
+      auto name1 = name.mid(5);
+
+      auto value = annotation->getMetaData(name1);
+
+      return cmdBase_->setCmdRc(value);
     }
     else if (name == "?") {
       NameValueMap nameValues; nameValues["annotation"] = "";
@@ -8298,6 +8480,11 @@ execCmd(CQChartsCmdArgs &argv)
       if (value == "y" || value == "xy")
         annotation->flip(Qt::Vertical);
     }
+    else if (name.left(5) == "meta.") {
+      auto name1 = name.mid(5);
+
+      annotation->setMetaData(name1, value);
+    }
     else if (name == "?") {
       NameValueMap nameValues; nameValues["annotation"] = "";
 
@@ -8991,6 +9178,8 @@ addCmdArgs(CQChartsCmdArgs &argv)
   addArg(argv, "-start", ArgType::ObjRefPos, "start position");
   addArg(argv, "-end"  , ArgType::ObjRefPos, "end position");
 
+  addArg(argv, "-path", ArgType::String, "path string");
+
   addArg(argv, "-line_width", ArgType::Length, "connecting line width");
 
   addArg(argv, "-fhead"   , ArgType::String, "start arrow head type");
@@ -9070,11 +9259,24 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto start = argv.getParseObjRefPos(view, plot, "start");
-  auto end   = argv.getParseObjRefPos(view, plot, "end"  );
+  CQChartsObjRefPos start, end;
+  CQChartsPath      path;
+  bool              hasPath { false };
 
-  if (! start.isValid() || ! end.isValid())
-    return errorMsg("Invalid start/end");
+  if      (argv.hasParseArg("start") || argv.hasParseArg("end")) {
+    start = argv.getParseObjRefPos(view, plot, "start");
+    end   = argv.getParseObjRefPos(view, plot, "end"  );
+
+    if (! start.isValid() || ! end.isValid())
+      return errorMsg("Invalid start/end");
+  }
+  else if (argv.hasParseArg("path")) {
+    auto pathStr = argv.getParseStr("path");
+
+    path = CQChartsPath(pathStr);
+
+    hasPath = true;
+  }
 
   //---
 
@@ -9309,16 +9511,25 @@ execCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  if (start == end)
-    return errorMsg("Arrow is zero length");
-
   CQChartsArrowAnnotation *annotation = nullptr;
 
-  if      (plot)
-    annotation = plot->addArrowAnnotation(start, end);
-  else if (view)
-    annotation = view->addArrowAnnotation(start, end);
-  else
+  if (! hasPath) {
+    if (start == end)
+      return errorMsg("Arrow is zero length");
+
+    if      (plot)
+      annotation = plot->addArrowAnnotation(start, end);
+    else if (view)
+      annotation = view->addArrowAnnotation(start, end);
+  }
+  else {
+    if      (plot)
+      annotation = plot->addArrowAnnotation(path);
+    else if (view)
+      annotation = view->addArrowAnnotation(path);
+  }
+
+  if (! annotation)
     return false;
 
   if (id != "")
@@ -13175,7 +13386,11 @@ execCmd(CQChartsCmdArgs &argv)
   if      (view)
     view->writeStats(bbox);
   else if (plot) {
-    //plot->writeStats();
+    CQChartsStatsPaintDevice device(plot->view());
+
+    plot->writeStats(&device);
+
+    device.print(bbox);
   }
 
   return true;

@@ -332,7 +332,7 @@ drawTransformedText(const Point &p, const QString &text)
 
 void
 CQChartsSVGPaintDevice::
-drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool /*stretch*/, const Angle &)
+drawImageInRect(const BBox &bbox, const Image &image, bool /*stretch*/, const Angle &)
 {
   auto pbbox = windowToPixel(bbox);
 
@@ -343,23 +343,25 @@ drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool /*stretch*/, 
 
   auto qimage = image.sizedImage(int(pbbox.getWidth()), int(pbbox.getHeight()));
 
-  drawImage(pw, qimage);
+  drawImage(pw, Image(qimage));
 }
 
 void
 CQChartsSVGPaintDevice::
-drawImage(const Point &p, const QImage &image)
+drawImage(const Point &p, const Image &image)
 {
+  auto qimage = image.image();
+
   auto pt = windowToPixel(p);
 
-  int w = image.width ();
-  int h = image.height();
+  int w = qimage.width ();
+  int h = qimage.height();
 
   // writes image into ba in PNG format
   QByteArray ba;
   QBuffer qbuffer(&ba);
   qbuffer.open(QIODevice::WriteOnly);
-  image.save(&qbuffer, "PNG");
+  qimage.save(&qbuffer, "PNG");
 
   *os_ << "<image x=\"" << pt.x << "\" y=\"" << pt.y <<
           "\" width=\"" << w << "\" height=\"" << h << "\" preserveAspectRatio=\"none\" " <<

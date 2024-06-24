@@ -167,28 +167,28 @@ class CQSummaryModel : public QAbstractProxyModel {
   using RowMap  = std::map<int,int>;
 
   // mode
-  Mode          mode_        { Mode::NORMAL };       //!< summary mode
+  Mode mode_ { Mode::NORMAL };       //!< summary mode
 
   // max rows
-  int           maxRows_     { 1000 };               //!< max rows
+  int maxRows_ { 1000 };               //!< max rows
 
   // sort
-  int           sortColumn_  { 0 };                  //!< sort column
+  int           sortColumn_  { -1 };                 //!< sort column
   int           sortRole_    { Qt::EditRole };       //!< sort role
   Qt::SortOrder sortOrder_   { Qt::AscendingOrder }; //!< sort order
 
   // paged
-  int           pageSize_    { 100 };                //!< page size
-  int           currentPage_ { 0 };                  //!< current page
+  int pageSize_    { 100 }; //!< page size
+  int currentPage_ { 0 };   //!< current page
 
   // rows
-  RowNums       rowNums_;                            //!< specific rows numbers
+  RowNums rowNums_; //!< specific rows numbers
 
   // cache
-  RowInds       rowInds_;                            //!< row indices
-  RowMap        indRows_;                            //!< index rows
-  bool          mapValid_    { false };              //!< is mapping valid
-  bool          mapNone_     { false };              //!< map not needed
+  RowInds rowInds_;            //!< row indices
+  RowMap  indRows_;            //!< index rows
+  bool    mapValid_ { false }; //!< is mapping valid
+  bool    mapNone_  { false }; //!< map not needed
 };
 
 #endif

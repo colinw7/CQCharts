@@ -845,6 +845,7 @@ class CQChartsView : public QFrame,
   AnnotationGroup     *addAnnotationGroup    ();
   ArcAnnotation       *addArcAnnotation      (const ObjRefPos &start, const ObjRefPos &end);
   ArrowAnnotation     *addArrowAnnotation    (const ObjRefPos &start, const ObjRefPos &end);
+  ArrowAnnotation     *addArrowAnnotation    (const Path &path);
   ButtonAnnotation    *addButtonAnnotation   (const ObjRefPos &pos, const QString &text);
   EllipseAnnotation   *addEllipseAnnotation  (const ObjRefPos &center, const Length &xRadius,
                                               const Length &yRadius);

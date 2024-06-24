@@ -100,7 +100,7 @@ description() const
      h3("Options").
       p("All pie slices can start at a specified inner radius by enabling the " +
         B("Donut") + " option.").
-      p("The label can include the value using the " + B("Count") + " option.").
+      p("The label can include the value using the " + B("Summary") + " option.").
       p("Grouped data can be displayed as separate circular regions or as separated "
         "pie charts using the " + B("Separated") + " option.").
       p("The pie can be displayed alternatively as a treemap or waffle plot.").
@@ -1011,11 +1011,11 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  // if group only shows count then no pie objects needed
+  // if group only shows summary then no pie objects needed
   bool isSummaryGroup = (isSummary() && ! calcDonut());
 
-  // add individual value objects (not needed for count only - no donut)
-  // TODO: separate option for summary count and donut count label
+  // add individual value objects (not needed for summary only - no donut)
+  // TODO: separate option for summary and donut summary label
 
   if (! isSummaryGroup) {
     // init value sets
@@ -1160,6 +1160,8 @@ createObjs(PlotObjs &objs) const
     bool vbars = (waffleCols() <= 0 && waffleRows() > 0);
 
     if (hbars || vbars) {
+      using WaffleBarType = CQChartsPieGroupObj::WaffleBarType;
+
       for (auto &plotObj : objs) {
         auto *groupObj = dynamic_cast<CQChartsPieGroupObj *>(plotObj);
         if (! groupObj) continue;
@@ -1185,7 +1187,7 @@ createObjs(PlotObjs &objs) const
           nr = waffleRows();
         }
 
-        groupObj->setWaffleHorizontal(hbars);
+        groupObj->setWaffleBarType(hbars ? WaffleBarType::HORIZONTAL : WaffleBarType::VERTICAL);
         groupObj->setWaffleRows(nr);
         groupObj->setWaffleCols(nc);
 
@@ -2790,6 +2792,8 @@ void
 CQChartsPieObj::
 buildWaffleGeom() const
 {
+  using WaffleBarType = CQChartsPieGroupObj::WaffleBarType;
+
   if (waffleData_.geomBuilt)
     return;
 
@@ -2818,7 +2822,7 @@ buildWaffleGeom() const
 
     int ix, iy;
 
-    if (groupObj_->isWaffleHorizontal()) {
+    if (groupObj_->waffleBarType() != WaffleBarType::HORIZONTAL) {
       ix = i1 % nc;
       iy = i1 / nc;
     }
@@ -2901,24 +2905,41 @@ buildWaffleGeom() const
   if (waffleData_.bbox.isSet())
     dty = waffleData_.bbox.getHeight()/100.0;
 
-  double y1 = 0.0, y2 = 0.0;
+  struct YBox {
+    double y1 { 0.0 };
+    double y2 { 0.0 };
+    BBox   bbox;
+  };
 
-  if (! ymvals.empty()) {
-    auto ym = *ymvals.begin();
+  std::vector<YBox> yboxes;
 
-    y1 = ym - dty;
-    y2 = ym + dty;
+  for (const auto &ym : ymvals) {
+    YBox ybox;
+
+    ybox.y1 = ym - dty;
+    ybox.y2 = ym + dty;
+
+    yboxes.push_back(ybox);
   }
-
-  th->waffleData_.tbbox = BBox();
 
   std::set<double> tyvals;
 
   for (const auto &bbox : waffleData_.bboxes) {
     auto ym = bbox.getYMid();
 
-    if (ym  >= y1 && ym <= y2)
-      th->waffleData_.tbbox += bbox;
+    for (auto &ybox : yboxes) {
+      if (ym >= ybox.y1 && ym <= ybox.y2)
+        ybox.bbox += bbox;
+    }
+  }
+
+  th->waffleData_.tbbox = BBox();
+
+  for (const auto &ybox : yboxes) {
+    if      (! th->waffleData_.tbbox.isSet())
+      th->waffleData_.tbbox = ybox.bbox;
+    else if (ybox.bbox.getWidth() > waffleData_.tbbox.getWidth())
+      th->waffleData_.tbbox = ybox.bbox;
   }
 }
 
@@ -3146,6 +3167,8 @@ void
 CQChartsPieObj::
 drawWaffleLabel(PaintDevice *device) const
 {
+  using WaffleBarType = CQChartsPieGroupObj::WaffleBarType;
+
   if (! waffleData_.bbox.isSet()) return;
 
   // get display values
@@ -3171,13 +3194,22 @@ drawWaffleLabel(PaintDevice *device) const
 
   textOptions = piePlot_->adjustTextOptions(textOptions);
 
-  device->save();
+  if (groupObj_->waffleBarType() == WaffleBarType::NONE) {
+    device->save();
 
-  device->setClipRect(waffleData_.bbox);
+    device->setClipRect(waffleData_.bbox);
 
-  CQChartsDrawUtil::drawTextsInBox(device, waffleData_.tbbox, labels, textOptions);
+    CQChartsDrawUtil::drawTextsInBox(device, waffleData_.tbbox, labels, textOptions);
 
-  device->restore();
+    device->restore();
+  }
+  else {
+    auto p = Point(waffleData_.tbbox.getXMin(), waffleData_.tbbox.getYMid());
+
+    textOptions.align = (Qt::AlignLeft | Qt::AlignVCenter);
+
+    CQChartsDrawUtil::drawTextsAtPoint(device, p, labels, textOptions);
+  }
 }
 
 void
@@ -3464,9 +3496,9 @@ CQChartsPieGroupObj::
 inside(const Point &p) const
 {
   // separated
-  //  . donut or count has group circle with name and/or count in center
+  //  . donut or summary has group circle with name and/or summary in center
   // non-separated
-  //  . count has pie segments per group
+  //  . summary has pie segments per group
 
   bool separated = piePlot_->calcSeparated();
 
@@ -4141,7 +4173,7 @@ getRadii(double &ri, double &ro) const
 
   // empty group
   //  . not separated is whole circle
-  //  . separated and count then 0.0 to scaled plot inner radius
+  //  . separated and summary then 0.0 to scaled plot inner radius
   if (numObjs() == 0) {
     if (! separated) {
       if (! piePlot()->isSummary()) {

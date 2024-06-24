@@ -172,6 +172,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   Q_PROPERTY(double        fontSizeMapMax   READ fontSizeMapMax   WRITE setFontSizeMapMax)
   Q_PROPERTY(CQChartsUnits fontSizeMapUnits READ fontSizeUnits    WRITE setFontSizeUnits )
 
+  // image
+  Q_PROPERTY(Qt::Alignment imageAlign READ imageAlign WRITE setImageAlign)
+
   // text labels
   Q_PROPERTY(bool pointLabels READ isPointLabels WRITE setPointLabels)
   Q_PROPERTY(bool adjustText  READ isAdjustText  WRITE setAdjustText)
@@ -539,6 +542,12 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  //! image align
+  const Qt::Alignment &imageAlign() const { return imageAlign_; }
+  void setImageAlign(const Qt::Alignment &v);
+
+  //---
+
   //! get/set adjust text
   bool isAdjustText() const { return adjustText_; }
   void setAdjustText(bool b);
@@ -732,6 +741,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   DataLabelP dataLabel_;                               //!< data label style
   Length     dataLabelFontSize_ { Length::pixel(-1) }; //!< data label font size
   bool       adjustText_        { false };             //!< adjust text position
+
+  // image data
+  Qt::Alignment imageAlign_ { Qt::AlignCenter };
 
   // custom column data
   SymbolTypeData symbolTypeData_; //!< symbol type column data

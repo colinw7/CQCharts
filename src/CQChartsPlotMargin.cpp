@@ -14,27 +14,11 @@ CQChartsPlotMargin(const Length &l, const Length &t, const Length &r, const Leng
 {
 }
 
-#if 0
-CQChartsPlotMargin::
-CQChartsPlotMargin(double l, double t, double r, double b) :
- CQChartsMargin(l, t, r, b)
-{
-}
-#endif
-
 CQChartsPlotMargin::
 CQChartsPlotMargin(const Length &l) :
  CQChartsMargin(l, l, l, l)
 {
 }
-
-#if 0
-CQChartsPlotMargin::
-CQChartsPlotMargin(double l) :
- CQChartsMargin(l)
-{
-}
-#endif
 
 void
 CQChartsPlotMargin::

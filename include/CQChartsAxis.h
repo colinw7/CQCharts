@@ -65,10 +65,13 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(QString format       READ format       WRITE setFormat      )
   Q_PROPERTY(double  maxFitExtent READ maxFitExtent WRITE setMaxFitExtent)
 
+  // range
+  Q_PROPERTY(double       start       READ start         WRITE setStart      )
+  Q_PROPERTY(double       end         READ end           WRITE setEnd        )
+  Q_PROPERTY(bool         includeZero READ isIncludeZero WRITE setIncludeZero)
+  Q_PROPERTY(CQChartsPath path        READ path          WRITE setPath       )
+
   // tick calc
-  Q_PROPERTY(double          start          READ start          WRITE setStart         )
-  Q_PROPERTY(double          end            READ end            WRITE setEnd           )
-  Q_PROPERTY(bool            includeZero    READ isIncludeZero  WRITE setIncludeZero   )
   Q_PROPERTY(CQChartsOptReal majorIncrement READ majorIncrement WRITE setMajorIncrement)
   Q_PROPERTY(CQChartsOptInt  tickIncrement  READ tickIncrement  WRITE setTickIncrement )
 
@@ -78,6 +81,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(CQChartsOptReal valueStart READ valueStart WRITE setValueStart)
   Q_PROPERTY(CQChartsOptReal valueEnd   READ valueEnd   WRITE setValueEnd  )
 
+  // grid
   Q_PROPERTY(CQChartsOptReal gridStart READ gridStart WRITE setGridStart)
   Q_PROPERTY(CQChartsOptReal gridEnd   READ gridEnd   WRITE setGridEnd  )
 
@@ -104,12 +108,15 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   Q_PROPERTY(QString customTickLabels READ customTickLabelsStr WRITE setCustomTickLabelsStr)
 
   // label
-  Q_PROPERTY(CQChartsOptString label            READ label            WRITE setLabel           )
-  Q_PROPERTY(QString           labelStr         READ labelStr         WRITE setLabelStr        )
-  Q_PROPERTY(QString           defLabel         READ defLabel         WRITE setDefLabel        )
-  Q_PROPERTY(QString           userLabel        READ userLabel        WRITE setUserLabel       )
-  Q_PROPERTY(bool              scaleLabelFont   READ isScaleLabelFont WRITE setScaleLabelFont  )
-  Q_PROPERTY(CQChartsLength    scaleLabelExtent READ scaleLabelExtent WRITE setScaleLabelExtent)
+  Q_PROPERTY(CQChartsOptString label             READ label             WRITE setLabel            )
+  Q_PROPERTY(QString           labelStr          READ labelStr          WRITE setLabelStr         )
+  Q_PROPERTY(QString           defLabel          READ defLabel          WRITE setDefLabel         )
+  Q_PROPERTY(QString           userLabel         READ userLabel         WRITE setUserLabel        )
+  Q_PROPERTY(bool              scaleLabelFont    READ isScaleLabelFont  WRITE setScaleLabelFont   )
+  Q_PROPERTY(CQChartsLength    scaleLabelExtent  READ scaleLabelExtent  WRITE setScaleLabelExtent )
+  Q_PROPERTY(double            labelPosition     READ labelPosition     WRITE setLabelPosition    )
+  Q_PROPERTY(double            labelPerpPosition READ labelPerpPosition WRITE setLabelPerpPosition)
+  Q_PROPERTY(Qt::Alignment     labelAlign        READ labelAlign        WRITE setLabelAlign       )
 
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(AxesLabel, axesLabel)
 
@@ -187,6 +194,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   using LineDash               = CQChartsLineDash;
   using Font                   = CQChartsFont;
   using Color                  = CQChartsColor;
+  using Path                   = CQChartsPath;
   using BBox                   = CQChartsGeom::BBox;
   using Point                  = CQChartsGeom::Point;
 
@@ -268,6 +276,15 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  const Path &path() const { return data_.path; }
+  void setPath(const Path &p) { data_.path = p; }
+
+  //! get/set include zero
+  bool isIncludeZero() const { return data_.includeZero; }
+  void setIncludeZero(bool b);
+
+  //---
+
   //! get/set custom value start
   const OptReal &valueStart() const { return valueStart_; }
   void setValueStart(const OptReal &r);
@@ -288,12 +305,6 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   //! get/set custom value end
   const OptReal &gridEnd() const { return gridEnd_; }
   void setGridEnd(const OptReal &r);
-
-  //---
-
-  //! get/set include zero
-  bool isIncludeZero() const { return data_.includeZero; }
-  void setIncludeZero(bool b);
 
   //---
 
@@ -358,6 +369,15 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   //! get/set scale label extent
   const Length &scaleLabelExtent() const { return scaleLabelExtent_; }
   void setScaleLabelExtent(const Length &l);
+
+  double labelPosition() const { return labelPosition_; }
+  void setLabelPosition(double r);
+
+  double labelPerpPosition() const { return labelPerpPosition_; }
+  void setLabelPerpPosition(double r);
+
+  const Qt::Alignment &labelAlign() const { return labelAlign_; }
+  void setLabelAlign(const Qt::Alignment &a);
 
   //---
 
@@ -560,6 +580,14 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   void drawI(const View *view, const Plot *plot, PaintDevice *device,
              bool usePen=false, bool forceColor=false) const;
 
+  void drawCustomTicks(const Plot *plot, PaintDevice *device, double amin, double amax,
+                       double apos1, double apos2) const;
+  void drawTickLabels(const Plot *plot, PaintDevice *device, double amin, double amax,
+                      double apos1, double apos2) const;
+  void drawPathTicks(const Plot *plot, PaintDevice *device) const;
+  void drawTicks(const Plot *plot, PaintDevice *device, double amin, double amax,
+                 double apos1, double apos2) const;
+
   //---
 
  public:
@@ -594,8 +622,10 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   void drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device) const;
 
-  void drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
-                     double amin, double amax, const QString &text, bool allowHtml) const;
+  void drawAxisLabel(const Plot *plot, PaintDevice *device,
+                     double apos, double amin, double amax) const;
+  void drawAxisLabelI(const Plot *plot, PaintDevice *device, double apos,
+                      double amin, double amax, const QString &text, bool allowHtml) const;
 
   void getTickLabelsPositions(std::set<int> &positions) const;
 
@@ -633,7 +663,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
     }
 
     AxisTickLabelDrawData(const Point &p, const BBox &bbox, const QString &text,
-                          const Angle &angle, Qt::Alignment align) :
+                          const Angle &angle, const Qt::Alignment &align) :
      p(p), bbox(bbox), text(text), angle(angle), align(align) {
     }
 
@@ -722,13 +752,16 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
     bool                   tickLabelAutoHide   { true }; //!< tick auto hide
     AxisTickLabelPlacement tickLabelPlacement;           //!< tick placement
 
-    // placement state
-    double  start           { 0.0 };   //!< axis start
-    double  end             { 1.0 };   //!< axis end
-    bool    includeZero     { false }; //!< include zero in range
-    uint    maxMajorTicks   { 1000 };  //!< max major ticks
-    OptInt  tickIncrement;             //!< user specified tick increment
-    OptReal majorIncrement;            //!< user specified major increment
+    // range
+    double start       { 0.0 };   //!< axis start
+    double end         { 1.0 };   //!< axis end
+    Path   path;                  //!< path
+    bool   includeZero { false }; //!< include zero in range
+
+    // ticks
+    uint    maxMajorTicks  { 1000 }; //!< max major ticks
+    OptInt  tickIncrement;           //!< user specified tick increment
+    OptReal majorIncrement;          //!< user specified major increment
 
     // customization (for annotations)
     bool allowHtmlLabels { false }; //!< allow html labels
@@ -747,8 +780,11 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   bool updatesEnabled_ { true }; //!< axis updates enabled
 
   // label
-  bool   scaleLabelFont_   { false }; //!< scale label font fo fit length
-  Length scaleLabelExtent_;           //!< extent to extend length for scale label
+  bool          scaleLabelFont_    { false };           //!< scale label font fo fit length
+  Length        scaleLabelExtent_;                      //!< extent to extend length for scale label
+  double        labelPosition_     { 0.5 };             //!< label position in axis range (0-1)
+  double        labelPerpPosition_ { 0.0 };             //!< label perp position (TODO: range)
+  Qt::Alignment labelAlign_        { Qt::AlignCenter }; //!< label align
 
   bool needsCalc_ { true }; //!< needs tick calc
 
@@ -779,7 +815,8 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   mutable BBox       fitBBox_;           //!< fit box
   mutable BBox       fitLBBox_;          //!< label fit box
   mutable BBox       fitTLBBox_;         //!< tick label fit box
-  mutable BBox       lbbox_;             //!< label box
+  mutable BBox       plbbox_;            //!< label pixel box
+  mutable BBox       tlbbox_;            //!< title label box
 //mutable BBox       lastTickLabelRect_; //!< last tick box (for auto hide)
   mutable TextPlacer textPlacer_;        //!< cache axis tick label draw data
 

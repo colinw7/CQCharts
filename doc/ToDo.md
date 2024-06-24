@@ -4,6 +4,15 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + path for axis (curved axis, distance on path, gradient of path for text angle)
+
+ + fireworks model to test animation/model update speed (tcl, model toys or spearate app?)
+
+ + null paint device for fit calc (draw and return bbox)
+
+ + allow margin using plot coords (axis on part of plot)
+   . setFitBBox calc ....
+
  + hyperlink annotations
    + tcl proc on text annotation
 

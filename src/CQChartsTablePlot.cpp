@@ -125,8 +125,9 @@ init()
 
   //---
 
-  font_       = Font().decFontSize(8);
-  headerFont_ = font_;
+  font_ = Font().decFontSize(8);
+
+  headerData_.font = font_;
 
   //---
 
@@ -481,6 +482,13 @@ setRowColumn(bool b)
   CQChartsUtil::testAndSet(rowColumn_, b, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsTablePlot::
+setVerticalHeader(bool b)
+{
+  CQChartsUtil::testAndSet(verticalHeader_, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -501,7 +509,7 @@ void
 CQChartsTablePlot::
 setHeaderFont(const Font &f)
 {
-  CQChartsUtil::testAndSet(headerFont_, f, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(headerData_.font, f, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -575,9 +583,9 @@ addProperties()
   addProp("options", "maxRows", "maxRows", "Set max rows")->setMinValue(1);
 
   // sort mode
-  addProp("options", "sortColumn" , "sortColumn" , "Set sort column");
-  addProp("options", "sortRole"   , "sortRole"   , "Set sort role"  , true);
-  addProp("options", "sortOrder"  , "sortOrder"  , "Set sort order" );
+  addProp("options", "sortColumn", "sortColumn", "Set sort column");
+  addProp("options", "sortRole"  , "sortRole"  , "Set sort role"  , true);
+  addProp("options", "sortOrder" , "sortOrder" , "Set sort order" );
 
   // page mode
   addProp("options", "pageSize"   , "pageSize"   , "Set page size"   )->setMinValue(1);
@@ -600,8 +608,9 @@ addProperties()
   addStyleProp("options", "insideColor"  , "insideColor"  , "Cell inside color");
   addStyleProp("options", "selectedColor", "selectedColor", "Cell selected color");
 
-  addProp("options", "rowColumn" , "rowColumn" , "Display row number column");
-  addProp("options", "followView", "followView", "Follow view");
+  addProp("options", "rowColumn"     , "rowColumn"     , "Display row number column");
+  addProp("options", "verticalHeader", "verticalHeader", "Display vertical header");
+  addProp("options", "followView"    , "followView"    , "Follow view");
 
   addStyleProp("options", "indent"    , "indent"    , "Hierarchical row indent")->setMinValue(0.0);
   addStyleProp("options", "cellMargin", "cellMargin", "Cell margin")->setMinValue(0);
@@ -684,12 +693,29 @@ calcTableSize() const
 
   // calc column widths
   if (isRowColumn()) {
-    auto &data = th->tableData_.rowColumnData;
+    auto &data = th->tableData_.rowNumberColumnData;
 
     const int power = CMathRound::RoundUp(log10(tableData_.nr));
 
     data.pwidth  = power*fm.horizontalAdvance("X") + 2.0*tableData_.pmargin;
     data.numeric = false;
+  }
+
+  if (isVerticalHeader()) {
+    auto &data = th->tableData_.verticalHeaderColumnData;
+
+    data.pwidth  = 0.0;
+    data.numeric = false;
+
+    for (int r = 0; r < tableData_.nr; ++r) {
+      bool ok;
+      auto str = getVerticalHeader(r, ok);
+      if (! ok) continue;
+
+      double cw = hfm.horizontalAdvance(str) + 2.0*tableData_.pmargin;
+
+      data.pwidth = std::max(data.pwidth, cw);
+    }
   }
 
   for (int i = 0; i < tableData_.nc; ++i) {
@@ -701,14 +727,7 @@ calcTableSize() const
     auto &data = th->tableData_.columnDataMap[c];
 
     bool ok;
-
-    QString str;
-
-    if (summaryModel())
-      str = CQChartsModelUtil::modelHHeaderString(summaryModel(), c, ok);
-    else
-      str = CQChartsModelUtil::modelHHeaderString(model.data(), c, ok);
-
+    auto str = getHorizontalHeader(c, ok);
     if (! ok) continue;
 
     double cw = hfm.horizontalAdvance(str) + 2.0*tableData_.pmargin + tableData_.pSortWidth;
@@ -819,7 +838,13 @@ calcTableSize() const
   th->tableData_.pcw = 0.0;
 
   if (isRowColumn()) {
-    const auto &data = th->tableData_.rowColumnData;
+    const auto &data = th->tableData_.rowNumberColumnData;
+
+    th->tableData_.pcw += data.pwidth;
+  }
+
+  if (isVerticalHeader()) {
+    const auto &data = th->tableData_.verticalHeaderColumnData;
 
     th->tableData_.pcw += data.pwidth;
   }
@@ -833,6 +858,32 @@ calcTableSize() const
       th->tableData_.pcw += data.prefWidth + 2.0*tableData_.pmargin;
     else
       th->tableData_.pcw += data.pwidth;
+  }
+}
+
+QString
+CQChartsTablePlot::
+getHorizontalHeader(const Column &c, bool &ok) const
+{
+  if (summaryModel())
+    return CQChartsModelUtil::modelHHeaderString(summaryModel(), c, ok);
+  else {
+    const auto &model = this->currentModel();
+
+    return CQChartsModelUtil::modelHHeaderString(model.data(), c, ok);
+  }
+}
+
+QString
+CQChartsTablePlot::
+getVerticalHeader(int r, bool &ok) const
+{
+  if (summaryModel())
+    return CQChartsModelUtil::modelVHeaderString(summaryModel(), r, ok);
+  else {
+    const auto &model = this->currentModel();
+
+    return CQChartsModelUtil::modelVHeaderString(model.data(), r, ok);
   }
 }
 
@@ -858,10 +909,20 @@ createObjs(PlotObjs &objs) const
     objs.push_back(obj);
   }
 
-  for (const auto &pr : rowObjMap_) {
-    const auto &rowObjData = pr.second;
+  for (const auto &pr : rowNumberObjMap_) {
+    const auto &headerObjData = pr.second;
 
-    auto *obj = createRowObj(rowObjData);
+    auto *obj = createRowNumberObj(headerObjData);
+
+    obj->connectDataChanged(this, SLOT(updateSlot()));
+
+    objs.push_back(obj);
+  }
+
+  for (const auto &pr : verticalHeaderObjMap_) {
+    const auto &headerObjData = pr.second;
+
+    auto *obj = createVerticalHeaderObj(headerObjData);
 
     obj->connectDataChanged(this, SLOT(updateSlot()));
 
@@ -1187,9 +1248,9 @@ initDrawData() const
 
   auto *th = const_cast<CQChartsTablePlot *>(this);
 
-  th->headerObjMap_.clear();
-  th->rowObjMap_   .clear();
-  th->cellObjMap_  .clear();
+  th->headerObjMap_   .clear();
+  th->rowNumberObjMap_.clear();
+  th->cellObjMap_     .clear();
 
   //---
 
@@ -1202,7 +1263,16 @@ initDrawData() const
   double x = th->tableData_.xo;
 
   if (isRowColumn()) {
-    auto &data = th->tableData_.rowColumnData;
+    auto &data = th->tableData_.rowNumberColumnData;
+
+    data.width     = pixelToWindowWidth(data.pwidth);
+    data.drawWidth = data.width;
+
+    x += data.drawWidth;
+  }
+
+  if (isVerticalHeader()) {
+    auto &data = th->tableData_.verticalHeaderColumnData;
 
     data.width     = pixelToWindowWidth(data.pwidth);
     data.drawWidth = data.width;
@@ -1379,7 +1449,16 @@ drawTableBackground(PaintDevice *device) const
   double x = th->tableData_.xo + th->tableData_.sx;
 
   if (isRowColumn()) {
-    auto &data = th->tableData_.rowColumnData;
+    auto &data = th->tableData_.rowNumberColumnData;
+
+    data.width     = pixelToWindowWidth(data.pwidth);
+    data.drawWidth = data.width;
+
+    x += data.drawWidth;
+  }
+
+  if (isVerticalHeader()) {
+    auto &data = th->tableData_.verticalHeaderColumnData;
 
     data.width     = pixelToWindowWidth(data.pwidth);
     data.drawWidth = data.width;
@@ -1461,9 +1540,18 @@ drawTableBackground(PaintDevice *device) const
 
   x = x1;
 
-  // number column vertical line
+  // row column vertical line
   if (isRowColumn()) {
-    const auto &data = th->tableData_.rowColumnData;
+    const auto &data = th->tableData_.rowNumberColumnData;
+
+    device->drawLine(Point(x, y1), Point(x, y2));
+
+    x += data.drawWidth;
+  }
+
+  // vertical header column vertical line
+  if (isVerticalHeader()) {
+    const auto &data = th->tableData_.verticalHeaderColumnData;
 
     device->drawLine(Point(x, y1), Point(x, y2));
 
@@ -1544,11 +1632,25 @@ createTableObjData() const
 
       //---
 
-      // draw line number
+      // draw row number
       if (tablePlot_->isRowColumn()) {
-        const auto &cdata = tableData_.rowColumnData;
+        const auto &cdata = tableData_.rowNumberColumnData;
 
         drawRowNumber(x, y, data.vrow + 1);
+
+        x += cdata.drawWidth;
+      }
+
+      //---
+
+      // draw vertical header
+      if (tablePlot_->isVerticalHeader()) {
+        const auto &cdata = tableData_.verticalHeaderColumnData;
+
+        bool ok;
+        auto str = tablePlot_->getVerticalHeader(data.vrow, ok);
+
+        drawVerticalHeader(x, y, data.vrow, str);
 
         x += cdata.drawWidth;
       }
@@ -1603,11 +1705,25 @@ createTableObjData() const
 
       //---
 
-      // draw line number
+      // draw row number
       if (tablePlot_->isRowColumn()) {
-        const auto &cdata = tableData_.rowColumnData;
+        const auto &cdata = tableData_.rowNumberColumnData;
 
         drawRowNumber(x, y, data.vrow + 1);
+
+        x += cdata.drawWidth;
+      }
+
+      //---
+
+      // draw vertical header
+      if (tablePlot_->isVerticalHeader()) {
+        const auto &cdata = tableData_.verticalHeaderColumnData;
+
+        bool ok;
+        auto str = tablePlot_->getVerticalHeader(data.vrow, ok);
+
+        drawVerticalHeader(x, y, data.vrow, str);
 
         x += cdata.drawWidth;
       }
@@ -1627,21 +1743,36 @@ createTableObjData() const
 
       double x = tableData_.xo;
 
-      // draw empty line number area
+      // draw empty row number area
       if (tablePlot_->isRowColumn()) {
-        Column c;
-
-        auto &headerObjData = tablePlot_->getHeaderObjData(c);
+        auto &headerObjData = tablePlot_->getRowColumnHeaderObjData();
 
         headerObjData.str = " ";
 
         //---
 
-        const auto &cdata = tableData_.rowColumnData;
+        const auto &cdata = tableData_.rowNumberColumnData;
 
         headerObjData.rect = BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.hrh);
 
         //---
+
+        x += cdata.drawWidth;
+      }
+
+      // draw empty vertical header area
+      if (tablePlot_->isVerticalHeader()) {
+        auto &headerObjData = tablePlot_->getVerticalHeaderHeaderObjData();
+
+        headerObjData.str = " ";
+
+        //---
+
+        const auto &cdata = tableData_.verticalHeaderColumnData;
+
+        headerObjData.rect = BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.hrh);
+
+        //--
 
         x += cdata.drawWidth;
       }
@@ -1652,7 +1783,7 @@ createTableObjData() const
 
         bool ok;
 
-        auto str = CQChartsModelUtil::modelHHeaderString(model_, c, ok);
+        auto str = tablePlot_->getHorizontalHeader(c, ok);
         if (! ok) continue;
 
         //---
@@ -1679,17 +1810,31 @@ createTableObjData() const
     }
 
     void drawRowNumber(double x, double y, int n) {
-      const auto &cdata = tableData_.rowColumnData;
+      const auto &cdata = tableData_.rowNumberColumnData;
 
       //---
 
-      auto &rowObjData = tablePlot_->getRowObjData(n);
+      auto &objData = tablePlot_->getRowNumberObjData(n);
 
-      rowObjData.align = Qt::AlignRight | Qt::AlignVCenter;
+      objData.align = Qt::AlignRight | Qt::AlignVCenter;
 
-      rowObjData.rect = BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
+      objData.rect = BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
 
-      rowObjData.str = QString::number(n);
+      objData.str = QString::number(n);
+    }
+
+    void drawVerticalHeader(double x, double y, int r, const QString &str) {
+      const auto &cdata = tableData_.verticalHeaderColumnData;
+
+      //---
+
+      auto &objData = tablePlot_->getVerticalHeaderObjData(r);
+
+      objData.align = Qt::AlignRight | Qt::AlignVCenter;
+
+      objData.rect = BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
+
+      objData.str = str;
     }
 
     void drawCellValues(double x, double y, const VisitData &data) {
@@ -1779,6 +1924,38 @@ createTableObjData() const
 
 CQChartsTablePlot::HeaderObjData &
 CQChartsTablePlot::
+getRowColumnHeaderObjData() const
+{
+  auto *th = const_cast<CQChartsTablePlot *>(this);
+
+  int ic = -2;
+
+  auto pc = th->headerObjMap_.find(ic);
+
+  if (pc == th->headerObjMap_.end())
+    pc = th->headerObjMap_.emplace_hint(pc, ic, HeaderObjData(ic));
+
+  return (*pc).second;
+}
+
+CQChartsTablePlot::HeaderObjData &
+CQChartsTablePlot::
+getVerticalHeaderHeaderObjData() const
+{
+  auto *th = const_cast<CQChartsTablePlot *>(this);
+
+  int ic = -1;
+
+  auto pc = th->headerObjMap_.find(ic);
+
+  if (pc == th->headerObjMap_.end())
+    pc = th->headerObjMap_.emplace_hint(pc, ic, HeaderObjData(ic));
+
+  return (*pc).second;
+}
+
+CQChartsTablePlot::HeaderObjData &
+CQChartsTablePlot::
 getHeaderObjData(const Column &c) const
 {
   auto *th = const_cast<CQChartsTablePlot *>(this);
@@ -1793,16 +1970,30 @@ getHeaderObjData(const Column &c) const
   return (*pc).second;
 }
 
-CQChartsTablePlot::RowObjData &
+CQChartsTablePlot::RowNumberObjData &
 CQChartsTablePlot::
-getRowObjData(int r) const
+getRowNumberObjData(int r) const
 {
   auto *th = const_cast<CQChartsTablePlot *>(this);
 
-  auto pc = th->rowObjMap_.find(r);
+  auto pc = th->rowNumberObjMap_.find(r);
 
-  if (pc == th->rowObjMap_.end())
-    pc = th->rowObjMap_.emplace_hint(pc, r, RowObjData(r));
+  if (pc == th->rowNumberObjMap_.end())
+    pc = th->rowNumberObjMap_.emplace_hint(pc, r, RowNumberObjData(r));
+
+  return (*pc).second;
+}
+
+CQChartsTablePlot::VerticalHeaderObjData &
+CQChartsTablePlot::
+getVerticalHeaderObjData(int r) const
+{
+  auto *th = const_cast<CQChartsTablePlot *>(this);
+
+  auto pc = th->verticalHeaderObjMap_.find(r);
+
+  if (pc == th->verticalHeaderObjMap_.end())
+    pc = th->verticalHeaderObjMap_.emplace_hint(pc, r, VerticalHeaderObjData(r));
 
   return (*pc).second;
 }
@@ -1934,11 +2125,18 @@ createHeaderObj(const HeaderObjData &headerObjData) const
   return new CQChartsTableHeaderObj(this, headerObjData);
 }
 
-CQChartsTableRowObj *
+CQChartsTableRowNumberObj *
 CQChartsTablePlot::
-createRowObj(const RowObjData &rowObjData) const
+createRowNumberObj(const RowNumberObjData &objData) const
 {
-  return new CQChartsTableRowObj(this, rowObjData);
+  return new CQChartsTableRowNumberObj(this, objData);
+}
+
+CQChartsTableVerticalHeaderObj *
+CQChartsTablePlot::
+createVerticalHeaderObj(const VerticalHeaderObjData &objData) const
+{
+  return new CQChartsTableVerticalHeaderObj(this, objData);
 }
 
 CQChartsTableCellObj *
@@ -1978,7 +2176,18 @@ QString
 CQChartsTableHeaderObj::
 calcId() const
 {
-  return QString("%1:%2").arg(typeName()).arg(headerObjData_.c.column());
+  QString str;
+
+  if      (headerObjData_.isColumnHeader())
+    str = QString("%1:%2").arg(typeName()).arg(headerObjData_.c.column());
+  else if (headerObjData_.ic == -1)
+    str = QString("%1:row_number").arg(typeName());
+  else if (headerObjData_.ic == -2)
+    str = QString("%1:vertical_header").arg(typeName());
+  else
+    assert(false);
+
+  return str;
 }
 
 QString
@@ -1987,8 +2196,10 @@ calcTipId() const
 {
   auto id = headerObjData_.str;
 
-  if (! id.length())
-    id = QString::number(headerObjData_.c.column());
+  if (! id.length()) {
+    if (headerObjData_.isColumnHeader())
+      id = QString::number(headerObjData_.c.column());
+  }
 
   return id;
 }
@@ -1997,6 +2208,9 @@ bool
 CQChartsTableHeaderObj::
 selectPress(const Point & /*p*/, SelData & /*selData*/)
 {
+  if (! headerObjData_.isColumnHeader())
+    return false;
+
   auto *tablePlot = const_cast<CQChartsTablePlot *>(tablePlot_);
 
   if (tablePlot->sortColumn() != CQChartsColumnNum(headerObjData_.c.column()))
@@ -2033,7 +2247,8 @@ draw(PaintDevice *device) const
 
   auto trect = rect_;
 
-  if (tablePlot_->sortColumn() == CQChartsColumnNum(headerObjData_.c.column())) {
+  if (headerObjData_.isColumnHeader() &&
+      tablePlot_->sortColumn() == CQChartsColumnNum(headerObjData_.c.column())) {
     auto sortWidth = tablePlot_->pixelToWindowWidth(pSortWidth);
 
     trect = BBox(rect_.getXMin()            , rect_.getYMin(),
@@ -2062,7 +2277,8 @@ draw(PaintDevice *device) const
 
   //---
 
-  if (tablePlot_->sortColumn() == CQChartsColumnNum(headerObjData_.c.column())) {
+  if (headerObjData_.isColumnHeader() &&
+      tablePlot_->sortColumn() == CQChartsColumnNum(headerObjData_.c.column())) {
     PenBrush sortPenBrush;
 
     // 1 (top/bottom), 4 mid
@@ -2121,11 +2337,13 @@ void
 CQChartsTableHeaderObj::
 getObjSelectIndices(Indices &inds) const
 {
-  ModelIndex ind(tablePlot_, 0, headerObjData_.c, QModelIndex());
+  if (headerObjData_.isColumnHeader()) {
+    ModelIndex ind(tablePlot_, 0, headerObjData_.c, QModelIndex());
 
-  auto modelInd = tablePlot_->modelIndex(ind);
+    auto modelInd = tablePlot_->modelIndex(ind);
 
-  inds.insert(modelInd);
+    inds.insert(modelInd);
+  }
 }
 
 bool
@@ -2142,34 +2360,34 @@ rectIntersect(const BBox &r, bool inside) const
 
 //------
 
-CQChartsTableRowObj::
-CQChartsTableRowObj(const TablePlot *tablePlot, const TablePlot::RowObjData &rowObjData) :
- CQChartsPlotObj(const_cast<TablePlot *>(tablePlot), rowObjData.rect, ColorInd(), ColorInd(),
- ColorInd()), tablePlot_(tablePlot), rowObjData_(rowObjData)
+CQChartsTableRowNumberObj::
+CQChartsTableRowNumberObj(const TablePlot *tablePlot, const ObjData &objData) :
+ CQChartsPlotObj(const_cast<TablePlot *>(tablePlot), objData.rect, ColorInd(), ColorInd(),
+ ColorInd()), tablePlot_(tablePlot), objData_(objData)
 {
 }
 
 QString
-CQChartsTableRowObj::
+CQChartsTableRowNumberObj::
 calcId() const
 {
-  return QString("%1:%2").arg(typeName()).arg(rowObjData_.r);
+  return QString("%1:%2").arg(typeName()).arg(objData_.r);
 }
 
 QString
-CQChartsTableRowObj::
+CQChartsTableRowNumberObj::
 calcTipId() const
 {
-  auto id = rowObjData_.str;
+  auto id = objData_.str;
 
   if (! id.length())
-    id = QString::number(rowObjData_.r);
+    id = QString::number(objData_.r);
 
   return id;
 }
 
 void
-CQChartsTableRowObj::
+CQChartsTableRowNumberObj::
 draw(PaintDevice *device) const
 {
   device->save();
@@ -2180,9 +2398,9 @@ draw(PaintDevice *device) const
 
   //---
 
-  auto *th = const_cast<CQChartsTableRowObj *>(this);
+  auto *th = const_cast<CQChartsTableRowNumberObj *>(this);
 
-  th->rect_ = rowObjData_.rect.translated(tablePlot_->scrollX(), -tablePlot_->scrollY());
+  th->rect_ = objData_.rect.translated(tablePlot_->scrollX(), -tablePlot_->scrollY());
 
   //---
 
@@ -2200,9 +2418,9 @@ draw(PaintDevice *device) const
 
   CQChartsTextOptions textOptions;
 
-  textOptions.align = rowObjData_.align;
+  textOptions.align = objData_.align;
 
-  CQChartsDrawUtil::drawTextInBox(device, rect_, rowObjData_.str, textOptions);
+  CQChartsDrawUtil::drawTextInBox(device, rect_, objData_.str, textOptions);
 
   //---
 
@@ -2210,7 +2428,7 @@ draw(PaintDevice *device) const
 }
 
 void
-CQChartsTableRowObj::
+CQChartsTableRowNumberObj::
 calcPenBrush(PenBrush &penBrush, bool /*updateState*/) const
 {
   auto bg = tablePlot_->interpColor(tablePlot_->cellColor(), ColorInd());
@@ -2220,10 +2438,101 @@ calcPenBrush(PenBrush &penBrush, bool /*updateState*/) const
 }
 
 bool
-CQChartsTableRowObj::
+CQChartsTableRowNumberObj::
 rectIntersect(const BBox &r, bool inside) const
 {
-  auto rect = rowObjData_.rect.translated(tablePlot_->scrollX(), -tablePlot_->scrollY());
+  auto rect = objData_.rect.translated(tablePlot_->scrollX(), -tablePlot_->scrollY());
+
+  if (inside)
+    return r.inside(rect);
+  else
+    return r.overlaps(rect);
+}
+
+//------
+
+CQChartsTableVerticalHeaderObj::
+CQChartsTableVerticalHeaderObj(const TablePlot *tablePlot, const ObjData &objData) :
+ CQChartsPlotObj(const_cast<TablePlot *>(tablePlot), objData.rect, ColorInd(), ColorInd(),
+ ColorInd()), tablePlot_(tablePlot), objData_(objData)
+{
+}
+
+QString
+CQChartsTableVerticalHeaderObj::
+calcId() const
+{
+  return QString("%1:%2").arg(typeName()).arg(objData_.r);
+}
+
+QString
+CQChartsTableVerticalHeaderObj::
+calcTipId() const
+{
+  auto id = objData_.str;
+
+  if (! id.length())
+    id = QString::number(objData_.r);
+
+  return id;
+}
+
+void
+CQChartsTableVerticalHeaderObj::
+draw(PaintDevice *device) const
+{
+  device->save();
+
+  auto pixelRect = tablePlot_->calcTablePixelRect();
+
+  device->setClipRect(tablePlot_->pixelToWindow(pixelRect));
+
+  //---
+
+  auto *th = const_cast<CQChartsTableVerticalHeaderObj *>(this);
+
+  th->rect_ = objData_.rect.translated(tablePlot_->scrollX(), -tablePlot_->scrollY());
+
+  //---
+
+  // draw row text
+  device->setFont(tablePlot_->tableFont());
+
+  auto bg = tablePlot_->interpColor(tablePlot_->cellColor(), ColorInd());
+  auto tc = tablePlot_->calcTextColor(bg);
+
+  PenBrush textPenBrush;
+
+  tablePlot_->setPen(textPenBrush, PenData(true, tc));
+
+  device->setPen(textPenBrush.pen);
+
+  CQChartsTextOptions textOptions;
+
+  textOptions.align = objData_.align;
+
+  CQChartsDrawUtil::drawTextInBox(device, rect_, objData_.str, textOptions);
+
+  //---
+
+  device->restore();
+}
+
+void
+CQChartsTableVerticalHeaderObj::
+calcPenBrush(PenBrush &penBrush, bool /*updateState*/) const
+{
+  auto bg = tablePlot_->interpColor(tablePlot_->cellColor(), ColorInd());
+  auto tc = tablePlot_->calcTextColor(bg);
+
+  tablePlot_->setPen(penBrush, PenData(true, tc));
+}
+
+bool
+CQChartsTableVerticalHeaderObj::
+rectIntersect(const BBox &r, bool inside) const
+{
+  auto rect = objData_.rect.translated(tablePlot_->scrollX(), -tablePlot_->scrollY());
 
   if (inside)
     return r.inside(rect);
@@ -2393,7 +2702,7 @@ draw(PaintDevice *device) const
   bool   fgSet = false;
 
   if (cellObjData_.fgColor.isValid()) {
-    fg    = tablePlot_->interpColor(cellObjData_.bgColor, ColorInd());
+    fg    = tablePlot_->interpColor(cellObjData_.fgColor, ColorInd());
     fgSet = true;
   }
 

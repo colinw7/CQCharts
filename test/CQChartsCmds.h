@@ -253,6 +253,8 @@ CQCHARTS_DEF_CMD(CreateChartsPivotModel)
 CQCHARTS_DEF_CMD(CreateChartsStatsModel)
 CQCHARTS_DEF_CMD(CreateChartsDataModel)
 CQCHARTS_DEF_CMD(CreateChartsFractalModel)
+CQCHARTS_DEF_CMD(CreateChartsFireworksModel)
+CQCHARTS_DEF_CMD(CreateChartsRandomModel)
 
 //---
 

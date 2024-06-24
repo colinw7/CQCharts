@@ -157,7 +157,7 @@ class CQChartsPaintDevice {
   virtual void drawText(const Point &, const QString &) { assert(false); }
   virtual void drawTransformedText(const Point &, const QString &) { assert(false); }
 
-  virtual void drawImage(const Point &, const QImage &) { assert(false); }
+  virtual void drawImage(const Point &, const Image &) { assert(false); }
   virtual void drawImageInRect(const BBox &, const Image &, bool = true,
                                const Angle & = Angle()) { assert(false); }
 

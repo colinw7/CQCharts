@@ -1977,9 +1977,16 @@ addAnnotationGroup()
 
 CQChartsArrowAnnotation *
 CQChartsView::
-addArrowAnnotation(const CQChartsObjRefPos &start, const CQChartsObjRefPos &end)
+addArrowAnnotation(const ObjRefPos &start, const ObjRefPos &end)
 {
   return addAnnotationT<ArrowAnnotation>(new ArrowAnnotation(this, start, end));
+}
+
+CQChartsArrowAnnotation *
+CQChartsView::
+addArrowAnnotation(const Path &path)
+{
+  return addAnnotationT<ArrowAnnotation>(new ArrowAnnotation(this, path));
 }
 
 CQChartsArcAnnotation *
@@ -3083,7 +3090,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
 
   auto setViewBBox = [&](Plot *plot, const BBox &bbox) {
     if (plot->isOverlay()) {
-      Plots plots;
+      Plot::Plots plots;
 
       plot->overlayPlots(plots);
 
@@ -9136,7 +9143,7 @@ getDrawPlots(Plots &plots) const
       if (! plot->isFirstPlot())
         continue;
 
-      Plots oplots;
+      Plot::Plots oplots;
 
       if      (plot->isX1X2())
         plot->x1x2Plots(oplots);
@@ -9590,7 +9597,7 @@ writeAll(std::ostream &os) const
 
   for (const auto &plot : basePlots) {
     if (plot->isX1X2() || plot->isY1Y2() || plot->isOverlay()) {
-      Plots oplots;
+      Plot::Plots oplots;
 
       os << "\n";
       os << "group_charts_plots ";

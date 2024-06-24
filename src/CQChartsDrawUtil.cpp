@@ -3126,7 +3126,7 @@ drawCheckBox(PaintDevice *device, double px, double py, int bs, bool checked)
 
   spainter.drawControl(QStyle::CE_CheckBox, opt);
 
-  device->drawImage(device->pixelToWindow(Point(px, py)), img);
+  device->drawImage(device->pixelToWindow(Point(px, py)), CQChartsImage(img));
 }
 
 void

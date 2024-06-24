@@ -6,7 +6,7 @@ set view [create_charts_view]
 set plot [create_charts_plot -view $view -model $model -type pie \
   -columns {{label 0} {values 1}} -title "pie chart"]
 
-set_charts_property -plot $plot -name options.donut -value 1
+set_charts_property -plot $plot -name donut.visible -value 1
 
 connect_charts_signal -plot $plot -from plotObjsAdded -to updateAnnotations
 
@@ -48,6 +48,8 @@ proc create_arc_group { plot obj } {
 }
 
 proc updateAnnotations { view plot } {
+  disconnect_charts_signal -plot $plot -from plotObjsAdded -to updateAnnotations
+
   set objs [get_charts_data -plot $plot -name objects]
   set obj  [lindex $objs 1]
 

@@ -302,6 +302,13 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   using Values  = CQChartsRValues;
 
  public:
+  enum class WaffleBarType {
+    NONE,
+    HORIZONTAL,
+    VERTICAL
+  };
+
+ public:
   CQChartsPieGroupObj(const PiePlot *plot, const BBox &bbox, const ColorInd &groupInd,
                       const QString &name, const ColorInd &ig);
 
@@ -375,8 +382,8 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   //---
 
-  bool isWaffleHorizontal() const { return waffleData_.horizontal; }
-  void setWaffleHorizontal(bool b) { waffleData_.horizontal = b; }
+  const WaffleBarType &waffleBarType() const { return waffleData_.barType; }
+  void setWaffleBarType(const WaffleBarType &t) { waffleData_.barType = t; }
 
   int waffleRows() const { return waffleData_.rows; }
   void setWaffleRows(int i) { waffleData_.rows = i; }
@@ -427,9 +434,9 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
  private:
   struct WaffleData {
-    bool horizontal { true };
-    int  rows       { 0 };
-    int  cols       { 0 };
+    WaffleBarType barType { WaffleBarType::NONE };
+    int           rows    { 0 };
+    int           cols    { 0 };
   };
 
   const PiePlot* piePlot_      { nullptr };  //!< parent plot

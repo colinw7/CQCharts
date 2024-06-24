@@ -417,6 +417,9 @@ CQBucketModel.cpp \
 CQCollapseModel.cpp \
 CQPivotModel.cpp \
 CQBucketer.cpp \
+CQRandomModel.cpp \
+CQFireworksModel.cpp \
+CFireworks.cpp \
 \
 CSVGUtil.cpp \
 \
@@ -895,6 +898,9 @@ HEADERS += \
 ../include/CQExprModelCmdValues.h \
 ../include/CQExprModelFn.h \
 ../include/CQExprUtil.h \
+../include/CQRandomModel.h \
+../include/CQFireworksModel.h \
+CFireworks.h \
 \
 ../include/CSVGUtil.h \
 \

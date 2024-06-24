@@ -468,7 +468,18 @@ headerData(int section, Qt::Orientation orientation, int role) const
   auto *model = this->sourceModel();
   if (! model) return QVariant();
 
-  return model->headerData(section, orientation, role);
+  QModelIndex ind;
+
+  if (orientation == Qt::Horizontal)
+    ind = model->index(0, section, QModelIndex());
+  else
+    ind = model->index(section, 0, QModelIndex());
+
+  auto ind1 = (ind.isValid() ? mapToSource(ind) : QModelIndex());
+
+  int section1 = (orientation == Qt::Horizontal ? ind1.column() : ind1.row());
+
+  return model->headerData(section1, orientation, role);
 }
 
 bool

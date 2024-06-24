@@ -690,6 +690,15 @@ setAdjustText(bool b)
 
 void
 CQChartsPointPlot::
+setImageAlign(const Qt::Alignment &a)
+{
+  CQChartsUtil::testAndSet(imageAlign_, a, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsPointPlot::
 dataLabelChanged()
 {
   // TODO: not enough info to optimize behavior so reload all objects

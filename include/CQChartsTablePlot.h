@@ -53,7 +53,8 @@ class CQChartsTablePlotType : public CQChartsPlotType {
 class CQChartsTablePlot;
 class CQChartsTable;
 class CQChartsTableHeaderObj;
-class CQChartsTableRowObj;
+class CQChartsTableRowNumberObj;
+class CQChartsTableVerticalHeaderObj;
 class CQChartsTableCellObj;
 
 class CQIntegerSpin;
@@ -86,6 +87,9 @@ class CQChartsTablePlot : public CQChartsPlot {
   // row number column
   Q_PROPERTY(QString rowNums   READ rowNumsStr  WRITE setRowNumsStr)
   Q_PROPERTY(bool    rowColumn READ isRowColumn WRITE setRowColumn )
+
+  // vertical header column
+  Q_PROPERTY(bool verticalHeader READ isVerticalHeader WRITE setVerticalHeader)
 
   // header
   Q_PROPERTY(bool          headerVisible READ isHeaderVisible WRITE setHeaderVisible)
@@ -121,27 +125,48 @@ class CQChartsTablePlot : public CQChartsPlot {
   //! header object data
   struct HeaderObjData {
     Column        c;
+    int           ic { -999 };
     BBox          rect;
     Qt::Alignment align { Qt::AlignLeft | Qt::AlignVCenter };
     QString       str;
 
     HeaderObjData() = default;
 
-    HeaderObjData(const Column &c) :
-     c(c) {
+    HeaderObjData(const Column &c_) :
+     c(c_), ic(-999) {
     }
+
+    HeaderObjData(int ic_) :
+     ic(ic_) {
+    }
+
+    bool isColumnHeader() const { return (ic == -999); }
   };
 
-  //! row object data
-  struct RowObjData {
+  //! row number object data
+  struct RowNumberObjData {
     int           r { 0 };
     BBox          rect;
     Qt::Alignment align { Qt::AlignLeft | Qt::AlignVCenter };
     QString       str;
 
-    RowObjData() = default;
+    RowNumberObjData() = default;
 
-    RowObjData(int r) :
+    RowNumberObjData(int r) :
+     r(r) {
+    }
+  };
+
+  //! vertical header object data
+  struct VerticalHeaderObjData {
+    int           r { 0 };
+    BBox          rect;
+    Qt::Alignment align { Qt::AlignLeft | Qt::AlignVCenter };
+    QString       str;
+
+    VerticalHeaderObjData() = default;
+
+    VerticalHeaderObjData(int r) :
      r(r) {
     }
   };
@@ -252,6 +277,9 @@ class CQChartsTablePlot : public CQChartsPlot {
   bool isRowColumn() const { return rowColumn_; }
   void setRowColumn(bool b);
 
+  bool isVerticalHeader() const { return verticalHeader_; }
+  void setVerticalHeader(bool b);
+
   //---
 
   bool isHeaderVisible() const { return headerData_.visible; }
@@ -260,7 +288,7 @@ class CQChartsTablePlot : public CQChartsPlot {
   const Color &headerColor() const { return headerData_.color; }
   void setHeaderColor(const Color &c);
 
-  const Font &headerFont() const { return headerFont_; }
+  const Font &headerFont() const { return headerData_.font; }
   void setHeaderFont(const Font &f);
 
   //---
@@ -303,6 +331,9 @@ class CQChartsTablePlot : public CQChartsPlot {
   //---
 
   void calcTableSize() const;
+
+  QString getHorizontalHeader(const Column &c, bool &ok) const;
+  QString getVerticalHeader  (int r, bool &ok) const;
 
   void autoFit() override;
 
@@ -368,13 +399,15 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   QString modeName(const Mode &mode) const;
 
-  using HeaderObj = CQChartsTableHeaderObj;
-  using RowObj    = CQChartsTableRowObj;
-  using CellObj   = CQChartsTableCellObj;
+  using HeaderObj         = CQChartsTableHeaderObj;
+  using RowNumberObj      = CQChartsTableRowNumberObj;
+  using VerticalHeaderObj = CQChartsTableVerticalHeaderObj;
+  using CellObj           = CQChartsTableCellObj;
 
-  virtual HeaderObj *createHeaderObj(const HeaderObjData &headerObjData) const;
-  virtual RowObj    *createRowObj   (const RowObjData &rowObjData) const;
-  virtual CellObj   *createCellObj  (const CellObjData &cellObjData) const;
+  virtual HeaderObj*         createHeaderObj        (const HeaderObjData &headerObjData) const;
+  virtual RowNumberObj*      createRowNumberObj     (const RowNumberObjData &objData) const;
+  virtual VerticalHeaderObj* createVerticalHeaderObj(const VerticalHeaderObjData &objData) const;
+  virtual CellObj*           createCellObj          (const CellObjData &cellObjData) const;
 
  private Q_SLOTS:
   void modelTypeChangedSlot(int modelId);
@@ -428,8 +461,10 @@ class CQChartsTablePlot : public CQChartsPlot {
     double          xo         { 0.0 }; //!< x offset
     double          yo         { 0.0 }; //!< y offset
     int             pmargin    { 2 };   //!< pixel margin
-    ColumnData      rowColumnData;      //!< row column data
-    ColumnDataMap   columnDataMap;      //!< column data map
+
+    ColumnData    rowNumberColumnData;      //!< row number column data
+    ColumnData    verticalHeaderColumnData; //!< vertical header column data
+    ColumnDataMap columnDataMap;            //!< column data map
   };
 
   //! scroll data
@@ -455,42 +490,49 @@ class CQChartsTablePlot : public CQChartsPlot {
     bool fitVertical   { false };
   };
 
-  using HeaderObjMap = std::map<int, HeaderObjData>;
-  using RowObjMap    = std::map<int, RowObjData>;
-  using CellObjMap   = std::map<QModelIndex, CellObjData>;
+  using HeaderObjMap         = std::map<int, HeaderObjData>;
+  using RowNumberObjMap      = std::map<int, RowNumberObjData>;
+  using VerticalHeaderObjMap = std::map<int, VerticalHeaderObjData>;
+  using CellObjMap           = std::map<QModelIndex, CellObjData>;
 
  private:
-  HeaderObjData& getHeaderObjData(const Column &c) const;
-  RowObjData&    getRowObjData   (int row) const;
-  CellObjData&   getCellObjData  (const ModelIndex &ind) const;
+  HeaderObjData& getRowColumnHeaderObjData     () const;
+  HeaderObjData& getVerticalHeaderHeaderObjData() const;
+  HeaderObjData& getHeaderObjData              (const Column &c) const;
+
+  RowNumberObjData&      getRowNumberObjData     (int row) const;
+  VerticalHeaderObjData& getVerticalHeaderObjData(int row) const;
+  CellObjData&           getCellObjData          (const ModelIndex &ind) const;
 
  private:
-  TableData       tableData_;                     //!< cached table data
-  ScrollData      scrollData_;                    //!< scroll bar data
-  Columns         columns_;                       //!< columns
-  Mode            mode_         { Mode::SORTED }; //!< summary model mode
-  CQSummaryModel* summaryModel_ { nullptr };      //!< summary model
-  bool            rowColumn_    { false };        //!< draw row numbers column
-  HeaderData      headerData_;                    //!< header data
-  FitData         fitData_;                       //!< fit data
-  Font            headerFont_;                    //!< header font
-  Color           gridColor_;                     //!< grid line color
-  Color           cellColor_;                     //!< cell bg color
-  Color           insideColor_;                   //!< cell inside bg color
-  Color           selectedColor_;                 //!< cell selected bg color
-  double          indent_       { 8.0 };          //!< hier indent
-  double          fontScale_    { 1.0 };          //!< font scale
-  int             cellMargin_   { 4 };            //!< cell margin
-  bool            followView_   { false };        //!< follow view
-  QMenu*          menu_         { nullptr };      //!< menu
-  CQIntegerSpinP  maxRowsSpin_;                   //!< max rows menu edit
-  CQIntegerSpinP  sortColumnSpin_;                //!< sort column menu edit
-  CQIntegerSpinP  pageSizeSpin_;                  //!< page size menu edit
-  CQIntegerSpinP  pageNumSpin_;                   //!< page number menu edit
+  TableData       tableData_;                       //!< cached table data
+  ScrollData      scrollData_;                      //!< scroll bar data
+  Columns         columns_;                         //!< columns
+  Mode            mode_           { Mode::SORTED }; //!< summary model mode
+  CQSummaryModel* summaryModel_   { nullptr };      //!< summary model
+  bool            rowColumn_      { false };        //!< draw row numbers column
+  bool            verticalHeader_ { false };        //!< draw vertical header
+  HeaderData      headerData_;                      //!< header data
+  FitData         fitData_;                         //!< fit data
+  Color           gridColor_;                       //!< grid line color
+  Color           cellColor_;                       //!< cell bg color
+  Color           insideColor_;                     //!< cell inside bg color
+  Color           selectedColor_;                   //!< cell selected bg color
+  double          indent_       { 8.0 };            //!< hier indent
+  double          fontScale_    { 1.0 };            //!< font scale
+  int             cellMargin_   { 4 };              //!< cell margin
+  bool            followView_   { false };          //!< follow view
 
-  HeaderObjMap headerObjMap_; //!< header object map
-  RowObjMap    rowObjMap_;    //!< row object map
-  CellObjMap   cellObjMap_;   //!< cell object map
+  QMenu*         menu_         { nullptr }; //!< menu
+  CQIntegerSpinP maxRowsSpin_;              //!< max rows menu edit
+  CQIntegerSpinP sortColumnSpin_;           //!< sort column menu edit
+  CQIntegerSpinP pageSizeSpin_;             //!< page size menu edit
+  CQIntegerSpinP pageNumSpin_;              //!< page number menu edit
+
+  HeaderObjMap         headerObjMap_;         //!< header object map
+  RowNumberObjMap      rowNumberObjMap_;      //!< row number object map
+  VerticalHeaderObjMap verticalHeaderObjMap_; //!< vertical header object map
+  CellObjMap           cellObjMap_;           //!< cell object map
 };
 
 //---
@@ -536,14 +578,15 @@ class CQChartsTableHeaderObj : public CQChartsPlotObj {
  * \brief Table Row object
  * \ingroup Charts
  */
-class CQChartsTableRowObj : public CQChartsPlotObj {
+class CQChartsTableRowNumberObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
   using TablePlot = CQChartsTablePlot;
+  using ObjData   = TablePlot::RowNumberObjData;
 
  public:
-  CQChartsTableRowObj(const TablePlot *plot, const TablePlot::RowObjData &rowObjData);
+  CQChartsTableRowNumberObj(const TablePlot *plot, const ObjData &objData);
 
   QString typeName() const override { return "row"; }
 
@@ -558,8 +601,41 @@ class CQChartsTableRowObj : public CQChartsPlotObj {
   bool rectIntersect(const BBox &r, bool inside) const override;
 
  private:
-  const TablePlot*      tablePlot_ { nullptr }; //!< parent plot
-  TablePlot::RowObjData rowObjData_;
+  const TablePlot* tablePlot_ { nullptr }; //!< parent plot
+  ObjData          objData_;
+};
+
+//---
+
+/*!
+ * \brief Vertical Header object
+ * \ingroup Charts
+ */
+class CQChartsTableVerticalHeaderObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  using TablePlot = CQChartsTablePlot;
+  using ObjData   = TablePlot::VerticalHeaderObjData;
+
+ public:
+  CQChartsTableVerticalHeaderObj(const TablePlot *plot, const ObjData &objData);
+
+  QString typeName() const override { return "row"; }
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
+
+  void draw(PaintDevice *device) const override;
+
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const override;
+
+  bool rectIntersect(const BBox &r, bool inside) const override;
+
+ private:
+  const TablePlot* tablePlot_ { nullptr }; //!< parent plot
+  ObjData          objData_;
 };
 
 //---

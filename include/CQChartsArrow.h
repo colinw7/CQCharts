@@ -295,10 +295,12 @@ class CQChartsArrow : public QObject,
                             const ArrowData &arrowData, double lw, const Length &arrowLen,
                             QPainterPath &arrowPath);
   static void pathAddArrows(PaintDevice *device, const QPainterPath &path,
-                            const ArrowData &arrowData, double lw,
+                            const ArrowData &arrowData, double xw, double yw,
                             const Length &frontLen, const Length &tailLen,
                             QPainterPath &arrowPath);
 
+  static void addWidthToPoint(const Point &p, const ArrowAngle &a, double wx, double wy,
+                              Point &p1, Point &p2);
   static void addWidthToPoint(const Point &p, const ArrowAngle &a, double lw,
                               Point &p1, Point &p2);
 

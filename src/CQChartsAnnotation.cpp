@@ -1913,12 +1913,14 @@ draw(PaintDevice *device)
 
     auto rect = annotationBBox();
 
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
+    if (rect.isValid()) {
+      CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    if      (shapeType() == ShapeType::BOX)
-      device->drawRect(rect);
-    else if (shapeType() == ShapeType::CIRCLE)
-      device->drawEllipse(rect);
+      if      (shapeType() == ShapeType::BOX)
+        device->drawRect(rect);
+      else if (shapeType() == ShapeType::CIRCLE)
+        device->drawEllipse(rect);
+     }
   }
 
   //---
@@ -2040,16 +2042,14 @@ CQChartsShapeAnnotationBase::
 setTextInd(const QString &ind)
 {
   if (ind != textInd_) {
-    auto *textAnnotation = (plot() ?
-      dynamic_cast<CQChartsTextAnnotation *>(plot()->getAnnotationByPathId(textInd_)) : nullptr);
+    auto *textAnnotation = getTextAnnotation();
 
     if (textAnnotation)
       textAnnotation->setVisible(true);
 
     textInd_ = ind;
 
-    textAnnotation = (plot() ?
-      dynamic_cast<CQChartsTextAnnotation *>(plot()->getAnnotationByPathId(textInd_)) : nullptr);
+    textAnnotation = getTextAnnotation();
 
     if (textAnnotation)
       textAnnotation->setVisible(false);
@@ -2074,17 +2074,30 @@ void
 CQChartsShapeAnnotationBase::
 drawText(PaintDevice *device, const BBox &rect)
 {
-  if (textInd() == "")
-    return;
-
-  auto *textAnnotation = (plot() ?
-    dynamic_cast<CQChartsTextAnnotation *>(plot()->getAnnotationByPathId(textInd())) : nullptr);
-
-  if (! textAnnotation)
-    return;
+  auto *textAnnotation = getTextAnnotation();
+  if (! textAnnotation) return;
 
   // TODO: per annotation type rect (e.g. pie slice)
-  textAnnotation->drawInRect(device, rect);
+  auto pos = textAnnotation->positionValue();
+
+  auto p = plot()->positionToPlot(pos);
+
+  auto rect1 = rect.translated(p.x, p.y);
+
+  textAnnotation->drawInRect(device, rect1);
+}
+
+CQChartsTextAnnotation *
+CQChartsShapeAnnotationBase::
+getTextAnnotation() const
+{
+  if (! plot())
+    return nullptr;
+
+  if (! textInd_.length())
+    return nullptr;
+
+  return dynamic_cast<CQChartsTextAnnotation *>(plot()->getAnnotationByPathId(textInd()));
 }
 
 //------
@@ -2275,6 +2288,14 @@ setEnd(const Position &p)
   emitDataChanged();
 }
 
+
+void
+CQChartsRectangleAnnotation::
+setShapeType(const ShapeType &s)
+{
+  CQChartsUtil::testAndSet(shapeType_, s, [&]() { invalidate(); } );
+}
+
 //---
 
 void
@@ -2288,6 +2309,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp(model, path1, "rectangle", "", "Rectangle bounding box");
   addProp(model, path1, "start"    , "", "Rectangle bottom left", true);
   addProp(model, path1, "end"      , "", "Rectangle top right", true);
+  addProp(model, path1, "shapeType", "", "Shape type");
 
   addStrokeFillProperties(model, path1);
 }
@@ -2366,10 +2388,14 @@ draw(PaintDevice *device)
 
   // draw rectangle
   auto rect = annotationBBox();
+  if (! rect.isValid()) return;
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsDrawUtil::drawRoundedRect(device, rect, cornerSize(), borderSides(), angle());
+  if (shapeType() == ShapeType::CIRCLE)
+    device->drawEllipse(rect);
+  else
+    CQChartsDrawUtil::drawRoundedRect(device, rect, cornerSize(), borderSides(), angle());
 
   //---
 
@@ -2705,6 +2731,7 @@ draw(PaintDevice *device)
 
   // draw box
   auto rect = annotationBBox();
+  if (! rect.isValid()) return;
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -3861,9 +3888,7 @@ draw(PaintDevice *device)
     rectToBBox();
 
   auto rect = annotationBBox();
-
-  if (! rect.isValid())
-    return;
+  if (! rect.isValid()) return;
 
   //---
 
@@ -4351,9 +4376,7 @@ draw(PaintDevice *device)
     positionToBBox();
 
   auto rect = annotationBBox();
-
-  if (! rect.isValid())
-    return;
+  if (! rect.isValid()) return;
 
   //---
 
@@ -4442,6 +4465,7 @@ updateDisabledImage(const DisabledImageType &type)
     auto bg = backgroundColor();
 
     auto rect = annotationBBox();
+    if (! rect.isValid()) return;
 
     auto prect = windowToPixel(rect);
 
@@ -4851,6 +4875,18 @@ CQChartsArrowAnnotation(Plot *plot, const ObjRefPos &start, const ObjRefPos &end
 }
 
 CQChartsArrowAnnotation::
+CQChartsArrowAnnotation(View *view, const Path &path) :
+ CQChartsConnectorAnnotationBase(view, Type::ARROW), path_(path)
+{
+}
+
+CQChartsArrowAnnotation::
+CQChartsArrowAnnotation(Plot *plot, const Path &path) :
+ CQChartsConnectorAnnotationBase(plot, Type::ARROW), path_(path)
+{
+}
+
+CQChartsArrowAnnotation::
 ~CQChartsArrowAnnotation()
 {
 }
@@ -5224,10 +5260,13 @@ draw(PaintDevice *device)
     arrowData.setTHeadType  (static_cast<CQChartsArrowData::HeadType>(arrow()->tailType ()));
     arrowData.setMidHeadType(static_cast<CQChartsArrowData::HeadType>(arrow()->midType  ()));
 
-    auto lw = device->pixelToWindowWidth(4);
+    auto xw = device->pixelToWindowWidth (4);
+    auto yw = device->pixelToWindowHeight(4);
 
-    if (arrow()->lineWidth().isSet() && arrow()->lineWidth().value() > 0)
-      lw = device->lengthWindowWidth(arrow()->lineWidth());
+    if (arrow()->lineWidth().isSet() && arrow()->lineWidth().value() > 0) {
+      xw = device->lengthWindowWidth (arrow()->lineWidth());
+      yw = device->lengthWindowHeight(arrow()->lineWidth());
+    }
 
     double frontLen = device->pixelToWindowWidth(4);
     double tailLen  = frontLen;
@@ -5237,9 +5276,9 @@ draw(PaintDevice *device)
     if (arrow()->tailLength().isSet())
       tailLen  = device->lengthWindowWidth(arrow()->tailLength());
 
-    CQChartsArrow::pathAddArrows(device, path_.path(), arrowData, lw,
-                                 CQChartsLength::factor(lw > 0.0 ? frontLen/lw : 1.0),
-                                 CQChartsLength::factor(lw > 0.0 ? tailLen /lw : 1.0),
+    CQChartsArrow::pathAddArrows(device, path_.path(), arrowData, xw, yw,
+                                 CQChartsLength::factor(xw > 0.0 ? frontLen/xw : 1.0),
+                                 CQChartsLength::factor(xw > 0.0 ? tailLen /xw : 1.0),
                                  arrowPath);
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
@@ -6377,6 +6416,7 @@ draw(PaintDevice *device)
     symbol = Symbol::circle();
 
   auto rect = annotationBBox();
+  if (! rect.isValid()) return;
 
   Point ps(rect.getXMid(), rect.getYMid());
 
@@ -6550,6 +6590,7 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   auto p = positionToParent(objRef(), position());
 
   auto rect = annotationBBox();
+  if (! rect.isValid()) return;
 
   double dx = bbox.getXMin() - rect.getXMin();
   double dy = bbox.getYMin() - rect.getYMin();
@@ -6769,6 +6810,15 @@ setEnd(double r)
   axis_->setEnd(end_);
 }
 
+void
+CQChartsAxisAnnotation::
+setValueType(const ValueType &v)
+{
+  valueType_ = v;
+
+  axis_->setValueType(v);
+}
+
 //---
 
 void
@@ -6787,6 +6837,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp(model, path1, "start"    , "", "Axis start");
   addProp(model, path1, "end"      , "", "Axis end");
   addProp(model, path1, "position" , "", "Axis position");
+  addProp(model, path1, "valueType", "", "Axis value type");
 }
 
 //---
@@ -9116,9 +9167,7 @@ draw(PaintDevice *)
       positionToBBox();
 
     auto rect = annotationBBox();
-
-    if (! rect.isValid())
-      return;
+    if (! rect.isValid()) return;
 
     //---
 
@@ -9484,9 +9533,7 @@ draw(PaintDevice *)
     positionToBBox();
 
   auto rect = annotationBBox();
-
-  if (! rect.isValid())
-    return;
+  if (! rect.isValid()) return;
 
   //---
 

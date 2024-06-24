@@ -57,7 +57,7 @@ setModelData(CQChartsModelData *modelData)
     combo_->setProxy(isProxy());
 
     if (modelData_)
-      combo_->setModel(modelData->currentModel(isProxy()).data());
+      combo_->setModelData(modelData);
   }
 }
 

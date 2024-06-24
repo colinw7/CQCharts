@@ -831,17 +831,24 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     }
   };
 
+  //---
+
   virtual double dataScaleX() const;
   virtual void setDataScaleX(double r);
 
   virtual double dataScaleY() const;
   virtual void setDataScaleY(double r);
 
-  virtual double dataOffsetX() const;
-  virtual void setDataOffsetX(double x);
+  virtual Point dataOffset() const;
+  virtual void setDataOffset(const Point &p);
 
-  virtual double dataOffsetY() const;
-  virtual void setDataOffsetY(double y);
+  double dataOffsetX() const;
+  void setDataOffsetX(double x);
+
+  double dataOffsetY() const;
+  void setDataOffsetY(double y);
+
+  //---
 
   double minDataScaleX() const { return minDataScaleX_; }
   void setMinDataScaleX(double r) { minDataScaleX_ = r; }
@@ -866,7 +873,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   void updateDataScaleX(double r);
   void updateDataScaleY(double r);
 
-  double dataScale() const;
+  double commonDataScale() const;
 
   //---
 
@@ -2843,6 +2850,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
                                                     const Angle &destStartAngle,
                                                     const Angle &destSpanAngle, bool self);
   ArrowAnnotation        *addArrowAnnotation       (const ObjRefPos &start, const ObjRefPos &end);
+  ArrowAnnotation        *addArrowAnnotation       (const Path &path);
   AxisAnnotation         *addAxisAnnotation        (Qt::Orientation direction, double start,
                                                     double end);
   ButtonAnnotation       *addButtonAnnotation      (const ObjRefPos &pos, const QString &text);

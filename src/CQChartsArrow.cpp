@@ -320,9 +320,7 @@ isSolid() const
     return true;
 
   bool linePoly = (lineWidth().value() > 0);
-
-  if (! linePoly)
-    return true;
+  if (linePoly) return true;
 
   bool isFrontSolid = (isFrontVisible() && ! isFrontLineEnds());
   bool isTailSolid  = (isTailVisible () && ! isTailLineEnds ());
@@ -1581,19 +1579,20 @@ CQChartsArrow::
 pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &arrowData,
               double lw, const Length &arrowLen, QPainterPath &arrowPath)
 {
-  pathAddArrows(device, path, arrowData, lw, arrowLen, arrowLen, arrowPath);
+  pathAddArrows(device, path, arrowData, lw, lw, arrowLen, arrowLen, arrowPath);
 }
 
 void
 CQChartsArrow::
 pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &arrowData,
-              double lw, const Length &frontLen, const Length &tailLen, QPainterPath &arrowPath)
+              double xw, double yw, const Length &frontLen, const Length &tailLen,
+              QPainterPath &arrowPath)
 {
   class PathVisitor : public CQChartsDrawUtil::PathVisitor {
    public:
-    PathVisitor(PaintDevice *device, double lw, double aw, double frontLen, double tailLen,
-                const ArrowData &arrowData) :
-     device_(device), lw_(lw), aw_(aw), frontLen_(frontLen), tailLen_(tailLen),
+    PathVisitor(PaintDevice *device, double xw, double yw, double aw,
+                double frontLen, double tailLen, const ArrowData &arrowData) :
+     device_(device), xw_(xw), yw_(yw), aw_(aw), frontLen_(frontLen), tailLen_(tailLen),
      arrowData_(arrowData) {
       bool isFHead   = arrowData_.calcIsFHead();
       bool isTHead   = arrowData_.calcIsTHead();
@@ -1644,10 +1643,10 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
 
         Point lp1, lp2, lp3, lp4, lp5, lp6, lp7, lp8;
 
-        addWidthToPoint(p1_  , a1, lw_, lp2, lp1); // above/below
-        addWidthToPoint(p2_  , a1, lw_, lp4, lp3); // above/below
-        addWidthToPoint(p2_  , a2, lw_, lp6, lp5); // above/below
-        addWidthToPoint(nextP, a2, lw_, lp8, lp7); // above/below
+        addWidthToPoint(p1_  , a1, xw_, yw_, lp2, lp1); // above/below
+        addWidthToPoint(p2_  , a1, xw_, yw_, lp4, lp3); // above/below
+        addWidthToPoint(p2_  , a2, xw_, yw_, lp6, lp5); // above/below
+        addWidthToPoint(nextP, a2, xw_, yw_, lp8, lp7); // above/below
 
         Point  pi1, pi2;
         double mu1, mu2;
@@ -1662,12 +1661,12 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
         }
       }
       else {
-        //auto pf = (arrowData_.calcIsTHead() && isLast() ? movePointOnLine(p2_, a1, -lw_) : p2_);
+        //auto pf = (arrowData_.calcIsTHead() && isLast() ? movePointOnLine(p2_, a1, -xw_) : p2_);
         bool skipLast = (arrowData_.calcIsTHead() && isLast());
 
         Point lp1, lp2;
 
-        addWidthToPoint(p2_, a1, lw_, lp2, lp1); // above/below
+        addWidthToPoint(p2_, a1, xw_, yw_, lp2, lp1); // above/below
 
         if (! skipLast) {
           arrowPath1_.lineTo(lp1.qpoint());
@@ -1704,8 +1703,8 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
 
         Point lp11, lp21, lp12, lp22;
 
-        addWidthToPoint(bezier1.getControlPoint(), a1, lw_, lp21, lp11); // above/below
-        addWidthToPoint(bezier1.getLastPoint   (), a2, lw_, lp22, lp12); // above/below
+        addWidthToPoint(bezier1.getControlPoint(), a1, xw_, yw_, lp21, lp11); // above/below
+        addWidthToPoint(bezier1.getLastPoint   (), a2, xw_, yw_, lp22, lp12); // above/below
 
 #if DEBUG_LABELS
         CQChartsDrawUtil::drawPointLabel(device_, lp12, "lp12", /*above*/false);
@@ -1731,13 +1730,13 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
       auto a1 = ArrowAngle(p1_ , pc1_);
       auto a2 = ArrowAngle(pc1_, p2_ );
 
-      //auto pf = (arrowData_.calcIsTHead() && isLast() ? movePointOnLine(p2, a2, -lw_) : p2);
+      //auto pf = (arrowData_.calcIsTHead() && isLast() ? movePointOnLine(p2, a2, -xw_) : p2);
       bool skipLast = (arrowData_.calcIsTHead() && isLast());
 
       Point lp11, lp21, lp12, lp22;
 
-      addWidthToPoint(pc1_, a1, lw_, lp21, lp11); // above/below
-      addWidthToPoint(p2  , a2, lw_, lp22, lp12); // above/below
+      addWidthToPoint(pc1_, a1, xw_, yw_, lp21, lp11); // above/below
+      addWidthToPoint(p2  , a2, xw_, yw_, lp22, lp12); // above/below
 
       if (! skipLast) {
         arrowPath1_.quadTo(lp11.qpoint(), lp12.qpoint());
@@ -1781,9 +1780,9 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
 
         Point lp11, lp21, lp12, lp22, lp13, lp23;
 
-        addWidthToPoint(bezier1.getControlPoint1(), a1, lw_, lp21, lp11); // above/below
-        addWidthToPoint(bezier1.getControlPoint2(), a2, lw_, lp22, lp12); // above/below
-        addWidthToPoint(bezier1.getLastPoint    (), a3, lw_, lp23, lp13); // above/below
+        addWidthToPoint(bezier1.getControlPoint1(), a1, xw_, yw_, lp21, lp11); // above/below
+        addWidthToPoint(bezier1.getControlPoint2(), a2, xw_, yw_, lp22, lp12); // above/below
+        addWidthToPoint(bezier1.getLastPoint    (), a3, xw_, yw_, lp23, lp13); // above/below
 
 #if DEBUG_LABELS
         CQChartsDrawUtil::drawPointLabel(device_, lp13, "lp13", /*above*/false);
@@ -1811,14 +1810,14 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
       auto a2 = ArrowAngle(pc1_, pc2_);
       auto a3 = ArrowAngle(pc2_, p2_ );
 
-      //auto pf = (arrowData_.calcIsTHead() && isLast() ? movePointOnLine(p2_, a3, -lw_) : p2_);
+      //auto pf = (arrowData_.calcIsTHead() && isLast() ? movePointOnLine(p2_, a3, -xw_) : p2_);
       bool skipLast = (arrowData_.calcIsTHead() && isLast());
 
       Point lp11, lp21, lp12, lp22, lp13, lp23;
 
-      addWidthToPoint(pc1_, a1, lw_, lp21, lp11); // above/below
-      addWidthToPoint(pc2_, a2, lw_, lp22, lp12); // above/below
-      addWidthToPoint(p2_ , a3, lw_, lp23, lp13); // above/below
+      addWidthToPoint(pc1_, a1, xw_, yw_, lp21, lp11); // above/below
+      addWidthToPoint(pc2_, a2, xw_, yw_, lp22, lp12); // above/below
+      addWidthToPoint(p2_ , a3, xw_, yw_, lp23, lp13); // above/below
 
       if (! skipLast) {
         arrowPath1_.cubicTo(lp11.qpoint(), lp12.qpoint(), lp13.qpoint());
@@ -1862,8 +1861,8 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
 
           Point ap1, ap2, ap3, ap4;
 
-          addWidthToPoint(p1_, a, lw_, ap2, ap1); // above/below
-          addWidthToPoint(pf , a, lw_, ap4, ap3); // above/below
+          addWidthToPoint(p1_, a, xw_, yw_, ap2, ap1); // above/below
+          addWidthToPoint(pf , a, xw_, yw_, ap4, ap3); // above/below
 
           Point  pi1, pi2;
           double mu1, mu2;
@@ -1901,7 +1900,7 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
 
           Point lp1, lp2;
 
-          addWidthToPoint(p1_, a, lw_, lp2, lp1); // above/below
+          addWidthToPoint(p1_, a, xw_, yw_, lp2, lp1); // above/below
 
           arrowPath1_.lineTo(lp1.qpoint());
           arrowPath2_.lineTo(lp2.qpoint());
@@ -1920,20 +1919,21 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
         return false;
 
       Point lp1, lp2;
-      addWidthToPoint(midPoint_, midAngle_, lw_, lp2, lp1); // above/below
+      addWidthToPoint(midPoint_, midAngle_, xw_, yw_, lp2, lp1); // above/below
 
       auto pathLen = path->length();
 
       auto lenPercent = std::min(0.5 + (pathLen > 0.0 ? frontLen_/pathLen : 0.0), 1.0);
 
       Point lp3, lp4;
-      addWidthToPoint(midPoint_, midAngle_, lw_ + frontLen_, lp4, lp3); // above/below
+      addWidthToPoint(midPoint_, midAngle_, xw_ + frontLen_, yw_ + frontLen_,
+                      lp4, lp3); // above/below
 
       endAngle_ = ArrowAngle(CMathUtil::Deg2Rad(-path->angleAtPercent(lenPercent)));
       endPoint_ = Point(path->pointAtPercent(lenPercent));
 
       Point lp5, lp6;
-      addWidthToPoint(endPoint_, endAngle_, lw_, lp6, lp5); // above/below
+      addWidthToPoint(endPoint_, endAngle_, xw_, yw_, lp6, lp5); // above/below
 
       arrowPath1_.lineTo(lp1.qpoint());
       arrowPath1_.lineTo(lp3.qpoint());
@@ -1972,8 +1972,8 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
 
           Point ap1, ap2, ap3, ap4;
 
-          addWidthToPoint(p2_, a, lw_, ap2, ap1); // above/below
-          addWidthToPoint(pf , a, lw_, ap4, ap3); // above/below
+          addWidthToPoint(p2_, a, xw_, yw_, ap2, ap1); // above/below
+          addWidthToPoint(pf , a, xw_, yw_, ap4, ap3); // above/below
 
           Point  pi1, pi2;
           double mu1, mu2;
@@ -2047,7 +2047,8 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
    private:
     PaintDevice *device_ { nullptr };
 
-    double       lw_       { 1.0 };  // line width
+    double       xw_       { 1.0 };  // x line width
+    double       yw_       { 1.0 };  // y line width
     double       aw_       { 1.0 };  // arrow width
     double       frontLen_ { 1.0 };  // arrow front length
     double       tailLen_  { 1.0 };  // arrow tail length
@@ -2070,12 +2071,14 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
 
   //---
 
-  bool isLine = (lw <= 0.0);
+  bool isLine = (xw <= 0.0);
 
-  auto aw = (! isLine ? lw : std::max(-lw, 0.01));
+  auto aw = (! isLine ? xw : std::max(-xw, 0.01));
 
-  if (isLine)
-    lw = aw/1000.0;
+  if (isLine) {
+    xw = aw/1000.0;
+    yw = xw;
+  }
 
   //---
 
@@ -2095,7 +2098,7 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
   else
     tailLen1 = tailLen.value();
 
-  PathVisitor visitor(device, lw, aw, frontLen1, tailLen1, arrowData);
+  PathVisitor visitor(device, xw, yw, aw, frontLen1, tailLen1, arrowData);
 
   CQChartsDrawUtil::visitPath(path, visitor);
 
@@ -2106,8 +2109,15 @@ void
 CQChartsArrow::
 addWidthToPoint(const Point &p, const ArrowAngle &a, double lw, Point &p1, Point &p2)
 {
-  double dx = lw*a.sin/2.0;
-  double dy = lw*a.cos/2.0;
+  addWidthToPoint(p, a, lw, lw, p1, p2);
+}
+
+void
+CQChartsArrow::
+addWidthToPoint(const Point &p, const ArrowAngle &a, double wx, double wy, Point &p1, Point &p2)
+{
+  double dx = wx*a.sin/2.0;
+  double dy = wy*a.cos/2.0;
 
   p1 = Point(p.x - dx, p.y + dy); // above
   p2 = Point(p.x + dx, p.y - dy); // below

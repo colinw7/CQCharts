@@ -26,6 +26,7 @@
 #include <CQChartsObjRefPos.h>
 
 class CQChartsAnnotationGroup;
+class CQChartsTextAnnotation;
 class CQChartsSmooth;
 class CQChartsDensity;
 class CQChartsKey;
@@ -735,6 +736,9 @@ class CQChartsShapeAnnotationBase : public CQChartsAnnotation {
   void drawText(PaintDevice *device, const BBox &rect);
 
  protected:
+  CQChartsTextAnnotation *getTextAnnotation() const;
+
+ protected:
   Angle   angle_;   //!< rotation angle
   QString textInd_; //!< text ind for text label
 };
@@ -802,11 +806,20 @@ class CQChartsPolyShapeAnnotationBase : public CQChartsShapeAnnotationBase {
 class CQChartsRectangleAnnotation : public CQChartsShapeAnnotationBase {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsRect     rectangle READ rectangle WRITE setRectangle )
-  Q_PROPERTY(CQChartsPosition start     READ start     WRITE setStart     )
-  Q_PROPERTY(CQChartsPosition end       READ end       WRITE setEnd       )
+  Q_PROPERTY(ShapeType        shapeType READ shapeType WRITE setShapeType)
+  Q_PROPERTY(CQChartsRect     rectangle READ rectangle WRITE setRectangle)
+  Q_PROPERTY(CQChartsPosition start     READ start     WRITE setStart    )
+  Q_PROPERTY(CQChartsPosition end       READ end       WRITE setEnd      )
+
+  Q_ENUMS(ShapeType)
 
  public:
+  enum class ShapeType {
+    NONE      = static_cast<int>(CQChartsShapeType::Type::NONE),
+    RECTANGLE = static_cast<int>(CQChartsShapeType::Type::BOX),
+    CIRCLE    = static_cast<int>(CQChartsShapeType::Type::CIRCLE)
+  };
+
   using Rect       = CQChartsRect;
   using Symbol     = CQChartsSymbol;
   using SymbolType = CQChartsSymbolType;
@@ -849,6 +862,12 @@ class CQChartsRectangleAnnotation : public CQChartsShapeAnnotationBase {
 
   //---
 
+  //! get/set outline shape
+  const ShapeType &shapeType() const { return shapeType_; }
+  void setShapeType(const ShapeType &s);
+
+  //---
+
   //! add properties
   void addProperties(PropertyModel *model, const QString &path,
                      const QString &desc=QString()) override;
@@ -863,7 +882,8 @@ class CQChartsRectangleAnnotation : public CQChartsShapeAnnotationBase {
                     const QString &varName=QString()) const override;
 
  protected:
-  Rect   rectangle_; //!< rectangle
+  Rect      rectangle_;                          //!< rectangle
+  ShapeType shapeType_ { ShapeType::RECTANGLE }; //!< shape type
 };
 
 //---
@@ -1406,13 +1426,16 @@ class CQChartsImageAnnotation : public CQChartsShapeAnnotationBase {
 
   //! get/set position
   const OptPosition &position() const { return position_; }
-  void setPosition(const OptPosition &p);
+  virtual void setPosition(const OptPosition &p);
 
   Position positionValue() const;
   void setPosition(const Position &p);
 
+  //---
+
+  //! get/set rectangle
   const OptRect &rectangle() const { return rectangle_; }
-  void setRectangle(const OptRect &r);
+  virtual void setRectangle(const OptRect &r);
 
   Rect rectangleValue() const;
   void setRectangle(const Rect &r);
@@ -1615,6 +1638,9 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
                           const ObjRefPos &end=ObjRefPos::plot(Point(1, 1)));
   CQChartsArrowAnnotation(Plot *plot, const ObjRefPos &start=ObjRefPos::plot(Point(0, 0)),
                           const ObjRefPos &end=ObjRefPos::plot(Point(1, 1)));
+
+  CQChartsArrowAnnotation(View *view, const Path &path);
+  CQChartsArrowAnnotation(Plot *plot, const Path &path);
 
  ~CQChartsArrowAnnotation() override;
 
@@ -2185,13 +2211,15 @@ class CQChartsPieSliceAnnotation : public CQChartsShapeAnnotationBase {
 class CQChartsAxisAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(Qt::Orientation direction READ direction WRITE setDirection)
-  Q_PROPERTY(double          position  READ position  WRITE setPosition )
-  Q_PROPERTY(double          start     READ start     WRITE setStart    )
-  Q_PROPERTY(double          end       READ end       WRITE setEnd      )
+  Q_PROPERTY(Qt::Orientation       direction READ direction WRITE setDirection)
+  Q_PROPERTY(double                position  READ position  WRITE setPosition )
+  Q_PROPERTY(double                start     READ start     WRITE setStart    )
+  Q_PROPERTY(double                end       READ end       WRITE setEnd      )
+  Q_PROPERTY(CQChartsAxisValueType valueType READ valueType WRITE setValueType)
 
  public:
-  using Axis = CQChartsAxis;
+  using Axis      = CQChartsAxis;
+  using ValueType = CQChartsAxisValueType;
 
  public:
   CQChartsAxisAnnotation(Plot *plot, Qt::Orientation direction=Qt::Horizontal,
@@ -2235,6 +2263,9 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
   double end() const { return end_; }
   void setEnd(double r);
 
+  const ValueType &valueType() const { return valueType_; }
+  void setValueType(const ValueType &v);
+
   //---
 
   void connectAxis(bool b);
@@ -2270,6 +2301,7 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
   double          position_  { 0.0 };            //!< position
   double          start_     { 0.0 };            //!< start
   double          end_       { 1.0 };            //!< end
+  ValueType       valueType_;                    //!< value type
   AxisP           axis_;                         //!< axis
 };
 

@@ -124,9 +124,9 @@ wheelEvent(QWheelEvent *e)
   auto pp1 = pixelToPlot(Point(e->position()));
 
   if      (delta > 0)
-    plot->updateDataScale(plot->dataScale()*zoomFactor);
+    plot->updateDataScale(plot->commonDataScale()*zoomFactor);
   else if (delta < 0)
-    plot->updateDataScale(plot->dataScale()/zoomFactor);
+    plot->updateDataScale(plot->commonDataScale()/zoomFactor);
 
   auto pp2 = pixelToPlot(Point(e->position()));
 

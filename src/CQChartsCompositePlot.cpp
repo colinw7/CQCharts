@@ -2252,34 +2252,19 @@ setDataScaleY(double r)
     currentPlot()->setDataScaleY(r);
 }
 
-double
+CQChartsGeom::Point
 CQChartsCompositePlot::
-dataOffsetX() const
+dataOffset() const
 {
-  return (currentPlot() ? currentPlot()->dataOffsetX() : 0.0);
+  return (currentPlot() ? currentPlot()->dataOffset() : Point(0.0, 0.0));
 }
 
 void
 CQChartsCompositePlot::
-setDataOffsetX(double x)
+setDataOffset(const Point &p)
 {
   if (currentPlot())
-    currentPlot()->setDataOffsetX(x);
-}
-
-double
-CQChartsCompositePlot::
-dataOffsetY() const
-{
-  return (currentPlot() ? currentPlot()->dataOffsetY() : 0.0);
-}
-
-void
-CQChartsCompositePlot::
-setDataOffsetY(double y)
-{
-  if (currentPlot())
-    currentPlot()->setDataOffsetY(y);
+    currentPlot()->setDataOffset(p);
 }
 
 //---

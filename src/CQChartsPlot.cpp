@@ -2204,6 +2204,19 @@ void
 CQChartsPlot::
 writeStats(StatsPaintDevice *device) const
 {
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  // update data range
+  th->updateAndAdjustRanges();
+
+  th->applyDataRange();
+
+  // ensure objects created
+  th->initPlotObjs();
+
+  //---
+
+  // draw using device
   if (hasBackgroundRects())
     drawBackgroundRects(device);
 
@@ -2361,7 +2374,7 @@ objTreeRange() const
 
 double
 CQChartsPlot::
-dataScale() const
+commonDataScale() const
 {
   if (! isAllowZoomX() && ! isAllowZoomY())
     return 1.0;
@@ -2454,54 +2467,57 @@ setDataScaleY(double y)
   scrollData_.invalid = true;
 }
 
+CQChartsGeom::Point
+CQChartsPlot::
+dataOffset() const
+{
+  if      (isOverlay()) {
+    if (! isFirstPlot())
+      return firstPlot()->dataOffset();
+  }
+  else if (isY1Y2()) {
+    if (! isFirstPlot())
+      return firstPlot()->dataOffset();
+  }
+
+  return zoomData().dataOffset;
+}
+
+void
+CQChartsPlot::
+setDataOffset(const Point &p)
+{
+  assert(! isComposite());
+
+  zoomData_.dataOffset = p;
+}
+
 double
 CQChartsPlot::
 dataOffsetX() const
 {
-  if      (isOverlay()) {
-    if (! isFirstPlot())
-      return firstPlot()->dataOffsetX();
-  }
-  else if (isY1Y2()) {
-    if (! isFirstPlot())
-      return firstPlot()->dataOffsetX();
-  }
-
-  return zoomData().dataOffset.x;
+  return dataOffset().x;
 }
 
 void
 CQChartsPlot::
 setDataOffsetX(double x)
 {
-  assert(! isComposite());
-
-  zoomData_.dataOffset.x = x;
+  setDataOffset(Point(x, dataOffsetY()));
 }
 
 double
 CQChartsPlot::
 dataOffsetY() const
 {
-  if      (isOverlay()) {
-    if (! isFirstPlot())
-      return firstPlot()->dataOffsetY();
-  }
-  else if (isX1X2()) {
-    if (! isFirstPlot())
-      return firstPlot()->dataOffsetY();
-  }
-
-  return zoomData().dataOffset.y;
+  return dataOffset().y;
 }
 
 void
 CQChartsPlot::
 setDataOffsetY(double y)
 {
-  assert(! isComposite());
-
-  zoomData_.dataOffset.y = y;
+  setDataOffset(Point(dataOffsetX(), y));
 }
 
 //---
@@ -3083,7 +3099,7 @@ QFont
 CQChartsPlot::
 dataScaleFont(const QFont &f) const
 {
-  return CQChartsUtil::scaleFontSize(f, dataScale(), 1.0/72.0);
+  return CQChartsUtil::scaleFontSize(f, commonDataScale(), 1.0/72.0);
 }
 
 //---
@@ -6643,8 +6659,11 @@ adjustDataRangeBBox(const BBox &bbox) const
   // adjust by scale
   double w = 0.5*bw/dataScaleX();
   double h = 0.5*bh/dataScaleY();
-  double x = c.x + bw*dataOffsetX();
-  double y = c.y + bh*dataOffsetY();
+
+  auto offset = dataOffset();
+
+  double x = c.x + bw*offset.x;
+  double y = c.y + bh*offset.y;
 
   // calc scaled/offset bbox
   auto bbox1 = BBox(x - w, y - h, x + w, y + h);
@@ -12051,9 +12070,9 @@ wheelZoom(const Point &pp, int delta)
   auto pp1 = pixelToWindow(pp);
 
   if      (delta > 0)
-    updateDataScale(dataScale()*zoomFactor);
+    updateDataScale(commonDataScale()*zoomFactor);
   else if (delta < 0)
-    updateDataScale(dataScale()/zoomFactor);
+    updateDataScale(commonDataScale()/zoomFactor);
 
   auto pp2 = pixelToWindow(pp); // mapping may have changed
 
@@ -12328,8 +12347,7 @@ zoomTo(const BBox &bbox)
   double cx = (isAllowPanX() ? c.x - c1.x : 0.0)/getDataRange().getWidth ();
   double cy = (isAllowPanY() ? c.y - c1.y : 0.0)/getDataRange().getHeight();
 
-  setDataOffsetX(cx);
-  setDataOffsetY(cy);
+  setDataOffset(Point(cx, cy));
 
   applyDataRangeAndDraw();
 
@@ -12381,8 +12399,7 @@ unzoomTo(const BBox &bbox)
   double cx = (isAllowPanX() ? c.x - c1.x : 0.0)/getDataRange().getWidth ();
   double cy = (isAllowPanY() ? c.y - c1.y : 0.0)/getDataRange().getHeight();
 
-  setDataOffsetX(cx);
-  setDataOffsetY(cy);
+  setDataOffset(Point(cx, cy));
 
   applyDataRangeAndDraw();
 
@@ -12402,10 +12419,12 @@ isZoomFull() const
   if (isAllowZoomY() && ! CMathUtil::realEq(dataScaleY(), 1.0))
     return false;
 
-  if (! CMathUtil::realEq(dataOffsetX(), 0.0))
+  auto offset = dataOffset();
+
+  if (! CMathUtil::realEq(offset.x, 0.0))
     return false;
 
-  if (! CMathUtil::realEq(dataOffsetY(), 0.0))
+  if (! CMathUtil::realEq(offset.y, 0.0))
     return false;
 
   return true;
@@ -12431,8 +12450,7 @@ zoomFull1(bool notify)
   if (isAllowZoomY())
     setDataScaleY(1.0);
 
-  setDataOffsetX(0.0);
-  setDataOffsetY(0.0);
+  setDataOffset(Point(0.0, 0.0));
 
   applyDataRangeAndDraw();
 
@@ -12482,8 +12500,7 @@ centerAt(const Point &c)
   double cx = (isAllowPanX() ? c.x - c1.x : 0.0)/getDataRange().getWidth ();
   double cy = (isAllowPanY() ? c.y - c1.y : 0.0)/getDataRange().getHeight();
 
-  setDataOffsetX(cx);
-  setDataOffsetY(cy);
+  setDataOffset(Point(cx, cy));
 
   applyDataRangeAndDraw();
 
@@ -16712,9 +16729,16 @@ addAnnotationGroup()
 
 CQChartsArrowAnnotation *
 CQChartsPlot::
-addArrowAnnotation(const CQChartsObjRefPos &start, const CQChartsObjRefPos &end)
+addArrowAnnotation(const ObjRefPos &start, const ObjRefPos &end)
 {
   return addAnnotationT<ArrowAnnotation>(new ArrowAnnotation(this, start, end));
+}
+
+CQChartsArrowAnnotation *
+CQChartsPlot::
+addArrowAnnotation(const Path &path)
+{
+  return addAnnotationT<ArrowAnnotation>(new ArrowAnnotation(this, path));
 }
 
 CQChartsArcAnnotation *

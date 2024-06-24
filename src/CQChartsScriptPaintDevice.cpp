@@ -304,18 +304,20 @@ drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool /*stretch*/, 
 
   auto qimage = image.sizedImage(int(w), int(h));
 
-  drawImage(Point(x, y), qimage);
+  drawImage(Point(x, y), Image(qimage));
 }
 
 void
 CQChartsScriptPaintDevice::
-drawImage(const Point &p, const QImage &image)
+drawImage(const Point &p, const Image &image)
 {
+  auto qimage = image.image();
+
   // writes image into ba in PNG format
   QByteArray ba;
   QBuffer qbuffer(&ba);
   qbuffer.open(QIODevice::WriteOnly);
-  image.save(&qbuffer, "PNG");
+  qimage.save(&qbuffer, "PNG");
 
   *os_ << "  var imageData=\"data:image/png;base64,";
 

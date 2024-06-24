@@ -701,6 +701,7 @@ addProperties()
 
   // data labels
   addProp("points", "adjustText", "adjustText", "Adjust text placement");
+  addProp("points", "imageAlign", "imageAlign", "Image alignment");
 
   dataLabel()->addPathProperties("points/labels", "Labels");
 
@@ -4862,6 +4863,16 @@ draw(PaintDevice *device) const
     auto ps = scatterPlot()->windowToPixel(point());
 
     auto pbbox = BBox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
+
+    auto ialign = scatterPlot()->imageAlign();
+
+    if (ialign != Qt::AlignCenter) {
+      if      (ialign & Qt::AlignLeft ) { pbbox.moveBy(Point( sx, 0)); }
+      else if (ialign & Qt::AlignRight) { pbbox.moveBy(Point(-sx, 0)); }
+
+      if      (ialign & Qt::AlignBottom) { pbbox.moveBy(Point(0,  sy)); }
+      else if (ialign & Qt::AlignTop   ) { pbbox.moveBy(Point(0, -sy)); }
+    }
 
     device->drawImageInRect(scatterPlot()->pixelToWindow(pbbox), image);
   }

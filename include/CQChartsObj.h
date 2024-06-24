@@ -181,6 +181,18 @@ class CQChartsObj : public QObject {
 
   //---
 
+  void setMetaData(const QString &name, const QVariant &value) { metaData_[name] = value; }
+
+  bool hasMetaData(const QString &name) { return (metaData_.find(name) != metaData_.end()); }
+
+  QVariant getMetaData(const QString &name) {
+    auto p = metaData_.find(name);
+    if (p == metaData_.end()) return QVariant();
+    return (*p).second;
+  }
+
+  //---
+
   virtual ObjShapeType objShapeType() const { return ObjShapeType::RECT; }
 
   //---
@@ -204,21 +216,25 @@ class CQChartsObj : public QObject {
   void idChanged();
 
  protected:
-  using OptString = std::optional<QString>;
+  using OptString  = std::optional<QString>;
+  using NameValues = std::map<QString, QVariant>;
 
-  CQCharts*          charts_               { nullptr }; //!< charts
-  OptString          id_;                               //!< id
-  BBox               rect_;                             //!< bbox
-  OptString          tipId_;                            //!< tip id
-  bool               visible_              { true };    //!< is visible
-  bool               selected_             { false };   //!< is selected
-  bool               inside_               { false };   //!< is mouse inside
-  bool               selectable_           { true };    //!< is selectable
-  bool               editable_             { false };   //!< is editable
-  bool               clickable_            { false };   //!< is clickable
-  bool               notificationsEnabled_ { true };    //!< is notifications enabled
-  int                priority_             { 0 };       //!< priority
-  mutable std::mutex mutex_;                            //!< mutex for calc id/tip
+  CQCharts* charts_               { nullptr }; //!< charts
+  OptString id_;                               //!< id
+  BBox      rect_;                             //!< bbox
+  OptString tipId_;                            //!< tip id
+  bool      visible_              { true };    //!< is visible
+  bool      selected_             { false };   //!< is selected
+  bool      inside_               { false };   //!< is mouse inside
+  bool      selectable_           { true };    //!< is selectable
+  bool      editable_             { false };   //!< is editable
+  bool      clickable_            { false };   //!< is clickable
+  bool      notificationsEnabled_ { true };    //!< is notifications enabled
+  int       priority_             { 0 };       //!< priority
+
+  NameValues metaData_;
+
+  mutable std::mutex mutex_; //!< mutex for calc id/tip
 };
 
 //------

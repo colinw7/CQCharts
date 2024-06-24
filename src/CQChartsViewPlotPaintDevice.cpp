@@ -837,7 +837,7 @@ drawImageInRect(const BBox &bbox, const Image &image, bool stretch, const Angle 
 
 void
 CQChartsViewPlotPaintDevice::
-drawImage(const Point &p, const QImage &image)
+drawImage(const Point &p, const Image &image)
 {
   if (isNull())
     return;
@@ -845,12 +845,14 @@ drawImage(const Point &p, const QImage &image)
   if (! painter_)
     return;
 
+  auto qimage = image.image();
+
   auto pp = windowToPixel(p);
 
   if (isHandDrawn())
-    hdPainter_->drawImage(pp.qpoint(), image);
+    hdPainter_->drawImage(pp.qpoint(), qimage);
   else
-    painter_->drawImage(pp.qpoint(), image);
+    painter_->drawImage(pp.qpoint(), qimage);
 }
 
 const QFont &

@@ -374,11 +374,8 @@ class CQChartsCompositePlot : public CQChartsPlot {
   double dataScaleY() const override;
   void setDataScaleY(double r) override;
 
-  double dataOffsetX() const override;
-  void setDataOffsetX(double x) override;
-
-  double dataOffsetY() const override;
-  void setDataOffsetY(double y) override;
+  Point dataOffset() const override;
+  void setDataOffset(const Point &p) override;
 
   //---
 
