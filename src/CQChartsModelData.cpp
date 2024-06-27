@@ -1725,6 +1725,8 @@ writeCSV(std::ostream &fs) const
 
     writeMetaColumnNameValue("preferred_width");
 
+    writeMetaColumnNameValue("alignment");
+
     writeMetaColumnNameValue("named_values");
     writeMetaColumnNameValue("named_colors");
     writeMetaColumnNameValue("named_images");

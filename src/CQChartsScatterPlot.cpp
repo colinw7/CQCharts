@@ -925,6 +925,7 @@ calcRange() const
         }
         else {
           x = uniqueId(data, scatterPlot_->xColumn()); ++numUniqueX_;
+          if (x == -1) okx = false;
         }
 
         //---
@@ -938,6 +939,7 @@ calcRange() const
         }
         else {
           y = uniqueId(data, scatterPlot_->yColumn()); ++numUniqueY_;
+          if (y == -1) oky = false;
         }
 
         if (scatterPlot_->isPolar()) {

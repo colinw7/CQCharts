@@ -2038,6 +2038,12 @@ calcType()
 
     preferredWidth_ = columnType->preferredWidth(nameValues);
 
+    Qt::Alignment align;
+    if (columnType->alignment(nameValues, align))
+      alignment_ = OptAlign(align);
+    else
+      alignment_ = OptAlign();
+
     nullValue_ = columnType->nullValue(nameValues);
 
     currentValue_ = columnType->currentValue(nameValues);

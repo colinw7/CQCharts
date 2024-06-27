@@ -231,6 +231,8 @@ class CQChartsColumnType {
 
   int preferredWidth(const NameValues &nameValues) const;
 
+  bool alignment(const NameValues &nameValues, Qt::Alignment &align) const;
+
   QString      nullValue   (const NameValues &nameValues) const;
   QString      currentValue(const NameValues &nameValues) const;
   QVariantList extraValues (const NameValues &nameValues) const;

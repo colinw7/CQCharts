@@ -6,7 +6,9 @@
 #include <CQChartsModelTypes.h>
 #include <CQChartsUtil.h>
 #include <CQBucketer.h>
+
 #include <future>
+#include <optional>
 
 class CQChartsModelColumnDetails;
 class CQChartsModelData;
@@ -155,6 +157,7 @@ class CQChartsModelColumnDetails {
   using ColorStops    = CQChartsColorStops;
   using Color         = CQChartsColor;
   using Image         = CQChartsImage;
+  using OptAlign      = std::optional<Qt::Alignment>;
 
  public:
   CQChartsModelColumnDetails(Details *details, const Column &column);
@@ -323,6 +326,10 @@ class CQChartsModelColumnDetails {
   int preferredWidth() const { return preferredWidth_; }
   //void setPreferredWidth(int w) { preferredWidth_ = w; }
 
+  // get cached "alignment" column type value
+  OptAlign alignment() const { return alignment_; }
+  //void setAlignment(const OptAlign &a) { alignment_ = a; }
+
   // get cached "null_value" column type value
   const QString &nullValue() const;
   //void setNullValue(const QString &v) { nullValue_ = v; }
@@ -479,7 +486,9 @@ class CQChartsModelColumnDetails {
   int       numBuckets_ { -1 }; //!< number of buckets
 
   // cached parameter values
-  int preferredWidth_  { -1 }; //!< preferred column width
+  int preferredWidth_ { -1 }; //!< preferred column width
+
+  OptAlign alignment_;
 
   QString      nullValue_;    //!< null value
   QString      currentValue_; //!< null value

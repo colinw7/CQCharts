@@ -4,7 +4,12 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + table plot bar chart color clip
+ + table plot horizontal/vertical header properties for formatting, style, ... ?
+ + auto fit no scroll ?
+
  + path for axis (curved axis, distance on path, gradient of path for text angle)
+   + rotated or force horizontal text
 
  + fireworks model to test animation/model update speed (tcl, model toys or spearate app?)
 

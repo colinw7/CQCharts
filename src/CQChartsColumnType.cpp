@@ -869,6 +869,10 @@ CQChartsColumnType(Type type) :
   addGenericParam("preferred_width", Type::INTEGER, "Preferred Width", "")->
     setDesc("Preferred column width");
 
+  // alignment
+  addGenericParam("alignment", Type::INTEGER, "Alignment", "")->
+    setDesc("Column alignment");
+
   // null value
   addGenericParam("null_value", Type::STRING, "Null Value", "")->
     setDesc("Null value string").setNullValue(true);
@@ -1020,10 +1024,25 @@ preferredWidth(const NameValues &nameValues) const
     str.clear();
 
   bool ok;
-
   long width = CQChartsUtil::toInt(str, ok);
 
   return (ok ? int(width) : -1);
+}
+
+bool
+CQChartsColumnType::
+alignment(const NameValues &nameValues, Qt::Alignment &align) const
+{
+  QString str;
+
+  if (! nameValueString(nameValues, "alignment", str))
+    return false;
+
+  bool ok;
+  align = static_cast<Qt::Alignment>(static_cast<int>(CQChartsUtil::toInt(str, ok)));
+  if (! ok) return false;
+
+  return true;
 }
 
 QString
