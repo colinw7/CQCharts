@@ -98,6 +98,8 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   // ticks label
   Q_PROPERTY(bool                           tickLabelAutoHide
              READ isTickLabelAutoHide WRITE setTickLabelAutoHide )
+  Q_PROPERTY(bool                           tickLabelPerpPath
+             READ isTickLabelPerpPath WRITE setTickLabelPerpPath )
   Q_PROPERTY(CQChartsAxisTickLabelPlacement tickLabelPlacement
              READ tickLabelPlacement  WRITE setTickLabelPlacement)
 
@@ -445,6 +447,10 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   bool isTickLabelAutoHide() const { return data_.tickLabelAutoHide; }
   void setTickLabelAutoHide(bool b);
 
+  //! get/set tick label angle is perp to path
+  bool isTickLabelPerpPath() const { return data_.tickLabelPerpPath; }
+  void setTickLabelPerpPath(bool b);
+
   //! get/set ticks label placement
   const AxisTickLabelPlacement &tickLabelPlacement() const { return data_.tickLabelPlacement; }
   void setTickLabelPlacement(const AxisTickLabelPlacement &p);
@@ -750,6 +756,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
     bool mirrorTicks  { false }; //!< mirror ticks
 
     bool                   tickLabelAutoHide   { true }; //!< tick auto hide
+    bool                   tickLabelPerpPath   { true }; //!< tick perp path
     AxisTickLabelPlacement tickLabelPlacement;           //!< tick placement
 
     // range

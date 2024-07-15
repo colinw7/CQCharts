@@ -315,7 +315,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
   auto ticksLabelPath     = ticksPath + "/label";
   auto ticksLabelTextPath = ticksLabelPath + "/text";
 
-  addProp(ticksLabelPath, "tickLabelAutoHide" , "autoHide", "Axis tick label text is auto hide");
+  addProp(ticksLabelPath, "tickLabelAutoHide" , "autoHide" , "Axis tick label text is auto hide");
+  addProp(ticksLabelPath, "tickLabelPerpPath" , "perpPath" , "Axis tick label text is perp path");
   addProp(ticksLabelPath, "tickLabelPlacement", "placement", "Axis tick label text placement");
 
   addStyleProp(ticksLabelTextPath, "axesTickLabelTextData"         , "style",
@@ -911,6 +912,13 @@ CQChartsAxis::
 setTickLabelAutoHide(bool b)
 {
   CQChartsUtil::testAndSet(data_.tickLabelAutoHide, b, [&]() { optRedraw(); } );
+}
+
+void
+CQChartsAxis::
+setTickLabelPerpPath(bool b)
+{
+  CQChartsUtil::testAndSet(data_.tickLabelPerpPath, b, [&]() { optRedraw(); } );
 }
 
 //---
@@ -1763,7 +1771,16 @@ drawPathTicks(const Plot *plot, PaintDevice *device) const
   double plx = pixelToWindowWidth (plot, device, tlen);
   double ply = pixelToWindowHeight(plot, device, tlen);
 
+  //---
+
+  if (plot)
+    plot->setPainterFont(device, axesTickLabelTextFont());
+  else
+    device->setFont(axesTickLabelTextFont().font());
+
   QFontMetricsF fm(device->font());
+
+  //---
 
   auto ph = fm.ascent();
 
@@ -1811,9 +1828,37 @@ drawPathTicks(const Plot *plot, PaintDevice *device) const
     else
       ppe = Point(pps.x - plx*a.sin(), pps.y + ply*a.cos());
 
+    //---
+
+    PenBrush penBrush;
+
+    setAxesLineDataPen(penBrush.pen, ColorInd());
+
+    device->setPen(penBrush.pen);
+
+    //---
+
     device->drawLine(pps, ppe);
 
+    //---
+
     if (labelVisible) {
+      PenBrush tpenBrush;
+
+      auto tc = interpAxesTickLabelTextColor(ColorInd());
+
+      if (plot)
+        plot->setPen(tpenBrush, PenData(true, tc, axesTickLabelTextAlpha()));
+      else
+        CQChartsUtil::setPen(tpenBrush.pen, true, tc, axesTickLabelTextAlpha());
+
+      if (forceColor_)
+        tpenBrush.pen.setColor(savePen_.color());
+
+      device->setPen(tpenBrush.pen);
+
+      //---
+
       auto value = CMathUtil::map(double(i), 0.0, double(n - 1), start(), end());
 
       auto text = valueStr(plot, value);
@@ -1825,7 +1870,11 @@ drawPathTicks(const Plot *plot, PaintDevice *device) const
       else
         pt = Point(ppe.x - phx*a.sin(), ppe.y + phy*a.cos());
 
-      textOptions.angle = a;
+      if (isTickLabelPerpPath())
+        textOptions.angle = a;
+      else
+        textOptions.angle = axesTickLabelTextAngle();
+
       textOptions.align = Qt::Alignment(Qt::AlignHCenter);
 
       CQChartsRotatedText::draw(device, pt, text, textOptions);
@@ -2256,11 +2305,13 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
   else
     device->setFont(axesTickLabelTextFont().font());
 
+  QFontMetricsF fm(device->font());
+
+  //---
+
   auto angle      = axesTickLabelTextAngle();
   auto clipLength = lengthPixelWidth(plot, device, axesTickLabelTextClipLength());
   auto clipElide  = axesTickLabelTextClipElide();
-
-  QFontMetricsF fm(device->font());
 
   auto text1 = CQChartsDrawUtil::clipTextToLength(text, device->font(), clipLength, clipElide);
 

@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QRectF>
+#include <mutex>
 
 class QImage;
 class QPainter;
@@ -74,7 +75,7 @@ class CQChartsBuffer : public QObject {
   GLContext *glContext() const { return glContext_; }
 #endif
 
-  const QRectF &rect() const { return rect_; }
+  QRectF rect() const;
 
   QPainter *beginPaint(QPainter *painter, const QRectF &rect, bool alias=true);
 
@@ -83,12 +84,16 @@ class CQChartsBuffer : public QObject {
   void clear();
 
   void draw(QPainter *painter);
-  void draw(QPainter *painter, int x, int y);
+
+  void drawAt(QPainter *painter, int x, int y);
+
+ protected:
+  void drawI(QPainter *painter, const QRectF &r);
 
  private:
   QPainter *ipainter();
 
-  void updateSize();
+  void updateSize(const QRectF &r);
 
  private:
   QWidget* widget_ { nullptr };
@@ -111,6 +116,8 @@ class CQChartsBuffer : public QObject {
   QSize      size_;
   QPainter*  ipainter_ { nullptr };
   QPainter*  painter_  { nullptr };
+
+  mutable std::mutex mutex_;
 };
 
 #endif

@@ -13613,7 +13613,7 @@ drawLayer(QPainter *painter, Layer::Type type) const
 
   auto *buffer = getBuffer(layer->buffer());
 
-  buffer->draw(painter, 0, 0);
+  buffer->drawAt(painter, 0, 0);
 }
 
 //---

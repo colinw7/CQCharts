@@ -72,10 +72,21 @@ CQChartsBuffer::
   delete ipainter_;
 }
 
+QRectF
+CQChartsBuffer::
+rect() const
+{
+  std::unique_lock<std::mutex> lock(mutex_);
+
+  return rect_;
+}
+
 QPainter *
 CQChartsBuffer::
 beginPaint(QPainter *painter, const QRectF &rect, bool alias)
 {
+  std::unique_lock<std::mutex> lock(mutex_);
+
 //std::cerr << "beginPaint: " << typeName(type_) << "\n";
   painter_ = painter;
   rect_    = rect;
@@ -87,7 +98,7 @@ beginPaint(QPainter *painter, const QRectF &rect, bool alias)
 
   //---
 
-  updateSize();
+  updateSize(rect);
 
   //---
 
@@ -120,7 +131,7 @@ beginPaint(QPainter *painter, const QRectF &rect, bool alias)
 
   QTransform t;
 
-  t.translate(-rect_.x(), -rect_.y());
+  t.translate(-rect.x(), -rect.y());
 
   ipainter()->setTransform(t);
 
@@ -136,6 +147,8 @@ void
 CQChartsBuffer::
 endPaint(bool draw)
 {
+  std::unique_lock<std::mutex> lock(mutex_);
+
 //std::cerr << "endPaint: " << typeName(type_) << "\n";
   if (! isValid()) {
     ipainter()->end();
@@ -152,7 +165,7 @@ endPaint(bool draw)
   }
 
   if (draw)
-    this->draw(painter_);
+    this->drawI(painter_, rect_);
 
   painter_ = nullptr;
 }
@@ -181,14 +194,23 @@ void
 CQChartsBuffer::
 draw(QPainter *painter)
 {
-  draw(painter, int(rect_.x()), int(rect_.y()));
+  auto r = this->rect();
+
+  drawI(painter, r);
 }
 
 void
 CQChartsBuffer::
-draw(QPainter *painter, int x, int y)
+drawI(QPainter *painter, const QRectF &r)
 {
-//std::cerr << "draw: " << typeName(type_) << "\n";
+  drawAt(painter, int(r.x()), int(r.y()));
+}
+
+void
+CQChartsBuffer::
+drawAt(QPainter *painter, int x, int y)
+{
+//std::cerr << "drawAtI: " << typeName(type_) << "\n";
   if      (bufferType() == BufferType::PIXMAP) {
     assert(pixmap_);
 
@@ -220,9 +242,9 @@ ipainter()
 
 void
 CQChartsBuffer::
-updateSize()
+updateSize(const QRectF &rect)
 {
-  auto fsize = rect_.size();
+  auto fsize = rect.size();
 
   QSize size(CMathRound::RoundUp(fsize.width()), CMathRound::RoundUp(fsize.height()));
 
