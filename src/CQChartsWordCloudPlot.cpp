@@ -111,6 +111,7 @@ CQChartsWordCloudPlot(View *view, const ModelP &model) :
 CQChartsWordCloudPlot::
 ~CQChartsWordCloudPlot()
 {
+  CQChartsWordCloudPlot::term();
 }
 
 //---

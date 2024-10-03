@@ -20,6 +20,7 @@ CQChartsPlot3D(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &mod
 CQChartsPlot3D::
 ~CQChartsPlot3D()
 {
+  CQChartsPlot3D::term();
 }
 
 //---

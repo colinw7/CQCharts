@@ -141,6 +141,7 @@ CQChartsWheelPlot(View *view, const ModelP &model) :
 CQChartsWheelPlot::
 ~CQChartsWheelPlot()
 {
+  CQChartsWheelPlot::term();
 }
 
 //---

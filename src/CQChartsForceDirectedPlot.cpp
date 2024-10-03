@@ -3537,8 +3537,8 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
   CQChartsDrawUtil::RectConnectData   rectConnectData;
   CQChartsDrawUtil::CircleConnectData circleConnectData;
 
-  auto sc = sbbox.getCenter(); auto sr = sbbox.getWidth()/2.0;
-  auto tc = tbbox.getCenter(); auto tr = tbbox.getWidth()/2.0;
+  auto sc = sbbox.getCenter(); auto sxr = sbbox.getWidth()/2.0; auto syr = sbbox.getHeight()/2.0;
+  auto tc = tbbox.getCenter(); auto txr = tbbox.getWidth()/2.0; auto tyr = tbbox.getHeight()/2.0;
 
   const int NodeSlots = 16; // balance between available and angle separation
 
@@ -3548,7 +3548,7 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
     for (const auto &ps : snode->occupiedSlots())
       circleConnectData.occupiedSlots.insert(ps.first);
 
-    CQChartsDrawUtil::circleConnectionPoint(sc, sr, tc, tr, ep1, circleConnectData);
+    CQChartsDrawUtil::circleConnectionPoint(sc, sxr, syr, tc, txr, tyr, ep1, circleConnectData);
 
     snode->addOccupiedSlot(ep1.slot, sedge);
   }
@@ -3561,7 +3561,7 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
     for (const auto &ps : tnode->occupiedSlots())
       circleConnectData.occupiedSlots.insert(ps.first);
 
-    CQChartsDrawUtil::circleConnectionPoint(tc, tr, ep1.p, 0.0, ep2, circleConnectData);
+    CQChartsDrawUtil::circleConnectionPoint(tc, txr, tyr, ep1.p, 0.0, 0.0, ep2, circleConnectData);
 
     //---
 
@@ -3596,7 +3596,8 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
 
         circleConnectData.occupiedSlots.insert(ep2.slot);
 
-        CQChartsDrawUtil::circleConnectionPoint(tc, tr, ep1.p, 0.0, ep2, circleConnectData);
+        CQChartsDrawUtil::circleConnectionPoint(tc, txr, tyr, ep1.p, 0.0, 0.0,
+                                                ep2, circleConnectData);
 
         if (ep2.slot == -1) {
           //std::cerr << "No non-intersect found\n";
@@ -3621,6 +3622,16 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
   QPainterPath edgePath, curvePath, selectPath;
 
   if (! isLine) {
+    static double minPixelWidth { 3.0 };
+
+    auto lww1     = lww;
+    bool minWidth = false;
+
+    if (lw < minPixelWidth) {
+      lww1     = pixelToWindowWidth(minPixelWidth);
+      minWidth = true;
+    }
+
     CQChartsDrawUtil::curvePath(edgePath, ep1.p, ep2.p, edgeType, ep1.angle, ep2.angle);
 
     if (isArrow) {
@@ -3634,17 +3645,14 @@ drawEdge(PaintDevice *device, const ForceEdgeP &edge, Edge *sedge) const
         arrowData.setMidHeadType(CQChartsArrowData::HeadType::ARROW);
       }
 
-      CQChartsArrow::pathAddArrows(device, edgePath, arrowData, lww, arrowWidth(), curvePath);
+      CQChartsArrow::pathAddArrows(device, edgePath, arrowData, lww1, arrowWidth(), curvePath);
     }
     else {
-      CQChartsDrawUtil::edgePath(curvePath, ep1.p, ep2.p, lww, edgeType, ep1.angle, ep2.angle);
+      CQChartsDrawUtil::edgePath(curvePath, ep1.p, ep2.p, lww1, edgeType, ep1.angle, ep2.angle);
     }
 
-    if (lw < 3) {
-      auto lww1 = pixelToWindowWidth(3);
-
+    if (minWidth)
       CQChartsDrawUtil::edgePath(selectPath, ep1.p, ep2.p, lww1, edgeType, ep1.angle, ep2.angle);
-    }
     else
       selectPath = curvePath;
   }

@@ -584,15 +584,20 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
  private:
   void drawI(const View *view, const Plot *plot, PaintDevice *device,
-             bool usePen=false, bool forceColor=false) const;
+             bool usePen=false, bool forceColor=false);
 
-  void drawCustomTicks(const Plot *plot, PaintDevice *device, double amin, double amax,
-                       double apos1, double apos2) const;
-  void drawTickLabels(const Plot *plot, PaintDevice *device, double amin, double amax,
-                      double apos1, double apos2) const;
-  void drawPathTicks(const Plot *plot, PaintDevice *device) const;
-  void drawTicks(const Plot *plot, PaintDevice *device, double amin, double amax,
-                 double apos1, double apos2) const;
+  void drawGridI(const Plot *plot, PaintDevice *device);
+
+  void drawCustomTicksI(const Plot *plot, PaintDevice *device, double amin, double amax,
+                        double apos1, double apos2);
+
+  void drawTickLabelsI(const Plot *plot, PaintDevice *device, double amin, double amax,
+                       double apos1, double apos2);
+
+  void drawPathTicksI(const Plot *plot, PaintDevice *device);
+
+  void drawTicksI(const Plot *plot, PaintDevice *device, double amin, double amax,
+                  double apos1, double apos2);
 
   //---
 
@@ -608,36 +613,43 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   void calcPos(const Plot *plot, double &apos1, double &apos2) const;
 
-  void drawLine(const Plot *plot, PaintDevice *device, double apos, double amin, double amax) const;
-
-  void drawMajorGridLine(const Plot *plot, PaintDevice *device, double apos,
-                         double amin, double amax) const;
-  void drawMinorGridLine(const Plot *plot, PaintDevice *device, double apos,
-                         double amin, double amax) const;
-
-  void drawMajorTickLine(const Plot *plot, PaintDevice *device, double apos,
-                         double tpos, bool inside) const;
-  void drawMinorTickLine(const Plot *plot, PaintDevice *device, double apos,
-                         double tpos, bool inside) const;
-
-  void drawTickLine(const Plot *plot, PaintDevice *device, double apos,
-                    double tpos, bool inside, bool major) const;
-
-  void drawTickLabel(const Plot *plot, PaintDevice *device, double apos, double tpos,
-                     double value, bool inside) const;
-
-  void drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device) const;
-
-  void drawAxisLabel(const Plot *plot, PaintDevice *device,
-                     double apos, double amin, double amax) const;
-  void drawAxisLabelI(const Plot *plot, PaintDevice *device, double apos,
-                      double amin, double amax, const QString &text, bool allowHtml) const;
-
   void getTickLabelsPositions(std::set<int> &positions) const;
 
   //---
 
+ private:
+  void drawMajorGridLineI(const Plot *plot, PaintDevice *device, double apos,
+                          double amin, double amax);
+  void drawMinorGridLineI(const Plot *plot, PaintDevice *device, double apos,
+                          double amin, double amax);
+
+  void drawTickLabelI(const Plot *plot, PaintDevice *device, double apos, double tpos,
+                      double value, bool inside);
+
+  void drawAxisLabelI(const Plot *plot, PaintDevice *device,
+                      double apos, double amin, double amax);
+
+  //---
+
+ public:
   void write(const CQPropertyViewModel *propertyModel, const QString &plotName, std::ostream &os);
+
+ private:
+  void drawAxisLabelI(const Plot *plot, PaintDevice *device, double apos,
+                      double amin, double amax, const QString &text, bool allowHtml);
+
+  void drawMajorTickLineI(const Plot *plot, PaintDevice *device, double apos,
+                          double tpos, bool inside);
+  void drawMinorTickLineI(const Plot *plot, PaintDevice *device, double apos,
+                          double tpos, bool inside);
+
+  void drawTickLineI(const Plot *plot, PaintDevice *device, double apos,
+                     double tpos, bool inside, bool major);
+
+  void drawAxisTickLabelDatasI(const Plot *plot, PaintDevice *device);
+
+  void drawLineI(const Plot *plot, PaintDevice *device,
+                 double apos, double amin, double amax);
 
  Q_SIGNALS:
   void ticksChanged();
@@ -818,18 +830,20 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   EditHandlesP editHandles_; //!< edit handles
 
   // bbox draw state
-  mutable BBox       bbox_;              //!< axis box
-  mutable BBox       fitBBox_;           //!< fit box
-  mutable BBox       fitLBBox_;          //!< label fit box
-  mutable BBox       fitTLBBox_;         //!< tick label fit box
-  mutable BBox       plbbox_;            //!< label pixel box
-  mutable BBox       tlbbox_;            //!< title label box
-//mutable BBox       lastTickLabelRect_; //!< last tick box (for auto hide)
-  mutable TextPlacer textPlacer_;        //!< cache axis tick label draw data
+  mutable std::mutex drawMutex_;
 
-  mutable bool usePen_     { false }; //!< use painter pen
-  mutable bool forceColor_ { false }; //!< force painter color for all
-  mutable QPen savePen_;              //!< override pen to use
+  BBox       bbox_;              //!< axis box
+  BBox       fitBBox_;           //!< fit box
+  BBox       fitLBBox_;          //!< label fit box
+  BBox       fitTLBBox_;         //!< tick label fit box
+  BBox       plbbox_;            //!< label pixel box
+  BBox       tlbbox_;            //!< title label box
+//BBox       lastTickLabelRect_; //!< last tick box (for auto hide)
+  TextPlacer textPlacer_;        //!< cache axis tick label draw data
+
+  bool usePen_     { false }; //!< use painter pen
+  bool forceColor_ { false }; //!< force painter color for all
+  QPen savePen_;              //!< override pen to use
 };
 
 #endif

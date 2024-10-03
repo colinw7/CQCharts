@@ -2279,7 +2279,6 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   PlotObj *plotObject(int i) const { return CUtil::safeIndex(plotObjs_, i); }
 
   bool isNoData() const { return noData_; }
-  void setNoData(bool b) { noData_ = b; }
 
   //---
 

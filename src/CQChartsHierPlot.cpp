@@ -12,6 +12,7 @@ CQChartsHierPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model
 CQChartsHierPlot::
 ~CQChartsHierPlot()
 {
+  CQChartsHierPlot::term();
 }
 
 //---

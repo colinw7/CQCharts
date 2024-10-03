@@ -54,6 +54,8 @@ CQChartsBuffer(QWidget *widget, const Type &type) :
 #endif
   else
     bufferType_ = BufferType::IMAGE;
+
+  painting_ = false;
 }
 
 CQChartsBuffer::
@@ -107,7 +109,11 @@ beginPaint(QPainter *painter, const QRectF &rect, bool alias)
   if      (bufferType() == BufferType::PIXMAP) {
     assert(pixmap_);
 
-    ipainter()->begin(pixmap_);
+    if (! painting_) {
+      ipainter()->begin(pixmap_);
+
+      painting_ = true;
+    }
   }
 #ifdef CQCHARTS_OPENGL
   else if (bufferType() == BufferType::OPENGL) {
@@ -118,7 +124,11 @@ beginPaint(QPainter *painter, const QRectF &rect, bool alias)
 
     glBuffer_->bind();
 
-    ipainter()->begin(glDevice_);
+    if (! painting_) {
+      ipainter()->begin(glDevice_);
+
+      painting_ = true;
+    }
 
     ipainter()->fillRect(QRect(QPoint(0, 0), size_), Qt::transparent);
   }
@@ -126,7 +136,11 @@ beginPaint(QPainter *painter, const QRectF &rect, bool alias)
   else if (bufferType() == BufferType::IMAGE) {
     assert(image_);
 
-    ipainter()->begin(image_);
+    if (! painting_) {
+      ipainter()->begin(image_);
+
+      painting_ = true;
+    }
   }
 
   QTransform t;
@@ -151,7 +165,11 @@ endPaint(bool draw)
 
 //std::cerr << "endPaint: " << typeName(type_) << "\n";
   if (! isValid()) {
-    ipainter()->end();
+    if (painting_) {
+      ipainter()->end();
+
+      painting_ = false;
+    }
 
 #ifdef CQCHARTS_OPENGL
     if (bufferType() == BufferType::OPENGL) {

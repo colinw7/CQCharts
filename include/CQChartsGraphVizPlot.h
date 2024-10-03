@@ -674,6 +674,8 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   // coloring
   Q_PROPERTY(bool blendEdgeColor READ isBlendEdgeColor WRITE setBlendEdgeColor)
 
+  Q_PROPERTY(QString dotFile READ dotFile WRITE setDotFile)
+
   // placement data
   //  . fdp
   Q_PROPERTY(double fdpK       READ fdpK       WRITE setFdpK      )
@@ -810,6 +812,10 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
   //! get/set blend node colors for edge
   bool isBlendEdgeColor() const { return blendEdgeColor_; }
   void setBlendEdgeColor(bool b);
+
+  //! get/set dot file
+  const QString &dotFile() const { return dotFile_; }
+  void setDotFile(const QString &s);
 
   //---
 
@@ -1062,6 +1068,8 @@ class CQChartsGraphVizPlot : public CQChartsConnectionPlot,
 
   // coloring
   bool blendEdgeColor_ { false }; //!< blend edge color
+
+  QString dotFile_;
 
   // placement data
   double fdpK_       { -1.0 };

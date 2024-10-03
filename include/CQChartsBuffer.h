@@ -117,7 +117,8 @@ class CQChartsBuffer : public QObject {
   QPainter*  ipainter_ { nullptr };
   QPainter*  painter_  { nullptr };
 
-  mutable std::mutex mutex_;
+  mutable std::mutex        mutex_;
+  mutable std::atomic<bool> painting_;
 };
 
 #endif

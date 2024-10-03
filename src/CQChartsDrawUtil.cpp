@@ -3299,19 +3299,22 @@ circleConnectionPoint(const BBox &rect1, const BBox &rect2, ConnectPos &pos,
   auto c1 = rect1.getCenter();
   auto c2 = rect2.getCenter();
 
-  auto r1 = rect1.getWidth()/2;
-  auto r2 = rect2.getWidth()/2;
+  auto rx1 = rect1.getWidth ()/2;
+  auto ry1 = rect1.getHeight()/2;
+  auto rx2 = rect2.getWidth ()/2;
+  auto ry2 = rect2.getHeight()/2;
 
-  return circleConnectionPoint(c1, r1, c2, r2, pos, connectData);
+  return circleConnectionPoint(c1, rx1, ry1, c2, rx2, ry2, pos, connectData);
 }
 
 void
-circleConnectionPoint(const Point &c1, double r1, const Point &c2, double /*r2*/,
+circleConnectionPoint(const Point &c1, double rx1, double ry1,
+                      const Point &c2, double /*rx2*/, double /*ry2*/,
                       ConnectPos &pos, const CircleConnectData &connectData)
 {
   pos.angle = Angle::pointAngle(c1, c2);
 
-  pos.p    = CQChartsGeom::circlePoint(c1, r1, pos.angle.radians());
+  pos.p    = CQChartsGeom::ellipsePoint(c1, rx1, ry1, pos.angle.radians());
   pos.slot = -1;
 
   if (connectData.numSlots > 0) {
@@ -3329,7 +3332,7 @@ circleConnectionPoint(const Point &c1, double r1, const Point &c2, double /*r2*/
 
       auto sa1 = sa + da*i;
 
-      auto p1 = CQChartsGeom::circlePoint(c1, r1, sa1.radians());
+      auto p1 = CQChartsGeom::ellipsePoint(c1, rx1, ry1, sa1.radians());
       auto d1 = pos.p.distanceTo(p1);
 
       if (nearestSlot < 0 || d1 < nearestDist) {

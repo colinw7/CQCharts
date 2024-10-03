@@ -7327,17 +7327,25 @@ addNoDataObj()
   assert(! isComposite());
 
   // if no objects then add a no data object
-  noData_ = false;
+  bool noData = false;
 
   if (type()->hasObjs() && plotObjs_.empty()) {
     auto *obj = new CQChartsNoDataObj(this);
 
     addPlotObject(obj);
 
-    noData_ = true;
+    noData = true;
   }
 
-  return noData_;
+  if (noData_ != noData) {
+    // stop thread
+    if (objTreeData_.tree)
+      objTreeData_.tree->clearObjects();
+
+    return true;
+  }
+  else
+    return false;
 }
 
 bool
@@ -13469,11 +13477,11 @@ drawThread()
 
   //---
 
-  view()->lockPainter(true);
+  if (view()->lockPainter(true)) {
+    drawParts(view()->ipainter());
 
-  drawParts(view()->ipainter());
-
-  view()->lockPainter(false);
+    view()->lockPainter(false);
+  }
 
   //---
 

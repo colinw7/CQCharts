@@ -1139,7 +1139,13 @@ updatePlotPosition()
 
   CQChartsPlotPaintDevice device(plot, nullptr);
 
-  drawI(nullptr, plot, &device);
+  {
+  std::unique_lock<std::mutex> lock(drawMutex_);
+
+  auto *th = const_cast<CQChartsAxis *>(this);
+
+  th->drawI(nullptr, plot, &device);
+  }
 
   plot->updateMargins();
 
@@ -1301,6 +1307,17 @@ drawGrid(const Plot *plot, PaintDevice *device) const
 
   //---
 
+  std::unique_lock<std::mutex> lock(drawMutex_);
+
+  auto *th = const_cast<CQChartsAxis *>(this);
+
+  th->drawGridI(plot, device);
+}
+
+void
+CQChartsAxis::
+drawGridI(const Plot *plot, PaintDevice *device)
+{
   // get axis range
   double amin = start();
   double amax = end  ();
@@ -1441,9 +1458,9 @@ drawGrid(const Plot *plot, PaintDevice *device) const
       if (mpos1 >= amin && mpos1 <= amax) {
         // draw major grid line if major or minor displayed
         if      (isMajorGridLinesDisplayed())
-          drawMajorGridLine(plot, device, mpos1, dmin, dmax);
+          drawMajorGridLineI(plot, device, mpos1, dmin, dmax);
         else if (isMinorGridLinesDisplayed())
-          drawMinorGridLine(plot, device, mpos1, dmin, dmax);
+          drawMinorGridLineI(plot, device, mpos1, dmin, dmax);
       }
 
       if (isMinorGridLinesDisplayed()) {
@@ -1465,7 +1482,7 @@ drawGrid(const Plot *plot, PaintDevice *device) const
           double mpos2 = mapPos(pos2);
 
           if (mpos2 >= amin && mpos2 <= amax)
-            drawMinorGridLine(plot, device, mpos2, dmin, dmax);
+            drawMinorGridLineI(plot, device, mpos2, dmin, dmax);
         }
       }
 
@@ -1499,19 +1516,27 @@ void
 CQChartsAxis::
 draw(const View *view, PaintDevice *device, bool usePen, bool forceColor) const
 {
-  drawI(view, nullptr, device, usePen, forceColor);
+  std::unique_lock<std::mutex> lock(drawMutex_);
+
+  auto *th = const_cast<CQChartsAxis *>(this);
+
+  th->drawI(view, nullptr, device, usePen, forceColor);
 }
 
 void
 CQChartsAxis::
 draw(const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
 {
-  drawI(nullptr, plot, device, usePen, forceColor);
+  std::unique_lock<std::mutex> lock(drawMutex_);
+
+  auto *th = const_cast<CQChartsAxis *>(this);
+
+  th->drawI(nullptr, plot, device, usePen, forceColor);
 }
 
 void
 CQChartsAxis::
-drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool forceColor) const
+drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool forceColor)
 {
   assert(view || plot);
 
@@ -1562,7 +1587,7 @@ drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool
     lineVisible = (savePen_.style() != Qt::NoPen);
 
   if (lineVisible)
-    drawLine(plot, device, apos1, amin, amax);
+    drawLineI(plot, device, apos1, amin, amax);
 
   //---
 
@@ -1580,19 +1605,19 @@ drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool
   textPlacer_.clear();
 
   if      (customTickLabels_.size()) {
-    drawCustomTicks(plot, device, amin, amax, apos1, apos2);
+    drawCustomTicksI(plot, device, amin, amax, apos1, apos2);
   }
   else if (isRequireTickLabel() && data_.tickLabels.size()) {
-    drawTickLabels(plot, device, amin, amax, apos1, apos2);
+    drawTickLabelsI(plot, device, amin, amax, apos1, apos2);
   }
   else {
     if (path().isValid())
-      drawPathTicks(plot, device);
+      drawPathTicksI(plot, device);
     else
-      drawTicks(plot, device, amin, amax, apos1, apos2);
+      drawTicksI(plot, device, amin, amax, apos1, apos2);
   }
 
-  drawAxisTickLabelDatas(plot, device);
+  drawAxisTickLabelDatasI(plot, device);
 
   //---
 
@@ -1634,14 +1659,15 @@ drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool
   //---
 
   if (isAxesLabelTextVisible())
-    drawAxisLabel(plot, device, apos1, amin, amax);
+    drawAxisLabelI(plot, device, apos1, amin, amax);
 
   //---
 
   if (plot && plot->isShowBoxes()) {
     plot->drawWindowColorBox(device, bbox(), Qt::blue);
 
-    plot->drawColorBox(device, pixelToWindow(plot, device, plbbox_), Qt::green);
+    if (plbbox_.isSet())
+      plot->drawColorBox(device, pixelToWindow(plot, device, plbbox_), Qt::green);
   }
 
   //---
@@ -1702,8 +1728,8 @@ drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool
 
 void
 CQChartsAxis::
-drawCustomTicks(const Plot *plot, PaintDevice *device, double amin, double amax,
-                double apos1, double apos2) const
+drawCustomTicksI(const Plot *plot, PaintDevice *device, double amin, double amax,
+                 double apos1, double apos2)
 {
   bool labelVisible = isAxesTickLabelTextVisible();
 
@@ -1715,24 +1741,24 @@ drawCustomTicks(const Plot *plot, PaintDevice *device, double amin, double amax,
 
     // draw major line (grid and tick)
     if (isMajorTicksDisplayed()) {
-      drawMajorTickLine(plot, device, apos1, pos, isTickInside());
+      drawMajorTickLineI(plot, device, apos1, pos, isTickInside());
 
       if (isMirrorTicks())
-        drawMajorTickLine(plot, device, apos2, pos, ! isTickInside());
+        drawMajorTickLineI(plot, device, apos2, pos, ! isTickInside());
     }
 
     //---
 
     // draw major tick label
     if (labelVisible)
-      drawTickLabel(plot, device, apos1, pos, pos, isTickInside());
+      drawTickLabelI(plot, device, apos1, pos, pos, isTickInside());
   }
 }
 
 void
 CQChartsAxis::
-drawTickLabels(const Plot *plot, PaintDevice *device, double amin, double amax,
-               double apos1, double apos2) const
+drawTickLabelsI(const Plot *plot, PaintDevice *device, double amin, double amax,
+                double apos1, double apos2)
 {
   bool labelVisible = isAxesTickLabelTextVisible();
 
@@ -1744,23 +1770,23 @@ drawTickLabels(const Plot *plot, PaintDevice *device, double amin, double amax,
 
     // draw major line (grid and tick)
     if (isMajorTicksDisplayed()) {
-      drawMajorTickLine(plot, device, apos1, pos, isTickInside());
+      drawMajorTickLineI(plot, device, apos1, pos, isTickInside());
 
       if (isMirrorTicks())
-        drawMajorTickLine(plot, device, apos2, pos, ! isTickInside());
+        drawMajorTickLineI(plot, device, apos2, pos, ! isTickInside());
     }
 
     //---
 
     // draw major tick label
     if (labelVisible)
-      drawTickLabel(plot, device, apos1, pos, pos, isTickInside());
+      drawTickLabelI(plot, device, apos1, pos, pos, isTickInside());
   }
 }
 
 void
 CQChartsAxis::
-drawPathTicks(const Plot *plot, PaintDevice *device) const
+drawPathTicksI(const Plot *plot, PaintDevice *device)
 {
   bool labelVisible = isAxesTickLabelTextVisible();
 
@@ -1884,8 +1910,8 @@ drawPathTicks(const Plot *plot, PaintDevice *device) const
 
 void
 CQChartsAxis::
-drawTicks(const Plot *plot, PaintDevice *device, double amin, double amax,
-          double apos1, double apos2) const
+drawTicksI(const Plot *plot, PaintDevice *device, double amin, double amax,
+           double apos1, double apos2)
 {
   auto mapPos = [&](double pos) {
     if (! valueStart().isSet() && ! valueEnd().isSet())
@@ -1939,16 +1965,16 @@ drawTicks(const Plot *plot, PaintDevice *device, double amin, double amax,
       if (mpos2 >= amin && mpos2 <= amax) {
         // draw major tick (or minor tick if major ticks off and minor ones on)
         if      (isMajorTicksDisplayed()) {
-          drawMajorTickLine(plot, device, apos1, mpos1, isTickInside());
+          drawMajorTickLineI(plot, device, apos1, mpos1, isTickInside());
 
           if (isMirrorTicks())
-            drawMajorTickLine(plot, device, apos2, mpos1, ! isTickInside());
+            drawMajorTickLineI(plot, device, apos2, mpos1, ! isTickInside());
         }
         else if (isMinorTicksDisplayed()) {
-          drawMinorTickLine(plot, device, apos1, mpos1, isTickInside());
+          drawMinorTickLineI(plot, device, apos1, mpos1, isTickInside());
 
           if (isMirrorTicks())
-            drawMinorTickLine(plot, device, apos2, mpos1, ! isTickInside());
+            drawMinorTickLineI(plot, device, apos2, mpos1, ! isTickInside());
         }
       }
 
@@ -1964,10 +1990,10 @@ drawTicks(const Plot *plot, PaintDevice *device, double amin, double amax,
 
           // draw minor tick line
           if (mpos2 >= amin && mpos2 <= amax) {
-            drawMinorTickLine(plot, device, apos1, mpos2, isTickInside());
+            drawMinorTickLineI(plot, device, apos1, mpos2, isTickInside());
 
             if (isMirrorTicks())
-              drawMinorTickLine(plot, device, apos2, mpos2, ! isTickInside());
+              drawMinorTickLineI(plot, device, apos2, mpos2, ! isTickInside());
           }
         }
       }
@@ -1979,7 +2005,7 @@ drawTicks(const Plot *plot, PaintDevice *device, double amin, double amax,
         double mpos1 = mapPos(pos1);
 
         if (mpos1 >= amin && mpos1 <= amax) {
-          drawTickLabel(plot, device, apos1, mpos1, pos1, isTickInside());
+          drawTickLabelI(plot, device, apos1, mpos1, pos1, isTickInside());
         }
       }
 
@@ -2091,7 +2117,7 @@ calcPos(const Plot *plot, double &apos1, double &apos2) const
 
 void
 CQChartsAxis::
-drawLine(const Plot *, PaintDevice *device, double apos, double amin, double amax) const
+drawLineI(const Plot *, PaintDevice *device, double apos, double amin, double amax)
 {
   PenBrush penBrush;
 
@@ -2117,7 +2143,7 @@ drawLine(const Plot *, PaintDevice *device, double apos, double amin, double ama
 
 void
 CQChartsAxis::
-drawMajorGridLine(const Plot *, PaintDevice *device, double apos, double dmin, double dmax) const
+drawMajorGridLineI(const Plot *, PaintDevice *device, double apos, double dmin, double dmax)
 {
   PenBrush penBrush;
 
@@ -2138,7 +2164,7 @@ drawMajorGridLine(const Plot *, PaintDevice *device, double apos, double dmin, d
 
 void
 CQChartsAxis::
-drawMinorGridLine(const Plot *, PaintDevice *device, double apos, double dmin, double dmax) const
+drawMinorGridLineI(const Plot *, PaintDevice *device, double apos, double dmin, double dmax)
 {
   PenBrush penBrush;
 
@@ -2159,24 +2185,24 @@ drawMinorGridLine(const Plot *, PaintDevice *device, double apos, double dmin, d
 
 void
 CQChartsAxis::
-drawMajorTickLine(const Plot *plot, PaintDevice *device,
-                  double apos, double tpos, bool inside) const
+drawMajorTickLineI(const Plot *plot, PaintDevice *device,
+                   double apos, double tpos, bool inside)
 {
-  drawTickLine(plot, device, apos, tpos, inside, /*major*/true);
+  drawTickLineI(plot, device, apos, tpos, inside, /*major*/true);
 }
 
 void
 CQChartsAxis::
-drawMinorTickLine(const Plot *plot, PaintDevice *device,
-                  double apos, double tpos, bool inside) const
+drawMinorTickLineI(const Plot *plot, PaintDevice *device,
+                   double apos, double tpos, bool inside)
 {
-  drawTickLine(plot, device, apos, tpos, inside, /*major*/false);
+  drawTickLineI(plot, device, apos, tpos, inside, /*major*/false);
 }
 
 void
 CQChartsAxis::
-drawTickLine(const Plot *plot, PaintDevice *device,
-             double apos, double tpos, bool inside, bool major) const
+drawTickLineI(const Plot *plot, PaintDevice *device,
+              double apos, double tpos, bool inside, bool major)
 {
   int tlen = (major ? majorTickLen() : minorTickLen());
 
@@ -2284,8 +2310,8 @@ drawTickLine(const Plot *plot, PaintDevice *device,
 
 void
 CQChartsAxis::
-drawTickLabel(const Plot *plot, PaintDevice *device,
-              double apos, double tpos, double value, bool inside) const
+drawTickLabelI(const Plot *plot, PaintDevice *device,
+               double apos, double tpos, double value, bool inside)
 {
   auto text = valueStr(plot, value);
   if (! text.length()) return;
@@ -2834,7 +2860,7 @@ drawTickLabel(const Plot *plot, PaintDevice *device,
 
 void
 CQChartsAxis::
-drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device) const
+drawAxisTickLabelDatasI(const Plot *plot, PaintDevice *device)
 {
   if (textPlacer_.empty())
     return;
@@ -2873,7 +2899,7 @@ drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device) const
 
 void
 CQChartsAxis::
-drawAxisLabel(const Plot *plot, PaintDevice *device, double apos, double amin, double amax) const
+drawAxisLabelI(const Plot *plot, PaintDevice *device, double apos, double amin, double amax)
 {
   auto text      = userLabel();
   bool allowHtml = true;
@@ -2892,7 +2918,7 @@ drawAxisLabel(const Plot *plot, PaintDevice *device, double apos, double amin, d
 void
 CQChartsAxis::
 drawAxisLabelI(const Plot *plot, PaintDevice *device, double apos,
-               double amin, double amax, const QString &text, bool allowHtml) const
+               double amin, double amax, const QString &text, bool allowHtml)
 {
   if (! text.length())
     return;
@@ -3004,6 +3030,9 @@ drawAxisLabelI(const Plot *plot, PaintDevice *device, double apos,
 
     double ath;
     double atw = pixelToWindowWidth(plot, device, tw/2.0);
+
+//  if (! plbbox_.isSet())
+//    return;
 
     if (isPixelBottom) {
       // calc height of label text (+ gap)

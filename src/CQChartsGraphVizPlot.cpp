@@ -150,15 +150,16 @@ clearNodesAndEdges()
   for (auto *node : nodes_)
     delete node;
 
+  nodes_.clear();
+
   for (auto *edge : edges_)
     delete edge;
+
+  edges_.clear();
 
   nameNodeMap_.clear();
   indNodeMap_ .clear();
   nameNameMap_.clear();
-
-  nodes_.clear();
-  edges_.clear();
 
   groupValueInd_.clear();
 
@@ -276,6 +277,15 @@ CQChartsGraphVizPlot::
 setBlendEdgeColor(bool b)
 {
   CQChartsUtil::testAndSet(blendEdgeColor_, b, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsGraphVizPlot::
+setDotFile(const QString &s)
+{
+  CQChartsUtil::testAndSet(dotFile_, s, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -405,6 +415,11 @@ addProperties()
 
   //---
 
+  // coloring
+  addProp("dot", "dotFile", "file", "Dot File");
+
+  //---
+
   // placement
   addProp("placement/fdp", "fdpK"      , "k"      , "Ideal node separation");
   addProp("placement/fdp", "fdpMaxIter", "maxIter", "Max iterations");
@@ -495,49 +510,90 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  // check columns
-  if (! checkColumns())
-    return false;
+  if (dotFile() != "") {
+    // init objects
+    th->clearNodesAndEdges();
 
-  //---
+    //---
 
-  // init objects
-  th->clearNodesAndEdges();
+    QString typeName;
 
-  auto *model = this->currentModel().data();
-  if (! model) return false;
+    if      (outputFormat() == OutputFormat::XDOT)
+      typeName = QString("xdot");
+    else if (outputFormat() == OutputFormat::DOT)
+      typeName = QString("dot");
+    else if (outputFormat() == OutputFormat::JSON)
+      typeName = QString("json");
 
-  //---
+    // get temporary file for output
+    auto outFilename = CQChartsEnv::getString("CQ_CHARTS_GRAPHVIZ_OUTPUT_FILE");
 
-  // create objects
-  auto columnDataType = calcColumnDataType();
+    if (outFilename == "") {
+      QTemporaryFile outFile(QDir::tempPath() + "/XXXXXX." + typeName);
 
-  bool rc = false;
+      if (! outFile.open())
+        return false;
 
-  if      (columnDataType == ColumnDataType::HIER)
-    rc = initHierObjs();
-  else if (columnDataType == ColumnDataType::LINK)
-    rc = initLinkObjs();
-  else if (columnDataType == ColumnDataType::CONNECTIONS)
-    rc = initConnectionObjs();
-  else if (columnDataType == ColumnDataType::PATH)
-    rc = initPathObjs();
-  else if (columnDataType == ColumnDataType::FROM_TO)
-    rc = initFromToObjs();
-  else if (columnDataType == ColumnDataType::TABLE)
-    rc = initTableObjs();
+      outFilename = outFile.fileName();
 
-  if (! rc)
-    return false;
+      if (! processGraph(dotFile(), outFile, outFilename, typeName))
+        return false;
+    }
+    else {
+      QFile outFile(outFilename);
 
-  //---
+      if (! outFile.open(QIODevice::WriteOnly))
+        return false;
 
-  th->filterObjs();
+      if (! processGraph(dotFile(), outFile, outFilename, typeName))
+        return false;
+    }
+  }
+  else {
+    // check columns
+    if (! checkColumns())
+      return false;
 
-  //---
+    //---
 
-  if (! writeGraph(isEdgeWeighted()))
-    return false;
+    // init objects
+    th->clearNodesAndEdges();
+
+    auto *model = this->currentModel().data();
+    if (! model) return false;
+
+    //---
+
+    // create objects
+    auto columnDataType = calcColumnDataType();
+
+    bool rc = false;
+
+    if      (columnDataType == ColumnDataType::HIER)
+      rc = initHierObjs();
+    else if (columnDataType == ColumnDataType::LINK)
+      rc = initLinkObjs();
+    else if (columnDataType == ColumnDataType::CONNECTIONS)
+      rc = initConnectionObjs();
+    else if (columnDataType == ColumnDataType::PATH)
+      rc = initPathObjs();
+    else if (columnDataType == ColumnDataType::FROM_TO)
+      rc = initFromToObjs();
+    else if (columnDataType == ColumnDataType::TABLE)
+      rc = initTableObjs();
+
+    if (! rc)
+      return false;
+
+    //---
+
+    th->filterObjs();
+
+    //---
+
+    if (! writeGraph(isEdgeWeighted()))
+      return false;
+  }
 
   addObjects(objs);
 
@@ -927,6 +983,13 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
 
   //---
 
+  bool autoCreate = false;
+
+  if (dotFile() != "")
+    autoCreate = true;
+
+  //---
+
   // process placement
 
   BBox bbox;
@@ -940,10 +1003,10 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
       auto pn = nameNameMap_.find(object->name());
 
       if (pn != nameNameMap_.end())
-        node = findNode((*pn).second, /*create*/false);
+        node = findNode((*pn).second, autoCreate);
     }
     else
-      node = findNode(object->name(), /*create*/false);
+      node = findNode(object->name(), autoCreate);
 
     if (! node) {
       charts()->errorMsg("Node " + object->name() + " not found");
@@ -961,6 +1024,15 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
 
     node->setRect(bbox1);
 
+    const auto &shape = object->shape();
+
+    if (shape != "") {
+      Node::ShapeType shapeType;
+      stringToShapeType(shape, shapeType);
+
+      node->setShapeType(shapeType);
+    }
+
     bbox += bbox1;
   }
 
@@ -977,7 +1049,15 @@ processGraph(const QString &graphVizFilename, QFile & /*outFile*/,
     }
 
     auto *edge = tailNode->findDestEdge(headNode);
-    if (! edge) edge = tailNode->findSrcEdge(headNode);
+
+    if (! edge)
+      edge = tailNode->findSrcEdge(headNode);
+
+    if (! edge) {
+      if (autoCreate)
+        edge = createEdge(OptReal(), headNode, tailNode);
+    }
+
     if (! edge) {
       charts()->errorMsg("Edge " + QString::number(dotEdge->id()) + " not found");
       continue;
@@ -1899,7 +1979,6 @@ processNodeNameValue(Node *node, const QString &name, const QString &valueStr) c
   // shape
   if      (name == "shape") {
     Node::ShapeType shapeType;
-
     stringToShapeType(valueStr, shapeType);
 
     node->setShapeType(shapeType);

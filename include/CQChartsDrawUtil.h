@@ -482,7 +482,8 @@ void circleConnectionPoints(const BBox &rect1, const BBox &rect2,
                             const CircleConnectData &connectData=CircleConnectData());
 void circleConnectionPoint(const BBox &rect1, const BBox &rect2, ConnectPos &pos,
                            const CircleConnectData &connectData=CircleConnectData());
-void circleConnectionPoint(const Point &c1, double r1, const Point &c2, double r2, ConnectPos &pos,
+void circleConnectionPoint(const Point &c1, double rx1, double ry1,
+                           const Point &c2, double rx2, double ry2, ConnectPos &pos,
                            const CircleConnectData &connectData=CircleConnectData());
 
 QPointF pathMidPoint(const QPainterPath &path);
