@@ -3220,66 +3220,177 @@ bool
 rectConnectionPoint(const BBox &rect1, const BBox &rect2, ConnectPos &pos,
                     const RectConnectData &connectData)
 {
-  pos.slot = -1;
+  struct ConnectionPoint {
+    Point pos;
+    int   priority { -1 };
+
+    ConnectionPoint() { }
+
+    ConnectionPoint(const Point &pos_, int priority_) :
+     pos(pos_), priority(priority_) {
+    }
+  };
+
+  std::vector<ConnectionPoint> points;
+
+  auto addPoint = [&](const Point &p, int priority) {
+    points.push_back(ConnectionPoint(p, priority));
+  };
+
+  //---
 
   double dxr = rect2.getXMin() - rect1.getXMax();
   double dxl = rect1.getXMin() - rect2.getXMax();
   double dyt = rect2.getYMin() - rect1.getYMax();
   double dyb = rect1.getYMin() - rect2.getYMax();
 
-  if      (dxr > connectData.gap) {
-    // top right
-    if      (dyt > connectData.gap) {
-      if      (connectData.useCorners) { pos.p = rect1.getUR  (); pos.angle = Angle(45); }
-      else if (dxr > dyt)              { pos.p = rect1.getMidR(); pos.angle = Angle(0); }
-      else                             { pos.p = rect1.getMidT(); pos.angle = Angle(90); }
-    }
-    // bottom right
-    else if (dyb > connectData.gap) {
-      if      (connectData.useCorners) { pos.p = rect1.getLR  (); pos.angle = Angle(-45); }
-      else if (dxr > dyb)              { pos.p = rect1.getMidR(); pos.angle = Angle(0); }
-      else                             { pos.p = rect1.getMidB(); pos.angle = Angle(-90); }
-    }
-    // mid right
-    else {
-      pos.p = rect1.getMidR(); pos.angle = Angle(0);
+  //---
+
+  // top right
+  if      (dxr > connectData.gap && dyt > connectData.gap) {
+    if (connectData.useCorners)
+      addPoint(rect1.getUR(), 1);
+
+    addPoint(rect1.getMidR(), 3);
+    addPoint(rect1.getMidT(), 3);
+
+    if (connectData.useMidCorners) {
+      addPoint((rect1.getUR() + rect1.getMidT())/2.0, 2);
+      addPoint((rect1.getUR() + rect1.getMidR())/2.0, 2);
     }
   }
-  else if (dxl > connectData.gap) {
-    // top left
-    if      (dyt > connectData.gap) {
-      if      (connectData.useCorners) { pos.p = rect1.getUL  (); pos.angle = Angle(135); }
-      else if (dxl > dyt)              { pos.p = rect1.getMidL(); pos.angle = Angle(180); }
-      else                             { pos.p = rect1.getMidT(); pos.angle = Angle(90); }
-    }
-    // bottom left
-    else if (dyb > connectData.gap) {
-      if      (connectData.useCorners) { pos.p = rect1.getLL  (); pos.angle = Angle(-135); }
-      else if (dxl > dyb)              { pos.p = rect1.getMidL(); pos.angle = Angle(-180); }
-      else                             { pos.p = rect1.getMidB(); pos.angle = Angle(-90); }
-    }
-    // mid left
-    else {
-      pos.p = rect1.getMidL(); pos.angle = Angle(180);
+  // bottom right
+  else if (dxr > connectData.gap && dyb > connectData.gap) {
+    if (connectData.useCorners)
+      addPoint(rect1.getLR(), 1);
+
+    addPoint(rect1.getMidR(), 3);
+    addPoint(rect1.getMidB(), 3);
+
+    if (connectData.useMidCorners) {
+      addPoint((rect1.getLR() + rect1.getMidR())/2.0, 2);
+      addPoint((rect1.getLR() + rect1.getMidB())/2.0, 2);
     }
   }
-  else {
-    // top center
-    if      (dyt > connectData.gap) {
-      pos.p = rect1.getMidT(); pos.angle = Angle(90);
-    }
-    // bottom center
-    else if (dyb > connectData.gap) {
-      pos.p = rect1.getMidB(); pos.angle = Angle(-90);
+  // mid right
+  else if (dxr > connectData.gap) {
+    if (connectData.useCorners) {
+      addPoint(rect1.getLR(), 1);
+      addPoint(rect1.getUR(), 1);
     }
 
-    // center
-    else {
-      pos.p     = rect1.getCenter();
-      pos.angle = Angle::pointAngle(pos.p, rect2.getCenter());
-      return false;
+    addPoint(rect1.getMidR(), 3);
+
+    if (connectData.useMidCorners) {
+      addPoint((rect1.getLR() + rect1.getMidR())/2.0, 2);
+      addPoint((rect1.getUR() + rect1.getMidR())/2.0, 2);
     }
   }
+
+  // top left
+  if       (dxl > connectData.gap && dyt > connectData.gap) {
+    if (connectData.useCorners)
+      addPoint(rect1.getUL(), 1);
+
+    addPoint(rect1.getMidL(), 3);
+    addPoint(rect1.getMidT(), 3);
+
+    if (connectData.useMidCorners) {
+      addPoint((rect1.getUL() + rect1.getMidL())/2.0, 2);
+      addPoint((rect1.getUL() + rect1.getMidT())/2.0, 2);
+    }
+  }
+  // bottom left
+  else if (dxl > connectData.gap && dyb > connectData.gap) {
+    if (connectData.useCorners)
+      addPoint(rect1.getLL(), 1);
+
+    addPoint(rect1.getMidL(), 3);
+    addPoint(rect1.getMidB(), 3);
+
+    if (connectData.useMidCorners) {
+      addPoint((rect1.getLL() + rect1.getMidL())/2.0, 2);
+      addPoint((rect1.getLL() + rect1.getMidB())/2.0, 2);
+    }
+  }
+  // mid left
+  else if (dxl > connectData.gap) {
+    if (connectData.useCorners) {
+      addPoint(rect1.getLL(), 1);
+      addPoint(rect1.getUL(), 1);
+    }
+
+    addPoint(rect1.getMidL(), 3);
+
+    if (connectData.useMidCorners) {
+      addPoint((rect1.getLL() + rect1.getMidL())/2.0, 2);
+      addPoint((rect1.getUL() + rect1.getMidL())/2.0, 2);
+    }
+  }
+  // top center
+  else if (dyt > connectData.gap) {
+    if (connectData.useCorners) {
+      addPoint(rect1.getUL(), 1);
+      addPoint(rect1.getUR(), 1);
+    }
+
+    addPoint(rect1.getMidT(), 3);
+
+    if (connectData.useMidCorners) {
+      addPoint((rect1.getUL() + rect1.getMidT())/2.0, 2);
+      addPoint((rect1.getUR() + rect1.getMidT())/2.0, 2);
+    }
+  }
+  // bottom center
+  else if (dyb > connectData.gap) {
+    if (connectData.useCorners) {
+      addPoint(rect1.getLL(), 1);
+      addPoint(rect1.getLR(), 1);
+    }
+
+    addPoint(rect1.getMidB(), 3);
+
+    if (connectData.useMidCorners) {
+      addPoint((rect1.getLL() + rect1.getMidB())/2.0, 2);
+      addPoint((rect1.getLR() + rect1.getMidB())/2.0, 2);
+    }
+  }
+
+  // center
+  auto c2 = rect2.getCenter();
+
+  addPoint(rect1.getCenter(), 0);
+
+  //---
+
+  double d        = 0;
+  int    priority = -1;
+  int    slot     = -1;
+
+  for (uint i = 0; i < points.size(); ++i) {
+    if (connectData.occupiedSlots.find(i) != connectData.occupiedSlots.end())
+      continue;
+
+    auto d1 = points[i].pos.distanceTo(c2);
+
+    if (slot < 0 || points[i].priority > priority || d1 < d) {
+      d        = d1;
+      priority = points[i].priority;
+      slot     = i;
+    }
+  }
+
+  if (slot < 0) {
+    pos.p     = rect1.getCenter();
+    pos.angle = Angle::pointAngle(pos.p, c2);
+    pos.slot  = int(points.size() + 1);
+
+    return false;
+  }
+
+  pos.p     = points[slot].pos;
+  pos.angle = Angle::pointAngle(pos.p, c2);
+  pos.slot  = slot;
 
   return true;
 }

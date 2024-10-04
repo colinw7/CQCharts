@@ -457,10 +457,17 @@ struct ConnectPos {
   Point p;
   Angle angle;
   int   slot { -1 };
+
+  ConnectPos() { }
+
+  ConnectPos(const Point &p_, const Angle &angle_, int slot_=-1) :
+   p(p_), angle(angle_), slot(slot_) {
+  }
 };
 
 struct RectConnectData {
-  bool          useCorners { false };
+  bool          useCorners    { false };
+  bool          useMidCorners { false };
   double        gap { 0.0 };
   std::set<int> occupiedSlots;
 };

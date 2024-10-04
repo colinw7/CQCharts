@@ -65,11 +65,28 @@ class CQChartsGraphVizPlotNode {
   using FillPattern = CQChartsFillPattern;
   using LineDash    = CQChartsLineDash;
   using Length      = CQChartsLength;
+  using Angle       = CQChartsAngle;
   using ModelInds   = std::vector<ModelIndex>;
   using BBox        = CQChartsGeom::BBox;
   using Point       = CQChartsGeom::Point;
   using ShapeType   = CQChartsShapeType;
   using EdgeRect    = std::map<Edge *, BBox>;
+
+  using NodeSet = std::set<Node *>;
+  using Slots   = std::map<int, NodeSet>;
+
+  struct PointAngle {
+    Point point;
+    Angle angle;
+
+    PointAngle() { }
+
+    PointAngle(const Point &p, const Angle &a) :
+     point(p), angle(a) {
+    }
+  };
+
+  using NodeConnectPoint = std::map<Node *, PointAngle>;
 
   CQChartsGraphVizPlotNode(const QString &str);
  ~CQChartsGraphVizPlotNode();
@@ -206,6 +223,20 @@ class CQChartsGraphVizPlotNode {
 
   //---
 
+  const Slots &occupiedSlots() { return occupiedSlots_; }
+  void clearOccupiedSlots() { occupiedSlots_.clear(); }
+
+  void addOccupiedSlot(int slot, Node *node) {
+    occupiedSlots_[slot].insert(node);
+  }
+
+  //---
+
+  const PointAngle &nodeConnectPoint(Node *node) { return nodeConnectPoint_[node]; }
+  void setNodeConnectPoint(Node *node, const PointAngle &p) { nodeConnectPoint_[node] = p; }
+
+  //---
+
   void moveBy(const Point &delta);
   void scale(double fx, double fy);
 
@@ -266,6 +297,9 @@ class CQChartsGraphVizPlotNode {
   ModelInds modelInds_;        //!< model inds
 
   EdgePoints edgePoints_;
+
+  mutable Slots            occupiedSlots_;
+  mutable NodeConnectPoint nodeConnectPoint_;
 };
 
 /*!
