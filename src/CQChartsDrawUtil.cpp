@@ -1897,11 +1897,11 @@ void
 drawParetoCorner(PaintDevice *device, const Point &origin, const BBox &bbox,
                  double xf, double yf)
 {
-  auto invX = (origin.x > pbbox.getXMid());
-  auto invY = (origin.y > pbbox.getYMid());
+  auto invX = (origin.x > bbox.getXMid());
+  auto invY = (origin.y > bbox.getYMid());
 
-  auto opposite = Point(invX ? pbbox.getXMin() : pbbox.getXMax(),
-                        invY ? pbbox.getYMin() : pbbox.getYMax());
+  auto opposite = Point(invX ? bbox.getXMin() : bbox.getXMax(),
+                        invY ? bbox.getYMin() : bbox.getYMax());
 
   double dx = (opposite.x - origin.x)/10;
   double dy = (opposite.y - origin.y)/10;

@@ -3571,59 +3571,59 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 //------
 
-CQChartsRectAnnotation::
-CQChartsRectAnnotation(View *view, Type type, const ObjRefPos &position) :
+CQChartsRectBaseAnnotation::
+CQChartsRectBaseAnnotation(View *view, Type type, const ObjRefPos &position) :
  CQChartsAnnotation(view, type)
 {
   setPosition(position.position());
   setObjRef  (position.objRef());
 }
 
-CQChartsRectAnnotation::
-CQChartsRectAnnotation(Plot *plot, Type type, const ObjRefPos &position) :
+CQChartsRectBaseAnnotation::
+CQChartsRectBaseAnnotation(Plot *plot, Type type, const ObjRefPos &position) :
  CQChartsAnnotation(plot, type)
 {
   setPosition(position.position());
   setObjRef  (position.objRef());
 }
 
-CQChartsRectAnnotation::
-CQChartsRectAnnotation(View *view, Type type, const Rect &rect) :
+CQChartsRectBaseAnnotation::
+CQChartsRectBaseAnnotation(View *view, Type type, const Rect &rect) :
  CQChartsAnnotation(view, type)
 {
   setRectangle(rect);
 }
 
-CQChartsRectAnnotation::
-CQChartsRectAnnotation(Plot *plot, Type type, const Rect &rect) :
+CQChartsRectBaseAnnotation::
+CQChartsRectBaseAnnotation(Plot *plot, Type type, const Rect &rect) :
  CQChartsAnnotation(plot, type)
 {
   setRectangle(rect);
 }
 
-CQChartsRectAnnotation::
-~CQChartsRectAnnotation()
+CQChartsRectBaseAnnotation::
+~CQChartsRectBaseAnnotation()
 {
 }
 
 //---
 
 CQChartsPosition
-CQChartsRectAnnotation::
+CQChartsRectBaseAnnotation::
 positionValue() const
 {
   return position_.positionOr(Position());
 }
 
 void
-CQChartsRectAnnotation::
+CQChartsRectBaseAnnotation::
 setPosition(const Position &p)
 {
   setPosition(OptPosition(p));
 }
 
 void
-CQChartsRectAnnotation::
+CQChartsRectBaseAnnotation::
 setPosition(const OptPosition &p)
 {
   if (! p.isSet())
@@ -3642,21 +3642,21 @@ setPosition(const OptPosition &p)
 //---
 
 CQChartsRect
-CQChartsRectAnnotation::
+CQChartsRectBaseAnnotation::
 rectangleValue() const
 {
   return rectangle().rectOr(Rect());
 }
 
 void
-CQChartsRectAnnotation::
+CQChartsRectBaseAnnotation::
 setRectangle(const Rect &r)
 {
   setRectangle(OptRect(r));
 }
 
 void
-CQChartsRectAnnotation::
+CQChartsRectBaseAnnotation::
 setRectangle(const OptRect &r)
 {
   if (r.isSet()) {
@@ -3682,7 +3682,7 @@ setRectangle(const OptRect &r)
 }
 
 void
-CQChartsRectAnnotation::
+CQChartsRectBaseAnnotation::
 rectToBBox()
 {
   if (rectangle().isSet()) {
@@ -3701,25 +3701,25 @@ rectToBBox()
 
 CQChartsTextAnnotation::
 CQChartsTextAnnotation(View *view, const ObjRefPos &position, const QString &textStr) :
- CQChartsRectAnnotation(view, Type::TEXT, position), textStr_(textStr)
+ CQChartsRectBaseAnnotation(view, Type::TEXT, position), textStr_(textStr)
 {
 }
 
 CQChartsTextAnnotation::
 CQChartsTextAnnotation(Plot *plot, const ObjRefPos &position, const QString &textStr) :
- CQChartsRectAnnotation(plot, Type::TEXT, position), textStr_(textStr)
+ CQChartsRectBaseAnnotation(plot, Type::TEXT, position), textStr_(textStr)
 {
 }
 
 CQChartsTextAnnotation::
 CQChartsTextAnnotation(View *view, const Rect &rect, const QString &textStr) :
- CQChartsRectAnnotation(view, Type::TEXT, rect), textStr_(textStr)
+ CQChartsRectBaseAnnotation(view, Type::TEXT, rect), textStr_(textStr)
 {
 }
 
 CQChartsTextAnnotation::
 CQChartsTextAnnotation(Plot *plot, const Rect &rect, const QString &textStr) :
- CQChartsRectAnnotation(plot, Type::TEXT, rect), textStr_(textStr)
+ CQChartsRectBaseAnnotation(plot, Type::TEXT, rect), textStr_(textStr)
 {
 }
 
@@ -4012,6 +4012,82 @@ drawInRect(PaintDevice *device, const BBox &rect)
 
     calcFontScale_ = textOptions.calcFontScale;
   }
+}
+
+void
+CQChartsTextAnnotation::
+drawAtPoint(PaintDevice *device, const Point &p)
+{
+  // set text pen and brush
+  auto c = interpColor(textColor(), ColorInd());
+
+  if (isEnabled()) {
+    if (isCheckable() && ! isChecked()) {
+      double f = uncheckedLighter();
+
+      c = CQChartsUtil::blendColors(backgroundColor(), c, f);
+    }
+  }
+  else {
+    double f = disabledLighter();
+
+    c = CQChartsUtil::blendColors(backgroundColor(), c, f);
+  }
+
+  if (getIsLink() && isInside())
+    c = interpColor(view()->linkColor(), ColorInd());
+
+  PenBrush penBrush;
+
+  setPenBrush(penBrush, PenData(true, c, textAlpha()), BrushData(false));
+
+  if (isEnabled()) {
+    if (! getIsLink())
+      updatePenBrushState(penBrush, CQChartsObjDrawType::TEXT);
+  }
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  //---
+
+  // set text options
+  auto textOptions = this->textOptions();
+
+  textOptions.clipped = false;
+
+  adjustTextOptions(textOptions);
+
+  //---
+
+  // set font
+  setPainterFont(device, textFont());
+
+  //---
+
+  // draw text
+  calcFontScale_ = -1.0;
+
+  auto textScale = (group() ? group()->textFontScale() : -1.0);
+
+  if (textScale > 0.0)
+    textOptions.scale = textScale;
+
+  textOptions.skipDraw = isSkipDraw();
+
+  device->setRenderHints(QPainter::Antialiasing);
+
+  if (isEnabled() && getIsLink()) {
+    if (isInside()) {
+      auto f = device->font();
+      f.setUnderline(true);
+      device->setFont(f);
+    }
+  }
+
+  // TODO: multiple strings
+  CQChartsDrawUtil::drawTextAtPoint(device, p, textStr(), textOptions);
+
+  calcFontScale_ = textOptions.calcFontScale;
 }
 
 void
@@ -4858,6 +4934,54 @@ CQChartsConnectorAnnotationBase::
 {
 }
 
+//---
+
+void
+CQChartsConnectorAnnotationBase::
+setTextInd(const QString &ind)
+{
+  if (ind != textInd_) {
+    auto *textAnnotation = getTextAnnotation();
+
+    if (textAnnotation)
+      textAnnotation->setVisible(true);
+
+    textInd_ = ind;
+
+    textAnnotation = getTextAnnotation();
+
+    if (textAnnotation)
+      textAnnotation->setVisible(false);
+
+    emitDataChanged();
+  }
+}
+
+void
+CQChartsConnectorAnnotationBase::
+drawText(PaintDevice *device, const QPainterPath &path)
+{
+  auto p = path.pointAtPercent(0.5);
+
+  auto *textAnnotation = getTextAnnotation();
+  if (! textAnnotation) return;
+
+  textAnnotation->drawAtPoint(device, Point(p));
+}
+
+CQChartsTextAnnotation *
+CQChartsConnectorAnnotationBase::
+getTextAnnotation() const
+{
+  if (! plot())
+    return nullptr;
+
+  if (! textInd_.length())
+    return nullptr;
+
+  return dynamic_cast<CQChartsTextAnnotation *>(plot()->getAnnotationByPathId(textInd()));
+}
+
 //------
 
 CQChartsArrowAnnotation::
@@ -5296,7 +5420,18 @@ draw(PaintDevice *device)
     arrow()->draw(device, penBrush);
 
     arrow()->connectDisconnectDataChanged(true, this, SIGNAL(dataChanged()));
+
+    QPainterPath path;
+
+    path.moveTo(start.qpoint());
+    path.lineTo(end  .qpoint());
+
+    drawPath_ = path;
   }
+
+  //---
+
+  drawText(device, drawPath_);
 
   //---
 
@@ -5854,6 +5989,10 @@ draw(PaintDevice *device)
 
   //---
 
+  drawText(device, path);
+
+  //---
+
   drawTerm(device);
 
   setAnnotationBBox(BBox(path.boundingRect()));
@@ -6189,6 +6328,10 @@ draw(PaintDevice *device)
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   device->drawPath(path);
+
+  //---
+
+  drawText(device, path);
 
   //---
 
@@ -8824,25 +8967,25 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
 CQChartsWidgetAnnotation::
 CQChartsWidgetAnnotation(View *view, const ObjRefPos &position, const Widget &widget) :
- CQChartsRectAnnotation(view, Type::WIDGET, position), widget_(widget)
+ CQChartsRectBaseAnnotation(view, Type::WIDGET, position), widget_(widget)
 {
 }
 
 CQChartsWidgetAnnotation::
 CQChartsWidgetAnnotation(Plot *plot, const ObjRefPos &position, const Widget &widget) :
- CQChartsRectAnnotation(plot, Type::WIDGET, position), widget_(widget)
+ CQChartsRectBaseAnnotation(plot, Type::WIDGET, position), widget_(widget)
 {
 }
 
 CQChartsWidgetAnnotation::
 CQChartsWidgetAnnotation(View *view, const Rect &rect, const Widget &widget) :
- CQChartsRectAnnotation(view, Type::WIDGET, rect), widget_(widget)
+ CQChartsRectBaseAnnotation(view, Type::WIDGET, rect), widget_(widget)
 {
 }
 
 CQChartsWidgetAnnotation::
 CQChartsWidgetAnnotation(Plot *plot, const Rect &rect, const Widget &widget) :
- CQChartsRectAnnotation(plot, Type::WIDGET, rect), widget_(widget)
+ CQChartsRectBaseAnnotation(plot, Type::WIDGET, rect), widget_(widget)
 {
 }
 
@@ -8903,7 +9046,7 @@ void
 CQChartsWidgetAnnotation::
 setPosition(const OptPosition &p)
 {
-  CQChartsRectAnnotation::setPosition(p);
+  CQChartsRectBaseAnnotation::setPosition(p);
 
   if (winWidget_) {
     disconnect(winWidget_, SIGNAL(geometryChanged()), this, SLOT(updateWinGeometry()));
@@ -8922,7 +9065,7 @@ void
 CQChartsWidgetAnnotation::
 setRectangle(const OptRect &r)
 {
-  CQChartsRectAnnotation::setRectangle(r);
+  CQChartsRectBaseAnnotation::setRectangle(r);
 
   if (winWidget_) {
     disconnect(winWidget_, SIGNAL(geometryChanged()), this, SLOT(updateWinGeometry()));
@@ -9316,25 +9459,25 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 #ifdef CQCHARTS_TK_WIDGET
 CQChartsTkWidgetAnnotation::
 CQChartsTkWidgetAnnotation(View *view, const ObjRefPos &position, const QString &id) :
- CQChartsRectAnnotation(view, Type::TK_WIDGET, position), widgetId_(id)
+ CQChartsRectBaseAnnotation(view, Type::TK_WIDGET, position), widgetId_(id)
 {
 }
 
 CQChartsTkWidgetAnnotation::
 CQChartsTkWidgetAnnotation(Plot *plot, const ObjRefPos &position, const QString &id) :
- CQChartsRectAnnotation(plot, Type::TK_WIDGET, position), widgetId_(id)
+ CQChartsRectBaseAnnotation(plot, Type::TK_WIDGET, position), widgetId_(id)
 {
 }
 
 CQChartsTkWidgetAnnotation::
 CQChartsTkWidgetAnnotation(View *view, const Rect &rect, const QString &id) :
- CQChartsRectAnnotation(view, Type::TK_WIDGET, rect), widgetId_(id)
+ CQChartsRectBaseAnnotation(view, Type::TK_WIDGET, rect), widgetId_(id)
 {
 }
 
 CQChartsTkWidgetAnnotation::
 CQChartsTkWidgetAnnotation(Plot *plot, const Rect &rect, const QString &id) :
- CQChartsRectAnnotation(plot, Type::TK_WIDGET, rect), widgetId_(id)
+ CQChartsRectBaseAnnotation(plot, Type::TK_WIDGET, rect), widgetId_(id)
 {
 }
 
@@ -9388,7 +9531,7 @@ void
 CQChartsTkWidgetAnnotation::
 setPosition(const OptPosition &p)
 {
-  CQChartsRectAnnotation::setPosition(p);
+  CQChartsRectBaseAnnotation::setPosition(p);
 
   emitDataChanged();
 }
@@ -9397,7 +9540,7 @@ void
 CQChartsTkWidgetAnnotation::
 setRectangle(const OptRect &r)
 {
-  CQChartsRectAnnotation::setRectangle(r);
+  CQChartsRectBaseAnnotation::setRectangle(r);
 
   emitDataChanged();
 }

@@ -1227,7 +1227,8 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotationBase {
 
 //---
 
-class CQChartsRectAnnotation : public CQChartsAnnotation {
+// base class for annotation with rectanglulafr shape (text, widgets)
+class CQChartsRectBaseAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsOptPosition position  READ position  WRITE setPosition )
@@ -1239,13 +1240,13 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
   using OptPosition = CQChartsOptPosition;
 
  public:
-  CQChartsRectAnnotation(View *view, Type type, const ObjRefPos &p);
-  CQChartsRectAnnotation(Plot *plot, Type type, const ObjRefPos &p);
+  CQChartsRectBaseAnnotation(View *view, Type type, const ObjRefPos &p);
+  CQChartsRectBaseAnnotation(Plot *plot, Type type, const ObjRefPos &p);
 
-  CQChartsRectAnnotation(View *view, Type type, const Rect &rect);
-  CQChartsRectAnnotation(Plot *plot, Type type, const Rect &rect);
+  CQChartsRectBaseAnnotation(View *view, Type type, const Rect &rect);
+  CQChartsRectBaseAnnotation(Plot *plot, Type type, const Rect &rect);
 
- ~CQChartsRectAnnotation() override;
+ ~CQChartsRectBaseAnnotation() override;
 
   //---
 
@@ -1265,16 +1266,14 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
   Rect rectangleValue() const;
   void setRectangle(const Rect &r);
 
-  //---
-
  protected:
   virtual void positionToBBox() { }
 
   void rectToBBox();
 
  protected:
-  OptPosition position_;  //!< text position
-  OptRect     rectangle_; //!< text bounding rect
+  OptPosition position_;  //!< rect position
+  OptRect     rectangle_; //!< rect bounding rect
 };
 
 //---
@@ -1286,7 +1285,7 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
  * Formatted text in optionally filled and/or stroked box.
  * Text can be drawn at any angle.
  */
-class CQChartsTextAnnotation : public CQChartsRectAnnotation {
+class CQChartsTextAnnotation : public CQChartsRectBaseAnnotation {
   Q_OBJECT
 
   Q_PROPERTY(bool isLink READ getIsLink WRITE setIsLink)
@@ -1353,6 +1352,7 @@ class CQChartsTextAnnotation : public CQChartsRectAnnotation {
   void draw(PaintDevice *device) override;
 
   void drawInRect(PaintDevice *device, const BBox &rect);
+  void drawAtPoint(PaintDevice *device, const Point &p);
 
   void writeDetails(std::ostream &os, const QString &parentVarName=QString(),
                     const QString &varName=QString()) const override;
@@ -1586,6 +1586,7 @@ class CQChartsConnectorAnnotationBase : public CQChartsAnnotation {
 
   Q_PROPERTY(CQChartsObjRef startObjRef READ startObjRef WRITE setStartObjRef)
   Q_PROPERTY(CQChartsObjRef endObjRef   READ endObjRef   WRITE setEndObjRef  )
+  Q_PROPERTY(QString        textInd     READ textInd     WRITE setTextInd    )
 
  public:
   CQChartsConnectorAnnotationBase(View *view, Type type);
@@ -1607,9 +1608,23 @@ class CQChartsConnectorAnnotationBase : public CQChartsAnnotation {
   const ObjRef &endObjRef() const { return endObjRef_; }
   void setEndObjRef(const ObjRef &o) { endObjRef_ = o; }
 
+  //---
+
+  //! get/set text ind
+  const QString &textInd() const { return textInd_; }
+  void setTextInd(const QString &ind);
+
  protected:
-  ObjRef startObjRef_; //!< start reference object
-  ObjRef endObjRef_;   //!< end reference object
+  // draw text
+  void drawText(PaintDevice *device, const QPainterPath &path);
+
+  // get associated text annotation
+  CQChartsTextAnnotation *getTextAnnotation() const;
+
+ protected:
+  ObjRef  startObjRef_; //!< start reference object
+  ObjRef  endObjRef_;   //!< end reference object
+  QString textInd_;     //!< text ind for text label
 };
 
 //---
@@ -1625,9 +1640,9 @@ class CQChartsArrow;
 class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsPosition start READ start WRITE setStart)
-  Q_PROPERTY(CQChartsPosition end   READ end   WRITE setEnd  )
-  Q_PROPERTY(CQChartsPath     path  READ path  WRITE setPath )
+  Q_PROPERTY(CQChartsPosition start   READ start   WRITE setStart  )
+  Q_PROPERTY(CQChartsPosition end     READ end     WRITE setEnd    )
+  Q_PROPERTY(CQChartsPath     path    READ path    WRITE setPath   )
 
  public:
   using ArrowData = CQChartsArrowData;
@@ -1661,14 +1676,17 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
 
   //---
 
+  //! get/set start point
   const Position &start() const { return start_; }
   void setStart(const Position &p);
 
+  //! get/set end point
   const Position &end() const { return end_; }
   void setEnd(const Position &p);
 
   //---
 
+  //! get/set path
   const Path &path() const { return path_; }
   void setPath(const Path &path);
 
@@ -1724,8 +1742,8 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
   ArrowP       arrow_;                                 //!< arrow data
   Path         path_;                                  //!< path
   QPainterPath drawPath_;                              //!< draw path
-  ObjRef       startObjRef_;
-  ObjRef       endObjRef_;
+  ObjRef       startObjRef_;                           //!< start point object ref
+  ObjRef       endObjRef_;                             //!< end point object ref
 };
 
 //---
@@ -2821,7 +2839,7 @@ class CQWinWidget;
  *
  * Widget at position or in rectangle
  */
-class CQChartsWidgetAnnotation : public CQChartsRectAnnotation {
+class CQChartsWidgetAnnotation : public CQChartsRectBaseAnnotation {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsWidget widget      READ widget        WRITE setWidget     )
@@ -2941,7 +2959,7 @@ class CTkWidget;
  *
  * Tk Widget at position or in rectangle
  */
-class CQChartsTkWidgetAnnotation : public CQChartsRectAnnotation {
+class CQChartsTkWidgetAnnotation : public CQChartsRectBaseAnnotation {
   Q_OBJECT
 
   Q_PROPERTY(Qt::Alignment align      READ align      WRITE setAlign     )

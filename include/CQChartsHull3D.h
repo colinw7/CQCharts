@@ -35,7 +35,7 @@
  *
 */
 template<class STATE, class T, class DIST=ptrdiff_t>
-class CInputIterator : public std::iterator<std::input_iterator_tag, T, DIST> {
+class CInputIterator {
  public:
   enum { IS_PTR = std::is_pointer<T>::value };
 
