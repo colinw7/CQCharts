@@ -209,7 +209,7 @@ positionToParent(const ObjRef &objRef, const Position &pos) const
   BBox         bbox;
   CQChartsObj *obj = nullptr;
 
-  if (! intersectObjectRect(objRef, obj, bbox))
+  if (! intersectObjectRect(objRef, obj, bbox) || ! bbox.isValid())
     return positionToParent(pos);
 
   Length xlen(pos.p().x, pos.units());

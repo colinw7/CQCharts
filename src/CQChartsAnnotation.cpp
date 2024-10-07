@@ -4959,6 +4959,17 @@ setTextInd(const QString &ind)
 
 void
 CQChartsConnectorAnnotationBase::
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
+{
+  auto path1 = path + "/" + propertyId();
+
+  addProp(model, path1, "textInd", "", "Text annotation ind");
+
+  CQChartsAnnotation::addProperties(model, path, desc);
+}
+
+void
+CQChartsConnectorAnnotationBase::
 drawText(PaintDevice *device, const QPainterPath &path)
 {
   auto p = path.pointAtPercent(0.5);
@@ -4986,16 +4997,18 @@ getTextAnnotation() const
 
 CQChartsArrowAnnotation::
 CQChartsArrowAnnotation(View *view, const ObjRefPos &start, const ObjRefPos &end) :
- CQChartsConnectorAnnotationBase(view, Type::ARROW), start_(start.position()), end_(end.position()),
- startObjRef_(start.objRef()), endObjRef_(end.objRef())
+ CQChartsConnectorAnnotationBase(view, Type::ARROW), start_(start.position()), end_(end.position())
 {
+  startObjRef_ = start.objRef();
+  endObjRef_   = end  .objRef();
 }
 
 CQChartsArrowAnnotation::
 CQChartsArrowAnnotation(Plot *plot, const ObjRefPos &start, const ObjRefPos &end) :
- CQChartsConnectorAnnotationBase(plot, Type::ARROW), start_(start.position()), end_(end.position()),
- startObjRef_(start.objRef()), endObjRef_(end.objRef())
+ CQChartsConnectorAnnotationBase(plot, Type::ARROW), start_(start.position()), end_(end.position())
 {
+  startObjRef_ = start.objRef();
+  endObjRef_   = end  .objRef();
 }
 
 CQChartsArrowAnnotation::
@@ -5114,7 +5127,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
   //---
 
-  CQChartsAnnotation::addProperties(model, path, desc);
+  CQChartsConnectorAnnotationBase::addProperties(model, path, desc);
 
   //---
 
@@ -5762,16 +5775,18 @@ getChangedNameValues(NameValues &nameValues) const
 
 CQChartsArcAnnotation::
 CQChartsArcAnnotation(View *view, const ObjRefPos &start, const ObjRefPos &end) :
- CQChartsConnectorAnnotationBase(view, Type::ARC), start_(start.position()), end_(end.position()),
- startObjRef_(start.objRef()), endObjRef_(end.objRef())
+ CQChartsConnectorAnnotationBase(view, Type::ARC), start_(start.position()), end_(end.position())
 {
+  startObjRef_ = start.objRef();
+  endObjRef_   = end  .objRef();
 }
 
 CQChartsArcAnnotation::
 CQChartsArcAnnotation(Plot *plot, const ObjRefPos &start, const ObjRefPos &end) :
- CQChartsConnectorAnnotationBase(plot, Type::ARC), start_(start.position()), end_(end.position()),
- startObjRef_(start.objRef()), endObjRef_(end.objRef())
+ CQChartsConnectorAnnotationBase(plot, Type::ARC), start_(start.position()), end_(end.position())
 {
+  startObjRef_ = start.objRef();
+  endObjRef_   = end  .objRef();
 }
 
 CQChartsArcAnnotation::
@@ -5874,7 +5889,7 @@ void
 CQChartsArcAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
-  CQChartsAnnotation::addProperties(model, path, desc);
+  CQChartsConnectorAnnotationBase::addProperties(model, path, desc);
 
   auto path1 = path + "/" + propertyId();
 
@@ -6258,7 +6273,7 @@ void
 CQChartsArcConnectorAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
-  CQChartsAnnotation::addProperties(model, path, desc);
+  CQChartsConnectorAnnotationBase::addProperties(model, path, desc);
 
   auto path1 = path + "/" + propertyId();
 

@@ -1614,6 +1614,12 @@ class CQChartsConnectorAnnotationBase : public CQChartsAnnotation {
   const QString &textInd() const { return textInd_; }
   void setTextInd(const QString &ind);
 
+  //---
+
+  //! add properties
+  void addProperties(PropertyModel *model, const QString &path,
+                     const QString &desc=QString()) override;
+
  protected:
   // draw text
   void drawText(PaintDevice *device, const QPainterPath &path);
@@ -1640,9 +1646,9 @@ class CQChartsArrow;
 class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsPosition start   READ start   WRITE setStart  )
-  Q_PROPERTY(CQChartsPosition end     READ end     WRITE setEnd    )
-  Q_PROPERTY(CQChartsPath     path    READ path    WRITE setPath   )
+  Q_PROPERTY(CQChartsPosition start READ start WRITE setStart)
+  Q_PROPERTY(CQChartsPosition end   READ end   WRITE setEnd  )
+  Q_PROPERTY(CQChartsPath     path  READ path  WRITE setPath )
 
  public:
   using ArrowData = CQChartsArrowData;
@@ -1739,11 +1745,9 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
 
   Position     start_ { Position::plot(Point(0, 0)) }; //!< arrow start
   Position     end_   { Position::plot(Point(1, 1)) }; //!< arrow end
-  ArrowP       arrow_;                                 //!< arrow data
   Path         path_;                                  //!< path
+  ArrowP       arrow_;                                 //!< arrow data
   QPainterPath drawPath_;                              //!< draw path
-  ObjRef       startObjRef_;                           //!< start point object ref
-  ObjRef       endObjRef_;                             //!< end point object ref
 };
 
 //---
@@ -1891,8 +1895,6 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotationBase {
   HeadType midType_   { HeadType::NONE };                      //!< mid head type
   Length   lineWidth_ { Length::pixel(16) };                   //!< line width
   double   arrowSize_ { 2.0 };                                 //!< arrow size
-  ObjRef   startObjRef_;
-  ObjRef   endObjRef_;
 };
 
 //---
