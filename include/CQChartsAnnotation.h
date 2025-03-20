@@ -1666,6 +1666,7 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
   Q_PROPERTY(CQChartsAngle    startAngle READ startAngle WRITE setStartAngle)
   Q_PROPERTY(CQChartsAngle    endAngle   READ endAngle   WRITE setEndAngle  )
   Q_PROPERTY(bool             isSolid    READ isSolid    WRITE setSolid     )
+  Q_PROPERTY(bool             isRouted   READ isRouted   WRITE setRouted    )
 
  public:
   using ArrowData = CQChartsArrowData;
@@ -1733,6 +1734,12 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
 
   //---
 
+  //! get/set is routed rectilinear line
+  bool isRouted() const { return isRouted_; }
+  void setRouted(bool b);
+
+  //---
+
   CQChartsArrow *arrow() const { return arrow_.get(); }
 
   const ArrowData &arrowData() const;
@@ -1791,6 +1798,7 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
   Angle        startAngle_ { -1 };                          //!< auto path start angle
   Angle        endAngle_   { -1 };                          //!< auto path end angle
   bool         isSolid_    { true };                        //!< is solid line
+  bool         isRouted_   { true };                        //!< is routed rectilinear line
   ArrowP       arrow_;                                      //!< arrow data
   QPainterPath drawPath_;                                   //!< draw path
 

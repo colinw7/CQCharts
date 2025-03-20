@@ -168,7 +168,7 @@ addRow(const QAbstractItemModel *, const ModelVisitor::VisitData &data, Range &r
 
   ObjData objData;
 
-  // Type,Id,Geometry,Data,Style
+  // Type, Id, Geometry, Data, Style
   auto typeStr     = getValue(Column(0)).toString();
   auto idStr       = getValue(Column(1)).toString();
   auto geometryStr = getValue(Column(2)).toString();

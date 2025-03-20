@@ -318,10 +318,9 @@ struct ConnectPoint {
 };
 
 struct ConnectData {
-  EdgeType edgeType       { EdgeType::ARC };
-  double   lineWidth      { 1.0 };
-  bool     route          { false };
-  bool     removeOverlaps { false };
+  EdgeType edgeType  { EdgeType::ARC };
+  double   lineWidth { 1.0 };
+  bool     route     { false };
 
   ConnectData() { }
 

@@ -2422,25 +2422,6 @@ edgePath(const ConnectPoint &c1, const ConnectPoint &c2, const ConnectData &data
 
     //---
 
-    auto expandBBox = [&](const BBox &bbox, double offset) {
-      auto bbox1 = bbox;
-
-      if (bbox1.isValid()) {
-        auto w = bbox.getWidth ();
-        auto h = bbox.getHeight();
-
-        bbox1.add(bbox1.getXMin() - offset*w, bbox1.getYMin() - offset*h);
-        bbox1.add(bbox1.getXMax() + offset*w, bbox1.getYMax() + offset*h);
-      }
-
-      return bbox1;
-    };
-
-    auto bbox1 = expandBBox(c1.bbox, c1.offset);
-    auto bbox2 = expandBBox(c2.bbox, c2.offset);
-
-    //---
-
     auto s1 = (orient1 == Qt::Vertical ? c1.bbox.getHeight() : c1.bbox.getWidth());
     auto s2 = (orient2 == Qt::Vertical ? c2.bbox.getHeight() : c2.bbox.getWidth());
 
@@ -2453,57 +2434,12 @@ edgePath(const ConnectPoint &c1, const ConnectPoint &c2, const ConnectData &data
 
     //---
 
-    auto hlineIntersectRect = [](const BBox &bbox, const Point &p1, const Point &p2) {
-      Point pi;
-      if (! CQChartsGeom::lineIntersectRect(bbox, p1, p2, pi))
-        return false;
-      auto x1 = std::min(p1.x, p2.x);
-      auto x2 = std::max(p2.x, p2.x);
-      return (pi.x >= x1 && pi.x <= x2);
-    };
-
-    auto vlineIntersectRect = [](const BBox &bbox, const Point &p1, const Point &p2) {
-      Point pi;
-      if (! CQChartsGeom::lineIntersectRect(bbox, p1, p2, pi))
-        return false;
-      auto y1 = std::min(p1.y, p2.y);
-      auto y2 = std::max(p2.y, p2.y);
-      return (pi.y >= y1 && pi.y <= y2);
-    };
-
-    auto HBBoxSide = [](const BBox &bbox, double x) {
-      if (x >= bbox.getXMid())
-        return bbox.getXMax();
-      else
-        return bbox.getXMin();
-    };
-
-    auto VBBoxSide = [](const BBox &bbox, double y) {
-      if (y >= bbox.getYMid())
-        return bbox.getYMax();
-      else
-        return bbox.getYMin();
-    };
-
     if      (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal) {
       if (c1.bbox.isValid() && c2.bbox.isValid()) {
         points.push_back(p1);
 
         auto pm1 = Point(p1.x, yr);
         auto pm2 = Point(p2.x, yr);
-
-        if (data.removeOverlaps) {
-          bool b1 = hlineIntersectRect(bbox1, pm1, pm2);
-          bool b2 = hlineIntersectRect(bbox2, pm1, pm2);
-
-          if      (b1 && ! b2)
-            yr = VBBoxSide(bbox1, yr);
-          else if (! b1 && b2)
-            yr = VBBoxSide(bbox2, yr);
-
-          pm1 = Point(p1.x, yr);
-          pm2 = Point(p2.x, yr);
-        }
 
         points.push_back(pm1);
         points.push_back(pm2);
@@ -2524,19 +2460,6 @@ edgePath(const ConnectPoint &c1, const ConnectPoint &c2, const ConnectData &data
         auto pm1 = Point(xr, p1.y);
         auto pm2 = Point(xr, p2.y);
 
-        if (data.removeOverlaps) {
-          bool b1 = vlineIntersectRect(bbox1, pm1, pm2);
-          bool b2 = vlineIntersectRect(bbox2, pm1, pm2);
-
-          if      (b1 && ! b2)
-            xr = HBBoxSide(bbox1, xr);
-          else if (! b1 && b2)
-            xr = HBBoxSide(bbox2, xr);
-
-          pm1 = Point(xr, p1.y);
-          pm2 = Point(xr, p2.y);
-        }
-
         points.push_back(pm1);
         points.push_back(pm2);
 
@@ -2551,19 +2474,13 @@ edgePath(const ConnectPoint &c1, const ConnectPoint &c2, const ConnectData &data
     }
     else {
       if (c1.bbox.isValid() && c2.bbox.isValid()) {
-        if (data.removeOverlaps) {
-          // if offset point inside other rect then move back to edge (offset=0)
-          auto i1 = bbox2.inside(p1); if (i1) { p1 = c1.p; bbox1 = c1.bbox; }
-          auto i2 = bbox1.inside(p2); if (i2) { p2 = c2.p; bbox2 = c2.bbox; }
-        }
-
-        // add first offset point
+        // add first point
         points.push_back(p1);
 
-        // create mid point between offset points of each rect
+        // create mid point between connect points of each rect
         auto pm = Point::avg(p1, p2);
 
-        // create point to connect offset points to mid point by connect direction
+        // create point to connect points to mid point by connect direction
         Point pm1, pm2;
 
         auto updateConnectPoints = [&]() {
@@ -2573,78 +2490,6 @@ edgePath(const ConnectPoint &c1, const ConnectPoint &c2, const ConnectData &data
 
         updateConnectPoints();
 
-        if (data.removeOverlaps) {
-          // if mid point inside either rect move outside (priority to first rect)
-          auto i1 = bbox1.inside(pm);
-          auto i2 = bbox2.inside(pm);
-
-          if (i2 & ! i1) {
-            if (bbox2.insideX(pm.x)) pm.x = HBBoxSide(bbox2, pm.x);
-            if (bbox2.insideY(pm.y)) pm.y = VBBoxSide(bbox2, pm.y);
-
-            i1 = bbox1.inside(pm);
-          }
-
-          if (i1) {
-            if (bbox1.insideX(pm.x)) pm.x = HBBoxSide(bbox1, pm.x);
-            if (bbox1.insideY(pm.y)) pm.y = VBBoxSide(bbox1, pm.y);
-          }
-
-          updateConnectPoints();
-
-          //---
-
-          // check if line to mid point overlaps other rect move outside other rect
-          bool b1 = (orient1 == Qt::Vertical ? hlineIntersectRect(bbox2, pm1, pm) :
-                                               vlineIntersectRect(bbox2, pm1, pm));
-
-          if (b1) {
-            if (orient1 == Qt::Vertical)
-              pm.y = VBBoxSide(bbox2, pm.y);
-            else
-              pm.x = HBBoxSide(bbox2, pm.x);
-          }
-
-          updateConnectPoints();
-
-          bool b2 = (orient2 == Qt::Vertical ? hlineIntersectRect(bbox1, pm, pm2) :
-                                               vlineIntersectRect(bbox1, pm, pm2));
-
-          if (b2) {
-            if (orient2 == Qt::Vertical)
-              pm.y = VBBoxSide(bbox1, pm.y);
-            else
-              pm.x = HBBoxSide(bbox1, pm.x);
-          }
-
-          updateConnectPoints();
-
-          // check if line to mid point overlaps rect move outside rect
-          b2 = (orient2 == Qt::Vertical ? hlineIntersectRect(bbox2, pm, pm2) :
-                                          vlineIntersectRect(bbox2, pm, pm2));
-
-          if (b2) {
-            if (orient2 == Qt::Vertical)
-              pm.y = VBBoxSide(bbox2, pm.y);
-            else
-              pm.x = HBBoxSide(bbox2, pm.x);
-          }
-
-          updateConnectPoints();
-
-          b1 = (orient1 == Qt::Vertical ? hlineIntersectRect(bbox1, pm1, pm) :
-                                          vlineIntersectRect(bbox1, pm1, pm));
-
-          if (b1) {
-            if (orient1 == Qt::Vertical)
-              pm.y = VBBoxSide(bbox1, pm.y);
-            else
-              pm.x = HBBoxSide(bbox1, pm.x);
-          }
-
-          updateConnectPoints();
-        }
-
         points.push_back(pm1);
         points.push_back(pm);
         points.push_back(pm2);
@@ -2652,6 +2497,7 @@ edgePath(const ConnectPoint &c1, const ConnectPoint &c2, const ConnectData &data
         points.push_back(p2);
       }
       else {
+        // create mid point between connect points
         auto pm = Point::avg(c1.p, c2.p);
 
         if (orient1 == Qt::Vertical)

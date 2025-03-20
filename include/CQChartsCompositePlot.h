@@ -96,7 +96,6 @@ class CQChartsCompositePlot : public CQChartsPlot {
   const Length &rowHeight() const { return rowHeight_; }
   void setRowHeight(const Length &v);
 
-
   //---
 
   void addPlot(Plot *plot);

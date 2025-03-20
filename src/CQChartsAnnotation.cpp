@@ -2350,7 +2350,6 @@ setEnd(const Position &p)
   emitDataChanged();
 }
 
-
 void
 CQChartsRectangleAnnotation::
 setShapeType(const ShapeType &s)
@@ -5193,6 +5192,15 @@ setSolid(bool b)
 
 //---
 
+void
+CQChartsArrowAnnotation::
+setRouted(bool b)
+{
+  CQChartsUtil::testAndSet(isRouted_, b, [&]() { emitDataChanged(); } );
+}
+
+//---
+
 const CQChartsArrowData &
 CQChartsArrowAnnotation::
 arrowData() const
@@ -5252,7 +5260,8 @@ addProperties(PropertyModel *model, const QString &path, const QString &desc)
 
   auto linePath = path1 + "/line";
 
-  addProp(model, linePath, "isSolid", "", "Edge is solid");
+  addProp(model, linePath, "isSolid" , "", "Edge is solid");
+  addProp(model, linePath, "isRouted", "", "Rectilinear edge is routed");
 
   addArrowStyleProp(linePath, "lineWidth"  , "width"      , "Edge line width");
   addArrowStyleProp(linePath, "rectilinear", "rectilinear", "Edge is rectilinear");
@@ -5857,7 +5866,7 @@ calcPath(PaintDevice *device, QPainterPath &path) const
 
   CQChartsDrawUtil::ConnectData cdata(drawEdgeType, lw);
 
-  cdata.route = true;
+  cdata.route = isRouted();
   //cdata.removeOverlaps = true;
 
   if (! isSelf) {

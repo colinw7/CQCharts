@@ -834,7 +834,6 @@ calcTableSize() const
           auto str = getVerticalHeader(r, ok);
           if (! ok) continue;
 
-
           auto pbbox = BBox(0, 0, data.pwidth, 9999);
 
           QStringList              strs;
