@@ -259,9 +259,11 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
-  //! get/set position (x for vertical, y for horzontal)
+  //! get/set position (x for vertical, y for horizontal)
   const OptReal &position() const { return data_.position; }
   void setPosition(const OptReal &r);
+
+  void setPosition(double r) { setPosition(OptReal(r)); }
 
   //---
 

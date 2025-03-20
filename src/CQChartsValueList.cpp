@@ -15,6 +15,12 @@ registerMetaType()
   CQPropertyViewMgrInst->setUserName("CQChartsValueList", "value_list");
 }
 
+CQChartsValueList::
+CQChartsValueList(const QString &str)
+{
+  (void) fromString(str);
+}
+
 QString
 CQChartsValueList::
 toString() const

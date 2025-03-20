@@ -229,7 +229,7 @@ draw(PaintDevice *device) const
     handle->draw(device);
   }
 
-  if (CQChartsEnv::getBool("CQ_CHARTS_DRAW_EDIT_HANDLE_BOX", false)) {
+  if (CQChartsEnv::getBool("CQCHARTS_DRAW_EDIT_HANDLE_BOX", false)) {
     device->setPen(QColor(Qt::red));
     device->setBrush(Qt::NoBrush);
 

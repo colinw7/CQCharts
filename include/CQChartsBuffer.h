@@ -59,10 +59,10 @@ class CQChartsBuffer : public QObject {
   const Type &type() const { return type_; }
 
   bool isActive() const { return active_; }
-  void setActive(bool b) { active_ = b; }
+  void setActive(bool b);
 
   bool isValid() const { return valid_; }
-  void setValid(bool b) { valid_ = b; }
+  void setValid(bool b);
 
   const BufferType &bufferType() const { return bufferType_; }
 

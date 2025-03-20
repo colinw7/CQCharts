@@ -1554,9 +1554,9 @@ draw(PaintDevice *device) const
       auto *toObj = chordPlot_->edgeObject(data_.from(), value.to);
       if (! toObj) continue;
 
-      toObj->setNotificationsEnabled(false);
+      auto oldEnabled = toObj->setNotificationsEnabled(false);
       toObj->setInside(true); toObj->draw(device); toObj->setInside(false);
-      toObj->setNotificationsEnabled(true);
+      toObj->setNotificationsEnabled(oldEnabled);
     }
 
     chordPlot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
@@ -1644,9 +1644,9 @@ drawFg(PaintDevice *device) const
     chordPlot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
     for (const auto &obj : edgeObjs_) {
-      obj->setNotificationsEnabled(false);
+      auto oldEnabled = obj->setNotificationsEnabled(false);
       obj->setInside(true); obj->draw(device); obj->setInside(false);
-      obj->setNotificationsEnabled(true);
+      obj->setNotificationsEnabled(oldEnabled);
     }
 
     chordPlot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
@@ -2007,15 +2007,15 @@ draw(PaintDevice *device) const
     chordPlot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
     if (fromObj) {
-      fromObj->setNotificationsEnabled(false);
+      auto oldEnabled = fromObj->setNotificationsEnabled(false);
       fromObj->setInside(true); fromObj->draw(device); fromObj->setInside(false);
-      fromObj->setNotificationsEnabled(true);
+      fromObj->setNotificationsEnabled(oldEnabled);
     }
 
     if (toObj) {
-      toObj->setNotificationsEnabled(false);
+      auto oldEnabled = toObj->setNotificationsEnabled(false);
       toObj->setInside(true); toObj->draw(device); toObj->setInside(false);
-      toObj->setNotificationsEnabled(true);
+      toObj->setNotificationsEnabled(oldEnabled);
     }
 
     chordPlot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);

@@ -304,19 +304,50 @@ void arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1, c
 
 //---
 
+struct ConnectPoint {
+  Point  p;
+  Angle  angle;
+  BBox   bbox;
+  double offset { 0.10 };
+
+  ConnectPoint() { }
+
+  ConnectPoint(const Point &p1, const Angle &angle1=Angle(), const BBox &bbox1=BBox()) :
+   p(p1), angle(angle1), bbox(bbox1) {
+  }
+};
+
+struct ConnectData {
+  EdgeType edgeType       { EdgeType::ARC };
+  double   lineWidth      { 1.0 };
+  bool     route          { false };
+  bool     removeOverlaps { false };
+
+  ConnectData() { }
+
+  ConnectData(const EdgeType &edgeType1, double lineWidth1=1.0) :
+   edgeType(edgeType1), lineWidth(lineWidth1) {
+  }
+};
+
+#if 0
 void drawEdgePath(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
                   const EdgeType &edgeType=EdgeType::ARC,
                   const Angle &angle=Angle());
-void edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
-              const EdgeType &edgeType=EdgeType::ARC,
-              const Angle &angle=Angle());
-
+#endif
 void drawEdgePath(PaintDevice *device, const Point &p1, const Point &p2, double lw,
                   const EdgeType &edgeType=EdgeType::ARC,
                   const Angle &angle1=Angle(), const Angle &angle2=Angle());
+
+void edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
+              const EdgeType &edgeType=EdgeType::ARC,
+              const Angle &angle=Angle());
 void edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
               const EdgeType &edgeType=EdgeType::ARC,
               const Angle &angle1=Angle(), const Angle &angle2=Angle());
+
+QPainterPath edgePath(const ConnectPoint &c1, const ConnectPoint &p2,
+                      const ConnectData &data);
 
 void selfEdgePath(QPainterPath &path, const BBox &bbox, double lw,
                   const EdgeType &edgeType=EdgeType::ARC,
@@ -327,17 +358,20 @@ void selfEdgePath(QPainterPath &path, const BBox &bbox, double lw,
 void drawCurvePath(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
                    const EdgeType &edgeType=EdgeType::ARC,
                    const Angle &angle=Angle());
-void curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
-               const EdgeType &edgeType=EdgeType::ARC,
-               const Angle &angle=Angle());
-
 void drawCurvePath(PaintDevice *device, const Point &p1, const Point &p2,
                    const EdgeType &edgeType=EdgeType::ARC,
                    const Angle &angle1=Angle(), const Angle &angle2=Angle());
+
+void curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
+               const EdgeType &edgeType=EdgeType::ARC,
+               const Angle &angle=Angle());
 void curvePath(QPainterPath &path, const Point &p1, const Point &p2,
                const EdgeType &edgeType=EdgeType::ARC,
                const Angle &angle1=Angle(), const Angle &angle2=Angle(),
                double startLength=0.0, double endLength=0.0);
+
+QPainterPath curvePath(const ConnectPoint &c1, const ConnectPoint &c2,
+                       const ConnectData &data);
 
 void selfCurvePath(QPainterPath &path, const BBox &bbox, const EdgeType &edgeType=EdgeType::ARC,
                    const Angle &angle=Angle());
@@ -505,6 +539,16 @@ inline QColor setColorAlpha(QColor &c, const CQChartsAlpha &a) {
   c.setAlphaF(a.valueOr(1.0));
   return c;
 }
+
+}
+
+//---
+
+namespace CQChartsDrawUtil {
+
+void drawBarChart(PaintDevice *device, const BBox &bbox, const std::vector<double> &values,
+                  const CQChartsOptReal &maxValue, const QString &paletteName,
+                  const PenBrush &penBrush);
 
 }
 

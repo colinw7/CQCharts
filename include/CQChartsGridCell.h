@@ -18,6 +18,9 @@ class CQChartsGridCell {
  public:
   CQChartsGridCell() = default;
 
+  bool isDirty() const { return dirty_; }
+  void setDirty(bool b) { dirty_ = b; }
+
   int nx() const { return nx_; }
   void setNX(int i) { nx_ = i; }
 
@@ -101,12 +104,13 @@ class CQChartsGridCell {
   }
 
  private:
-  int       nx_        { 100 }; //!< number of x grid intervals
-  int       ny_        { 100 }; //!< number of y grid intervals
-  CInterval xinterval_;         //!< x point range
-  CInterval yinterval_;         //!< y point range
-  XYPoints  xyPoints_;          //!< grid cell points
-  int       maxN_      { 0 };   //!< maximum number of points in grid cell
+  bool      dirty_     { true }; //!< is dirty
+  int       nx_        { 100 };  //!< number of x grid intervals
+  int       ny_        { 100 };  //!< number of y grid intervals
+  CInterval xinterval_;          //!< x point range
+  CInterval yinterval_;          //!< y point range
+  XYPoints  xyPoints_;           //!< grid cell points
+  int       maxN_      { 0 };    //!< maximum number of points in grid cell
 };
 
 #endif

@@ -1856,6 +1856,12 @@ addPointObjects(PlotObjs &objs) const
   //---
 
   columnTypeMgr->endCache(model.data());
+
+  //---
+
+  std::sort(objs.begin(), objs.end(), [](const PlotObj *lhs, const PlotObj *rhs) {
+    return lhs->rect().area() > rhs->rect().area();
+  });
 }
 
 void

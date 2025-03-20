@@ -87,7 +87,7 @@ class CQThreadObject {
   //! wait and finish thread
   void term();
 
-  //! set thread to finished state (called when called detects ready and handles it)
+  //! set thread to finished state (called when caller detects ready and handles it)
   void finish();
 
   //! finish thread and return true if it transitioned to finished state

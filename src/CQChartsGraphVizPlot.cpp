@@ -526,7 +526,7 @@ createObjs(PlotObjs &objs) const
       typeName = QString("json");
 
     // get temporary file for output
-    auto outFilename = CQChartsEnv::getString("CQ_CHARTS_GRAPHVIZ_OUTPUT_FILE");
+    auto outFilename = CQChartsEnv::getString("CQCHARTS_GRAPHVIZ_OUTPUT_FILE");
 
     if (outFilename == "") {
       QTemporaryFile outFile(QDir::tempPath() + "/XXXXXX." + typeName);
@@ -641,7 +641,7 @@ bool
 CQChartsGraphVizPlot::
 writeGraph(bool weighted) const
 {
-  auto graphVizFilename = CQChartsEnv::getString("CQ_CHARTS_GRAPHVIZ_INPUT_FILE");
+  auto graphVizFilename = CQChartsEnv::getString("CQCHARTS_GRAPHVIZ_INPUT_FILE");
 
   if (graphVizFilename == "") {
     // create graphviz input file from data
@@ -886,7 +886,7 @@ writeGraph(QFile &graphVizFile, const QString &graphVizFilename, bool weighted) 
     typeName = QString("json");
 
   // get temporary file for output
-  auto outFilename = CQChartsEnv::getString("CQ_CHARTS_GRAPHVIZ_OUTPUT_FILE");
+  auto outFilename = CQChartsEnv::getString("CQCHARTS_GRAPHVIZ_OUTPUT_FILE");
 
   if (outFilename == "") {
     QTemporaryFile outFile(QDir::tempPath() + "/XXXXXX." + typeName);
@@ -2042,7 +2042,6 @@ processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
 
     if      (name == "shape") {
       Edge::ShapeType shapeType;
-
       stringToShapeType(valueStr, shapeType);
 
       edge->setShapeType(shapeType);

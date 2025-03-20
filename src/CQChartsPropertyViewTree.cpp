@@ -136,7 +136,7 @@ editSlot()
 
   //---
 
-  if (CQChartsEnv::getBool("CQ_CHARTS_META_EDIT", false))
+  if (CQChartsEnv::getBool("CQCHARTS_META_EDIT", false))
     CQApp::showMetaEdit(obj);
 
   //---
@@ -145,7 +145,7 @@ editSlot()
   auto *key   = qobject_cast<CQChartsKey   *>(obj);
   auto *axis  = qobject_cast<CQChartsAxis  *>(obj);
 
-  bool modal = CQChartsEnv::getBool("CQ_CHARTS_MODAL_DLG", true);
+  bool modal = CQChartsEnv::getBool("CQCHARTS_MODAL_DLG", true);
 
   if      (title) {
     delete titleDlg_;

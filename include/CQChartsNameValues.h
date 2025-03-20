@@ -43,6 +43,24 @@ class CQChartsNameValues : public CQModelNameValues {
 
 //---
 
+class CQChartsTclNameValues {
+ public:
+  explicit CQChartsTclNameValues(const QString &str="");
+
+  bool nameValueString (const QString &name, QString &value) const;
+  bool nameValueInteger(const QString &name, long &value, bool &ok) const;
+  bool nameValueReal   (const QString &name, double &value, bool &ok) const;
+  bool nameValueBool   (const QString &name, bool &value, bool &ok) const;
+
+ private:
+  using NameValues = std::map<QString, QString>;
+
+  NameValues nameValues_;
+  bool       valid_ { false };
+};
+
+//---
+
 CQUTIL_DCL_META_TYPE(CQChartsNameValues)
 
 #endif

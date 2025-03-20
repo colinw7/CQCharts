@@ -521,7 +521,7 @@ createObjs(PlotObjs &) const
     if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
-    plot->createObjs();
+    plot->createPlotObjs();
   }
 
   return true;

@@ -340,6 +340,7 @@ getObjRefData(const ObjRef &objRef, ObjRefData &data) const
 
   if (plotObj) {
     data.plotObj = plotObj;
+    data.obj     = data.plotObj;
     return true;
   }
 
@@ -347,6 +348,7 @@ getObjRefData(const ObjRef &objRef, ObjRefData &data) const
 
   if (annotation) {
     data.annotation = annotation;
+    data.obj        = data.annotation;
     return true;
   }
 

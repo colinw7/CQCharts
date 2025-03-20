@@ -130,6 +130,9 @@ class CQChartsPaintDevice {
   virtual void setFillDelta(double) { }
   virtual void setFillWidth(double) { }
 
+  //---
+
+  // draw basic shapes
   virtual void fillPath  (const QPainterPath &, const QBrush &) { assert(false); }
   virtual void strokePath(const QPainterPath &, const QPen &) { assert(false); }
   virtual void drawPath  (const QPainterPath &) { assert(false); }
@@ -138,14 +141,6 @@ class CQChartsPaintDevice {
   virtual void drawRect(const BBox &) { assert(false); }
 
   virtual void drawEllipse(const BBox &, const Angle& =Angle()) { assert(false); }
-
-//virtual void drawArc(const BBox &, const Angle &, const Angle &) { assert(false); }
-
-  //---
-
-  void drawDiamond(const BBox &bbox);
-
-  //---
 
   virtual void drawPolygon (const Polygon &) { assert(false); }
   virtual void drawPolyline(const Polygon &) { assert(false); }
@@ -158,8 +153,12 @@ class CQChartsPaintDevice {
   virtual void drawTransformedText(const Point &, const QString &) { assert(false); }
 
   virtual void drawImage(const Point &, const Image &) { assert(false); }
-  virtual void drawImageInRect(const BBox &, const Image &, bool = true,
-                               const Angle & = Angle()) { assert(false); }
+  virtual void drawImageInRect(const BBox &, const Image &, bool /*stretch*/ = true,
+                               const Angle & /*angle*/ = Angle()) { assert(false); }
+
+  void drawDiamond(const BBox &bbox);
+
+  //---
 
   virtual const QFont &font() const = 0;
   virtual void setFont(const QFont &f, bool scale=true) = 0;

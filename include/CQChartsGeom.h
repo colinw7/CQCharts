@@ -1387,6 +1387,18 @@ class Range :
     return QString("%1 %2 %3 %4").arg(x1_).arg(y1_).arg(x2_).arg(y2_);
   }
 
+  Range &operator+=(const BBox &bbox) {
+    updateRange(bbox);
+
+    return *this;
+  }
+
+  Range &operator+=(const Point &p) {
+    updateRange(p);
+
+    return *this;
+  }
+
   Range &operator+=(const Range &r) {
     if (! r.set_) return *this;
 

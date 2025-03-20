@@ -470,7 +470,6 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     nameInd = ModelIndex(th, data.row, nameColumn(), data.parent);
 
     bool ok1;
-
     geometry.name = modelString(nameInd, ok1);
   }
 
@@ -818,10 +817,9 @@ createCustomControls()
 //------
 
 CQChartsGeometryObj::
-CQChartsGeometryObj(const CQChartsGeometryPlot *geometryPlot, const BBox &rect,
+CQChartsGeometryObj(const GeometryPlot *geometryPlot, const BBox &rect,
                     const Polygons &polygons, const QModelIndex &ind, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsGeometryPlot *>(geometryPlot),
-                 rect, ColorInd(), ColorInd(), iv),
+ CQChartsPlotObj(const_cast<GeometryPlot *>(geometryPlot), rect, ColorInd(), ColorInd(), iv),
  geometryPlot_(geometryPlot), polygons_(polygons)
 {
   setDetailHint(DetailHint::MAJOR);

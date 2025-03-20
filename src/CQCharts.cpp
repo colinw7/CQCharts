@@ -3,6 +3,7 @@
 
 // plot types
 #include <CQChartsAdjacencyPlot.h>
+#include <CQChartsAnnotationPlot.h>
 #include <CQChartsBarChartPlot.h>
 #include <CQChartsBoxPlot.h>
 #include <CQChartsBubblePlot.h>
@@ -667,6 +668,7 @@ init()
   auto *plotTypeMgr = this->plotTypeMgr();
 
   plotTypeMgr->addTypeT<CQChartsAdjacencyPlotType    >("adjacency"    );
+  plotTypeMgr->addTypeT<CQChartsAnnotationPlotType   >("annotation"   );
   plotTypeMgr->addTypeT<CQChartsBarChartPlotType     >("barchart"     );
   plotTypeMgr->addTypeT<CQChartsBoxPlotType          >("box"          );
   plotTypeMgr->addTypeT<CQChartsBubblePlotType       >("bubble"       );

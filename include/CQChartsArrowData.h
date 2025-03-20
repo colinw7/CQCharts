@@ -202,7 +202,7 @@ class CQChartsArrowData {
     bool     lineEnds  { false };          //!< lines at end
   };
 
-//bool     relative_   { false };            //!< to point relative to from
+//bool     relative_   { false };            //!< to point relative to from point
   Length   lineWidth_  { Length::plot(-1) }; //!< connecting line width
   HeadData fheadData_;                       //!< front head data
   HeadData theadData_;                       //!< tail head data

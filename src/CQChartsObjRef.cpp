@@ -41,6 +41,12 @@ registerMetaType()
   CQChartsHelpDlgMgrInst->addTypeDesc("objRef", desc);
 }
 
+CQChartsObjRef::
+CQChartsObjRef(const QString &name, const Location &location) :
+ name_(name), location_(location)
+{
+}
+
 QString
 CQChartsObjRef::
 toString() const

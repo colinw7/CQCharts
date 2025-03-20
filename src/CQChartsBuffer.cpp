@@ -46,10 +46,10 @@ CQChartsBuffer::
 CQChartsBuffer(QWidget *widget, const Type &type) :
  widget_(widget), type_(type)
 {
-  if      (CQChartsEnv::getBool("CQ_CHARTS_LAYER_PIXMAP"))
+  if      (CQChartsEnv::getBool("CQCHARTS_LAYER_PIXMAP"))
     bufferType_ = BufferType::PIXMAP;
 #ifdef CQCHARTS_OPENGL
-  else if (CQChartsEnv::getBool("CQ_CHARTS_LAYER_OPEN_GL"))
+  else if (CQChartsEnv::getBool("CQCHARTS_LAYER_OPEN_GL"))
     bufferType_ = BufferType::OPENGL;
 #endif
   else
@@ -72,6 +72,20 @@ CQChartsBuffer::
 #endif
 
   delete ipainter_;
+}
+
+void
+CQChartsBuffer::
+setActive(bool b)
+{
+  active_ = b;
+}
+
+void
+CQChartsBuffer::
+setValid(bool b)
+{
+  valid_ = b;
 }
 
 QRectF

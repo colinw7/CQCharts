@@ -118,10 +118,10 @@ init()
 
   //---
 
-  preview_       = CQChartsEnv::getInt ("CQ_CHARTS_PLOT_PREVIEW"  , preview_);
-  sequential_    = CQChartsEnv::getBool("CQ_CHARTS_SEQUENTIAL"    , sequential_); // TODO: remove
-  queueUpdate_   = CQChartsEnv::getBool("CQ_CHARTS_PLOT_QUEUE"    , queueUpdate_);
-  bufferSymbols_ = CQChartsEnv::getInt ("CQ_CHARTS_BUFFER_SYMBOLS", bufferSymbols_);
+  preview_       = CQChartsEnv::getInt ("CQCHARTS_PLOT_PREVIEW"  , preview_);
+  sequential_    = CQChartsEnv::getBool("CQCHARTS_SEQUENTIAL"    , sequential_); // TODO: remove
+  queueUpdate_   = CQChartsEnv::getBool("CQCHARTS_PLOT_QUEUE"    , queueUpdate_);
+  bufferSymbols_ = CQChartsEnv::getInt ("CQCHARTS_BUFFER_SYMBOLS", bufferSymbols_);
 
   displayRange_    = std::make_unique<DisplayRange>();
   rawDisplayRange_ = std::make_unique<DisplayRange>();
@@ -131,16 +131,16 @@ init()
 
   //---
 
-  bool objTreeWait = CQChartsEnv::getBool("CQ_CHARTS_OBJ_TREE_WAIT", false);
+  bool objTreeWait = CQChartsEnv::getBool("CQCHARTS_OBJ_TREE_WAIT", false);
 
   objTreeData_.tree = std::make_unique<CQChartsPlotObjTree>(this, objTreeWait);
 
   //---
 
-  animateData_.tickLen = CQChartsEnv::getInt("CQ_CHARTS_TICK_LEN", animateData_.tickLen);
+  animateData_.tickLen = CQChartsEnv::getInt("CQCHARTS_TICK_LEN", animateData_.tickLen);
 
-  debugUpdate_   = CQChartsEnv::getBool("CQ_CHARTS_DEBUG_UPDATE"   , debugUpdate_  );
-  debugQuadTree_ = CQChartsEnv::getBool("CQ_CHARTS_DEBUG_QUAD_TREE", debugQuadTree_);
+  debugUpdate_   = CQChartsEnv::getBool("CQCHARTS_DEBUG_UPDATE"   , debugUpdate_  );
+  debugQuadTree_ = CQChartsEnv::getBool("CQCHARTS_DEBUG_QUAD_TREE", debugQuadTree_);
 
   //--
 
@@ -5688,7 +5688,7 @@ void
 CQChartsPlot::
 threadTimerSlot()
 {
-  if (view()->isDrawing())
+  if (view()->isDrawing() || view()->isPainterLocked())
     return;
 
   //---
@@ -6670,8 +6670,8 @@ adjustDataRangeBBox(const BBox &bbox) const
 
   //----
 
-  // save original range
-  auto displayRange = this->displayRange();
+  // save original range (force copy)
+  auto displayRange = DisplayRange(this->displayRange());
 
   // update to calculated range
   auto dataRange = calcDataRange(/*adjust*/false);
@@ -7361,7 +7361,7 @@ initObjs()
 
   resetKeyItems(/*add*/false);
 
-  if (! createObjs())
+  if (! createPlotObjs())
     return false;
 
   bool selChanged = selectObjsFromModel();
@@ -7395,9 +7395,9 @@ hasPlotObjs() const
 
 bool
 CQChartsPlot::
-createObjs()
+createPlotObjs()
 {
-  //std::cerr << "createObjs " << calcName().toStdString() << "\n";
+  //std::cerr << "createPlotObjs " << calcName().toStdString() << "\n";
 
   resetExtraFitBBox();
 
@@ -7412,6 +7412,8 @@ createObjs()
 
   if (! createObjs(objs))
     return false;
+
+  //--
 
   if (type()->isPrioritySort()) {
     using PriorityObjs = std::map<int, PlotObjs>;
@@ -7430,6 +7432,10 @@ createObjs()
     for (auto &obj : objs)
       addPlotObject(obj);
   }
+
+  //---
+
+  postCreateObjs();
 
   //---
 
@@ -7902,8 +7908,13 @@ setInsideObject()
   for (auto &obj : insideData_.objs) {
     bool inside = (obj == insideObj);
 
-    if (inside != obj->isInside())
+    if (inside != obj->isInside()) {
+      bool oldEnabled = obj->setNotificationsEnabled(false);
+
       obj->setInside(inside);
+
+      (void) obj->setNotificationsEnabled(oldEnabled);
+    }
   }
 }
 
@@ -13439,8 +13450,9 @@ execWaitDraw()
   if (debugUpdate_)
     std::cerr << "CQChartsPlot::execWaitDraw\n";
 
+  uint n = 0;
 
-  while (updateState == UpdateState::DRAW_OBJS) {
+  while (updateState == UpdateState::DRAW_OBJS && n < 1000) {
     // if busy wait for draw thread to finish
     if (updateData_.drawThread->isBusy()) {
       (void) updateData_.drawThread->term();
@@ -13459,6 +13471,8 @@ execWaitDraw()
     threadTimerSlot();
 
     updateState = this->updateState();
+
+    ++n;
   }
 }
 
@@ -13477,11 +13491,7 @@ drawThread()
 
   //---
 
-  if (view()->lockPainter(true)) {
-    drawParts(view()->ipainter());
-
-    view()->lockPainter(false);
-  }
+  view()->paintPlotParts(this);
 
   //---
 
@@ -16751,9 +16761,9 @@ addArrowAnnotation(const Path &path)
 
 CQChartsArcAnnotation *
 CQChartsPlot::
-addArcAnnotation(const ObjRefPos &start, const ObjRefPos &end)
+addArcAnnotation()
 {
-  return addAnnotationT<ArcAnnotation>(new ArcAnnotation(this, start, end));
+  return addAnnotationT<ArcAnnotation>(new ArcAnnotation(this));
 }
 
 CQChartsArcConnectorAnnotation *
@@ -17474,7 +17484,8 @@ execInvalidateLayer(const Buffer::Type &type)
     if (! parentPlot()) {
       std::unique_lock<std::mutex> lock(updatesMutex_);
 
-      updatesData_.invalidateLayers = true;
+      updatesData_.invalidateLayer     = true;
+      updatesData_.invalidateLayerType = type;
 
       return;
     }
@@ -17498,10 +17509,13 @@ invalidateLayer1(const Buffer::Type &type)
 {
   assert(! parentPlot());
 
-//std::cerr << "invalidateLayer1: " << Buffer::typeName(type) << "\n";
-  auto *layer = getBuffer(type);
+  if (! isReady())
+    return;
 
-  layer->setValid(false);
+//std::cerr << "invalidateLayer1: " << Buffer::typeName(type) << "\n";
+  auto *buffer = getBuffer(type);
+
+  buffer->setValid(false);
 
   setLayersChanged(false);
 

@@ -43,9 +43,7 @@ class CQChartsObjRef :
   using Point = CQChartsGeom::Point;
 
  public:
-  CQChartsObjRef(const QString &name="", const Location &location=Location::CENTER) :
-   name_(name), location_(location) {
-  }
+  CQChartsObjRef(const QString &name="", const Location &location=Location::CENTER);
 
   //---
 

@@ -21,7 +21,7 @@ errorMsg(const QString &msg)
 {
   std::cerr << msg.toStdString() << "\n";
 
-  if (CQChartsEnv::getBool("CQ_CHARTS_PEDANTIC"))
+  if (CQChartsEnv::getBool("CQCHARTS_PEDANTIC"))
     assert(false);
 
   return false;

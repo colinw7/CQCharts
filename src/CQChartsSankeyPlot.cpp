@@ -4921,7 +4921,9 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
   auto drawEdgeInside = [&](const Edge *edge) {
     auto *edgeObj = edge->obj(); if (! edgeObj) return;
 
+    bool oldEnabled = edgeObj->setNotificationsEnabled(false);
     edgeObj->setInside(true); edgeObj->draw(device); edgeObj->setInside(false);
+    (void) edgeObj->setNotificationsEnabled(oldEnabled);
   };
 
 #ifdef CQCHARTS_GRAPH_PATH_ID
@@ -4930,6 +4932,8 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
   auto drawNodeInside = [&](const Node *node, bool /*isSrc*/) {
 #endif
     auto *nodeObj = node->obj(); if (! nodeObj) return;
+
+    bool oldEnabled = nodeObj->setNotificationsEnabled(false);
 
     nodeObj->setInside(true);
 
@@ -4974,6 +4978,8 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
 #endif
 
     nodeObj->setInside(false);
+
+    (void) nodeObj->setNotificationsEnabled(oldEnabled);
   };
 
   //---
@@ -5818,6 +5824,8 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
     auto rect = (isSrc ? node->destEdgeRect(edge) : node->srcEdgeRect(edge));
     if (! rect.isSet()) return;
 
+    bool oldEnabled = nodeObj->setNotificationsEnabled(false);
+
     nodeObj->setInside(true);
 
     if (sankeyPlot()->isMouseNodeColoring())
@@ -5827,6 +5835,8 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
       nodeObj->drawFgRect(device, rect);
 
     nodeObj->setInside(false);
+
+    (void) nodeObj->setNotificationsEnabled(oldEnabled);
   };
 
   //---

@@ -36,22 +36,24 @@ bool
 CQChartsStyle::
 setValue(const QString &str)
 {
+  str_ = str;
+
   delete pen_;
   delete brush_;
 
   pen_   = nullptr;
   brush_ = nullptr;
 
-  if (str.trimmed() != "") {
-    QPen   pen;
-    QBrush brush;
+  auto str1 = str.trimmed();
 
-    if (! CQChartsSVGUtil::stringToPenBrush(str, pen, brush))
-      return false;
+  if (str1 == "")
+    return true;
 
-    pen_   = new QPen  (pen);
-    brush_ = new QBrush(brush);
-  }
+  if (! CQChartsSVGUtil::stringToStyle(plot_, str, styleData_))
+    return false;
+
+  pen_   = new QPen  (styleData_.pen);
+  brush_ = new QBrush(styleData_.brush);
 
   return true;
 }

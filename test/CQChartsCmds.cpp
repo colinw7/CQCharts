@@ -9012,11 +9012,14 @@ execCmd(CQChartsCmdArgs &argv)
   CQChartsArcAnnotation *annotation = nullptr;
 
   if      (plot)
-    annotation = plot->addArcAnnotation(start, end);
+    annotation = plot->addArcAnnotation();
   else if (view)
-    annotation = view->addArcAnnotation(start, end);
+    annotation = view->addArcAnnotation();
   else
     return false;
+
+  annotation->setStart(start);
+  annotation->setEnd  (end  );
 
   if (id != "")
     annotation->setId(id);

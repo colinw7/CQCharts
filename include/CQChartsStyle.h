@@ -2,6 +2,7 @@
 #define CQChartsStyle_H
 
 #include <CQChartsTmpl.h>
+#include <CQChartsSVGStyleData.h>
 #include <CQUtilMeta.h>
 
 #include <QBrush>
@@ -19,6 +20,13 @@ class CQChartsPlot;
 class CQChartsStyle :
   public CQChartsEqBase<CQChartsStyle>,
   public CQChartsToStringBase<CQChartsStyle> {
+ public:
+  using Plot       = CQChartsPlot;
+  using StyleData  = CQChartsSVGStyleData;
+  using ArrowData  = CQChartsArrowData;
+  using Angle      = CQChartsAngle;
+  using NameValues = std::map<QString, QString>;
+
  public:
   static void registerMetaType();
 
@@ -69,11 +77,61 @@ class CQChartsStyle :
 
   //---
 
+  const Plot *plot() const { return plot_; }
+  void setPlot(Plot *plot) { plot_ = plot; }
+
+  //---
+
+  bool setValue(const QString &s);
+  const QString &value() const { return str_; }
+
+  //---
+
   QPen   &pen  () { return *penPtr  (); }
   QBrush &brush() { return *brushPtr(); }
 
   const QPen   &pen  () const { return *const_cast<CQChartsStyle *>(this)->penPtr  (); }
   const QBrush &brush() const { return *const_cast<CQChartsStyle *>(this)->brushPtr(); }
+
+  //---
+
+  // text
+  const Qt::Alignment &textAlign() const { return styleData_.textAlign; }
+  bool isTextScaled() const { return styleData_.textScaled; }
+  const QString &textFont() const { return styleData_.textFont; }
+  const QString &textAngle() const { return styleData_.textAngle; }
+
+  //---
+
+  // symbol
+  const QString &symbolType() const { return styleData_.symbolType; }
+  double symbolSize() const { return styleData_.symbolSize; }
+
+  //---
+
+  // arrow
+  const ArrowData &arrowData() const { return styleData_.arrowData; }
+
+  //---
+
+  // arc
+  const Angle &arcStart() const { return styleData_.arcStart; }
+  const Angle &arcDelta() const { return styleData_.arcDelta; }
+
+  const Angle &arcEnd() const { return styleData_.arcEnd; }
+  const Angle &arcEndDelta() const { return styleData_.arcEndDelta; }
+
+  double innerRadius() const { return styleData_.innerRadius; }
+  double outerRadius() const { return styleData_.outerRadius; }
+
+  //---
+
+  // misc
+  const QString &direction() const { return styleData_.direction; }
+
+  const QString &drawType() const { return styleData_.drawType; }
+
+  const QString &tip() const { return styleData_.tip; }
 
   //---
 
@@ -97,8 +155,6 @@ class CQChartsStyle :
   //---
 
  private:
-  bool setValue(const QString &s);
-
   QPen *penPtr() {
     static QPen s_pen;
 
@@ -118,8 +174,14 @@ class CQChartsStyle :
   }
 
  private:
+  QString str_;
+
+  Plot* plot_ { nullptr };
+
   QPen*   pen_   { nullptr };
   QBrush* brush_ { nullptr };
+
+  StyleData styleData_;
 };
 
 //---

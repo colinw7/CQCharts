@@ -51,13 +51,10 @@ CQChartsViewToolBar(CQChartsWindow *window) :
       button->setChecked(checked);
     }
 
+    button->setToolTip(tip);
     button->setFocusPolicy(Qt::NoFocus);
 
     connect(button, SIGNAL(clicked(bool)), this, receiver);
-
-    button->setToolTip(tip);
-
-    button->setFocusPolicy(Qt::NoFocus);
 
     return button;
   };

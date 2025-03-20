@@ -66,6 +66,7 @@ CQChartsHierPlot.cpp \
 CQChartsHierPlotType.cpp \
 CQChartsGroupPlot.cpp \
 CQChartsPointPlot.cpp \
+CQChartsAnnotationPlot.cpp \
 \
 CQChartsPlot3D.cpp \
 CQChartsScatterPlot3D.cpp \
@@ -403,6 +404,8 @@ CQChartsLineEdit.cpp \
 CQChartsPropertyViewTree.cpp \
 CQChartsPropertyViewEditor.cpp \
 \
+CQChartsRectiConnect.cpp \
+\
 CQCsvModel.cpp \
 CQTsvModel.cpp \
 CQJsonModel.cpp \
@@ -506,6 +509,7 @@ HEADERS += \
 ../include/CQChartsHierPlotType.h \
 ../include/CQChartsGroupPlot.h \
 ../include/CQChartsPointPlot.h \
+../include/CQChartsAnnotationPlot.h \
 \
 ../include/CQChartsPlot3D.h \
 ../include/CQChartsScatterPlot3D.h \
@@ -881,6 +885,8 @@ HEADERS += \
 ../include/CQChartsPropertyViewEditor.h \
 \
 ../include/CQChartsPropertyMeta.h \
+\
+CQChartsRectiConnect.h \
 \
 ../include/CQCsvModel.h \
 ../include/CQTsvModel.h \

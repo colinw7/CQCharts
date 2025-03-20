@@ -2128,13 +2128,15 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
   virtual bool initObjs();
 
   // create plot objects (called by initObjs)
-  bool createObjs();
+  bool createPlotObjs();
 
   virtual bool hasPlotObjs() const;
 
   // create objects to be added to plot
   // TODO: need axis update as well
   virtual bool createObjs(PlotObjs &) const = 0;
+
+  virtual void postCreateObjs() { }
 
  public:
   // add plotObjects to quad tree (create no data object in no objects)
@@ -2842,7 +2844,7 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // TODO: remove custom add annotation routines
   AnnotationGroup        *addAnnotationGroup       ();
-  ArcAnnotation          *addArcAnnotation         (const ObjRefPos &start, const ObjRefPos &end);
+  ArcAnnotation          *addArcAnnotation         ();
   ArcConnectorAnnotation *addArcConnectorAnnotation(const ObjRefPos &center, const Length &radius,
                                                     const Angle &srcStartAngle,
                                                     const Angle &srcSpanAngle,
@@ -4004,7 +4006,11 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
     std::atomic<bool> updateObjs         { false }; //!< call execUpdateObjs (on enable)
     std::atomic<bool> applyDataRange     { false }; //!< call applyDataRange (on enable)
     std::atomic<bool> invalidateLayers   { false }; //!< call needsInvalidate invalidate (on enable)
-    StateFlag         stateFlag;                    //!< state flags
+
+    std::atomic<bool>          invalidateLayer    { false };
+    std::atomic<Buffer::Type> invalidateLayerType { Buffer::Type::NONE };
+
+    StateFlag stateFlag; //!< state flags
 
     void reset() {
       updateRangeAndObjs = false;

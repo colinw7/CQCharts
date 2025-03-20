@@ -1,5 +1,8 @@
 set model [load_charts_model -csv data/flare1.csv -comment_header -column_type {{{2 real}}}]
 
+set nr [get_charts_data -model $model -name num_rows   ]
+set nc [get_charts_data -model $model -name num_columns]
+
 set maxv [get_charts_data -model $model -column 2 -name details.max]
 
 set plot [create_charts_plot -model $model -type empty -xmin -10 -xmax 10 -ymin -10 -ymax 10]
@@ -33,9 +36,6 @@ proc create_ellipse { plot group name value } {
 
   return $ellipse
 }
-
-set nr [get_charts_data -model $model -name num_rows   ]
-set nc [get_charts_data -model $model -name num_columns]
 
 for {set r 0} {$r < $nr} {incr r} {
   set name  [get_charts_data -model $model -column 1 -row $r -name value -role display]

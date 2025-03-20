@@ -475,6 +475,9 @@ class CQChartsHull3D {
 
   virtual ~CQChartsHull3D();
 
+  bool isDirty() const { return dirty_; }
+  void setDirty(bool b) { dirty_ = b; }
+
   bool getUseLower() const { return useLower_; }
   void setUseLower(bool lower) { useLower_ = lower; }
 
@@ -556,6 +559,7 @@ class CQChartsHull3D {
   PFace   faces_     { nullptr };
   PVertex vvertices_ { nullptr };
   PEdge   vedges_    { nullptr };
+  bool    dirty_     { true };
   bool    useLower_  { false };
   bool    debug_     { false };
   bool    check_     { false };

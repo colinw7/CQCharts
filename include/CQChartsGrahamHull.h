@@ -24,6 +24,9 @@ class CQChartsGrahamHull {
  public:
   CQChartsGrahamHull();
 
+  bool isDirty() const { return dirty_; }
+  void setDirty(bool b) { dirty_ = b; }
+
   int numPoints() const { return int(points_.size()); }
 
   void clear();
@@ -58,6 +61,7 @@ class CQChartsGrahamHull {
 
   Points    points_;
   bool      needsCalc_ { true };
+  bool      dirty_     { true };
   IPoints   ipoints_;
   DelPoints delPoints_;
   bool      rc_        { false };

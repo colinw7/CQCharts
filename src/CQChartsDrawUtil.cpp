@@ -3,6 +3,7 @@
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsUtil.h>
+#include <CQChartsRectiConnect.h>
 
 #include <CQHtmlTextPainter.h>
 #include <CMathUtil.h>
@@ -1642,6 +1643,8 @@ roundedLinePath(QPainterPath &path, const Point &p1, const Point &p2, double lw)
   stroker.setWidth      (lw);
 
   path = stroker.createStroke(lpath);
+
+  path.setFillRule(Qt::WindingFill);
 }
 
 //---
@@ -1809,6 +1812,19 @@ pieSlicePath(QPainterPath &path, const Point &c, double ri, double ro, const Ang
   }
 
   path.closeSubpath();
+}
+
+QPainterPath
+pointsToPath(const std::vector<Point> &points)
+{
+  QPainterPath path;
+
+  for (size_t i = 0; i < points.size(); ++i) {
+    if (i == 0) path.moveTo(points[i].qpoint());
+    else        path.lineTo(points[i].qpoint());
+  }
+
+  return path;
 }
 
 //---
@@ -2236,6 +2252,21 @@ edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, const EdgeTyp
   }
 }
 
+#if 0
+// draw connecting edge, of line width, between two bounding boxes
+void
+drawEdgePath(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
+             const EdgeType &edgeType, const Angle &angle1, const Angle &angle2)
+{
+  QPainterPath path;
+
+  edgePath(path, ibbox, obbox, edgeType, angle1, angle2);
+
+  device->drawPath(path);
+}
+#endif
+
+// draw connecting edge, of line width, between two points
 void
 drawEdgePath(PaintDevice *device, const Point &p1, const Point &p2, double lw,
              const EdgeType &edgeType, const Angle &angle1, const Angle &angle2)
@@ -2247,25 +2278,36 @@ drawEdgePath(PaintDevice *device, const Point &p1, const Point &p2, double lw,
   device->drawPath(path);
 }
 
-// draw connecting edge, of line width, between two points
 void
 edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
          const EdgeType &edgeType, const Angle &angle1, const Angle &angle2)
 {
-  auto orient1 = angle1.orient();
-  auto orient2 = angle2.orient();
+  ConnectPoint c1(p1, angle1);
+  ConnectPoint c2(p2, angle2);
+
+  ConnectData data(edgeType, lw);
+
+  path = edgePath(c1, c2, data);
+}
+
+QPainterPath
+edgePath(const ConnectPoint &c1, const ConnectPoint &c2, const ConnectData &data)
+{
+  auto orient1 = c1.angle.orient();
+  auto orient2 = c2.angle.orient();
 
   if      (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal) {
-    if (p1.x > p2.x)
-      return edgePath(path, p2, p1, lw, edgeType, angle2, angle1);
+    if (c1.p.x > c2.p.x)
+      return edgePath(c2, c1, data);
   }
   else if (orient1 == Qt::Vertical && orient2 == Qt::Vertical) {
-    if (p1.y > p2.y)
-      return edgePath(path, p2, p1, lw, edgeType, angle2, angle1);
+    if (c1.p.y > c2.p.y)
+      return edgePath(c2, c1, data);
   }
 
   //---
 
+  // convert line path into solid shape of line width
   auto strokerPath = [&](const QPainterPath &path, Qt::PenJoinStyle joinStyle) {
     QPainterPathStroker stroker;
 
@@ -2273,26 +2315,34 @@ edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
     stroker.setDashOffset (0.0);
     stroker.setDashPattern(Qt::SolidLine);
     stroker.setJoinStyle  (joinStyle);
-    stroker.setWidth      (lw);
+    stroker.setWidth      (data.lineWidth);
 
-    return stroker.createStroke(path);
+    auto path1 = stroker.createStroke(path);
+
+    path1.setFillRule(Qt::WindingFill);
+
+    return path1.simplified();
   };
 
   //---
 
-  auto calcControlFactor = [&]() {
-    auto a1 = CQChartsGeom::pointAngle(p1, p2);
-    double a2;
-    if      (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal)
-      a2 = std::abs(std::sin(a1));
-    else if (orient1 == Qt::Vertical && orient2 == Qt::Vertical)
-      a2 = std::abs(std::cos(a1));
-    else
-      return 1.0/3.0;
-    return CMathUtil::map(a2, 0.0, 1.0, 0.5, 0.1);
-  };
+  QPainterPath path;
 
-  if      (edgeType == EdgeType::ARC) {
+  if      (data.edgeType == EdgeType::ARC) {
+    auto calcControlFactor = [&]() {
+      auto a1 = CQChartsGeom::pointAngle(c1.p, c2.p);
+      double a2;
+      if      (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal)
+        a2 = std::abs(std::sin(a1));
+      else if (orient1 == Qt::Vertical && orient2 == Qt::Vertical)
+        a2 = std::abs(std::cos(a1));
+      else
+        return 1.0/3.0;
+      return CMathUtil::map(a2, 0.0, 1.0, 0.5, 0.1);
+    };
+
+    //---
+
     auto f1 = calcControlFactor();
 
 #if 0
@@ -2302,79 +2352,341 @@ edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
 
     // curve control point f1
     if (orient1 == Qt::Horizontal)
-      p3 = Point(CMathUtil::lerp(f1, p1.x, p2.x), p1.y);
+      p3 = Point(CMathUtil::lerp(f1, c1.p.x, c2.p.x), c1.p.y);
     else
-      p3 = Point(p1.x, CMathUtil::lerp(f1, p1.y, p2.y));
+      p3 = Point(c1.p.x, CMathUtil::lerp(f1, c1.p.y, c2.p.y));
 
     // curve control point f2
     if (orient2 == Qt::Horizontal)
-      p4 = Point(CMathUtil::lerp(f2, p1.x, p2.x), p2.y);
+      p4 = Point(CMathUtil::lerp(f2, c1.p.x, c2.p.x), c2.p.y);
     else
-      p4 = Point(p2.x, CMathUtil::lerp(f2, p1.y, p2.y));
+      p4 = Point(c2.p.x, CMathUtil::lerp(f2, c1.p.y, c2.p.y));
 #else
-    auto len = p1.distanceTo(p2);
+    auto len = c1.p.distanceTo(c2.p);
 
-    auto p3 = CQChartsGeom::movePointOnLine(p1, angle1.radians(), f1*len);
-    auto p4 = CQChartsGeom::movePointOnLine(p2, angle2.radians(), f1*len);
+    auto p3 = CQChartsGeom::movePointOnLine(c1.p, c1.angle.radians(), f1*len);
+    auto p4 = CQChartsGeom::movePointOnLine(c2.p, c2.angle.radians(), f1*len);
 #endif
 
     //---
 
     QPainterPath lpath;
 
-    lpath.moveTo(p1.qpoint());
-    lpath.cubicTo(p3.qpoint(), p4.qpoint(), p2.qpoint());
+    lpath.moveTo(c1.p.qpoint());
+    lpath.cubicTo(p3.qpoint(), p4.qpoint(), c2.p.qpoint());
 
     path = strokerPath(lpath, Qt::RoundJoin);
   }
-  else if (edgeType == EdgeType::RECTILINEAR) {
-    QPainterPath lpath;
+  else if (data.edgeType == EdgeType::RECTILINEAR) {
+    if (data.route) {
+      CQChartsRectiConnect::Router router;
 
-    lpath.moveTo(p1.qpoint());
+      std::vector<Point> route;
+
+      CQChartsRectiConnect::Rect rect1(c1.bbox);
+      CQChartsRectiConnect::Rect rect2(c2.bbox);
+
+      auto angleSide = [](const Angle &angle) {
+        auto orient = angle.orient();
+        if (orient == Qt::Horizontal) {
+          if (angle.cos() >= 0) return CQChartsRectiConnect::Rect::Side::RIGHT;
+          else                  return CQChartsRectiConnect::Rect::Side::LEFT;
+        }
+        else {
+          if (angle.sin() >= 0) return CQChartsRectiConnect::Rect::Side::TOP;
+          else                  return CQChartsRectiConnect::Rect::Side::BOTTOM;
+        }
+      };
+
+      rect1.setConnectPoint(c1.p);
+      rect2.setConnectPoint(c2.p);
+
+      rect1.setSide(angleSide(c1.angle));
+      rect2.setSide(angleSide(c2.angle));
+
+      if (! router.calcRoute(rect1, rect2, route))
+        return path;
+
+      auto lpath = pointsToPath(route);
+
+      path = strokerPath(lpath, Qt::MiterJoin);
+
+      return path;
+    }
+
+    //---
+
+    std::vector<Point> points;
+
+    points.push_back(c1.p);
+
+    //---
+
+    auto expandBBox = [&](const BBox &bbox, double offset) {
+      auto bbox1 = bbox;
+
+      if (bbox1.isValid()) {
+        auto w = bbox.getWidth ();
+        auto h = bbox.getHeight();
+
+        bbox1.add(bbox1.getXMin() - offset*w, bbox1.getYMin() - offset*h);
+        bbox1.add(bbox1.getXMax() + offset*w, bbox1.getYMax() + offset*h);
+      }
+
+      return bbox1;
+    };
+
+    auto bbox1 = expandBBox(c1.bbox, c1.offset);
+    auto bbox2 = expandBBox(c2.bbox, c2.offset);
+
+    //---
+
+    auto s1 = (orient1 == Qt::Vertical ? c1.bbox.getHeight() : c1.bbox.getWidth());
+    auto s2 = (orient2 == Qt::Vertical ? c2.bbox.getHeight() : c2.bbox.getWidth());
+
+    // calc points offset from bbox edge
+    auto p1 = CQChartsGeom::movePointOnLine(c1.p, c1.angle.radians(), c1.offset*s1);
+    auto p2 = CQChartsGeom::movePointOnLine(c2.p, c2.angle.radians(), c2.offset*s2);
+
+    double xr = CMathUtil::lerp(0.5, p1.x, p2.x);
+    double yr = CMathUtil::lerp(0.5, p1.y, p2.y);
+
+    //---
+
+    auto hlineIntersectRect = [](const BBox &bbox, const Point &p1, const Point &p2) {
+      Point pi;
+      if (! CQChartsGeom::lineIntersectRect(bbox, p1, p2, pi))
+        return false;
+      auto x1 = std::min(p1.x, p2.x);
+      auto x2 = std::max(p2.x, p2.x);
+      return (pi.x >= x1 && pi.x <= x2);
+    };
+
+    auto vlineIntersectRect = [](const BBox &bbox, const Point &p1, const Point &p2) {
+      Point pi;
+      if (! CQChartsGeom::lineIntersectRect(bbox, p1, p2, pi))
+        return false;
+      auto y1 = std::min(p1.y, p2.y);
+      auto y2 = std::max(p2.y, p2.y);
+      return (pi.y >= y1 && pi.y <= y2);
+    };
+
+    auto HBBoxSide = [](const BBox &bbox, double x) {
+      if (x >= bbox.getXMid())
+        return bbox.getXMax();
+      else
+        return bbox.getXMin();
+    };
+
+    auto VBBoxSide = [](const BBox &bbox, double y) {
+      if (y >= bbox.getYMid())
+        return bbox.getYMax();
+      else
+        return bbox.getYMin();
+    };
 
     if      (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal) {
-      double xr = CMathUtil::lerp(0.5, p1.x, p2.x);
+      if (c1.bbox.isValid() && c2.bbox.isValid()) {
+        points.push_back(p1);
 
-      lpath.lineTo(QPointF(xr, p1.y));
-      lpath.lineTo(QPointF(xr, p2.y));
+        auto pm1 = Point(p1.x, yr);
+        auto pm2 = Point(p2.x, yr);
+
+        if (data.removeOverlaps) {
+          bool b1 = hlineIntersectRect(bbox1, pm1, pm2);
+          bool b2 = hlineIntersectRect(bbox2, pm1, pm2);
+
+          if      (b1 && ! b2)
+            yr = VBBoxSide(bbox1, yr);
+          else if (! b1 && b2)
+            yr = VBBoxSide(bbox2, yr);
+
+          pm1 = Point(p1.x, yr);
+          pm2 = Point(p2.x, yr);
+        }
+
+        points.push_back(pm1);
+        points.push_back(pm2);
+
+        points.push_back(p2);
+      }
+      else {
+        double xr = CMathUtil::lerp(0.5, c1.p.x, c2.p.x);
+
+        points.push_back(Point(xr, c1.p.y));
+        points.push_back(Point(xr, c2.p.y));
+      }
     }
     else if (orient1 == Qt::Vertical && orient2 == Qt::Vertical) {
-      double yr = CMathUtil::lerp(0.5, p1.y, p2.y);
+      if (c1.bbox.isValid() && c2.bbox.isValid()) {
+        points.push_back(p1);
 
-      lpath.lineTo(QPointF(p1.x, yr));
-      lpath.lineTo(QPointF(p2.x, yr));
+        auto pm1 = Point(xr, p1.y);
+        auto pm2 = Point(xr, p2.y);
+
+        if (data.removeOverlaps) {
+          bool b1 = vlineIntersectRect(bbox1, pm1, pm2);
+          bool b2 = vlineIntersectRect(bbox2, pm1, pm2);
+
+          if      (b1 && ! b2)
+            xr = HBBoxSide(bbox1, xr);
+          else if (! b1 && b2)
+            xr = HBBoxSide(bbox2, xr);
+
+          pm1 = Point(xr, p1.y);
+          pm2 = Point(xr, p2.y);
+        }
+
+        points.push_back(pm1);
+        points.push_back(pm2);
+
+        points.push_back(p2);
+      }
+      else {
+        double yr = CMathUtil::lerp(0.5, c1.p.y, c2.p.y);
+
+        points.push_back(Point(c1.p.x, yr));
+        points.push_back(Point(c2.p.x, yr));
+      }
     }
     else {
-      auto pm = Point::avg(p1, p2);
+      if (c1.bbox.isValid() && c2.bbox.isValid()) {
+        if (data.removeOverlaps) {
+          // if offset point inside other rect then move back to edge (offset=0)
+          auto i1 = bbox2.inside(p1); if (i1) { p1 = c1.p; bbox1 = c1.bbox; }
+          auto i2 = bbox1.inside(p2); if (i2) { p2 = c2.p; bbox2 = c2.bbox; }
+        }
 
-      if (orient1 == Qt::Vertical)
-        lpath.lineTo(QPointF(p1.x, pm.y));
-      else
-        lpath.lineTo(QPointF(pm.x, p1.y));
+        // add first offset point
+        points.push_back(p1);
 
-      lpath.lineTo(pm.qpoint());
+        // create mid point between offset points of each rect
+        auto pm = Point::avg(p1, p2);
 
-      if (orient2 == Qt::Vertical)
-        lpath.lineTo(QPointF(p2.x, pm.y));
-      else
-        lpath.lineTo(QPointF(pm.x, p2.y));
+        // create point to connect offset points to mid point by connect direction
+        Point pm1, pm2;
+
+        auto updateConnectPoints = [&]() {
+          pm1 = (orient1 == Qt::Vertical ? Point(p1.x, pm.y) : Point(pm.x, p1.y));
+          pm2 = (orient2 == Qt::Vertical ? Point(p2.x, pm.y) : Point(pm.x, p2.y));
+        };
+
+        updateConnectPoints();
+
+        if (data.removeOverlaps) {
+          // if mid point inside either rect move outside (priority to first rect)
+          auto i1 = bbox1.inside(pm);
+          auto i2 = bbox2.inside(pm);
+
+          if (i2 & ! i1) {
+            if (bbox2.insideX(pm.x)) pm.x = HBBoxSide(bbox2, pm.x);
+            if (bbox2.insideY(pm.y)) pm.y = VBBoxSide(bbox2, pm.y);
+
+            i1 = bbox1.inside(pm);
+          }
+
+          if (i1) {
+            if (bbox1.insideX(pm.x)) pm.x = HBBoxSide(bbox1, pm.x);
+            if (bbox1.insideY(pm.y)) pm.y = VBBoxSide(bbox1, pm.y);
+          }
+
+          updateConnectPoints();
+
+          //---
+
+          // check if line to mid point overlaps other rect move outside other rect
+          bool b1 = (orient1 == Qt::Vertical ? hlineIntersectRect(bbox2, pm1, pm) :
+                                               vlineIntersectRect(bbox2, pm1, pm));
+
+          if (b1) {
+            if (orient1 == Qt::Vertical)
+              pm.y = VBBoxSide(bbox2, pm.y);
+            else
+              pm.x = HBBoxSide(bbox2, pm.x);
+          }
+
+          updateConnectPoints();
+
+          bool b2 = (orient2 == Qt::Vertical ? hlineIntersectRect(bbox1, pm, pm2) :
+                                               vlineIntersectRect(bbox1, pm, pm2));
+
+          if (b2) {
+            if (orient2 == Qt::Vertical)
+              pm.y = VBBoxSide(bbox1, pm.y);
+            else
+              pm.x = HBBoxSide(bbox1, pm.x);
+          }
+
+          updateConnectPoints();
+
+          // check if line to mid point overlaps rect move outside rect
+          b2 = (orient2 == Qt::Vertical ? hlineIntersectRect(bbox2, pm, pm2) :
+                                          vlineIntersectRect(bbox2, pm, pm2));
+
+          if (b2) {
+            if (orient2 == Qt::Vertical)
+              pm.y = VBBoxSide(bbox2, pm.y);
+            else
+              pm.x = HBBoxSide(bbox2, pm.x);
+          }
+
+          updateConnectPoints();
+
+          b1 = (orient1 == Qt::Vertical ? hlineIntersectRect(bbox1, pm1, pm) :
+                                          vlineIntersectRect(bbox1, pm1, pm));
+
+          if (b1) {
+            if (orient1 == Qt::Vertical)
+              pm.y = VBBoxSide(bbox1, pm.y);
+            else
+              pm.x = HBBoxSide(bbox1, pm.x);
+          }
+
+          updateConnectPoints();
+        }
+
+        points.push_back(pm1);
+        points.push_back(pm);
+        points.push_back(pm2);
+
+        points.push_back(p2);
+      }
+      else {
+        auto pm = Point::avg(c1.p, c2.p);
+
+        if (orient1 == Qt::Vertical)
+          points.push_back(Point(c1.p.x, pm.y));
+        else
+          points.push_back(Point(pm.x, c1.p.y));
+
+        points.push_back(pm);
+
+        if (orient2 == Qt::Vertical)
+          points.push_back(Point(c2.p.x, pm.y));
+        else
+          points.push_back(Point(pm.x, c2.p.y));
+      }
     }
 
-    lpath.lineTo(p2.qpoint());
+    points.push_back(c2.p);
+
+    auto lpath = pointsToPath(points);
 
     path = strokerPath(lpath, Qt::MiterJoin);
   }
-  else if (edgeType == EdgeType::ROUNDED_LINE) {
-    roundedLinePath(path, p1, p2, lw);
+  else if (data.edgeType == EdgeType::ROUNDED_LINE) {
+    roundedLinePath(path, c1.p, c2.p, data.lineWidth);
   }
-  else if (edgeType == EdgeType::LINE) {
+  else if (data.edgeType == EdgeType::LINE) {
     QPainterPath lpath;
 
-    lpath.moveTo(p1.qpoint());
-    lpath.lineTo(p2.qpoint());
+    lpath.moveTo(c1.p.qpoint());
+    lpath.lineTo(c2.p.qpoint());
 
     path = strokerPath(lpath, Qt::RoundJoin);
   }
+
+  return path;
 }
 
 // draw connecting edge, of line width, from rect to itself
@@ -2443,6 +2755,7 @@ selfEdgePath(QPainterPath &path, const BBox &bbox, double lw,
 
 //---
 
+// draw connecting line between two bounding boxes
 void
 drawCurvePath(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
               const EdgeType &edgeType, const Angle &angle)
@@ -2450,6 +2763,18 @@ drawCurvePath(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
   QPainterPath path;
 
   curvePath(path, ibbox, obbox, edgeType, angle);
+
+  device->drawPath(path);
+}
+
+// draw connecting line between two points
+void
+drawCurvePath(PaintDevice *device, const Point &p1, const Point &p2,
+              const EdgeType &edgeType, const Angle &angle1, const Angle &angle2)
+{
+  QPainterPath path;
+
+  curvePath(path, p1, p2, edgeType, angle1, angle2);
 
   device->drawPath(path);
 }
@@ -2466,19 +2791,12 @@ curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
 
   rectConnectionPoints(ibbox, obbox, p1, p2);
 
-  curvePath(path, p1.p, p2.p, edgeType, p1.angle, p2.angle);
-}
+  ConnectPoint c1(p1.p, p1.angle);
+  ConnectPoint c2(p2.p, p2.angle);
 
-// draw connecting line between two bounding boxes
-void
-drawCurvePath(PaintDevice *device, const Point &p1, const Point &p2,
-              const EdgeType &edgeType, const Angle &angle1, const Angle &angle2)
-{
-  QPainterPath path;
+  ConnectData data(edgeType);
 
-  curvePath(path, p1, p2, edgeType, angle1, angle2);
-
-  device->drawPath(path);
+  path = curvePath(c1, c2, data);
 }
 
 // calculate path connecting line between two points
@@ -2487,92 +2805,222 @@ curvePath(QPainterPath &path, const Point &p1, const Point &p4,
           const EdgeType &edgeType, const Angle &angle1, const Angle &angle2,
           double /*startLength*/, double /*endLength*/)
 {
-  auto orient1 = angle1.orient();
-  auto orient2 = angle2.orient();
+  ConnectPoint c1(p1, angle1);
+  ConnectPoint c2(p4, angle2);
 
-  path = QPainterPath();
+  ConnectData data(edgeType);
+
+  path = curvePath(c1, c2, data);
+}
+
+// calculate path connecting line between two points
+QPainterPath
+curvePath(const ConnectPoint &c1, const ConnectPoint &c2, const ConnectData &data)
+{
+  auto orient1 = c1.angle.orient();
+  auto orient2 = c2.angle.orient();
+
+  if      (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal) {
+    if (c1.p.x > c2.p.x)
+      return curvePath(c2, c1, data);
+  }
+  else if (orient1 == Qt::Vertical && orient2 == Qt::Vertical) {
+    if (c1.p.y > c2.p.y)
+      return curvePath(c2, c1, data);
+  }
 
   //---
 
-  auto calcControlFactor = [&]() {
-    auto a1 = CQChartsGeom::pointAngle(p1, p4);
-    double a2;
-    if      (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal)
-      a2 = std::abs(std::sin(a1));
-    else if (orient1 == Qt::Vertical && orient2 == Qt::Vertical)
-      a2 = std::abs(std::cos(a1));
-    else
-      return 1.0/3.0;
-    return CMathUtil::map(a2, 0.0, 1.0, 0.5, 0.1);
-  };
+  QPainterPath path;
 
-  if      (edgeType == EdgeType::ARC) {
+  //---
+
+  if      (data.edgeType == EdgeType::ARC) {
+    auto calcControlFactor = [&]() {
+      auto a1 = CQChartsGeom::pointAngle(c1.p, c2.p);
+      double a2;
+      if      (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal)
+        a2 = std::abs(std::sin(a1));
+      else if (orient1 == Qt::Vertical && orient2 == Qt::Vertical)
+        a2 = std::abs(std::cos(a1));
+      else
+        return 1.0/3.0;
+      return CMathUtil::map(a2, 0.0, 1.0, 0.5, 0.1);
+    };
+
+    //---
+
     auto f1 = calcControlFactor();
 
 #if 0
     auto f2 = 1.0 - f1;
 
-    Point p2, p3;
+    Point p3, p4;
 
     // curve control point f1
     if (orient1 == Qt::Horizontal)
-      p2 = Point(CMathUtil::lerp(f1, p1.x, p4.x), p1.y);
+      p3 = Point(CMathUtil::lerp(f1, c1.p.x, c2.p.x), c1.p.y);
     else
-      p2 = Point(p1.x, CMathUtil::lerp(f1, p1.y, p4.y));
+      p3 = Point(c1.p.x, CMathUtil::lerp(f1, c1.p.y, c2.p.y));
 
     // curve control point f2
     if (orient2 == Qt::Horizontal)
-      p3 = Point(CMathUtil::lerp(f2, p1.x, p4.x), p4.y);
+      p4 = Point(CMathUtil::lerp(f2, c1.p.x, c2.p.x), c2.p.y);
     else
-      p3 = Point(p4.x, CMathUtil::lerp(f2, p1.y, p4.y));
+      p4 = Point(c2.p.x, CMathUtil::lerp(f2, c1.p.y, c2.p.y));
 #else
-    auto len = p1.distanceTo(p4);
+    auto len = c1.p.distanceTo(c2.p);
 
-    auto p2 = CQChartsGeom::movePointOnLine(p1, angle1.radians(), f1*len);
-    auto p3 = CQChartsGeom::movePointOnLine(p4, angle2.radians(), f1*len);
+    auto p3 = CQChartsGeom::movePointOnLine(c1.p, c1.angle.radians(), f1*len);
+    auto p4 = CQChartsGeom::movePointOnLine(c2.p, c2.angle.radians(), f1*len);
 #endif
 
     //---
 
-    path.moveTo(p1.qpoint());
-    path.cubicTo(p2.qpoint(), p3.qpoint(), p4.qpoint());
+    path.moveTo(c1.p.qpoint());
+    path.cubicTo(p3.qpoint(), p4.qpoint(), c2.p.qpoint());
+
+    return path;
   }
-  else if (edgeType == EdgeType::RECTILINEAR) {
-    path.moveTo(p1.qpoint());
+  else if (data.edgeType == EdgeType::RECTILINEAR) {
+    if (data.route) {
+      CQChartsRectiConnect::Router router;
+
+      std::vector<Point> route;
+
+      CQChartsRectiConnect::Rect rect1(c1.bbox);
+      CQChartsRectiConnect::Rect rect2(c2.bbox);
+
+      auto angleSide = [](const Angle &angle) {
+        auto orient = angle.orient();
+        if (orient == Qt::Horizontal) {
+          if (angle.cos() >= 0) return CQChartsRectiConnect::Rect::Side::RIGHT;
+          else                  return CQChartsRectiConnect::Rect::Side::LEFT;
+        }
+        else {
+          if (angle.sin() >= 0) return CQChartsRectiConnect::Rect::Side::TOP;
+          else                  return CQChartsRectiConnect::Rect::Side::BOTTOM;
+        }
+      };
+
+      rect1.setConnectPoint(c1.p);
+      rect2.setConnectPoint(c2.p);
+
+      rect1.setSide(angleSide(c1.angle));
+      rect2.setSide(angleSide(c2.angle));
+
+      if (! router.calcRoute(rect1, rect2, route))
+        return path;
+
+      auto path = pointsToPath(route);
+
+      return path;
+    }
+
+    //---
+
+    path.moveTo(c1.p.qpoint());
 
     if      (orient1 == Qt::Horizontal && orient2 == Qt::Horizontal) {
-      double x2 = CMathUtil::lerp(0.5, p1.x, p4.x);
+      if (c1.bbox.isValid() && c2.bbox.isValid()) {
+        auto w1 = c1.bbox.getWidth();
+        auto w2 = c2.bbox.getWidth();
 
-      path.lineTo(QPointF(x2, p1.y));
-      path.lineTo(QPointF(x2, p4.y));
+        auto p1 = CQChartsGeom::movePointOnLine(c1.p, c1.angle.radians(), c1.offset*w1);
+        auto p2 = CQChartsGeom::movePointOnLine(c2.p, c2.angle.radians(), c2.offset*w2);
+
+        path.lineTo(p1.qpoint());
+
+        double yr = CMathUtil::lerp(0.5, p1.y, p2.y);
+
+        path.lineTo(QPointF(p1.x, yr));
+        path.lineTo(QPointF(p2.x, yr));
+
+        path.lineTo(p2.qpoint());
+      }
+      else {
+        double x2 = CMathUtil::lerp(0.5, c1.p.x, c2.p.x);
+
+        path.lineTo(QPointF(x2, c1.p.y));
+        path.lineTo(QPointF(x2, c2.p.y));
+      }
     }
     else if (orient1 == Qt::Vertical && orient2 == Qt::Vertical) {
-      double y2 = CMathUtil::lerp(0.5, p1.y, p4.y);
+      if (c1.bbox.isValid() && c2.bbox.isValid()) {
+        auto h1 = c1.bbox.getHeight();
+        auto h2 = c2.bbox.getHeight();
 
-      path.lineTo(QPointF(p1.x, y2));
-      path.lineTo(QPointF(p4.x, y2));
+        auto p1 = CQChartsGeom::movePointOnLine(c1.p, c1.angle.radians(), c1.offset*h1);
+        auto p2 = CQChartsGeom::movePointOnLine(c2.p, c2.angle.radians(), c2.offset*h2);
+
+        path.lineTo(p1.qpoint());
+
+        double xr = CMathUtil::lerp(0.5, p1.x, p2.x);
+
+        path.lineTo(QPointF(xr, p1.y));
+        path.lineTo(QPointF(xr, p2.y));
+
+        path.lineTo(p2.qpoint());
+      }
+      else {
+        double y2 = CMathUtil::lerp(0.5, c1.p.y, c2.p.y);
+
+        path.lineTo(QPointF(c1.p.x, y2));
+        path.lineTo(QPointF(c2.p.x, y2));
+      }
     }
     else {
-      auto pm = Point::avg(p1, p4);
+      if (c1.bbox.isValid() && c2.bbox.isValid()) {
+        auto s1 = (orient1 == Qt::Vertical ? c1.bbox.getHeight() : c1.bbox.getWidth());
+        auto s2 = (orient2 == Qt::Vertical ? c2.bbox.getHeight() : c2.bbox.getWidth());
 
-      if (orient1 == Qt::Vertical)
-        path.lineTo(QPointF(p1.x, pm.y));
-      else
-        path.lineTo(QPointF(pm.x, p1.y));
+        auto p1 = CQChartsGeom::movePointOnLine(c1.p, c1.angle.radians(), c1.offset*s1);
+        auto p2 = CQChartsGeom::movePointOnLine(c2.p, c2.angle.radians(), c2.offset*s2);
 
-      path.lineTo(pm.qpoint());
+        path.lineTo(p1.qpoint());
 
-      if (orient2 == Qt::Vertical)
-        path.lineTo(QPointF(p4.x, pm.y));
-      else
-        path.lineTo(QPointF(pm.x, p4.y));
+        auto pm = Point::avg(p1, p2);
+
+        if (orient1 == Qt::Vertical)
+          path.lineTo(QPointF(p1.x, pm.y));
+        else
+          path.lineTo(QPointF(pm.x, p1.y));
+
+        path.lineTo(pm.qpoint());
+
+        if (orient2 == Qt::Vertical)
+          path.lineTo(QPointF(p2.x, pm.y));
+        else
+          path.lineTo(QPointF(pm.x, p2.y));
+
+        path.lineTo(p2.qpoint());
+      }
+      else {
+        auto pm = Point::avg(c1.p, c2.p);
+
+        if (orient1 == Qt::Vertical)
+          path.lineTo(QPointF(c1.p.x, pm.y));
+        else
+          path.lineTo(QPointF(pm.x, c1.p.y));
+
+        path.lineTo(pm.qpoint());
+
+        if (orient2 == Qt::Vertical)
+          path.lineTo(QPointF(c2.p.x, pm.y));
+        else
+          path.lineTo(QPointF(pm.x, c2.p.y));
+      }
     }
 
-    path.lineTo(p4.qpoint());
+    path.lineTo(c2.p.qpoint());
+
+    return path;
   }
   else {
-    path.moveTo(p1.qpoint());
-    path.lineTo(p4.qpoint());
+    path.moveTo(c1.p.qpoint());
+    path.lineTo(c2.p.qpoint());
+
+    return path;
   }
 }
 
@@ -3589,6 +4037,68 @@ visitPath(const QPainterPath &path, PathVisitor &visitor)
   }
 
   visitor.term();
+}
+
+}
+
+//---
+
+namespace CQChartsDrawUtil {
+
+void
+drawBarChart(PaintDevice *device, const BBox &bbox, const std::vector<double> &values,
+             const CQChartsOptReal &maxValue, const QString &paletteName, const PenBrush &penBrush)
+{
+  auto *device1 = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
+
+  auto *plot = device1->plot();
+  assert(plot);
+
+  auto nx = values.size();
+  if (nx == 0) return;
+
+  // draw bar for each value
+  CQChartsGeom::RMinMax range;
+
+  range.add(0.0);
+
+  for (size_t ix = 0; ix < nx; ++ix)
+    range.add(values[ix]);
+
+  if (maxValue.isSet())
+    range.add(maxValue.real());
+
+  double width = bbox.getWidth();
+
+  double dx = (nx > 0 ? width/nx : 0.0);
+
+  double x = bbox.getXMin();
+  double y = bbox.getYMin();
+
+  auto color = CQChartsColor::makePalette();
+
+  color.setPaletteName(paletteName);
+
+  for (size_t ix = 0; ix < nx; ++ix) {
+    PenBrush penBrush1 = penBrush;
+
+    auto c = plot->interpColor(color, CQChartsUtil::ColorInd(ix, nx));
+
+    penBrush1.brush.setColor(c);
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush1);
+
+    //---
+
+    double y1 = CMathUtil::map(values[ix], range.min(), range.max(),
+                               bbox.getYMin(), bbox.getYMax());
+
+    BBox bbox1(x, y, x + dx, y1);
+
+    device->drawRect(bbox1);
+
+    x += dx;
+  }
 }
 
 }

@@ -120,4 +120,14 @@ enum class CQChartsAnnotationType {
   SYMBOL_MAP_KEY
 };
 
+enum class CQChartsLayoutType {
+  NONE,
+  HV,
+  CIRCLE,
+  TEXT_OVERLAP,
+  TEXT_CLOUD,
+  TREEMAP,
+  GRAPH
+};
+
 #endif

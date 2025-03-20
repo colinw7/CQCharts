@@ -117,6 +117,7 @@ class CQChartsViewPlotObj : public CQChartsObj,
   struct ObjRefData {
     CQChartsPlotObj    *plotObj    { nullptr };
     CQChartsAnnotation *annotation { nullptr };
+    CQChartsObj        *obj        { nullptr };
   };
 
   bool getObjRefData(const ObjRef &objRef, ObjRefData &data) const;

@@ -4,6 +4,8 @@
 #include <CQChartsGeom.h>
 #include <CQChartsUtil.h>
 #include <QObject>
+#include <QDateTime>
+
 #include <future>
 #include <optional>
 
@@ -181,6 +183,11 @@ class CQChartsObj : public QObject {
 
   //---
 
+  const QDateTime &changeTime() const { return changeTime_; }
+  void setChangeTime(const QDateTime &v) { changeTime_ = v; }
+
+  //---
+
   void setMetaData(const QString &name, const QVariant &value) { metaData_[name] = value; }
 
   bool hasMetaData(const QString &name) { return (metaData_.find(name) != metaData_.end()); }
@@ -203,7 +210,7 @@ class CQChartsObj : public QObject {
   //---
 
   bool isNotificationsEnabled() const { return notificationsEnabled_; }
-  void setNotificationsEnabled(bool b) { notificationsEnabled_ = b; }
+  bool setNotificationsEnabled(bool b) { std::swap(notificationsEnabled_, b); return b; }
 
   //---
 
@@ -231,6 +238,8 @@ class CQChartsObj : public QObject {
   bool      clickable_            { false };   //!< is clickable
   bool      notificationsEnabled_ { true };    //!< is notifications enabled
   int       priority_             { 0 };       //!< priority
+
+  QDateTime changeTime_;
 
   NameValues metaData_;
 

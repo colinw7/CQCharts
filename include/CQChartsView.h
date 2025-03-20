@@ -843,7 +843,7 @@ class CQChartsView : public QFrame,
 
   // TODO: remove custom add annotation routines
   AnnotationGroup     *addAnnotationGroup    ();
-  ArcAnnotation       *addArcAnnotation      (const ObjRefPos &start, const ObjRefPos &end);
+  ArcAnnotation       *addArcAnnotation      ();
   ArrowAnnotation     *addArrowAnnotation    (const ObjRefPos &start, const ObjRefPos &end);
   ArrowAnnotation     *addArrowAnnotation    (const Path &path);
   ButtonAnnotation    *addButtonAnnotation   (const ObjRefPos &pos, const QString &text);
@@ -972,6 +972,10 @@ class CQChartsView : public QFrame,
   // handle resize
   void resizeEvent(QResizeEvent *) override;
 
+  void handleResize();
+
+  void resizePainter();
+
   void doResize(int w, int h);
 
   void updatePixelRange();
@@ -982,6 +986,8 @@ class CQChartsView : public QFrame,
   void paintEvent(QPaintEvent *) override;
 
   void paint(QPainter *painter, Plot *plot=nullptr);
+
+  void paintPlotParts(Plot *plot);
 
   void drawBackground(PaintDevice *device) const;
 
@@ -1002,6 +1008,9 @@ class CQChartsView : public QFrame,
 
   void drawColorBox(PaintDevice *device, const BBox &bbox);
 
+  //---
+
+  bool isPainterLocked() const;
   bool lockPainter(bool lock);
 
   //---
@@ -1628,6 +1637,8 @@ class CQChartsView : public QFrame,
   void setDrawing(bool b) { drawing_ = b; }
 
  private Q_SLOTS:
+  void updateTimerSlot();
+
   void zoomHScrollSlot(double pos);
   void zoomVScrollSlot(double pos);
 
@@ -1942,6 +1953,10 @@ class CQChartsView : public QFrame,
   CQChartsViewGLWidget *glWidget_ { nullptr };
 
   bool updatesEnabled_ { true };
+
+  QTimer* updateTimer_  { nullptr };
+  bool    updateNeeded_ { false };
+  bool    resizeNeeded_ { false };
 
   // child objects
   QString     title_;                 //!< view title (TODO: object)

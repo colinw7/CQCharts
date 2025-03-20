@@ -25,6 +25,8 @@ class CQChartsValueList :
  public:
   CQChartsValueList() = default;
 
+  explicit CQChartsValueList(const QString &str);
+
   const ValueList &values() const { return valueList_; }
 
   uint numValues() const { return uint(valueList_.size()); }

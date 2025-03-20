@@ -152,6 +152,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   static const QStringList &typeNames();
   static const QStringList &typeDescs();
 
+  static QString typeToString(const Type &type);
   static Type stringToType(const QString &str);
 
  public:
@@ -392,9 +393,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void connectDataChanged(const QObject *obj, const char *slotName) const;
 
   //! handle box obj data changed
-  void boxObjInvalidate() override { emitDataChanged(); }
+  void boxObjInvalidate() override;
 
-  void invalidate();
+  virtual void invalidate();
 
   //---
 
@@ -447,9 +448,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void pressed(const QString &id="");
 
  protected Q_SLOTS:
-  void emitDataChanged();
+  virtual void emitDataChanged();
 
-  void invalidateSlot() { invalidate(); }
+  void invalidateSlot();
 
  protected:
   void updateInd();
@@ -541,13 +542,13 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
   };
 
   enum class LayoutType {
-    NONE,
-    HV,
-    CIRCLE,
-    TEXT_OVERLAP,
-    TEXT_CLOUD,
-    TREEMAP,
-    GRAPH
+    NONE         = static_cast<int>(CQChartsLayoutType::NONE),
+    HV           = static_cast<int>(CQChartsLayoutType::HV),
+    CIRCLE       = static_cast<int>(CQChartsLayoutType::CIRCLE),
+    TEXT_OVERLAP = static_cast<int>(CQChartsLayoutType::TEXT_OVERLAP),
+    TEXT_CLOUD   = static_cast<int>(CQChartsLayoutType::TEXT_CLOUD),
+    TREEMAP      = static_cast<int>(CQChartsLayoutType::TREEMAP),
+    GRAPH        = static_cast<int>(CQChartsLayoutType::GRAPH)
   };
 
   using Rect   = CQChartsRect;
@@ -578,6 +579,12 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
   //! get/set bounding rectangle
   Rect rectangle() const;
   void setRectangle(const Rect &r);
+
+  //---
+
+  //! get/set outline shape
+  const ShapeType &shapeType() const { return shapeType_; }
+  void setShapeType(const ShapeType &s);
 
   //---
 
@@ -613,12 +620,6 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
 
   //---
 
-  //! get/set outline shape
-  const ShapeType &shapeType() const { return shapeType_; }
-  void setShapeType(const ShapeType &s);
-
-  //---
-
   //! add/remove child annotation
   void addAnnotation   (CQChartsAnnotation *annotation);
   void removeAnnotation(CQChartsAnnotation *annotation);
@@ -648,7 +649,7 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
 
   void doLayout();
 
-  void invalidateLayout() { needsLayout_ = true; invalidate(); }
+  void invalidateLayout();
 
   BBox childrenBBox() const;
 
@@ -679,8 +680,8 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
   };
 
   Annotations annotations_;                     //!< child annotations
-  LayoutData  layoutData_;                      //!< layout data
   ShapeType   shapeType_   { ShapeType::NONE }; //!< shape type
+  LayoutData  layoutData_;                      //!< layout data
 
   bool   commonFontSize_ { false }; //!< do child text annotations have common font size
   double textFontScale_  { -1.0 };  //!< calculated common text font scale
@@ -763,6 +764,8 @@ class CQChartsPolyShapeAnnotationBase : public CQChartsShapeAnnotationBase {
   CQChartsPolyShapeAnnotationBase(Plot *plot, Type type, const Polygon &polygon=Polygon());
 
  ~CQChartsPolyShapeAnnotationBase() override;
+
+  //---
 
   //! get/set polygon
   const Polygon &polygon() const { return polygon_; }
@@ -1250,6 +1253,10 @@ class CQChartsRectBaseAnnotation : public CQChartsAnnotation {
 
   //---
 
+  void initGeom();
+
+  //---
+
   //! get/set position
   const OptPosition &position() const { return position_; }
   virtual void setPosition(const OptPosition &p);
@@ -1272,6 +1279,12 @@ class CQChartsRectBaseAnnotation : public CQChartsAnnotation {
   void rectToBBox();
 
  protected:
+  using InitPos  = std::optional<ObjRefPos>;
+  using InitRect = std::optional<Rect>;
+
+  InitPos  initPos_;
+  InitRect initRect_;
+
   OptPosition position_;  //!< rect position
   OptRect     rectangle_; //!< rect bounding rect
 };
@@ -1646,13 +1659,19 @@ class CQChartsArrow;
 class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsPosition start READ start WRITE setStart)
-  Q_PROPERTY(CQChartsPosition end   READ end   WRITE setEnd  )
-  Q_PROPERTY(CQChartsPath     path  READ path  WRITE setPath )
+  Q_PROPERTY(CQChartsPosition start      READ start      WRITE setStart     )
+  Q_PROPERTY(CQChartsPosition end        READ end        WRITE setEnd       )
+  Q_PROPERTY(CQChartsPath     path       READ path       WRITE setPath      )
+  Q_PROPERTY(bool             autoPath   READ isAutoPath WRITE setAutoPath  )
+  Q_PROPERTY(CQChartsAngle    startAngle READ startAngle WRITE setStartAngle)
+  Q_PROPERTY(CQChartsAngle    endAngle   READ endAngle   WRITE setEndAngle  )
+  Q_PROPERTY(bool             isSolid    READ isSolid    WRITE setSolid     )
 
  public:
   using ArrowData = CQChartsArrowData;
   using Path      = CQChartsPath;
+  using Length    = CQChartsLength;
+  using Angle     = CQChartsAngle;
 
  public:
   CQChartsArrowAnnotation(View *view, const ObjRefPos &start=ObjRefPos::plot(Point(0, 0)),
@@ -1696,6 +1715,22 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
   const Path &path() const { return path_; }
   void setPath(const Path &path);
 
+  //! get/set auto path
+  bool isAutoPath() const { return autoPath_; }
+  void setAutoPath(bool b);
+
+  const Angle &startAngle() const { return startAngle_; }
+  void setStartAngle(const Angle &a);
+
+  const Angle &endAngle() const { return endAngle_; }
+  void setEndAngle(const Angle &a);
+
+  //---
+
+  //! get/set is solid line
+  bool isSolid() const { return isSolid_; }
+  void setSolid(bool b);
+
   //---
 
   CQChartsArrow *arrow() const { return arrow_.get(); }
@@ -1731,6 +1766,8 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
  protected Q_SLOTS:
   void moveExtraHandle(const QVariant &data, double dx, double dy);
 
+  void emitDataChanged() override;
+
  protected:
   EditHandles *editHandles() const override;
 
@@ -1738,16 +1775,29 @@ class CQChartsArrowAnnotation : public CQChartsConnectorAnnotationBase {
 
   void calcStartEnd(Point &start, Point &end) const;
 
+  void calcPath(PaintDevice *device, QPainterPath &path) const;
+
   void getChangedNameValues(NameValues &nameValues) const override;
+
+  void invalidate() override;
 
  protected:
   using ArrowP = std::unique_ptr<CQChartsArrow>;
 
-  Position     start_ { Position::plot(Point(0, 0)) }; //!< arrow start
-  Position     end_   { Position::plot(Point(1, 1)) }; //!< arrow end
-  Path         path_;                                  //!< path
-  ArrowP       arrow_;                                 //!< arrow data
-  QPainterPath drawPath_;                              //!< draw path
+  Position     start_      { Position::plot(Point(0, 0)) }; //!< arrow start
+  Position     end_        { Position::plot(Point(1, 1)) }; //!< arrow end
+  Path         path_;                                       //!< path
+  bool         autoPath_   { false };                       //!< auto calc path
+  Angle        startAngle_ { -1 };                          //!< auto path start angle
+  Angle        endAngle_   { -1 };                          //!< auto path end angle
+  bool         isSolid_    { true };                        //!< is solid line
+  ArrowP       arrow_;                                      //!< arrow data
+  QPainterPath drawPath_;                                   //!< draw path
+
+  mutable bool         needsCalc_ { true }; //!< path needs calc
+  mutable QPainterPath calcPath_;           //!< calc path
+  mutable QDateTime    startChangeTime_;    //!< start obj change time
+  mutable QDateTime    endChangeTime_;      //!< end obj change time
 };
 
 //---
@@ -1791,13 +1841,11 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotationBase {
     DIAMOND  = int(ArrowData::HeadType::DIAMOND)
   };
 
-  using Length   = CQChartsLength;
+  using Length = CQChartsLength;
 
  public:
-  CQChartsArcAnnotation(View *view, const ObjRefPos &start=ObjRefPos::plot(Point(0, 0)),
-                        const ObjRefPos &end=ObjRefPos::plot(Point(1, 1)));
-  CQChartsArcAnnotation(Plot *plot, const ObjRefPos &start=ObjRefPos::plot(Point(0, 0)),
-                        const ObjRefPos &end=ObjRefPos::plot(Point(1, 1)));
+  CQChartsArcAnnotation(View *view);
+  CQChartsArcAnnotation(Plot *plot);
 
  ~CQChartsArcAnnotation() override;
 
@@ -1812,6 +1860,11 @@ class CQChartsArcAnnotation : public CQChartsConnectorAnnotationBase {
   const char *propertyName() const override { return "arcAnnotation"; }
 
   const char *cmdName() const override { return "create_charts_arc_annotation"; }
+
+  //---
+
+  void setStart(const ObjRefPos &p);
+  void setEnd  (const ObjRefPos &p);
 
   //---
 
@@ -2193,6 +2246,7 @@ class CQChartsPieSliceAnnotation : public CQChartsShapeAnnotationBase {
   //! get/set arc type
   const ArcType &arcType() const { return arcType_; }
   void setArcType(const ArcType &t);
+
   //---
 
   //! add properties
@@ -2600,6 +2654,8 @@ class CQChartsPointSetAnnotation : public CQChartsShapeAnnotationBase,
   void drawGrid    (PaintDevice *device);
   void drawDelaunay(PaintDevice *device);
 
+  void mappedPoints(std::vector<Point> &points) const;
+
  protected:
   using Hull      = CQChartsGrahamHull;
   using HullP     = std::unique_ptr<Hull>;
@@ -2657,6 +2713,7 @@ class CQChartsValueSetAnnotation : public CQChartsShapeAnnotationBase {
 
   using Rect        = CQChartsRect;
   using Reals       = CQChartsReals;
+  using RValues     = CQChartsRValues;
   using ModelColumn = CQChartsModelColumn;
 
  public:
@@ -2728,6 +2785,8 @@ class CQChartsValueSetAnnotation : public CQChartsShapeAnnotationBase {
   void drawRadar   (PaintDevice *device);
   void drawTreeMap (PaintDevice *device, const QPen &pen);
   void drawFactor  (PaintDevice *device);
+
+  void calcRValues(RValues &values) const;
 
  protected:
   using Density     = CQChartsDensity;
@@ -2889,6 +2948,8 @@ class CQChartsWidgetAnnotation : public CQChartsRectBaseAnnotation {
   void setVisible(bool b, bool notify=true) override;
 
  private:
+  void updateWinWidget();
+
   void updateVisible();
 
   //---
@@ -2992,11 +3053,6 @@ class CQChartsTkWidgetAnnotation : public CQChartsRectBaseAnnotation {
 
   bool hasMargin() const override { return true; }
   bool hasPadding() const override { return true; }
-
-  //---
-
-  void setPosition(const OptPosition &p) override;
-  void setRectangle(const OptRect &r) override;
 
  public:
   void setVisible(bool b, bool notify=true) override;

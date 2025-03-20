@@ -33,6 +33,8 @@ class CQChartsRect :
   static CQChartsRect view(const BBox &bbox) { return CQChartsRect(bbox, Units::VIEW); }
   static CQChartsRect plot(const BBox &bbox) { return CQChartsRect(bbox, Units::PLOT); }
 
+  static CQChartsRect plot(const QString &s) { return CQChartsRect(s, Units::PLOT); }
+
  public:
   CQChartsRect(const Units &units, const BBox &bbox) :
    units_(units), bbox_(bbox) {

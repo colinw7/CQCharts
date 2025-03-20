@@ -4,7 +4,25 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
- + annoation animation
+ + gradient fill scatter points and sort largest to smallest to minimize overlaps
+ + color by quadrant (focus x/y default (0,0))
+
+ + dropshadow on multiple plots
+
+ + better threaded draw
+   + view draw on timer
+   + lock buffer and draw
+
+ + annotation plot
+   + named columns
+   + tip
+   + label
+   + text styling
+
+ + transform and group inheritence
+
+ + annotation animation
+ + annotation model/plot (create objects based on same interface as annotation)
 
  + table plot
    + auto fit no scroll ?

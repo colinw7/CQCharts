@@ -153,7 +153,7 @@ init()
 
   //---
 
-  bufferLayers_ = CQChartsEnv::getBool("CQ_CHARTS_BUFFER_LAYERS", bufferLayers_);
+  bufferLayers_ = CQChartsEnv::getBool("CQCHARTS_BUFFER_LAYERS", bufferLayers_);
 
   bgBuffer_      = std::make_unique<CQChartsBuffer>(this);
   fgBuffer_      = std::make_unique<CQChartsBuffer>(this);
@@ -231,7 +231,7 @@ init()
 
   //---
 
-  searchData_.timeout = CQChartsEnv::getInt("CQ_CHARTS_SEARCH_TIMEOUT", searchData_.timeout);
+  searchData_.timeout = CQChartsEnv::getInt("CQCHARTS_SEARCH_TIMEOUT", searchData_.timeout);
 
   setSearchTimeout(searchData_.timeout);
 
@@ -266,6 +266,14 @@ init()
   //---
 
   settingsTabs_ = SettingsTab(0xFFFF & ~uint(SettingsTab::WIDGETS));
+
+  //---
+
+  if (! is3D()) {
+    updateTimer_ = new QTimer(this);
+    connect(updateTimer_, SIGNAL(timeout()), this, SLOT(updateTimerSlot()));
+    updateTimer_->start(250);
+  }
 }
 
 void
@@ -278,7 +286,8 @@ term()
   //---
 
   if (lockPainter(true)) {
-    //std::cerr << "CQChartsView::term painter locked\n";
+    if (CQChartsEnv::getBool("CQCHARTS_DEBUG_PAINTER_LOCK"))
+      std::cerr << "CQChartsView::term painter locked\n";
 
     delete ipainter_;
 
@@ -317,6 +326,27 @@ setUpdatesEnabled(bool b, bool update)
     invalidateObjects();
 
     doUpdate();
+  }
+}
+
+//---
+
+void
+CQChartsView::
+updateTimerSlot()
+{
+  if (resizeNeeded_) {
+    if (CQChartsEnv::getBool("CQCHARTS_DEBUG_PAINTER_LOCK"))
+      std::cerr << "CQChartsView::updateTimerSlot handleResize\n";
+
+    handleResize();
+  }
+
+  if (updateNeeded_) {
+    if (CQChartsEnv::getBool("CQCHARTS_DEBUG_PAINTER_LOCK"))
+      std::cerr << "CQChartsView::updateTimerSlot update\n";
+
+    update();
   }
 }
 
@@ -1991,9 +2021,9 @@ addArrowAnnotation(const Path &path)
 
 CQChartsArcAnnotation *
 CQChartsView::
-addArcAnnotation(const ObjRefPos &start, const ObjRefPos &end)
+addArcAnnotation()
 {
-  return addAnnotationT<ArcAnnotation>(new ArcAnnotation(this, start, end));
+  return addAnnotationT<ArcAnnotation>(new ArcAnnotation(this));
 }
 
 CQChartsEllipseAnnotation *
@@ -5071,43 +5101,43 @@ resizeEvent(QResizeEvent *)
 
   //---
 
+  handleResize();
+}
+
+void
+CQChartsView::
+handleResize()
+{
   updateSeparators();
 
   //---
 
-  int w, h;
-
   if (lockPainter(true)) {
-    //std::cerr << "CQChartsView::resizeEvent painter locked\n";
+    if (CQChartsEnv::getBool("CQCHARTS_DEBUG_PAINTER_LOCK"))
+      std::cerr << "CQChartsView::resizeEvent painter locked\n";
 
-    w = width ();
-    h = height();
-
-    delete ipainter_;
-    delete image_;
-
-    int iw = std::min(std::max((! isAutoSize() ? autoSizeData_.width  : w), 1), 16384);
-    int ih = std::min(std::max((! isAutoSize() ? autoSizeData_.height : h), 1), 16384);
-
-    image_ = CQChartsUtil::newImage(QSize(iw, ih));
-
-    image_->fill(Qt::transparent);
-
-    ipainter_ = new QPainter(image_);
+    resizePainter();
 
     lockPainter(false);
   }
   else {
-    //std::cerr << "CQChartsView::failed to lock painter in resizeEvent\n";
+    if (CQChartsEnv::getBool("CQCHARTS_DEBUG_PAINTER_BAD_LOCK"))
+      std::cerr << "CQChartsView::failed to lock painter in resizeEvent\n";
+    resizeNeeded_ = true;
     return;
   }
 
   //---
 
+  resizeNeeded_ = false;
+
   autoSizeData_.xpos = 0;
   autoSizeData_.ypos = 0;
 
   if (isAutoSize()) {
+    int w = width ();
+    int h = height();
+
     invalidateObjects();
     invalidateOverlay();
 
@@ -5124,6 +5154,26 @@ resizeEvent(QResizeEvent *)
   }
 
   updateScrollBars();
+}
+
+void
+CQChartsView::
+resizePainter()
+{
+  int w = width ();
+  int h = height();
+
+  delete ipainter_;
+  delete image_;
+
+  int iw = std::min(std::max((! isAutoSize() ? autoSizeData_.width  : w), 1), 16384);
+  int ih = std::min(std::max((! isAutoSize() ? autoSizeData_.height : h), 1), 16384);
+
+  image_ = CQChartsUtil::newImage(QSize(iw, ih));
+
+  image_->fill(Qt::transparent);
+
+  ipainter_ = new QPainter(image_);
 }
 
 void
@@ -5701,30 +5751,36 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  if (lockPainter(true)) {
-    //std::cerr << "CQChartsView::paintEvent painter locked\n";
-
-    if (mode() == Mode::RULER)
-      invalidateOverlay();
-
-    //---
-
-    paint(ipainter_);
-
-    QPainter painter(this);
-
-    painter.setFont(font_.font());
-
-    deviceFont_ = painter.font();
-
-    painter.drawImage(-autoSizeData_.xpos, -autoSizeData_.ypos, *image_);
-
-    lockPainter(false);
+  if (! lockPainter(true)) {
+    if (CQChartsEnv::getBool("CQCHARTS_DEBUG_PAINTER_BAD_LOCK"))
+      std::cerr << "CQChartsView::failed to lock painter in paintEvent\n";
+    updateNeeded_ = true;
+    return;
   }
-  else {
-    //std::cerr << "CQChartsView::failed to lock painter in paintEvent\n";
-    update();
-  }
+
+  updateNeeded_ = false;
+
+  //---
+
+  if (CQChartsEnv::getBool("CQCHARTS_DEBUG_PAINTER_LOCK"))
+    std::cerr << "CQChartsView::paintEvent painter locked\n";
+
+  if (mode() == Mode::RULER)
+    invalidateOverlay();
+
+  //---
+
+  paint(ipainter_);
+
+  QPainter painter(this);
+
+  painter.setFont(font_.font());
+
+  deviceFont_ = painter.font();
+
+  painter.drawImage(-autoSizeData_.xpos, -autoSizeData_.ypos, *image_);
+
+  lockPainter(false);
 }
 
 void
@@ -5750,6 +5806,23 @@ paint(QPainter *painter, Plot *plot)
   // draw all plots
   else {
     drawPlots(painter);
+  }
+}
+
+//----
+
+void
+CQChartsView::
+paintPlotParts(Plot *plot)
+{
+  if (lockPainter(true)) {
+    plot->drawParts(ipainter());
+
+    lockPainter(false);
+  }
+  else {
+    if (CQChartsEnv::getBool("CQCHARTS_DEBUG_PAINTER_BAD_LOCK"))
+      std::cerr << "CQChartsView::failed to lock painter in paintPlotParts\n";
   }
 }
 
@@ -6288,6 +6361,13 @@ drawColorBox(PaintDevice *device, const BBox &bbox)
 
 bool
 CQChartsView::
+isPainterLocked() const
+{
+  return painterLocked_;
+}
+
+bool
+CQChartsView::
 lockPainter(bool lock)
 {
   if (painterLocked_ == lock)
@@ -6300,7 +6380,8 @@ lockPainter(bool lock)
 
   painterLocked_ = lock;
 
-  //std::cerr << "CQChartsView::lockPainter : " << (lock ? "true" : "false") << "\n";
+  if (CQChartsEnv::getBool("CQCHARTS_DEBUG_PAINTER_LOCK"))
+    std::cerr << "CQChartsView::lockPainter : " << (lock ? "true" : "false") << "\n";
 
   return true;
 }
@@ -7574,7 +7655,7 @@ showMenu(const Point &p)
   //---
 
   if (hasPlots) {
-    if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG", true)) {
+    if (CQChartsEnv::getBool("CQCHARTS_DEBUG", true)) {
       auto *showBoxesAction =
         addCheckAction(popupMenu, "Show Boxes", false, SLOT(showBoxesSlot(bool)));
 
@@ -9066,16 +9147,10 @@ void
 CQChartsView::
 update()
 {
-  if (lockPainter(true)) {
-    //std::cerr << "CQChartsView::update painter locked\n";
+  if (CQChartsEnv::getBool("CQCHARTS_DEBUG_PAINTER_LOCK"))
+    std::cerr << "CQChartsView::update painter locked\n";
 
-    QFrame::update();
-
-    lockPainter(false);
-  }
-  else {
-    //std::cerr << "CQChartsView::update when painter locked\n";
-  }
+  QFrame::update();
 }
 
 void

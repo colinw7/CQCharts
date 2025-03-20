@@ -2103,6 +2103,8 @@ pathAddArrows(PaintDevice *device, const QPainterPath &path, const ArrowData &ar
   CQChartsDrawUtil::visitPath(path, visitor);
 
   arrowPath = visitor.arrowPath();
+
+  arrowPath.setFillRule(path.fillRule());
 }
 
 void

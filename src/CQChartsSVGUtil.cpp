@@ -1,9 +1,11 @@
 #include <CQChartsSVGUtil.h>
+#include <CQChartsPlot.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsUtil.h>
 
 #include <CSVGUtil.h>
 #include <CQStrParse.h>
+#include <CStrUtil.h>
 
 #ifdef CXML_PARSER
 #include <CXML.h>
@@ -361,6 +363,65 @@ bool
 CQChartsSVGUtil::
 stringToPenBrush(const QString &str, QPen &pen, QBrush &brush)
 {
+  CQChartsSVGStyleData data;
+
+  if (! stringToStyle(nullptr, str, data))
+    return false;
+
+  pen   = data.pen;
+  brush = data.brush;
+
+  return false;
+}
+
+bool
+CQChartsSVGUtil::
+stringToStyle(CQChartsPlot *plot, const QString &str, StyleData &data)
+{
+  data.arrowData.setFHeadType(CQChartsArrowData::HeadType::ARROW);
+  data.arrowData.setTHeadType(CQChartsArrowData::HeadType::ARROW);
+
+#if 0
+  auto TODO = [](const QString &name, const QString &value) {
+    std::cerr << "TODO style: " <<
+                 name.toStdString() << "=" << value.toStdString() << "\n";
+  };
+#endif
+
+  auto UNHANDLED = [](const QString &name, const QString &value) {
+    std::cerr << "Unsupported style: " <<
+                 name.toStdString() << "=" << value.toStdString() << "\n";
+  };
+
+  auto parseLength = [&](const QString &value, double &w) {
+    if (plot) {
+      auto l = CQChartsLength(value);
+      if (! l.isValid()) return false;
+
+      w = plot->lengthPixelWidth(l);
+    }
+    else {
+      bool ok;
+      w = CQChartsUtil::toReal(value, ok);
+      if (! ok) return false;
+    }
+
+    return true;
+  };
+
+  auto parseColor = [&](const QString &value, QColor &c) {
+    CQChartsColor color(value);
+
+    if (plot)
+      c = plot->interpColor(color, CQChartsPlot::ColorInd());
+    else
+      c = color.color();
+
+    return true;
+  };
+
+  //---
+
   if (str.trimmed() == "")
     return false;
 
@@ -391,11 +452,13 @@ stringToPenBrush(const QString &str, QPen &pen, QBrush &brush)
     QString value;
 
     while (! parse.eof()) {
-      if (parse.isSpace() || parse.isChar(';'))
+      if (parse.isChar(';'))
         break;
 
       value += parse.getChar();
     }
+
+    value = value.trimmed();
 
     parse.skipSpace();
 
@@ -405,40 +468,130 @@ stringToPenBrush(const QString &str, QPen &pen, QBrush &brush)
       parse.skipSpace();
     }
 
-    if      (name == "fill") {
-      QColor c(value);
+    data.nameValues[name] = value;
 
-      brush.setColor(c);
-      brush.setStyle(Qt::SolidPattern);
+    if      (name == "fill") {
+      QColor c;
+      (void) parseColor(value, c);
+
+      data.brush.setColor(c);
+      data.brush.setStyle(Qt::SolidPattern);
     }
     else if (name == "fill-opacity") {
       bool ok;
       double a = CQChartsUtil::toReal(value, ok);
       if (! ok) continue;
 
-      auto c = brush.color();
+      auto c = data.brush.color();
       c.setAlphaF(a);
-      brush.setColor(c);
+      data.brush.setColor(c);
     }
     else if (name == "stroke") {
-      QColor c(value);
+      QColor c;
+      (void) parseColor(value, c);
 
-      pen.setColor(c);
+      data.pen.setColor(c);
     }
     else if (name == "stroke-width") {
-      bool ok;
-      double w = CQChartsUtil::toReal(value, ok);
-      if (! ok) continue;
+      double w;
+      if (parseLength(value, w))
+        data.pen.setWidthF(w);
+    }
+    else if (name == "stroke-dasharray") {
+      CQChartsLineDash dash(value);
 
-      pen.setWidthF(w);
+      CQChartsUtil::penSetLineDash(data.pen, dash);
+    }
+    else if (name == "arrow-start") {
+      bool ok;
+      data.arrowData.setFHead(CQChartsUtil::stringToBool(value, &ok));
+    }
+    else if (name == "arrow-end") {
+      bool ok;
+      data.arrowData.setTHead(CQChartsUtil::stringToBool(value, &ok));
+    }
+    else if (name == "arrow-start-length") {
+      double w;
+      if (parseLength(value, w))
+        data.arrowData.setFrontLength(CQChartsLength::pixel(w));
+    }
+    else if (name == "arrow-end-length") {
+      double w;
+      if (parseLength(value, w))
+        data.arrowData.setTailLength(CQChartsLength::pixel(w));
+    }
+    else if (name == "arrow-width") {
+      double w;
+      if (parseLength(value, w))
+        data.arrowData.setLineWidth(CQChartsLength::pixel(w));
+    }
+    else if (name == "arc-start") {
+      data.arcStart = CQChartsAngle(value);
+    }
+    else if (name == "arc-delta" || name == "arc-start-delta") {
+      data.arcDelta = CQChartsAngle(value);
+    }
+    else if (name == "arc-end") {
+      data.arcEnd = CQChartsAngle(value);
+    }
+    else if (name == "arc-end-delta") {
+      data.arcEndDelta = CQChartsAngle(value);
+    }
+    else if (name == "inner-radius") {
+      (void) parseLength(value, data.innerRadius);
+    }
+    else if (name == "radius" || name == "outer-radius") {
+      (void) parseLength(value, data.outerRadius);
+    }
+    else if (name == "direction") {
+      data.direction = value;
+    }
+    else if (name == "draw-type") {
+      data.drawType = value;
+    }
+    else if (name == "font" || name == "font-size") {
+      data.textFont = value;
+    }
+    else if (name == "halign" || name == "text-halign") {
+      data.textAlign &= ~0x0F;
+
+      if      (value == "left")
+        data.textAlign |= Qt::AlignLeft;
+      else if (value == "right")
+        data.textAlign |= Qt::AlignRight;
+      else if (value == "center")
+        data.textAlign |= Qt::AlignHCenter;
+    }
+    else if (name == "valign" || name == "text-valign") {
+      data.textAlign &= ~0x1F0;
+
+      if      (value == "top")
+        data.textAlign |= Qt::AlignTop;
+      else if (value == "bottom")
+        data.textAlign |= Qt::AlignBottom;
+      else if (value == "center")
+        data.textAlign |= Qt::AlignVCenter;
+    }
+    else if (name == "text-angle") {
+      data.textAngle = value;
+    }
+    else if (name == "text-scaled") {
+      bool ok;
+      data.textScaled = CQChartsUtil::stringToBool(value, &ok);
+    }
+    else if (name == "symbol-type") {
+      data.symbolType = value;
+    }
+    else if (name == "symbol-size") {
+      (void) parseLength(value, data.symbolSize);
+    }
+    else if (name == "tip") {
+      data.tip = value;
     }
     else {
-      valid = false;
+      UNHANDLED(name, value);
 
-#if 0
-      std::cerr << "Unsupported style: " <<
-                   name.toStdString() << "=" << value.toStdString() << "\n";
-#endif
+      valid = false;
     }
   }
 

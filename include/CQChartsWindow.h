@@ -231,7 +231,7 @@ class CQChartsWindow : public QFrame {
     bool visible      { true };  //!< view settings visible
     bool majorObjects { true };  //!< view settings major objects visible
     bool minorObjects { false }; //!< view settings minor objects visible
-    int  maxObjects   { 100 };   //!< max number of objects to add
+    int  maxObjects   { 512 };   //!< max number of objects to add
   };
 
   ViewSettingsData viewSettingsData_;

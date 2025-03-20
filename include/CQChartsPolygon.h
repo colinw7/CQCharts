@@ -32,6 +32,10 @@ class CQChartsPolygon :
   CQUTIL_DEF_META_CONVERSIONS(CQChartsPolygon, metaTypeId)
 
  public:
+  static CQChartsPolygon plot(const Polygon &p) { return CQChartsPolygon(p, Units::PLOT); }
+  static CQChartsPolygon plot(const QString &s) { return CQChartsPolygon(s, Units::PLOT); }
+
+ public:
   explicit CQChartsPolygon(const Units &units, const Polygon &polygon) :
    units_(units), polygon_(polygon) {
   }

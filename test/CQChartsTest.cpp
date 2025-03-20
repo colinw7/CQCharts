@@ -328,7 +328,7 @@ main(int argc, char **argv)
 
   //---
 
-  if (CQChartsEnv::getBool("CQ_CHARTS_AUTO_EXIT"))
+  if (CQChartsEnv::getBool("CQCHARTS_AUTO_EXIT"))
     test.charts()->addExitTimer(1);
 
   // loop
