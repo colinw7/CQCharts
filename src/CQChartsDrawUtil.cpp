@@ -2422,8 +2422,12 @@ edgePath(const ConnectPoint &c1, const ConnectPoint &c2, const ConnectData &data
 
     //---
 
-    auto s1 = (orient1 == Qt::Vertical ? c1.bbox.getHeight() : c1.bbox.getWidth());
-    auto s2 = (orient2 == Qt::Vertical ? c2.bbox.getHeight() : c2.bbox.getWidth());
+    double s1 { 1.0 }, s2 { 1.0 };
+
+    if (c1.bbox.isValid() && c2.bbox.isValid()) {
+      s1 = (orient1 == Qt::Vertical ? c1.bbox.getHeight() : c1.bbox.getWidth());
+      s2 = (orient2 == Qt::Vertical ? c2.bbox.getHeight() : c2.bbox.getWidth());
+    }
 
     // calc points offset from bbox edge
     auto p1 = CQChartsGeom::movePointOnLine(c1.p, c1.angle.radians(), c1.offset*s1);
