@@ -459,8 +459,6 @@ CCircleFactor.cpp \
 \
 CQTabBarWidget.cpp \
 CQTabBar.cpp \
-\
-CQHtmlTextPainter.cpp \
 
 HEADERS += \
 ../include/CQCharts.h \
@@ -948,8 +946,6 @@ CCircleFactor.h \
 \
 CQTabBarWidget.h \
 CQTabBar.h \
-\
-../include/CQHtmlTextPainter.h \
 
 DESTDIR     = ../lib
 OBJECTS_DIR = ../obj

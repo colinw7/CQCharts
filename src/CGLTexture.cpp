@@ -28,7 +28,7 @@ load(const string &fileName, bool flip)
 
   auto image = CImageMgrInst->createImage(src);
 
-  if (! image.isValid()) {
+  if (! image) {
     std::cerr << "Error: Failed to read image from '" << fileName << "'\n";
     return false;
   }
@@ -54,7 +54,7 @@ bool
 CGLTexture::
 init(CImagePtr image, bool flip)
 {
-  if (! image.isValid()) {
+  if (! image) {
     std::cerr << "Invalid image data\n";
     return false;
   }
