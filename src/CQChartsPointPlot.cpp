@@ -48,7 +48,7 @@ addMiscParameters()
 {
   addBoolParameter("bestFit", "Best Fit", "bestFit").
     setPropPath("overlays.bestFit.visible").setTip("Show best fit overlay");
-  addBoolParameter("convexHull", "Convex Hull", "convexHull").
+  addBoolParameter("convexHull", "Convex Hull", "hull").
     setPropPath("overlays.hull.visible").setTip("Show convex hull overlay");
   addBoolParameter("statsLines", "Stats Lines", "statsLines").
     setPropPath("overlays.statsData.visible").setTip("Show statistics lines overlay");

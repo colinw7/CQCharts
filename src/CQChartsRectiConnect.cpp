@@ -190,22 +190,10 @@ calcRoute1(const Rect &rect1, const Rect &rect2, Points &points,
     }
   }
 
-#if 0
-  auto isCheckNode = [&](Node *node) {
-    if (node == startNode ) return false;
-    if (node == endNode   ) return false;
-    if (node == startNode1) return false;
-    if (node == endNode1  ) return false;
-    return true;
-  };
-#endif
-
   auto addEdge = [&](Node *node1, Node *node2, bool check=true) {
-#if 0
-    if (isCheckNode(node1) && isCheckNode(node2)) {
-#else
+    if (! node1 || ! node2) return;
+
     if (check) {
-#endif
       const auto &p1 = node1->p();
       const auto &p2 = node2->p();
 

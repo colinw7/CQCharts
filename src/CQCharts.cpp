@@ -37,6 +37,7 @@
 #include <CQChartsSummaryPlot.h>
 #include <CQChartsSunburstPlot.h>
 #include <CQChartsTablePlot.h>
+#include <CQChartsTernaryPlot.h>
 #include <CQChartsTreeMapPlot.h>
 #include <CQChartsVennPlot.h>
 #include <CQChartsWheelPlot.h>
@@ -434,6 +435,8 @@ description()
          IMG("images/sunburst.png")),
       LI("Table : Table in a plot" +
          IMG("images/table.png")),
+      LI("Ternary : Ternary (3 axis scatter plot)" +
+         IMG("images/ternary.png")),
       LI("TreeMap : Hierarchical tree map" +
          IMG("images/treemap.png")),
       LI("Wheel : Wheel plot" +
@@ -505,6 +508,8 @@ description()
      p("Scatter plot of disparate values").
     h3("Sunburst").
      p("Hierarchical pie chart plot").
+    h3("Ternary").
+     p("Three axis scatter plot").
     h3("TreeMap").
      p("Hierarchical tree map").
     h3("XY").
@@ -702,6 +707,7 @@ init()
   plotTypeMgr->addTypeT<CQChartsSummaryPlotType      >("summary"      );
   plotTypeMgr->addTypeT<CQChartsSunburstPlotType     >("sunburst"     );
   plotTypeMgr->addTypeT<CQChartsTablePlotType        >("table"        );
+  plotTypeMgr->addTypeT<CQChartsTernaryPlotType      >("ternary"      );
   plotTypeMgr->addTypeT<CQChartsTreeMapPlotType      >("treemap"      );
   plotTypeMgr->addTypeT<CQChartsVennPlotType         >("venn"         );
   plotTypeMgr->addTypeT<CQChartsWheelPlotType        >("wheel"        );

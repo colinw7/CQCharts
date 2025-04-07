@@ -74,6 +74,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   // tick calc
   Q_PROPERTY(CQChartsOptReal majorIncrement READ majorIncrement WRITE setMajorIncrement)
   Q_PROPERTY(CQChartsOptInt  tickIncrement  READ tickIncrement  WRITE setTickIncrement )
+  Q_PROPERTY(CQChartsOptInt  numMajor       READ numMajor       WRITE setNumMajor      )
 
   Q_PROPERTY(bool annotation      READ isAnnotation      WRITE setAnnotation     )
   Q_PROPERTY(bool allowHtmlLabels READ isAllowHtmlLabels WRITE setAllowHtmlLabels)
@@ -199,6 +200,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   using Path                   = CQChartsPath;
   using BBox                   = CQChartsGeom::BBox;
   using Point                  = CQChartsGeom::Point;
+  using TickPoints             = std::vector<Point>;
 
  public:
   CQChartsAxis(const View *view, Qt::Orientation direction=Qt::Horizontal,
@@ -479,6 +481,11 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   void setMajorIncrement(double r) { setMajorIncrement(OptReal(r)); }
 
+  const OptInt &numMajor() const { return data_.numMajor; }
+  void setNumMajor(const OptInt &i);
+
+  void setNumMajor(int i) { setNumMajor(OptInt(i)); }
+
   //---
 
   // internal calculation data
@@ -572,6 +579,8 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  const TickPoints &majorTickPoints() const { return majorTickPoints_; }
+
  public:
   bool isDrawGrid() const;
 
@@ -613,9 +622,14 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   //---
 
+  void calcPoints(const Plot *plot, Point &p1, Point &p2) const;
+
   void calcPos(const Plot *plot, double &apos1, double &apos2) const;
 
   void getTickLabelsPositions(std::set<int> &positions) const;
+
+  Point valueToPoint(double value) const;
+  Point valueToVector(double value) const;
 
   //---
 
@@ -630,6 +644,10 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   void drawAxisLabelI(const Plot *plot, PaintDevice *device,
                       double apos, double amin, double amax);
+  void drawAxisLabelI(const Plot *plot, PaintDevice *device, double apos,
+                      double amin, double amax, const QString &text, bool allowHtml);
+
+  void drawAxisPathLabelI(const Plot *plot, PaintDevice *device, const QString &text);
 
   //---
 
@@ -637,8 +655,6 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   void write(const CQPropertyViewModel *propertyModel, const QString &plotName, std::ostream &os);
 
  private:
-  void drawAxisLabelI(const Plot *plot, PaintDevice *device, double apos,
-                      double amin, double amax, const QString &text, bool allowHtml);
 
   void drawMajorTickLineI(const Plot *plot, PaintDevice *device, double apos,
                           double tpos, bool inside);
@@ -650,8 +666,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
 
   void drawAxisTickLabelDatasI(const Plot *plot, PaintDevice *device);
 
-  void drawLineI(const Plot *plot, PaintDevice *device,
-                 double apos, double amin, double amax);
+  void drawLineI(const Plot *plot, PaintDevice *device, const Point &p1, const Point &p2);
 
  Q_SIGNALS:
   void ticksChanged();
@@ -783,6 +798,7 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
     uint    maxMajorTicks  { 1000 }; //!< max major ticks
     OptInt  tickIncrement;           //!< user specified tick increment
     OptReal majorIncrement;          //!< user specified major increment
+    OptInt  numMajor;                //!< user specified number of major ticks
 
     // customization (for annotations)
     bool allowHtmlLabels { false }; //!< allow html labels
@@ -846,6 +862,8 @@ class CQChartsAxis : public CQChartsObj, public CQChartsEditableIFace,
   bool usePen_     { false }; //!< use painter pen
   bool forceColor_ { false }; //!< force painter color for all
   QPen savePen_;              //!< override pen to use
+
+  TickPoints majorTickPoints_;
 };
 
 #endif

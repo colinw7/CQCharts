@@ -766,7 +766,7 @@ handleSelectMove(const Point &p, Constraints constraints, bool first)
   double da = 0.0;
 
   for (const auto &plotObj : plotObjs_) {
-    auto *pointObj = dynamic_cast<CQChartsPointObj *>(plotObj);
+    auto *pointObj = dynamic_cast<CQChartsWheelPointObj *>(plotObj);
     if (! pointObj) continue;
 
     auto pp = pointToPolarPoint(pointObj->point());
@@ -1088,12 +1088,12 @@ execDrawOverlay(PaintDevice *device) const
 
 //---
 
-CQChartsPointObj *
+CQChartsWheelPointObj *
 CQChartsWheelPlot::
 createPointObj(const BBox &rect, const PointData &pointData,
                const QModelIndex &ind, const ColorInd &iv)
 {
-  return new CQChartsPointObj(this, rect, pointData, ind, iv);
+  return new CQChartsWheelPointObj(this, rect, pointData, ind, iv);
 }
 
 CQChartsLineObj *
@@ -1146,9 +1146,9 @@ createCustomControls()
 
 //------
 
-CQChartsPointObj::
-CQChartsPointObj(const CQChartsWheelPlot *wheelPlot, const BBox &rect, const PointData &pointData,
-                 const QModelIndex &ind, const ColorInd &is) :
+CQChartsWheelPointObj::
+CQChartsWheelPointObj(const CQChartsWheelPlot *wheelPlot, const BBox &rect,
+                      const PointData &pointData, const QModelIndex &ind, const ColorInd &is) :
  CQChartsPlotObj(const_cast<CQChartsWheelPlot *>(wheelPlot), rect, is, ColorInd(), ColorInd()),
  wheelPlot_(wheelPlot), pointData_(pointData)
 {
@@ -1161,14 +1161,14 @@ CQChartsPointObj(const CQChartsWheelPlot *wheelPlot, const BBox &rect, const Poi
 }
 
 QString
-CQChartsPointObj::
+CQChartsWheelPointObj::
 calcId() const
 {
   return QString("%1:%2").arg(typeName()).arg(is_.i);
 }
 
 QString
-CQChartsPointObj::
+CQChartsWheelPointObj::
 calcTipId() const
 {
   CQChartsTableTip tableTip;
@@ -1211,7 +1211,7 @@ calcTipId() const
 //---
 
 void
-CQChartsPointObj::
+CQChartsWheelPointObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
   auto path1 = path + "/" + propertyId();
@@ -1226,7 +1226,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 //---
 
 void
-CQChartsPointObj::
+CQChartsWheelPointObj::
 getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, wheelPlot_->xColumn());
@@ -1234,7 +1234,7 @@ getObjSelectIndices(Indices &inds) const
 }
 
 void
-CQChartsPointObj::
+CQChartsWheelPointObj::
 draw(PaintDevice *device) const
 {
   if (! pointData_.min.isSet() || ! pointData_.max.isSet())
@@ -1279,7 +1279,7 @@ draw(PaintDevice *device) const
 }
 
 void
-CQChartsPointObj::
+CQChartsWheelPointObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto normalizeTemp = [&](double t) {

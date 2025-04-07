@@ -116,6 +116,8 @@ class CQChartsAngle :
   double cos() const { return std::cos(radians()); }
   double sin() const { return std::sin(radians()); }
 
+  Point vector() const { return Point(cos(), sin()); }
+
   //---
 
   void flipX() { a_ = 180.0 + a_; }

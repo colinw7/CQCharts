@@ -256,6 +256,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
 
   addProp(path, "tickIncrement" , "", "Axis tick increment");
   addProp(path, "majorIncrement", "", "Axis tick major increment");
+  addProp(path, "numMajor"      , "", "Axis number of major ticks");
 
   if (! (CQChartsUtil::isFlagSet(propertyTypes, PropertyType::ANNOTATION))) {
     addPropI(path, "start", "", "Axis start position");
@@ -530,6 +531,13 @@ CQChartsAxis::
 minorTickIncrement() const
 {
   return majorTickIncrement()/numMinorTicks();
+}
+
+void
+CQChartsAxis::
+setNumMajor(const OptInt &i)
+{
+  CQChartsUtil::testAndSet(data_.numMajor, i, [&]() { calcAndRedraw(); } );
 }
 
 //---
@@ -1030,8 +1038,20 @@ calc()
   interval_.setDate    (isDate    ());
   interval_.setLog     (isLog     ());
 
-  interval_.setMajorIncrement(majorIncrement().realOr(0.0));
-  interval_.setTickIncrement (tickIncrement ().integerOr(0));
+  if (majorIncrement().isSet())
+    interval_.setMajorIncrement(majorIncrement().realOr(0.0));
+  else
+    interval_.resetMajorIncrement();
+
+  if (tickIncrement().isSet())
+    interval_.setTickIncrement(tickIncrement().integerOr(0));
+  else
+    interval_.resetTickIncrement();
+
+  if (numMajor().isSet())
+    interval_.setNumMajor(numMajor().integerOr(0));
+  else
+    interval_.resetNumMajor();
 
   numMajorTicks_ = std::max(interval_.calcNumMajor(), 1U);
   numMinorTicks_ = std::max(interval_.calcNumMinor(), 1U);
@@ -1214,8 +1234,8 @@ editPress(const Point &p)
 {
   editHandles()->setDragPos(p);
 
+  // TODO: handle path
   double apos1, apos2;
-
   calcPos(plot(), apos1, apos2);
 
   setPosition(CQChartsOptReal(apos1));
@@ -1259,8 +1279,8 @@ bool
 CQChartsAxis::
 editMoveBy(const Point &d)
 {
+  // TODO: handle path
   double apos1, apos2;
-
   calcPos(plot(), apos1, apos2);
 
   double apos;
@@ -1554,8 +1574,10 @@ drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool
 
   //---
 
-  double apos1, apos2;
+  Point p1, p2;
+  calcPoints(plot, p1, p2);
 
+  double apos1, apos2;
   calcPos(plot, apos1, apos2);
 
   double amin = start();
@@ -1563,14 +1585,8 @@ drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool
 
   //---
 
-  if (isHorizontal()) {
-    bbox_ += Point(amin, apos1);
-    bbox_ += Point(amax, apos1);
-  }
-  else {
-    bbox_ += Point(apos1, amin);
-    bbox_ += Point(apos1, amax);
-  }
+  bbox_ += p1;
+  bbox_ += p2;
 
   fitBBox_ = bbox();
 
@@ -1587,7 +1603,7 @@ drawI(const View *view, const Plot *plot, PaintDevice *device, bool usePen, bool
     lineVisible = (savePen_.style() != Qt::NoPen);
 
   if (lineVisible)
-    drawLineI(plot, device, apos1, amin, amax);
+    drawLineI(plot, device, p1, p2);
 
   //---
 
@@ -1788,6 +1804,8 @@ void
 CQChartsAxis::
 drawPathTicksI(const Plot *plot, PaintDevice *device)
 {
+  majorTickPoints_.clear();
+
   bool labelVisible = isAxesTickLabelTextVisible();
 
   int tlen = majorTickLen();
@@ -1818,34 +1836,35 @@ drawPathTicksI(const Plot *plot, PaintDevice *device)
   bool isPixelBottom = (side().type() == CQChartsAxisSide::Type::BOTTOM_LEFT);
 
   for (uint i = 0; i < n; ++i) {
-    auto d = CMathUtil::map(double(i), 0.0, double(n - 1), 0.0, 1.0);
+    auto value = calcStart() + i*calcIncrement();
 
-    QPointF p1, p2;
-    Point   pps;
+    auto d = CMathUtil::map(value, start(), end(), 0.0, 1.0);
+  //auto d = CMathUtil::map(double(i), 0.0, double(n - 1), 0.0, 1.0);
+    if (d < 0.0 || d > 1.0) continue;
+
+    Point p1, p2;
+    Point pps;
 
     if      (i == 0) {
-      p1 = path().path().pointAtPercent(d);
-      p2 = path().path().pointAtPercent(d + 0.001);
+      p1 = path().pointAtPercent(d);
+      p2 = path().pointAtPercent(d + 0.001);
 
-      pps = Point(p1);
+      pps = p1;
     }
     else if (i == n - 1) {
-      p1 = path().path().pointAtPercent(d - 0.001);
-      p2 = path().path().pointAtPercent(d);
+      p1 = path().pointAtPercent(d - 0.001);
+      p2 = path().pointAtPercent(d);
 
-      pps = Point(p2);
+      pps = p2;
     }
     else {
-      p1 = path().path().pointAtPercent(d - 0.001);
-      p2 = path().path().pointAtPercent(d + 0.001);
+      p1 = path().pointAtPercent(d - 0.001);
+      p2 = path().pointAtPercent(d + 0.001);
 
-      pps = Point(CMathUtil::avg(p1.x(), p2.x()), CMathUtil::avg(p1.y(), p2.y()));
+      pps = Point(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
     }
 
-    auto pp1 = Point(p1.x(), p1.y());
-    auto pp2 = Point(p2.x(), p2.y());
-
-    auto a = CQChartsAngle::pointAngle(pp1, pp2);
+    auto a = CQChartsAngle::pointAngle(p1, p2);
 
     Point ppe;
 
@@ -1866,6 +1885,8 @@ drawPathTicksI(const Plot *plot, PaintDevice *device)
 
     device->drawLine(pps, ppe);
 
+    majorTickPoints_.push_back(pps);
+
     //---
 
     if (labelVisible) {
@@ -1885,7 +1906,7 @@ drawPathTicksI(const Plot *plot, PaintDevice *device)
 
       //---
 
-      auto value = CMathUtil::map(double(i), 0.0, double(n - 1), start(), end());
+    //auto value = CMathUtil::map(double(i), 0.0, double(n - 1), start(), end());
 
       auto text = valueStr(plot, value);
 
@@ -2065,9 +2086,29 @@ getTickLabelsPositions(std::set<int> &positions) const
   }
 }
 
+void
+CQChartsAxis::
+calcPoints(const Plot *plot, Point &p1, Point &p2) const
+{
+  double amin = start();
+  double amax = end  ();
+
+  double apos1, apos2;
+  calcPos(plot, apos1, apos2);
+
+  if (isHorizontal()) {
+    p1 = Point(amin, apos1);
+    p2 = Point(amax, apos1);
+  }
+  else {
+    p1 = Point(apos1, amin);
+    p2 = Point(apos1, amax);
+  }
+}
+
 // calc axis perp position:
 //  . apos1 : axis draw position  (grid perp min)
-//  . apos1 : axis 'far' position (grid perp max)
+//  . apos2 : axis 'far' position (grid perp max)
 void
 CQChartsAxis::
 calcPos(const Plot *plot, double &apos1, double &apos2) const
@@ -2117,7 +2158,7 @@ calcPos(const Plot *plot, double &apos1, double &apos2) const
 
 void
 CQChartsAxis::
-drawLineI(const Plot *, PaintDevice *device, double apos, double amin, double amax)
+drawLineI(const Plot *, PaintDevice *device, const Point &p1, const Point &p2)
 {
   PenBrush penBrush;
 
@@ -2130,15 +2171,10 @@ drawLineI(const Plot *, PaintDevice *device, double apos, double amin, double am
 
   //---
 
-  if (path().isValid()) {
+  if (path().isValid())
     device->drawPath(path().path());
-  }
-  else {
-    if (isHorizontal())
-      device->drawLine(Point(amin, apos), Point(amax, apos));
-    else
-      device->drawLine(Point(apos, amin), Point(apos, amax));
-  }
+  else
+    device->drawLine(p1, p2);
 }
 
 void
@@ -2912,7 +2948,41 @@ drawAxisLabelI(const Plot *plot, PaintDevice *device, double apos, double amin, 
   if (! text.length())
     text = label().defValue();
 
-  drawAxisLabelI(plot, device, apos, amin, amax, text, allowHtml);
+  if (path().isValid())
+    drawAxisPathLabelI(plot, device, text);
+  else
+    drawAxisLabelI(plot, device, apos, amin, amax, text, allowHtml);
+}
+
+void
+CQChartsAxis::
+drawAxisPathLabelI(const Plot *plot, PaintDevice *device, const QString &text)
+{
+  auto p = path().pointAtPercent(0.5);
+
+  //---
+
+  PenBrush tpenBrush;
+
+  auto tc = interpAxesLabelTextColor(ColorInd());
+
+  if (plot)
+    plot->setPen(tpenBrush, PenData(true, tc, axesLabelTextAlpha()));
+  else
+    CQChartsUtil::setPen(tpenBrush.pen, true, tc, axesLabelTextAlpha());
+
+  device->setPen(tpenBrush.pen);
+
+  if (plot)
+    plot->setPainterFont(device, axesLabelTextFont());
+  else
+    device->setFont(axesLabelTextFont().font());
+
+  //---
+
+  TextOptions textOptions1;
+
+  CQChartsDrawUtil::drawTextAtPoint(device, p, text, textOptions1, /*centered*/true);
 }
 
 void
@@ -3263,6 +3333,61 @@ drawAxisLabelI(const Plot *plot, PaintDevice *device, double apos,
   }
 
   bbox_ += tlbbox_;
+}
+
+//---
+
+CQChartsGeom::Point
+CQChartsAxis::
+valueToPoint(double value) const
+{
+  if (path().isValid()) {
+    auto d = CMathUtil::map(value, start(), end(), 0.0, 1.0);
+
+    d = std::min(std::max(d, 0.0), 1.0);
+
+    return path().pointAtPercent(d);
+  }
+  else {
+    double apos1, apos2;
+    calcPos(plot(), apos1, apos2);
+
+    if (isHorizontal())
+      return Point(value, apos1);
+    else
+      return Point(apos1, value);
+  }
+}
+
+CQChartsGeom::Point
+CQChartsAxis::
+valueToVector(double value) const
+{
+  Point p0, p1;
+
+  if (path().isValid()) {
+    auto d = CMathUtil::map(value, start(), end(), 0.0, 1.0);
+
+    d = std::min(std::max(d, 0.0), 1.0);
+
+    p0 = path().pointAtPercent(0.0);
+    p1 = path().pointAtPercent(d);
+  }
+  else {
+    double apos1, apos2;
+    calcPos(plot(), apos1, apos2);
+
+    if (isHorizontal()) {
+      p0 = Point(start(), apos1);
+      p1 = Point(value  , apos1);
+    }
+    else {
+      p0 = Point(apos1, start());
+      p1 = Point(apos1, value  );
+    }
+  }
+
+  return Point(p1.x - p0.x, p1.y - p0.y);
 }
 
 //---

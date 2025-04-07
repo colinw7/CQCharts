@@ -1506,7 +1506,7 @@ dataName(CQCharts *charts, const QAbstractItemModel *model, const Column &column
       min = CQChartsColumnUtil::varReal(columnDetails->minValue(), min);
       max = CQChartsColumnUtil::varReal(columnDetails->maxValue(), max);
 
-      CInterval interval(min, max, 10);
+      CInterval interval(min, max);
 
       auto min1 = interval.calcStart    ();
       auto max1 = interval.calcEnd      ();

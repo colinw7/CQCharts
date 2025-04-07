@@ -4,6 +4,11 @@ Abstract Painter/Javascript
  + JS Library with Tests
 
 TODO:
+ + mouse over table highlights point
+
+ + ternary plot (3 values) www.ternaryplot.com
+ + animation support
+
  + gradient fill scatter points and sort largest to smallest to minimize overlaps
  + color by quadrant (focus x/y default (0,0))
 

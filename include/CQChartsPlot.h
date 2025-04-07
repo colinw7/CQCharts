@@ -1034,10 +1034,10 @@ class CQChartsPlot : public CQChartsObj, public CQChartsEditableIFace,
 
   // scaled font size
   double minScaleFontSize() const { return minScaleFontSize_; }
-  void setMinScaleFontSize(double r) { minScaleFontSize_ = r; }
+  void setMinScaleFontSize(double r);
 
   double maxScaleFontSize() const { return maxScaleFontSize_; }
-  void setMaxScaleFontSize(double r) { maxScaleFontSize_ = r; }
+  void setMaxScaleFontSize(double r);
 
   //---
 

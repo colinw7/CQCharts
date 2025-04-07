@@ -59,9 +59,16 @@ addParameters()
     setTip("Draw grouped pie charts separately");
 
   addBoolParameter("donut"         , "Donut"           , "donut"         ).
-    setTip("Display pie as donut using inner radius");
-  addBoolParameter("donutValueType", "Donut Value Type", "donutValueType").
-    setTip("Value type shown in donut center");
+    setPropPath("donut.visible").setTip("Display pie as donut using inner radius");
+  addEnumParameter("donutValueType", "Donut Value Type", "donutValueType").
+    addNameValue("NONE" , static_cast<int>(CQChartsPiePlot::DonutValueType::NONE)).
+    addNameValue("MIN"  , static_cast<int>(CQChartsPiePlot::DonutValueType::MIN)).
+    addNameValue("MAX"  , static_cast<int>(CQChartsPiePlot::DonutValueType::MAX)).
+    addNameValue("MEAN" , static_cast<int>(CQChartsPiePlot::DonutValueType::MEAN)).
+    addNameValue("SUM"  , static_cast<int>(CQChartsPiePlot::DonutValueType::SUM)).
+    addNameValue("COUNT", static_cast<int>(CQChartsPiePlot::DonutValueType::COUNT)).
+    addNameValue("TITLE", static_cast<int>(CQChartsPiePlot::DonutValueType::TITLE)).
+    setPropPath("donut.valueType").setTip("Value type shown in donut center");
 
   addBoolParameter("dumbbell"    , "Dumbbell"     , "dumbbell"    ).setTip("Draw group dumbbell");
   addBoolParameter("dumbbellType", "Dumbbell Type", "dumbbellType").setTip("Draw dumbbell type");

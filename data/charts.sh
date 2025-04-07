@@ -36,23 +36,23 @@ while ($#argv > 0)
     set opts = ($opts -loop)
     shift
   else if ("$1" == "-debug") then
-    setenv CQ_CHARTS_DEBUG 1
+    setenv CQCHARTS_DEBUG 1
     shift
   else if ("$1" == "-pedantic") then
-    setenv CQ_CHARTS_PEDANTIC 1
+    setenv CQCHARTS_PEDANTIC 1
     shift
   else if ("$1" == "-auto_exit") then
-    setenv CQ_CHARTS_AUTO_EXIT 1
+    setenv CQCHARTS_AUTO_EXIT 1
     shift
   else if ("$1" == "-timer" || "$1" == "-perf_debug") then
     setenv HRTIMER_ACTIVE 1
     setenv CQ_PERF_MONITOR_DEBUG 1
     setenv CQ_PERF_MONITOR_DEBUG_PATTERN "*"
     setenv CQ_PERF_MONITOR_MIN_TIME 100
-    setenv CQ_CHARTS_DEBUG_UPDATE 1
+    setenv CQCHARTS_DEBUG_UPDATE 1
     shift
   else if ("$1" == "-opengl") then
-    setenv CQ_CHARTS_LAYER_OPEN_GL 1
+    setenv CQCHARTS_LAYER_OPEN_GL 1
     shift
   else if ("$1" == "-perf") then
     setenv CQ_PERF_MONITOR_ENABLED 1
@@ -61,15 +61,15 @@ while ($#argv > 0)
     set opts = ($opts -perf_client)
     shift
   else if ("$1" == "-quad_tree") then
-    setenv CQ_CHARTS_DEBUG_QUAD_TREE 1
+    setenv CQCHARTS_DEBUG_QUAD_TREE 1
     shift
   else if ("$1" == "-record") then
-    setenv CQ_CHARTS_OBJ_TREE_WAIT 1
-    setenv CQ_CHARTS_PLOT_UPDATE_TIMEOUT -1
+    setenv CQCHARTS_OBJ_TREE_WAIT 1
+    setenv CQCHARTS_PLOT_UPDATE_TIMEOUT -1
     set opts = ($opts -record)
     shift
   else if ("$1" == "-pixmap") then
-    setenv CQ_CHARTS_LAYER_PIXMAP 1
+    setenv CQCHARTS_LAYER_PIXMAP 1
     shift
   else if ("$1" == "-csv") then
     set csv_args = ($csv_args $1)
@@ -130,7 +130,7 @@ while ($#argv > 0)
     set modal = 0
     shift
   else if ("$1" == "-meta_edit") then
-    setenv CQ_CHARTS_META_EDIT 1
+    setenv CQCHARTS_META_EDIT 1
     shift
   else if ("$1" == "-tabbed") then
     setenv CQCHARTS_TAB_WINDOW 1
@@ -156,7 +156,7 @@ endif
 setenv QT_AUTO_SCREEN_SCALE_FACTOR 0
 setenv QT_SCALE_FACTOR 0
 
-setenv CQ_CHARTS_MODAL_DLG $modal
+setenv CQCHARTS_MODAL_DLG $modal
 
 set exe = CQChartsTest
 

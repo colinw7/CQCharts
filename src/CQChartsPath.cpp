@@ -48,6 +48,8 @@ CQChartsGeom::BBox
 CQChartsPath::
 bbox() const
 {
+  if (! path_) return BBox();
+
   return BBox(path_->boundingRect());
 }
 
@@ -57,7 +59,7 @@ bool
 CQChartsPath::
 isControlPoint(int i) const
 {
-  if (! path_) return false;
+  assert(path_);
 
   int n = path_->elementCount();
   if (i < 0 || i >= n) return false;
@@ -86,6 +88,8 @@ void
 CQChartsPath::
 move(double dx, double dy)
 {
+  assert(path_);
+
   *path_ = movePath(*path_, dx, dy);
 }
 
@@ -93,6 +97,8 @@ void
 CQChartsPath::
 scale(double sx, double sy)
 {
+  assert(path_);
+
   *path_ = scalePath(*path_, sx, sy);
 }
 
@@ -100,6 +106,8 @@ void
 CQChartsPath::
 flip(bool flipX, bool flipY)
 {
+  assert(path_);
+
   *path_ = flipPath(*path_, flipX, flipY);
 }
 
@@ -107,6 +115,8 @@ void
 CQChartsPath::
 moveScale(double dx, double dy, double sx, double sy)
 {
+  assert(path_);
+
   *path_ = moveScalePath(*path_, dx, dy, sx, sy);
 }
 
@@ -312,6 +322,41 @@ pathPoints(const QPainterPath &path, double tol)
   CQChartsDrawUtil::visitPath(path, visitor);
 
   return visitor.points();
+}
+
+//---
+
+CQChartsPath &
+CQChartsPath::
+moveTo(const Point &p)
+{
+  if (! path_)
+    path_ = new QPainterPath;
+
+  path_->moveTo(p.x, p.y);
+
+  return *this;
+}
+
+CQChartsPath &
+CQChartsPath::
+lineTo(const Point &p)
+{
+  assert(path_);
+
+  path_->lineTo(p.x, p.y);
+
+  return *this;
+}
+
+CQChartsGeom::Point
+CQChartsPath::
+pointAtPercent(double d) const
+{
+  if (! path_)
+    return Point();
+
+  return Point(path_->pointAtPercent(d));
 }
 
 //---

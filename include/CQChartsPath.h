@@ -94,6 +94,13 @@ class CQChartsPath :
 
   //---
 
+  CQChartsPath &moveTo(const Point &p);
+  CQChartsPath &lineTo(const Point &p);
+
+  Point pointAtPercent(double d) const;
+
+  //---
+
   bool setValue(const QString &str);
 
   //---

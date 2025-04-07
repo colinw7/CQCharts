@@ -92,7 +92,7 @@ class CQChartsWheelPlot;
  * \brief Wheel Plot point object
  * \ingroup Charts
  */
-class CQChartsPointObj : public CQChartsPlotObj {
+class CQChartsWheelPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsGeom::Point point READ point)
@@ -103,8 +103,8 @@ class CQChartsPointObj : public CQChartsPlotObj {
   using Angle     = CQChartsAngle;
 
  public:
-  CQChartsPointObj(const WheelPlot *plot, const BBox &rect, const PointData &pointData,
-                   const QModelIndex &ind, const ColorInd &iv);
+  CQChartsWheelPointObj(const WheelPlot *plot, const BBox &rect, const PointData &pointData,
+                        const QModelIndex &ind, const ColorInd &iv);
 
   QString typeName() const override { return "point"; }
 
@@ -482,7 +482,7 @@ class CQChartsWheelPlot : public CQChartsPlot {
 
   //---
 
-  using PointObj       = CQChartsPointObj;
+  using PointObj       = CQChartsWheelPointObj;
   using LineObj        = CQChartsLineObj;
   using InnerBarObj    = CQChartsInnerBarObj;
   using OuterBarObj    = CQChartsOuterBarObj;

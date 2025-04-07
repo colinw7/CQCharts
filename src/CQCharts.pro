@@ -105,8 +105,9 @@ CQChartsSankeyPlot.cpp \
 CQChartsScatterPlot.cpp \
 CQChartsSummaryPlot.cpp \
 CQChartsStripPlot.cpp \
-CQChartsTablePlot.cpp \
 CQChartsSunburstPlot.cpp \
+CQChartsTablePlot.cpp \
+CQChartsTernaryPlot.cpp \
 CQChartsTreeMapPlot.cpp \
 CQChartsVennPlot.cpp \
 CQChartsWheelPlot.cpp \
@@ -548,6 +549,7 @@ HEADERS += \
 ../include/CQChartsStripPlot.h \
 ../include/CQChartsSunburstPlot.h \
 ../include/CQChartsTablePlot.h \
+../include/CQChartsTernaryPlot.h \
 ../include/CQChartsTreeMapPlot.h \
 ../include/CQChartsVennPlot.h \
 ../include/CQChartsWheelPlot.h \

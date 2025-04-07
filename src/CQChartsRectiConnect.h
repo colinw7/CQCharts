@@ -118,12 +118,14 @@ class Rect {
     auto w = offset*bbox_.getWidth ();
     auto h = offset*bbox_.getHeight();
 
+    auto p = calcConnectPoint();
+
     switch (side_) {
       default:
-      case Side::TOP   : return Point(getXMid()    , getYMax() + h);
-      case Side::BOTTOM: return Point(getXMid()    , getYMin() - h);
-      case Side::LEFT  : return Point(getXMin() - w, getYMid()    );
-      case Side::RIGHT : return Point(getXMax() + w, getYMid()    );
+      case Side::TOP   : return Point(p.x    , p.y + h);
+      case Side::BOTTOM: return Point(p.x    , p.y - h);
+      case Side::LEFT  : return Point(p.x - w, p.y    );
+      case Side::RIGHT : return Point(p.x + w, p.y    );
     }
   }
 

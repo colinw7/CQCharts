@@ -3129,6 +3129,20 @@ setScaleSymbolSize(bool b)
   CQChartsUtil::testAndSet(scaleSymbolSize_, b, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsPlot::
+setMinScaleFontSize(double r)
+{
+  CQChartsUtil::testAndSet(minScaleFontSize_, r, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsPlot::
+setMaxScaleFontSize(double r)
+{
+  CQChartsUtil::testAndSet(maxScaleFontSize_, r, [&]() { drawObjs(); } );
+}
+
 //---
 
 bool
@@ -15524,8 +15538,8 @@ drawRulers(PaintDevice *device) const
   auto rawRange      = getDataRange(); // unzoomed
   auto adjustedRange = adjustDataRangeBBox(rawRange); // zoomed
 
-  CInterval xinterval(adjustedRange.getXMin(), adjustedRange.getXMax(), 20);
-  CInterval yinterval(adjustedRange.getYMin(), adjustedRange.getYMax(), 20);
+  CInterval xinterval(adjustedRange.getXMin(), adjustedRange.getXMax()); xinterval.setNumMajor(20);
+  CInterval yinterval(adjustedRange.getYMin(), adjustedRange.getYMax()); yinterval.setNumMajor(20);
 
   auto pixelRect = calcPlotPixelRect();
 

@@ -291,8 +291,8 @@ calcFont(const QFont &parentFont) const
       font.setPointSizeF(pointSize);
   }
 
-  if (! QFontInfo(parentFont).exactMatch())
-    std::cerr << parentFont.key().toStdString() << " mismatch\n";
+//if (! QFontInfo(parentFont).exactMatch())
+//  std::cerr << parentFont.key().toStdString() << " mismatch\n";
 
   return font;
 }

@@ -450,8 +450,9 @@ CQBucketer::
 autoCalc() const
 {
   if (needsCalc_) {
-    CInterval interval(rmin(), rmax(), numAuto());
+    CInterval interval(rmin(), rmax());
 
+    interval.setNumMajor(numAuto());
     interval.setIntegral(isIntegral());
 
     calcMin_   = interval.calcStart    ();
