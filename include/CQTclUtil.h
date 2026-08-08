@@ -28,9 +28,7 @@ inline bool splitList(const QString &str, QStringList &strs) {
   std::string cstr = str.toStdString();
 
   int rc = Tcl_SplitList(nullptr, cstr.c_str(), &argc, const_cast<const char ***>(&argv));
-
-  if (rc != TCL_OK)
-    return false;
+  if (rc != TCL_OK) return false;
 
   for (int i = 0; i < argc; ++i)
     strs << QString(argv[i]);
